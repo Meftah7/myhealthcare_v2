@@ -1,0 +1,190 @@
+☰ MyHealth AI — Senior Project
+  University of Bahrain · College of IT
+  Ali Mohamed Jaafar Mohamed (202208244) · Mohammed A.Redha Meftah (202209027)
+  Supervisor: Dr. Amal Ghanim
+  Details: tasks.md · Rationale: plan.md
+
+  NOW: P0-01 flutter create
+  NEXT GATE: P0-11 Drift on Web — decide before starting Phase 1
+  0/118 done
+
+Phase 0 — Scaffold: @0of14
+  Goal: empty app builds and runs on Windows, Android, Chrome with a working local DB.
+  ☐ P0-01 flutter create with android, ios, web, windows @S
+  ☐ P0-02 App name, bundle id bh.edu.uob.myhealth, icons @S @needs(P0-01)
+  ☐ P0-03 Add all dependencies to pubspec.yaml @M @needs(P0-01)
+  ☐ P0-04 Create lib/ folder tree @S
+  ☐ P0-05 Theme: colors light+dark, typography, spacing tokens @M
+  ☐ P0-06 go_router with placeholder routes @M @needs(P0-04)
+  ☐ P0-07 ProviderScope + core/di.dart @S @needs(P0-03)
+  ☐ P0-08 Result<T, Failure> + failure types @S
+  ☐ P0-09 Drift spike — Windows @M @needs(P0-03)
+  ☐ P0-10 Drift spike — Android @M @needs(P0-09)
+  ☐ P0-11 Drift spike — Web WASM + OPFS @L @critical @needs(P0-09)
+    Decision gate. If this costs more than a day, drop web support and say so in the report.
+  ☐ P0-12 Strict lints, flutter analyze clean @S
+  ☐ P0-13 git init + .gitignore — no API keys ever @S
+  ☐ P0-14 README: run, seed, add AI key @S
+
+Phase 1 — Data foundation: @0of22
+  Goal: fully populated database. Queryable realistic data, no UI yet.
+
+  Schema:
+    ☐ P1-01 Tables: users, patient_profiles, staff_profiles, departments @M
+    ☐ P1-02 Tables: appointments, schedule_templates, reminders @M
+    ☐ P1-03 Tables: medical_records, lab_values, vitals, medications @M
+    ☐ P1-04 Tables: ai_summaries, staff_tasks, risk_flags @M
+    ☐ P1-05 Tables: audit_log, app_settings @S
+    ☐ P1-06 app_database.dart — assemble, v1, migrations, platform connection @M @needs(P1-05)
+    ☐ P1-07 build_runner clean, DB opens on all 3 platforms @S @needs(P1-06)
+
+  Domain:
+    ☐ P1-08 Entities: user, patient, staff, department @M
+    ☐ P1-09 Entities: appointment, record, lab value, vitals, medication @M
+    ☐ P1-10 Entities: AI summary, staff task, risk flag @S
+    ☐ P1-11 Repository interfaces — no Drift imports @M
+
+  Data access:
+    ☐ P1-12 user_dao + auth/user repositories @M @needs(P1-11)
+    ☐ P1-13 appointment_dao + repository, slot availability @M @needs(P1-11)
+    ☐ P1-14 record_dao + repository, merged timeline query @M @needs(P1-11)
+    ☐ P1-15 vitals_dao + repository, chart series @S @needs(P1-11)
+    ☐ P1-16 task_dao, risk_dao + repositories @S @needs(P1-11)
+    ☐ P1-17 audit repository + write helper @S @needs(P1-11)
+    ☐ P1-18 Register everything in core/di.dart @S @needs(P1-17)
+
+  Seeder:
+    ☐ P1-19 Vocab: names, conditions, medications, lab analytes + ranges @M
+    ☐ P1-20 Seeder: 60 patients, 12 staff, 5 departments, 2y history @L @needs(P1-19, P1-07)
+      Correlated, not random — chronic patients visit more, some genuinely no-show often.
+    ☐ P1-21 Idempotent re-seed + reset demo data @S @needs(P1-20)
+    ☐ P1-22 Export ERD to docs/erd.png @M @needs(P1-06)
+
+Phase 2 — Auth + patient core: @0of18
+  Goal: a patient can log in and browse their entire history. No AI yet.
+  ☐ P2-01 Salted password hashing @M
+  ☐ P2-02 Login screen + controller @M @needs(P2-01)
+  ☐ P2-03 Patient registration @M @needs(P2-01)
+  ☐ P2-04 Session provider + persistence @S @needs(P2-02)
+  ☐ P2-05 Role-gated routing: patient / staff / admin @M @needs(P2-04, P0-06)
+  ☐ P2-06 Logout + switch user @S
+  ☐ P2-07 Patient home @M
+  ☐ P2-08 Health timeline — merged, grouped, lazy-loaded @L @needs(P1-14)
+  ☐ P2-09 Timeline filters + search @M @needs(P2-08)
+  ☐ P2-10 Record detail, labs as flagged table @M @needs(P2-08)
+  ☐ P2-11 PDF text extractor @M
+  ☐ P2-12 Import record: pick, copy, extract, save @M @needs(P2-11)
+  ☐ P2-13 Attachment viewer @S
+  ☐ P2-14 Vitals list + manual entry @M @needs(P1-15)
+  ☐ P2-15 Vitals charts: BP, weight, glucose, HR @M @needs(P1-15)
+  ☐ P2-16 Medications list @S @needs(P1-09)
+  ☐ P2-17 Profile + settings @M
+  ☐ P2-18 Shared widgets: empty, error, loading, confirm @S
+
+Phase 3 — AI layer · RQ1: @0of14
+  Goal: RQ1 answered end to end. Mock before real, so no screen waits on a key.
+  ☐ P3-01 AiService interface + response models @M
+  ☐ P3-02 PatientContext builder with token budgeting @M @needs(P1-14)
+  ☐ P3-03 MockAiService — build this first @M @needs(P3-01)
+  ☐ P3-04 Summarization prompt, strict JSON contract @S @needs(P3-01)
+  ☐ P3-05 ClaudeAiService — Dio, retry, fallback to mock @L @needs(P3-04)
+  ☐ P3-06 API key in secure storage, never logged or committed @M @needs(P3-05)
+  ☐ P3-07 Provider selects mock vs real from settings @S @needs(P3-03, P3-05)
+  ☐ P3-08 Summary cache keyed on input hash @M @needs(P1-04)
+  ☐ P3-09 AI summary screen @M @needs(P3-02, P3-08)
+  ☐ P3-10 Summary card on home + regenerate @S @needs(P3-09)
+  ☐ P3-11 Key events as inline timeline markers @M @needs(P3-09, P2-08)
+  ☐ P3-12 Trends link to vitals charts @S @needs(P3-09, P2-15)
+  ☐ P3-13 Safety banner on every AI surface @S @critical
+    "AI-generated — informational only, not medical advice; verify with your clinician"
+  ☐ P3-14 Persist modelId + promptVersion + timestamp @S @needs(P3-08)
+
+Phase 4 — ML + scheduling · RQ2: @0of19
+  Goal: RQ2 answered with real, reportable accuracy numbers. This phase produces the results chapter.
+
+  Python — offline training:
+    ☐ P4-01 venv + requirements @S
+    ☐ P4-02 generate_dataset.py — learnable no-show signal @M @needs(P1-20)
+    ☐ P4-03 features.py — the 11 features @M @needs(P4-02)
+    ☐ P4-04 train_no_show.py — balanced logistic regression @M @needs(P4-03)
+    ☐ P4-05 evaluate.py — accuracy, P/R/F1, ROC-AUC, confusion matrix @M @needs(P4-04)
+    ☐ P4-06 Export assets/models/no_show_model.json @S @needs(P4-04)
+    ☐ P4-07 Baseline comparison: majority class + heuristic @S @needs(P4-05)
+
+  Dart — inference:
+    ☐ P4-08 feature_extractor.dart — encoding identical to P4-03 @M @needs(P4-03)
+    ☐ P4-09 no_show_predictor.dart — scale, sigmoid, risk band @M @needs(P4-06)
+    ☐ P4-10 Per-feature contributions for explainability @M @needs(P4-09)
+    ☐ P4-11 Python-Dart parity test within 1e-6 @M @critical @needs(P4-08, P4-09)
+      Must pass before any booking UI consumes the model. A bad export fails silently.
+
+  Booking:
+    ☐ P4-12 Slot generator from templates minus booked @M @needs(P1-13)
+    ☐ P4-13 Booking wizard: department, doctor, date, slot, confirm @M @needs(P4-12)
+    ☐ P4-14 Slot ranking by risk x convenience, with reasons @M @needs(P4-09, P4-12)
+    ☐ P4-15 Optional LLM rationale layer @S @needs(P3-01, P4-14)
+    ☐ P4-16 My appointments: cancel, reschedule @M @needs(P1-13)
+    ☐ P4-17 Store noShowRisk + riskBand on the appointment @S @needs(P4-09)
+
+  Reminders:
+    ☐ P4-18 platform_notifier + in-app fallback on web @M @needs(P0-11)
+    ☐ P4-19 Risk-adaptive reminder escalation @M @needs(P4-17, P4-18)
+
+Phase 5 — Staff + admin · RQ3: @0of17
+  Goal: RQ3 answered. Rules first, AI second — the dashboard must work with AI switched off.
+
+  Rules first:
+    ☐ P5-01 RiskDetectionService: vitals, labs, med gaps, overdue follow-ups @M @needs(P1-16)
+    ☐ P5-02 Severity scoring + de-duplication @S @needs(P5-01)
+    ☐ P5-03 Rule-based task generator @S @needs(P5-01)
+
+  Staff:
+    ☐ P5-04 Staff shell + navigation @M @needs(P2-05)
+    ☐ P5-05 Staff dashboard: schedule, risk badges, tasks, flags @L @needs(P4-17, P5-01)
+    ☐ P5-06 Patient search + list @M @needs(P1-12)
+    ☐ P5-07 Patient chart — reuse Phase 2 widgets @L @needs(P2-08, P3-09)
+    ☐ P5-08 Add clinical note @M @needs(P1-14)
+    ☐ P5-09 Prescribe medication + enter lab result @M @needs(P1-09)
+    ☐ P5-10 AI task prioritization blended with rule score @M @needs(P3-01, P5-03)
+    ☐ P5-11 Task board with per-task rationale @M @needs(P5-10)
+    ☐ P5-12 Staff schedule week grid @S @needs(P1-13)
+    ☐ P5-13 Panel analytics: no-show rate, utilization @M @needs(P4-17)
+
+  Admin:
+    ☐ P5-14 User management: create, deactivate, reset, assign @M @needs(P1-12)
+    ☐ P5-15 Departments + schedule template editor @M @needs(P1-13)
+    ☐ P5-16 AI settings: key, model, mock toggle, re-seed @M @needs(P3-06, P1-21)
+    ☐ P5-17 System analytics + audit log viewer @M @needs(P1-17)
+
+Phase 6 — Testing & results: @0of9
+  Goal: evidence. Every number in the report gets produced here.
+  ☐ P6-01 Unit: predictor, features, risk rules, hashing @M
+  ☐ P6-02 Unit: repositories on in-memory DB @M
+  ☐ P6-03 Unit: AI parsing — valid, malformed, timeout, empty @M
+  ☐ P6-04 Widget: login, timeline, booking, dashboard @M
+  ☐ P6-05 Integration: seed, login, book, staff sees it @M
+  ☐ P6-06 Cross-platform smoke: Windows + Android + Chrome @M @critical
+  ☐ P6-07 Usability study, 5-8 people, SUS questionnaire @L
+  ☐ P6-08 Performance: timeline load, AI latency, cold start, DB size @M
+  ☐ P6-09 Accessibility: contrast, targets, labels, text scaling @M
+
+Phase 7 — Report & presentation: @0of5
+  ☐ P7-01 Architecture, use-case, sequence diagrams @M @needs(P1-22)
+  ☐ P7-02 Screenshots: all screens, both roles, light + dark @M
+  ☐ P7-03 Results chapter: ML metrics, baselines, SUS, performance @L @needs(P4-05, P4-07, P6-07, P6-08)
+  ☐ P7-04 Demo script, rehearsed in airplane mode with mock AI @M @critical
+    A bad conference-room network must not be able to sink the defense.
+  ☐ P7-05 Presentation deck + rehearsal @L
+
+Rules — do not break these:
+  1. P0-11 gates Phase 1. Settle web/Drift before building on it.
+  2. P3-03 before P3-05. Mock AI first, so no UI waits on a key.
+  3. P4-11 before any booking UI. An unverified model exports wrong numbers silently.
+  4. P5-01 before P5-10. The dashboard must work with AI switched off.
+
+Work split:
+  After Phase 1 — Ali: Phase 2 patient UI · Mohammed: P4-01 to P4-07 Python ML
+  After Phase 3 — Ali: Phase 4 Dart + booking · Mohammed: P5-01 to P5-06 rules + staff shell
+  Phase 6      — Ali: tests + performance · Mohammed: usability study + accessibility
+
+Archive:
