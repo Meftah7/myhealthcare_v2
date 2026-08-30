@@ -1,20 +1,25 @@
-☰ MyHealth AI — Senior Project
+☰ MyHealth Care — Senior Project
   University of Bahrain · College of IT
   Ali Mohamed Jaafar Mohamed (202208244) · Mohammed A.Redha Meftah (202209027)
   Supervisor: Dr. Amal Ghanim
   Details: tasks.md · Rationale: plan.md
+  Location: C:\dev\myhealthcare  (moved out of OneDrive — restart Claude Code here)
 
-  NOW: P0-01 flutter create
+  NOW: P0-02 app name + icons  (P0-01 done)
   NEXT GATE: P0-11 Drift on Web — decide before starting Phase 1
-  0/118 done
+  2/118 done
 
-Phase 0 — Scaffold: @0of14
+Phase 0 — Scaffold: @2of14
   Goal: empty app builds and runs on Windows, Android, Chrome with a working local DB.
-  ☐ P0-01 flutter create with android, ios, web, windows @S
-  ☐ P0-02 App name, bundle id bh.edu.uob.myhealth, icons @S @needs(P0-01)
+  ✔ P0-01 flutter create with android, ios, web, windows @S @done(2026-08-31)
+    flutter create . --project-name myhealthcare --org bh.edu.uob --platforms android,ios,web,windows
+    Windows debug build verified (myhealthcare.exe built, exit 0). flutter analyze clean.
+    Committed 8882cb6.
+  ☐ P0-02 App display name "MyHealth Care", app icons @S @needs(P0-01)
+    Bundle id bh.edu.uob.myhealthcare already set at create time.
   ☐ P0-03 Add all dependencies to pubspec.yaml @M @needs(P0-01)
   ☐ P0-04 Create lib/ folder tree @S
-  ☐ P0-05 Theme: colors light+dark, typography, spacing tokens @M
+  ☐ P0-05 Theme from DESIGN.md: ColorScheme + status ramp, TextTheme, Space/Radii @M
   ☐ P0-06 go_router with placeholder routes @M @needs(P0-04)
   ☐ P0-07 ProviderScope + core/di.dart @S @needs(P0-03)
   ☐ P0-08 Result<T, Failure> + failure types @S
@@ -23,7 +28,9 @@ Phase 0 — Scaffold: @0of14
   ☐ P0-11 Drift spike — Web WASM + OPFS @L @critical @needs(P0-09)
     Decision gate. If this costs more than a day, drop web support and say so in the report.
   ☐ P0-12 Strict lints, flutter analyze clean @S
-  ☐ P0-13 git init + .gitignore — no API keys ever @S
+  ⧗ P0-13 git init + .gitignore — no API keys ever @S @partial
+    Done: git init, first commit, .gitignore hardened (*.env, secrets.dart, api_keys.dart,
+    .agents/, .claude/skills/). Remaining: .gitattributes for LF normalization, GitHub remote.
   ☐ P0-14 README: run, seed, add AI key @S
 
 Phase 1 — Data foundation: @0of22
