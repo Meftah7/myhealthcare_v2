@@ -96,7 +96,7 @@ test/
 
 | Concern | Package |
 |---|---|
-| State | `flutter_riverpod`, `riverpod_annotation` |
+| State | `flutter_riverpod` (2.x, hand-written providers — see note) |
 | DB | `drift`, `drift_flutter`, `sqlite3_flutter_libs`, `drift_dev`, `build_runner` |
 | Models | `freezed`, `json_serializable` |
 | Nav | `go_router` |
@@ -106,6 +106,15 @@ test/
 | Security | `crypto` (password hash+salt), `flutter_secure_storage` (API key) |
 | Files | `file_picker`, `path_provider`, `syncfusion_flutter_pdf` (pure-Dart PDF text extraction) |
 | Misc | `intl`, `uuid`, `shared_preferences`, `google_fonts` |
+
+> **Toolchain note (P0-03).** On the locked toolchain (Flutter 3.44.4 / Dart 3.12.2)
+> the modern codegen stack does not co-resolve: `freezed` 4.x needs Dart ≥ 3.13, while
+> `drift_dev` ≥ 2.34.1 and `riverpod_generator` 4.x require `analyzer` 13, which
+> `freezed` 3.x (analyzer ≤ 11) cannot share. Chosen resolution: **Riverpod 2.6.1 with
+> hand-written providers** (no `riverpod_generator`/`@riverpod`), `drift`/`drift_dev`
+> pinned just below the analyzer-13 bump, `freezed` 3.x kept for entity generation.
+> `riverpod_lint`/`custom_lint` dropped. Re-evaluate if Flutter is upgraded to a
+> Dart ≥ 3.13 release.
 
 ---
 

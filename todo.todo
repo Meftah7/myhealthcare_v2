@@ -5,11 +5,11 @@
   Details: tasks.md · Rationale: plan.md
   Location: C:\dev\myhealthcare  (moved out of OneDrive — restart Claude Code here)
 
-  NOW: P0-03 dependencies  (P0-02 done)
+  NOW: P0-04 lib/ folder tree  (P0-03 done)
   NEXT GATE: P0-11 Drift on Web — decide before starting Phase 1
-  3/118 done
+  4/118 done
 
-Phase 0 — Scaffold: @3of14
+Phase 0 — Scaffold: @4of14
   Goal: empty app builds and runs on Windows, Android, Chrome with a working local DB.
   ✔ P0-01 flutter create with android, ios, web, windows @S @done(2026-08-31)
     flutter create . --project-name myhealthcare --org bh.edu.uob --platforms android,ios,web,windows
@@ -25,7 +25,18 @@ Phase 0 — Scaffold: @3of14
     (config: flutter_launcher_icons.yaml). Android adaptive icon = teal bg + white
     foreground. Windows debug build verified, exe ProductName "MyHealth Care".
     flutter analyze clean.
-  ☐ P0-03 Add all dependencies to pubspec.yaml @M @needs(P0-01)
+  ✔ P0-03 Add all dependencies to pubspec.yaml @M @done(2026-08-31)
+    All packages from plan.md added; flutter pub get clean, analyze clean,
+    Windows debug build verified.
+    TOOLCHAIN CONSTRAINT (Dart 3.12.2 / Flutter 3.44.4): freezed 4.x needs Dart
+    >= 3.13, and drift_dev >= 2.34.1 / riverpod_generator 4.x need analyzer 13,
+    which freezed 3.x (analyzer <= 11) cannot share. Resolution:
+      - Riverpod 2.6.1 with HAND-WRITTEN providers — no riverpod_generator,
+        no @riverpod codegen. (Most-documented Riverpod version; simpler build.)
+      - drift pinned ^2.34.0, drift_dev pinned '>=2.34.0 <2.34.1' (pre-analyzer-13).
+      - freezed ^3.1.0 (still used for entity codegen — that's the important one).
+      - riverpod_lint + custom_lint dropped (ecosystem lag vs analyzer).
+    Revisit the whole set if Flutter is upgraded to a Dart >= 3.13 release.
   ☐ P0-04 Create lib/ folder tree @S
   ☐ P0-05 Theme from DESIGN.md: ColorScheme + status ramp, TextTheme, Space/Radii @M
   ☐ P0-06 go_router with placeholder routes @M @needs(P0-04)
