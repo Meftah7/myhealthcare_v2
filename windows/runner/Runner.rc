@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "bh.edu.uob" "\0"
-            VALUE "FileDescription", "myhealthcare" "\0"
+            VALUE "FileDescription", "MyHealth Care" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "myhealthcare" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 bh.edu.uob. All rights reserved." "\0"
             VALUE "OriginalFilename", "myhealthcare.exe" "\0"
-            VALUE "ProductName", "myhealthcare" "\0"
+            VALUE "ProductName", "MyHealth Care" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

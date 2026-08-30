@@ -5,18 +5,26 @@
   Details: tasks.md · Rationale: plan.md
   Location: C:\dev\myhealthcare  (moved out of OneDrive — restart Claude Code here)
 
-  NOW: P0-02 app name + icons  (P0-01 done)
+  NOW: P0-03 dependencies  (P0-02 done)
   NEXT GATE: P0-11 Drift on Web — decide before starting Phase 1
-  2/118 done
+  3/118 done
 
-Phase 0 — Scaffold: @2of14
+Phase 0 — Scaffold: @3of14
   Goal: empty app builds and runs on Windows, Android, Chrome with a working local DB.
   ✔ P0-01 flutter create with android, ios, web, windows @S @done(2026-08-31)
     flutter create . --project-name myhealthcare --org bh.edu.uob --platforms android,ios,web,windows
     Windows debug build verified (myhealthcare.exe built, exit 0). flutter analyze clean.
     Committed 8882cb6.
-  ☐ P0-02 App display name "MyHealth Care", app icons @S @needs(P0-01)
-    Bundle id bh.edu.uob.myhealthcare already set at create time.
+  ✔ P0-02 App display name "MyHealth Care", app icons @S @done(2026-08-31)
+    Bundle id bh.edu.uob.myhealthcare already set at create time — left unchanged.
+    Display name "MyHealth Care" set on Android (manifest label), iOS (CFBundleDisplayName
+    + CFBundleName), Web (index.html title + manifest name/short_name), Windows
+    (window title + Runner.rc ProductName/FileDescription). Binary name stays myhealthcare.
+    Icon: original teal (#00696E) medical-cross + ECG-pulse mark, master art in
+    assets/icon/, generated for all 4 platforms via flutter_launcher_icons
+    (config: flutter_launcher_icons.yaml). Android adaptive icon = teal bg + white
+    foreground. Windows debug build verified, exe ProductName "MyHealth Care".
+    flutter analyze clean.
   ☐ P0-03 Add all dependencies to pubspec.yaml @M @needs(P0-01)
   ☐ P0-04 Create lib/ folder tree @S
   ☐ P0-05 Theme from DESIGN.md: ColorScheme + status ramp, TextTheme, Space/Radii @M
