@@ -6,6 +6,7 @@ import 'package:drift/drift.dart';
 import '../../../domain/enums.dart';
 import '../converters.dart';
 
+@DataClassName('DepartmentRow')
 class Departments extends Table {
   TextColumn get id => text()();
   TextColumn get name => text().withLength(min: 1, max: 120)();
@@ -15,6 +16,7 @@ class Departments extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+@DataClassName('UserRow')
 class Users extends Table {
   TextColumn get id => text()();
   TextColumn get role => textEnum<UserRole>()();
@@ -34,6 +36,7 @@ class Users extends Table {
 }
 
 /// One row per patient, keyed by [Users.id].
+@DataClassName('PatientProfileRow')
 class PatientProfiles extends Table {
   TextColumn get userId =>
       text().references(Users, #id, onDelete: KeyAction.cascade)();
@@ -51,6 +54,7 @@ class PatientProfiles extends Table {
 }
 
 /// One row per staff member, keyed by [Users.id].
+@DataClassName('StaffProfileRow')
 class StaffProfiles extends Table {
   TextColumn get userId =>
       text().references(Users, #id, onDelete: KeyAction.cascade)();

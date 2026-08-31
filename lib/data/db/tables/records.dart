@@ -7,6 +7,7 @@ import 'package:drift/drift.dart';
 import '../../../domain/enums.dart';
 import 'users.dart';
 
+@DataClassName('MedicalRecordRow')
 class MedicalRecords extends Table {
   TextColumn get id => text()();
   TextColumn get patientId =>
@@ -35,6 +36,7 @@ class MedicalRecords extends Table {
 }
 
 /// Individual analyte results attached to a `labResult` [MedicalRecords] row.
+@DataClassName('LabValueRow')
 class LabValues extends Table {
   TextColumn get id => text()();
   TextColumn get recordId =>
@@ -51,6 +53,7 @@ class LabValues extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+@DataClassName('VitalsRow')
 class Vitals extends Table {
   TextColumn get id => text()();
   TextColumn get patientId =>
@@ -67,12 +70,14 @@ class Vitals extends Table {
   RealColumn get glucose => real().nullable()();
 
   /// Null for self-entered vitals (P2-14).
-  TextColumn get recordedByStaffId => text().nullable().references(Users, #id)();
+  TextColumn get recordedByStaffId =>
+      text().nullable().references(Users, #id)();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
 
+@DataClassName('MedicationRow')
 class Medications extends Table {
   TextColumn get id => text()();
   TextColumn get patientId =>

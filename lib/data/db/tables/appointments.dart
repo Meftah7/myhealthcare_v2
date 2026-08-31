@@ -8,6 +8,7 @@ import 'users.dart';
 
 /// A recurring weekly working block for a staff member; the slot generator
 /// (P4-12) expands these minus booked appointments.
+@DataClassName('ScheduleTemplateRow')
 class ScheduleTemplates extends Table {
   TextColumn get id => text()();
   TextColumn get staffId =>
@@ -25,12 +26,14 @@ class ScheduleTemplates extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+@DataClassName('AppointmentRow')
 class Appointments extends Table {
   TextColumn get id => text()();
   TextColumn get patientId =>
       text().references(Users, #id, onDelete: KeyAction.cascade)();
   TextColumn get staffId => text().references(Users, #id)();
-  TextColumn get departmentId => text().nullable().references(Departments, #id)();
+  TextColumn get departmentId =>
+      text().nullable().references(Departments, #id)();
 
   DateTimeColumn get slotStart => dateTime()();
   DateTimeColumn get slotEnd => dateTime()();
@@ -52,6 +55,7 @@ class Appointments extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+@DataClassName('ReminderRow')
 class Reminders extends Table {
   TextColumn get id => text()();
   TextColumn get appointmentId =>

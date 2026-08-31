@@ -5,9 +5,9 @@
   Details: tasks.md · Rationale: plan.md
   Location: C:\dev\myhealthcare  (moved out of OneDrive — restart Claude Code here)
 
-  NOW: P1-12 DAOs + repository implementations  (P1-08..P1-11 done)
+  NOW: P1-19 seeder vocab  (P1-12..P1-18 done)
   GATE: end of Phase 1 — review schema + seeder before Phase 2
-  24/118 done · Phase 0 done bar P0-10 (Android, blocked) + P0-13 GitHub remote
+  31/118 done · Phase 0 done bar P0-10 (Android, blocked) + P0-13 GitHub remote
 
 Phase 0 — Scaffold: @13of14
   Goal: empty app builds and runs on Windows, Android, Chrome with a working local DB.
@@ -175,14 +175,38 @@ Phase 1 — Data foundation: @7of22
       drift/flutter-UI imports in lib/domain/. Barrels: entities.dart,
       repositories.dart.
 
-  Data access:
-    ☐ P1-12 user_dao + auth/user repositories @M @needs(P1-11)
-    ☐ P1-13 appointment_dao + repository, slot availability @M @needs(P1-11)
-    ☐ P1-14 record_dao + repository, merged timeline query @M @needs(P1-11)
-    ☐ P1-15 vitals_dao + repository, chart series @S @needs(P1-11)
-    ☐ P1-16 task_dao, risk_dao + repositories @S @needs(P1-11)
-    ☐ P1-17 audit repository + write helper @S @needs(P1-11)
-    ☐ P1-18 Register everything in core/di.dart @S @needs(P1-17)
+  Data access:  (repos query drift directly — no separate @DriftAccessor DAO
+                 layer; the repo IS the query logic. Row classes renamed
+                 *Row via @DataClassName to avoid clashing with entities.
+                 PasswordHasher built here — P2-01 done early, PBKDF2-SHA256.)
+    ✔ P1-12 user_dao + auth/user repositories @M @done(2026-08-31)
+      auth_repository_impl.dart (AuthRepositoryImpl login/register/changePw,
+      UserRepositoryImpl byId/byRole/watchById/createStaff/setActive/reset),
+      patient_repository_impl.dart (Patient search/all/updateProfile,
+      Department all/byId/upsert). mappers.dart: row→entity.
+    ✔ P1-13 appointment_dao + repository, slot availability @M @done(2026-08-31)
+      appointment_repository_impl.dart: forPatient/forStaffOnDay(+watch),
+      openSlots (templates minus booked), book (double-book guard),
+      reschedule/cancel/updateStatus/markCheckedIn.
+    ✔ P1-14 record_dao + repository, merged timeline query @M @done(2026-08-31)
+      record_repository_impl.dart: timeline (type + text filter, paginated,
+      +watch), add (record + labs in one txn, classifyLab against ref range).
+    ✔ P1-15 vitals_dao + repository, chart series @S @done(2026-08-31)
+      VitalsRepositoryImpl (forPatient with date range, watch, add) +
+      MedicationRepositoryImpl in the same file.
+    ✔ P1-16 task_dao, risk_dao + repositories @S @done(2026-08-31)
+      task_repository_impl.dart: TaskRepositoryImpl (forStaff+watch, upsert,
+      setStatus, applyAiPriority), RiskRepositoryImpl (forPatient,
+      unacknowledged+watch, upsertByDedupeKey, acknowledge).
+    ✔ P1-17 audit repository + write helper @S @done(2026-08-31)
+      system_repository_impl.dart: AuditRepositoryImpl (record helper + query
+      filters), SettingsRepositoryImpl (auto-creates the singleton row, watch).
+      Also ai_summary_repository_impl.dart (cache store, JSON codecs).
+    ✔ P1-18 Register everything in core/di.dart @S @done(2026-08-31)
+      13 repository providers + passwordHasherProvider, all wired to
+      appDatabaseProvider. 7 repo unit tests on NativeDatabase.memory()
+      (test/support/test_database.dart — sqlite3 3.5 native asset, no DLL
+      wiring) all green.
 
   Seeder:
     ☐ P1-19 Vocab: names, conditions, medications, lab analytes + ranges @M

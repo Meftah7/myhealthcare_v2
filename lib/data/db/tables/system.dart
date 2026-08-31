@@ -6,6 +6,7 @@ import 'package:drift/drift.dart';
 import 'users.dart';
 
 /// Append-only trail of security-relevant actions (feeds the privacy chapter).
+@DataClassName('AuditLogRow')
 class AuditLog extends Table {
   TextColumn get id => text()();
   TextColumn get actorUserId => text().nullable().references(Users, #id)();
@@ -20,6 +21,7 @@ class AuditLog extends Table {
 }
 
 /// Single-row settings table. The app enforces exactly one row (id == 1).
+@DataClassName('AppSettingsRow')
 class AppSettings extends Table {
   IntColumn get id => integer().withDefault(const Constant(1))();
   BoolColumn get aiEnabled => boolean().withDefault(const Constant(true))();

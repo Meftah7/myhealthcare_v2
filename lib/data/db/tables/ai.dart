@@ -9,11 +9,13 @@ import 'users.dart';
 /// One cached summary per distinct patient context. Keyed for lookup by
 /// [inputHash] so an unchanged context reuses the row — identical demo output
 /// every run, no wasted API calls (P3-08).
+@DataClassName('AiSummaryRow')
 class AiSummaries extends Table {
   TextColumn get id => text()();
   TextColumn get patientId =>
       text().references(Users, #id, onDelete: KeyAction.cascade)();
-  DateTimeColumn get generatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get generatedAt =>
+      dateTime().withDefault(currentDateAndTime)();
 
   /// Traceability (P3-14).
   TextColumn get modelId => text()();
@@ -33,6 +35,7 @@ class AiSummaries extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+@DataClassName('StaffTaskRow')
 class StaffTasks extends Table {
   TextColumn get id => text()();
   TextColumn get staffId =>
@@ -57,6 +60,7 @@ class StaffTasks extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+@DataClassName('RiskFlagRow')
 class RiskFlags extends Table {
   TextColumn get id => text()();
   TextColumn get patientId =>

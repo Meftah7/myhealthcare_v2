@@ -4,7 +4,7 @@ part of 'app_database.dart';
 
 // ignore_for_file: type=lint
 class $DepartmentsTable extends Departments
-    with TableInfo<$DepartmentsTable, Department> {
+    with TableInfo<$DepartmentsTable, DepartmentRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -51,7 +51,7 @@ class $DepartmentsTable extends Departments
   static const String $name = 'departments';
   @override
   VerificationContext validateIntegrity(
-    Insertable<Department> instance, {
+    Insertable<DepartmentRow> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -84,9 +84,9 @@ class $DepartmentsTable extends Departments
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  Department map(Map<String, dynamic> data, {String? tablePrefix}) {
+  DepartmentRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return Department(
+    return DepartmentRow(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -108,11 +108,11 @@ class $DepartmentsTable extends Departments
   }
 }
 
-class Department extends DataClass implements Insertable<Department> {
+class DepartmentRow extends DataClass implements Insertable<DepartmentRow> {
   final String id;
   final String name;
   final String? description;
-  const Department({required this.id, required this.name, this.description});
+  const DepartmentRow({required this.id, required this.name, this.description});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -134,12 +134,12 @@ class Department extends DataClass implements Insertable<Department> {
     );
   }
 
-  factory Department.fromJson(
+  factory DepartmentRow.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return Department(
+    return DepartmentRow(
       id: serializer.fromJson<String>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       description: serializer.fromJson<String?>(json['description']),
@@ -155,17 +155,17 @@ class Department extends DataClass implements Insertable<Department> {
     };
   }
 
-  Department copyWith({
+  DepartmentRow copyWith({
     String? id,
     String? name,
     Value<String?> description = const Value.absent(),
-  }) => Department(
+  }) => DepartmentRow(
     id: id ?? this.id,
     name: name ?? this.name,
     description: description.present ? description.value : this.description,
   );
-  Department copyWithCompanion(DepartmentsCompanion data) {
-    return Department(
+  DepartmentRow copyWithCompanion(DepartmentsCompanion data) {
+    return DepartmentRow(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       description: data.description.present
@@ -176,7 +176,7 @@ class Department extends DataClass implements Insertable<Department> {
 
   @override
   String toString() {
-    return (StringBuffer('Department(')
+    return (StringBuffer('DepartmentRow(')
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('description: $description')
@@ -189,13 +189,13 @@ class Department extends DataClass implements Insertable<Department> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Department &&
+      (other is DepartmentRow &&
           other.id == this.id &&
           other.name == this.name &&
           other.description == this.description);
 }
 
-class DepartmentsCompanion extends UpdateCompanion<Department> {
+class DepartmentsCompanion extends UpdateCompanion<DepartmentRow> {
   final Value<String> id;
   final Value<String> name;
   final Value<String?> description;
@@ -213,7 +213,7 @@ class DepartmentsCompanion extends UpdateCompanion<Department> {
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name);
-  static Insertable<Department> custom({
+  static Insertable<DepartmentRow> custom({
     Expression<String>? id,
     Expression<String>? name,
     Expression<String>? description,
@@ -271,7 +271,7 @@ class DepartmentsCompanion extends UpdateCompanion<Department> {
   }
 }
 
-class $UsersTable extends Users with TableInfo<$UsersTable, User> {
+class $UsersTable extends Users with TableInfo<$UsersTable, UserRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -432,7 +432,7 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
   static const String $name = 'users';
   @override
   VerificationContext validateIntegrity(
-    Insertable<User> instance, {
+    Insertable<UserRow> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -516,9 +516,9 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  User map(Map<String, dynamic> data, {String? tablePrefix}) {
+  UserRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return User(
+    return UserRow(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -587,7 +587,7 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
       JsonTypeConverter2.asNullable($convertergender);
 }
 
-class User extends DataClass implements Insertable<User> {
+class UserRow extends DataClass implements Insertable<UserRow> {
   final String id;
   final UserRole role;
   final String fullName;
@@ -600,7 +600,7 @@ class User extends DataClass implements Insertable<User> {
   final String? nationalId;
   final bool isActive;
   final DateTime createdAt;
-  const User({
+  const UserRow({
     required this.id,
     required this.role,
     required this.fullName,
@@ -667,12 +667,12 @@ class User extends DataClass implements Insertable<User> {
     );
   }
 
-  factory User.fromJson(
+  factory UserRow.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return User(
+    return UserRow(
       id: serializer.fromJson<String>(json['id']),
       role: $UsersTable.$converterrole.fromJson(
         serializer.fromJson<String>(json['role']),
@@ -714,7 +714,7 @@ class User extends DataClass implements Insertable<User> {
     };
   }
 
-  User copyWith({
+  UserRow copyWith({
     String? id,
     UserRole? role,
     String? fullName,
@@ -727,7 +727,7 @@ class User extends DataClass implements Insertable<User> {
     Value<String?> nationalId = const Value.absent(),
     bool? isActive,
     DateTime? createdAt,
-  }) => User(
+  }) => UserRow(
     id: id ?? this.id,
     role: role ?? this.role,
     fullName: fullName ?? this.fullName,
@@ -741,8 +741,8 @@ class User extends DataClass implements Insertable<User> {
     isActive: isActive ?? this.isActive,
     createdAt: createdAt ?? this.createdAt,
   );
-  User copyWithCompanion(UsersCompanion data) {
-    return User(
+  UserRow copyWithCompanion(UsersCompanion data) {
+    return UserRow(
       id: data.id.present ? data.id.value : this.id,
       role: data.role.present ? data.role.value : this.role,
       fullName: data.fullName.present ? data.fullName.value : this.fullName,
@@ -766,7 +766,7 @@ class User extends DataClass implements Insertable<User> {
 
   @override
   String toString() {
-    return (StringBuffer('User(')
+    return (StringBuffer('UserRow(')
           ..write('id: $id, ')
           ..write('role: $role, ')
           ..write('fullName: $fullName, ')
@@ -801,7 +801,7 @@ class User extends DataClass implements Insertable<User> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is User &&
+      (other is UserRow &&
           other.id == this.id &&
           other.role == this.role &&
           other.fullName == this.fullName &&
@@ -816,7 +816,7 @@ class User extends DataClass implements Insertable<User> {
           other.createdAt == this.createdAt);
 }
 
-class UsersCompanion extends UpdateCompanion<User> {
+class UsersCompanion extends UpdateCompanion<UserRow> {
   final Value<String> id;
   final Value<UserRole> role;
   final Value<String> fullName;
@@ -865,7 +865,7 @@ class UsersCompanion extends UpdateCompanion<User> {
        email = Value(email),
        passwordHash = Value(passwordHash),
        passwordSalt = Value(passwordSalt);
-  static Insertable<User> custom({
+  static Insertable<UserRow> custom({
     Expression<String>? id,
     Expression<String>? role,
     Expression<String>? fullName,
@@ -1000,7 +1000,7 @@ class UsersCompanion extends UpdateCompanion<User> {
 }
 
 class $PatientProfilesTable extends PatientProfiles
-    with TableInfo<$PatientProfilesTable, PatientProfile> {
+    with TableInfo<$PatientProfilesTable, PatientProfileRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -1077,7 +1077,7 @@ class $PatientProfilesTable extends PatientProfiles
   static const String $name = 'patient_profiles';
   @override
   VerificationContext validateIntegrity(
-    Insertable<PatientProfile> instance, {
+    Insertable<PatientProfileRow> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -1111,9 +1111,9 @@ class $PatientProfilesTable extends PatientProfiles
   @override
   Set<GeneratedColumn> get $primaryKey => {userId};
   @override
-  PatientProfile map(Map<String, dynamic> data, {String? tablePrefix}) {
+  PatientProfileRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return PatientProfile(
+    return PatientProfileRow(
       userId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}user_id'],
@@ -1153,13 +1153,14 @@ class $PatientProfilesTable extends PatientProfiles
       const StringListConverter();
 }
 
-class PatientProfile extends DataClass implements Insertable<PatientProfile> {
+class PatientProfileRow extends DataClass
+    implements Insertable<PatientProfileRow> {
   final String userId;
   final String? bloodType;
   final List<String> allergies;
   final List<String> chronicConditions;
   final String? emergencyContact;
-  const PatientProfile({
+  const PatientProfileRow({
     required this.userId,
     this.bloodType,
     required this.allergies,
@@ -1205,12 +1206,12 @@ class PatientProfile extends DataClass implements Insertable<PatientProfile> {
     );
   }
 
-  factory PatientProfile.fromJson(
+  factory PatientProfileRow.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return PatientProfile(
+    return PatientProfileRow(
       userId: serializer.fromJson<String>(json['userId']),
       bloodType: serializer.fromJson<String?>(json['bloodType']),
       allergies: serializer.fromJson<List<String>>(json['allergies']),
@@ -1232,13 +1233,13 @@ class PatientProfile extends DataClass implements Insertable<PatientProfile> {
     };
   }
 
-  PatientProfile copyWith({
+  PatientProfileRow copyWith({
     String? userId,
     Value<String?> bloodType = const Value.absent(),
     List<String>? allergies,
     List<String>? chronicConditions,
     Value<String?> emergencyContact = const Value.absent(),
-  }) => PatientProfile(
+  }) => PatientProfileRow(
     userId: userId ?? this.userId,
     bloodType: bloodType.present ? bloodType.value : this.bloodType,
     allergies: allergies ?? this.allergies,
@@ -1247,8 +1248,8 @@ class PatientProfile extends DataClass implements Insertable<PatientProfile> {
         ? emergencyContact.value
         : this.emergencyContact,
   );
-  PatientProfile copyWithCompanion(PatientProfilesCompanion data) {
-    return PatientProfile(
+  PatientProfileRow copyWithCompanion(PatientProfilesCompanion data) {
+    return PatientProfileRow(
       userId: data.userId.present ? data.userId.value : this.userId,
       bloodType: data.bloodType.present ? data.bloodType.value : this.bloodType,
       allergies: data.allergies.present ? data.allergies.value : this.allergies,
@@ -1263,7 +1264,7 @@ class PatientProfile extends DataClass implements Insertable<PatientProfile> {
 
   @override
   String toString() {
-    return (StringBuffer('PatientProfile(')
+    return (StringBuffer('PatientProfileRow(')
           ..write('userId: $userId, ')
           ..write('bloodType: $bloodType, ')
           ..write('allergies: $allergies, ')
@@ -1284,7 +1285,7 @@ class PatientProfile extends DataClass implements Insertable<PatientProfile> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is PatientProfile &&
+      (other is PatientProfileRow &&
           other.userId == this.userId &&
           other.bloodType == this.bloodType &&
           other.allergies == this.allergies &&
@@ -1292,7 +1293,7 @@ class PatientProfile extends DataClass implements Insertable<PatientProfile> {
           other.emergencyContact == this.emergencyContact);
 }
 
-class PatientProfilesCompanion extends UpdateCompanion<PatientProfile> {
+class PatientProfilesCompanion extends UpdateCompanion<PatientProfileRow> {
   final Value<String> userId;
   final Value<String?> bloodType;
   final Value<List<String>> allergies;
@@ -1315,7 +1316,7 @@ class PatientProfilesCompanion extends UpdateCompanion<PatientProfile> {
     this.emergencyContact = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : userId = Value(userId);
-  static Insertable<PatientProfile> custom({
+  static Insertable<PatientProfileRow> custom({
     Expression<String>? userId,
     Expression<String>? bloodType,
     Expression<String>? allergies,
@@ -1396,7 +1397,7 @@ class PatientProfilesCompanion extends UpdateCompanion<PatientProfile> {
 }
 
 class $StaffProfilesTable extends StaffProfiles
-    with TableInfo<$StaffProfilesTable, StaffProfile> {
+    with TableInfo<$StaffProfilesTable, StaffProfileRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -1475,7 +1476,7 @@ class $StaffProfilesTable extends StaffProfiles
   static const String $name = 'staff_profiles';
   @override
   VerificationContext validateIntegrity(
-    Insertable<StaffProfile> instance, {
+    Insertable<StaffProfileRow> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -1521,9 +1522,9 @@ class $StaffProfilesTable extends StaffProfiles
   @override
   Set<GeneratedColumn> get $primaryKey => {userId};
   @override
-  StaffProfile map(Map<String, dynamic> data, {String? tablePrefix}) {
+  StaffProfileRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return StaffProfile(
+    return StaffProfileRow(
       userId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}user_id'],
@@ -1553,13 +1554,13 @@ class $StaffProfilesTable extends StaffProfiles
   }
 }
 
-class StaffProfile extends DataClass implements Insertable<StaffProfile> {
+class StaffProfileRow extends DataClass implements Insertable<StaffProfileRow> {
   final String userId;
   final String? specialty;
   final String? departmentId;
   final String? licenseNo;
   final String? jobTitle;
-  const StaffProfile({
+  const StaffProfileRow({
     required this.userId,
     this.specialty,
     this.departmentId,
@@ -1603,12 +1604,12 @@ class StaffProfile extends DataClass implements Insertable<StaffProfile> {
     );
   }
 
-  factory StaffProfile.fromJson(
+  factory StaffProfileRow.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return StaffProfile(
+    return StaffProfileRow(
       userId: serializer.fromJson<String>(json['userId']),
       specialty: serializer.fromJson<String?>(json['specialty']),
       departmentId: serializer.fromJson<String?>(json['departmentId']),
@@ -1628,21 +1629,21 @@ class StaffProfile extends DataClass implements Insertable<StaffProfile> {
     };
   }
 
-  StaffProfile copyWith({
+  StaffProfileRow copyWith({
     String? userId,
     Value<String?> specialty = const Value.absent(),
     Value<String?> departmentId = const Value.absent(),
     Value<String?> licenseNo = const Value.absent(),
     Value<String?> jobTitle = const Value.absent(),
-  }) => StaffProfile(
+  }) => StaffProfileRow(
     userId: userId ?? this.userId,
     specialty: specialty.present ? specialty.value : this.specialty,
     departmentId: departmentId.present ? departmentId.value : this.departmentId,
     licenseNo: licenseNo.present ? licenseNo.value : this.licenseNo,
     jobTitle: jobTitle.present ? jobTitle.value : this.jobTitle,
   );
-  StaffProfile copyWithCompanion(StaffProfilesCompanion data) {
-    return StaffProfile(
+  StaffProfileRow copyWithCompanion(StaffProfilesCompanion data) {
+    return StaffProfileRow(
       userId: data.userId.present ? data.userId.value : this.userId,
       specialty: data.specialty.present ? data.specialty.value : this.specialty,
       departmentId: data.departmentId.present
@@ -1655,7 +1656,7 @@ class StaffProfile extends DataClass implements Insertable<StaffProfile> {
 
   @override
   String toString() {
-    return (StringBuffer('StaffProfile(')
+    return (StringBuffer('StaffProfileRow(')
           ..write('userId: $userId, ')
           ..write('specialty: $specialty, ')
           ..write('departmentId: $departmentId, ')
@@ -1671,7 +1672,7 @@ class StaffProfile extends DataClass implements Insertable<StaffProfile> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is StaffProfile &&
+      (other is StaffProfileRow &&
           other.userId == this.userId &&
           other.specialty == this.specialty &&
           other.departmentId == this.departmentId &&
@@ -1679,7 +1680,7 @@ class StaffProfile extends DataClass implements Insertable<StaffProfile> {
           other.jobTitle == this.jobTitle);
 }
 
-class StaffProfilesCompanion extends UpdateCompanion<StaffProfile> {
+class StaffProfilesCompanion extends UpdateCompanion<StaffProfileRow> {
   final Value<String> userId;
   final Value<String?> specialty;
   final Value<String?> departmentId;
@@ -1702,7 +1703,7 @@ class StaffProfilesCompanion extends UpdateCompanion<StaffProfile> {
     this.jobTitle = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : userId = Value(userId);
-  static Insertable<StaffProfile> custom({
+  static Insertable<StaffProfileRow> custom({
     Expression<String>? userId,
     Expression<String>? specialty,
     Expression<String>? departmentId,
@@ -1777,7 +1778,7 @@ class StaffProfilesCompanion extends UpdateCompanion<StaffProfile> {
 }
 
 class $ScheduleTemplatesTable extends ScheduleTemplates
-    with TableInfo<$ScheduleTemplatesTable, ScheduleTemplate> {
+    with TableInfo<$ScheduleTemplatesTable, ScheduleTemplateRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -1866,7 +1867,7 @@ class $ScheduleTemplatesTable extends ScheduleTemplates
   static const String $name = 'schedule_templates';
   @override
   VerificationContext validateIntegrity(
-    Insertable<ScheduleTemplate> instance, {
+    Insertable<ScheduleTemplateRow> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -1926,9 +1927,9 @@ class $ScheduleTemplatesTable extends ScheduleTemplates
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  ScheduleTemplate map(Map<String, dynamic> data, {String? tablePrefix}) {
+  ScheduleTemplateRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return ScheduleTemplate(
+    return ScheduleTemplateRow(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -1962,8 +1963,8 @@ class $ScheduleTemplatesTable extends ScheduleTemplates
   }
 }
 
-class ScheduleTemplate extends DataClass
-    implements Insertable<ScheduleTemplate> {
+class ScheduleTemplateRow extends DataClass
+    implements Insertable<ScheduleTemplateRow> {
   final String id;
   final String staffId;
 
@@ -1974,7 +1975,7 @@ class ScheduleTemplate extends DataClass
   final int startMinutes;
   final int endMinutes;
   final int slotMinutes;
-  const ScheduleTemplate({
+  const ScheduleTemplateRow({
     required this.id,
     required this.staffId,
     required this.weekday,
@@ -2005,12 +2006,12 @@ class ScheduleTemplate extends DataClass
     );
   }
 
-  factory ScheduleTemplate.fromJson(
+  factory ScheduleTemplateRow.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return ScheduleTemplate(
+    return ScheduleTemplateRow(
       id: serializer.fromJson<String>(json['id']),
       staffId: serializer.fromJson<String>(json['staffId']),
       weekday: serializer.fromJson<int>(json['weekday']),
@@ -2032,14 +2033,14 @@ class ScheduleTemplate extends DataClass
     };
   }
 
-  ScheduleTemplate copyWith({
+  ScheduleTemplateRow copyWith({
     String? id,
     String? staffId,
     int? weekday,
     int? startMinutes,
     int? endMinutes,
     int? slotMinutes,
-  }) => ScheduleTemplate(
+  }) => ScheduleTemplateRow(
     id: id ?? this.id,
     staffId: staffId ?? this.staffId,
     weekday: weekday ?? this.weekday,
@@ -2047,8 +2048,8 @@ class ScheduleTemplate extends DataClass
     endMinutes: endMinutes ?? this.endMinutes,
     slotMinutes: slotMinutes ?? this.slotMinutes,
   );
-  ScheduleTemplate copyWithCompanion(ScheduleTemplatesCompanion data) {
-    return ScheduleTemplate(
+  ScheduleTemplateRow copyWithCompanion(ScheduleTemplatesCompanion data) {
+    return ScheduleTemplateRow(
       id: data.id.present ? data.id.value : this.id,
       staffId: data.staffId.present ? data.staffId.value : this.staffId,
       weekday: data.weekday.present ? data.weekday.value : this.weekday,
@@ -2066,7 +2067,7 @@ class ScheduleTemplate extends DataClass
 
   @override
   String toString() {
-    return (StringBuffer('ScheduleTemplate(')
+    return (StringBuffer('ScheduleTemplateRow(')
           ..write('id: $id, ')
           ..write('staffId: $staffId, ')
           ..write('weekday: $weekday, ')
@@ -2083,7 +2084,7 @@ class ScheduleTemplate extends DataClass
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is ScheduleTemplate &&
+      (other is ScheduleTemplateRow &&
           other.id == this.id &&
           other.staffId == this.staffId &&
           other.weekday == this.weekday &&
@@ -2092,7 +2093,7 @@ class ScheduleTemplate extends DataClass
           other.slotMinutes == this.slotMinutes);
 }
 
-class ScheduleTemplatesCompanion extends UpdateCompanion<ScheduleTemplate> {
+class ScheduleTemplatesCompanion extends UpdateCompanion<ScheduleTemplateRow> {
   final Value<String> id;
   final Value<String> staffId;
   final Value<int> weekday;
@@ -2122,7 +2123,7 @@ class ScheduleTemplatesCompanion extends UpdateCompanion<ScheduleTemplate> {
        weekday = Value(weekday),
        startMinutes = Value(startMinutes),
        endMinutes = Value(endMinutes);
-  static Insertable<ScheduleTemplate> custom({
+  static Insertable<ScheduleTemplateRow> custom({
     Expression<String>? id,
     Expression<String>? staffId,
     Expression<int>? weekday,
@@ -2205,7 +2206,7 @@ class ScheduleTemplatesCompanion extends UpdateCompanion<ScheduleTemplate> {
 }
 
 class $AppointmentsTable extends Appointments
-    with TableInfo<$AppointmentsTable, Appointment> {
+    with TableInfo<$AppointmentsTable, AppointmentRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -2392,7 +2393,7 @@ class $AppointmentsTable extends Appointments
   static const String $name = 'appointments';
   @override
   VerificationContext validateIntegrity(
-    Insertable<Appointment> instance, {
+    Insertable<AppointmentRow> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -2488,9 +2489,9 @@ class $AppointmentsTable extends Appointments
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  Appointment map(Map<String, dynamic> data, {String? tablePrefix}) {
+  AppointmentRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return Appointment(
+    return AppointmentRow(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -2573,7 +2574,7 @@ class $AppointmentsTable extends Appointments
       JsonTypeConverter2.asNullable($converterriskBand);
 }
 
-class Appointment extends DataClass implements Insertable<Appointment> {
+class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
   final String id;
   final String patientId;
   final String staffId;
@@ -2591,7 +2592,7 @@ class Appointment extends DataClass implements Insertable<Appointment> {
   final RiskBand? riskBand;
   final int remindersSent;
   final DateTime? checkedInAt;
-  const Appointment({
+  const AppointmentRow({
     required this.id,
     required this.patientId,
     required this.staffId,
@@ -2676,12 +2677,12 @@ class Appointment extends DataClass implements Insertable<Appointment> {
     );
   }
 
-  factory Appointment.fromJson(
+  factory AppointmentRow.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return Appointment(
+    return AppointmentRow(
       id: serializer.fromJson<String>(json['id']),
       patientId: serializer.fromJson<String>(json['patientId']),
       staffId: serializer.fromJson<String>(json['staffId']),
@@ -2731,7 +2732,7 @@ class Appointment extends DataClass implements Insertable<Appointment> {
     };
   }
 
-  Appointment copyWith({
+  AppointmentRow copyWith({
     String? id,
     String? patientId,
     String? staffId,
@@ -2746,7 +2747,7 @@ class Appointment extends DataClass implements Insertable<Appointment> {
     Value<RiskBand?> riskBand = const Value.absent(),
     int? remindersSent,
     Value<DateTime?> checkedInAt = const Value.absent(),
-  }) => Appointment(
+  }) => AppointmentRow(
     id: id ?? this.id,
     patientId: patientId ?? this.patientId,
     staffId: staffId ?? this.staffId,
@@ -2762,8 +2763,8 @@ class Appointment extends DataClass implements Insertable<Appointment> {
     remindersSent: remindersSent ?? this.remindersSent,
     checkedInAt: checkedInAt.present ? checkedInAt.value : this.checkedInAt,
   );
-  Appointment copyWithCompanion(AppointmentsCompanion data) {
-    return Appointment(
+  AppointmentRow copyWithCompanion(AppointmentsCompanion data) {
+    return AppointmentRow(
       id: data.id.present ? data.id.value : this.id,
       patientId: data.patientId.present ? data.patientId.value : this.patientId,
       staffId: data.staffId.present ? data.staffId.value : this.staffId,
@@ -2793,7 +2794,7 @@ class Appointment extends DataClass implements Insertable<Appointment> {
 
   @override
   String toString() {
-    return (StringBuffer('Appointment(')
+    return (StringBuffer('AppointmentRow(')
           ..write('id: $id, ')
           ..write('patientId: $patientId, ')
           ..write('staffId: $staffId, ')
@@ -2832,7 +2833,7 @@ class Appointment extends DataClass implements Insertable<Appointment> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Appointment &&
+      (other is AppointmentRow &&
           other.id == this.id &&
           other.patientId == this.patientId &&
           other.staffId == this.staffId &&
@@ -2849,7 +2850,7 @@ class Appointment extends DataClass implements Insertable<Appointment> {
           other.checkedInAt == this.checkedInAt);
 }
 
-class AppointmentsCompanion extends UpdateCompanion<Appointment> {
+class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
   final Value<String> id;
   final Value<String> patientId;
   final Value<String> staffId;
@@ -2904,7 +2905,7 @@ class AppointmentsCompanion extends UpdateCompanion<Appointment> {
        slotStart = Value(slotStart),
        slotEnd = Value(slotEnd),
        visitType = Value(visitType);
-  static Insertable<Appointment> custom({
+  static Insertable<AppointmentRow> custom({
     Expression<String>? id,
     Expression<String>? patientId,
     Expression<String>? staffId,
@@ -3057,7 +3058,7 @@ class AppointmentsCompanion extends UpdateCompanion<Appointment> {
 }
 
 class $RemindersTable extends Reminders
-    with TableInfo<$RemindersTable, Reminder> {
+    with TableInfo<$RemindersTable, ReminderRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -3156,7 +3157,7 @@ class $RemindersTable extends Reminders
   static const String $name = 'reminders';
   @override
   VerificationContext validateIntegrity(
-    Insertable<Reminder> instance, {
+    Insertable<ReminderRow> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -3209,9 +3210,9 @@ class $RemindersTable extends Reminders
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  Reminder map(Map<String, dynamic> data, {String? tablePrefix}) {
+  ReminderRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return Reminder(
+    return ReminderRow(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -3258,7 +3259,7 @@ class $RemindersTable extends Reminders
       const EnumNameConverter<ReminderKind>(ReminderKind.values);
 }
 
-class Reminder extends DataClass implements Insertable<Reminder> {
+class ReminderRow extends DataClass implements Insertable<ReminderRow> {
   final String id;
   final String appointmentId;
   final DateTime scheduledFor;
@@ -3266,7 +3267,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
   final ReminderKind kind;
   final DateTime? sentAt;
   final bool acknowledged;
-  const Reminder({
+  const ReminderRow({
     required this.id,
     required this.appointmentId,
     required this.scheduledFor,
@@ -3312,12 +3313,12 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     );
   }
 
-  factory Reminder.fromJson(
+  factory ReminderRow.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return Reminder(
+    return ReminderRow(
       id: serializer.fromJson<String>(json['id']),
       appointmentId: serializer.fromJson<String>(json['appointmentId']),
       scheduledFor: serializer.fromJson<DateTime>(json['scheduledFor']),
@@ -3349,7 +3350,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     };
   }
 
-  Reminder copyWith({
+  ReminderRow copyWith({
     String? id,
     String? appointmentId,
     DateTime? scheduledFor,
@@ -3357,7 +3358,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     ReminderKind? kind,
     Value<DateTime?> sentAt = const Value.absent(),
     bool? acknowledged,
-  }) => Reminder(
+  }) => ReminderRow(
     id: id ?? this.id,
     appointmentId: appointmentId ?? this.appointmentId,
     scheduledFor: scheduledFor ?? this.scheduledFor,
@@ -3366,8 +3367,8 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     sentAt: sentAt.present ? sentAt.value : this.sentAt,
     acknowledged: acknowledged ?? this.acknowledged,
   );
-  Reminder copyWithCompanion(RemindersCompanion data) {
-    return Reminder(
+  ReminderRow copyWithCompanion(RemindersCompanion data) {
+    return ReminderRow(
       id: data.id.present ? data.id.value : this.id,
       appointmentId: data.appointmentId.present
           ? data.appointmentId.value
@@ -3386,7 +3387,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
 
   @override
   String toString() {
-    return (StringBuffer('Reminder(')
+    return (StringBuffer('ReminderRow(')
           ..write('id: $id, ')
           ..write('appointmentId: $appointmentId, ')
           ..write('scheduledFor: $scheduledFor, ')
@@ -3411,7 +3412,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Reminder &&
+      (other is ReminderRow &&
           other.id == this.id &&
           other.appointmentId == this.appointmentId &&
           other.scheduledFor == this.scheduledFor &&
@@ -3421,7 +3422,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
           other.acknowledged == this.acknowledged);
 }
 
-class RemindersCompanion extends UpdateCompanion<Reminder> {
+class RemindersCompanion extends UpdateCompanion<ReminderRow> {
   final Value<String> id;
   final Value<String> appointmentId;
   final Value<DateTime> scheduledFor;
@@ -3453,7 +3454,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
        appointmentId = Value(appointmentId),
        scheduledFor = Value(scheduledFor),
        channel = Value(channel);
-  static Insertable<Reminder> custom({
+  static Insertable<ReminderRow> custom({
     Expression<String>? id,
     Expression<String>? appointmentId,
     Expression<DateTime>? scheduledFor,
@@ -3548,7 +3549,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
 }
 
 class $MedicalRecordsTable extends MedicalRecords
-    with TableInfo<$MedicalRecordsTable, MedicalRecord> {
+    with TableInfo<$MedicalRecordsTable, MedicalRecordRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -3698,7 +3699,7 @@ class $MedicalRecordsTable extends MedicalRecords
   static const String $name = 'medical_records';
   @override
   VerificationContext validateIntegrity(
-    Insertable<MedicalRecord> instance, {
+    Insertable<MedicalRecordRow> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -3786,9 +3787,9 @@ class $MedicalRecordsTable extends MedicalRecords
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  MedicalRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+  MedicalRecordRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return MedicalRecord(
+    return MedicalRecordRow(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -3847,7 +3848,8 @@ class $MedicalRecordsTable extends MedicalRecords
       const EnumNameConverter<RecordType>(RecordType.values);
 }
 
-class MedicalRecord extends DataClass implements Insertable<MedicalRecord> {
+class MedicalRecordRow extends DataClass
+    implements Insertable<MedicalRecordRow> {
   final String id;
   final String patientId;
 
@@ -3866,7 +3868,7 @@ class MedicalRecord extends DataClass implements Insertable<MedicalRecord> {
   /// the AI context builder (P3-02).
   final String? extractedText;
   final DateTime createdAt;
-  const MedicalRecord({
+  const MedicalRecordRow({
     required this.id,
     required this.patientId,
     this.authorStaffId,
@@ -3934,12 +3936,12 @@ class MedicalRecord extends DataClass implements Insertable<MedicalRecord> {
     );
   }
 
-  factory MedicalRecord.fromJson(
+  factory MedicalRecordRow.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return MedicalRecord(
+    return MedicalRecordRow(
       id: serializer.fromJson<String>(json['id']),
       patientId: serializer.fromJson<String>(json['patientId']),
       authorStaffId: serializer.fromJson<String?>(json['authorStaffId']),
@@ -3975,7 +3977,7 @@ class MedicalRecord extends DataClass implements Insertable<MedicalRecord> {
     };
   }
 
-  MedicalRecord copyWith({
+  MedicalRecordRow copyWith({
     String? id,
     String? patientId,
     Value<String?> authorStaffId = const Value.absent(),
@@ -3987,7 +3989,7 @@ class MedicalRecord extends DataClass implements Insertable<MedicalRecord> {
     Value<String?> attachmentPath = const Value.absent(),
     Value<String?> extractedText = const Value.absent(),
     DateTime? createdAt,
-  }) => MedicalRecord(
+  }) => MedicalRecordRow(
     id: id ?? this.id,
     patientId: patientId ?? this.patientId,
     authorStaffId: authorStaffId.present
@@ -4008,8 +4010,8 @@ class MedicalRecord extends DataClass implements Insertable<MedicalRecord> {
         : this.extractedText,
     createdAt: createdAt ?? this.createdAt,
   );
-  MedicalRecord copyWithCompanion(MedicalRecordsCompanion data) {
-    return MedicalRecord(
+  MedicalRecordRow copyWithCompanion(MedicalRecordsCompanion data) {
+    return MedicalRecordRow(
       id: data.id.present ? data.id.value : this.id,
       patientId: data.patientId.present ? data.patientId.value : this.patientId,
       authorStaffId: data.authorStaffId.present
@@ -4038,7 +4040,7 @@ class MedicalRecord extends DataClass implements Insertable<MedicalRecord> {
 
   @override
   String toString() {
-    return (StringBuffer('MedicalRecord(')
+    return (StringBuffer('MedicalRecordRow(')
           ..write('id: $id, ')
           ..write('patientId: $patientId, ')
           ..write('authorStaffId: $authorStaffId, ')
@@ -4071,7 +4073,7 @@ class MedicalRecord extends DataClass implements Insertable<MedicalRecord> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is MedicalRecord &&
+      (other is MedicalRecordRow &&
           other.id == this.id &&
           other.patientId == this.patientId &&
           other.authorStaffId == this.authorStaffId &&
@@ -4085,7 +4087,7 @@ class MedicalRecord extends DataClass implements Insertable<MedicalRecord> {
           other.createdAt == this.createdAt);
 }
 
-class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecord> {
+class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
   final Value<String> id;
   final Value<String> patientId;
   final Value<String?> authorStaffId;
@@ -4130,7 +4132,7 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecord> {
        recordType = Value(recordType),
        title = Value(title),
        occurredAt = Value(occurredAt);
-  static Insertable<MedicalRecord> custom({
+  static Insertable<MedicalRecordRow> custom({
     Expression<String>? id,
     Expression<String>? patientId,
     Expression<String>? authorStaffId,
@@ -4255,7 +4257,7 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecord> {
 }
 
 class $LabValuesTable extends LabValues
-    with TableInfo<$LabValuesTable, LabValue> {
+    with TableInfo<$LabValuesTable, LabValueRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -4360,7 +4362,7 @@ class $LabValuesTable extends LabValues
   static const String $name = 'lab_values';
   @override
   VerificationContext validateIntegrity(
-    Insertable<LabValue> instance, {
+    Insertable<LabValueRow> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -4418,9 +4420,9 @@ class $LabValuesTable extends LabValues
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  LabValue map(Map<String, dynamic> data, {String? tablePrefix}) {
+  LabValueRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return LabValue(
+    return LabValueRow(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -4469,7 +4471,7 @@ class $LabValuesTable extends LabValues
   );
 }
 
-class LabValue extends DataClass implements Insertable<LabValue> {
+class LabValueRow extends DataClass implements Insertable<LabValueRow> {
   final String id;
   final String recordId;
   final String analyte;
@@ -4478,7 +4480,7 @@ class LabValue extends DataClass implements Insertable<LabValue> {
   final double? refLow;
   final double? refHigh;
   final AbnormalFlag abnormalFlag;
-  const LabValue({
+  const LabValueRow({
     required this.id,
     required this.recordId,
     required this.analyte,
@@ -4529,12 +4531,12 @@ class LabValue extends DataClass implements Insertable<LabValue> {
     );
   }
 
-  factory LabValue.fromJson(
+  factory LabValueRow.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return LabValue(
+    return LabValueRow(
       id: serializer.fromJson<String>(json['id']),
       recordId: serializer.fromJson<String>(json['recordId']),
       analyte: serializer.fromJson<String>(json['analyte']),
@@ -4564,7 +4566,7 @@ class LabValue extends DataClass implements Insertable<LabValue> {
     };
   }
 
-  LabValue copyWith({
+  LabValueRow copyWith({
     String? id,
     String? recordId,
     String? analyte,
@@ -4573,7 +4575,7 @@ class LabValue extends DataClass implements Insertable<LabValue> {
     Value<double?> refLow = const Value.absent(),
     Value<double?> refHigh = const Value.absent(),
     AbnormalFlag? abnormalFlag,
-  }) => LabValue(
+  }) => LabValueRow(
     id: id ?? this.id,
     recordId: recordId ?? this.recordId,
     analyte: analyte ?? this.analyte,
@@ -4583,8 +4585,8 @@ class LabValue extends DataClass implements Insertable<LabValue> {
     refHigh: refHigh.present ? refHigh.value : this.refHigh,
     abnormalFlag: abnormalFlag ?? this.abnormalFlag,
   );
-  LabValue copyWithCompanion(LabValuesCompanion data) {
-    return LabValue(
+  LabValueRow copyWithCompanion(LabValuesCompanion data) {
+    return LabValueRow(
       id: data.id.present ? data.id.value : this.id,
       recordId: data.recordId.present ? data.recordId.value : this.recordId,
       analyte: data.analyte.present ? data.analyte.value : this.analyte,
@@ -4600,7 +4602,7 @@ class LabValue extends DataClass implements Insertable<LabValue> {
 
   @override
   String toString() {
-    return (StringBuffer('LabValue(')
+    return (StringBuffer('LabValueRow(')
           ..write('id: $id, ')
           ..write('recordId: $recordId, ')
           ..write('analyte: $analyte, ')
@@ -4627,7 +4629,7 @@ class LabValue extends DataClass implements Insertable<LabValue> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is LabValue &&
+      (other is LabValueRow &&
           other.id == this.id &&
           other.recordId == this.recordId &&
           other.analyte == this.analyte &&
@@ -4638,7 +4640,7 @@ class LabValue extends DataClass implements Insertable<LabValue> {
           other.abnormalFlag == this.abnormalFlag);
 }
 
-class LabValuesCompanion extends UpdateCompanion<LabValue> {
+class LabValuesCompanion extends UpdateCompanion<LabValueRow> {
   final Value<String> id;
   final Value<String> recordId;
   final Value<String> analyte;
@@ -4673,7 +4675,7 @@ class LabValuesCompanion extends UpdateCompanion<LabValue> {
        recordId = Value(recordId),
        analyte = Value(analyte),
        value = Value(value);
-  static Insertable<LabValue> custom({
+  static Insertable<LabValueRow> custom({
     Expression<String>? id,
     Expression<String>? recordId,
     Expression<String>? analyte,
@@ -4773,7 +4775,7 @@ class LabValuesCompanion extends UpdateCompanion<LabValue> {
   }
 }
 
-class $VitalsTable extends Vitals with TableInfo<$VitalsTable, Vital> {
+class $VitalsTable extends Vitals with TableInfo<$VitalsTable, VitalsRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -4933,7 +4935,7 @@ class $VitalsTable extends Vitals with TableInfo<$VitalsTable, Vital> {
   static const String $name = 'vitals';
   @override
   VerificationContext validateIntegrity(
-    Insertable<Vital> instance, {
+    Insertable<VitalsRow> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -5022,9 +5024,9 @@ class $VitalsTable extends Vitals with TableInfo<$VitalsTable, Vital> {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  Vital map(Map<String, dynamic> data, {String? tablePrefix}) {
+  VitalsRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return Vital(
+    return VitalsRow(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -5082,7 +5084,7 @@ class $VitalsTable extends Vitals with TableInfo<$VitalsTable, Vital> {
   }
 }
 
-class Vital extends DataClass implements Insertable<Vital> {
+class VitalsRow extends DataClass implements Insertable<VitalsRow> {
   final String id;
   final String patientId;
   final DateTime recordedAt;
@@ -5097,7 +5099,7 @@ class Vital extends DataClass implements Insertable<Vital> {
 
   /// Null for self-entered vitals (P2-14).
   final String? recordedByStaffId;
-  const Vital({
+  const VitalsRow({
     required this.id,
     required this.patientId,
     required this.recordedAt,
@@ -5180,12 +5182,12 @@ class Vital extends DataClass implements Insertable<Vital> {
     );
   }
 
-  factory Vital.fromJson(
+  factory VitalsRow.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return Vital(
+    return VitalsRow(
       id: serializer.fromJson<String>(json['id']),
       patientId: serializer.fromJson<String>(json['patientId']),
       recordedAt: serializer.fromJson<DateTime>(json['recordedAt']),
@@ -5221,7 +5223,7 @@ class Vital extends DataClass implements Insertable<Vital> {
     };
   }
 
-  Vital copyWith({
+  VitalsRow copyWith({
     String? id,
     String? patientId,
     DateTime? recordedAt,
@@ -5234,7 +5236,7 @@ class Vital extends DataClass implements Insertable<Vital> {
     Value<int?> spo2 = const Value.absent(),
     Value<double?> glucose = const Value.absent(),
     Value<String?> recordedByStaffId = const Value.absent(),
-  }) => Vital(
+  }) => VitalsRow(
     id: id ?? this.id,
     patientId: patientId ?? this.patientId,
     recordedAt: recordedAt ?? this.recordedAt,
@@ -5250,8 +5252,8 @@ class Vital extends DataClass implements Insertable<Vital> {
         ? recordedByStaffId.value
         : this.recordedByStaffId,
   );
-  Vital copyWithCompanion(VitalsCompanion data) {
-    return Vital(
+  VitalsRow copyWithCompanion(VitalsCompanion data) {
+    return VitalsRow(
       id: data.id.present ? data.id.value : this.id,
       patientId: data.patientId.present ? data.patientId.value : this.patientId,
       recordedAt: data.recordedAt.present
@@ -5273,7 +5275,7 @@ class Vital extends DataClass implements Insertable<Vital> {
 
   @override
   String toString() {
-    return (StringBuffer('Vital(')
+    return (StringBuffer('VitalsRow(')
           ..write('id: $id, ')
           ..write('patientId: $patientId, ')
           ..write('recordedAt: $recordedAt, ')
@@ -5308,7 +5310,7 @@ class Vital extends DataClass implements Insertable<Vital> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Vital &&
+      (other is VitalsRow &&
           other.id == this.id &&
           other.patientId == this.patientId &&
           other.recordedAt == this.recordedAt &&
@@ -5323,7 +5325,7 @@ class Vital extends DataClass implements Insertable<Vital> {
           other.recordedByStaffId == this.recordedByStaffId);
 }
 
-class VitalsCompanion extends UpdateCompanion<Vital> {
+class VitalsCompanion extends UpdateCompanion<VitalsRow> {
   final Value<String> id;
   final Value<String> patientId;
   final Value<DateTime> recordedAt;
@@ -5369,7 +5371,7 @@ class VitalsCompanion extends UpdateCompanion<Vital> {
   }) : id = Value(id),
        patientId = Value(patientId),
        recordedAt = Value(recordedAt);
-  static Insertable<Vital> custom({
+  static Insertable<VitalsRow> custom({
     Expression<String>? id,
     Expression<String>? patientId,
     Expression<DateTime>? recordedAt,
@@ -5500,7 +5502,7 @@ class VitalsCompanion extends UpdateCompanion<Vital> {
 }
 
 class $MedicationsTable extends Medications
-    with TableInfo<$MedicationsTable, Medication> {
+    with TableInfo<$MedicationsTable, MedicationRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -5631,7 +5633,7 @@ class $MedicationsTable extends Medications
   static const String $name = 'medications';
   @override
   VerificationContext validateIntegrity(
-    Insertable<Medication> instance, {
+    Insertable<MedicationRow> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -5704,9 +5706,9 @@ class $MedicationsTable extends Medications
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  Medication map(Map<String, dynamic> data, {String? tablePrefix}) {
+  MedicationRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return Medication(
+    return MedicationRow(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -5752,7 +5754,7 @@ class $MedicationsTable extends Medications
   }
 }
 
-class Medication extends DataClass implements Insertable<Medication> {
+class MedicationRow extends DataClass implements Insertable<MedicationRow> {
   final String id;
   final String patientId;
   final String? prescriberId;
@@ -5762,7 +5764,7 @@ class Medication extends DataClass implements Insertable<Medication> {
   final DateTime startDate;
   final DateTime? endDate;
   final bool isActive;
-  const Medication({
+  const MedicationRow({
     required this.id,
     required this.patientId,
     this.prescriberId,
@@ -5816,12 +5818,12 @@ class Medication extends DataClass implements Insertable<Medication> {
     );
   }
 
-  factory Medication.fromJson(
+  factory MedicationRow.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return Medication(
+    return MedicationRow(
       id: serializer.fromJson<String>(json['id']),
       patientId: serializer.fromJson<String>(json['patientId']),
       prescriberId: serializer.fromJson<String?>(json['prescriberId']),
@@ -5849,7 +5851,7 @@ class Medication extends DataClass implements Insertable<Medication> {
     };
   }
 
-  Medication copyWith({
+  MedicationRow copyWith({
     String? id,
     String? patientId,
     Value<String?> prescriberId = const Value.absent(),
@@ -5859,7 +5861,7 @@ class Medication extends DataClass implements Insertable<Medication> {
     DateTime? startDate,
     Value<DateTime?> endDate = const Value.absent(),
     bool? isActive,
-  }) => Medication(
+  }) => MedicationRow(
     id: id ?? this.id,
     patientId: patientId ?? this.patientId,
     prescriberId: prescriberId.present ? prescriberId.value : this.prescriberId,
@@ -5870,8 +5872,8 @@ class Medication extends DataClass implements Insertable<Medication> {
     endDate: endDate.present ? endDate.value : this.endDate,
     isActive: isActive ?? this.isActive,
   );
-  Medication copyWithCompanion(MedicationsCompanion data) {
-    return Medication(
+  MedicationRow copyWithCompanion(MedicationsCompanion data) {
+    return MedicationRow(
       id: data.id.present ? data.id.value : this.id,
       patientId: data.patientId.present ? data.patientId.value : this.patientId,
       prescriberId: data.prescriberId.present
@@ -5888,7 +5890,7 @@ class Medication extends DataClass implements Insertable<Medication> {
 
   @override
   String toString() {
-    return (StringBuffer('Medication(')
+    return (StringBuffer('MedicationRow(')
           ..write('id: $id, ')
           ..write('patientId: $patientId, ')
           ..write('prescriberId: $prescriberId, ')
@@ -5917,7 +5919,7 @@ class Medication extends DataClass implements Insertable<Medication> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Medication &&
+      (other is MedicationRow &&
           other.id == this.id &&
           other.patientId == this.patientId &&
           other.prescriberId == this.prescriberId &&
@@ -5929,7 +5931,7 @@ class Medication extends DataClass implements Insertable<Medication> {
           other.isActive == this.isActive);
 }
 
-class MedicationsCompanion extends UpdateCompanion<Medication> {
+class MedicationsCompanion extends UpdateCompanion<MedicationRow> {
   final Value<String> id;
   final Value<String> patientId;
   final Value<String?> prescriberId;
@@ -5967,7 +5969,7 @@ class MedicationsCompanion extends UpdateCompanion<Medication> {
        patientId = Value(patientId),
        name = Value(name),
        startDate = Value(startDate);
-  static Insertable<Medication> custom({
+  static Insertable<MedicationRow> custom({
     Expression<String>? id,
     Expression<String>? patientId,
     Expression<String>? prescriberId,
@@ -6074,7 +6076,7 @@ class MedicationsCompanion extends UpdateCompanion<Medication> {
 }
 
 class $AiSummariesTable extends AiSummaries
-    with TableInfo<$AiSummariesTable, AiSummary> {
+    with TableInfo<$AiSummariesTable, AiSummaryRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -6214,7 +6216,7 @@ class $AiSummariesTable extends AiSummaries
   static const String $name = 'ai_summaries';
   @override
   VerificationContext validateIntegrity(
-    Insertable<AiSummary> instance, {
+    Insertable<AiSummaryRow> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -6309,9 +6311,9 @@ class $AiSummariesTable extends AiSummaries
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  AiSummary map(Map<String, dynamic> data, {String? tablePrefix}) {
+  AiSummaryRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return AiSummary(
+    return AiSummaryRow(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -6361,7 +6363,7 @@ class $AiSummariesTable extends AiSummaries
   }
 }
 
-class AiSummary extends DataClass implements Insertable<AiSummary> {
+class AiSummaryRow extends DataClass implements Insertable<AiSummaryRow> {
   final String id;
   final String patientId;
   final DateTime generatedAt;
@@ -6378,7 +6380,7 @@ class AiSummary extends DataClass implements Insertable<AiSummary> {
 
   /// Hash of the context the summary was generated from (cache key).
   final String inputHash;
-  const AiSummary({
+  const AiSummaryRow({
     required this.id,
     required this.patientId,
     required this.generatedAt,
@@ -6421,12 +6423,12 @@ class AiSummary extends DataClass implements Insertable<AiSummary> {
     );
   }
 
-  factory AiSummary.fromJson(
+  factory AiSummaryRow.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return AiSummary(
+    return AiSummaryRow(
       id: serializer.fromJson<String>(json['id']),
       patientId: serializer.fromJson<String>(json['patientId']),
       generatedAt: serializer.fromJson<DateTime>(json['generatedAt']),
@@ -6456,7 +6458,7 @@ class AiSummary extends DataClass implements Insertable<AiSummary> {
     };
   }
 
-  AiSummary copyWith({
+  AiSummaryRow copyWith({
     String? id,
     String? patientId,
     DateTime? generatedAt,
@@ -6467,7 +6469,7 @@ class AiSummary extends DataClass implements Insertable<AiSummary> {
     String? trendsJson,
     String? redFlagsJson,
     String? inputHash,
-  }) => AiSummary(
+  }) => AiSummaryRow(
     id: id ?? this.id,
     patientId: patientId ?? this.patientId,
     generatedAt: generatedAt ?? this.generatedAt,
@@ -6479,8 +6481,8 @@ class AiSummary extends DataClass implements Insertable<AiSummary> {
     redFlagsJson: redFlagsJson ?? this.redFlagsJson,
     inputHash: inputHash ?? this.inputHash,
   );
-  AiSummary copyWithCompanion(AiSummariesCompanion data) {
-    return AiSummary(
+  AiSummaryRow copyWithCompanion(AiSummariesCompanion data) {
+    return AiSummaryRow(
       id: data.id.present ? data.id.value : this.id,
       patientId: data.patientId.present ? data.patientId.value : this.patientId,
       generatedAt: data.generatedAt.present
@@ -6508,7 +6510,7 @@ class AiSummary extends DataClass implements Insertable<AiSummary> {
 
   @override
   String toString() {
-    return (StringBuffer('AiSummary(')
+    return (StringBuffer('AiSummaryRow(')
           ..write('id: $id, ')
           ..write('patientId: $patientId, ')
           ..write('generatedAt: $generatedAt, ')
@@ -6539,7 +6541,7 @@ class AiSummary extends DataClass implements Insertable<AiSummary> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is AiSummary &&
+      (other is AiSummaryRow &&
           other.id == this.id &&
           other.patientId == this.patientId &&
           other.generatedAt == this.generatedAt &&
@@ -6552,7 +6554,7 @@ class AiSummary extends DataClass implements Insertable<AiSummary> {
           other.inputHash == this.inputHash);
 }
 
-class AiSummariesCompanion extends UpdateCompanion<AiSummary> {
+class AiSummariesCompanion extends UpdateCompanion<AiSummaryRow> {
   final Value<String> id;
   final Value<String> patientId;
   final Value<DateTime> generatedAt;
@@ -6595,7 +6597,7 @@ class AiSummariesCompanion extends UpdateCompanion<AiSummary> {
        promptVersion = Value(promptVersion),
        summaryMarkdown = Value(summaryMarkdown),
        inputHash = Value(inputHash);
-  static Insertable<AiSummary> custom({
+  static Insertable<AiSummaryRow> custom({
     Expression<String>? id,
     Expression<String>? patientId,
     Expression<DateTime>? generatedAt,
@@ -6710,7 +6712,7 @@ class AiSummariesCompanion extends UpdateCompanion<AiSummary> {
 }
 
 class $StaffTasksTable extends StaffTasks
-    with TableInfo<$StaffTasksTable, StaffTask> {
+    with TableInfo<$StaffTasksTable, StaffTaskRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -6860,7 +6862,7 @@ class $StaffTasksTable extends StaffTasks
   static const String $name = 'staff_tasks';
   @override
   VerificationContext validateIntegrity(
-    Insertable<StaffTask> instance, {
+    Insertable<StaffTaskRow> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -6934,9 +6936,9 @@ class $StaffTasksTable extends StaffTasks
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  StaffTask map(Map<String, dynamic> data, {String? tablePrefix}) {
+  StaffTaskRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return StaffTask(
+    return StaffTaskRow(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -6999,7 +7001,7 @@ class $StaffTasksTable extends StaffTasks
       const EnumNameConverter<TaskStatus>(TaskStatus.values);
 }
 
-class StaffTask extends DataClass implements Insertable<StaffTask> {
+class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
   final String id;
   final String staffId;
   final String? patientId;
@@ -7015,7 +7017,7 @@ class StaffTask extends DataClass implements Insertable<StaffTask> {
   final double? aiPriorityScore;
   final String? aiRationale;
   final DateTime createdAt;
-  const StaffTask({
+  const StaffTaskRow({
     required this.id,
     required this.staffId,
     this.patientId,
@@ -7085,12 +7087,12 @@ class StaffTask extends DataClass implements Insertable<StaffTask> {
     );
   }
 
-  factory StaffTask.fromJson(
+  factory StaffTaskRow.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return StaffTask(
+    return StaffTaskRow(
       id: serializer.fromJson<String>(json['id']),
       staffId: serializer.fromJson<String>(json['staffId']),
       patientId: serializer.fromJson<String?>(json['patientId']),
@@ -7130,7 +7132,7 @@ class StaffTask extends DataClass implements Insertable<StaffTask> {
     };
   }
 
-  StaffTask copyWith({
+  StaffTaskRow copyWith({
     String? id,
     String? staffId,
     Value<String?> patientId = const Value.absent(),
@@ -7142,7 +7144,7 @@ class StaffTask extends DataClass implements Insertable<StaffTask> {
     Value<double?> aiPriorityScore = const Value.absent(),
     Value<String?> aiRationale = const Value.absent(),
     DateTime? createdAt,
-  }) => StaffTask(
+  }) => StaffTaskRow(
     id: id ?? this.id,
     staffId: staffId ?? this.staffId,
     patientId: patientId.present ? patientId.value : this.patientId,
@@ -7157,8 +7159,8 @@ class StaffTask extends DataClass implements Insertable<StaffTask> {
     aiRationale: aiRationale.present ? aiRationale.value : this.aiRationale,
     createdAt: createdAt ?? this.createdAt,
   );
-  StaffTask copyWithCompanion(StaffTasksCompanion data) {
-    return StaffTask(
+  StaffTaskRow copyWithCompanion(StaffTasksCompanion data) {
+    return StaffTaskRow(
       id: data.id.present ? data.id.value : this.id,
       staffId: data.staffId.present ? data.staffId.value : this.staffId,
       patientId: data.patientId.present ? data.patientId.value : this.patientId,
@@ -7179,7 +7181,7 @@ class StaffTask extends DataClass implements Insertable<StaffTask> {
 
   @override
   String toString() {
-    return (StringBuffer('StaffTask(')
+    return (StringBuffer('StaffTaskRow(')
           ..write('id: $id, ')
           ..write('staffId: $staffId, ')
           ..write('patientId: $patientId, ')
@@ -7212,7 +7214,7 @@ class StaffTask extends DataClass implements Insertable<StaffTask> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is StaffTask &&
+      (other is StaffTaskRow &&
           other.id == this.id &&
           other.staffId == this.staffId &&
           other.patientId == this.patientId &&
@@ -7226,7 +7228,7 @@ class StaffTask extends DataClass implements Insertable<StaffTask> {
           other.createdAt == this.createdAt);
 }
 
-class StaffTasksCompanion extends UpdateCompanion<StaffTask> {
+class StaffTasksCompanion extends UpdateCompanion<StaffTaskRow> {
   final Value<String> id;
   final Value<String> staffId;
   final Value<String?> patientId;
@@ -7270,7 +7272,7 @@ class StaffTasksCompanion extends UpdateCompanion<StaffTask> {
        staffId = Value(staffId),
        title = Value(title),
        kind = Value(kind);
-  static Insertable<StaffTask> custom({
+  static Insertable<StaffTaskRow> custom({
     Expression<String>? id,
     Expression<String>? staffId,
     Expression<String>? patientId,
@@ -7397,7 +7399,7 @@ class StaffTasksCompanion extends UpdateCompanion<StaffTask> {
 }
 
 class $RiskFlagsTable extends RiskFlags
-    with TableInfo<$RiskFlagsTable, RiskFlag> {
+    with TableInfo<$RiskFlagsTable, RiskFlagRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -7533,7 +7535,7 @@ class $RiskFlagsTable extends RiskFlags
   static const String $name = 'risk_flags';
   @override
   VerificationContext validateIntegrity(
-    Insertable<RiskFlag> instance, {
+    Insertable<RiskFlagRow> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -7597,9 +7599,9 @@ class $RiskFlagsTable extends RiskFlags
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  RiskFlag map(Map<String, dynamic> data, {String? tablePrefix}) {
+  RiskFlagRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return RiskFlag(
+    return RiskFlagRow(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -7662,7 +7664,7 @@ class $RiskFlagsTable extends RiskFlags
       const EnumNameConverter<FlagSource>(FlagSource.values);
 }
 
-class RiskFlag extends DataClass implements Insertable<RiskFlag> {
+class RiskFlagRow extends DataClass implements Insertable<RiskFlagRow> {
   final String id;
   final String patientId;
   final RiskFlagKind kind;
@@ -7675,7 +7677,7 @@ class RiskFlag extends DataClass implements Insertable<RiskFlag> {
   final String dedupeKey;
   final String? acknowledgedBy;
   final DateTime? acknowledgedAt;
-  const RiskFlag({
+  const RiskFlagRow({
     required this.id,
     required this.patientId,
     required this.kind,
@@ -7738,12 +7740,12 @@ class RiskFlag extends DataClass implements Insertable<RiskFlag> {
     );
   }
 
-  factory RiskFlag.fromJson(
+  factory RiskFlagRow.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return RiskFlag(
+    return RiskFlagRow(
       id: serializer.fromJson<String>(json['id']),
       patientId: serializer.fromJson<String>(json['patientId']),
       kind: $RiskFlagsTable.$converterkind.fromJson(
@@ -7785,7 +7787,7 @@ class RiskFlag extends DataClass implements Insertable<RiskFlag> {
     };
   }
 
-  RiskFlag copyWith({
+  RiskFlagRow copyWith({
     String? id,
     String? patientId,
     RiskFlagKind? kind,
@@ -7796,7 +7798,7 @@ class RiskFlag extends DataClass implements Insertable<RiskFlag> {
     String? dedupeKey,
     Value<String?> acknowledgedBy = const Value.absent(),
     Value<DateTime?> acknowledgedAt = const Value.absent(),
-  }) => RiskFlag(
+  }) => RiskFlagRow(
     id: id ?? this.id,
     patientId: patientId ?? this.patientId,
     kind: kind ?? this.kind,
@@ -7812,8 +7814,8 @@ class RiskFlag extends DataClass implements Insertable<RiskFlag> {
         ? acknowledgedAt.value
         : this.acknowledgedAt,
   );
-  RiskFlag copyWithCompanion(RiskFlagsCompanion data) {
-    return RiskFlag(
+  RiskFlagRow copyWithCompanion(RiskFlagsCompanion data) {
+    return RiskFlagRow(
       id: data.id.present ? data.id.value : this.id,
       patientId: data.patientId.present ? data.patientId.value : this.patientId,
       kind: data.kind.present ? data.kind.value : this.kind,
@@ -7835,7 +7837,7 @@ class RiskFlag extends DataClass implements Insertable<RiskFlag> {
 
   @override
   String toString() {
-    return (StringBuffer('RiskFlag(')
+    return (StringBuffer('RiskFlagRow(')
           ..write('id: $id, ')
           ..write('patientId: $patientId, ')
           ..write('kind: $kind, ')
@@ -7866,7 +7868,7 @@ class RiskFlag extends DataClass implements Insertable<RiskFlag> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is RiskFlag &&
+      (other is RiskFlagRow &&
           other.id == this.id &&
           other.patientId == this.patientId &&
           other.kind == this.kind &&
@@ -7879,7 +7881,7 @@ class RiskFlag extends DataClass implements Insertable<RiskFlag> {
           other.acknowledgedAt == this.acknowledgedAt);
 }
 
-class RiskFlagsCompanion extends UpdateCompanion<RiskFlag> {
+class RiskFlagsCompanion extends UpdateCompanion<RiskFlagRow> {
   final Value<String> id;
   final Value<String> patientId;
   final Value<RiskFlagKind> kind;
@@ -7922,7 +7924,7 @@ class RiskFlagsCompanion extends UpdateCompanion<RiskFlag> {
        severity = Value(severity),
        rationale = Value(rationale),
        dedupeKey = Value(dedupeKey);
-  static Insertable<RiskFlag> custom({
+  static Insertable<RiskFlagRow> custom({
     Expression<String>? id,
     Expression<String>? patientId,
     Expression<String>? kind,
@@ -8043,7 +8045,7 @@ class RiskFlagsCompanion extends UpdateCompanion<RiskFlag> {
 }
 
 class $AuditLogTable extends AuditLog
-    with TableInfo<$AuditLogTable, AuditLogData> {
+    with TableInfo<$AuditLogTable, AuditLogRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -8138,7 +8140,7 @@ class $AuditLogTable extends AuditLog
   static const String $name = 'audit_log';
   @override
   VerificationContext validateIntegrity(
-    Insertable<AuditLogData> instance, {
+    Insertable<AuditLogRow> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -8194,9 +8196,9 @@ class $AuditLogTable extends AuditLog
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  AuditLogData map(Map<String, dynamic> data, {String? tablePrefix}) {
+  AuditLogRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return AuditLogData(
+    return AuditLogRow(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -8234,7 +8236,7 @@ class $AuditLogTable extends AuditLog
   }
 }
 
-class AuditLogData extends DataClass implements Insertable<AuditLogData> {
+class AuditLogRow extends DataClass implements Insertable<AuditLogRow> {
   final String id;
   final String? actorUserId;
   final String action;
@@ -8242,7 +8244,7 @@ class AuditLogData extends DataClass implements Insertable<AuditLogData> {
   final String? entityId;
   final String? detail;
   final DateTime at;
-  const AuditLogData({
+  const AuditLogRow({
     required this.id,
     this.actorUserId,
     required this.action,
@@ -8288,12 +8290,12 @@ class AuditLogData extends DataClass implements Insertable<AuditLogData> {
     );
   }
 
-  factory AuditLogData.fromJson(
+  factory AuditLogRow.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return AuditLogData(
+    return AuditLogRow(
       id: serializer.fromJson<String>(json['id']),
       actorUserId: serializer.fromJson<String?>(json['actorUserId']),
       action: serializer.fromJson<String>(json['action']),
@@ -8317,7 +8319,7 @@ class AuditLogData extends DataClass implements Insertable<AuditLogData> {
     };
   }
 
-  AuditLogData copyWith({
+  AuditLogRow copyWith({
     String? id,
     Value<String?> actorUserId = const Value.absent(),
     String? action,
@@ -8325,7 +8327,7 @@ class AuditLogData extends DataClass implements Insertable<AuditLogData> {
     Value<String?> entityId = const Value.absent(),
     Value<String?> detail = const Value.absent(),
     DateTime? at,
-  }) => AuditLogData(
+  }) => AuditLogRow(
     id: id ?? this.id,
     actorUserId: actorUserId.present ? actorUserId.value : this.actorUserId,
     action: action ?? this.action,
@@ -8334,8 +8336,8 @@ class AuditLogData extends DataClass implements Insertable<AuditLogData> {
     detail: detail.present ? detail.value : this.detail,
     at: at ?? this.at,
   );
-  AuditLogData copyWithCompanion(AuditLogCompanion data) {
-    return AuditLogData(
+  AuditLogRow copyWithCompanion(AuditLogCompanion data) {
+    return AuditLogRow(
       id: data.id.present ? data.id.value : this.id,
       actorUserId: data.actorUserId.present
           ? data.actorUserId.value
@@ -8352,7 +8354,7 @@ class AuditLogData extends DataClass implements Insertable<AuditLogData> {
 
   @override
   String toString() {
-    return (StringBuffer('AuditLogData(')
+    return (StringBuffer('AuditLogRow(')
           ..write('id: $id, ')
           ..write('actorUserId: $actorUserId, ')
           ..write('action: $action, ')
@@ -8370,7 +8372,7 @@ class AuditLogData extends DataClass implements Insertable<AuditLogData> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is AuditLogData &&
+      (other is AuditLogRow &&
           other.id == this.id &&
           other.actorUserId == this.actorUserId &&
           other.action == this.action &&
@@ -8380,7 +8382,7 @@ class AuditLogData extends DataClass implements Insertable<AuditLogData> {
           other.at == this.at);
 }
 
-class AuditLogCompanion extends UpdateCompanion<AuditLogData> {
+class AuditLogCompanion extends UpdateCompanion<AuditLogRow> {
   final Value<String> id;
   final Value<String?> actorUserId;
   final Value<String> action;
@@ -8411,7 +8413,7 @@ class AuditLogCompanion extends UpdateCompanion<AuditLogData> {
   }) : id = Value(id),
        action = Value(action),
        entityType = Value(entityType);
-  static Insertable<AuditLogData> custom({
+  static Insertable<AuditLogRow> custom({
     Expression<String>? id,
     Expression<String>? actorUserId,
     Expression<String>? action,
@@ -8502,7 +8504,7 @@ class AuditLogCompanion extends UpdateCompanion<AuditLogData> {
 }
 
 class $AppSettingsTable extends AppSettings
-    with TableInfo<$AppSettingsTable, AppSetting> {
+    with TableInfo<$AppSettingsTable, AppSettingsRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -8612,7 +8614,7 @@ class $AppSettingsTable extends AppSettings
   static const String $name = 'app_settings';
   @override
   VerificationContext validateIntegrity(
-    Insertable<AppSetting> instance, {
+    Insertable<AppSettingsRow> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -8668,9 +8670,9 @@ class $AppSettingsTable extends AppSettings
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  AppSetting map(Map<String, dynamic> data, {String? tablePrefix}) {
+  AppSettingsRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return AppSetting(
+    return AppSettingsRow(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}id'],
@@ -8708,7 +8710,7 @@ class $AppSettingsTable extends AppSettings
   }
 }
 
-class AppSetting extends DataClass implements Insertable<AppSetting> {
+class AppSettingsRow extends DataClass implements Insertable<AppSettingsRow> {
   final int id;
   final bool aiEnabled;
 
@@ -8723,7 +8725,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
   /// Bumped by the seeder so re-seeds are detectable (P1-21).
   final int seedVersion;
   final DateTime updatedAt;
-  const AppSetting({
+  const AppSettingsRow({
     required this.id,
     required this.aiEnabled,
     required this.mockMode,
@@ -8757,12 +8759,12 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
     );
   }
 
-  factory AppSetting.fromJson(
+  factory AppSettingsRow.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return AppSetting(
+    return AppSettingsRow(
       id: serializer.fromJson<int>(json['id']),
       aiEnabled: serializer.fromJson<bool>(json['aiEnabled']),
       mockMode: serializer.fromJson<bool>(json['mockMode']),
@@ -8786,7 +8788,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
     };
   }
 
-  AppSetting copyWith({
+  AppSettingsRow copyWith({
     int? id,
     bool? aiEnabled,
     bool? mockMode,
@@ -8794,7 +8796,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
     double? aiTaskWeight,
     int? seedVersion,
     DateTime? updatedAt,
-  }) => AppSetting(
+  }) => AppSettingsRow(
     id: id ?? this.id,
     aiEnabled: aiEnabled ?? this.aiEnabled,
     mockMode: mockMode ?? this.mockMode,
@@ -8803,8 +8805,8 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
     seedVersion: seedVersion ?? this.seedVersion,
     updatedAt: updatedAt ?? this.updatedAt,
   );
-  AppSetting copyWithCompanion(AppSettingsCompanion data) {
-    return AppSetting(
+  AppSettingsRow copyWithCompanion(AppSettingsCompanion data) {
+    return AppSettingsRow(
       id: data.id.present ? data.id.value : this.id,
       aiEnabled: data.aiEnabled.present ? data.aiEnabled.value : this.aiEnabled,
       mockMode: data.mockMode.present ? data.mockMode.value : this.mockMode,
@@ -8821,7 +8823,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
 
   @override
   String toString() {
-    return (StringBuffer('AppSetting(')
+    return (StringBuffer('AppSettingsRow(')
           ..write('id: $id, ')
           ..write('aiEnabled: $aiEnabled, ')
           ..write('mockMode: $mockMode, ')
@@ -8846,7 +8848,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is AppSetting &&
+      (other is AppSettingsRow &&
           other.id == this.id &&
           other.aiEnabled == this.aiEnabled &&
           other.mockMode == this.mockMode &&
@@ -8856,7 +8858,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
           other.updatedAt == this.updatedAt);
 }
 
-class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
+class AppSettingsCompanion extends UpdateCompanion<AppSettingsRow> {
   final Value<int> id;
   final Value<bool> aiEnabled;
   final Value<bool> mockMode;
@@ -8882,7 +8884,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     this.seedVersion = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
-  static Insertable<AppSetting> custom({
+  static Insertable<AppSettingsRow> custom({
     Expression<int>? id,
     Expression<bool>? aiEnabled,
     Expression<bool>? mockMode,
