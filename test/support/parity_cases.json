@@ -1,0 +1,114 @@
+{
+  "modelVersion": "no-show-v1",
+  "featureNames": [
+    "lead_time_days",
+    "prior_no_show_rate",
+    "prior_appointment_count",
+    "age_years",
+    "visit_type_urgent",
+    "visit_type_routine",
+    "day_of_week",
+    "hour_of_day",
+    "is_first_visit",
+    "has_chronic_condition",
+    "reminders_acknowledged"
+  ],
+  "cases": [
+    {
+      "features": [
+        2.0,
+        0.0,
+        0.0,
+        45.0,
+        0.0,
+        0.0,
+        2.0,
+        9.0,
+        1.0,
+        1.0,
+        2.0
+      ],
+      "probability": 0.36390805142244365
+    },
+    {
+      "features": [
+        30.0,
+        0.6,
+        12.0,
+        22.0,
+        1.0,
+        0.0,
+        5.0,
+        15.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "probability": 0.9114693775008992
+    },
+    {
+      "features": [
+        14.0,
+        0.2,
+        4.0,
+        68.0,
+        0.0,
+        1.0,
+        3.0,
+        11.0,
+        0.0,
+        1.0,
+        1.0
+      ],
+      "probability": 0.3887297864580768
+    },
+    {
+      "features": [
+        0.0,
+        0.0,
+        1.0,
+        30.0,
+        0.0,
+        0.0,
+        1.0,
+        8.0,
+        0.0,
+        0.0,
+        2.0
+      ],
+      "probability": 0.1772194018044569
+    },
+    {
+      "features": [
+        45.0,
+        0.85,
+        20.0,
+        19.0,
+        0.0,
+        0.0,
+        4.0,
+        17.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "probability": 0.9856261057068813
+    },
+    {
+      "features": [
+        7.0,
+        0.05,
+        8.0,
+        55.0,
+        0.0,
+        1.0,
+        2.0,
+        10.0,
+        0.0,
+        1.0,
+        3.0
+      ],
+      "probability": 0.2145894603692656
+    }
+  ]
+}

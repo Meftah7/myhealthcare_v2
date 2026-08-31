@@ -44,7 +44,7 @@ class Seeder {
   final PasswordHasher _hasher;
 
   /// Bump when the generation logic changes so existing DBs re-seed.
-  static const seedVersion = 2;
+  static const seedVersion = 3;
 
   /// Password for every seeded account (documented in the README).
   static const demoPassword = 'password';
@@ -193,10 +193,12 @@ class Seeder {
           : _weighted([0.15, 0.30, 0.30, 0.20, 0.05]);
       final conditions = _sample(chronicConditions, conditionCount);
 
-      // Hidden no-show tendency: most low, a stubborn few high.
-      final noShowTendency = _rng.nextDouble() < 0.18
-          ? 0.30 + _rng.nextDouble() * 0.35
-          : 0.02 + _rng.nextDouble() * 0.15;
+      // Hidden no-show tendency: most low, a stubborn ~quarter high.
+      // Mirrors tools/ml/generate_dataset.py so the model trained offline
+      // works on this app's data.
+      final noShowTendency = _rng.nextDouble() < 0.24
+          ? 0.45 + _rng.nextDouble() * 0.40
+          : 0.02 + _rng.nextDouble() * 0.09;
 
       await _insertUser(
         id: id,
@@ -236,10 +238,10 @@ class Seeder {
   /// Returns (appointmentCount, recordCount).
   Future<(int, int)> _seedPatientHistory(_Patient p, List<_Staff> staff) async {
     final chronic = p.conditions.isNotEmpty;
-    // Chronic patients come in every 1–3 months; others a few times a year.
+    // Chronic patients come in every 3–8 weeks; others a few times a year.
     final intervalDays = chronic
-        ? 30 + _rng.nextInt(60)
-        : 120 + _rng.nextInt(180);
+        ? 24 + _rng.nextInt(34)
+        : 75 + _rng.nextInt(120);
 
     var appts = 0;
     var records = 0;
@@ -457,13 +459,13 @@ class Seeder {
   // --- correlation helpers ---------------------------------------------
 
   double _noShowProbability(_Patient p, {required int leadDays}) {
-    // Base tendency + longer lead time + a small age effect. Kept simple and
-    // monotonic so it is learnable (mirrored in tools/ml/generate_dataset.py).
+    // Base tendency + longer lead time + a small age effect. Monotonic and
+    // learnable — mirrors tools/ml/generate_dataset.py::hidden_probability.
     var x = p.noShowTendency;
-    x += (leadDays.clamp(0, 45) / 45) * 0.20;
-    if (p.age < 30) x += 0.05;
-    if (p.conditions.isNotEmpty) x -= 0.04;
-    return x.clamp(0.01, 0.95);
+    x += (leadDays.clamp(0, 45) / 45) * 0.35;
+    if (p.age < 25) x += 0.06;
+    if (p.conditions.isNotEmpty) x -= 0.05;
+    return x.clamp(0.02, 0.92);
   }
 
   AppointmentStatus _appointmentStatus(
@@ -478,8 +480,8 @@ class Seeder {
     }
     final pNoShow = _noShowProbability(p, leadDays: 10);
     final r = _rng.nextDouble();
-    if (r < pNoShow * 0.7) return AppointmentStatus.noShow;
-    if (r < pNoShow * 0.7 + 0.06) return AppointmentStatus.cancelled;
+    if (r < pNoShow * 0.85) return AppointmentStatus.noShow;
+    if (r < pNoShow * 0.85 + 0.05) return AppointmentStatus.cancelled;
     return AppointmentStatus.completed;
   }
 

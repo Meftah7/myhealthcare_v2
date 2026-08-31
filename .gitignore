@@ -58,3 +58,9 @@ lib/**/api_keys.dart
 
 # OS
 Thumbs.db
+
+# ML training artefacts (weights JSON is committed; these are regenerable)
+tools/ml/venv/
+tools/ml/dataset.csv
+tools/ml/_split.npz
+tools/ml/__pycache__/

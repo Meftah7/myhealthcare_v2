@@ -8,7 +8,9 @@ import 'package:myhealthcare/core/di.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  testWidgets('unauthenticated app lands on the sign-in screen', (tester) async {
+  testWidgets('unauthenticated app lands on the sign-in screen', (
+    tester,
+  ) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
 

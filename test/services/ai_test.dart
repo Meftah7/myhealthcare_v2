@@ -89,11 +89,8 @@ void main() {
   });
 
   group('parseHealthSummary', () {
-    HealthSummary parse(String raw) => parseHealthSummary(
-      raw,
-      modelId: 'test',
-      promptVersion: 'v1',
-    );
+    HealthSummary parse(String raw) =>
+        parseHealthSummary(raw, modelId: 'test', promptVersion: 'v1');
 
     test('parses a clean JSON object', () {
       final s = parse('''
@@ -119,7 +116,10 @@ void main() {
     });
 
     test('throws AiFailure on non-JSON', () {
-      expect(() => parse('the model is unavailable'), throwsA(isA<AiFailure>()));
+      expect(
+        () => parse('the model is unavailable'),
+        throwsA(isA<AiFailure>()),
+      );
     });
 
     test('throws AiFailure on JSON without a summary', () {

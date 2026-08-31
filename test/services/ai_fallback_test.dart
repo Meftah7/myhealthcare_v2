@@ -48,13 +48,16 @@ void main() {
     expect(r.valueOrNull!.modelId, 'mock-ai');
   });
 
-  test('GeminiAiService returns Err (not throw) on a transport failure', () async {
-    // No network / bad host → DioException → NetworkFailure, never an exception.
-    final dio = Dio(BaseOptions(baseUrl: 'http://127.0.0.1:1'));
-    final svc = GeminiAiService(apiKey: 'x', dio: dio);
-    final r = await svc.summarizeRecords(_ctx);
-    expect(r.isErr, isTrue);
-  });
+  test(
+    'GeminiAiService returns Err (not throw) on a transport failure',
+    () async {
+      // No network / bad host → DioException → NetworkFailure, never an exception.
+      final dio = Dio(BaseOptions(baseUrl: 'http://127.0.0.1:1'));
+      final svc = GeminiAiService(apiKey: 'x', dio: dio);
+      final r = await svc.summarizeRecords(_ctx);
+      expect(r.isErr, isTrue);
+    },
+  );
 
   test('FallbackAiService wrapping a broken Gemini still succeeds', () async {
     final dio = Dio(BaseOptions(baseUrl: 'http://127.0.0.1:1'));

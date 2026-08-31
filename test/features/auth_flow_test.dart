@@ -40,7 +40,9 @@ void main() {
     await Seeder(db).run();
   });
 
-  testWidgets('patient signs in and lands on the patient shell', (tester) async {
+  testWidgets('patient signs in and lands on the patient shell', (
+    tester,
+  ) async {
     await tester.pumpWidget(await _app(db));
     await _pump(tester);
 
