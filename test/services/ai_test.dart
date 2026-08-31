@@ -125,5 +125,18 @@ void main() {
     test('throws AiFailure on JSON without a summary', () {
       expect(() => parse('{"keyEvents":[]}'), throwsA(isA<AiFailure>()));
     });
+
+    test('throws AiFailure on an empty response', () {
+      expect(() => parse(''), throwsA(isA<AiFailure>()));
+      expect(() => parse('   \n  '), throwsA(isA<AiFailure>()));
+    });
+
+    test('throws AiFailure on an empty JSON object (no summary)', () {
+      expect(() => parse('{}'), throwsA(isA<AiFailure>()));
+    });
+
+    test('throws AiFailure when summary is present but blank', () {
+      expect(() => parse('{"summary":"   "}'), throwsA(isA<AiFailure>()));
+    });
   });
 }

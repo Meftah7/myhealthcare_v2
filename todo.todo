@@ -5,8 +5,8 @@ i ☰ MyHealth Care — Senior Project
   Details: tasks.md · Rationale: plan.md
   Location: C:\dev\myhealthcare  (moved out of OneDrive — restart Claude Code here)
 
-  NOW: GATE before Phase 6 — Phase 5 (RQ3) complete. Await go-ahead for Phase 6 (testing & results).
-  107/118 done · open: P0-10 Android · P0-13 GitHub · P2-11..13 PDF · P5-15 schedule-template editor (deferred) · Gemini key (paste in Admin AI Settings)
+  NOW: Phase 6 done (8/9 automated; P6-07 usability needs participants). Phase 7 = report & presentation.
+  115/118 done · open: P0-10 Android · P0-13 GitHub · P2-11..13 PDF · P5-15 template editor · P6-07 participants · Gemini key
 
 Phase 0 — Scaffold: @13of14
   Goal: empty app builds and runs on Windows, Android, Chrome with a working local DB.
@@ -455,17 +455,35 @@ Phase 5 — Staff + admin · RQ3: @16of17  (P5-15 template editor deferred)
     ✔ P5-17 System analytics + audit log viewer @M @done(2026-08-31)
       system_analytics_screen.dart (counts + panel stats) + audit_log_screen.dart (read-only feed).
 
-Phase 6 — Testing & results: @0of9
+Phase 6 — Testing & results: @8of9  (P6-07 needs participants — protocol ready)
   Goal: evidence. Every number in the report gets produced here.
-  ☐ P6-01 Unit: predictor, features, risk rules, hashing @M
-  ☐ P6-02 Unit: repositories on in-memory DB @M
-  ☐ P6-03 Unit: AI parsing — valid, malformed, timeout, empty @M
-  ☐ P6-04 Widget: login, timeline, booking, dashboard @M
-  ☐ P6-05 Integration: seed, login, book, staff sees it @M
-  ☐ P6-06 Cross-platform smoke: Windows + Android + Chrome @M @critical
-  ☐ P6-07 Usability study, 5-8 people, SUS questionnaire @L
-  ☐ P6-08 Performance: timeline load, AI latency, cold start, DB size @M
-  ☐ P6-09 Accessibility: contrast, targets, labels, text scaling @M
+  ✔ P6-01 Unit: predictor, features, risk rules, hashing @M @done(2026-08-31)
+    no_show_parity_test (predictor, 1e-6), no_show_features_test (extractor + clamping, NEW),
+    risk_detection_test (rules, 5), password_hasher_test (PBKDF2).
+  ✔ P6-02 Unit: repositories on in-memory DB @M @done(2026-08-31)
+    repositories_test + admin_repositories_test (NEW): task ordering/applyAiPriority/setStatus,
+    user createStaff/setActive/resetPassword, departments, appointment forStaffInRange/inRange.
+  ✔ P6-03 Unit: AI parsing — valid, malformed, timeout, empty @M @done(2026-08-31)
+    ai_test: clean/fenced/malformed-list/non-JSON/no-summary/empty/blank. ai_fallback_test:
+    transport failure + connect timeout -> Err (never throws), FallbackAiService drops to mock.
+  ✔ P6-04 Widget: login, timeline, booking, dashboard @M @done(2026-08-31)
+    auth_flow_test (login x3 roles), patient_browse_test (timeline+vitals), booking_test
+    (ranked slots + confirm), staff_dashboard_test (scan + task board).
+  ✔ P6-05 Integration: seed, login, book, staff sees it @M @done(2026-08-31)
+    integration_flow_test: patient books AI-ranked slot -> assigned staff logs in -> sees it on
+    the week grid + patient in panel.
+  ✔ P6-06 Cross-platform smoke: Windows + Android + Chrome @M @critical @done(2026-08-31)
+    docs/platform_smoke.md. Windows release exe + web release build both green; 74 tests on the
+    Windows VM. Android still blocked on the AEHD driver (P0-10) — code is platform-clean.
+  ⧗ P6-07 Usability study, 5-8 people, SUS questionnaire @L @done(2026-08-31, protocol)
+    docs/usability_study.md — full protocol, 10 patient/staff tasks, SUS instrument + scoring,
+    results table to fill. NEEDS 5-8 participants — human step, cannot be automated.
+  ✔ P6-08 Performance: timeline load, AI latency, cold start, DB size @M @done(2026-08-31)
+    test/performance/performance_test.dart -> docs/performance.md. Seed ~5.4s, timeline query
+    ~68ms/47 records, DB ~1MB, mock AI ~255ms, cold start ~2.6s (debug test VM).
+  ✔ P6-09 Accessibility: contrast, targets, labels, text scaling @M @done(2026-08-31)
+    accessibility_test: meetsGuideline(textContrast / androidTapTarget / iOSTapTarget /
+    labeledTapTarget) on login + patient home + staff dashboard; 2x textScaler no overflow.
 
 Phase 7 — Report & presentation: @0of5
   ☐ P7-01 Architecture, use-case, sequence diagrams @M @needs(P1-22)

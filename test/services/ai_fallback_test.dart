@@ -59,6 +59,20 @@ void main() {
     },
   );
 
+  test('GeminiAiService maps a connect timeout to Err', () async {
+    // Non-routable address + tiny timeout → DioExceptionType.connectionTimeout.
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: 'http://10.255.255.1:81',
+        connectTimeout: const Duration(milliseconds: 150),
+      ),
+    );
+    final svc = GeminiAiService(apiKey: 'x', dio: dio);
+    final r = await svc.summarizeRecords(_ctx);
+    expect(r.isErr, isTrue);
+    expect(r.failureOrNull, isA<NetworkFailure>());
+  });
+
   test('FallbackAiService wrapping a broken Gemini still succeeds', () async {
     final dio = Dio(BaseOptions(baseUrl: 'http://127.0.0.1:1'));
     final svc = FallbackAiService(
