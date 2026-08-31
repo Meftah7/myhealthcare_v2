@@ -5,11 +5,11 @@
   Details: tasks.md · Rationale: plan.md
   Location: C:\dev\myhealthcare  (moved out of OneDrive — restart Claude Code here)
 
-  NOW: P0-10 Drift spike — Android  (P0-09 done) — BLOCKED: disk full, see note
-  NEXT GATE: P0-11 Drift on Web — decide before starting Phase 1
-  10/118 done
+  NOW: P0-12 strict lints  (P0-11 done — WEB KEPT; P0-10 Android blocked on hypervisor driver)
+  GATE CLEARED: P0-11 web spike PASSED → web stays a supported platform
+  11/118 done
 
-Phase 0 — Scaffold: @10of14
+Phase 0 — Scaffold: @11of14
   Goal: empty app builds and runs on Windows, Android, Chrome with a working local DB.
   ✔ P0-01 flutter create with android, ios, web, windows @S @done(2026-08-31)
     flutter create . --project-name myhealthcare --org bh.edu.uob --platforms android,ios,web,windows
@@ -96,8 +96,17 @@ Phase 0 — Scaffold: @10of14
     flutter test integration_test/drift_spike_test.dart -d emulator-5554
     Alternative: plug in a physical Android phone with USB debugging.
     Both spike tests (round-trip + on-disk persistence) already pass on Windows.
-  ☐ P0-11 Drift spike — Web WASM + OPFS @L @critical @needs(P0-09)
-    Decision gate. If this costs more than a day, drop web support and say so in the report.
+  ✔ P0-11 Drift spike — Web WASM + OPFS @L @critical @done(2026-08-31) — WEB KEPT
+    Decision gate CLEARED well inside the time-box. web/sqlite3.wasm (sqlite3-3.5.2)
+    + web/drift_worker.js (drift-2.34.3) committed; AppDatabase wired with
+    DriftWebOptions. flutter build web succeeds; both spike tests (round-trip +
+    persistence via a fresh connection) PASS in Chrome via
+    `flutter drive ... -d web-server --browser-name=chrome` (test_driver/ added,
+    chromedriver 151 required). Notes in web/DRIFT_WEB.md.
+    Caveats (not blockers): OPFS needs COOP/COEP hosting headers, else drift
+    falls back to IndexedDB (still persistent). Local notifications don't exist
+    on web — P4-18 in-app fallback covers it. `flutter test integration_test
+    -d chrome` is unsupported; web smoke tests must use flutter drive (P6-06).
   ☐ P0-12 Strict lints, flutter analyze clean @S
   ⧗ P0-13 git init + .gitignore — no API keys ever @S @partial
     Done: git init, first commit, .gitignore hardened (*.env, secrets.dart, api_keys.dart,
