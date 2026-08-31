@@ -5,9 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../core/presentation/placeholder_screen.dart';
 import '../domain/enums.dart';
 import '../features/admin/presentation/ai_settings_screen.dart';
+import '../features/admin/presentation/audit_log_screen.dart';
+import '../features/admin/presentation/departments_screen.dart';
+import '../features/admin/presentation/system_analytics_screen.dart';
+import '../features/admin/presentation/user_management_screen.dart';
 import '../features/ai_summary/presentation/ai_summary_screen.dart';
 import '../features/appointments/presentation/appointments_screen.dart';
 import '../features/auth/application/session.dart';
@@ -15,9 +18,15 @@ import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
 import '../features/booking/presentation/booking_screen.dart';
 import '../features/patient/application/profile_screen.dart';
+import '../features/patient_chart/presentation/patient_chart_screen.dart';
 import '../features/patient_home/presentation/patient_home_screen.dart';
 import '../features/records/presentation/medications_screen.dart';
 import '../features/records/presentation/record_detail_screen.dart';
+import '../features/staff_dashboard/presentation/panel_analytics_screen.dart';
+import '../features/staff_dashboard/presentation/staff_dashboard_screen.dart';
+import '../features/staff_dashboard/presentation/staff_patients_screen.dart';
+import '../features/staff_dashboard/presentation/staff_schedule_screen.dart';
+import '../features/tasks/presentation/task_board_screen.dart';
 import '../features/timeline/presentation/timeline_screen.dart';
 import '../features/vitals/presentation/vitals_screen.dart';
 import 'shell/app_shell.dart';
@@ -114,8 +123,7 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
       ),
       GoRoute(
         path: AppRoutes.staffAnalytics,
-        builder: (_, _) =>
-            const PlaceholderScreen(title: 'Panel analytics', task: 'P5-13'),
+        builder: (_, _) => const PanelAnalyticsScreen(),
       ),
 
       _patientShell(),
@@ -269,11 +277,7 @@ StatefulShellRoute _staffShell() {
         routes: [
           GoRoute(
             path: AppRoutes.staffDashboard,
-            builder: (_, _) => const PlaceholderScreen(
-              title: 'Staff dashboard',
-              task: 'P5-05',
-              showAppBar: false,
-            ),
+            builder: (_, _) => const StaffDashboardScreen(),
           ),
         ],
       ),
@@ -281,18 +285,12 @@ StatefulShellRoute _staffShell() {
         routes: [
           GoRoute(
             path: AppRoutes.staffPatients,
-            builder: (_, _) => const PlaceholderScreen(
-              title: 'Patients',
-              task: 'P5-06',
-              showAppBar: false,
-            ),
+            builder: (_, _) => const StaffPatientsScreen(),
             routes: [
               GoRoute(
                 path: ':id',
-                builder: (_, state) => PlaceholderScreen(
-                  title: 'Patient chart ${state.pathParameters['id']}',
-                  task: 'P5-07',
-                ),
+                builder: (_, state) =>
+                    PatientChartScreen(patientId: state.pathParameters['id']!),
               ),
             ],
           ),
@@ -302,11 +300,7 @@ StatefulShellRoute _staffShell() {
         routes: [
           GoRoute(
             path: AppRoutes.staffTasks,
-            builder: (_, _) => const PlaceholderScreen(
-              title: 'Task board',
-              task: 'P5-11',
-              showAppBar: false,
-            ),
+            builder: (_, _) => const TaskBoardScreen(),
           ),
         ],
       ),
@@ -314,11 +308,7 @@ StatefulShellRoute _staffShell() {
         routes: [
           GoRoute(
             path: AppRoutes.staffSchedule,
-            builder: (_, _) => const PlaceholderScreen(
-              title: 'My schedule',
-              task: 'P5-12',
-              showAppBar: false,
-            ),
+            builder: (_, _) => const StaffScheduleScreen(),
           ),
         ],
       ),
@@ -367,11 +357,7 @@ StatefulShellRoute _adminShell() {
         routes: [
           GoRoute(
             path: AppRoutes.adminUsers,
-            builder: (_, _) => const PlaceholderScreen(
-              title: 'User management',
-              task: 'P5-14',
-              showAppBar: false,
-            ),
+            builder: (_, _) => const UserManagementScreen(),
           ),
         ],
       ),
@@ -379,11 +365,7 @@ StatefulShellRoute _adminShell() {
         routes: [
           GoRoute(
             path: AppRoutes.adminDepartments,
-            builder: (_, _) => const PlaceholderScreen(
-              title: 'Departments & templates',
-              task: 'P5-15',
-              showAppBar: false,
-            ),
+            builder: (_, _) => const DepartmentsScreen(),
           ),
         ],
       ),
@@ -391,11 +373,7 @@ StatefulShellRoute _adminShell() {
         routes: [
           GoRoute(
             path: AppRoutes.adminAnalytics,
-            builder: (_, _) => const PlaceholderScreen(
-              title: 'System analytics',
-              task: 'P5-17',
-              showAppBar: false,
-            ),
+            builder: (_, _) => const SystemAnalyticsScreen(),
           ),
         ],
       ),
@@ -403,11 +381,7 @@ StatefulShellRoute _adminShell() {
         routes: [
           GoRoute(
             path: AppRoutes.adminAudit,
-            builder: (_, _) => const PlaceholderScreen(
-              title: 'Audit log',
-              task: 'P5-17',
-              showAppBar: false,
-            ),
+            builder: (_, _) => const AuditLogScreen(),
           ),
         ],
       ),

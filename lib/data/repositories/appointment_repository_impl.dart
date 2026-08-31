@@ -75,6 +75,43 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
   }
 
   @override
+  Future<Result<List<Appointment>>> forStaffInRange(
+    String staffId,
+    DateTime from,
+    DateTime to,
+  ) {
+    return Result.guardAsync(() async {
+      final rows =
+          await (_db.select(_db.appointments)
+                ..where(
+                  (a) =>
+                      a.staffId.equals(staffId) &
+                      a.slotStart.isBiggerOrEqualValue(from) &
+                      a.slotStart.isSmallerThanValue(to),
+                )
+                ..orderBy([(a) => OrderingTerm(expression: a.slotStart)]))
+              .get();
+      return rows.map((r) => r.toEntity()).toList();
+    });
+  }
+
+  @override
+  Future<Result<List<Appointment>>> inRange(DateTime from, DateTime to) {
+    return Result.guardAsync(() async {
+      final rows =
+          await (_db.select(_db.appointments)
+                ..where(
+                  (a) =>
+                      a.slotStart.isBiggerOrEqualValue(from) &
+                      a.slotStart.isSmallerThanValue(to),
+                )
+                ..orderBy([(a) => OrderingTerm(expression: a.slotStart)]))
+              .get();
+      return rows.map((r) => r.toEntity()).toList();
+    });
+  }
+
+  @override
   Stream<List<Appointment>> watchForStaffOnDay(String staffId, DateTime day) {
     return _forStaffOnDayQuery(
       staffId,

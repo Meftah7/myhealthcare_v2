@@ -52,6 +52,18 @@ abstract interface class AppointmentRepository {
 
   Future<Result<List<Appointment>>> forStaffOnDay(String staffId, DateTime day);
 
+  /// Every appointment for [staffId] in `[from, to)` — the staff week grid
+  /// (P5-12).
+  Future<Result<List<Appointment>>> forStaffInRange(
+    String staffId,
+    DateTime from,
+    DateTime to,
+  );
+
+  /// Every appointment in `[from, to)`, any staff — panel + system analytics
+  /// (P5-13, P5-17).
+  Future<Result<List<Appointment>>> inRange(DateTime from, DateTime to);
+
   Stream<List<Appointment>> watchForStaffOnDay(String staffId, DateTime day);
 
   /// Free slots for a staff member on [day], derived from their schedule

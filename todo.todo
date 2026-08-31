@@ -5,8 +5,8 @@ i ☰ MyHealth Care — Senior Project
   Details: tasks.md · Rationale: plan.md
   Location: C:\dev\myhealthcare  (moved out of OneDrive — restart Claude Code here)
 
-  NOW: Phase 5 — Staff + admin (RQ3). GATE before Phase 6.
-  90/118 done · open: P0-10 Android · P0-13 GitHub · P2-11..13 PDF · Gemini key (paste in Admin AI Settings)
+  NOW: GATE before Phase 6 — Phase 5 (RQ3) complete. Await go-ahead for Phase 6 (testing & results).
+  107/118 done · open: P0-10 Android · P0-13 GitHub · P2-11..13 PDF · P5-15 schedule-template editor (deferred) · Gemini key (paste in Admin AI Settings)
 
 Phase 0 — Scaffold: @13of14
   Goal: empty app builds and runs on Windows, Android, Chrome with a working local DB.
@@ -405,31 +405,55 @@ Phase 4 — ML + scheduling · RQ2: @18of19  (P4-15 optional LLM layer skipped)
       (5-day confirm-or-release + 24h + 2h escalated). Idempotent on reschedule.
       Wired into BookingController. 2 tests.
 
-Phase 5 — Staff + admin · RQ3: @0of17
+Phase 5 — Staff + admin · RQ3: @16of17  (P5-15 template editor deferred)
   Goal: RQ3 answered. Rules first, AI second — the dashboard must work with AI switched off.
 
   Rules first:
-    ☐ P5-01 RiskDetectionService: vitals, labs, med gaps, overdue follow-ups @M @needs(P1-16)
-    ☐ P5-02 Severity scoring + de-duplication @S @needs(P5-01)
-    ☐ P5-03 Rule-based task generator @S @needs(P5-01)
+    ✔ P5-01 RiskDetectionService: vitals, labs, med gaps, overdue follow-ups @M @done(2026-08-31)
+      lib/services/rules/risk_detection_service.dart. Deterministic, no network. BP/SpO2/glucose
+      thresholds, critical labs (120d), med-gap by chronic condition, overdue follow-up (>=8mo).
+    ✔ P5-02 Severity scoring + de-duplication @S @done(2026-08-31)
+      Severity info/warning/urgent per rule; dedupeKey '<pid>:<suffix>'; RiskRepository
+      .upsertByDedupeKey. 5 tests in test/services/risk_detection_test.dart.
+    ✔ P5-03 Rule-based task generator @S @done(2026-08-31)
+      lib/services/rules/task_generator.dart. Flag -> StaffTask with ruleScore (0.9/0.6/0.3),
+      dueAt (urgent +1d else +7d), id from staffId+dedupeKey hash (idempotent).
 
   Staff:
-    ☐ P5-04 Staff shell + navigation @M @needs(P2-05)
-    ☐ P5-05 Staff dashboard: schedule, risk badges, tasks, flags @L @needs(P4-17, P5-01)
-    ☐ P5-06 Patient search + list @M @needs(P1-12)
-    ☐ P5-07 Patient chart — reuse Phase 2 widgets @L @needs(P2-08, P3-09)
-    ☐ P5-08 Add clinical note @M @needs(P1-14)
-    ☐ P5-09 Prescribe medication + enter lab result @M @needs(P1-09)
-    ☐ P5-10 AI task prioritization blended with rule score @M @needs(P3-01, P5-03)
-    ☐ P5-11 Task board with per-task rationale @M @needs(P5-10)
-    ☐ P5-12 Staff schedule week grid @S @needs(P1-13)
-    ☐ P5-13 Panel analytics: no-show rate, utilization @M @needs(P4-17)
+    ✔ P5-04 Staff shell + navigation @M @done(2026-08-31)
+      router _staffShell now real screens: Dashboard / Patients / Tasks / Schedule.
+    ✔ P5-05 Staff dashboard: schedule, risk badges, tasks, flags @L @done(2026-08-31)
+      staff_dashboard_screen.dart: today's schedule, unacked flags w/ acknowledge, task preview,
+      "Scan panel" action (RiskDetectionService + TaskGenerator over whole panel).
+    ✔ P5-06 Patient search + list @M @done(2026-08-31)
+      staff_patients_screen.dart, PatientRepository.search / all.
+    ✔ P5-07 Patient chart — reuse Phase 2 widgets @L @done(2026-08-31)
+      patient_chart_screen.dart: header, open flags, meds, recent vitals, timeline. FAB menu.
+    ✔ P5-08 Add clinical note @M @done(2026-08-31)
+      chart_write_sheets.dart _NoteSheet -> RecordRepository.add(visitNote). Audited.
+    ✔ P5-09 Prescribe medication + enter lab result @M @done(2026-08-31)
+      _PrescribeSheet -> MedicationRepository.prescribe; _LabSheet -> add(labResult) w/ NewLabValue.
+    ✔ P5-10 AI task prioritization blended with rule score @M @done(2026-08-31)
+      StaffOps.prioritiseWithAi: deterministic mock ranker writes aiPriorityScore/aiRationale;
+      StaffTask.effectivePriority(weight) blends at read time. Gemini path swaps in later.
+    ✔ P5-11 Task board with per-task rationale @M @done(2026-08-31)
+      task_board_screen.dart: priority dot, rule/AI score tags, due, rationale text, status menu.
+    ✔ P5-12 Staff schedule week grid @S @done(2026-08-31)
+      staff_schedule_screen.dart, AppointmentRepository.forStaffInRange (new). Week nav.
+    ✔ P5-13 Panel analytics: no-show rate, utilization @M @done(2026-08-31)
+      panel_analytics_screen.dart, PanelStats from AppointmentRepository.inRange (new), 90d window.
 
   Admin:
-    ☐ P5-14 User management: create, deactivate, reset, assign @M @needs(P1-12)
-    ☐ P5-15 Departments + schedule template editor @M @needs(P1-13)
-    ☐ P5-16 AI settings: key, model, mock toggle, re-seed @M @needs(P3-06, P1-21)
-    ☐ P5-17 System analytics + audit log viewer @M @needs(P1-17)
+    ✔ P5-14 User management: create, deactivate, reset, assign @M @done(2026-08-31)
+      user_management_screen.dart: tabbed directory, activate/deactivate, reset pw, create staff
+      w/ department dropdown.
+    ⧗ P5-15 Departments + schedule template editor @M @done(2026-08-31, partial)
+      departments_screen.dart done (create/rename/describe). Schedule-template editor DEFERRED —
+      no ScheduleTemplate domain repo yet; templates provisioned by the seeder. Tracked in header.
+    ✔ P5-16 AI settings: key, model, mock toggle, re-seed @M @done(2026-08-31)
+      Done in P3-05/06/07 — ai_settings_screen.dart.
+    ✔ P5-17 System analytics + audit log viewer @M @done(2026-08-31)
+      system_analytics_screen.dart (counts + panel stats) + audit_log_screen.dart (read-only feed).
 
 Phase 6 — Testing & results: @0of9
   Goal: evidence. Every number in the report gets produced here.
