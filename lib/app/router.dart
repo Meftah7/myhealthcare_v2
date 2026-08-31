@@ -6,10 +6,14 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/presentation/placeholder_screen.dart';
 import 'shell/app_shell.dart';
+
+/// The app's [GoRouter]. P2-05 makes this session-aware (redirect by role).
+final routerProvider = Provider<GoRouter>((ref) => buildAppRouter());
 
 /// Every route path in the app, in one place.
 abstract final class AppRoutes {
