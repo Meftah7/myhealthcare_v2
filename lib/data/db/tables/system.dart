@@ -29,7 +29,7 @@ class AppSettings extends Table {
   /// When true, the app uses MockAiService regardless of key presence (P3-07).
   BoolColumn get mockMode => boolean().withDefault(const Constant(true))();
   TextColumn get modelId =>
-      text().withDefault(const Constant('claude-sonnet-5'))();
+      text().withDefault(const Constant('gemini-2.0-flash'))();
 
   /// AI-score weight when blended with the deterministic rule score (P5-10),
   /// 0.0–1.0.

@@ -17,6 +17,7 @@ import '../data/repositories/system_repository_impl.dart';
 import '../data/repositories/task_repository_impl.dart';
 import '../data/seed/seeder.dart';
 import '../domain/repositories/repositories.dart';
+import '../services/ai/ai_key_store.dart';
 import '../services/auth/password_hasher.dart';
 
 /// Key–value store for lightweight local state (session, settings).
@@ -39,6 +40,8 @@ final appDatabaseProvider = Provider<AppDatabase>((ref) {
 final passwordHasherProvider = Provider<PasswordHasher>(
   (ref) => const PasswordHasher(),
 );
+
+final aiKeyStoreProvider = Provider<AiKeyStore>((ref) => AiKeyStore());
 
 // --- Repositories (P1-18) -------------------------------------------------
 

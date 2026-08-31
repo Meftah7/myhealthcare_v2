@@ -5,8 +5,8 @@ i ☰ MyHealth Care — Senior Project
   Details: tasks.md · Rationale: plan.md
   Location: C:\dev\myhealthcare  (moved out of OneDrive — restart Claude Code here)
 
-  NOW: GATE — P3-05 needs the Anthropic API key. Then Phase 4 (ML/scheduling).
-  62/118 done · open: P0-10 Android · P0-13 GitHub · P2-11..13 PDF import · P3-05/06 AI key
+  NOW: Phase 4 — ML + no-show scheduling (RQ2)
+  65/118 done · open: P0-10 Android · P0-13 GitHub · P2-11..13 PDF · Gemini key (paste in Admin AI Settings)
 
 Phase 0 — Scaffold: @13of14
   Goal: empty app builds and runs on Windows, Android, Chrome with a working local DB.
@@ -293,7 +293,7 @@ Phase 2 — Auth + patient core: @15of18  (P2-11/12/13 PDF import still open)
     LoadingSkeleton + .list()), confirm_dialog.dart (confirm() dialog,
     SectionHeader).
 
-Phase 3 — AI layer · RQ1: @11of14  (P3-05/06 wait on the API key — GATE)
+Phase 3 — AI layer · RQ1: @14of14  ✔ COMPLETE (real LLM path dormant until a Gemini key is entered)
   Goal: RQ1 answered end to end. Mock before real, so no screen waits on a key.
   ✔ P3-01 AiService interface + response models @M @done(2026-08-31)
     services/ai/ai_service.dart (3-method interface, summarizeRecords for now),
@@ -311,14 +311,22 @@ Phase 3 — AI layer · RQ1: @11of14  (P3-05/06 wait on the API key — GATE)
     prompts/summarize_records.dart (versioned "summarize-v1", strict JSON
     shape) + summary_parser.dart (tolerates fences/prose, skips malformed
     entries, throws AiFailure on garbage — 5 parser tests incl. malformed).
-  ⛔ P3-05 ClaudeAiService — Dio, retry, fallback to mock @L @needs(P3-04) — GATE
-    Needs an Anthropic API key. Interface + mock + prompt + cache + UI all
-    ready; ClaudeAiService is a Dio client + parseHealthSummary + fall back to
-    MockAiService on any failure.
-  ⛔ P3-06 API key in secure storage @M @needs(P3-05) — with P3-05
-  ⧗ P3-07 Provider selects mock vs real from settings @S @partial
-    aiServiceProvider builds MockAiService; the settings branch is stubbed
-    (commented) pending P3-05.
+  ✔ P3-05 LLM service — Dio, retry, fallback to mock @L @done(2026-08-31)
+    Provider switched Anthropic → Google Gemini (free tier, no card). Schema
+    v1→v2 migration for the default model name. gemini_ai_service.dart:
+    GeminiAiService (Dio, JSON response mode, one retry on 429/5xx,
+    parseHealthSummary) + FallbackAiService (tries primary, on Err drops to
+    mock). 3 tests: fallback on primary Err, Gemini returns Err (not throw) on
+    transport failure, wrapped-broken-Gemini still succeeds. Live path needs a
+    key; everything else works offline.
+  ✔ P3-06 API key in secure storage @M @done(2026-08-31)
+    ai_key_store.dart — flutter_secure_storage, --dart-define=GEMINI_API_KEY
+    dev fallback, never logged/committed. Entered in Admin → AI Settings.
+  ✔ P3-07 Provider selects mock vs real from settings @S @done(2026-08-31)
+    aiServiceProvider: real (Gemini, wrapped in FallbackAiService) when
+    aiEnabled && !mockMode && key present; else MockAiService.
+    settings_providers.dart (appSettingsProvider, aiKeyPresentProvider,
+    SettingsController).
   ✔ P3-08 Summary cache keyed on input hash @M @done(2026-08-31)
     AiSummaryController: build context → aiSummaryRepository.cachedFor(hash) →
     generate → save. Identical context = identical cached row.

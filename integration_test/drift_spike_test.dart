@@ -25,7 +25,7 @@ void main() {
     final db = AppDatabase.named(dbName);
     addTearDown(db.close);
 
-    expect(db.schemaVersion, 1);
+    expect(db.schemaVersion, 2);
 
     const id = 'dept-1';
     await db

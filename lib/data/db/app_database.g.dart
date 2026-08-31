@@ -8559,7 +8559,7 @@ class $AppSettingsTable extends AppSettings
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    defaultValue: const Constant('claude-sonnet-5'),
+    defaultValue: const Constant('gemini-2.0-flash'),
   );
   static const VerificationMeta _aiTaskWeightMeta = const VerificationMeta(
     'aiTaskWeight',

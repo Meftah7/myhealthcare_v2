@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../core/presentation/placeholder_screen.dart';
 import '../domain/enums.dart';
+import '../features/admin/presentation/ai_settings_screen.dart';
 import '../features/ai_summary/presentation/ai_summary_screen.dart';
 import '../features/auth/application/session.dart';
 import '../features/auth/presentation/login_screen.dart';
@@ -113,11 +114,6 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
         path: AppRoutes.staffAnalytics,
         builder: (_, _) =>
             const PlaceholderScreen(title: 'Panel analytics', task: 'P5-13'),
-      ),
-      GoRoute(
-        path: AppRoutes.adminAiSettings,
-        builder: (_, _) =>
-            const PlaceholderScreen(title: 'AI settings', task: 'P5-16'),
       ),
 
       _patientShell(),
@@ -367,6 +363,11 @@ StatefulShellRoute _adminShell() {
           selectedIcon: Icons.receipt_long,
           label: 'Audit',
         ),
+        AppDestination(
+          icon: Icons.auto_awesome_outlined,
+          selectedIcon: Icons.auto_awesome,
+          label: 'AI',
+        ),
       ],
     ),
     branches: [
@@ -415,6 +416,14 @@ StatefulShellRoute _adminShell() {
               task: 'P5-17',
               showAppBar: false,
             ),
+          ),
+        ],
+      ),
+      StatefulShellBranch(
+        routes: [
+          GoRoute(
+            path: AppRoutes.adminAiSettings,
+            builder: (_, _) => const AiSettingsScreen(),
           ),
         ],
       ),

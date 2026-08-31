@@ -63,11 +63,20 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) => m.createAll(),
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        // Default LLM provider changed from Anthropic to Gemini (free tier).
+        await customStatement(
+          "UPDATE app_settings SET model_id = 'gemini-2.0-flash' "
+          "WHERE model_id = 'claude-sonnet-5'",
+        );
+      }
+    },
     beforeOpen: (details) async {
       // Referential integrity is off by default in SQLite.
       await customStatement('PRAGMA foreign_keys = ON');

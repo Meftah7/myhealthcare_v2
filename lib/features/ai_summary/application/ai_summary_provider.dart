@@ -10,32 +10,46 @@ import '../../../core/utils/ids.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../services/ai/ai_models.dart';
 import '../../../services/ai/ai_service.dart';
+import '../../../services/ai/gemini_ai_service.dart';
 import '../../../services/ai/mock_ai_service.dart';
 import '../../../services/ai/patient_context_builder.dart';
+import '../../admin/application/settings_providers.dart';
 import '../../patient/application/patient_data_providers.dart';
 
-/// The [AiService] for the current patient. Reads app settings to pick mock vs
-/// real (P3-07); until P3-05 the real client isn't wired, so this is always the
-/// deterministic mock.
+/// The [AiService] for the current patient (P3-07). Picks the live provider
+/// (Gemini, free tier) when AI is enabled, not forced to mock, and a key is
+/// present — always wrapped so any failure falls back to the deterministic
+/// [MockAiService].
 final aiServiceProvider = FutureProvider<AiService>((ref) async {
   final patient = await ref.watch(patientProfileProvider.future);
   final records = await ref.watch(patientTimelineProvider.future);
   final vitals = await ref.watch(patientVitalsProvider.future);
   final meds = await ref.watch(patientMedicationsProvider.future);
 
-  // final settings = await ref.watch(settingsProvider.future);
-  // if (settings.usesRealAi) return ClaudeAiService(...);  // P3-05
-
-  return MockAiService(
+  final mock = MockAiService(
     patient: patient,
     records: records,
     vitals: vitals,
     medications: meds,
   );
+
+  final settings = await ref.watch(appSettingsProvider.future);
+  final key = await ref.watch(aiKeyStoreProvider).read();
+  if (settings.usesRealAi && key != null) {
+    return FallbackAiService(
+      primary: GeminiAiService(apiKey: key, model: settings.modelId),
+      fallback: mock,
+    );
+  }
+  return mock;
 });
 
-/// Whether the last generation went through the network (always false for now).
-final aiUsingRealServiceProvider = Provider<bool>((_) => false);
+/// True when the live provider is active (used to label the summary source).
+final aiUsingRealServiceProvider = FutureProvider<bool>((ref) async {
+  final settings = await ref.watch(appSettingsProvider.future);
+  final hasKey = await ref.watch(aiKeyPresentProvider.future);
+  return settings.usesRealAi && hasKey;
+});
 
 class AiSummaryController {
   AiSummaryController(this._ref);
