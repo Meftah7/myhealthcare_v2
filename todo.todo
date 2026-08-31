@@ -5,9 +5,9 @@
   Details: tasks.md · Rationale: plan.md
   Location: C:\dev\myhealthcare  (moved out of OneDrive — restart Claude Code here)
 
-  NOW: P1-08 domain entities  (Phase 1 schema done: P1-01..P1-07)
+  NOW: P1-12 DAOs + repository implementations  (P1-08..P1-11 done)
   GATE: end of Phase 1 — review schema + seeder before Phase 2
-  20/118 done · Phase 0 done bar P0-10 (Android, blocked) + P0-13 GitHub remote
+  24/118 done · Phase 0 done bar P0-10 (Android, blocked) + P0-13 GitHub remote
 
 Phase 0 — Scaffold: @13of14
   Goal: empty app builds and runs on Windows, Android, Chrome with a working local DB.
@@ -155,10 +155,25 @@ Phase 1 — Data foundation: @7of22
       hypervisor driver; test is ready to run there.
 
   Domain:
-    ☐ P1-08 Entities: user, patient, staff, department @M
-    ☐ P1-09 Entities: appointment, record, lab value, vitals, medication @M
-    ☐ P1-10 Entities: AI summary, staff task, risk flag @S
-    ☐ P1-11 Repository interfaces — no Drift imports @M
+    ✔ P1-08 Entities: user, patient, staff, department @M @done(2026-08-31)
+      freezed 3.x. User (role helpers, ageYears), Patient/Staff compose User +
+      profile, Department. lib/domain/entities/.
+    ✔ P1-09 Entities: appointment, record, lab value, vitals, medication @M @done(2026-08-31)
+      Appointment (isUpcoming/isPast/duration), MedicalRecord (+ nested
+      LabValue list, hasAbnormalLabs), Vitals (bmi, hasBloodPressure),
+      Medication (isCurrent).
+    ✔ P1-10 Entities: AI summary, staff task, risk flag @S @done(2026-08-31)
+      AiSummary + shared KeyEvent/Trend/RedFlag value types (reused by P3-01),
+      StaffTask (effectivePriority blend, isOverdue), RiskFlag. Also added
+      AppSettings + AuditEntry entities.
+    ✔ P1-11 Repository interfaces — no Drift imports @M @done(2026-08-31)
+      domain/repositories/: Auth, User, Patient, Department, Appointment,
+      Record, Vitals, Medication, Task, Risk, AiSummary, Audit, Settings —
+      abstract interface classes, all methods return Result<T>, watch* streams
+      where a UI needs live updates. Request DTOs (PatientRegistration,
+      BookingRequest, NewRecord, OpenSlot, AuditQuery). Verified: zero
+      drift/flutter-UI imports in lib/domain/. Barrels: entities.dart,
+      repositories.dart.
 
   Data access:
     ☐ P1-12 user_dao + auth/user repositories @M @needs(P1-11)
