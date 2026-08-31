@@ -5,11 +5,11 @@
   Details: tasks.md · Rationale: plan.md
   Location: C:\dev\myhealthcare  (moved out of OneDrive — restart Claude Code here)
 
-  NOW: P0-04 lib/ folder tree  (P0-03 done)
+  NOW: P0-05 theme from DESIGN.md  (P0-04 done)
   NEXT GATE: P0-11 Drift on Web — decide before starting Phase 1
-  4/118 done
+  5/118 done
 
-Phase 0 — Scaffold: @4of14
+Phase 0 — Scaffold: @5of14
   Goal: empty app builds and runs on Windows, Android, Chrome with a working local DB.
   ✔ P0-01 flutter create with android, ios, web, windows @S @done(2026-08-31)
     flutter create . --project-name myhealthcare --org bh.edu.uob --platforms android,ios,web,windows
@@ -37,7 +37,12 @@ Phase 0 — Scaffold: @4of14
       - freezed ^3.1.0 (still used for entity codegen — that's the important one).
       - riverpod_lint + custom_lint dropped (ecosystem lag vs analyzer).
     Revisit the whole set if Flutter is upgraded to a Dart >= 3.13 release.
-  ☐ P0-04 Create lib/ folder tree @S
+  ✔ P0-04 Create lib/ folder tree @S @done(2026-08-31)
+    Full feature-first tree from plan.md as .gitkeep placeholders: app/theme,
+    core/utils, domain/{entities,repositories}, data/db/{tables,daos},
+    data/repositories, data/seed/vocab, services/{ai/prompts,ml,notifications,
+    ingestion}, 13 features each with presentation/ + application/, plus
+    assets/{models,seed}, tools/ml, docs. analyze clean.
   ☐ P0-05 Theme from DESIGN.md: ColorScheme + status ramp, TextTheme, Space/Radii @M
   ☐ P0-06 go_router with placeholder routes @M @needs(P0-04)
   ☐ P0-07 ProviderScope + core/di.dart @S @needs(P0-03)
