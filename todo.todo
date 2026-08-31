@@ -5,11 +5,11 @@
   Details: tasks.md · Rationale: plan.md
   Location: C:\dev\myhealthcare  (moved out of OneDrive — restart Claude Code here)
 
-  NOW: P0-06 go_router + placeholder routes  (P0-05 done)
+  NOW: P0-07 ProviderScope + core/di.dart  (P0-06 done)
   NEXT GATE: P0-11 Drift on Web — decide before starting Phase 1
-  6/118 done
+  7/118 done
 
-Phase 0 — Scaffold: @6of14
+Phase 0 — Scaffold: @7of14
   Goal: empty app builds and runs on Windows, Android, Chrome with a working local DB.
   ✔ P0-01 flutter create with android, ios, web, windows @S @done(2026-08-31)
     flutter create . --project-name myhealthcare --org bh.edu.uob --platforms android,ios,web,windows
@@ -53,7 +53,17 @@ Phase 0 — Scaffold: @6of14
     barrel. Fonts Lexend/Inter/JetBrainsMono BUNDLED in assets/fonts/ (offline,
     per §3.1) — variable ttf. main.dart temporarily shows a theme-preview
     placeholder (P0-06 swaps in the router). analyze + test + Windows build clean.
-  ☐ P0-06 go_router with placeholder routes @M @needs(P0-04)
+  ✔ P0-06 go_router with placeholder routes @M @done(2026-08-31)
+    lib/app/router.dart: AppRoutes path constants + buildAppRouter(). Every
+    screen has a route → shared PlaceholderScreen (core/presentation/) tagged
+    with the task that will build it. 3 role areas as StatefulShellRoute.
+    indexedStack; lib/app/shell/app_shell.dart is the adaptive shell
+    (NavigationBar compact / NavigationRail medium+ / extended large, per §6).
+    Standalone screens (summary, settings, panel analytics, AI settings) as
+    full-screen root routes. _guard redirect is a no-op stub — role gating is
+    P2-05. lib/app/app.dart = MaterialApp.router; main.dart trimmed to runApp.
+    Verified: analyze + test clean, Windows build runs, lands on /login,
+    teal icon + "MyHealth Care" in the title bar, Lexend/Inter fonts load.
   ☐ P0-07 ProviderScope + core/di.dart @S @needs(P0-03)
   ☐ P0-08 Result<T, Failure> + failure types @S
   ☐ P0-09 Drift spike — Windows @M @needs(P0-03)
