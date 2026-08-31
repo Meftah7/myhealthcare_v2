@@ -83,11 +83,19 @@ Phase 0 — Scaffold: @10of14
     tracked). Debug-only /dev/db-spike screen (lib/dev/). Verified:
     integration_test/drift_spike_test.dart round-trips insert+read on Windows;
     sqlite3.dll confirmed in the Windows build bundle. analyze + unit tests clean.
-  ⛔ P0-10 Drift spike — Android @M @needs(P0-09) — BLOCKED
-    Android system-image download failed: "not enough space on the disk".
-    C: is 237G, 100% full, ~880MB free. Emulator needs ~2GB. Needs the user to
-    free disk space, or an Android build/test path that fits, or a physical
-    device. Integration test is ready to run the moment a device exists.
+  ⛔ P0-10 Drift spike — Android @M @needs(P0-09) — BLOCKED (needs admin, one step)
+    Disk sorted (freed gradle caches + old NDK + user freed space → ~8GB).
+    AVD mhc_api35 created (Android 35 x86_64), system image installed, data
+    partition shrunk to 2GB. Emulator won't launch: "x86_64 emulation requires
+    hardware acceleration" — no hypervisor driver installed (accel-check: AEHD
+    not installed; Hyper-V/WHPX off).
+    FIX (user, one time, admin): AEHD driver files are downloaded to
+    %LOCALAPPDATA%\Android\Sdk\extras\google\Android_Emulator_Hypervisor_Driver\
+    — run silent_install.bat there from an elevated prompt (usually no reboot).
+    Then: emulator -avd mhc_api35 ... and
+    flutter test integration_test/drift_spike_test.dart -d emulator-5554
+    Alternative: plug in a physical Android phone with USB debugging.
+    Both spike tests (round-trip + on-disk persistence) already pass on Windows.
   ☐ P0-11 Drift spike — Web WASM + OPFS @L @critical @needs(P0-09)
     Decision gate. If this costs more than a day, drop web support and say so in the report.
   ☐ P0-12 Strict lints, flutter analyze clean @S

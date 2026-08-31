@@ -34,4 +34,23 @@ void main() {
       reason: 'the row just inserted should read back',
     );
   });
+
+  test('Drift persists to disk — a fresh connection sees the write', () async {
+    final marker = 'persist-${DateTime.now().microsecondsSinceEpoch}';
+
+    final first = AppDatabase();
+    await first.addSpikeRow(marker);
+    await first.close();
+
+    // A brand-new connection to the same on-disk database file.
+    final second = AppDatabase();
+    addTearDown(second.close);
+    final rows = await second.allSpikeRows();
+
+    expect(
+      rows.any((r) => r.label == marker),
+      isTrue,
+      reason: 'write from the first connection must survive on disk (not in-memory)',
+    );
+  });
 }
