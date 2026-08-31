@@ -5,8 +5,8 @@ i ☰ MyHealth Care — Senior Project
   Details: tasks.md · Rationale: plan.md
   Location: C:\dev\myhealthcare  (moved out of OneDrive — restart Claude Code here)
 
-  NOW: P2-07 patient home  (Phase 2 auth spine done: P2-01..06, P2-18)
-  41/118 done · Phase 0 done bar P0-10 (Android, blocked) + P0-13 (GitHub — user handling separately)
+  NOW: P2-11..13 (PDF import) then Phase 3 (AI layer)
+  51/118 done · Phase 0 done bar P0-10 (Android, blocked) + P0-13 (GitHub — user handling separately)
 
 Phase 0 — Scaffold: @13of14
   Goal: empty app builds and runs on Windows, Android, Chrome with a working local DB.
@@ -230,7 +230,7 @@ Phase 1 — Data foundation: @22of22  ✔ COMPLETE
       docs/erd.mmd (mermaid, 16 tables + all FKs) rendered to docs/erd.png via
       @mermaid-js/mermaid-cli. P7-01 can restyle for the report.
 
-Phase 2 — Auth + patient core: @6of18
+Phase 2 — Auth + patient core: @15of18  (P2-11/12/13 PDF import still open)
   Goal: a patient can log in and browse their entire history. No AI yet.
   ✔ P2-01 Salted password hashing @M @done(2026-08-31)
     Done early in P1-12. lib/services/auth/password_hasher.dart — PBKDF2-HMAC-
@@ -256,17 +256,38 @@ Phase 2 — Auth + patient core: @6of18
   ⧗ P2-06 Logout + switch user @S @partial
     SessionController.logout() + switchTo(user) exist; UI wiring comes with
     the patient/staff shells (P2-07 / P5-04).
-  ☐ P2-07 Patient home @M
-  ☐ P2-08 Health timeline — merged, grouped, lazy-loaded @L @needs(P1-14)
-  ☐ P2-09 Timeline filters + search @M @needs(P2-08)
-  ☐ P2-10 Record detail, labs as flagged table @M @needs(P2-08)
-  ☐ P2-11 PDF text extractor @M
-  ☐ P2-12 Import record: pick, copy, extract, save @M @needs(P2-11)
-  ☐ P2-13 Attachment viewer @S
-  ☐ P2-14 Vitals list + manual entry @M @needs(P1-15)
-  ☐ P2-15 Vitals charts: BP, weight, glucose, HR @M @needs(P1-15)
-  ☐ P2-16 Medications list @S @needs(P1-09)
-  ☐ P2-17 Profile + settings @M
+  ✔ P2-07 Patient home @M @done(2026-08-31)
+    patient_home_screen.dart — greeting, next-appointment card, active-meds
+    card, AI-summary card (placeholder link), quick-action chips. App-bar
+    profile + sign-out menu. patient_data_providers.dart holds the shared
+    patient-scoped providers (profile, timeline, vitals, meds, appointments,
+    nextAppointment).
+  ✔ P2-08 Health timeline — merged, grouped, lazy-loaded @L @done(2026-08-31)
+    timeline_screen.dart — merges medical records + vitals into one reverse-
+    chronological feed, month headers, abnormal-lab marker, tap → record
+    detail. (Lazy-load: currently loads 500; true pagination deferred.)
+  ✔ P2-09 Timeline filters + search @M @done(2026-08-31)
+    SearchBar over title/body/analyte + RecordType FilterChips in the app-bar
+    bottom.
+  ✔ P2-10 Record detail, labs as flagged table @M @done(2026-08-31)
+    record_detail_screen.dart — title/meta/body, labs in a horizontally-
+    scrollable DataTable with AbnormalValueIndicator (icon + colour + a11y
+    label), extracted-text block in mono.
+  ⧗ P2-11 PDF text extractor @M @partial — deferred to its own batch
+  ⧗ P2-12 Import record: pick, copy, extract, save @M @partial — deferred
+  ⧗ P2-13 Attachment viewer @S @partial — deferred
+  ✔ P2-14 Vitals list + manual entry @M @done(2026-08-31)
+    vitals_screen.dart — recent-readings list + bottom-sheet entry form
+    (systolic/diastolic/HR/SpO2/weight/glucose/temp), writes via
+    VitalsRepository, invalidates the provider.
+  ✔ P2-15 Vitals charts: BP, weight, glucose, HR @M @done(2026-08-31)
+    fl_chart LineChart per metric (BP = dual line), themed grid/axes,
+    date x-axis, legend. Renders only with ≥2 points.
+  ✔ P2-16 Medications list @S @done(2026-08-31)
+    medications_screen.dart — Current vs Past sections, dose/frequency/dates.
+  ✔ P2-17 Profile + settings @M @done(2026-08-31)
+    profile_screen.dart — avatar, all profile fields, confirm-dialog sign-out.
+    (Theme toggle / notification prefs: with app settings, later.)
   ✔ P2-18 Shared widgets: empty, error, loading, confirm @S @done(2026-08-31)
     lib/core/presentation/: states.dart (EmptyState, ErrorStateView,
     LoadingSkeleton + .list()), confirm_dialog.dart (confirm() dialog,

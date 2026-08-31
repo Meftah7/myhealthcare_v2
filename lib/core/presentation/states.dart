@@ -104,9 +104,6 @@ class LoadingSkeleton extends StatefulWidget {
   final double width;
   final BorderRadius borderRadius;
 
-  /// A vertical stack of skeleton lines, for list placeholders.
-  static Widget list({int lines = 5}) => _SkeletonList(lines: lines);
-
   @override
   State<LoadingSkeleton> createState() => _LoadingSkeletonState();
 }
@@ -147,8 +144,9 @@ class _LoadingSkeletonState extends State<LoadingSkeleton>
   }
 }
 
-class _SkeletonList extends StatelessWidget {
-  const _SkeletonList({required this.lines});
+/// A vertical stack of skeleton lines, for list placeholders.
+class SkeletonList extends StatelessWidget {
+  const SkeletonList({this.lines = 5, super.key});
 
   final int lines;
 

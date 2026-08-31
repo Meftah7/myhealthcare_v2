@@ -10,6 +10,12 @@ import '../domain/enums.dart';
 import '../features/auth/application/session.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
+import '../features/patient/application/profile_screen.dart';
+import '../features/patient_home/presentation/patient_home_screen.dart';
+import '../features/records/presentation/medications_screen.dart';
+import '../features/records/presentation/record_detail_screen.dart';
+import '../features/timeline/presentation/timeline_screen.dart';
+import '../features/vitals/presentation/vitals_screen.dart';
 import 'shell/app_shell.dart';
 
 /// The app's [GoRouter], rebuilt-aware of the session.
@@ -49,6 +55,7 @@ abstract final class AppRoutes {
   static const patientBook = '/patient/appointments/book';
   static const patientSummary = '/patient/summary';
   static const patientSettings = '/patient/settings';
+  static const patientMedications = '/patient/medications';
 
   /// Record detail — pass the record id: `'$patientTimeline/record/$id'`.
   static String patientRecord(String id) => '$patientTimeline/record/$id';
@@ -96,8 +103,11 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
       ),
       GoRoute(
         path: AppRoutes.patientSettings,
-        builder: (_, _) =>
-            const PlaceholderScreen(title: 'Profile & settings', task: 'P2-17'),
+        builder: (_, _) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.patientMedications,
+        builder: (_, _) => const MedicationsScreen(),
       ),
       GoRoute(
         path: AppRoutes.staffAnalytics,
@@ -183,11 +193,7 @@ StatefulShellRoute _patientShell() {
         routes: [
           GoRoute(
             path: AppRoutes.patientHome,
-            builder: (_, _) => const PlaceholderScreen(
-              title: 'Home',
-              task: 'P2-07',
-              showAppBar: false,
-            ),
+            builder: (_, _) => const PatientHomeScreen(),
           ),
         ],
       ),
@@ -195,18 +201,12 @@ StatefulShellRoute _patientShell() {
         routes: [
           GoRoute(
             path: AppRoutes.patientTimeline,
-            builder: (_, _) => const PlaceholderScreen(
-              title: 'Health timeline',
-              task: 'P2-08',
-              showAppBar: false,
-            ),
+            builder: (_, _) => const TimelineScreen(),
             routes: [
               GoRoute(
                 path: 'record/:id',
-                builder: (_, state) => PlaceholderScreen(
-                  title: 'Record ${state.pathParameters['id']}',
-                  task: 'P2-10',
-                ),
+                builder: (_, state) =>
+                    RecordDetailScreen(recordId: state.pathParameters['id']!),
               ),
             ],
           ),
@@ -237,11 +237,7 @@ StatefulShellRoute _patientShell() {
         routes: [
           GoRoute(
             path: AppRoutes.patientVitals,
-            builder: (_, _) => const PlaceholderScreen(
-              title: 'Vitals',
-              task: 'P2-14',
-              showAppBar: false,
-            ),
+            builder: (_, _) => const VitalsScreen(),
           ),
         ],
       ),
