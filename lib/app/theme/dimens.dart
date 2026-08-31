@@ -25,8 +25,9 @@ abstract final class Space {
 /// waste horizontal space on dense clinical screens.
 abstract final class Radii {
   static const BorderRadius card = BorderRadius.all(Radius.circular(16));
-  static const BorderRadius sheet =
-      BorderRadius.vertical(top: Radius.circular(28));
+  static const BorderRadius sheet = BorderRadius.vertical(
+    top: Radius.circular(28),
+  );
   static const BorderRadius field = BorderRadius.all(Radius.circular(12));
   static const BorderRadius chip = BorderRadius.all(Radius.circular(8));
   static const BorderRadius button = BorderRadius.all(Radius.circular(12));

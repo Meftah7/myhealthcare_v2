@@ -5,11 +5,11 @@
   Details: tasks.md · Rationale: plan.md
   Location: C:\dev\myhealthcare  (moved out of OneDrive — restart Claude Code here)
 
-  NOW: P0-12 strict lints  (P0-11 done — WEB KEPT; P0-10 Android blocked on hypervisor driver)
+  NOW: P0-14 README  (P0-12 done; P0-10 Android blocked on hypervisor driver — user action)
   GATE CLEARED: P0-11 web spike PASSED → web stays a supported platform
-  11/118 done
+  12/118 done
 
-Phase 0 — Scaffold: @11of14
+Phase 0 — Scaffold: @12of14
   Goal: empty app builds and runs on Windows, Android, Chrome with a working local DB.
   ✔ P0-01 flutter create with android, ios, web, windows @S @done(2026-08-31)
     flutter create . --project-name myhealthcare --org bh.edu.uob --platforms android,ios,web,windows
@@ -107,7 +107,12 @@ Phase 0 — Scaffold: @11of14
     falls back to IndexedDB (still persistent). Local notifications don't exist
     on web — P4-18 in-app fallback covers it. `flutter test integration_test
     -d chrome` is unsupported; web smoke tests must use flutter drive (P6-06).
-  ☐ P0-12 Strict lints, flutter analyze clean @S
+  ✔ P0-12 Strict lints, flutter analyze clean @S @done(2026-08-31)
+    analysis_options.yaml: flutter_lints + strict-casts/inference/raw-types,
+    unused_import/unused_local_variable/dead_code promoted to errors, ~40 extra
+    linter rules (correctness + style), generated files excluded. Fixed the 7
+    findings; `flutter analyze` clean, `dart format` applied across lib/test/
+    integration_test/test_driver, `flutter test` green.
   ⧗ P0-13 git init + .gitignore — no API keys ever @S @partial
     Done: git init, first commit, .gitignore hardened (*.env, secrets.dart, api_keys.dart,
     .agents/, .claude/skills/), .gitattributes for LF normalization. Remaining: GitHub remote.

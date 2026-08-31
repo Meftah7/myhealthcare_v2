@@ -14,9 +14,7 @@ abstract final class AppColors {
 
   /// Light scheme — let M3 contrast-check the tonal palette; do not hand-pick
   /// roles (DESIGN.md §2.1).
-  static final ColorScheme light = ColorScheme.fromSeed(
-    seedColor: seed,
-  );
+  static final ColorScheme light = ColorScheme.fromSeed(seedColor: seed);
 
   /// Dark scheme — first-class parity target, not an afterthought (§8).
   static final ColorScheme dark = ColorScheme.fromSeed(

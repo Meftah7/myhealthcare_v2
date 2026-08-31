@@ -60,10 +60,7 @@ GoRouter buildAppRouter() {
     debugLogDiagnostics: true,
     redirect: _guard,
     routes: [
-      GoRoute(
-        path: '/',
-        redirect: (_, _) => AppRoutes.login,
-      ),
+      GoRoute(path: '/', redirect: (_, _) => AppRoutes.login),
       GoRoute(
         path: AppRoutes.login,
         builder: (_, _) =>

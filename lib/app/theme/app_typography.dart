@@ -135,8 +135,9 @@ abstract final class AppText {
           textAlign: textAlign,
           maxLines: maxLines,
           semanticsLabel: semanticsLabel,
-          style: (base ?? const TextStyle())
-              .copyWith(fontFeatures: kTabularFigures),
+          style: (base ?? const TextStyle()).copyWith(
+            fontFeatures: kTabularFigures,
+          ),
         );
       },
     );

@@ -50,7 +50,8 @@ void main() {
     expect(
       rows.any((r) => r.label == marker),
       isTrue,
-      reason: 'write from the first connection must survive on disk (not in-memory)',
+      reason:
+          'write from the first connection must survive on disk (not in-memory)',
     );
   });
 }

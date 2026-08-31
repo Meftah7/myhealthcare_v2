@@ -45,14 +45,14 @@ sealed class Result<T> {
   bool get isErr => this is Err<T>;
 
   T? get valueOrNull => switch (this) {
-        Ok(:final value) => value,
-        Err() => null,
-      };
+    Ok(:final value) => value,
+    Err() => null,
+  };
 
   Failure? get failureOrNull => switch (this) {
-        Ok() => null,
-        Err(:final failure) => failure,
-      };
+    Ok() => null,
+    Err(:final failure) => failure,
+  };
 
   /// Collapse both branches to one value.
   R fold<R>(R Function(T value) onOk, R Function(Failure failure) onErr) =>
@@ -63,20 +63,20 @@ sealed class Result<T> {
 
   /// Transform the success value, leaving a failure untouched.
   Result<R> map<R>(R Function(T value) transform) => switch (this) {
-        Ok(:final value) => Ok(transform(value)),
-        Err(:final failure) => Err(failure),
-      };
+    Ok(:final value) => Ok(transform(value)),
+    Err(:final failure) => Err(failure),
+  };
 
   /// Chain another fallible step.
   Result<R> flatMap<R>(Result<R> Function(T value) transform) => switch (this) {
-        Ok(:final value) => transform(value),
-        Err(:final failure) => Err(failure),
-      };
+    Ok(:final value) => transform(value),
+    Err(:final failure) => Err(failure),
+  };
 
   T getOrElse(T Function(Failure failure) orElse) => switch (this) {
-        Ok(:final value) => value,
-        Err(:final failure) => orElse(failure),
-      };
+    Ok(:final value) => value,
+    Err(:final failure) => orElse(failure),
+  };
 }
 
 final class Ok<T> extends Result<T> {

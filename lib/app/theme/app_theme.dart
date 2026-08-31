@@ -18,10 +18,7 @@ abstract final class AppTheme {
   static ThemeData get dark =>
       _build(AppColors.dark, ClinicalStatusColors.dark);
 
-  static ThemeData _build(
-    ColorScheme scheme,
-    ClinicalStatusColors status,
-  ) {
+  static ThemeData _build(ColorScheme scheme, ClinicalStatusColors status) {
     final text = buildTextTheme().apply(
       bodyColor: scheme.onSurface,
       displayColor: scheme.onSurface,
@@ -48,16 +45,14 @@ abstract final class AppTheme {
         titleTextStyle: text.titleLarge,
       ),
 
-      cardTheme: CardThemeData(
+      cardTheme: const CardThemeData(
         clipBehavior: Clip.antiAlias,
         elevation: 1,
-        shape: const RoundedRectangleBorder(borderRadius: Radii.card),
+        shape: RoundedRectangleBorder(borderRadius: Radii.card),
         margin: EdgeInsets.zero,
       ),
 
-      listTileTheme: const ListTileThemeData(
-        minVerticalPadding: 12,
-      ),
+      listTileTheme: const ListTileThemeData(minVerticalPadding: 12),
 
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -121,7 +116,10 @@ abstract final class AppTheme {
         unselectedLabelTextStyle: text.labelMedium,
       ),
 
-      dividerTheme: DividerThemeData(color: scheme.outlineVariant, thickness: 1),
+      dividerTheme: DividerThemeData(
+        color: scheme.outlineVariant,
+        thickness: 1,
+      ),
     );
   }
 }

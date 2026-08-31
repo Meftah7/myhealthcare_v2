@@ -15,14 +15,13 @@ part 'app_database.g.dart';
 class SpikeRows extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get label => text().withLength(min: 1, max: 128)();
-  DateTimeColumn get createdAt =>
-      dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
 @DriftDatabase(tables: [SpikeRows])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor])
-      : super(executor ?? driftDatabase(name: _dbName, web: _webOptions));
+    : super(executor ?? driftDatabase(name: _dbName, web: _webOptions));
 
   static const _dbName = 'myhealthcare';
 
@@ -42,13 +41,13 @@ class AppDatabase extends _$AppDatabase {
   Future<int> addSpikeRow(String label) =>
       into(spikeRows).insert(SpikeRowsCompanion.insert(label: label));
 
-  Future<List<SpikeRow>> allSpikeRows() =>
-      (select(spikeRows)..orderBy([(t) => OrderingTerm.desc(t.createdAt)])).get();
+  Future<List<SpikeRow>> allSpikeRows() => (select(
+    spikeRows,
+  )..orderBy([(t) => OrderingTerm.desc(t.createdAt)])).get();
 
   Future<int> spikeRowCount() async {
     final count = countAll();
-    final row = await (selectOnly(spikeRows)..addColumns([count]))
-        .getSingle();
+    final row = await (selectOnly(spikeRows)..addColumns([count])).getSingle();
     return row.read(count) ?? 0;
   }
 }

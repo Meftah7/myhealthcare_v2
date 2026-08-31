@@ -62,7 +62,9 @@ class _DbSpikeScreenState extends ConsumerState<DbSpikeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              _status.isEmpty ? 'Tap "Insert row" to write to SQLite.' : _status,
+              _status.isEmpty
+                  ? 'Tap "Insert row" to write to SQLite.'
+                  : _status,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: _status.startsWith('ERROR')
                     ? theme.colorScheme.error

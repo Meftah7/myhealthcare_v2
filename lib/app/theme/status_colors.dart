@@ -222,10 +222,7 @@ class ClinicalStatusColors extends ThemeExtension<ClinicalStatusColors> {
   }
 
   @override
-  ClinicalStatusColors lerp(
-    covariant ClinicalStatusColors? other,
-    double t,
-  ) {
+  ClinicalStatusColors lerp(covariant ClinicalStatusColors? other, double t) {
     if (other == null) return this;
     return ClinicalStatusColors(
       riskLow: riskLow._lerp(other.riskLow, t),

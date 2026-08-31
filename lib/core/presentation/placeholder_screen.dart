@@ -50,8 +50,9 @@ class PlaceholderScreen extends StatelessWidget {
               const SizedBox(height: Space.xs),
               Text(
                 task == null ? 'Coming soon' : 'Coming soon · $task',
-                style: theme.textTheme.bodyMedium
-                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
                 textAlign: TextAlign.center,
               ),
             ],
