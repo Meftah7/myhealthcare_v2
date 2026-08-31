@@ -5,11 +5,11 @@
   Details: tasks.md · Rationale: plan.md
   Location: C:\dev\myhealthcare  (moved out of OneDrive — restart Claude Code here)
 
-  NOW: P0-05 theme from DESIGN.md  (P0-04 done)
+  NOW: P0-06 go_router + placeholder routes  (P0-05 done)
   NEXT GATE: P0-11 Drift on Web — decide before starting Phase 1
-  5/118 done
+  6/118 done
 
-Phase 0 — Scaffold: @5of14
+Phase 0 — Scaffold: @6of14
   Goal: empty app builds and runs on Windows, Android, Chrome with a working local DB.
   ✔ P0-01 flutter create with android, ios, web, windows @S @done(2026-08-31)
     flutter create . --project-name myhealthcare --org bh.edu.uob --platforms android,ios,web,windows
@@ -43,7 +43,16 @@ Phase 0 — Scaffold: @5of14
     data/repositories, data/seed/vocab, services/{ai/prompts,ml,notifications,
     ingestion}, 13 features each with presentation/ + application/, plus
     assets/{models,seed}, tools/ml, docs. analyze clean.
-  ☐ P0-05 Theme from DESIGN.md: ColorScheme + status ramp, TextTheme, Space/Radii @M
+  ✔ P0-05 Theme from DESIGN.md: ColorScheme + status ramp, TextTheme, Space/Radii @M @done(2026-08-31)
+    lib/app/theme/: app_colors (teal #00696E seed, M3 fromSeed light+dark),
+    dimens (Space 4dp scale, Radii), status_colors (ClinicalStatusColors
+    ThemeExtension — 10-token ramp, light+dark, {container,onContainer,icon},
+    riskFor()), app_typography (Lexend+Inter TextTheme per §3.2, AppText.clinical
+    tabular-figures helper), window_size (WindowSize class + .of/.fromWidth),
+    app_theme (assembles ThemeData, component themes, 48dp targets), theme.dart
+    barrel. Fonts Lexend/Inter/JetBrainsMono BUNDLED in assets/fonts/ (offline,
+    per §3.1) — variable ttf. main.dart temporarily shows a theme-preview
+    placeholder (P0-06 swaps in the router). analyze + test + Windows build clean.
   ☐ P0-06 go_router with placeholder routes @M @needs(P0-04)
   ☐ P0-07 ProviderScope + core/di.dart @S @needs(P0-03)
   ☐ P0-08 Result<T, Failure> + failure types @S
