@@ -5,13 +5,11 @@
 /// P2-05 — [_guard] is a no-op stub until then.
 library;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/presentation/placeholder_screen.dart';
-import '../dev/db_spike_screen.dart';
 import 'shell/app_shell.dart';
 
 /// The app's [GoRouter]. P2-05 makes this session-aware (redirect by role).
@@ -98,13 +96,6 @@ GoRouter buildAppRouter() {
       _patientShell(),
       _staffShell(),
       _adminShell(),
-
-      // Debug-only spike screens (P0-09/10/11).
-      if (kDebugMode)
-        GoRoute(
-          path: '/dev/db-spike',
-          builder: (_, _) => const DbSpikeScreen(),
-        ),
     ],
   );
 }

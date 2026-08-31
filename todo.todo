@@ -5,9 +5,9 @@
   Details: tasks.md · Rationale: plan.md
   Location: C:\dev\myhealthcare  (moved out of OneDrive — restart Claude Code here)
 
-  NOW: P0-10 (Android, blocked on hypervisor driver) — then Phase 1
-  GATE CLEARED: P0-11 web spike PASSED → web stays a supported platform
-  13/118 done · Phase 0 done bar P0-10 (blocked) + P0-13 GitHub remote
+  NOW: P1-08 domain entities  (Phase 1 schema done: P1-01..P1-07)
+  GATE: end of Phase 1 — review schema + seeder before Phase 2
+  20/118 done · Phase 0 done bar P0-10 (Android, blocked) + P0-13 GitHub remote
 
 Phase 0 — Scaffold: @13of14
   Goal: empty app builds and runs on Windows, Android, Chrome with a working local DB.
@@ -122,17 +122,37 @@ Phase 0 — Scaffold: @13of14
     sections (marked pending P1-21 / P3-06), test commands incl. web via
     flutter drive, project layout.
 
-Phase 1 — Data foundation: @0of22
+Phase 1 — Data foundation: @7of22
   Goal: fully populated database. Queryable realistic data, no UI yet.
 
   Schema:
-    ☐ P1-01 Tables: users, patient_profiles, staff_profiles, departments @M
-    ☐ P1-02 Tables: appointments, schedule_templates, reminders @M
-    ☐ P1-03 Tables: medical_records, lab_values, vitals, medications @M
-    ☐ P1-04 Tables: ai_summaries, staff_tasks, risk_flags @M
-    ☐ P1-05 Tables: audit_log, app_settings @S
-    ☐ P1-06 app_database.dart — assemble, v1, migrations, platform connection @M @needs(P1-05)
-    ☐ P1-07 build_runner clean, DB opens on all 3 platforms @S @needs(P1-06)
+    ✔ P1-01 Tables: users, patient_profiles, staff_profiles, departments @M @done(2026-08-31)
+      lib/data/db/tables/users.dart. Text (UUID-ish) PKs, FKs with cascade,
+      textEnum for role/gender, StringListConverter for allergies/conditions.
+      Shared enums in lib/domain/enums.dart. SpikeRows removed.
+    ✔ P1-02 Tables: appointments, schedule_templates, reminders @M @done(2026-08-31)
+      tables/appointments.dart. schedule_templates use start/endMinutes (int
+      from midnight) for slot math. appointments carry noShowRisk + riskBand.
+    ✔ P1-03 Tables: medical_records, lab_values, vitals, medications @M @done(2026-08-31)
+      tables/records.dart. records have attachmentPath + extractedText for RQ1;
+      lab_values.abnormalFlag → DESIGN status ramp; vitals nullable per-metric.
+    ✔ P1-04 Tables: ai_summaries, staff_tasks, risk_flags @M @done(2026-08-31)
+      tables/ai.dart. ai_summaries keyed by inputHash (cache); staff_tasks keep
+      ruleScore always + aiPriorityScore/aiRationale nullable; risk_flags have
+      dedupeKey for P5-02.
+    ✔ P1-05 Tables: audit_log, app_settings @S @done(2026-08-31)
+      tables/system.dart. app_settings is a single-row table (id==1) with
+      aiEnabled/mockMode/modelId/aiTaskWeight/seedVersion.
+    ✔ P1-06 app_database.dart — assemble, v1, migrations, platform connection @M @done(2026-08-31)
+      16 tables, schemaVersion 1, MigrationStrategy with PRAGMA foreign_keys=ON
+      in beforeOpen. Native + web connection via drift_flutter. build.yaml
+      disables the manager API (explicit DAOs instead). AppDatabase.named() test
+      hook for isolated DB files.
+    ✔ P1-07 build_runner clean, DB opens on all 3 platforms @S @done(2026-08-31)
+      Codegen clean (no warnings). integration_test/drift_spike_test.dart:
+      schema opens + round-trips + FK enforcement + on-disk persistence — PASSES
+      on Windows AND Web (flutter drive). Android still blocked on the
+      hypervisor driver; test is ready to run there.
 
   Domain:
     ☐ P1-08 Entities: user, patient, staff, department @M

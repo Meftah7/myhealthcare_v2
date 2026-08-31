@@ -1,0 +1,11 @@
+# build_runner / drift_dev options (Phase 1).
+targets:
+  $default:
+    builders:
+      drift_dev:
+        options:
+          # We write explicit DAOs (P1-12+); the manager API isn't used and its
+          # multi-FK name clashes on Users just add build noise.
+          generate_manager: false
+          # Keep generated Dart lean and analyzer-clean.
+          named_parameters: true

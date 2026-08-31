@@ -1,12 +1,15 @@
 // Drift platform spike (P0-09 Windows, P0-10 Android, P0-11 Web).
 //
 // Runs the real app engine on a device and proves the app's Drift database
-// opens, migrates to schemaVersion 1, and round-trips a write + read using the
-// platform's real SQLite (bundled DLL on Windows, .so on Android, WASM on web).
+// opens, migrates to the current schemaVersion, enforces foreign keys, and
+// round-trips a write + read using the platform's real SQLite (bundled DLL on
+// Windows, .so on Android, WASM on web).
 //
 //   flutter test integration_test/drift_spike_test.dart -d windows
 //   flutter test integration_test/drift_spike_test.dart -d <android>
-//   flutter test integration_test/drift_spike_test.dart -d chrome --web-renderer canvaskit
+//   flutter drive --driver=test_driver/integration_test.dart \
+//     --target=integration_test/drift_spike_test.dart \
+//     -d web-server --browser-name=chrome --release
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -15,43 +18,64 @@ import 'package:myhealthcare/data/db/app_database.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
+  // Each run gets an isolated database file so a stale dev DB can't mask a bug.
+  final dbName = 'spike-${DateTime.now().microsecondsSinceEpoch}';
+
   test('Drift opens and round-trips a row on this platform', () async {
-    final db = AppDatabase();
+    final db = AppDatabase.named(dbName);
     addTearDown(db.close);
 
-    final before = await db.spikeRowCount();
+    expect(db.schemaVersion, 1);
 
-    final id = await db.addSpikeRow('spike');
-    expect(id, greaterThan(0));
+    const id = 'dept-1';
+    await db
+        .into(db.departments)
+        .insert(DepartmentsCompanion.insert(id: id, name: 'Cardiology'));
 
-    final after = await db.spikeRowCount();
-    expect(after, before + 1);
-
-    final rows = await db.allSpikeRows();
+    final rows = await db.select(db.departments).get();
     expect(
-      rows.any((r) => r.id == id && r.label == 'spike'),
+      rows.any((r) => r.id == id && r.name == 'Cardiology'),
       isTrue,
       reason: 'the row just inserted should read back',
     );
   });
 
-  test('Drift persists to disk — a fresh connection sees the write', () async {
-    final marker = 'persist-${DateTime.now().microsecondsSinceEpoch}';
+  test('foreign keys are enforced', () async {
+    final db = AppDatabase.named('$dbName-fk');
+    addTearDown(db.close);
 
-    final first = AppDatabase();
-    await first.addSpikeRow(marker);
+    // patient_profiles.userId references users.id — an orphan insert must fail.
+    await expectLater(
+      db
+          .into(db.patientProfiles)
+          .insert(PatientProfilesCompanion.insert(userId: 'no-such-user')),
+      throwsA(
+        predicate<Object>(
+          (e) => e.toString().toUpperCase().contains('FOREIGN KEY'),
+          'a FOREIGN KEY constraint error',
+        ),
+      ),
+    );
+  });
+
+  test('Drift persists to disk — a fresh connection sees the write', () async {
+    final name = '$dbName-persist';
+
+    final first = AppDatabase.named(name);
+    await first
+        .into(first.departments)
+        .insert(DepartmentsCompanion.insert(id: 'x', name: 'Radiology'));
     await first.close();
 
-    // A brand-new connection to the same on-disk database file.
-    final second = AppDatabase();
+    // A brand-new connection to the same on-disk database.
+    final second = AppDatabase.named(name);
     addTearDown(second.close);
-    final rows = await second.allSpikeRows();
+    final rows = await second.select(second.departments).get();
 
     expect(
-      rows.any((r) => r.label == marker),
+      rows.any((r) => r.id == 'x'),
       isTrue,
-      reason:
-          'write from the first connection must survive on disk (not in-memory)',
+      reason: 'write from the first connection must survive on disk',
     );
   });
 }

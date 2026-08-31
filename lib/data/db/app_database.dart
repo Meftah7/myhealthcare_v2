@@ -1,27 +1,56 @@
-/// The app's Drift database.
-///
-/// P0-09/10/11 are platform spikes: this starts with a single throwaway table
-/// ([SpikeRows]) purely to prove Drift opens, migrates, reads and writes on
-/// Windows, Android and Web. P1-01…P1-06 replace [SpikeRows] with the real
-/// schema and a proper migration strategy.
+/// The app's Drift database — schema assembly, versioning, migrations and the
+/// platform-aware connection (P1-06).
 library;
 
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
+import 'package:flutter/foundation.dart';
+
+import '../../domain/enums.dart';
+import 'converters.dart';
+import 'tables/ai.dart';
+import 'tables/appointments.dart';
+import 'tables/records.dart';
+import 'tables/system.dart';
+import 'tables/users.dart';
 
 part 'app_database.g.dart';
 
-/// Temporary — removed in P1-01.
-class SpikeRows extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  TextColumn get label => text().withLength(min: 1, max: 128)();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-}
-
-@DriftDatabase(tables: [SpikeRows])
+@DriftDatabase(
+  tables: [
+    // identity + org
+    Departments,
+    Users,
+    PatientProfiles,
+    StaffProfiles,
+    // scheduling
+    ScheduleTemplates,
+    Appointments,
+    Reminders,
+    // clinical content
+    MedicalRecords,
+    LabValues,
+    Vitals,
+    Medications,
+    // AI
+    AiSummaries,
+    StaffTasks,
+    RiskFlags,
+    // system
+    AuditLog,
+    AppSettings,
+  ],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor])
     : super(executor ?? driftDatabase(name: _dbName, web: _webOptions));
+
+  /// Opens a database under an arbitrary [name] on the same platform paths —
+  /// used by tests that need an isolated file (and by re-open persistence
+  /// checks). Never call from app code.
+  @visibleForTesting
+  AppDatabase.named(String name)
+    : super(driftDatabase(name: name, web: _webOptions));
 
   static const _dbName = 'myhealthcare';
 
@@ -36,18 +65,12 @@ class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => 1;
 
-  // --- Spike API (P0-09/10/11) -------------------------------------------
-
-  Future<int> addSpikeRow(String label) =>
-      into(spikeRows).insert(SpikeRowsCompanion.insert(label: label));
-
-  Future<List<SpikeRow>> allSpikeRows() => (select(
-    spikeRows,
-  )..orderBy([(t) => OrderingTerm.desc(t.createdAt)])).get();
-
-  Future<int> spikeRowCount() async {
-    final count = countAll();
-    final row = await (selectOnly(spikeRows)..addColumns([count])).getSingle();
-    return row.read(count) ?? 0;
-  }
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (m) => m.createAll(),
+    beforeOpen: (details) async {
+      // Referential integrity is off by default in SQLite.
+      await customStatement('PRAGMA foreign_keys = ON');
+    },
+  );
 }
