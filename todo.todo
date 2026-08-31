@@ -9,6 +9,7 @@ i ☰ MyHealth Care — Senior Project
   116/118 done · repo: github.com/Meftah7/myhealthcare_v2 (main)
   open: P0-10 Android (AEHD driver) · P2-11..13 PDF import · P5-15 template editor · P6-07 participants · Gemini key (paste in Admin AI Settings)
   docs/: test_accounts.md · ai_setup.md · platform_smoke.md · performance.md · usability_study.md · ml_results.md
+         · MyHealthCare_Feature_Report.pdf (feature_report.html source; regen via headless Chrome --print-to-pdf)
 
 Phase 0 — Scaffold: @13of14
   Goal: empty app builds and runs on Windows, Android, Chrome with a working local DB.

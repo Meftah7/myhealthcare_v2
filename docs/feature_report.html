@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MyHealth Care — Feature & Implementation Report</title>
+<style>
+  @page { size: A4; margin: 20mm 18mm; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-size: 10.5pt; line-height: 1.5; color: #1a2b32; margin: 0;
+  }
+  h1, h2, h3, h4 { color: #00494d; line-height: 1.25; margin: 1.4em 0 0.5em; font-weight: 600; }
+  h1 { font-size: 22pt; }
+  h2 { font-size: 15pt; border-bottom: 2px solid #00696e; padding-bottom: 4px; margin-top: 1.8em; }
+  h3 { font-size: 12pt; color: #00696e; }
+  h4 { font-size: 10.5pt; margin: 1em 0 0.3em; }
+  p { margin: 0.5em 0; }
+  ul, ol { margin: 0.4em 0 0.8em; padding-left: 1.3em; }
+  li { margin: 0.2em 0; }
+  ul { list-style: none; padding-left: 1.1em; }
+  ul > li::before { content: "\2013"; color: #00696e; font-weight: 700; display: inline-block; width: 1.1em; margin-left: -1.1em; }
+  code { font-family: "Consolas", "SF Mono", monospace; font-size: 9pt; background: #eef4f4; padding: 1px 4px; border-radius: 3px; }
+  table { border-collapse: collapse; width: 100%; margin: 0.8em 0; font-size: 9.5pt; }
+  th, td { border: 1px solid #c5d6d6; padding: 5px 8px; text-align: left; vertical-align: top; }
+  th { background: #00696e; color: #fff; font-weight: 600; }
+  tr:nth-child(even) td { background: #f2f7f7; }
+  .cover { text-align: center; padding-top: 32mm; page-break-after: always; }
+  .cover .mark { font-size: 42pt; }
+  .cover h1 { font-size: 28pt; margin: 0.3em 0 0.1em; border: none; }
+  .cover .sub { font-size: 13pt; color: #4a6268; }
+  .cover .meta { margin-top: 26mm; font-size: 10.5pt; color: #33484f; }
+  .cover .meta div { margin: 3px 0; }
+  .tag { display: inline-block; background: #d7ebe9; color: #00494d; border-radius: 10px; padding: 1px 9px; font-size: 8.5pt; font-weight: 600; }
+  .done { color: #0a7d3c; font-weight: 700; }
+  .partial { color: #b26a00; font-weight: 700; }
+  .blocked { color: #b3261e; font-weight: 700; }
+  .callout { background: #f0f6f6; border-left: 4px solid #00696e; padding: 8px 12px; margin: 0.8em 0; font-size: 9.8pt; }
+  .kpi-row { display: flex; gap: 10px; margin: 1em 0; }
+  .kpi { flex: 1; border: 1px solid #c5d6d6; border-radius: 6px; padding: 10px; text-align: center; }
+  .kpi .n { font-size: 17pt; font-weight: 700; color: #00696e; display: block; }
+  .kpi .l { font-size: 8pt; color: #4a6268; }
+  h2 { page-break-after: avoid; }
+  table, .callout { page-break-inside: avoid; }
+  .section { page-break-before: always; }
+  footer { margin-top: 24px; border-top: 1px solid #c5d6d6; padding-top: 6px; font-size: 8pt; color: #6b8085; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="mark">✚</div>
+  <h1>MyHealth Care</h1>
+  <div class="sub">AI-assisted health records, scheduling &amp; staff workflow</div>
+  <div class="sub" style="font-size:11pt; margin-top:6px;">Feature &amp; Implementation Report</div>
+  <div class="meta">
+    <div><strong>Senior Project</strong> — University of Bahrain, College of IT</div>
+    <div>Ali Mohamed Jaafar Mohamed (202208244)</div>
+    <div>Mohammed A. Redha Meftah (202209027)</div>
+    <div>Supervisor: Dr. Amal Ghanim</div>
+    <div style="margin-top:14px;">Repository: github.com/Meftah7/myhealthcare_v2</div>
+    <div>Report generated 31 August 2026</div>
+  </div>
+</div>
+
+<h2>1. Executive summary</h2>
+<p>
+MyHealth Care is a cross-platform Flutter application that unifies a patient's medical
+history, runs an AI-driven appointment scheduler that predicts no-shows, and gives clinical
+staff a rules- and AI-prioritised task workflow. It is <strong>offline-first</strong>: all data
+lives in a local SQLite database, the app is fully functional with no network and no API key,
+and the AI layer degrades gracefully to a deterministic mock when the cloud model is
+unavailable.
+</p>
+
+<div class="kpi-row">
+  <div class="kpi"><span class="n">116 / 118</span><span class="l">planned tasks complete</span></div>
+  <div class="kpi"><span class="n">3 / 3</span><span class="l">research questions answered</span></div>
+  <div class="kpi"><span class="n">74</span><span class="l">automated tests passing</span></div>
+  <div class="kpi"><span class="n">~13,200</span><span class="l">lines of Dart (excl. generated)</span></div>
+</div>
+
+<table>
+  <tr><th>Aspect</th><th>Status</th></tr>
+  <tr><td>Patient portal (history, timeline, vitals, medications, booking)</td><td class="done">Complete</td></tr>
+  <tr><td>AI health summary (RQ1) — mock + live Google Gemini path</td><td class="done">Complete</td></tr>
+  <tr><td>No-show prediction model + AI scheduler (RQ2)</td><td class="done">Complete — ROC-AUC 0.75</td></tr>
+  <tr><td>Staff dashboard, risk detection, task prioritisation (RQ3)</td><td class="done">Complete</td></tr>
+  <tr><td>Admin console (users, departments, analytics, audit, AI settings)</td><td class="done">Complete</td></tr>
+  <tr><td>Windows &amp; Web builds</td><td class="done">Release builds green</td></tr>
+  <tr><td>Android build</td><td class="blocked">Blocked — emulator hypervisor driver (one admin step)</td></tr>
+  <tr><td>PDF report import (RQ1 stretch)</td><td class="partial">Deferred — text-extraction plumbing only</td></tr>
+  <tr><td>Usability study (SUS)</td><td class="partial">Protocol ready — needs 5–8 participants</td></tr>
+</table>
+
+<h2 class="section">2. Research questions &amp; how each is answered</h2>
+<p>The project proposal defines three problems, each a research question with a matching
+objective. The codebase maps 1:1 onto them.</p>
+
+<h3>RQ1 — Scattered records → a unified, timeline-based health profile</h3>
+<ul>
+  <li><strong>Merged health timeline</strong> — medical records (visit notes, labs, imaging,
+      prescriptions, vaccinations, discharge, referrals) and vitals measurements are merged
+      into one reverse-chronological feed, grouped by month, with type filters and free-text
+      search.</li>
+  <li><strong>AI health summary</strong> — an <code>AiService</code> produces a narrative
+      summary plus key events, trends, and red flags from a strict JSON contract. Key events
+      appear as inline markers on the timeline; trends deep-link to the matching vitals chart.</li>
+  <li><strong>Record detail</strong> — lab panels render as a table with each value flagged
+      against its reference range (normal / low / high / critical), never colour alone.</li>
+  <li>Every AI surface carries a permanent "informational only, not medical advice" banner.</li>
+</ul>
+
+<h3>RQ2 — Manual booking &amp; wasted capacity → an AI-driven scheduler</h3>
+<ul>
+  <li><strong>No-show prediction model</strong> — a class-balanced logistic regression trained
+      offline in Python on a synthetic 8,500-appointment dataset, exported to JSON, and run as
+      pure-Dart inference on device. 11 features (lead time, prior no-show rate, first-visit,
+      chronic condition, visit type, day/hour, reminders acknowledged, …).</li>
+  <li><strong>Python ↔ Dart parity</strong> — a test asserts the on-device prediction matches
+      the Python model within 1×10<sup>-6</sup> on every frozen case, so the reported accuracy
+      numbers are the numbers the app actually uses.</li>
+  <li><strong>Booking wizard</strong> — department → doctor → day, then every open slot is
+      scored and ranked lowest-risk-first, each with a plain-language reason.</li>
+  <li><strong>Explainability</strong> — per-feature contribution breakdown for any prediction.</li>
+  <li><strong>Risk-adaptive reminders</strong> — the reminder schedule escalates with the
+      predicted risk band (1 reminder for low risk, up to 3 with a confirm-or-release request
+      for high risk); idempotent across reschedules.</li>
+  <li>The predicted risk and band are stored on the appointment for later analytics.</li>
+</ul>
+
+<h3>RQ3 — Staff buried in paperwork → task prioritisation &amp; early risk identification</h3>
+<ul>
+  <li><strong>Deterministic rule engine</strong> (runs with AI switched off, no network):
+      severe blood pressure / low SpO₂ / high glucose, critical lab values in the last four
+      months, medication gaps for known chronic conditions, and overdue follow-ups. Each
+      finding gets a severity and a stable de-duplication key.</li>
+  <li><strong>Task generator</strong> — turns open risk flags into rule-scored staff tasks
+      (urgent 0.9 / warning 0.6 / info 0.3) with a due date, idempotent on re-run.</li>
+  <li><strong>AI prioritisation</strong> — an AI score is layered on top and blended with the
+      rule score at read time (weight configurable in settings); the board is fully useful with
+      AI off.</li>
+  <li><strong>Task board</strong> — every task shows its rule score, AI score, due date and a
+      one-line rationale.</li>
+</ul>
+
+<div class="callout">
+<strong>Architectural note (stated for the defense):</strong> local-only storage means
+"a doctor opens a patient's chart" happens within one device's database, not across a
+network. This is handled by a repository layer that all features talk to — a future networked
+backend is a one-class swap, not a rewrite — and is framed in the report as offline-first
+architecture, with multi-device sync listed under Future Work.
+</div>
+
+<h2 class="section">3. Architecture &amp; technology</h2>
+<table>
+  <tr><th>Layer</th><th>Choice</th><th>Notes</th></tr>
+  <tr><td>Language / SDK</td><td>Flutter 3.44.4 / Dart 3.12.2</td><td>Windows, Web, Android, iOS targets</td></tr>
+  <tr><td>State management</td><td>Riverpod 2.6.1</td><td>Hand-written providers (no code-gen) — deliberate, to keep the build simple and avoid an analyzer version deadlock</td></tr>
+  <tr><td>Persistence</td><td>Drift 2.34 over SQLite</td><td>16 tables; native on desktop/mobile, WASM + OPFS on web</td></tr>
+  <tr><td>Navigation</td><td>go_router 17</td><td>Role-gated redirect guard; one shell per role</td></tr>
+  <tr><td>Domain modelling</td><td>freezed 3 entities</td><td>Immutable entities; <code>Result&lt;T&gt;</code> = <code>Ok</code> | <code>Err</code> return type — repositories never throw across the boundary</td></tr>
+  <tr><td>AI transport</td><td>dio 5</td><td>Google Gemini (free tier), retry + timeout, always wrapped in a mock fallback</td></tr>
+  <tr><td>ML training</td><td>Python 3.14 / scikit-learn</td><td>Offline; exports weights to JSON for pure-Dart inference</td></tr>
+  <tr><td>Charts</td><td>fl_chart 1.2</td><td>BP, weight, glucose, heart-rate series</td></tr>
+  <tr><td>Security</td><td>PBKDF2-HMAC-SHA256, flutter_secure_storage</td><td>Password hashes carry their iteration count; API key in the OS secure store, never committed</td></tr>
+</table>
+
+<h4>Structure</h4>
+<p>Feature-first (<code>lib/features/&lt;feature&gt;/{presentation,application}</code>) over a
+three-layer core: <code>domain</code> (entities + repository interfaces — the swap point) →
+<code>data</code> (Drift database, repository implementations, synthetic seeder) →
+<code>services</code> (AI, ML, notifications, rules).</p>
+
+<h4>Synthetic data</h4>
+<p>A deterministic seeder builds 5 departments, 12 doctors with weekly schedule templates,
+60 patients aged 8–83 with ~2 years of history (records, labs with real reference ranges,
+vitals, medications, appointments). A hidden per-patient no-show tendency is embedded so the
+ML model has a real signal to learn. No real patient data — reproducible, no ethics exposure.</p>
+
+<h2 class="section">4. Feature catalogue</h2>
+
+<h3>4.1 Patient</h3>
+<table>
+  <tr><th>Feature</th><th>Detail</th></tr>
+  <tr><td>Sign in / self-registration</td><td>Email + password; salted PBKDF2 hashing; session persists across restarts</td></tr>
+  <tr><td>Home</td><td>Next appointment, active medications, AI summary card with regenerate</td></tr>
+  <tr><td>Health timeline</td><td>Merged records + vitals, grouped by month, type filters, search, AI key-event markers</td></tr>
+  <tr><td>Record detail</td><td>Labs as a flagged table vs reference range; source facility; attachments</td></tr>
+  <tr><td>Vitals</td><td>List + manual entry; charts for BP, weight, glucose, heart rate</td></tr>
+  <tr><td>Medications</td><td>Active / past list with dose and frequency</td></tr>
+  <tr><td>AI health summary</td><td>Narrative + key events + trends + red flags; cached on input hash; safety banner</td></tr>
+  <tr><td>Book appointment</td><td>Department → doctor → day → risk-ranked slot list with reasons</td></tr>
+  <tr><td>My appointments</td><td>Upcoming / past; cancel; reschedule</td></tr>
+  <tr><td>Profile &amp; settings</td><td>Contact details, blood type, allergies, chronic conditions</td></tr>
+</table>
+
+<h3>4.2 Staff</h3>
+<table>
+  <tr><th>Feature</th><th>Detail</th></tr>
+  <tr><td>Dashboard</td><td>Today's schedule, unacknowledged risk flags (with acknowledge), task preview, one-tap "scan panel"</td></tr>
+  <tr><td>Panel scan</td><td>Runs the rule engine over every patient, then regenerates the task list</td></tr>
+  <tr><td>Patient search &amp; list</td><td>Free-text over name / national ID</td></tr>
+  <tr><td>Patient chart</td><td>Header (age, conditions, allergies), open flags, medications, recent vitals, timeline</td></tr>
+  <tr><td>Add clinical note</td><td>Free-text visit note, written to the record timeline, audited</td></tr>
+  <tr><td>Prescribe medication</td><td>Name, dose, frequency; appears under the patient's active meds</td></tr>
+  <tr><td>Enter lab result</td><td>Analyte, value, unit, reference range; auto-classified normal/abnormal/critical</td></tr>
+  <tr><td>Task board</td><td>Priority dot, rule &amp; AI score tags, due date, per-task rationale, status menu</td></tr>
+  <tr><td>AI prioritise</td><td>Re-ranks open tasks; blended with the rule score by a configurable weight</td></tr>
+  <tr><td>Week schedule grid</td><td>Seven-day view, week navigation, tap through to the patient chart</td></tr>
+  <tr><td>Panel analytics</td><td>No-show rate, cancellation rate, completed-per-day, upcoming (90-day window)</td></tr>
+</table>
+
+<h3>4.3 Admin</h3>
+<table>
+  <tr><th>Feature</th><th>Detail</th></tr>
+  <tr><td>User management</td><td>Tabbed directory (patients / staff / admins); activate / deactivate; reset password; create staff with department assignment</td></tr>
+  <tr><td>Departments</td><td>Create / rename / describe clinical departments</td></tr>
+  <tr><td>System analytics</td><td>Headline counts + panel-wide appointment statistics</td></tr>
+  <tr><td>Audit log</td><td>Read-only feed of every recorded action (bookings, notes, prescriptions, acknowledgements)</td></tr>
+  <tr><td>AI settings</td><td>API key entry, model selection, mock-mode toggle, AI/rule blend weight, re-seed demo data</td></tr>
+</table>
+
+<h3>4.4 Cross-cutting</h3>
+<ul>
+  <li>Role-gated routing — patients, staff and admins cannot reach each other's areas.</li>
+  <li>Adaptive shell — bottom nav on compact, navigation rail on wider screens.</li>
+  <li>Light / dark theme from a single seeded colour scheme; a 10-token clinical status ramp.</li>
+  <li>Shared empty / error / loading / confirm widgets used everywhere.</li>
+  <li>Every fallible operation returns <code>Result</code>; failures surface as retryable messages, never crashes.</li>
+</ul>
+
+<h2 class="section">5. Results &amp; evidence</h2>
+
+<h3>5.1 No-show model (RQ2)</h3>
+<p>Class-balanced logistic regression, <code>no-show-v1</code>. Test set 2,145 appointments,
+25.1&nbsp;% no-show rate.</p>
+<table>
+  <tr><th>Model</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1</th><th>ROC-AUC</th></tr>
+  <tr><td>Logistic regression</td><td>0.733</td><td>0.476</td><td>0.623</td><td>0.540</td><td><strong>0.754</strong></td></tr>
+  <tr><td>Baseline — majority class</td><td>0.749</td><td>0.000</td><td>0.000</td><td>0.000</td><td>—</td></tr>
+  <tr><td>Baseline — simple heuristic</td><td>0.698</td><td>0.433</td><td>0.653</td><td>0.521</td><td>0.683</td></tr>
+</table>
+<p>The model beats both baselines on ROC-AUC and recall — it catches ~62&nbsp;% of real
+no-shows, which is the metric that matters for filling wasted slots. Strongest predictors:
+prior no-show rate (+1.02), lead time (+0.35), first visit (+0.28).</p>
+
+<h3>5.2 Performance (debug test VM — relative, not release figures)</h3>
+<table>
+  <tr><th>Metric</th><th>Value</th></tr>
+  <tr><td>Seed database (12 staff, 60 patients, full history)</td><td>~8.2 s</td></tr>
+  <tr><td>Timeline query (busiest patient, 47 records)</td><td>~87 ms</td></tr>
+  <tr><td>Database file size after seed</td><td>~1.0 MB</td></tr>
+  <tr><td>Mock AI summary (mean of 20)</td><td>~258 ms</td></tr>
+  <tr><td>App cold start to first frame</td><td>~2.9 s</td></tr>
+</table>
+
+<h3>5.3 Test coverage</h3>
+<table>
+  <tr><th>Kind</th><th>Covers</th></tr>
+  <tr><td>Unit — ML</td><td>Python↔Dart parity (1e-6), feature extraction &amp; clamping, risk bands, contribution sums</td></tr>
+  <tr><td>Unit — rules</td><td>Risk detection thresholds, severity, de-duplication, task generation &amp; idempotency</td></tr>
+  <tr><td>Unit — repositories</td><td>Auth round-trip, appointment slots &amp; double-booking, lab classification, task ordering, admin user ops, department upsert, appointment range queries — all on an in-memory database</td></tr>
+  <tr><td>Unit — AI</td><td>JSON parsing (clean / fenced / malformed / empty / no-summary), transport failure &amp; timeout → <code>Err</code> not throw, fallback to mock</td></tr>
+  <tr><td>Unit — security</td><td>PBKDF2 verify / reject / random salt / work-factor migration</td></tr>
+  <tr><td>Widget</td><td>Login (3 roles), timeline + vitals, booking, staff dashboard + panel scan</td></tr>
+  <tr><td>Integration</td><td>Seed → patient books an AI-ranked slot → assigned staff logs in and sees it on the week grid</td></tr>
+  <tr><td>Accessibility</td><td>Contrast, Android/iOS tap-target size, labelled tappables, 2× text scale without overflow</td></tr>
+</table>
+<p><strong>74 tests, all passing.</strong> <code>flutter analyze</code> is clean under strict lints.</p>
+
+<h3>5.4 Platform status</h3>
+<table>
+  <tr><th>Platform</th><th>Build</th><th>Notes</th></tr>
+  <tr><td>Windows</td><td class="done">Release .exe green</td><td>Primary demo target; 74 tests run here</td></tr>
+  <tr><td>Web (Chrome)</td><td class="done">Release build green</td><td>Drift on WASM/OPFS; in-app notification fallback</td></tr>
+  <tr><td>Android</td><td class="blocked">Blocked</td><td>Emulator needs the AEHD hypervisor driver (one elevated install) or a physical device; code is platform-clean</td></tr>
+  <tr><td>iOS</td><td>—</td><td>Needs macOS + Xcode; declared as a known limitation</td></tr>
+</table>
+
+<h2 class="section">6. What was built — phase by phase</h2>
+<table>
+  <tr><th>Phase</th><th>Outcome</th><th>Done</th></tr>
+  <tr><td><strong>0 — Scaffold</strong></td><td>Project created for 4 platforms; theme &amp; design system; router with role shells; DI; <code>Result</code>/<code>Failure</code> types; Drift verified on Windows &amp; Web; strict lints; README</td><td>13 / 14</td></tr>
+  <tr><td><strong>1 — Data foundation</strong></td><td>16 Drift tables; domain entities; repository interfaces + implementations; DI registration; clinical vocab; deterministic seeder (2y history); ERD exported</td><td>22 / 22</td></tr>
+  <tr><td><strong>2 — Auth + patient core</strong></td><td>Password hashing; login; registration; persistent session; role-gated routing; home; timeline + filters + search; record detail; vitals list/entry/charts; medications; profile; shared widgets</td><td>15 / 18</td></tr>
+  <tr><td><strong>3 — AI layer (RQ1)</strong></td><td><code>AiService</code> interface; context builder with token budgeting; mock service; strict JSON contract; live Gemini path with retry + fallback; secure key storage; provider selection; hash-keyed cache; summary screen; timeline markers; trend links; safety banner; provenance</td><td>14 / 14</td></tr>
+  <tr><td><strong>4 — ML + scheduling (RQ2)</strong></td><td>Python pipeline (dataset → features → balanced LR → evaluate → export); baseline comparison; Dart feature extractor + predictor + contributions; 1e-6 parity test; slot generator; booking wizard; risk×convenience ranking; cancel/reschedule; stored risk; notification abstraction + in-app fallback; risk-adaptive reminders</td><td>18 / 19</td></tr>
+  <tr><td><strong>5 — Staff + admin (RQ3)</strong></td><td>Rule engine (vitals/labs/med-gaps/follow-ups) + severity + de-dup; task generator; staff shell; dashboard; patient search + chart; clinical notes; prescriptions; lab entry; AI task prioritisation; task board with rationale; week grid; panel analytics; user management; departments; system analytics + audit log; AI settings</td><td>16 / 17</td></tr>
+  <tr><td><strong>6 — Testing &amp; results</strong></td><td>Unit / widget / integration / accessibility test suites; cross-platform smoke; performance harness; usability-study protocol + SUS instrument</td><td>8 / 9</td></tr>
+</table>
+
+<h2 class="section">7. Known limitations &amp; remaining work</h2>
+<table>
+  <tr><th>Item</th><th>State</th><th>Path to close</th></tr>
+  <tr><td>Android build verification</td><td class="blocked">Blocked</td><td>Run <code>silent_install.bat</code> for the AEHD driver from an elevated prompt, or connect a physical Android phone</td></tr>
+  <tr><td>PDF report import (RQ1 stretch goal)</td><td class="partial">Deferred</td><td>Text-extraction dependency is in place; wire <code>file_picker</code> → extractor → new record</td></tr>
+  <tr><td>Staff schedule-template editor</td><td class="partial">Deferred</td><td>Needs a <code>ScheduleTemplate</code> domain repository; templates are currently seeded</td></tr>
+  <tr><td>Usability study results</td><td class="partial">Protocol ready</td><td>Run the protocol in <code>docs/usability_study.md</code> with 5–8 participants; fill the results table</td></tr>
+  <tr><td>Live Gemini output</td><td>Dormant</td><td>Paste a free Google AI Studio key in Admin → AI settings and turn Mock mode off (see <code>docs/ai_setup.md</code>)</td></tr>
+  <tr><td>Multi-device synchronisation</td><td>Out of scope</td><td>Future work — the repository layer makes a networked backend a one-class swap</td></tr>
+</table>
+
+<h2 class="section">8. Appendix — demo accounts</h2>
+<p>Seeded on first launch. Password for <strong>every</strong> account: <code>password</code>.
+Full list in <code>docs/test_accounts.md</code>.</p>
+<table>
+  <tr><th>Role</th><th>Login</th><th>Count</th></tr>
+  <tr><td>Admin</td><td><code>admin@myhealth.demo</code></td><td>1</td></tr>
+  <tr><td>Staff (doctors)</td><td><code>staff1@myhealth.demo</code> … <code>staff12@myhealth.demo</code></td><td>12</td></tr>
+  <tr><td>Patients</td><td><code>patient1@myhealth.demo</code> … <code>patient60@myhealth.demo</code></td><td>60</td></tr>
+</table>
+<p><code>patient3@myhealth.demo</code> is the richest demo patient — most history, abnormal labs,
+chronic conditions.</p>
+
+<h4>Running the app</h4>
+<p><code>flutter run -d windows</code> &nbsp;·&nbsp; <code>flutter run -d chrome</code> &nbsp;·&nbsp;
+<code>flutter test</code> (74 tests) &nbsp;·&nbsp; live AI:
+<code>flutter run --dart-define=GEMINI_API_KEY=AIza…</code></p>
+
+<footer>
+MyHealth Care — Feature &amp; Implementation Report · generated from the project repository on 31 August 2026 ·
+github.com/Meftah7/myhealthcare_v2
+</footer>
+
+</body>
+</html>
