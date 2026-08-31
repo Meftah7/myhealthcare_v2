@@ -5,8 +5,8 @@ i ☰ MyHealth Care — Senior Project
   Details: tasks.md · Rationale: plan.md
   Location: C:\dev\myhealthcare  (moved out of OneDrive — restart Claude Code here)
 
-  NOW: Phase 4 — ML + no-show scheduling (RQ2)
-  65/118 done · open: P0-10 Android · P0-13 GitHub · P2-11..13 PDF · Gemini key (paste in Admin AI Settings)
+  NOW: Phase 5 — Staff + admin (RQ3). GATE before Phase 6.
+  90/118 done · open: P0-10 Android · P0-13 GitHub · P2-11..13 PDF · Gemini key (paste in Admin AI Settings)
 
 Phase 0 — Scaffold: @13of14
   Goal: empty app builds and runs on Windows, Android, Chrome with a working local DB.
@@ -347,36 +347,63 @@ Phase 3 — AI layer · RQ1: @14of14  ✔ COMPLETE (real LLM path dormant until 
     AiSummary entity + ai_summaries row carry modelId, promptVersion,
     generatedAt, inputHash; shown on the summary screen.
 
-Phase 4 — ML + scheduling · RQ2: @0of19
+Phase 4 — ML + scheduling · RQ2: @18of19  (P4-15 optional LLM layer skipped)
   Goal: RQ2 answered with real, reportable accuracy numbers. This phase produces the results chapter.
 
-  Python — offline training:
-    ☐ P4-01 venv + requirements @S
-    ☐ P4-02 generate_dataset.py — learnable no-show signal @M @needs(P1-20)
-    ☐ P4-03 features.py — the 11 features @M @needs(P4-02)
-    ☐ P4-04 train_no_show.py — balanced logistic regression @M @needs(P4-03)
-    ☐ P4-05 evaluate.py — accuracy, P/R/F1, ROC-AUC, confusion matrix @M @needs(P4-04)
-    ☐ P4-06 Export assets/models/no_show_model.json @S @needs(P4-04)
-    ☐ P4-07 Baseline comparison: majority class + heuristic @S @needs(P4-05)
+  Python — offline training (tools/ml/, venv, not shipped):
+    ✔ P4-01 venv + requirements @S @done(2026-08-31)  numpy/pandas/sklearn/matplotlib
+    ✔ P4-02 generate_dataset.py — learnable no-show signal @M @done(2026-08-31)
+      hidden_probability() mirrors Seeder._noShowProbability; ~8.5k rows, 25%
+      no-show. Seeder retuned to match (seedVersion 3).
+    ✔ P4-03 features.py — the 11 features @M @done(2026-08-31)
+      lead time, prior no-show rate, prior count, age, visit-type (2 binaries),
+      weekday, hour, first-visit, chronic, reminders-ack. Clamp ranges fixed.
+    ✔ P4-04 train_no_show.py — balanced logistic regression @M @done(2026-08-31)
+      stratified 75/25 split, StandardScaler, class_weight=balanced.
+    ✔ P4-05 evaluate.py @M @done(2026-08-31)  docs/ml_results.md + docs/roc_curve.png
+    ✔ P4-06 Export assets/models/no_show_model.json @S @done(2026-08-31)
+      coef, intercept, scalerMean/Scale, featureNames, riskBands. Committed asset.
+    ✔ P4-07 Baseline comparison @S @done(2026-08-31)
+      RESULTS: LR acc 0.73 / F1 0.54 / AUC 0.75 · heuristic AUC 0.68 · majority
+      0-recall. LR is the only model with usable recall.
 
   Dart — inference:
-    ☐ P4-08 feature_extractor.dart — encoding identical to P4-03 @M @needs(P4-03)
-    ☐ P4-09 no_show_predictor.dart — scale, sigmoid, risk band @M @needs(P4-06)
-    ☐ P4-10 Per-feature contributions for explainability @M @needs(P4-09)
-    ☐ P4-11 Python-Dart parity test within 1e-6 @M @critical @needs(P4-08, P4-09)
-      Must pass before any booking UI consumes the model. A bad export fails silently.
+    ✔ P4-08 feature_extractor.dart — encoding identical to P4-03 @M @done(2026-08-31)
+    ✔ P4-09 no_show_predictor.dart — scale, sigmoid, risk band @M @done(2026-08-31)
+      NoShowModel.load() from the bundled asset; predict() -> probability + band.
+    ✔ P4-10 Per-feature contributions for explainability @M @done(2026-08-31)
+      coef*(x-mean)/scale per feature, sorted by |effect|; drives the booking
+      slot reason text.
+    ✔ P4-11 Python-Dart parity test within 1e-6 @M @critical @done(2026-08-31)
+      export_parity.py freezes 6 (features→p) cases; no_show_parity_test.dart
+      reproduces each within 1e-6. PASSES.
 
   Booking:
-    ☐ P4-12 Slot generator from templates minus booked @M @needs(P1-13)
-    ☐ P4-13 Booking wizard: department, doctor, date, slot, confirm @M @needs(P4-12)
-    ☐ P4-14 Slot ranking by risk x convenience, with reasons @M @needs(P4-09, P4-12)
-    ☐ P4-15 Optional LLM rationale layer @S @needs(P3-01, P4-14)
-    ☐ P4-16 My appointments: cancel, reschedule @M @needs(P1-13)
-    ☐ P4-17 Store noShowRisk + riskBand on the appointment @S @needs(P4-09)
+    ✔ P4-12 Slot generator from templates minus booked @M @done(2026-08-31)
+      Already in AppointmentRepository.openSlots (P1-13).
+    ✔ P4-13 Booking wizard @M @done(2026-08-31)
+      booking_screen.dart — department → doctor (staffInDepartment query added)
+      → visit type + date → ranked slot list → confirm dialog.
+    ✔ P4-14 Slot ranking by risk × convenience, with reasons @M @done(2026-08-31)
+      rankedSlotsProvider scores every open slot with the model, sorts
+      lowest-risk-first, plain-language reason from the top contribution.
+    ⧗ P4-15 Optional LLM rationale layer @S — skipped (optional; the model's own
+      contributions already give a reason).
+    ✔ P4-16 My appointments: cancel, reschedule @M @done(2026-08-31)
+      appointments_screen.dart — upcoming/past, RiskBadge on upcoming, cancel
+      (confirm) + reschedule (date + time picker).
+    ✔ P4-17 Store noShowRisk + riskBand on the appointment @S @done(2026-08-31)
+      BookingController writes both at book time + an audit row.
 
   Reminders:
-    ☐ P4-18 platform_notifier + in-app fallback on web @M @needs(P0-11)
-    ☐ P4-19 Risk-adaptive reminder escalation @M @needs(P4-17, P4-18)
+    ✔ P4-18 platform_notifier + in-app fallback @M @done(2026-08-31)
+      platform_notifier.dart — PlatformNotifier interface + InAppOnlyNotifier
+      (works everywhere, incl. web). Real flutter_local_notifications wiring
+      deferred to device QA (P6-06).
+    ✔ P4-19 Risk-adaptive reminder escalation @M @done(2026-08-31)
+      reminder_scheduler.dart — low = 1 (24h), medium = 2 (48h + 3h), high = 3
+      (5-day confirm-or-release + 24h + 2h escalated). Idempotent on reschedule.
+      Wired into BookingController. 2 tests.
 
 Phase 5 — Staff + admin · RQ3: @0of17
   Goal: RQ3 answered. Rules first, AI second — the dashboard must work with AI switched off.

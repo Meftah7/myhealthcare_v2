@@ -9,9 +9,11 @@ import '../core/presentation/placeholder_screen.dart';
 import '../domain/enums.dart';
 import '../features/admin/presentation/ai_settings_screen.dart';
 import '../features/ai_summary/presentation/ai_summary_screen.dart';
+import '../features/appointments/presentation/appointments_screen.dart';
 import '../features/auth/application/session.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
+import '../features/booking/presentation/booking_screen.dart';
 import '../features/patient/application/profile_screen.dart';
 import '../features/patient_home/presentation/patient_home_screen.dart';
 import '../features/records/presentation/medications_screen.dart';
@@ -212,19 +214,9 @@ StatefulShellRoute _patientShell() {
         routes: [
           GoRoute(
             path: AppRoutes.patientAppointments,
-            builder: (_, _) => const PlaceholderScreen(
-              title: 'My appointments',
-              task: 'P4-16',
-              showAppBar: false,
-            ),
+            builder: (_, _) => const AppointmentsScreen(),
             routes: [
-              GoRoute(
-                path: 'book',
-                builder: (_, _) => const PlaceholderScreen(
-                  title: 'Book appointment',
-                  task: 'P4-13',
-                ),
-              ),
+              GoRoute(path: 'book', builder: (_, _) => const BookingScreen()),
             ],
           ),
         ],

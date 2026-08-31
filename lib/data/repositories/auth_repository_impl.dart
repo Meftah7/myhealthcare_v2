@@ -173,6 +173,40 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
+  Future<Result<Staff>> staffById(String id) {
+    return Result.guardAsync(() async {
+      final user = await (_db.select(
+        _db.users,
+      )..where((u) => u.id.equals(id))).getSingleOrNull();
+      if (user == null || user.role != UserRole.staff) {
+        throw NotFoundFailure('No staff $id.');
+      }
+      final profile = await (_db.select(
+        _db.staffProfiles,
+      )..where((p) => p.userId.equals(id))).getSingleOrNull();
+      return staffFrom(user, profile);
+    });
+  }
+
+  @override
+  Future<Result<List<Staff>>> staffInDepartment(String departmentId) {
+    return Result.guardAsync(() async {
+      final profiles = await (_db.select(
+        _db.staffProfiles,
+      )..where((p) => p.departmentId.equals(departmentId))).get();
+      if (profiles.isEmpty) return const <Staff>[];
+      final ids = profiles.map((p) => p.userId).toList();
+      final users =
+          await (_db.select(_db.users)
+                ..where((u) => u.id.isIn(ids))
+                ..orderBy([(u) => OrderingTerm(expression: u.fullName)]))
+              .get();
+      final byId = {for (final p in profiles) p.userId: p};
+      return users.map((u) => staffFrom(u, byId[u.id])).toList();
+    });
+  }
+
+  @override
   Future<Result<Staff>> createStaff({
     required String fullName,
     required String email,

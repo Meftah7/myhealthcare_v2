@@ -19,6 +19,7 @@ import '../data/seed/seeder.dart';
 import '../domain/repositories/repositories.dart';
 import '../services/ai/ai_key_store.dart';
 import '../services/auth/password_hasher.dart';
+import '../services/notifications/reminder_scheduler.dart';
 
 /// Key–value store for lightweight local state (session, settings).
 ///
@@ -42,6 +43,10 @@ final passwordHasherProvider = Provider<PasswordHasher>(
 );
 
 final aiKeyStoreProvider = Provider<AiKeyStore>((ref) => AiKeyStore());
+
+final reminderSchedulerProvider = Provider<ReminderScheduler>(
+  (ref) => ReminderScheduler(ref.watch(appDatabaseProvider)),
+);
 
 // --- Repositories (P1-18) -------------------------------------------------
 

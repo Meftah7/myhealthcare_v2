@@ -59,6 +59,10 @@ abstract interface class UserRepository {
 
   Future<Result<List<User>>> byRole(UserRole role);
 
+  Future<Result<List<Staff>>> staffInDepartment(String departmentId);
+
+  Future<Result<Staff>> staffById(String id);
+
   Stream<User?> watchById(String id);
 
   Future<Result<Staff>> createStaff({
