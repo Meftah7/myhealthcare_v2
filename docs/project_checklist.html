@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MyHealth Care — Project Checklist</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { font-family: "Segoe UI","Helvetica Neue",Arial,sans-serif; font-size: 10pt; line-height: 1.45; color: #1a2b32; margin: 0; }
+  h1 { font-size: 21pt; color: #00494d; margin: 0 0 2px; }
+  h2 { font-size: 13.5pt; color: #00494d; border-bottom: 2px solid #00696e; padding-bottom: 3px; margin: 1.5em 0 .5em; page-break-after: avoid; }
+  h3 { font-size: 10.5pt; color: #00696e; margin: .9em 0 .25em; }
+  p { margin: .4em 0; }
+  .sub { color: #4a6268; font-size: 10pt; }
+  ul { list-style: none; margin: .3em 0 .7em; padding-left: 0; }
+  li { margin: 2px 0; padding-left: 1.5em; text-indent: -1.5em; }
+  li.done::before { content: "\2611"; color: #0a7d3c; font-size: 11pt; margin-right: .5em; }
+  li.todo::before { content: "\2610"; color: #99a; font-size: 11pt; margin-right: .5em; }
+  .donewhen { background: #f0f6f6; border-left: 4px solid #00696e; padding: 6px 10px; margin: .5em 0 0; font-size: 9.3pt; }
+  .donewhen b { color: #00494d; }
+  .note { font-size: 9pt; color: #6b6250; background: #fbf7ec; border-left: 3px solid #c8a24a; padding: 4px 9px; margin: .4em 0; }
+  .result { font-weight: 700; color: #0a7d3c; margin: .3em 0; }
+  table { border-collapse: collapse; width: 100%; margin: .6em 0; font-size: 9pt; }
+  th,td { border: 1px solid #c5d6d6; padding: 4px 7px; text-align: left; vertical-align: top; }
+  th { background: #00696e; color: #fff; }
+  tr:nth-child(even) td { background: #f2f7f7; }
+  .phase { page-break-inside: avoid; }
+  .head { border-bottom: 3px solid #00696e; padding-bottom: 8px; margin-bottom: 4px; }
+  code { font-family: Consolas, monospace; font-size: 8.5pt; background: #eef4f4; padding: 0 3px; border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <h1>MyHealth Care — Project Checklist</h1>
+  <p class="sub">Senior Project · University of Bahrain, College of IT<br>
+  Ali Mohamed Jaafar Mohamed (202208244) · Mohammed A. Redha Meftah (202209027) · Supervisor: Dr. Amal Ghanim<br>
+  Repository: github.com/Meftah7/myhealthcare_v2</p>
+  <p class="result">Status: 116 / 118 tasks done · 74 automated tests passing · Windows + Web builds working</p>
+</div>
+
+<div class="phase">
+<h2>Phase 0 — Project Setup</h2>
+<h3>Flutter</h3>
+<ul>
+  <li class="done">Create Flutter project (Windows, Android, Web, iOS)</li>
+  <li class="done">App name "MyHealth Care" + app icons (all platforms)</li>
+  <li class="done">Add all packages (Riverpod, Drift, go_router, dio, fl_chart, …)</li>
+  <li class="done">Create folder structure (feature-first + domain / data / services)</li>
+  <li class="done">Configure theme (colour scheme, clinical status colours, fonts, spacing)</li>
+  <li class="done">Configure routing (go_router, one shell per role)</li>
+  <li class="done">Dependency registry (ProviderScope)</li>
+</ul>
+<h3>Local database (no Firebase — offline-first)</h3>
+<ul>
+  <li class="done">Drift + SQLite working on Windows</li>
+  <li class="done">Drift + SQLite working on Web (WASM + OPFS)</li>
+  <li class="todo">Drift + SQLite on Android — blocked (emulator needs hypervisor driver, one admin step)</li>
+  <li class="done"><code>Result</code> / <code>Failure</code> types (no exceptions across layers)</li>
+</ul>
+<h3>Project hygiene</h3>
+<ul>
+  <li class="done">Strict lint rules, <code>flutter analyze</code> clean</li>
+  <li class="done">Git repository + <code>.gitignore</code> (no API keys ever committed)</li>
+  <li class="done">README (run, seed, add AI key)</li>
+</ul>
+<div class="donewhen"><b>✅ Done when:</b> app builds and runs on Windows and Web; local database opens and stores data.</div>
+</div>
+
+<div class="phase">
+<h2>Phase 1 — Database</h2>
+<h3>Tables (16 total)</h3>
+<ul>
+  <li class="done">Users, Patient Profiles, Staff Profiles, Departments</li>
+  <li class="done">Appointments, Schedule Templates, Reminders</li>
+  <li class="done">Medical Records, Lab Values, Vitals, Medications</li>
+  <li class="done">AI Summaries, Staff Tasks, Risk Flags</li>
+  <li class="done">Audit Log, App Settings</li>
+</ul>
+<h3>Domain layer</h3>
+<ul>
+  <li class="done">Entities (User, Patient, Staff, Appointment, Record, Vitals, Medication, …)</li>
+  <li class="done">Repository interfaces (no database imports — swap point for a future server)</li>
+  <li class="done">Repository implementations</li>
+  <li class="done">Register everything in the dependency registry</li>
+</ul>
+<h3>Relations (enforced by foreign keys)</h3>
+<ul>
+  <li class="done">Patient → Appointments, Records, Vitals, Medications</li>
+  <li class="done">Appointment → Patient, Staff, Department</li>
+  <li class="done">Staff → Appointments, Schedule Templates, Tasks</li>
+  <li class="done">Record → Lab Values · Risk Flag → Patient · Task → Staff + Patient</li>
+  <li class="done">Department → Staff</li>
+</ul>
+<h3>Synthetic data (no real patients)</h3>
+<ul>
+  <li class="done">Clinical vocabulary (names, conditions, medications, lab ranges)</li>
+  <li class="done">Seeder: 5 departments, 12 doctors, 60 patients, ~2 years of history</li>
+  <li class="done">Idempotent re-seed + reset demo data</li>
+  <li class="done">Export database diagram (ERD) to <code>docs/erd.png</code></li>
+</ul>
+<div class="donewhen"><b>✅ Done when:</b> all tables exist, all relations are enforced, and the database is fully populated with realistic data.</div>
+</div>
+
+<div class="phase">
+<h2>Phase 2 — Authentication &amp; Patient Core</h2>
+<h3>Authentication</h3>
+<ul>
+  <li class="done">Salted password hashing (PBKDF2-HMAC-SHA256)</li>
+  <li class="done">Login screen</li>
+  <li class="done">Patient self-registration</li>
+  <li class="done">Session persistence (stay logged in after restart)</li>
+  <li class="done">Role-gated routing (patient / staff / admin can't cross areas)</li>
+  <li class="todo">Logout + switch-user UI polish (backend done)</li>
+</ul>
+<div class="note">Uses local password auth, not phone/OTP. Real SMS verification would be added for production.</div>
+<h3>Patient screens</h3>
+<ul>
+  <li class="done">Home (next appointment, active medications, AI summary card)</li>
+  <li class="done">Health timeline (records + vitals merged, grouped by month)</li>
+  <li class="done">Timeline filters + search</li>
+  <li class="done">Record detail (lab values flagged vs reference range)</li>
+  <li class="done">Vitals list + manual entry</li>
+  <li class="done">Vitals charts (blood pressure, weight, glucose, heart rate)</li>
+  <li class="done">Medications list (current / past)</li>
+  <li class="done">Profile &amp; settings</li>
+  <li class="done">Shared widgets (empty / error / loading / confirm)</li>
+</ul>
+<h3>Deferred</h3>
+<ul>
+  <li class="todo">PDF report import — pick file, extract text, save as a record</li>
+  <li class="todo">Attachment viewer</li>
+</ul>
+<div class="donewhen"><b>✅ Done when:</b> a patient can log in and browse their entire history.</div>
+</div>
+
+<div class="phase">
+<h2>Phase 3 — AI Health Summary (Research Question 1)</h2>
+<ul>
+  <li class="done">AI service interface + response models</li>
+  <li class="done">Patient context builder (with a token budget)</li>
+  <li class="done">Mock AI service — deterministic, derived from the patient's real data</li>
+  <li class="done">Summary prompt + strict JSON contract + tolerant parser</li>
+  <li class="done">Live AI service — Google Gemini (free tier), retry, timeout</li>
+  <li class="done">Fallback: live AI fails → drop to mock automatically</li>
+  <li class="done">API key in secure storage (never committed)</li>
+  <li class="done">Provider picks mock vs live from settings</li>
+  <li class="done">Summary cache keyed on the input hash</li>
+  <li class="done">AI summary screen (narrative + key events + trends + red flags)</li>
+  <li class="done">Summary card on the home screen + regenerate</li>
+  <li class="done">Key events shown as markers on the timeline</li>
+  <li class="done">Trends link to the matching vitals chart</li>
+  <li class="done">"Not medical advice" safety banner on every AI screen</li>
+  <li class="done">Store model id + prompt version + timestamp with each summary</li>
+</ul>
+<div class="donewhen"><b>✅ Done when:</b> the app produces a useful health summary with AI on <b>or</b> off.</div>
+</div>
+
+<div class="phase">
+<h2>Phase 4 — No-Show Model &amp; Smart Scheduling (Research Question 2)</h2>
+<h3>Machine learning (Python, trained offline)</h3>
+<ul>
+  <li class="done">Python environment + requirements</li>
+  <li class="done">Generate synthetic training dataset (~8,500 appointments)</li>
+  <li class="done">Feature engineering — 11 features</li>
+  <li class="done">Train class-balanced logistic regression</li>
+  <li class="done">Evaluate → <code>docs/ml_results.md</code> + ROC curve</li>
+  <li class="done">Export model weights to JSON (bundled as an asset)</li>
+  <li class="done">Baseline comparison (majority class, simple heuristic)</li>
+</ul>
+<p class="result">Result: ROC-AUC 0.75, recall 0.62 — beats both baselines.</p>
+<h3>On-device inference (Dart)</h3>
+<ul>
+  <li class="done">Feature extractor (identical encoding to Python)</li>
+  <li class="done">Predictor — scale, sigmoid, risk band</li>
+  <li class="done">Per-feature contribution breakdown (explainability)</li>
+  <li class="done">Python ↔ Dart parity test within 1×10⁻⁶</li>
+</ul>
+<h3>Booking</h3>
+<ul>
+  <li class="done">Open-slot generator (schedule templates minus booked)</li>
+  <li class="done">Booking wizard (department → doctor → date → slot → confirm)</li>
+  <li class="done">Slot ranking by predicted risk, each with a plain-language reason</li>
+  <li class="done">My appointments — cancel, reschedule</li>
+  <li class="done">Store predicted risk + band on the appointment</li>
+  <li class="todo">Optional AI-written slot rationale — skipped (model reasons are enough)</li>
+</ul>
+<h3>Reminders</h3>
+<ul>
+  <li class="done">Notification abstraction + in-app fallback (works on web too)</li>
+  <li class="done">Risk-adaptive reminder escalation (1 / 2 / 3 reminders by risk band)</li>
+</ul>
+<div class="donewhen"><b>✅ Done when:</b> the booking flow recommends low-risk slots with real, reportable accuracy.</div>
+</div>
+
+<div class="phase">
+<h2>Phase 5 — Staff &amp; Admin (Research Question 3)</h2>
+<h3>Rule engine (works with AI switched off)</h3>
+<ul>
+  <li class="done">Risk detection — abnormal vitals, critical labs, medication gaps, overdue follow-ups</li>
+  <li class="done">Severity scoring (info / warning / urgent) + de-duplication</li>
+  <li class="done">Rule-based task generator</li>
+</ul>
+<h3>Staff app</h3>
+<ul>
+  <li class="done">Staff shell + navigation (Dashboard / Patients / Tasks / Schedule)</li>
+  <li class="done">Dashboard — today's schedule, risk flags, task preview, one-tap "scan panel"</li>
+  <li class="done">Patient search + list</li>
+  <li class="done">Patient chart (header, flags, medications, vitals, timeline)</li>
+  <li class="done">Add clinical note</li>
+  <li class="done">Prescribe medication</li>
+  <li class="done">Enter lab result (auto-classified against the reference range)</li>
+  <li class="done">AI task prioritisation, blended with the rule score</li>
+  <li class="done">Task board with a per-task rationale</li>
+  <li class="done">Week schedule grid</li>
+  <li class="done">Panel analytics — no-show rate, cancellation rate, utilisation</li>
+</ul>
+<h3>Admin dashboard</h3>
+<ul>
+  <li class="done">User management — create staff, activate / deactivate, reset password</li>
+  <li class="done">Departments — create / rename / describe</li>
+  <li class="todo">Schedule-template editor — deferred (templates are seeded for now)</li>
+  <li class="done">AI settings — API key, model, mock toggle, blend weight, re-seed</li>
+  <li class="done">System analytics + audit log viewer</li>
+</ul>
+<div class="donewhen"><b>✅ Done when:</b> staff can run a full clinical workflow and admin can manage the platform.</div>
+</div>
+
+<div class="phase">
+<h2>Phase 6 — Testing &amp; Results</h2>
+<ul>
+  <li class="done">Unit tests — predictor, features, risk rules, password hashing</li>
+  <li class="done">Unit tests — repositories on an in-memory database</li>
+  <li class="done">Unit tests — AI parsing (valid, malformed, empty, timeout → safe error)</li>
+  <li class="done">Widget tests — login, timeline, booking, staff dashboard</li>
+  <li class="done">Integration test — seed → patient books → staff sees it</li>
+  <li class="done">Cross-platform smoke — Windows + Web release builds green</li>
+  <li class="todo">Cross-platform smoke — Android (blocked on the hypervisor driver)</li>
+  <li class="todo">Usability study — 5–8 people, SUS questionnaire (protocol ready, needs participants)</li>
+  <li class="done">Performance — timeline load, AI latency, cold start, database size</li>
+  <li class="done">Accessibility — contrast, tap targets, labels, text scaling</li>
+</ul>
+<p class="result">Result: 74 tests, all passing. flutter analyze clean.</p>
+<div class="donewhen"><b>✅ Done when:</b> every number in the report has a test or measurement behind it.</div>
+</div>
+
+<div class="phase">
+<h2>Phase 7 — Report &amp; Presentation (in progress)</h2>
+<ul>
+  <li class="todo">Architecture, use-case, sequence diagrams</li>
+  <li class="todo">Screenshots — all screens, both roles, light + dark</li>
+  <li class="todo">Results chapter — ML metrics, baselines, SUS, performance</li>
+  <li class="todo">Demo script, rehearsed offline with the mock AI</li>
+  <li class="todo">Presentation deck + rehearsal</li>
+</ul>
+<div class="donewhen"><b>✅ Done when:</b> the report and defense materials are complete.</div>
+</div>
+
+<div class="phase">
+<h2>Open Items</h2>
+<table>
+  <tr><th>Item</th><th>Status</th><th>To close</th></tr>
+  <tr><td>Android build</td><td>Blocked</td><td>Run the AEHD hypervisor driver installer (admin), or use a physical phone</td></tr>
+  <tr><td>PDF report import</td><td>Deferred</td><td>Wire file picker → text extractor → new record</td></tr>
+  <tr><td>Schedule-template editor</td><td>Deferred</td><td>Add a schedule-template repository</td></tr>
+  <tr><td>Usability study results</td><td>Pending</td><td>Run the protocol in <code>docs/usability_study.md</code> with 5–8 people</td></tr>
+  <tr><td>Live Gemini output</td><td>Dormant</td><td>Paste a free API key in Admin → AI Settings, turn Mock mode off</td></tr>
+</table>
+</div>
+
+</body>
+</html>
