@@ -1,8 +1,4 @@
-/// App navigation (task P0-06).
-///
-/// go_router with a placeholder screen behind every route and one adaptive
-/// [AppShell] per role. Role-gated guards (redirect by session/role) land in
-/// P2-05 — [_guard] is a no-op stub until then.
+/// App navigation (P0-06) with role-gated redirects (P2-05).
 library;
 
 import 'package:flutter/material.dart';
@@ -10,10 +6,35 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/presentation/placeholder_screen.dart';
+import '../domain/enums.dart';
+import '../features/auth/application/session.dart';
+import '../features/auth/presentation/login_screen.dart';
+import '../features/auth/presentation/register_screen.dart';
 import 'shell/app_shell.dart';
 
-/// The app's [GoRouter]. P2-05 makes this session-aware (redirect by role).
-final routerProvider = Provider<GoRouter>((ref) => buildAppRouter());
+/// The app's [GoRouter], rebuilt-aware of the session.
+final routerProvider = Provider<GoRouter>((ref) {
+  final refresh = ValueNotifier(0);
+  ref.onDispose(refresh.dispose);
+  ref.listen(sessionProvider, (_, _) => refresh.value++);
+  return buildAppRouter(ref, refresh);
+});
+
+/// Where a signed-in user of [role] belongs.
+String homeForRole(UserRole role) => switch (role) {
+  UserRole.patient => AppRoutes.patientHome,
+  UserRole.staff => AppRoutes.staffDashboard,
+  UserRole.admin => AppRoutes.adminUsers,
+};
+
+bool _canAccess(String location, UserRole role) {
+  final area = switch (role) {
+    UserRole.patient => '/patient',
+    UserRole.staff => '/staff',
+    UserRole.admin => '/admin',
+  };
+  return location == '/' || location.startsWith(area);
+}
 
 /// Every route path in the app, in one place.
 abstract final class AppRoutes {
@@ -51,23 +72,19 @@ abstract final class AppRoutes {
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
-GoRouter buildAppRouter() {
+GoRouter buildAppRouter(Ref ref, Listenable refresh) {
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: AppRoutes.login,
+    initialLocation: '/',
     debugLogDiagnostics: true,
-    redirect: _guard,
+    refreshListenable: refresh,
+    redirect: (context, state) => _guard(ref, state),
     routes: [
-      GoRoute(path: '/', redirect: (_, _) => AppRoutes.login),
-      GoRoute(
-        path: AppRoutes.login,
-        builder: (_, _) =>
-            const PlaceholderScreen(title: 'Sign in', task: 'P2-02'),
-      ),
+      GoRoute(path: '/', builder: (_, _) => const _SplashScreen()),
+      GoRoute(path: AppRoutes.login, builder: (_, _) => const LoginScreen()),
       GoRoute(
         path: AppRoutes.register,
-        builder: (_, _) =>
-            const PlaceholderScreen(title: 'Create account', task: 'P2-03'),
+        builder: (_, _) => const RegisterScreen(),
       ),
 
       // Standalone screens pushed full-screen over a shell (DESIGN.md §6:
@@ -100,8 +117,35 @@ GoRouter buildAppRouter() {
   );
 }
 
-/// Role-gated routing guard. Stub until P2-05 wires it to the session.
-String? _guard(BuildContext context, GoRouterState state) => null;
+/// Role-gated routing guard (P2-05).
+String? _guard(Ref ref, GoRouterState state) {
+  final session = ref.read(sessionProvider);
+  final loc = state.matchedLocation;
+  const onSplash = '/';
+  final onAuthScreen = loc == AppRoutes.login || loc == AppRoutes.register;
+
+  // Still loading the persisted session → sit on the splash.
+  if (session.isRestoring) return loc == onSplash ? null : onSplash;
+
+  final user = session.user;
+  if (user == null) {
+    return onAuthScreen ? null : AppRoutes.login;
+  }
+
+  // Signed in: keep them out of the splash / auth screens, and out of
+  // another role's area.
+  if (loc == onSplash || onAuthScreen) return homeForRole(user.role);
+  if (!_canAccess(loc, user.role)) return homeForRole(user.role);
+  return null;
+}
+
+class _SplashScreen extends StatelessWidget {
+  const _SplashScreen();
+
+  @override
+  Widget build(BuildContext context) =>
+      const Scaffold(body: Center(child: CircularProgressIndicator()));
+}
 
 // ---------------------------------------------------------------------------
 // Patient

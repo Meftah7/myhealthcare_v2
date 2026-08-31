@@ -1,12 +1,12 @@
-☰ MyHealth Care — Senior Project
+i ☰ MyHealth Care — Senior Project
   University of Bahrain · College of IT
   Ali Mohamed Jaafar Mohamed (202208244) · Mohammed A.Redha Meftah (202209027)
   Supervisor: Dr. Amal Ghanim
   Details: tasks.md · Rationale: plan.md
   Location: C:\dev\myhealthcare  (moved out of OneDrive — restart Claude Code here)
 
-  NOW: PHASE 1 COMPLETE — GATE: review schema + seeder before Phase 2
-  35/118 done · Phase 0 done bar P0-10 (Android, blocked) + P0-13 GitHub remote
+  NOW: P2-07 patient home  (Phase 2 auth spine done: P2-01..06, P2-18)
+  41/118 done · Phase 0 done bar P0-10 (Android, blocked) + P0-13 (GitHub — user handling separately)
 
 Phase 0 — Scaffold: @13of14
   Goal: empty app builds and runs on Windows, Android, Chrome with a working local DB.
@@ -230,14 +230,32 @@ Phase 1 — Data foundation: @22of22  ✔ COMPLETE
       docs/erd.mmd (mermaid, 16 tables + all FKs) rendered to docs/erd.png via
       @mermaid-js/mermaid-cli. P7-01 can restyle for the report.
 
-Phase 2 — Auth + patient core: @0of18
+Phase 2 — Auth + patient core: @6of18
   Goal: a patient can log in and browse their entire history. No AI yet.
-  ☐ P2-01 Salted password hashing @M
-  ☐ P2-02 Login screen + controller @M @needs(P2-01)
-  ☐ P2-03 Patient registration @M @needs(P2-01)
-  ☐ P2-04 Session provider + persistence @S @needs(P2-02)
-  ☐ P2-05 Role-gated routing: patient / staff / admin @M @needs(P2-04, P0-06)
-  ☐ P2-06 Logout + switch user @S
+  ✔ P2-01 Salted password hashing @M @done(2026-08-31)
+    Done early in P1-12. lib/services/auth/password_hasher.dart — PBKDF2-HMAC-
+    SHA256, salted, hash string carries iteration count. 3 unit tests.
+  ✔ P2-02 Login screen + controller @M @done(2026-08-31)
+    lib/features/auth/presentation/login_screen.dart — email/password form,
+    show/hide, inline error, "create account" link, seeded-demo chips
+    (Patient/Staff/Admin, password: password).
+  ✔ P2-03 Patient registration @M @done(2026-08-31)
+    register_screen.dart — name/email/password + phone/dob/gender/nationalId/
+    blood type + comma-separated conditions/allergies/emergency contact.
+    On success the router redirects the new patient to their home.
+  ✔ P2-04 Session provider + persistence @S @done(2026-08-31)
+    lib/features/auth/application/session.dart — SessionController (Notifier),
+    Session {user, isRestoring}. userId persisted in SharedPreferences,
+    restored on startup (re-fetched from the DB). currentUserProvider sugar.
+  ✔ P2-05 Role-gated routing: patient / staff / admin @M @done(2026-08-31)
+    router.dart: session-aware redirect — splash while restoring, unauth →
+    /login, signed-in → homeForRole(), each role confined to its /patient|
+    /staff|/admin area. routerProvider refreshes on session change. Seeder
+    now creates an admin_01 account. 3 end-to-end auth-flow widget tests
+    (patient/staff redirect, wrong-password error) + smoke test — all green.
+  ⧗ P2-06 Logout + switch user @S @partial
+    SessionController.logout() + switchTo(user) exist; UI wiring comes with
+    the patient/staff shells (P2-07 / P5-04).
   ☐ P2-07 Patient home @M
   ☐ P2-08 Health timeline — merged, grouped, lazy-loaded @L @needs(P1-14)
   ☐ P2-09 Timeline filters + search @M @needs(P2-08)
@@ -249,7 +267,10 @@ Phase 2 — Auth + patient core: @0of18
   ☐ P2-15 Vitals charts: BP, weight, glucose, HR @M @needs(P1-15)
   ☐ P2-16 Medications list @S @needs(P1-09)
   ☐ P2-17 Profile + settings @M
-  ☐ P2-18 Shared widgets: empty, error, loading, confirm @S
+  ✔ P2-18 Shared widgets: empty, error, loading, confirm @S @done(2026-08-31)
+    lib/core/presentation/: states.dart (EmptyState, ErrorStateView,
+    LoadingSkeleton + .list()), confirm_dialog.dart (confirm() dialog,
+    SectionHeader).
 
 Phase 3 — AI layer · RQ1: @0of14
   Goal: RQ1 answered end to end. Mock before real, so no screen waits on a key.

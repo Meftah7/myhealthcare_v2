@@ -44,7 +44,7 @@ class Seeder {
   final PasswordHasher _hasher;
 
   /// Bump when the generation logic changes so existing DBs re-seed.
-  static const seedVersion = 1;
+  static const seedVersion = 2;
 
   /// Password for every seeded account (documented in the README).
   static const demoPassword = 'password';
@@ -74,6 +74,7 @@ class Seeder {
   // --- generation --------------------------------------------------------
 
   Future<SeedResult> _generate() async {
+    await _seedAdmin();
     final deptIds = await _seedDepartments();
     final staff = await _seedStaff(deptIds);
     final patients = await _seedPatients();
@@ -94,6 +95,15 @@ class Seeder {
       records: records,
     );
   }
+
+  Future<void> _seedAdmin() => _insertUser(
+    id: 'admin_01',
+    role: UserRole.admin,
+    fullName: 'System Administrator',
+    email: 'admin@myhealth.demo',
+    male: true,
+    dob: _epoch.subtract(const Duration(days: 365 * 40)),
+  );
 
   Future<List<String>> _seedDepartments() async {
     final ids = <String>[];
