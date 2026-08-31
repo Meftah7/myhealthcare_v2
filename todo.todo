@@ -5,11 +5,11 @@
   Details: tasks.md · Rationale: plan.md
   Location: C:\dev\myhealthcare  (moved out of OneDrive — restart Claude Code here)
 
-  NOW: P0-07 ProviderScope + core/di.dart  (P0-06 done)
+  NOW: P0-09 Drift spike — Windows  (P0-07, P0-08 done)  ← next up: the Drift spikes; P0-11 is the web decision gate
   NEXT GATE: P0-11 Drift on Web — decide before starting Phase 1
-  7/118 done
+  9/118 done
 
-Phase 0 — Scaffold: @7of14
+Phase 0 — Scaffold: @9of14
   Goal: empty app builds and runs on Windows, Android, Chrome with a working local DB.
   ✔ P0-01 flutter create with android, ios, web, windows @S @done(2026-08-31)
     flutter create . --project-name myhealthcare --org bh.edu.uob --platforms android,ios,web,windows
@@ -64,8 +64,17 @@ Phase 0 — Scaffold: @7of14
     P2-05. lib/app/app.dart = MaterialApp.router; main.dart trimmed to runApp.
     Verified: analyze + test clean, Windows build runs, lands on /login,
     teal icon + "MyHealth Care" in the title bar, Lexend/Inter fonts load.
-  ☐ P0-07 ProviderScope + core/di.dart @S @needs(P0-03)
-  ☐ P0-08 Result<T, Failure> + failure types @S
+  ✔ P0-07 ProviderScope + core/di.dart @S @done(2026-08-31)
+    main.dart: async main, SharedPreferences bootstrap, ProviderScope with
+    sharedPreferencesProvider override. lib/core/di.dart: cross-cutting provider
+    registry (repos land here in P1-18). app.dart is now a ConsumerWidget reading
+    routerProvider (lib/app/router.dart). analyze + test clean.
+  ✔ P0-08 Result<T, Failure> + failure types @S @done(2026-08-31)
+    lib/core/failures.dart: sealed Failure + Database/Network/Auth/NotFound/
+    Validation/Ai/File/Unexpected, each with message + cause + stackTrace.
+    lib/core/result.dart: sealed Result<T> = Ok<T> | Err<T>, with guard/
+    guardAsync, fold/map/flatMap/getOrElse, value/failureOrNull. 8 unit tests
+    in test/core/result_test.dart, all green.
   ☐ P0-09 Drift spike — Windows @M @needs(P0-03)
   ☐ P0-10 Drift spike — Android @M @needs(P0-09)
   ☐ P0-11 Drift spike — Web WASM + OPFS @L @critical @needs(P0-09)
@@ -73,7 +82,7 @@ Phase 0 — Scaffold: @7of14
   ☐ P0-12 Strict lints, flutter analyze clean @S
   ⧗ P0-13 git init + .gitignore — no API keys ever @S @partial
     Done: git init, first commit, .gitignore hardened (*.env, secrets.dart, api_keys.dart,
-    .agents/, .claude/skills/). Remaining: .gitattributes for LF normalization, GitHub remote.
+    .agents/, .claude/skills/), .gitattributes for LF normalization. Remaining: GitHub remote.
   ☐ P0-14 README: run, seed, add AI key @S
 
 Phase 1 — Data foundation: @0of22
