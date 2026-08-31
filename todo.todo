@@ -6,7 +6,9 @@ i ☰ MyHealth Care — Senior Project
   Location: C:\dev\myhealthcare  (moved out of OneDrive — restart Claude Code here)
 
   NOW: Phase 6 done (8/9 automated; P6-07 usability needs participants). Phase 7 = report & presentation.
-  115/118 done · open: P0-10 Android · P0-13 GitHub · P2-11..13 PDF · P5-15 template editor · P6-07 participants · Gemini key
+  116/118 done · repo: github.com/Meftah7/myhealthcare_v2 (main)
+  open: P0-10 Android (AEHD driver) · P2-11..13 PDF import · P5-15 template editor · P6-07 participants · Gemini key (paste in Admin AI Settings)
+  docs/: test_accounts.md · ai_setup.md · platform_smoke.md · performance.md · usability_study.md · ml_results.md
 
 Phase 0 — Scaffold: @13of14
   Goal: empty app builds and runs on Windows, Android, Chrome with a working local DB.
@@ -112,9 +114,10 @@ Phase 0 — Scaffold: @13of14
     linter rules (correctness + style), generated files excluded. Fixed the 7
     findings; `flutter analyze` clean, `dart format` applied across lib/test/
     integration_test/test_driver, `flutter test` green.
-  ⧗ P0-13 git init + .gitignore — no API keys ever @S @partial
-    Done: git init, first commit, .gitignore hardened (*.env, secrets.dart, api_keys.dart,
-    .agents/, .claude/skills/), .gitattributes for LF normalization. Remaining: GitHub remote.
+  ✔ P0-13 git init + .gitignore — no API keys ever @S @done(2026-08-31)
+    git init, .gitignore hardened (*.env, secrets.dart, api_keys.dart, .agents/, .claude/skills/),
+    .gitattributes for LF normalization. Remote: github.com/Meftah7/myhealthcare_v2 (branch main).
+    Keys never committed — AiKeyStore uses OS secure storage / --dart-define only.
   ✔ P0-14 README: run, seed, add AI key @S @done(2026-08-31)
     Full project README: context + RQs, prerequisites per platform, setup
     (pub get + build_runner), run commands, web COOP/COEP note, seed + AI-key
