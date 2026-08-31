@@ -94,6 +94,8 @@ dev_dependencies:
   drift_dev: '>=2.34.0 <2.34.1'   # keep on analyzer <13, see drift note above
   freezed: ^3.1.0
   json_serializable: ^6.8.0
+  integration_test:
+    sdk: flutter
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

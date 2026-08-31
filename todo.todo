@@ -5,11 +5,11 @@
   Details: tasks.md · Rationale: plan.md
   Location: C:\dev\myhealthcare  (moved out of OneDrive — restart Claude Code here)
 
-  NOW: P0-09 Drift spike — Windows  (P0-07, P0-08 done)  ← next up: the Drift spikes; P0-11 is the web decision gate
+  NOW: P0-10 Drift spike — Android  (P0-09 done) — BLOCKED: disk full, see note
   NEXT GATE: P0-11 Drift on Web — decide before starting Phase 1
-  9/118 done
+  10/118 done
 
-Phase 0 — Scaffold: @9of14
+Phase 0 — Scaffold: @10of14
   Goal: empty app builds and runs on Windows, Android, Chrome with a working local DB.
   ✔ P0-01 flutter create with android, ios, web, windows @S @done(2026-08-31)
     flutter create . --project-name myhealthcare --org bh.edu.uob --platforms android,ios,web,windows
@@ -75,8 +75,19 @@ Phase 0 — Scaffold: @9of14
     lib/core/result.dart: sealed Result<T> = Ok<T> | Err<T>, with guard/
     guardAsync, fold/map/flatMap/getOrElse, value/failureOrNull. 8 unit tests
     in test/core/result_test.dart, all green.
-  ☐ P0-09 Drift spike — Windows @M @needs(P0-03)
-  ☐ P0-10 Drift spike — Android @M @needs(P0-09)
+  ✔ P0-09 Drift spike — Windows @M @done(2026-08-31)
+    lib/data/db/app_database.dart: AppDatabase (@DriftDatabase), schemaVersion 1,
+    one throwaway table SpikeRows (removed in P1-01), opened via drift_flutter
+    driftDatabase(name:). appDatabaseProvider in core/di.dart. build_runner
+    codegen committed (app_database.g.dart — no CI, so generated files are
+    tracked). Debug-only /dev/db-spike screen (lib/dev/). Verified:
+    integration_test/drift_spike_test.dart round-trips insert+read on Windows;
+    sqlite3.dll confirmed in the Windows build bundle. analyze + unit tests clean.
+  ⛔ P0-10 Drift spike — Android @M @needs(P0-09) — BLOCKED
+    Android system-image download failed: "not enough space on the disk".
+    C: is 237G, 100% full, ~880MB free. Emulator needs ~2GB. Needs the user to
+    free disk space, or an Android build/test path that fits, or a physical
+    device. Integration test is ready to run the moment a device exists.
   ☐ P0-11 Drift spike — Web WASM + OPFS @L @critical @needs(P0-09)
     Decision gate. If this costs more than a day, drop web support and say so in the report.
   ☐ P0-12 Strict lints, flutter analyze clean @S

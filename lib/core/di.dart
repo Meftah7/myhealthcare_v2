@@ -9,6 +9,8 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../data/db/app_database.dart';
+
 /// Key–value store for lightweight local state (session, settings).
 ///
 /// Overridden in `main()` once [SharedPreferences.getInstance] has completed —
@@ -17,4 +19,11 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   throw StateError(
     'sharedPreferencesProvider must be overridden in ProviderScope',
   );
+});
+
+/// The single app-wide Drift database. Closed when the scope is disposed.
+final appDatabaseProvider = Provider<AppDatabase>((ref) {
+  final db = AppDatabase();
+  ref.onDispose(db.close);
+  return db;
 });
