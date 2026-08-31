@@ -5,9 +5,8 @@
   Details: tasks.md · Rationale: plan.md
   Location: C:\dev\myhealthcare  (moved out of OneDrive — restart Claude Code here)
 
-  NOW: P1-19 seeder vocab  (P1-12..P1-18 done)
-  GATE: end of Phase 1 — review schema + seeder before Phase 2
-  31/118 done · Phase 0 done bar P0-10 (Android, blocked) + P0-13 GitHub remote
+  NOW: PHASE 1 COMPLETE — GATE: review schema + seeder before Phase 2
+  35/118 done · Phase 0 done bar P0-10 (Android, blocked) + P0-13 GitHub remote
 
 Phase 0 — Scaffold: @13of14
   Goal: empty app builds and runs on Windows, Android, Chrome with a working local DB.
@@ -122,7 +121,7 @@ Phase 0 — Scaffold: @13of14
     sections (marked pending P1-21 / P3-06), test commands incl. web via
     flutter drive, project layout.
 
-Phase 1 — Data foundation: @7of22
+Phase 1 — Data foundation: @22of22  ✔ COMPLETE
   Goal: fully populated database. Queryable realistic data, no UI yet.
 
   Schema:
@@ -209,11 +208,27 @@ Phase 1 — Data foundation: @7of22
       wiring) all green.
 
   Seeder:
-    ☐ P1-19 Vocab: names, conditions, medications, lab analytes + ranges @M
-    ☐ P1-20 Seeder: 60 patients, 12 staff, 5 departments, 2y history @L @needs(P1-19, P1-07)
-      Correlated, not random — chronic patients visit more, some genuinely no-show often.
-    ☐ P1-21 Idempotent re-seed + reset demo data @S @needs(P1-20)
-    ☐ P1-22 Export ERD to docs/erd.png @M @needs(P1-06)
+    ✔ P1-19 Vocab: names, conditions, medications, lab analytes + ranges @M @done(2026-08-31)
+      lib/data/seed/vocab/: names.dart (Bahraini/Arabic + English), clinical.dart
+      (5 departments+specialties, 8 chronic conditions with which analytes/vitals
+      they disturb, meds by condition, 12 lab analytes w/ adult ref ranges,
+      visit reasons, facilities).
+    ✔ P1-20 Seeder: 60 patients, 12 staff, 5 departments, 2y history @L @done(2026-08-31)
+      lib/data/seed/seeder.dart. Seeded RNG (Random(20260101)) → byte-identical.
+      CORRELATED: chronic patients visit every 1-3mo vs a few/yr, hidden
+      per-patient noShowTendency (18% are high), lab values drift toward each
+      condition's abnormal side over the 2y, vitals trend with conditions, meds
+      per condition. Produces ~60 patients / 12 staff (each w/ Sun-Thu schedule)
+      / 5 depts / 450+ appointments / 250+ records. All accounts: password
+      "password" (hash string carries iteration count so seeder uses cheap 1000).
+    ✔ P1-21 Idempotent re-seed + reset demo data @S @done(2026-08-31)
+      run() no-ops when app_settings.seedVersion is current; reset() wipes +
+      regenerates. seederProvider in di.dart; main() runs it on first launch.
+      5 seeder tests (volume, correlation asserts, byte-identical, idempotency,
+      login) + 3 hasher tests — all green. 24 tests total.
+    ✔ P1-22 Export ERD to docs/erd.png @M @done(2026-08-31)
+      docs/erd.mmd (mermaid, 16 tables + all FKs) rendered to docs/erd.png via
+      @mermaid-js/mermaid-cli. P7-01 can restyle for the report.
 
 Phase 2 — Auth + patient core: @0of18
   Goal: a patient can log in and browse their entire history. No AI yet.

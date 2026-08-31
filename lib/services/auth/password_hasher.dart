@@ -1,10 +1,11 @@
 /// Salted, stretched password hashing (P2-01 — built early because the auth
 /// repository and the seeder both need it).
 ///
-/// PBKDF2-HMAC-SHA256. The report should note that a production system would
-/// use a memory-hard KDF (Argon2id / scrypt / bcrypt); PBKDF2 is chosen here
-/// because it needs only `package:crypto` and is deterministic for the seeded
-/// demo data.
+/// PBKDF2-HMAC-SHA256. The stored hash string embeds its iteration count
+/// (`<iterations>:<base64 key>`) so the work factor can change over time and
+/// the bulk seeder can use a cheap count without breaking login. The report
+/// should note a production system would use a memory-hard KDF (Argon2id /
+/// scrypt / bcrypt).
 library;
 
 import 'dart:convert';
@@ -16,7 +17,7 @@ import 'package:crypto/crypto.dart';
 class PasswordHash {
   const PasswordHash({required this.hash, required this.salt});
 
-  /// Base64 of the derived key.
+  /// `<iterations>:<base64 derived key>`.
   final String hash;
 
   /// Base64 of the random salt.
@@ -24,8 +25,10 @@ class PasswordHash {
 }
 
 class PasswordHasher {
-  const PasswordHasher({this.iterations = 100000, this.keyLength = 32});
+  const PasswordHasher({this.iterations = 20000, this.keyLength = 32});
 
+  /// Work factor for *new* hashes. Verification reads the count from the
+  /// stored string, so existing hashes keep working when this changes.
   final int iterations;
   final int keyLength;
 
@@ -33,33 +36,43 @@ class PasswordHasher {
 
   PasswordHash hashNew(String password, {List<int>? salt}) {
     final saltBytes = salt ?? _randomBytes(16);
-    final derived = _pbkdf2(utf8.encode(password), saltBytes);
+    final derived = _pbkdf2(utf8.encode(password), saltBytes, iterations);
     return PasswordHash(
-      hash: base64.encode(derived),
+      hash: '$iterations:${base64.encode(derived)}',
       salt: base64.encode(saltBytes),
     );
   }
 
   bool verify(String password, {required String hash, required String salt}) {
-    final derived = _pbkdf2(utf8.encode(password), base64.decode(salt));
-    return _constantTimeEquals(base64.encode(derived), hash);
+    final sep = hash.indexOf(':');
+    if (sep <= 0) return false;
+    final iters = int.tryParse(hash.substring(0, sep));
+    if (iters == null) return false;
+    final expected = hash.substring(sep + 1);
+    final derived = _pbkdf2(utf8.encode(password), base64.decode(salt), iters);
+    return _constantTimeEquals(base64.encode(derived), expected);
   }
 
   List<int> _randomBytes(int n) =>
       List<int>.generate(n, (_) => _random.nextInt(256));
 
-  Uint8List _pbkdf2(List<int> password, List<int> salt) {
+  Uint8List _pbkdf2(List<int> password, List<int> salt, int iterations) {
     final hmac = Hmac(sha256, password);
     final out = BytesBuilder();
     var block = 1;
     while (out.length < keyLength) {
-      out.add(_deriveBlock(hmac, salt, block));
+      out.add(_deriveBlock(hmac, salt, block, iterations));
       block++;
     }
     return Uint8List.fromList(out.toBytes().sublist(0, keyLength));
   }
 
-  List<int> _deriveBlock(Hmac hmac, List<int> salt, int blockIndex) {
+  List<int> _deriveBlock(
+    Hmac hmac,
+    List<int> salt,
+    int blockIndex,
+    int iterations,
+  ) {
     final firstInput = <int>[
       ...salt,
       (blockIndex >> 24) & 0xff,

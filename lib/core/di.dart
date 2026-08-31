@@ -15,6 +15,7 @@ import '../data/repositories/patient_repository_impl.dart';
 import '../data/repositories/record_repository_impl.dart';
 import '../data/repositories/system_repository_impl.dart';
 import '../data/repositories/task_repository_impl.dart';
+import '../data/seed/seeder.dart';
 import '../domain/repositories/repositories.dart';
 import '../services/auth/password_hasher.dart';
 
@@ -97,4 +98,8 @@ final auditRepositoryProvider = Provider<AuditRepository>(
 
 final settingsRepositoryProvider = Provider<SettingsRepository>(
   (ref) => SettingsRepositoryImpl(ref.watch(appDatabaseProvider)),
+);
+
+final seederProvider = Provider<Seeder>(
+  (ref) => Seeder(ref.watch(appDatabaseProvider)),
 );

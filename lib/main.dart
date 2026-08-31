@@ -10,9 +10,15 @@ Future<void> main() async {
 
   final prefs = await SharedPreferences.getInstance();
 
+  final container = ProviderContainer(
+    overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+  );
+  // Populate the synthetic dataset on first launch (idempotent afterwards).
+  await container.read(seederProvider).run();
+
   runApp(
-    ProviderScope(
-      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+    UncontrolledProviderScope(
+      container: container,
       child: const MyHealthCareApp(),
     ),
   );

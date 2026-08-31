@@ -1,0 +1,188 @@
+erDiagram
+  departments ||--o{ staff_profiles : "staffed by"
+  departments ||--o{ appointments : "hosts"
+  users ||--o| patient_profiles : "has"
+  users ||--o| staff_profiles : "has"
+  users ||--o{ schedule_templates : "works"
+  users ||--o{ appointments : "patient"
+  users ||--o{ appointments : "clinician"
+  users ||--o{ medical_records : "about"
+  users ||--o{ medical_records : "authored by"
+  users ||--o{ vitals : "about"
+  users ||--o{ medications : "prescribed to"
+  users ||--o{ ai_summaries : "about"
+  users ||--o{ staff_tasks : "assigned"
+  users ||--o{ risk_flags : "about"
+  users ||--o{ audit_log : "actor"
+  appointments ||--o{ reminders : "triggers"
+  medical_records ||--o{ lab_values : "contains"
+
+  users {
+    text id PK
+    text role
+    text fullName
+    text email
+    text passwordHash
+    text passwordSalt
+    text phone
+    datetime dob
+    text gender
+    text nationalId
+    bool isActive
+    datetime createdAt
+  }
+  patient_profiles {
+    text userId PK
+    text bloodType
+    text allergies
+    text chronicConditions
+    text emergencyContact
+  }
+  staff_profiles {
+    text userId PK
+    text specialty
+    text departmentId
+    text licenseNo
+    text jobTitle
+  }
+  departments {
+    text id PK
+    text name
+    text description
+  }
+  schedule_templates {
+    text id PK
+    text staffId
+    int weekday
+    int startMinutes
+    int endMinutes
+    int slotMinutes
+  }
+  appointments {
+    text id PK
+    text patientId
+    text staffId
+    text departmentId
+    datetime slotStart
+    datetime slotEnd
+    text visitType
+    text status
+    text reasonText
+    datetime bookedAt
+    real noShowRisk
+    text riskBand
+    int remindersSent
+    datetime checkedInAt
+  }
+  reminders {
+    text id PK
+    text appointmentId
+    datetime scheduledFor
+    text channel
+    text kind
+    datetime sentAt
+    bool acknowledged
+  }
+  medical_records {
+    text id PK
+    text patientId
+    text authorStaffId
+    text recordType
+    text title
+    text body
+    datetime occurredAt
+    text sourceFacility
+    text attachmentPath
+    text extractedText
+    datetime createdAt
+  }
+  lab_values {
+    text id PK
+    text recordId
+    text analyte
+    real value
+    text unit
+    real refLow
+    real refHigh
+    text abnormalFlag
+  }
+  vitals {
+    text id PK
+    text patientId
+    datetime recordedAt
+    int systolic
+    int diastolic
+    int heartRate
+    real tempC
+    real weightKg
+    real heightCm
+    int spo2
+    real glucose
+    text recordedByStaffId
+  }
+  medications {
+    text id PK
+    text patientId
+    text prescriberId
+    text name
+    text dose
+    text frequency
+    datetime startDate
+    datetime endDate
+    bool isActive
+  }
+  ai_summaries {
+    text id PK
+    text patientId
+    datetime generatedAt
+    text modelId
+    text promptVersion
+    text summaryMarkdown
+    text keyEventsJson
+    text trendsJson
+    text redFlagsJson
+    text inputHash
+  }
+  staff_tasks {
+    text id PK
+    text staffId
+    text patientId
+    text title
+    text kind
+    datetime dueAt
+    text status
+    real ruleScore
+    real aiPriorityScore
+    text aiRationale
+    datetime createdAt
+  }
+  risk_flags {
+    text id PK
+    text patientId
+    text kind
+    text severity
+    text rationale
+    datetime detectedAt
+    text source
+    text dedupeKey
+    text acknowledgedBy
+    datetime acknowledgedAt
+  }
+  audit_log {
+    text id PK
+    text actorUserId
+    text action
+    text entityType
+    text entityId
+    text detail
+    datetime at
+  }
+  app_settings {
+    int id PK
+    bool aiEnabled
+    bool mockMode
+    text modelId
+    real aiTaskWeight
+    int seedVersion
+    datetime updatedAt
+  }
