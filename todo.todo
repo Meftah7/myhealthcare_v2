@@ -5,11 +5,11 @@
   Details: tasks.md · Rationale: plan.md
   Location: C:\dev\myhealthcare  (moved out of OneDrive — restart Claude Code here)
 
-  NOW: P0-14 README  (P0-12 done; P0-10 Android blocked on hypervisor driver — user action)
+  NOW: P0-10 (Android, blocked on hypervisor driver) — then Phase 1
   GATE CLEARED: P0-11 web spike PASSED → web stays a supported platform
-  12/118 done
+  13/118 done · Phase 0 done bar P0-10 (blocked) + P0-13 GitHub remote
 
-Phase 0 — Scaffold: @12of14
+Phase 0 — Scaffold: @13of14
   Goal: empty app builds and runs on Windows, Android, Chrome with a working local DB.
   ✔ P0-01 flutter create with android, ios, web, windows @S @done(2026-08-31)
     flutter create . --project-name myhealthcare --org bh.edu.uob --platforms android,ios,web,windows
@@ -116,7 +116,11 @@ Phase 0 — Scaffold: @12of14
   ⧗ P0-13 git init + .gitignore — no API keys ever @S @partial
     Done: git init, first commit, .gitignore hardened (*.env, secrets.dart, api_keys.dart,
     .agents/, .claude/skills/), .gitattributes for LF normalization. Remaining: GitHub remote.
-  ☐ P0-14 README: run, seed, add AI key @S
+  ✔ P0-14 README: run, seed, add AI key @S @done(2026-08-31)
+    Full project README: context + RQs, prerequisites per platform, setup
+    (pub get + build_runner), run commands, web COOP/COEP note, seed + AI-key
+    sections (marked pending P1-21 / P3-06), test commands incl. web via
+    flutter drive, project layout.
 
 Phase 1 — Data foundation: @0of22
   Goal: fully populated database. Queryable realistic data, no UI yet.
