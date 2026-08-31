@@ -5,8 +5,8 @@ i ☰ MyHealth Care — Senior Project
   Details: tasks.md · Rationale: plan.md
   Location: C:\dev\myhealthcare  (moved out of OneDrive — restart Claude Code here)
 
-  NOW: P2-11..13 (PDF import) then Phase 3 (AI layer)
-  51/118 done · Phase 0 done bar P0-10 (Android, blocked) + P0-13 (GitHub — user handling separately)
+  NOW: GATE — P3-05 needs the Anthropic API key. Then Phase 4 (ML/scheduling).
+  62/118 done · open: P0-10 Android · P0-13 GitHub · P2-11..13 PDF import · P3-05/06 AI key
 
 Phase 0 — Scaffold: @13of14
   Goal: empty app builds and runs on Windows, Android, Chrome with a working local DB.
@@ -293,23 +293,51 @@ Phase 2 — Auth + patient core: @15of18  (P2-11/12/13 PDF import still open)
     LoadingSkeleton + .list()), confirm_dialog.dart (confirm() dialog,
     SectionHeader).
 
-Phase 3 — AI layer · RQ1: @0of14
+Phase 3 — AI layer · RQ1: @11of14  (P3-05/06 wait on the API key — GATE)
   Goal: RQ1 answered end to end. Mock before real, so no screen waits on a key.
-  ☐ P3-01 AiService interface + response models @M
-  ☐ P3-02 PatientContext builder with token budgeting @M @needs(P1-14)
-  ☐ P3-03 MockAiService — build this first @M @needs(P3-01)
-  ☐ P3-04 Summarization prompt, strict JSON contract @S @needs(P3-01)
-  ☐ P3-05 ClaudeAiService — Dio, retry, fallback to mock @L @needs(P3-04)
-  ☐ P3-06 API key in secure storage, never logged or committed @M @needs(P3-05)
-  ☐ P3-07 Provider selects mock vs real from settings @S @needs(P3-03, P3-05)
-  ☐ P3-08 Summary cache keyed on input hash @M @needs(P1-04)
-  ☐ P3-09 AI summary screen @M @needs(P3-02, P3-08)
-  ☐ P3-10 Summary card on home + regenerate @S @needs(P3-09)
-  ☐ P3-11 Key events as inline timeline markers @M @needs(P3-09, P2-08)
-  ☐ P3-12 Trends link to vitals charts @S @needs(P3-09, P2-15)
-  ☐ P3-13 Safety banner on every AI surface @S @critical
-    "AI-generated — informational only, not medical advice; verify with your clinician"
-  ☐ P3-14 Persist modelId + promptVersion + timestamp @S @needs(P3-08)
+  ✔ P3-01 AiService interface + response models @M @done(2026-08-31)
+    services/ai/ai_service.dart (3-method interface, summarizeRecords for now),
+    ai_models.dart (PatientContext, HealthSummary — freezed). KeyEvent/Trend/
+    RedFlag reused from domain/entities/ai_summary.dart.
+  ✔ P3-02 PatientContext builder with token budgeting @M @done(2026-08-31)
+    patient_context_builder.dart — compact markdown block (profile, meds,
+    recent vitals, records newest-first, labs with flags), char-budget cutoff
+    at tokenBudget*4, sha256 hash for the cache key.
+  ✔ P3-03 MockAiService — build this first @M @done(2026-08-31)
+    mock_ai_service.dart — deterministic, derives summary/keyEvents/trends/
+    redFlags from the patient's REAL data (critical labs → urgent flag,
+    chronic condition w/o med → flag, overdue follow-up, vitals deltas).
+  ✔ P3-04 Summarization prompt, strict JSON contract @S @done(2026-08-31)
+    prompts/summarize_records.dart (versioned "summarize-v1", strict JSON
+    shape) + summary_parser.dart (tolerates fences/prose, skips malformed
+    entries, throws AiFailure on garbage — 5 parser tests incl. malformed).
+  ⛔ P3-05 ClaudeAiService — Dio, retry, fallback to mock @L @needs(P3-04) — GATE
+    Needs an Anthropic API key. Interface + mock + prompt + cache + UI all
+    ready; ClaudeAiService is a Dio client + parseHealthSummary + fall back to
+    MockAiService on any failure.
+  ⛔ P3-06 API key in secure storage @M @needs(P3-05) — with P3-05
+  ⧗ P3-07 Provider selects mock vs real from settings @S @partial
+    aiServiceProvider builds MockAiService; the settings branch is stubbed
+    (commented) pending P3-05.
+  ✔ P3-08 Summary cache keyed on input hash @M @done(2026-08-31)
+    AiSummaryController: build context → aiSummaryRepository.cachedFor(hash) →
+    generate → save. Identical context = identical cached row.
+  ✔ P3-09 AI summary screen @M @done(2026-08-31)
+    ai_summary_screen.dart — markdown summary, "things to check" (SeverityChip),
+    trends (→ vitals), key events (→ record). Regenerate action in the app bar.
+  ✔ P3-10 Summary card on home + regenerate @S @done(2026-08-31)
+    _AiSummaryCard shows a 3-line preview from patientAiSummaryProvider.
+  ✔ P3-11 Key events as inline timeline markers @M @done(2026-08-31)
+    Timeline record tiles get a star badge + "flagged by AI" when their id is
+    in the summary's keyEvents.
+  ✔ P3-12 Trends link to vitals charts @S @done(2026-08-31)
+    Trend rows on the summary screen navigate to the vitals tab.
+  ✔ P3-13 Safety banner on every AI surface @S @critical @done(2026-08-31)
+    AiDisclaimerBanner (core/presentation/status_badges.dart), tertiaryContainer,
+    pinned above the summary content.
+  ✔ P3-14 Persist modelId + promptVersion + timestamp @S @done(2026-08-31)
+    AiSummary entity + ai_summaries row carry modelId, promptVersion,
+    generatedAt, inputHash; shown on the summary screen.
 
 Phase 4 — ML + scheduling · RQ2: @0of19
   Goal: RQ2 answered with real, reportable accuracy numbers. This phase produces the results chapter.

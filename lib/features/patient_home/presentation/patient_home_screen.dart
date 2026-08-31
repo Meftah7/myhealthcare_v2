@@ -12,6 +12,7 @@ import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
+import '../../ai_summary/application/ai_summary_provider.dart';
 import '../../auth/application/session.dart';
 import '../../patient/application/patient_data_providers.dart';
 
@@ -213,19 +214,48 @@ class _ActiveMedicationsCard extends ConsumerWidget {
   }
 }
 
-class _AiSummaryCard extends StatelessWidget {
+class _AiSummaryCard extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final summary = ref.watch(patientAiSummaryProvider);
     return Card(
-      child: ListTile(
-        leading: Icon(Icons.auto_awesome, color: theme.colorScheme.primary),
-        title: Text('AI health summary', style: theme.textTheme.titleMedium),
-        subtitle: const Text(
-          'Generated overview of your record — coming in P3',
-        ),
-        trailing: const Icon(Icons.chevron_right),
+      child: InkWell(
+        borderRadius: Radii.card,
         onTap: () => context.push(AppRoutes.patientSummary),
+        child: Padding(
+          padding: const EdgeInsets.all(Space.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.auto_awesome, color: theme.colorScheme.primary),
+                  const SizedBox(width: Space.xs),
+                  Text('AI health summary', style: theme.textTheme.titleMedium),
+                  const Spacer(),
+                  const Icon(Icons.chevron_right),
+                ],
+              ),
+              const SizedBox(height: Space.xs),
+              summary.when(
+                loading: () => const LoadingSkeleton(height: 32),
+                error: (e, _) => Text(
+                  'Tap to generate',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                data: (s) => Text(
+                  s.summaryMarkdown,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

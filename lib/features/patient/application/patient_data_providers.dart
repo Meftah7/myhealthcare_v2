@@ -28,7 +28,9 @@ final patientProfileProvider = FutureProvider<Patient>((ref) async {
   return _unwrap(await ref.watch(patientRepositoryProvider).byId(id));
 });
 
-final patientTimelineProvider = FutureProvider<List<MedicalRecord>>((ref) async {
+final patientTimelineProvider = FutureProvider<List<MedicalRecord>>((
+  ref,
+) async {
   final id = _requirePatient(ref);
   return _unwrap(
     await ref.watch(recordRepositoryProvider).timeline(id, limit: 500),

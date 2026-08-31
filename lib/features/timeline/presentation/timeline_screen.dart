@@ -14,7 +14,20 @@ import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../ai_summary/application/ai_summary_provider.dart';
 import '../../patient/application/patient_data_providers.dart';
+
+/// Record ids the AI flagged as key events (P3-11) — empty on any failure.
+final _keyEventRecordIdsProvider = Provider<Set<String>>((ref) {
+  final summary = ref.watch(patientAiSummaryProvider);
+  return summary.maybeWhen(
+    data: (s) => {
+      for (final e in s.keyEvents)
+        if (e.recordId != null) e.recordId!,
+    },
+    orElse: () => const {},
+  );
+});
 
 /// One row in the merged feed.
 sealed class _Entry {
@@ -149,14 +162,15 @@ class _Filters extends ConsumerWidget {
   };
 }
 
-class _GroupedList extends StatelessWidget {
+class _GroupedList extends ConsumerWidget {
   const _GroupedList({required this.entries});
 
   final List<_Entry> entries;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final keyEventIds = ref.watch(_keyEventRecordIdsProvider);
     // Build a flat list with month headers.
     final items = <Widget>[];
     String? currentMonth;
@@ -177,7 +191,10 @@ class _GroupedList extends StatelessWidget {
         );
       }
       items.add(switch (e) {
-        _RecordEntry(:final record) => _RecordTile(record: record),
+        _RecordEntry(:final record) => _RecordTile(
+          record: record,
+          isKeyEvent: keyEventIds.contains(record.id),
+        ),
         _VitalsEntry(:final vitals) => _VitalsTile(vitals: vitals),
       });
     }
@@ -189,9 +206,10 @@ class _GroupedList extends StatelessWidget {
 }
 
 class _RecordTile extends StatelessWidget {
-  const _RecordTile({required this.record});
+  const _RecordTile({required this.record, this.isKeyEvent = false});
 
   final MedicalRecord record;
+  final bool isKeyEvent;
 
   IconData get _icon => switch (record.recordType) {
     RecordType.visitNote => Icons.notes_outlined,
@@ -207,11 +225,27 @@ class _RecordTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return ListTile(
-      leading: Icon(_icon),
+      leading: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Icon(_icon),
+          if (isKeyEvent)
+            Positioned(
+              right: -4,
+              top: -4,
+              child: Icon(
+                Icons.star,
+                size: 12,
+                color: theme.colorScheme.primary,
+              ),
+            ),
+        ],
+      ),
       title: Text(record.title),
       subtitle: Text(
         '${fmtDate(record.occurredAt)}'
-        '${record.sourceFacility == null ? '' : ' · ${record.sourceFacility}'}',
+        '${record.sourceFacility == null ? '' : ' · ${record.sourceFacility}'}'
+        '${isKeyEvent ? ' · flagged by AI' : ''}',
         style: theme.textTheme.bodySmall,
       ),
       trailing: record.hasAbnormalLabs

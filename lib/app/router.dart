@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../core/presentation/placeholder_screen.dart';
 import '../domain/enums.dart';
+import '../features/ai_summary/presentation/ai_summary_screen.dart';
 import '../features/auth/application/session.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
@@ -98,8 +99,7 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
       // "Detail = full-screen push" on compact).
       GoRoute(
         path: AppRoutes.patientSummary,
-        builder: (_, _) =>
-            const PlaceholderScreen(title: 'AI health summary', task: 'P3-09'),
+        builder: (_, _) => const AiSummaryScreen(),
       ),
       GoRoute(
         path: AppRoutes.patientSettings,
