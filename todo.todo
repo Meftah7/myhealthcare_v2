@@ -5,13 +5,13 @@ i ☰ MyHealth Care — Senior Project
   Details: tasks.md · Rationale: plan.md
   Location: C:\dev\myhealthcare  (moved out of OneDrive — restart Claude Code here)
 
-  NOW: Phase 6 done (8/9 automated; P6-07 usability needs participants). Phase 7 = report & presentation.
-       Phase 8 post-review polish 2026-09-03: admin logout, tab-aware add, user search, dept delete, admin dashboard,
-       staff Schedule crash fix, staff+patient profile tabs, theme/Arabic-English prefs, booking full-day slots + weekend
-       guard, clinic day → 08:00–20:00 (seedVersion 4), appointments tab reorganised, new logo applied to all platforms
-       (P8-08 admin profile still open; app theme colour still teal — logo rebrand of the colour scheme not done).
-  128/130 done · repo: github.com/Meftah7/myhealthcare_v2 (main)
-  open: P0-10 Android (AEHD driver) · P2-11..13 PDF import · P5-15 template editor · P6-07 participants · Gemini key (paste in Admin AI Settings)
+  NOW: core build (Phases 0–6) complete. Phase 7 = report & presentation.
+       Phase 8 (post-review polish) + Phase 9 (full "v2" redesign) done on branch redesign-v2 — 81/81 tests green,
+       flutter analyze clean. Not merged to master yet.
+  128/130 core tasks done · repo: github.com/Meftah7/myhealthcare_v2 (main)
+  open: P0-10 Android (AEHD driver) · P2-11..13 PDF import · P5-15 template editor · P6-07 participants ·
+        P8-08 admin profile · Gemini key (paste in Admin AI Settings) · merge redesign-v2 → master
+  BRANCHES: master = Phases 0–7 baseline · redesign-v2 = master + Phase 8 + Phase 9 (all recent work)
   docs/: test_accounts.md · ai_setup.md · platform_smoke.md · performance.md · usability_study.md · ml_results.md
          · MyHealthCare_Feature_Report.pdf (feature_report.html source; regen via headless Chrome --print-to-pdf)
 
@@ -493,35 +493,59 @@ Phase 6 — Testing & results: @8of9  (P6-07 needs participants — protocol rea
     accessibility_test: meetsGuideline(textContrast / androidTapTarget / iOSTapTarget /
     labeledTapTarget) on login + patient home + staff dashboard; 2x textScaler no overflow.
 
-Phase 9 — Full redesign "v2" (branch redesign-v2): @in-progress
+Phase 9 — Full redesign "v2" @done(2026-09-03) — branch redesign-v2, 4 commits, 81/81 tests
   Goal: rework the whole product — patient, staff, admin — into one polished,
-  organized, premium application. Design authority: the model. DESIGN.md v2.
-  R1 — DESIGN SYSTEM ✔
-    New indigo-violet seed (#5B4FE9) from the logo + AppColors.brandGradient
-    (used only: login mark, one hero per role, empty-state CTA). Flat surfaces:
-    hairline border + Shadows.e1/e2/e3 tokens, off M3 surface-tint. Type gets
-    size-specific tracking (headlines tightened). lib/app/theme/motion.dart:
-    Motion tokens + Pressable (press-scale) + AppPageTransitions (fade-through).
-    app_theme.dart reworked (flat appbar/nav, pill status, softer inputs).
-  R1 — SHARED COMPONENTS ✔
-    lib/core/presentation/: app_card.dart (AppCard, SectionHeader{overline},
-    MetricTile, InlineBanner), app_scaffold.dart (AppScaffold). states.dart
-    polished (icon medallion, reduce-motion skeletons, card-shaped SkeletonList).
-    SectionHeader moved out of confirm_dialog.dart → app_card.dart.
-  R2/R3 — SCREENS
-    Done: login, register, patient home (time-aware greeting + health-snapshot
-    metrics + quick-action grid), staff dashboard (shift metric row), admin
-    dashboard (metric grid + link cards), task board, vitals, panel analytics,
-    appointments, staff + patient profile (ProfileHeader), preferences section,
-    system analytics (MetricTile grid), audit log, departments, medications,
-    timeline, staff patients, staff schedule, AI summary, record detail,
-    patient chart, booking slot list, nav shell (hairline separators).
-    greeting()/visitTypeLabel in format.dart. AppCard is Material-backed
-    (nested ListTiles need an ink host).
-    Theme-only (functional, not hand-polished): user management, ai settings,
-    chart write sheets — they inherit the new tokens but keep their old layout.
-  R4 — IA (deferred): patient Home/Health/Appointments/Profile; admin
-    Overview/People/Departments/System/Profile. Router + tests — after screens.
+  organized, premium application, driven off the new logo. DESIGN.md rewritten
+  to v2 (identity, palette, flat surfaces, motion, IA for all 3 roles).
+
+  DESIGN LANGUAGE — "clinical premium": keep every v1 discipline (legibility,
+  colour+icon+text status, tabular figures, dark parity, 48dp targets, 2x text)
+  and rebuild the craft.
+
+  R1 — DESIGN SYSTEM (commit 0071c1a)
+    - Colour: indigo-violet seed #5B4FE9 (centre of the logo gradient);
+      AppColors.brandGradient (magenta→violet→blue) used ONLY on the login
+      medallion, one hero per role, empty-state CTAs.
+    - Surfaces: flat + hairline border + one soft shadow (Shadows.e1/e2/e3);
+      dropped M3 surface-tint elevation. Radii bumped (card 20, field/button 14,
+      + Radii.pill for status badges).
+    - Type: size-specific tracking — headlines tightened, body neutral.
+    - lib/app/theme/motion.dart (NEW): Motion tokens (fast/medium/slow +
+      easeOutCubic), Pressable (instant press-scale, reduce-motion aware),
+      AppPageTransitions (quiet fade-through, same on every platform).
+    - app_theme.dart reworked: flat app bar + nav, softer inputs, floating
+      snackbar, tuned dialog/sheet/chip/tooltip.
+
+  R1 — SHARED COMPONENTS (lib/core/presentation/)
+    app_card.dart: AppCard (Material-backed — nested ListTiles need an ink
+    host), SectionHeader{overline}, MetricTile (honest "one number + label +
+    trend", no fake score), InlineBanner, ProfileHeader (gradient monogram).
+    app_scaffold.dart: AppScaffold (max-width, gutter, refresh).
+    states.dart polished: icon medallion for empty/error, reduce-motion
+    skeletons, card-shaped SkeletonList. SectionHeader moved here from
+    confirm_dialog.dart. format.dart: greeting(), visitTypeLabel().
+
+  R2/R3 — SCREENS (commits 39e9d6c, 83b0282, b7bedc4) — ~24 rebuilt:
+    Patient: login (gradient medallion, card on wide), register (grouped cards),
+      home (time-aware greeting + health-snapshot metric row + quick-action
+      grid), appointments, timeline (overline month headers), vitals,
+      medications (grouped list), AI summary (card sections), record detail
+      (capped reading width), booking slot list (recommended card + full
+      opening→closing list), profile (ProfileHeader).
+    Staff: dashboard (shift metric row + list cards), patients (avatar cards),
+      schedule, task board, patient chart (card sections), panel analytics
+      (MetricTile grid), profile.
+    Admin: dashboard (metric grid + link cards), system analytics, audit log,
+      departments, profile.
+    Shared: nav shell (hairline separators on bar + rail), preferences section.
+
+  NOT hand-polished (functional; inherit the new tokens, old layout kept):
+    admin user management, admin AI settings, chart write sheets.
+
+  R4 — IA reshuffle (deferred): patient Home/Health/Appointments/Profile;
+    admin Overview/People/Departments/System/Profile. Router + test changes.
+
+  TO FINISH v2: the 3 theme-only screens above + R4 IA. Then merge → master.
 
 Phase 7 — Report & presentation: @0of5
   ☐ P7-01 Architecture, use-case, sequence diagrams @M @needs(P1-22)
