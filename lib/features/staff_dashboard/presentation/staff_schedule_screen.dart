@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -118,11 +119,12 @@ class _DayColumn extends StatelessWidget {
               ),
             )
           else
-            Card(
-              margin: EdgeInsets.zero,
+            AppCard(
+              padding: EdgeInsets.zero,
               child: Column(
                 children: [
-                  for (final a in appts)
+                  for (final (i, a) in appts.indexed) ...[
+                    if (i > 0) const Divider(height: 1, indent: Space.md),
                     ListTile(
                       dense: true,
                       leading: Text(
@@ -144,6 +146,7 @@ class _DayColumn extends StatelessWidget {
                       onTap: () =>
                           context.go(AppRoutes.staffPatientChart(a.patientId)),
                     ),
+                  ],
                 ],
               ),
             ),

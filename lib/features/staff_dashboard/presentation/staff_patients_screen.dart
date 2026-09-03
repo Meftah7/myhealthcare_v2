@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../auth/presentation/sign_out_action.dart';
 import '../application/staff_providers.dart';
@@ -47,32 +48,90 @@ class StaffPatientsScreen extends ConsumerWidget {
               message: 'No patients match that search.',
             );
           }
-          return ListView.builder(
-            itemCount: patients.length,
-            itemBuilder: (context, i) {
-              final p = patients[i];
-              final initials = p.fullName
-                  .split(' ')
-                  .where((s) => s.isNotEmpty)
-                  .take(2)
-                  .map((s) => s[0])
-                  .join();
-              return ListTile(
-                leading: CircleAvatar(child: Text(initials)),
-                title: Text(p.fullName),
-                subtitle: Text(
-                  [
-                    if (p.user.nationalId != null) 'ID ${p.user.nationalId}',
-                    if (p.chronicConditions.isNotEmpty)
-                      p.chronicConditions.join(', '),
-                  ].join(' · '),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: Space.maxContentWidth,
+              ),
+              child: ListView.builder(
+                padding: const EdgeInsets.fromLTRB(
+                  Space.md,
+                  Space.sm,
+                  Space.md,
+                  Space.xxl,
                 ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.go(AppRoutes.staffPatientChart(p.id)),
-              );
-            },
+                itemCount: patients.length,
+                itemBuilder: (context, i) {
+                  final p = patients[i];
+                  final initials = p.fullName
+                      .split(' ')
+                      .where((s) => s.isNotEmpty)
+                      .take(2)
+                      .map((s) => s[0])
+                      .join();
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: Space.xs),
+                    child: AppCard(
+                      padding: const EdgeInsets.all(Space.sm),
+                      onTap: () =>
+                          context.go(AppRoutes.staffPatientChart(p.id)),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 20,
+                            backgroundColor:
+                                Theme.of(context).colorScheme.secondaryContainer,
+                            child: Text(
+                              initials,
+                              style: Theme.of(context).textTheme.labelLarge
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSecondaryContainer,
+                                  ),
+                            ),
+                          ),
+                          const SizedBox(width: Space.sm),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  p.fullName,
+                                  style:
+                                      Theme.of(context).textTheme.titleSmall,
+                                ),
+                                Text(
+                                  [
+                                    if (p.user.nationalId != null)
+                                      'ID ${p.user.nationalId}',
+                                    if (p.chronicConditions.isNotEmpty)
+                                      p.chronicConditions.join(', '),
+                                  ].join(' · '),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            Icons.chevron_right,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
           );
         },
       ),

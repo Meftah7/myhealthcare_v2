@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
+import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
 import '../../../core/result.dart';
@@ -41,53 +42,57 @@ class RecordDetailScreen extends ConsumerWidget {
           message: 'Could not load this record.',
           onRetry: () => ref.invalidate(recordDetailProvider(recordId)),
         ),
-        data: (r) => ListView(
-          padding: const EdgeInsets.all(Space.lg),
-          children: [
-            Text(r.title, style: theme.textTheme.headlineSmall),
-            const SizedBox(height: Space.xs),
-            Text(
-              '${r.recordType.name} · ${fmtDate(r.occurredAt)}'
-              '${r.sourceFacility == null ? '' : ' · ${r.sourceFacility}'}',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+        data: (r) => Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 720),
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(
+                Space.md,
+                Space.md,
+                Space.md,
+                Space.xxl,
               ),
-            ),
-            if (r.body != null) ...[
-              const SizedBox(height: Space.lg),
-              Text(r.body!, style: theme.textTheme.bodyLarge),
-            ],
-            if (r.labValues.isNotEmpty) ...[
-              const SizedBox(height: Space.lg),
-              Text('Results', style: theme.textTheme.titleMedium),
-              const SizedBox(height: Space.xs),
-              _LabTable(labs: r.labValues),
-            ],
-            if (r.extractedText != null) ...[
-              const SizedBox(height: Space.lg),
-              const SectionHeaderInline('Extracted text'),
-              Text(
-                r.extractedText!,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  fontFamily: AppFonts.mono,
+              children: [
+                Text(r.title, style: theme.textTheme.headlineSmall),
+                const SizedBox(height: Space.xs),
+                Text(
+                  '${r.recordType.name} · ${fmtDate(r.occurredAt)}'
+                  '${r.sourceFacility == null ? '' : ' · ${r.sourceFacility}'}',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
-              ),
-            ],
-          ],
+                if (r.body != null) ...[
+                  const SizedBox(height: Space.md),
+                  AppCard(
+                    child: Text(r.body!, style: theme.textTheme.bodyLarge),
+                  ),
+                ],
+                if (r.labValues.isNotEmpty) ...[
+                  const SizedBox(height: Space.md),
+                  const SectionHeader('Results', overline: true),
+                  AppCard(child: _LabTable(labs: r.labValues)),
+                ],
+                if (r.extractedText != null) ...[
+                  const SizedBox(height: Space.md),
+                  const SectionHeader('Extracted text', overline: true),
+                  AppCard(
+                    color: theme.colorScheme.surfaceContainerHighest,
+                    child: Text(
+                      r.extractedText!,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontFamily: AppFonts.mono,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
-}
-
-class SectionHeaderInline extends StatelessWidget {
-  const SectionHeaderInline(this.title, {super.key});
-  final String title;
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: Space.xs),
-    child: Text(title, style: Theme.of(context).textTheme.titleSmall),
-  );
 }
 
 class _LabTable extends StatelessWidget {

@@ -181,12 +181,18 @@ class _GroupedList extends ConsumerWidget {
         items.add(
           Padding(
             padding: const EdgeInsets.fromLTRB(
+              Space.md,
               Space.lg,
-              Space.lg,
-              Space.lg,
+              Space.md,
               Space.xs,
             ),
-            child: Text(month, style: theme.textTheme.titleSmall),
+            child: Text(
+              month.toUpperCase(),
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                letterSpacing: 0.8,
+              ),
+            ),
           ),
         );
       }
@@ -198,9 +204,15 @@ class _GroupedList extends ConsumerWidget {
         _VitalsEntry(:final vitals) => _VitalsTile(vitals: vitals),
       });
     }
-    return ListView.builder(
-      itemCount: items.length,
-      itemBuilder: (context, i) => items[i],
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: Space.maxContentWidth),
+        child: ListView.builder(
+          padding: const EdgeInsets.only(bottom: Space.xxl),
+          itemCount: items.length,
+          itemBuilder: (context, i) => items[i],
+        ),
+      ),
     );
   }
 }

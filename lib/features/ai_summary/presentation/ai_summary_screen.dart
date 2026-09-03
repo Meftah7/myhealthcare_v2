@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
 import '../../../core/utils/format.dart';
@@ -60,78 +61,123 @@ class AiSummaryScreen extends ConsumerWidget {
                 message: 'Could not generate a summary.\n$e',
                 onRetry: () => ref.invalidate(patientAiSummaryProvider),
               ),
-              data: (s) => ListView(
-                padding: const EdgeInsets.all(Space.lg),
-                children: [
-                  Text(s.summaryMarkdown, style: theme.textTheme.bodyLarge),
-                  Text(
-                    'Generated ${fmtDateTime(s.generatedAt)} · ${s.modelId} · '
-                    '${s.promptVersion}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
+              data: (s) => Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: Space.maxContentWidth,
                   ),
-
-                  if (s.redFlags.isNotEmpty) ...[
-                    const SizedBox(height: Space.lg),
-                    Text('Things to check', style: theme.textTheme.titleMedium),
-                    const SizedBox(height: Space.xs),
-                    for (final f in s.redFlags)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: Space.xs),
-                        child: Row(
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(
+                      Space.md,
+                      Space.md,
+                      Space.md,
+                      Space.xxl,
+                    ),
+                    children: [
+                      AppCard(
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            SeverityChip(f.severity),
-                            const SizedBox(width: Space.xs),
-                            Expanded(
-                              child: Text(
-                                f.description,
-                                style: theme.textTheme.bodyMedium,
+                            Text(
+                              s.summaryMarkdown,
+                              style: theme.textTheme.bodyLarge,
+                            ),
+                            const SizedBox(height: Space.sm),
+                            Text(
+                              'Generated ${fmtDateTime(s.generatedAt)}  ·  '
+                              '${s.modelId}  ·  ${s.promptVersion}',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ],
                         ),
                       ),
-                  ],
 
-                  if (s.trends.isNotEmpty) ...[
-                    const SizedBox(height: Space.lg),
-                    Text('Trends', style: theme.textTheme.titleMedium),
-                    const SizedBox(height: Space.xs),
-                    for (final t in s.trends)
-                      ListTile(
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                        leading: Icon(_trendIcon(t.direction)),
-                        title: Text(t.metric),
-                        subtitle: Text(t.summary),
-                        onTap: () => context.go(AppRoutes.patientVitals),
-                      ),
-                  ],
-
-                  if (s.keyEvents.isNotEmpty) ...[
-                    const SizedBox(height: Space.lg),
-                    Text('Key events', style: theme.textTheme.titleMedium),
-                    const SizedBox(height: Space.xs),
-                    for (final e in s.keyEvents)
-                      ListTile(
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                        leading: const Icon(Icons.star_outline),
-                        title: Text(e.title),
-                        subtitle: Text(
-                          '${fmtDate(e.date)}'
-                          '${e.description == null ? '' : ' · ${e.description}'}',
+                      if (s.redFlags.isNotEmpty) ...[
+                        const SectionHeader(
+                          'Things to check',
+                          overline: true,
                         ),
-                        onTap: e.recordId == null
-                            ? null
-                            : () => context.push(
-                                AppRoutes.patientRecord(e.recordId!),
-                              ),
-                      ),
-                  ],
-                ],
+                        AppCard(
+                          padding: const EdgeInsets.all(Space.md),
+                          child: Column(
+                            children: [
+                              for (final f in s.redFlags)
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    bottom: Space.xs,
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      SeverityChip(f.severity),
+                                      const SizedBox(width: Space.xs),
+                                      Expanded(
+                                        child: Text(
+                                          f.description,
+                                          style: theme.textTheme.bodyMedium,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+
+                      if (s.trends.isNotEmpty) ...[
+                        const SectionHeader('Trends', overline: true),
+                        AppCard(
+                          padding: EdgeInsets.zero,
+                          child: Column(
+                            children: [
+                              for (final t in s.trends)
+                                ListTile(
+                                  dense: true,
+                                  leading: Icon(_trendIcon(t.direction)),
+                                  title: Text(t.metric),
+                                  subtitle: Text(t.summary),
+                                  onTap: () =>
+                                      context.go(AppRoutes.patientVitals),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+
+                      if (s.keyEvents.isNotEmpty) ...[
+                        const SectionHeader('Key events', overline: true),
+                        AppCard(
+                          padding: EdgeInsets.zero,
+                          child: Column(
+                            children: [
+                              for (final e in s.keyEvents)
+                                ListTile(
+                                  dense: true,
+                                  leading: const Icon(Icons.star_outline),
+                                  title: Text(e.title),
+                                  subtitle: Text(
+                                    '${fmtDate(e.date)}'
+                                    '${e.description == null ? '' : ' · ${e.description}'}',
+                                  ),
+                                  onTap: e.recordId == null
+                                      ? null
+                                      : () => context.push(
+                                          AppRoutes.patientRecord(
+                                            e.recordId!,
+                                          ),
+                                        ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
