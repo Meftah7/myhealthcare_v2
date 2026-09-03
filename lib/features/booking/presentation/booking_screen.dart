@@ -179,33 +179,55 @@ class _SlotList extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Card(
+            AppCard(
               color: Theme.of(context).colorScheme.secondaryContainer,
-              child: ListTile(
-                leading: const Icon(Icons.star),
-                title: Text('${fmtTime(best.slot.start)} · recommended'),
-                subtitle: Text(best.reason),
-                trailing: RiskBadge(best.band),
-                onTap: () => _book(context, ref, best),
+              padding: const EdgeInsets.all(Space.sm),
+              onTap: () => _book(context, ref, best),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.star,
+                    color:
+                        Theme.of(context).colorScheme.onSecondaryContainer,
+                  ),
+                  const SizedBox(width: Space.sm),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${fmtTime(best.slot.start)} · recommended',
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        Text(
+                          best.reason,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                  RiskBadge(best.band),
+                ],
               ),
             ),
             const SizedBox(height: Space.md),
-            Padding(
-              padding: const EdgeInsets.only(left: Space.xs, bottom: Space.xs),
-              child: Text(
-                'All open times',
-                style: Theme.of(context).textTheme.labelLarge,
+            const SectionHeader('All open times', overline: true),
+            AppCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  for (final (i, s) in byTime.indexed) ...[
+                    if (i > 0) const Divider(height: 1, indent: Space.md),
+                    ListTile(
+                      dense: true,
+                      title: Text(fmtTime(s.slot.start)),
+                      trailing: RiskBadge(s.band),
+                      onTap: () => _book(context, ref, s),
+                    ),
+                  ],
+                ],
               ),
             ),
-            for (final s in byTime)
-              Card(
-                child: ListTile(
-                  dense: true,
-                  title: Text(fmtTime(s.slot.start)),
-                  trailing: RiskBadge(s.band),
-                  onTap: () => _book(context, ref, s),
-                ),
-              ),
           ],
         );
       },

@@ -230,9 +230,12 @@ label, 2px primary focus ring) · `SnackBar` (floating, `Radii.cardSmall`).
 - **`AbnormalValueIndicator`** — inline arrow + coloured value + a
   screen-reader label ("High: 7.9, reference 3.5–5.5").
 - **`AiDisclaimerBanner`** — `tertiaryContainer` strip above any AI content.
-- **`AppEmpty` / `AppError` / `AppLoading`** — one of each, reused everywhere.
-  Empty = icon + one line + at most one action. Loading = skeleton that
-  matches the content it replaces. Error = message + a single "Try again".
+- **`EmptyState` / `ErrorStateView` / `LoadingSkeleton` + `SkeletonList`** — one
+  of each, reused everywhere (`states.dart`). Empty/error render a softly-tinted
+  icon medallion + one line + at most one action. `SkeletonList` renders
+  card-shaped placeholders; all skeletons drop the shimmer under reduce-motion.
+- **`ProfileHeader`** — gradient monogram + name + email + role pill, on every
+  profile screen.
 - **`VitalsChart`** — `fl_chart` themed to match: grid `outlineVariant`, axis
   labels `bodySmall`, series in `primary` / `tertiary` / `secondary` (never
   status colours), reference band in `surfaceContainerHighest`.

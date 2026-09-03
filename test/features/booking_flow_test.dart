@@ -86,7 +86,7 @@ void main() {
     // Opening → closing list is present with a recommended slot on top.
     expect(find.text('Available times'), findsOneWidget);
     expect(find.textContaining('recommended'), findsOneWidget);
-    expect(find.text('All open times'), findsOneWidget);
+    expect(find.text('ALL OPEN TIMES'), findsOneWidget);
 
     // A fresh future clinic day opens the whole 08:00–13:40 span (18 × 20-min).
     expect(find.text('08:00'), findsWidgets);

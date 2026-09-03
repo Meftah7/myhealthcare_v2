@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
+import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
 import '../../../core/utils/format.dart';
@@ -37,26 +38,30 @@ class PatientChartScreen extends ConsumerWidget {
           message: 'Could not load this patient.',
           onRetry: () => ref.invalidate(chartPatientProvider(patientId)),
         ),
-        data: (p) => ListView(
-          padding: const EdgeInsets.all(Space.lg),
-          children: [
-            _Header(patient: p),
-            const SizedBox(height: Space.lg),
-            _FlagsCard(patientId: patientId),
-            const SizedBox(height: Space.lg),
-            Text('Medications', style: Theme.of(context).textTheme.titleMedium),
-            _MedicationsCard(patientId: patientId),
-            const SizedBox(height: Space.lg),
-            Text(
-              'Recent vitals',
-              style: Theme.of(context).textTheme.titleMedium,
+        data: (p) => Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: Space.maxContentWidth,
             ),
-            _VitalsCard(patientId: patientId),
-            const SizedBox(height: Space.lg),
-            Text('Timeline', style: Theme.of(context).textTheme.titleMedium),
-            _TimelineCard(patientId: patientId),
-            const SizedBox(height: Space.xxl),
-          ],
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(
+                Space.md,
+                Space.md,
+                Space.md,
+                Space.xxl,
+              ),
+              children: [
+                _Header(patient: p),
+                _FlagsCard(patientId: patientId),
+                const SectionHeader('Medications', overline: true),
+                _MedicationsCard(patientId: patientId),
+                const SectionHeader('Recent vitals', overline: true),
+                _VitalsCard(patientId: patientId),
+                const SectionHeader('Timeline', overline: true),
+                _TimelineCard(patientId: patientId),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -72,10 +77,8 @@ class _Header extends StatelessWidget {
     final theme = Theme.of(context);
     final u = patient.user;
     final age = u.ageYears;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(Space.lg),
-        child: Column(
+    return AppCard(
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(patient.fullName, style: theme.textTheme.titleLarge),
@@ -125,7 +128,6 @@ class _Header extends StatelessWidget {
             ],
           ],
         ),
-      ),
     );
   }
 }
@@ -144,7 +146,8 @@ class _FlagsCard extends ConsumerWidget {
         final open = list.where((f) => !f.isAcknowledged).toList()
           ..sort((a, b) => b.severity.index.compareTo(a.severity.index));
         if (open.isEmpty) return const SizedBox.shrink();
-        return Card(
+        return AppCard(
+          padding: EdgeInsets.zero,
           child: Column(
             children: [
               for (final f in open)
@@ -177,17 +180,14 @@ class _MedicationsCard extends ConsumerWidget {
     final meds = ref.watch(chartMedicationsProvider(patientId));
     return meds.when(
       loading: () => const LoadingSkeleton(height: 40),
-      error: (e, _) => const Card(
-        child: ListTile(title: Text('Could not load medications')),
-      ),
+      error: (e, _) => _note('Could not load medications'),
       data: (list) {
         final current = list.where((m) => m.isCurrent).toList();
         if (current.isEmpty) {
-          return const Card(
-            child: ListTile(title: Text('No active medications')),
-          );
+          return _note('No active medications');
         }
-        return Card(
+        return AppCard(
+          padding: EdgeInsets.zero,
           child: Column(
             children: [
               for (final m in current)
@@ -218,16 +218,15 @@ class _VitalsCard extends ConsumerWidget {
     return vitals.when(
       loading: () => const LoadingSkeleton(height: 40),
       error: (e, _) =>
-          const Card(child: ListTile(title: Text('Could not load vitals'))),
+          _note('Could not load vitals'),
       data: (list) {
         if (list.isEmpty) {
-          return const Card(
-            child: ListTile(title: Text('No vitals on record')),
-          );
+          return _note('No vitals on record');
         }
         final recent = [...list]
           ..sort((a, b) => b.recordedAt.compareTo(a.recordedAt));
-        return Card(
+        return AppCard(
+          padding: EdgeInsets.zero,
           child: Column(
             children: [
               for (final v in recent.take(3))
@@ -265,12 +264,13 @@ class _TimelineCard extends ConsumerWidget {
     return records.when(
       loading: () => const LoadingSkeleton(height: 40),
       error: (e, _) =>
-          const Card(child: ListTile(title: Text('Could not load timeline'))),
+          _note('Could not load timeline'),
       data: (list) {
         if (list.isEmpty) {
-          return const Card(child: ListTile(title: Text('No records yet')));
+          return _note('No records yet');
         }
-        return Card(
+        return AppCard(
+          padding: EdgeInsets.zero,
           child: Column(
             children: [
               for (final r in list.take(12))
@@ -296,6 +296,18 @@ class _TimelineCard extends ConsumerWidget {
     );
   }
 }
+
+Widget _note(String message) => Builder(
+  builder: (context) => AppCard(
+    padding: const EdgeInsets.all(Space.md),
+    child: Text(
+      message,
+      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
+    ),
+  ),
+);
 
 IconData _recordIcon(RecordType t) => switch (t) {
   RecordType.visitNote => Icons.notes_outlined,

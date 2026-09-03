@@ -508,16 +508,18 @@ Phase 9 — Full redesign "v2" (branch redesign-v2): @in-progress
     MetricTile, InlineBanner), app_scaffold.dart (AppScaffold). states.dart
     polished (icon medallion, reduce-motion skeletons, card-shaped SkeletonList).
     SectionHeader moved out of confirm_dialog.dart → app_card.dart.
-  R2/R3 — SCREENS (in progress)
-    Done: login (gradient medallion, card on wide), register (grouped cards),
-    patient home (time-aware greeting, next-appt card, health-snapshot metrics,
-    quick-action grid), staff dashboard (shift metric row + list cards),
-    admin dashboard (metric grid + link cards). greeting() helper in format.dart.
-    Fix: AppCard must be a Material (ink host) or nested ListTiles throw.
-    Remaining: appointments, timeline, vitals, patient chart, task board,
-    staff schedule/patients, medications, record detail, AI summary,
-    user management, departments, audit, analytics, ai settings, profiles,
-    preferences, booking, patient/staff shells + app bars.
+  R2/R3 — SCREENS
+    Done: login, register, patient home (time-aware greeting + health-snapshot
+    metrics + quick-action grid), staff dashboard (shift metric row), admin
+    dashboard (metric grid + link cards), task board, vitals, panel analytics,
+    appointments, staff + patient profile (ProfileHeader), preferences section,
+    system analytics (MetricTile grid), audit log, departments, medications,
+    timeline, staff patients, staff schedule, AI summary, record detail,
+    patient chart, booking slot list, nav shell (hairline separators).
+    greeting()/visitTypeLabel in format.dart. AppCard is Material-backed
+    (nested ListTiles need an ink host).
+    Theme-only (functional, not hand-polished): user management, ai settings,
+    chart write sheets — they inherit the new tokens but keep their old layout.
   R4 — IA (deferred): patient Home/Health/Appointments/Profile; admin
     Overview/People/Departments/System/Profile. Router + tests — after screens.
 
