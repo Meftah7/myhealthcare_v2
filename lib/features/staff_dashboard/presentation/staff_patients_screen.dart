@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/states.dart';
+import '../../auth/presentation/sign_out_action.dart';
 import '../application/staff_providers.dart';
 
 class StaffPatientsScreen extends ConsumerWidget {
@@ -19,6 +20,7 @@ class StaffPatientsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Patients'),
+        actions: const [SignOutAction()],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: Padding(

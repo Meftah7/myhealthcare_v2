@@ -4,7 +4,7 @@
     "start_url": ".",
     "display": "standalone",
     "background_color": "#ffffff",
-    "theme_color": "#00696E",
+    "theme_color": "#5B3FD8",
     "description": "MyHealth Care - AI-powered health records, appointments, and medical staff management",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,

@@ -18,7 +18,7 @@ Every account the app seeds on first launch, for the report and for testers.
 
 ## Staff (12)
 
-Doctors. Weekday schedule Sun–Thu, 08:00–14:00, 20-minute slots.
+Doctors. Weekday schedule Sun–Thu, 08:00–20:00, 20-minute slots.
 
 | Email | id | Department |
 | --- | --- | --- |

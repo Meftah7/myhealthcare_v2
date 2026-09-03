@@ -51,8 +51,10 @@ void main() {
     );
     final chosenStaff = deptStaff.first;
 
+    // Land on a clinic day (Sun–Thu; templates skip Fri/Sat).
     var date = DateTime.now().add(const Duration(days: 2));
-    while (date.weekday > 5) {
+    while (date.weekday == DateTime.friday ||
+        date.weekday == DateTime.saturday) {
       date = date.add(const Duration(days: 1));
     }
     container.read(bookingDraftProvider.notifier).state = BookingRequestDraft(

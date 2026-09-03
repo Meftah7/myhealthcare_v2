@@ -100,6 +100,54 @@ void main() {
       expect(all.single.name, 'Cardio');
       expect(all.single.description, isNull);
     });
+
+    test('delete removes an unused department', () async {
+      final repo = DepartmentRepositoryImpl(db);
+      await repo.upsert(const Department(id: 'd1', name: 'Cardiology'));
+      expect((await repo.delete('d1')).isOk, isTrue);
+      expect((await repo.all()).valueOrNull, isEmpty);
+    });
+
+    test('delete is refused while staff are assigned', () async {
+      final repo = DepartmentRepositoryImpl(db);
+      await repo.upsert(const Department(id: 'd1', name: 'Cardiology'));
+      await users.createStaff(
+        fullName: 'Dr D',
+        email: 'd@clinic.test',
+        temporaryPassword: 'temp12345',
+        departmentId: 'd1',
+      );
+      final r = await repo.delete('d1');
+      expect(r.isErr, isTrue);
+      expect((await repo.all()).valueOrNull, hasLength(1));
+    });
+  });
+
+  group('UserRepository.createAdmin', () {
+    test('creates an admin that shows up in byRole(admin)', () async {
+      final r = await users.createAdmin(
+        fullName: 'Root',
+        email: 'root@myhealth.test',
+        temporaryPassword: 'temp12345',
+      );
+      expect(r.isOk, isTrue);
+      final admins = (await users.byRole(UserRole.admin)).valueOrNull!;
+      expect(admins.map((u) => u.email), contains('root@myhealth.test'));
+    });
+
+    test('rejects a duplicate email', () async {
+      await users.createAdmin(
+        fullName: 'Root',
+        email: 'dupe@myhealth.test',
+        temporaryPassword: 'temp12345',
+      );
+      final r = await users.createAdmin(
+        fullName: 'Root 2',
+        email: 'dupe@myhealth.test',
+        temporaryPassword: 'temp12345',
+      );
+      expect(r.isErr, isTrue);
+    });
   });
 
   group('TaskRepository', () {

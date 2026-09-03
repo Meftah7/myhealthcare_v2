@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../domain/enums.dart';
+import '../features/admin/presentation/admin_dashboard_screen.dart';
 import '../features/admin/presentation/ai_settings_screen.dart';
 import '../features/admin/presentation/audit_log_screen.dart';
 import '../features/admin/presentation/departments_screen.dart';
@@ -25,6 +26,7 @@ import '../features/records/presentation/record_detail_screen.dart';
 import '../features/staff_dashboard/presentation/panel_analytics_screen.dart';
 import '../features/staff_dashboard/presentation/staff_dashboard_screen.dart';
 import '../features/staff_dashboard/presentation/staff_patients_screen.dart';
+import '../features/staff_dashboard/presentation/staff_profile_screen.dart';
 import '../features/staff_dashboard/presentation/staff_schedule_screen.dart';
 import '../features/tasks/presentation/task_board_screen.dart';
 import '../features/timeline/presentation/timeline_screen.dart';
@@ -43,7 +45,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 String homeForRole(UserRole role) => switch (role) {
   UserRole.patient => AppRoutes.patientHome,
   UserRole.staff => AppRoutes.staffDashboard,
-  UserRole.admin => AppRoutes.adminUsers,
+  UserRole.admin => AppRoutes.adminDashboard,
 };
 
 bool _canAccess(String location, UserRole role) {
@@ -79,10 +81,12 @@ abstract final class AppRoutes {
   static const staffTasks = '/staff/tasks';
   static const staffSchedule = '/staff/schedule';
   static const staffAnalytics = '/staff/analytics';
+  static const staffProfile = '/staff/profile';
 
   static String staffPatientChart(String id) => '$staffPatients/$id';
 
   // Admin
+  static const adminDashboard = '/admin/dashboard';
   static const adminUsers = '/admin/users';
   static const adminDepartments = '/admin/departments';
   static const adminAnalytics = '/admin/analytics';
@@ -114,16 +118,16 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
         builder: (_, _) => const AiSummaryScreen(),
       ),
       GoRoute(
-        path: AppRoutes.patientSettings,
-        builder: (_, _) => const ProfileScreen(),
-      ),
-      GoRoute(
         path: AppRoutes.patientMedications,
         builder: (_, _) => const MedicationsScreen(),
       ),
       GoRoute(
         path: AppRoutes.staffAnalytics,
         builder: (_, _) => const PanelAnalyticsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminAnalytics,
+        builder: (_, _) => const SystemAnalyticsScreen(),
       ),
 
       _patientShell(),
@@ -192,6 +196,11 @@ StatefulShellRoute _patientShell() {
           selectedIcon: Icons.favorite,
           label: 'Vitals',
         ),
+        AppDestination(
+          icon: Icons.account_circle_outlined,
+          selectedIcon: Icons.account_circle,
+          label: 'Profile',
+        ),
       ],
     ),
     branches: [
@@ -237,6 +246,14 @@ StatefulShellRoute _patientShell() {
           ),
         ],
       ),
+      StatefulShellBranch(
+        routes: [
+          GoRoute(
+            path: AppRoutes.patientSettings,
+            builder: (_, _) => const ProfileScreen(),
+          ),
+        ],
+      ),
     ],
   );
 }
@@ -269,6 +286,11 @@ StatefulShellRoute _staffShell() {
           icon: Icons.calendar_month_outlined,
           selectedIcon: Icons.calendar_month,
           label: 'Schedule',
+        ),
+        AppDestination(
+          icon: Icons.account_circle_outlined,
+          selectedIcon: Icons.account_circle,
+          label: 'Profile',
         ),
       ],
     ),
@@ -312,6 +334,14 @@ StatefulShellRoute _staffShell() {
           ),
         ],
       ),
+      StatefulShellBranch(
+        routes: [
+          GoRoute(
+            path: AppRoutes.staffProfile,
+            builder: (_, _) => const StaffProfileScreen(),
+          ),
+        ],
+      ),
     ],
   );
 }
@@ -326,6 +356,11 @@ StatefulShellRoute _adminShell() {
       navigationShell: navigationShell,
       destinations: const [
         AppDestination(
+          icon: Icons.dashboard_outlined,
+          selectedIcon: Icons.dashboard,
+          label: 'Dashboard',
+        ),
+        AppDestination(
           icon: Icons.manage_accounts_outlined,
           selectedIcon: Icons.manage_accounts,
           label: 'Users',
@@ -334,11 +369,6 @@ StatefulShellRoute _adminShell() {
           icon: Icons.apartment_outlined,
           selectedIcon: Icons.apartment,
           label: 'Departments',
-        ),
-        AppDestination(
-          icon: Icons.insights_outlined,
-          selectedIcon: Icons.insights,
-          label: 'Analytics',
         ),
         AppDestination(
           icon: Icons.receipt_long_outlined,
@@ -356,6 +386,14 @@ StatefulShellRoute _adminShell() {
       StatefulShellBranch(
         routes: [
           GoRoute(
+            path: AppRoutes.adminDashboard,
+            builder: (_, _) => const AdminDashboardScreen(),
+          ),
+        ],
+      ),
+      StatefulShellBranch(
+        routes: [
+          GoRoute(
             path: AppRoutes.adminUsers,
             builder: (_, _) => const UserManagementScreen(),
           ),
@@ -366,14 +404,6 @@ StatefulShellRoute _adminShell() {
           GoRoute(
             path: AppRoutes.adminDepartments,
             builder: (_, _) => const DepartmentsScreen(),
-          ),
-        ],
-      ),
-      StatefulShellBranch(
-        routes: [
-          GoRoute(
-            path: AppRoutes.adminAnalytics,
-            builder: (_, _) => const SystemAnalyticsScreen(),
           ),
         ],
       ),

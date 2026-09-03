@@ -1,4 +1,5 @@
-/// My appointments — upcoming / past, cancel, reschedule (P4-16).
+/// My appointments (P4-16, P8-11): upcoming and past, grouped and labelled,
+/// with cancel + reschedule on upcoming ones.
 library;
 
 import 'package:flutter/material.dart';
@@ -11,6 +12,7 @@ import '../../../core/di.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
+import '../../../core/utils/clinic_hours.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
@@ -22,6 +24,11 @@ class AppointmentsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appts = ref.watch(patientAppointmentsProvider);
+    final doctors =
+        ref.watch(doctorDirectoryProvider).valueOrNull ?? const {};
+    final departments =
+        ref.watch(departmentDirectoryProvider).valueOrNull ?? const {};
+
     return Scaffold(
       appBar: AppBar(title: const Text('My appointments')),
       floatingActionButton: FloatingActionButton.extended(
@@ -39,23 +46,45 @@ class AppointmentsScreen extends ConsumerWidget {
           if (list.isEmpty) {
             return const EmptyState(
               icon: Icons.event_outlined,
-              message: 'No appointments yet.',
+              message: 'No appointments yet. Tap Book to schedule a visit.',
             );
           }
           final upcoming = list.where((a) => a.isUpcoming).toList()
             ..sort((a, b) => a.slotStart.compareTo(b.slotStart));
           final past = list.where((a) => !a.isUpcoming).toList()
             ..sort((a, b) => b.slotStart.compareTo(a.slotStart));
+
           return ListView(
-            padding: const EdgeInsets.symmetric(vertical: Space.sm),
+            padding: const EdgeInsets.fromLTRB(
+              Space.md,
+              Space.sm,
+              Space.md,
+              Space.xl,
+            ),
             children: [
-              if (upcoming.isNotEmpty) ...[
-                const _Header('Upcoming'),
-                for (final a in upcoming) _ApptTile(a, upcoming: true),
-              ],
-              if (past.isNotEmpty) ...[
-                const _Header('Past'),
-                for (final a in past.take(30)) _ApptTile(a, upcoming: false),
+              _SectionLabel('Upcoming', count: upcoming.length),
+              if (upcoming.isEmpty)
+                const _MutedLine('Nothing booked. Tap Book to schedule a visit.')
+              else
+                for (final a in upcoming)
+                  _ApptCard(
+                    a,
+                    upcoming: true,
+                    doctor: doctors[a.staffId]?.name,
+                    department: departments[a.departmentId],
+                  ),
+
+              const SizedBox(height: Space.lg),
+              _SectionLabel('History', count: past.length),
+              for (final entry in _byMonth(past.take(40)).entries) ...[
+                _MonthLabel(entry.key),
+                for (final a in entry.value)
+                  _ApptCard(
+                    a,
+                    upcoming: false,
+                    doctor: doctors[a.staffId]?.name,
+                    department: departments[a.departmentId],
+                  ),
               ],
             ],
           );
@@ -63,51 +92,146 @@ class AppointmentsScreen extends ConsumerWidget {
       ),
     );
   }
+
+  static Map<DateTime, List<Appointment>> _byMonth(Iterable<Appointment> xs) {
+    final out = <DateTime, List<Appointment>>{};
+    for (final a in xs) {
+      final key = DateTime(a.slotStart.year, a.slotStart.month);
+      (out[key] ??= []).add(a);
+    }
+    return out;
+  }
 }
 
-class _Header extends StatelessWidget {
-  const _Header(this.text);
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel(this.text, {required this.count});
   final String text;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(
+        left: Space.xs,
+        top: Space.xs,
+        bottom: Space.xs,
+      ),
+      child: Row(
+        children: [
+          Text(text, style: theme.textTheme.titleMedium),
+          const SizedBox(width: Space.xs),
+          Text(
+            '$count',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MonthLabel extends StatelessWidget {
+  const _MonthLabel(this.month);
+  final DateTime month;
+
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(Space.lg, Space.md, Space.lg, Space.xs),
-    child: Text(text, style: Theme.of(context).textTheme.titleSmall),
+    padding: const EdgeInsets.fromLTRB(Space.xs, Space.sm, Space.xs, Space.xxs),
+    child: Text(
+      fmtMonthYear(month),
+      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
+    ),
   );
 }
 
-class _ApptTile extends ConsumerWidget {
-  const _ApptTile(this.appt, {required this.upcoming});
+class _MutedLine extends StatelessWidget {
+  const _MutedLine(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(Space.xs, Space.xxs, Space.xs, Space.xs),
+    child: Text(
+      text,
+      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
+    ),
+  );
+}
+
+class _ApptCard extends ConsumerWidget {
+  const _ApptCard(
+    this.appt, {
+    required this.upcoming,
+    this.doctor,
+    this.department,
+  });
+
   final Appointment appt;
   final bool upcoming;
+  final String? doctor;
+  final String? department;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final meta = [
+      visitTypeLabel(appt.visitType),
+      ?doctor,
+      ?department,
+    ].join('  ·  ');
+
     return Card(
+      margin: const EdgeInsets.symmetric(vertical: Space.xxs),
       child: Padding(
         padding: const EdgeInsets.all(Space.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: Text(
-                    fmtDateTime(appt.slotStart),
-                    style: theme.textTheme.titleMedium,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        upcoming
+                            ? '${fmtRelativeDay(appt.slotStart)} · '
+                                  '${fmtTime(appt.slotStart)}'
+                            : fmtDate(appt.slotStart),
+                        style: theme.textTheme.titleMedium,
+                      ),
+                      if (!upcoming)
+                        Text(
+                          fmtTime(appt.slotStart),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                    ],
                   ),
                 ),
-                _statusChip(theme),
+                _StatusChip(appt.status),
               ],
             ),
             const SizedBox(height: Space.xxs),
             Text(
-              appt.visitType.name +
-                  (appt.reasonText == null ? '' : ' · ${appt.reasonText}'),
+              meta,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
+            if (appt.reasonText != null) ...[
+              const SizedBox(height: Space.xxs),
+              Text(appt.reasonText!, style: theme.textTheme.bodySmall),
+            ],
             if (upcoming && appt.riskBand != null) ...[
               const SizedBox(height: Space.xs),
               RiskBadge(appt.riskBand!),
@@ -121,12 +245,13 @@ class _ApptTile extends ConsumerWidget {
                     onPressed: () => _reschedule(context, ref),
                     child: const Text('Reschedule'),
                   ),
+                  const SizedBox(width: Space.xs),
                   TextButton(
                     onPressed: () => _cancel(context, ref),
-                    child: Text(
-                      'Cancel',
-                      style: TextStyle(color: theme.colorScheme.error),
+                    style: TextButton.styleFrom(
+                      foregroundColor: theme.colorScheme.error,
                     ),
+                    child: const Text('Cancel'),
                   ),
                 ],
               ),
@@ -134,26 +259,6 @@ class _ApptTile extends ConsumerWidget {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _statusChip(ThemeData theme) {
-    final (label, color) = switch (appt.status) {
-      AppointmentStatus.booked => ('Booked', theme.colorScheme.primary),
-      AppointmentStatus.confirmed => ('Confirmed', theme.colorScheme.primary),
-      AppointmentStatus.completed => (
-        'Completed',
-        theme.colorScheme.onSurfaceVariant,
-      ),
-      AppointmentStatus.cancelled => (
-        'Cancelled',
-        theme.colorScheme.onSurfaceVariant,
-      ),
-      AppointmentStatus.noShow => ('No-show', theme.colorScheme.error),
-    };
-    return Text(
-      label,
-      style: theme.textTheme.labelMedium?.copyWith(color: color),
     );
   }
 
@@ -172,18 +277,31 @@ class _ApptTile extends ConsumerWidget {
 
   Future<void> _reschedule(BuildContext context, WidgetRef ref) async {
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final base = appt.slotStart.isAfter(now) ? appt.slotStart : today;
     final date = await showDatePicker(
       context: context,
-      initialDate: appt.slotStart.isAfter(now) ? appt.slotStart : now,
-      firstDate: now,
-      lastDate: now.add(const Duration(days: 60)),
+      initialDate: isClinicDay(base) ? base : nextClinicDay(today),
+      firstDate: today,
+      lastDate: today.add(const Duration(days: 60)),
+      selectableDayPredicate: isClinicDay,
+      helpText: 'Clinic days: Sunday–Thursday',
     );
     if (date == null || !context.mounted) return;
     final time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(appt.slotStart),
+      helpText: 'Clinic hours: 08:00–20:00',
     );
     if (time == null) return;
+    if (time.hour < clinicOpenHour || time.hour >= clinicCloseHour) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Pick a time between 08:00 and 20:00.')),
+        );
+      }
+      return;
+    }
     final newStart = DateTime(
       date.year,
       date.month,
@@ -199,5 +317,55 @@ class _ApptTile extends ConsumerWidget {
           newEnd: newStart.add(appt.duration),
         );
     ref.invalidate(patientAppointmentsProvider);
+  }
+}
+
+class _StatusChip extends StatelessWidget {
+  const _StatusChip(this.status);
+  final AppointmentStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final (label, bg, fg) = switch (status) {
+      AppointmentStatus.booked => (
+        'Booked',
+        scheme.primaryContainer,
+        scheme.onPrimaryContainer,
+      ),
+      AppointmentStatus.confirmed => (
+        'Confirmed',
+        scheme.primaryContainer,
+        scheme.onPrimaryContainer,
+      ),
+      AppointmentStatus.completed => (
+        'Completed',
+        scheme.surfaceContainerHighest,
+        scheme.onSurfaceVariant,
+      ),
+      AppointmentStatus.cancelled => (
+        'Cancelled',
+        scheme.surfaceContainerHighest,
+        scheme.onSurfaceVariant,
+      ),
+      AppointmentStatus.noShow => (
+        'No-show',
+        scheme.errorContainer,
+        scheme.onErrorContainer,
+      ),
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: Space.sm,
+        vertical: Space.xxs,
+      ),
+      decoration: BoxDecoration(color: bg, borderRadius: Radii.chip),
+      child: Text(
+        label,
+        style: Theme.of(
+          context,
+        ).textTheme.labelMedium?.copyWith(color: fg),
+      ),
+    );
   }
 }

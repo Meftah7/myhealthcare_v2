@@ -30,6 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   cupertino_icons: ^1.0.8
 
@@ -72,7 +74,7 @@ dependencies:
   syncfusion_flutter_pdf: ^34.2.5
 
   # Misc
-  intl: ^0.20.3
+  intl: ^0.20.2  # pinned to 0.20.2 by flutter_localizations
   uuid: ^4.6.0
   shared_preferences: ^2.5.5
   google_fonts: ^8.2.1
@@ -124,6 +126,7 @@ flutter:
 
   assets:
     - assets/models/no_show_model.json
+    - assets/images/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

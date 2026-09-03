@@ -53,7 +53,7 @@ void main() {
     await _settle(tester);
 
     // Home greeting.
-    expect(find.textContaining('Hello,'), findsOneWidget);
+    expect(find.textContaining('Good '), findsOneWidget);
 
     // Go to the timeline tab.
     await tester.tap(find.text('Timeline').first);

@@ -255,6 +255,41 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
+  Future<Result<User>> createAdmin({
+    required String fullName,
+    required String email,
+    required String temporaryPassword,
+  }) {
+    return Result.guardAsync(() async {
+      final normalized = email.trim().toLowerCase();
+      final existing = await (_db.select(
+        _db.users,
+      )..where((u) => u.email.equals(normalized))).getSingleOrNull();
+      if (existing != null) {
+        throw const ValidationFailure('An account with that email exists.');
+      }
+      final id = newId('user');
+      final pw = _hasher.hashNew(temporaryPassword);
+      await _db
+          .into(_db.users)
+          .insert(
+            UsersCompanion.insert(
+              id: id,
+              role: UserRole.admin,
+              fullName: fullName.trim(),
+              email: normalized,
+              passwordHash: pw.hash,
+              passwordSalt: pw.salt,
+            ),
+          );
+      final row = await (_db.select(
+        _db.users,
+      )..where((u) => u.id.equals(id))).getSingle();
+      return row.toEntity();
+    });
+  }
+
+  @override
   Future<Result<void>> setActive({required String id, required bool active}) {
     return Result.guardAsync(() async {
       await (_db.update(_db.users)..where((u) => u.id.equals(id))).write(

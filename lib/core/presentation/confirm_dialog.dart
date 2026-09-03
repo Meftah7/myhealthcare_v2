@@ -1,9 +1,7 @@
-/// Confirmation dialog + section header (P2-18).
+/// Confirmation dialog (P2-18). `SectionHeader` now lives in app_card.dart.
 library;
 
 import 'package:flutter/material.dart';
-
-import '../../app/theme/theme.dart';
 
 /// Shows a yes/no dialog; returns true only if the user confirms.
 Future<bool> confirm(
@@ -41,27 +39,4 @@ Future<bool> confirm(
     },
   );
   return result ?? false;
-}
-
-/// A titled section divider for forms and detail screens.
-class SectionHeader extends StatelessWidget {
-  const SectionHeader(this.title, {this.trailing, super.key});
-
-  final String title;
-  final Widget? trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: Space.lg, bottom: Space.xs),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(title, style: Theme.of(context).textTheme.titleSmall),
-          ),
-          ?trailing,
-        ],
-      ),
-    );
-  }
 }

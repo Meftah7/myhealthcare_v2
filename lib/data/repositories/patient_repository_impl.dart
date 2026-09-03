@@ -141,4 +141,24 @@ class DepartmentRepositoryImpl implements DepartmentRepository {
           );
     });
   }
+
+  @override
+  Future<Result<void>> delete(String id) {
+    return Result.guardAsync(() async {
+      final staff = await (_db.select(
+        _db.staffProfiles,
+      )..where((p) => p.departmentId.equals(id))).get();
+      final appts = await (_db.select(
+        _db.appointments,
+      )..where((a) => a.departmentId.equals(id))).get();
+      if (staff.isNotEmpty || appts.isNotEmpty) {
+        throw ValidationFailure(
+          'Still in use: ${staff.length} staff and ${appts.length} '
+          'appointment(s) are assigned to this department. '
+          'Reassign them first.',
+        );
+      }
+      await (_db.delete(_db.departments)..where((d) => d.id.equals(id))).go();
+    });
+  }
 }

@@ -23,32 +23,12 @@ class EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(Space.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 40, color: theme.colorScheme.onSurfaceVariant),
-            const SizedBox(height: Space.md),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            if (actionLabel != null && onAction != null) ...[
-              const SizedBox(height: Space.lg),
-              FilledButton.tonal(
-                onPressed: onAction,
-                child: Text(actionLabel!),
-              ),
-            ],
-          ],
-        ),
-      ),
+    return _CenteredState(
+      icon: icon,
+      title: message,
+      tone: _StateTone.neutral,
+      actionLabel: actionLabel,
+      onAction: onAction,
     );
   }
 }
@@ -62,29 +42,86 @@ class ErrorStateView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return _CenteredState(
+      icon: Icons.cloud_off_rounded,
+      title: message,
+      tone: _StateTone.error,
+      actionLabel: onRetry == null ? null : 'Try again',
+      actionIcon: Icons.refresh,
+      onAction: onRetry,
+    );
+  }
+}
+
+enum _StateTone { neutral, error }
+
+/// The shared layout for empty / error screens: a softly-tinted icon medallion,
+/// one line of copy, and at most one action.
+class _CenteredState extends StatelessWidget {
+  const _CenteredState({
+    required this.icon,
+    required this.title,
+    required this.tone,
+    this.actionLabel,
+    this.actionIcon,
+    this.onAction,
+  });
+
+  final IconData icon;
+  final String title;
+  final _StateTone tone;
+  final String? actionLabel;
+  final IconData? actionIcon;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final fg = tone == _StateTone.error ? scheme.error : scheme.onSurfaceVariant;
+    final bg = (tone == _StateTone.error
+            ? scheme.errorContainer
+            : scheme.surfaceContainerHighest)
+        .withValues(alpha: tone == _StateTone.error ? 0.5 : 1);
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(Space.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.error_outline, size: 40, color: theme.colorScheme.error),
-            const SizedBox(height: Space.md),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium,
-            ),
-            if (onRetry != null) ...[
-              const SizedBox(height: Space.lg),
-              OutlinedButton.icon(
-                onPressed: onRetry,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Try again'),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 340),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
+                child: Icon(icon, size: 28, color: fg),
               ),
+              const SizedBox(height: Space.md),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+              if (actionLabel != null && onAction != null) ...[
+                const SizedBox(height: Space.lg),
+                if (actionIcon != null)
+                  OutlinedButton.icon(
+                    onPressed: onAction,
+                    icon: Icon(actionIcon),
+                    label: Text(actionLabel!),
+                  )
+                else
+                  FilledButton.tonal(
+                    onPressed: onAction,
+                    child: Text(actionLabel!),
+                  ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -124,6 +161,17 @@ class _LoadingSkeletonState extends State<LoadingSkeleton>
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final base = scheme.surfaceContainerHighest;
+    if (Motion.reduced(context)) {
+      return Container(
+        height: widget.height,
+        width: widget.width,
+        decoration: BoxDecoration(
+          color: base,
+          borderRadius: widget.borderRadius,
+        ),
+      );
+    }
     return AnimatedBuilder(
       animation: _c,
       builder: (context, _) {
@@ -131,11 +179,7 @@ class _LoadingSkeletonState extends State<LoadingSkeleton>
           height: widget.height,
           width: widget.width,
           decoration: BoxDecoration(
-            color: Color.lerp(
-              scheme.surfaceContainerHighest,
-              scheme.surfaceContainer,
-              _c.value,
-            ),
+            color: Color.lerp(base, scheme.surfaceContainer, _c.value),
             borderRadius: widget.borderRadius,
           ),
         );
@@ -144,7 +188,7 @@ class _LoadingSkeletonState extends State<LoadingSkeleton>
   }
 }
 
-/// A vertical stack of skeleton lines, for list placeholders.
+/// A stack of card-shaped placeholders that mirror the list they stand in for.
 class SkeletonList extends StatelessWidget {
   const SkeletonList({this.lines = 5, super.key});
 
@@ -152,20 +196,33 @@ class SkeletonList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.all(Space.lg),
+      padding: const EdgeInsets.fromLTRB(Space.md, Space.sm, Space.md, Space.sm),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (var i = 0; i < lines; i++) ...[
-            const LoadingSkeleton(height: 18),
-            const SizedBox(height: Space.xs),
-            LoadingSkeleton(
-              height: 14,
-              width: MediaQuery.sizeOf(context).width * 0.55,
+          for (var i = 0; i < lines; i++)
+            Container(
+              margin: const EdgeInsets.only(bottom: Space.sm),
+              padding: const EdgeInsets.all(Space.md),
+              decoration: BoxDecoration(
+                borderRadius: Radii.card,
+                border: Border.all(
+                  color: scheme.outlineVariant.withValues(alpha: 0.6),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const LoadingSkeleton(width: 160),
+                  const SizedBox(height: Space.sm),
+                  LoadingSkeleton(
+                    height: 12,
+                    width: MediaQuery.sizeOf(context).width * 0.5,
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: Space.lg),
-          ],
         ],
       ),
     );

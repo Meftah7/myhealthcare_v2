@@ -1,13 +1,14 @@
-# App launcher icons for MyHealth Care (task P0-02).
-# Master art: assets/icon/app_icon*.png — deep-teal #00696E clinical mark
-# (medical cross + ECG pulse), per DESIGN.md. Regenerate after edits with:
+# App launcher icons for MyHealth Care (task P0-02, rebranded P8-13).
+# Master art: assets/icon/app_icon*.png — the "MyHealth Care" mark: a
+# pink→purple→blue gradient heart with an ECG pulse, cupped in a blue hand
+# (source boards in docs/brand/). Regenerate after edits with:
 #   dart run flutter_launcher_icons -f flutter_launcher_icons.yaml
 flutter_launcher_icons:
   image_path: "assets/icon/app_icon.png"
 
   android: "ic_launcher"
   min_sdk_android: 21
-  adaptive_icon_background: "#00696E"
+  adaptive_icon_background: "#FFFFFF"
   adaptive_icon_foreground: "assets/icon/app_icon_foreground.png"
 
   ios: true
@@ -17,7 +18,7 @@ flutter_launcher_icons:
     generate: true
     image_path: "assets/icon/app_icon_plain.png"
     background_color: "#ffffff"
-    theme_color: "#00696E"
+    theme_color: "#5B3FD8"
 
   windows:
     generate: true

@@ -11,6 +11,7 @@ import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../auth/presentation/sign_out_action.dart';
 import '../../staff_dashboard/application/staff_providers.dart';
 
 class TaskBoardScreen extends ConsumerWidget {
@@ -23,7 +24,10 @@ class TaskBoardScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Task board'),
-        actions: [_PrioritiseButton()],
+        actions: [
+          _PrioritiseButton(),
+          const SignOutAction(),
+        ],
       ),
       body: tasks.when(
         loading: () => const SkeletonList(),

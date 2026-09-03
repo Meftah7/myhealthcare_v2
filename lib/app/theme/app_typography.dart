@@ -26,33 +26,38 @@ const List<FontFeature> kTabularFigures = [FontFeature.tabularFigures()];
 /// Headlines use weight 400–500, never 700: this app doesn't shout.
 TextTheme buildTextTheme() {
   return const TextTheme(
-    // Onboarding / empty-state hero only.
+    // Onboarding / empty-state hero only. Large display type reads too loose at
+    // default tracking — tighten it (apple-design §15).
     displaySmall: TextStyle(
       fontFamily: AppFonts.display,
       fontSize: 32,
-      height: 40 / 32,
-      fontWeight: FontWeight.w400,
+      height: 38 / 32,
+      fontWeight: FontWeight.w500,
+      letterSpacing: -0.8,
     ),
     // Screen titles (large windows).
     headlineMedium: TextStyle(
       fontFamily: AppFonts.display,
       fontSize: 26,
-      height: 34 / 26,
+      height: 32 / 26,
       fontWeight: FontWeight.w500,
+      letterSpacing: -0.6,
     ),
     // Screen titles (compact), section heads.
     headlineSmall: TextStyle(
       fontFamily: AppFonts.display,
       fontSize: 22,
-      height: 30 / 22,
+      height: 28 / 22,
       fontWeight: FontWeight.w500,
+      letterSpacing: -0.4,
     ),
     // Card titles, dialog titles.
     titleLarge: TextStyle(
       fontFamily: AppFonts.display,
       fontSize: 20,
-      height: 28 / 20,
+      height: 26 / 20,
       fontWeight: FontWeight.w500,
+      letterSpacing: -0.2,
     ),
     // List item primary, form section labels.
     titleMedium: TextStyle(
@@ -60,6 +65,7 @@ TextTheme buildTextTheme() {
       fontSize: 17,
       height: 24 / 17,
       fontWeight: FontWeight.w600,
+      letterSpacing: -0.1,
     ),
     // Dense list labels, tab labels.
     titleSmall: TextStyle(

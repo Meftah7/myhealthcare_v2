@@ -11,6 +11,7 @@ import '../../../app/theme/theme.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
+import '../../auth/presentation/sign_out_action.dart';
 import '../application/staff_providers.dart';
 
 class StaffScheduleScreen extends ConsumerWidget {
@@ -26,6 +27,7 @@ class StaffScheduleScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My schedule'),
+        actions: const [SignOutAction()],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: Row(
@@ -75,7 +77,7 @@ class StaffScheduleScreen extends ConsumerWidget {
               for (var i = 0; i < 7; i++)
                 _DayColumn(
                   date: weekStart.add(Duration(days: i)),
-                  appts: (byDay[i + 1] ?? const [])
+                  appts: [...?byDay[i + 1]]
                     ..sort((a, b) => a.slotStart.compareTo(b.slotStart)),
                 ),
             ],
@@ -127,7 +129,7 @@ class _DayColumn extends StatelessWidget {
                         fmtTime(a.slotStart),
                         style: theme.textTheme.bodyMedium,
                       ),
-                      title: Text(a.visitType.name),
+                      title: Text(visitTypeLabel(a.visitType)),
                       subtitle: a.reasonText == null
                           ? null
                           : Text(

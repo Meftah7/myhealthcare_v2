@@ -9,6 +9,7 @@ import '../../../core/result.dart';
 import '../../../core/utils/ids.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../domain/repositories/auth_repository.dart';
 import '../../../domain/repositories/system_repository.dart';
 
 final usersByRoleProvider = FutureProvider.family<List<User>, UserRole>((
@@ -90,6 +91,40 @@ class AdminActions {
     return result;
   }
 
+  Future<Result<Patient>> createPatient({
+    required String fullName,
+    required String email,
+    required String temporaryPassword,
+  }) async {
+    final result = await _ref
+        .read(authRepositoryProvider)
+        .registerPatient(
+          PatientRegistration(
+            fullName: fullName,
+            email: email,
+            password: temporaryPassword,
+          ),
+        );
+    _invalidateUsers();
+    return result;
+  }
+
+  Future<Result<User>> createAdmin({
+    required String fullName,
+    required String email,
+    required String temporaryPassword,
+  }) async {
+    final result = await _ref
+        .read(userRepositoryProvider)
+        .createAdmin(
+          fullName: fullName,
+          email: email,
+          temporaryPassword: temporaryPassword,
+        );
+    _invalidateUsers();
+    return result;
+  }
+
   Future<void> setActive({required String id, required bool active}) async {
     await _ref.read(userRepositoryProvider).setActive(id: id, active: active);
     _invalidateUsers();
@@ -119,6 +154,22 @@ class AdminActions {
             description: description,
           ),
         );
+    _ref.invalidate(departmentsProvider);
+    _ref.invalidate(systemStatsProvider);
+    return r;
+  }
+
+  Future<Result<void>> deleteDepartment(String id) async {
+    final r = await _ref.read(departmentRepositoryProvider).delete(id);
+    if (r.isOk) {
+      await _ref
+          .read(auditRepositoryProvider)
+          .record(
+            action: 'department.delete',
+            entityType: 'department',
+            entityId: id,
+          );
+    }
     _ref.invalidate(departmentsProvider);
     _ref.invalidate(systemStatsProvider);
     return r;

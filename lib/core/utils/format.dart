@@ -3,6 +3,8 @@ library;
 
 import 'package:intl/intl.dart';
 
+import '../../domain/enums.dart';
+
 final _date = DateFormat('d MMM yyyy');
 final _dateTime = DateFormat('d MMM yyyy · HH:mm');
 final _monthYear = DateFormat('MMMM yyyy');
@@ -12,6 +14,30 @@ String fmtDate(DateTime d) => _date.format(d);
 String fmtDateTime(DateTime d) => _dateTime.format(d);
 String fmtMonthYear(DateTime d) => _monthYear.format(d);
 String fmtTime(DateTime d) => _time.format(d);
+
+/// Human-readable label for a [VisitType] ("chronicCareReview" → "Chronic care
+/// review").
+String visitTypeLabel(VisitType t) => switch (t) {
+  VisitType.newPatient => 'New patient',
+  VisitType.followUp => 'Follow-up',
+  VisitType.routineCheckup => 'Routine check-up',
+  VisitType.chronicCareReview => 'Chronic care review',
+  VisitType.urgentCare => 'Urgent care',
+  VisitType.procedure => 'Procedure',
+  VisitType.vaccination => 'Vaccination',
+  VisitType.labOnly => 'Lab only',
+};
+
+/// Time-of-day greeting, e.g. "Good morning, Ali".
+String greeting(String name, {DateTime? now}) {
+  final h = (now ?? DateTime.now()).hour;
+  final part = h < 12
+      ? 'Good morning'
+      : h < 18
+      ? 'Good afternoon'
+      : 'Good evening';
+  return '$part, $name';
+}
 
 String fmtRelativeDay(DateTime d) {
   final now = DateTime.now();

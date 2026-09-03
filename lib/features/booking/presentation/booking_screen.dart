@@ -8,10 +8,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
 import '../../../core/result.dart';
+import '../../../core/utils/clinic_hours.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/enums.dart';
 import '../application/booking_providers.dart';
@@ -39,10 +41,14 @@ class BookingScreen extends ConsumerWidget {
             const SectionHeader('Department'),
             DropdownButtonFormField<String>(
               initialValue: draft.departmentId,
+              isExpanded: true,
               decoration: const InputDecoration(labelText: 'Department'),
               items: [
                 for (final d in depts)
-                  DropdownMenuItem(value: d.id, child: Text(d.name)),
+                  DropdownMenuItem(
+                    value: d.id,
+                    child: Text(d.name, overflow: TextOverflow.ellipsis),
+                  ),
               ],
               // Changing department resets the downstream choices.
               onChanged: (v) => notifier.state = BookingRequestDraft(
@@ -60,12 +66,19 @@ class BookingScreen extends ConsumerWidget {
               const SectionHeader('Visit'),
               DropdownButtonFormField<VisitType>(
                 initialValue: draft.visitType,
+                isExpanded: true,
                 decoration: const InputDecoration(
                   labelText: 'Reason for visit',
                 ),
                 items: [
                   for (final t in VisitType.values)
-                    DropdownMenuItem(value: t, child: Text(_visitLabel(t))),
+                    DropdownMenuItem(
+                      value: t,
+                      child: Text(
+                        visitTypeLabel(t),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                 ],
                 onChanged: (v) => notifier.state = draft.copyWith(visitType: v),
               ),
@@ -73,11 +86,17 @@ class BookingScreen extends ConsumerWidget {
               OutlinedButton.icon(
                 onPressed: () async {
                   final now = DateTime.now();
+                  final today = DateTime(now.year, now.month, now.day);
+                  final current = draft.date;
                   final picked = await showDatePicker(
                     context: context,
-                    initialDate: draft.date ?? now.add(const Duration(days: 1)),
-                    firstDate: now,
-                    lastDate: now.add(const Duration(days: 60)),
+                    initialDate: (current != null && isClinicDay(current))
+                        ? current
+                        : nextClinicDay(today),
+                    firstDate: today,
+                    lastDate: today.add(const Duration(days: 60)),
+                    selectableDayPredicate: isClinicDay,
+                    helpText: 'Clinic days: Sunday–Thursday',
                   );
                   if (picked != null) {
                     notifier.state = draft.copyWith(date: picked);
@@ -91,7 +110,7 @@ class BookingScreen extends ConsumerWidget {
             ],
 
             if (draft.staffId != null && draft.date != null) ...[
-              const SectionHeader('Suggested times — best attendance first'),
+              const SectionHeader('Available times'),
               _SlotList(),
             ],
           ],
@@ -100,8 +119,6 @@ class BookingScreen extends ConsumerWidget {
     );
   }
 
-  static String _visitLabel(VisitType t) =>
-      t.name.replaceAllMapped(RegExp('[A-Z]'), (m) => ' ${m[0]}').trim();
 }
 
 class _DoctorPicker extends ConsumerWidget {
@@ -117,6 +134,7 @@ class _DoctorPicker extends ConsumerWidget {
       error: (e, _) => const Text('Could not load doctors'),
       data: (list) => DropdownButtonFormField<String>(
         initialValue: draft.staffId,
+        isExpanded: true,
         decoration: const InputDecoration(labelText: 'Doctor'),
         items: [
           for (final s in list)
@@ -125,6 +143,7 @@ class _DoctorPicker extends ConsumerWidget {
               child: Text(
                 '${s.fullName}'
                 '${s.specialty == null ? '' : ' · ${s.specialty}'}',
+                overflow: TextOverflow.ellipsis,
               ),
             ),
         ],
@@ -152,13 +171,37 @@ class _SlotList extends ConsumerWidget {
             message: 'No open slots on that day. Try another date.',
           );
         }
+        // `list` is risk-ranked (best attendance first, P4-14); the visible
+        // list runs in clock order from opening to closing.
+        final best = list.first;
+        final byTime = [...list]
+          ..sort((a, b) => a.slot.start.compareTo(b.slot.start));
         return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            for (final s in list.take(12))
+            Card(
+              color: Theme.of(context).colorScheme.secondaryContainer,
+              child: ListTile(
+                leading: const Icon(Icons.star),
+                title: Text('${fmtTime(best.slot.start)} · recommended'),
+                subtitle: Text(best.reason),
+                trailing: RiskBadge(best.band),
+                onTap: () => _book(context, ref, best),
+              ),
+            ),
+            const SizedBox(height: Space.md),
+            Padding(
+              padding: const EdgeInsets.only(left: Space.xs, bottom: Space.xs),
+              child: Text(
+                'All open times',
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
+            ),
+            for (final s in byTime)
               Card(
                 child: ListTile(
+                  dense: true,
                   title: Text(fmtTime(s.slot.start)),
-                  subtitle: Text(s.reason),
                   trailing: RiskBadge(s.band),
                   onTap: () => _book(context, ref, s),
                 ),

@@ -11,6 +11,7 @@ import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../auth/application/session.dart';
+import '../../settings/presentation/preferences_section.dart';
 import 'patient_data_providers.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -72,6 +73,10 @@ class ProfileScreen extends ConsumerWidget {
                     : p.chronicConditions.join(', '),
               ),
               _row('Emergency contact', p.emergencyContact ?? '—'),
+
+              const Divider(height: Space.xl),
+              const PreferencesSection(),
+
               const Divider(height: Space.xl),
               ListTile(
                 leading: Icon(Icons.logout, color: theme.colorScheme.error),

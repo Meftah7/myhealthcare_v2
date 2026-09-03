@@ -6,7 +6,11 @@ i ☰ MyHealth Care — Senior Project
   Location: C:\dev\myhealthcare  (moved out of OneDrive — restart Claude Code here)
 
   NOW: Phase 6 done (8/9 automated; P6-07 usability needs participants). Phase 7 = report & presentation.
-  116/118 done · repo: github.com/Meftah7/myhealthcare_v2 (main)
+       Phase 8 post-review polish 2026-09-03: admin logout, tab-aware add, user search, dept delete, admin dashboard,
+       staff Schedule crash fix, staff+patient profile tabs, theme/Arabic-English prefs, booking full-day slots + weekend
+       guard, clinic day → 08:00–20:00 (seedVersion 4), appointments tab reorganised, new logo applied to all platforms
+       (P8-08 admin profile still open; app theme colour still teal — logo rebrand of the colour scheme not done).
+  128/130 done · repo: github.com/Meftah7/myhealthcare_v2 (main)
   open: P0-10 Android (AEHD driver) · P2-11..13 PDF import · P5-15 template editor · P6-07 participants · Gemini key (paste in Admin AI Settings)
   docs/: test_accounts.md · ai_setup.md · platform_smoke.md · performance.md · usability_study.md · ml_results.md
          · MyHealthCare_Feature_Report.pdf (feature_report.html source; regen via headless Chrome --print-to-pdf)
@@ -489,6 +493,34 @@ Phase 6 — Testing & results: @8of9  (P6-07 needs participants — protocol rea
     accessibility_test: meetsGuideline(textContrast / androidTapTarget / iOSTapTarget /
     labeledTapTarget) on login + patient home + staff dashboard; 2x textScaler no overflow.
 
+Phase 9 — Full redesign "v2" (branch redesign-v2): @in-progress
+  Goal: rework the whole product — patient, staff, admin — into one polished,
+  organized, premium application. Design authority: the model. DESIGN.md v2.
+  R1 — DESIGN SYSTEM ✔
+    New indigo-violet seed (#5B4FE9) from the logo + AppColors.brandGradient
+    (used only: login mark, one hero per role, empty-state CTA). Flat surfaces:
+    hairline border + Shadows.e1/e2/e3 tokens, off M3 surface-tint. Type gets
+    size-specific tracking (headlines tightened). lib/app/theme/motion.dart:
+    Motion tokens + Pressable (press-scale) + AppPageTransitions (fade-through).
+    app_theme.dart reworked (flat appbar/nav, pill status, softer inputs).
+  R1 — SHARED COMPONENTS ✔
+    lib/core/presentation/: app_card.dart (AppCard, SectionHeader{overline},
+    MetricTile, InlineBanner), app_scaffold.dart (AppScaffold). states.dart
+    polished (icon medallion, reduce-motion skeletons, card-shaped SkeletonList).
+    SectionHeader moved out of confirm_dialog.dart → app_card.dart.
+  R2/R3 — SCREENS (in progress)
+    Done: login (gradient medallion, card on wide), register (grouped cards),
+    patient home (time-aware greeting, next-appt card, health-snapshot metrics,
+    quick-action grid), staff dashboard (shift metric row + list cards),
+    admin dashboard (metric grid + link cards). greeting() helper in format.dart.
+    Fix: AppCard must be a Material (ink host) or nested ListTiles throw.
+    Remaining: appointments, timeline, vitals, patient chart, task board,
+    staff schedule/patients, medications, record detail, AI summary,
+    user management, departments, audit, analytics, ai settings, profiles,
+    preferences, booking, patient/staff shells + app bars.
+  R4 — IA (deferred): patient Home/Health/Appointments/Profile; admin
+    Overview/People/Departments/System/Profile. Router + tests — after screens.
+
 Phase 7 — Report & presentation: @0of5
   ☐ P7-01 Architecture, use-case, sequence diagrams @M @needs(P1-22)
   ☐ P7-02 Screenshots: all screens, both roles, light + dark @M
@@ -496,6 +528,106 @@ Phase 7 — Report & presentation: @0of5
   ☐ P7-04 Demo script, rehearsed in airplane mode with mock AI @M @critical
     A bad conference-room network must not be able to sink the defense.
   ☐ P7-05 Presentation deck + rehearsal @L
+
+Phase 8 — Post-review polish (supervisor/demo feedback): @12of13
+  Goal: address admin-app gaps + bugs found while walking the build.
+  ✔ P8-01 Sign out from the admin app @S @done(2026-09-03)
+    Shared SignOutAction (confirm → session.logout → router redirects to /login).
+    Added to every admin app bar: Dashboard, Users, Departments, Audit, AI, System analytics.
+    lib/features/auth/presentation/sign_out_action.dart.
+  ✔ P8-02 User management: add button follows the selected tab @M @done(2026-09-03)
+    Patients tab → "Add patient", Staff → "Add staff", Admins → "Add admin".
+    New create sheets for patient (AuthRepository.registerPatient) and admin
+    (UserRepository.createAdmin — new, with duplicate-email guard). AdminActions
+    gained createPatient / createAdmin.
+  ✔ P8-03 User management: search bar @S @done(2026-09-03)
+    SearchBar above the tabs, filters the active list by name/email, clear button,
+    "no matches" empty state.
+  ✔ P8-04 Departments: delete @M @done(2026-09-03)
+    Edit/Delete row menu + confirm dialog. DepartmentRepository.delete (new) refuses
+    with a count message while staff or appointments reference the department; writes
+    a department.delete audit row.
+  ✔ P8-05 Admin dashboard @M @done(2026-09-03)
+    New landing tab /admin/dashboard (homeForRole(admin) now points here): system
+    counts, 90-day appointment health, quick links to every admin area, recent audit
+    feed. System analytics moved off the bottom bar (opened from the dashboard) to
+    keep the bar at 5 items. lib/features/admin/presentation/admin_dashboard_screen.dart.
+    Tests: +4 in test/data/admin_repositories_test.dart (delete happy/blocked,
+    createAdmin happy/duplicate). flutter analyze clean, 78 tests green.
+  ✔ P8-06 Fix: staff Schedule tab crashed @S @done(2026-09-03)
+    staff_schedule_screen.dart sorted the per-day list in place on a `const []`
+    fallback → "Unsupported operation: Cannot modify an unmodifiable list" on any
+    week with an empty day (i.e. always). Now builds a fresh list: [...?byDay[i+1]]
+    ..sort(...). Regression test: test/features/staff_schedule_test.dart.
+  ✔ P8-07 Staff profile panel + theme/language preferences @M @done(2026-09-03)
+    /staff/profile (StaffProfileScreen) is now the 5th staff bottom-nav tab
+    (Dashboard · Patients · Tasks · Schedule · Profile). Read-only account
+    details (specialty, job title, licence, department name, member since;
+    "managed by admin") + a PreferencesSection + sign out. Staff app bars keep a
+    plain SignOutAction (sign-out only); SignOutAction gained an optional
+    profileRoute for the future admin menu. Also added PreferencesSection to the
+    patient profile screen.
+    PREFERENCES (app-wide, persisted in SharedPreferences, NOT the DB row):
+      - lib/app/settings/ui_prefs.dart: themeModeProvider (System/Light/Dark) +
+        localeProvider (System/en/ar). Wired into MaterialApp in app.dart.
+      - flutter_localizations added; supportedLocales = [en, ar] + Global*
+        delegates → picking العربية flips the whole app to RTL + localises
+        Material widgets immediately.
+      - lib/core/i18n/app_strings.dart: interim hand-written EN/AR table covering
+        ONLY the profile / account-menu / preferences surface, so that screen
+        demonstrates real bilingual switching.
+    Test: test/features/staff_profile_test.dart (open profile, see specialty +
+    department, switch theme, switch language → RTL).
+  ☐ P8-08 Admin profile + account menu (parity with staff) @S
+    Reuse PreferencesSection; admin has no profile row so it's just the User
+    fields + preferences + sign out. Low priority.
+  ✔ P8-09 Patient profile panel (5th tab) @S @done(2026-09-03)
+    Patient shell is now Home · Timeline · Appointments · Vitals · Profile.
+    Existing ProfileScreen (/patient/settings) moved from a standalone push into
+    the shell as the 5th branch; already carries PreferencesSection + sign out.
+    patient_home app bar trimmed to a single SignOutAction (was profile icon +
+    logout popup).
+  ✔ P8-10 Booking flow: full opening→closing times + weekend guard @M @done(2026-09-03)
+    booking_screen.dart:
+      - slot list was truncated to .take(12) of the risk-ranked order (times
+        looked random and stopped early). Now: one "recommended" card (the
+        lowest-risk slot, keeps the P4-14 ML surface) + the FULL clock-ordered
+        list across the whole clinic day.
+      - date picker: selectableDayPredicate blocks Fri/Sat (clinic runs Sun–Thu,
+        matching the seeded templates) and initialDate/firstDate are now
+        date-only + snapped to the next clinic day — previously initialDate could
+        land on a non-selectable day and assert, or you could pick a weekend and
+        get a confusing "no slots".
+    Test: test/features/booking_flow_test.dart (dept→doctor→visit→date→time→
+    confirm→appears in Appointments).
+  ✔ P8-11 Clinic day extended to 08:00–20:00 @S @done(2026-09-03)
+    Seeder: schedule templates 14:00→20:00, historical appt hours 8–13 → 8–19,
+    seedVersion 3→4 (existing DBs re-seed on launch; or Admin → AI Settings →
+    Re-seed). docs/test_accounts.md updated. No-show model NOT retrained — the
+    hour_of_day feature already clamps 0–23, evening-slot risk is mild
+    extrapolation; RQ2 report numbers stand (footnote if asked). Shared
+    lib/core/utils/clinic_hours.dart (isClinicDay / nextClinicDay / hours) now
+    used by both the booking wizard and the reschedule flow.
+  ✔ P8-12 Appointments tab reorganised @M @done(2026-09-03)
+    appointments_screen.dart rebuilt: relative-day headers ("Tomorrow · 14:30"),
+    humanised visit types (visitTypeLabel in format.dart), doctor name +
+    department per card (doctorDirectoryProvider / departmentDirectoryProvider),
+    tonal status chips, section counts, History grouped by month. Reschedule now
+    guards the date (clinic-day predicate) and the time (08:00–20:00).
+  ✔ P8-13 New "MyHealth Care" logo applied @M @done(2026-09-03)
+    New mark: pink→purple→blue gradient heart + ECG pulse in a cupped blue hand
+    (source boards in docs/brand/). Rebuilt assets/icon/app_icon{,_foreground,
+    _plain}.png from the board art (Python/Pillow), adaptive_icon_background
+    #00696E → #FFFFFF, web theme_color → #5B3FD8, regenerated every platform via
+    flutter_launcher_icons (Android mipmaps + adaptive, iOS, web favicon+icons,
+    Windows .ico). assets/images/logo.png (transparent mark) shown on the login
+    screen in place of the Icons.add_circle placeholder.
+    NOT DONE: the in-app THEME is still teal (#00696E seed, DESIGN.md). The new
+    logo is purple/blue — a full colour rebrand (theme seed, status ramp,
+    DESIGN.md, every screen) is a separate task. Flagged to the user.
+  FUTURE (i18n): full app localisation — ARB files + `flutter gen-l10n`,
+    translate every screen, RTL-audit each layout. app_strings.dart is the
+    interim stand-in. Marked // TODO(i18n) in that file.
 
 Rules — do not break these:
   1. P0-11 gates Phase 1. Settle web/Drift before building on it.

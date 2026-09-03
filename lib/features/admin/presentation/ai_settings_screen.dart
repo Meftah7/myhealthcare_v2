@@ -6,10 +6,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
+import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
 import '../../../services/ai/ai_models.dart';
 import '../../../services/ai/gemini_ai_service.dart';
+import '../../auth/presentation/sign_out_action.dart';
 import '../application/settings_providers.dart';
 
 class AiSettingsScreen extends ConsumerWidget {
@@ -21,7 +23,10 @@ class AiSettingsScreen extends ConsumerWidget {
     final hasKey = ref.watch(aiKeyPresentProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('AI settings')),
+      appBar: AppBar(
+        title: const Text('AI settings'),
+        actions: const [SignOutAction()],
+      ),
       body: settings.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(

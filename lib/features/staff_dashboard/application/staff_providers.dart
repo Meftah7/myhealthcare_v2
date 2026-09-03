@@ -35,6 +35,25 @@ final taskGeneratorProvider = Provider<TaskGenerator>(
   ),
 );
 
+/// The signed-in staff member's own profile record (P8-07).
+final staffProfileProvider = FutureProvider<Staff>((ref) async {
+  final id = _staffId(ref);
+  return _unwrap(await ref.watch(userRepositoryProvider).staffById(id));
+});
+
+/// Human-readable name of a department by id, or `null` if unset / unknown.
+final departmentNameProvider = FutureProvider.family<String?, String?>((
+  ref,
+  departmentId,
+) async {
+  if (departmentId == null) return null;
+  final all = _unwrap(await ref.watch(departmentRepositoryProvider).all());
+  for (final d in all) {
+    if (d.id == departmentId) return d.name;
+  }
+  return null;
+});
+
 /// Today's appointments for the signed-in staff member (P5-05, P5-12).
 final staffTodayProvider = FutureProvider<List<Appointment>>((ref) async {
   final id = _staffId(ref);

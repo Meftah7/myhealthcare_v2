@@ -44,7 +44,8 @@ class Seeder {
   final PasswordHasher _hasher;
 
   /// Bump when the generation logic changes so existing DBs re-seed.
-  static const seedVersion = 3;
+  /// v4: clinic day extended to 08:00–20:00.
+  static const seedVersion = 4;
 
   /// Password for every seeded account (documented in the README).
   static const demoPassword = 'password';
@@ -155,7 +156,7 @@ class Seeder {
                 jobTitle: const Value('Consultant'),
               ),
             );
-        // A weekday schedule: Sun–Thu, 08:00–14:00, 20-minute slots.
+        // A weekday schedule: Sun–Thu, 08:00–20:00, 20-minute slots.
         for (final weekday in const [7, 1, 2, 3, 4]) {
           await _db
               .into(_db.scheduleTemplates)
@@ -165,7 +166,7 @@ class Seeder {
                   staffId: id,
                   weekday: weekday,
                   startMinutes: 8 * 60,
-                  endMinutes: 14 * 60,
+                  endMinutes: 20 * 60,
                 ),
               );
         }
@@ -283,7 +284,7 @@ class Seeder {
         when.year,
         when.month,
         when.day,
-        8 + _rng.nextInt(6),
+        8 + _rng.nextInt(12), // 08:00–19:xx, within the 08:00–20:00 day
         _pick(const [0, 20, 40]),
       );
       final apptId = 'appt_${p.id}_${appts.toString().padLeft(2, '0')}';

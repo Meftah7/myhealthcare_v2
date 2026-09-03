@@ -53,7 +53,7 @@ void main() {
 
     // Lands on the staff dashboard.
     expect(find.widgetWithText(AppBar, 'Dashboard'), findsOneWidget);
-    expect(find.textContaining('Hello,'), findsOneWidget);
+    expect(find.textContaining('Good '), findsOneWidget);
 
     // Run a panel scan from the app bar.
     await tester.tap(find.byTooltip('Scan panel for risks'));

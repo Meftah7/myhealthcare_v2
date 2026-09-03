@@ -21,4 +21,8 @@ abstract interface class DepartmentRepository {
   Future<Result<Department>> byId(String id);
 
   Future<Result<void>> upsert(Department department);
+
+  /// Remove a department. Fails with [ValidationFailure] while staff or
+  /// appointments are still assigned to it.
+  Future<Result<void>> delete(String id);
 }

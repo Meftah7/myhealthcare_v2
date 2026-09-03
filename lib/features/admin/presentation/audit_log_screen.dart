@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
+import '../../auth/presentation/sign_out_action.dart';
 import '../application/admin_providers.dart';
 
 class AuditLogScreen extends ConsumerWidget {
@@ -22,6 +23,7 @@ class AuditLogScreen extends ConsumerWidget {
             icon: const Icon(Icons.refresh),
             onPressed: () => ref.invalidate(auditLogProvider),
           ),
+          const SignOutAction(),
         ],
       ),
       body: entries.when(

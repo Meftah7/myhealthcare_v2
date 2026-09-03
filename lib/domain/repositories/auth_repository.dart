@@ -75,6 +75,13 @@ abstract interface class UserRepository {
     String? jobTitle,
   });
 
+  /// Create an admin account (no profile row).
+  Future<Result<User>> createAdmin({
+    required String fullName,
+    required String email,
+    required String temporaryPassword,
+  });
+
   Future<Result<void>> setActive({required String id, required bool active});
 
   Future<Result<void>> resetPassword({

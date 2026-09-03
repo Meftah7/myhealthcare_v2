@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
-import '../../../core/presentation/confirm_dialog.dart';
+import '../../../core/presentation/app_card.dart';
 import '../../../core/result.dart';
 import '../../../domain/enums.dart';
 import '../../../domain/repositories/auth_repository.dart';
@@ -102,12 +102,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Create account')),
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(Space.lg),
+          padding: const EdgeInsets.fromLTRB(
+            Space.lg,
+            Space.sm,
+            Space.lg,
+            Space.xxl,
+          ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 480),
             child: Form(
@@ -115,137 +119,178 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SectionHeader('Account'),
-                  TextFormField(
-                    controller: _name,
-                    decoration: const InputDecoration(labelText: 'Full name'),
-                    validator: _required,
-                  ),
-                  const SizedBox(height: Space.md),
-                  TextFormField(
-                    controller: _email,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(labelText: 'Email'),
-                    validator: (v) => (v == null || !v.contains('@'))
-                        ? 'Enter a valid email'
-                        : null,
-                  ),
-                  const SizedBox(height: Space.md),
-                  TextFormField(
-                    controller: _password,
-                    obscureText: true,
-                    decoration: const InputDecoration(labelText: 'Password'),
-                    validator: (v) => (v == null || v.length < 6)
-                        ? 'At least 6 characters'
-                        : null,
-                  ),
-                  const SectionHeader('Details'),
-                  TextFormField(
-                    controller: _phone,
-                    keyboardType: TextInputType.phone,
-                    decoration: const InputDecoration(
-                      labelText: 'Phone (optional)',
+                  AppCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SectionHeader(
+                          'Account',
+                          padding: EdgeInsets.only(bottom: Space.sm),
+                        ),
+                        TextFormField(
+                          controller: _name,
+                          decoration: const InputDecoration(
+                            labelText: 'Full name',
+                          ),
+                          validator: _required,
+                        ),
+                        const SizedBox(height: Space.md),
+                        TextFormField(
+                          controller: _email,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: const InputDecoration(labelText: 'Email'),
+                          validator: (v) => (v == null || !v.contains('@'))
+                              ? 'Enter a valid email'
+                              : null,
+                        ),
+                        const SizedBox(height: Space.md),
+                        TextFormField(
+                          controller: _password,
+                          obscureText: true,
+                          decoration: const InputDecoration(
+                            labelText: 'Password',
+                          ),
+                          validator: (v) => (v == null || v.length < 6)
+                              ? 'At least 6 characters'
+                              : null,
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: Space.md),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _pickDob,
-                          icon: const Icon(Icons.cake_outlined),
-                          label: Text(
-                            _dob == null
-                                ? 'Date of birth'
-                                : '${_dob!.year}-${_dob!.month.toString().padLeft(2, '0')}-${_dob!.day.toString().padLeft(2, '0')}',
+                  const SizedBox(height: Space.sm),
+                  AppCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SectionHeader(
+                          'Details',
+                          padding: EdgeInsets.only(bottom: Space.sm),
+                        ),
+                        TextFormField(
+                          controller: _phone,
+                          keyboardType: TextInputType.phone,
+                          decoration: const InputDecoration(
+                            labelText: 'Phone (optional)',
                           ),
                         ),
-                      ),
-                      const SizedBox(width: Space.sm),
-                      Expanded(
-                        child: DropdownButtonFormField<Gender>(
-                          initialValue: _gender,
-                          decoration: const InputDecoration(
-                            labelText: 'Gender',
-                          ),
-                          items: [
-                            for (final g in Gender.values)
-                              DropdownMenuItem(value: g, child: Text(g.name)),
+                        const SizedBox(height: Space.md),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: _pickDob,
+                                icon: const Icon(Icons.cake_outlined),
+                                label: Text(
+                                  _dob == null
+                                      ? 'Date of birth'
+                                      : '${_dob!.year}-${_dob!.month.toString().padLeft(2, '0')}-${_dob!.day.toString().padLeft(2, '0')}',
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: Space.sm),
+                            Expanded(
+                              child: DropdownButtonFormField<Gender>(
+                                initialValue: _gender,
+                                isExpanded: true,
+                                decoration: const InputDecoration(
+                                  labelText: 'Gender',
+                                ),
+                                items: [
+                                  for (final g in Gender.values)
+                                    DropdownMenuItem(
+                                      value: g,
+                                      child: Text(g.name),
+                                    ),
+                                ],
+                                onChanged: (v) => setState(() => _gender = v),
+                              ),
+                            ),
                           ],
-                          onChanged: (v) => setState(() => _gender = v),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: Space.md),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: _nationalId,
-                          decoration: const InputDecoration(
-                            labelText: 'National ID (optional)',
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: Space.sm),
-                      Expanded(
-                        child: DropdownButtonFormField<String>(
-                          initialValue: _bloodType,
-                          decoration: const InputDecoration(
-                            labelText: 'Blood type',
-                          ),
-                          items: [
-                            for (final b in const [
-                              'O+',
-                              'O-',
-                              'A+',
-                              'A-',
-                              'B+',
-                              'B-',
-                              'AB+',
-                              'AB-',
-                            ])
-                              DropdownMenuItem(value: b, child: Text(b)),
+                        const SizedBox(height: Space.md),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: _nationalId,
+                                decoration: const InputDecoration(
+                                  labelText: 'National ID (optional)',
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: Space.sm),
+                            Expanded(
+                              child: DropdownButtonFormField<String>(
+                                initialValue: _bloodType,
+                                isExpanded: true,
+                                decoration: const InputDecoration(
+                                  labelText: 'Blood type',
+                                ),
+                                items: [
+                                  for (final b in const [
+                                    'O+',
+                                    'O-',
+                                    'A+',
+                                    'A-',
+                                    'B+',
+                                    'B-',
+                                    'AB+',
+                                    'AB-',
+                                  ])
+                                    DropdownMenuItem(
+                                      value: b,
+                                      child: Text(b),
+                                    ),
+                                ],
+                                onChanged: (v) =>
+                                    setState(() => _bloodType = v),
+                              ),
+                            ),
                           ],
-                          onChanged: (v) => setState(() => _bloodType = v),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SectionHeader('Medical (optional)'),
-                  TextFormField(
-                    controller: _conditions,
-                    decoration: const InputDecoration(
-                      labelText: 'Chronic conditions',
-                      helperText: 'Comma-separated',
+                      ],
                     ),
                   ),
-                  const SizedBox(height: Space.md),
-                  TextFormField(
-                    controller: _allergies,
-                    decoration: const InputDecoration(
-                      labelText: 'Allergies',
-                      helperText: 'Comma-separated',
-                    ),
-                  ),
-                  const SizedBox(height: Space.md),
-                  TextFormField(
-                    controller: _emergency,
-                    decoration: const InputDecoration(
-                      labelText: 'Emergency contact',
+                  const SizedBox(height: Space.sm),
+                  AppCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SectionHeader(
+                          'Medical (optional)',
+                          padding: EdgeInsets.only(bottom: Space.sm),
+                        ),
+                        TextFormField(
+                          controller: _conditions,
+                          decoration: const InputDecoration(
+                            labelText: 'Chronic conditions',
+                            helperText: 'Comma-separated',
+                          ),
+                        ),
+                        const SizedBox(height: Space.md),
+                        TextFormField(
+                          controller: _allergies,
+                          decoration: const InputDecoration(
+                            labelText: 'Allergies',
+                            helperText: 'Comma-separated',
+                          ),
+                        ),
+                        const SizedBox(height: Space.md),
+                        TextFormField(
+                          controller: _emergency,
+                          decoration: const InputDecoration(
+                            labelText: 'Emergency contact',
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   if (_error != null) ...[
                     const SizedBox(height: Space.md),
-                    Text(
-                      _error!,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.error,
-                      ),
-                    ),
+                    InlineBanner.error(_error!),
                   ],
-                  const SizedBox(height: Space.xl),
+                  const SizedBox(height: Space.lg),
                   FilledButton(
                     onPressed: _busy ? null : _submit,
                     child: _busy
