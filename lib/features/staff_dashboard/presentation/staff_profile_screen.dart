@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/i18n/app_strings.dart';
+import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
@@ -38,87 +39,94 @@ class StaffProfileScreen extends ConsumerWidget {
         data: (s) {
           final u = s.user;
           final deptName = ref.watch(departmentNameProvider(s.departmentId));
-          return ListView(
-            children: [
-              const SizedBox(height: Space.md),
-              Center(
-                child: CircleAvatar(
-                  radius: 36,
-                  child: Text(
-                    u.fullName.isNotEmpty ? u.fullName[0] : '?',
-                    style: theme.textTheme.headlineSmall,
-                  ),
-                ),
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: Space.maxContentWidth,
               ),
-              const SizedBox(height: Space.xs),
-              Center(
-                child: Text(u.fullName, style: theme.textTheme.titleLarge),
-              ),
-              Center(
-                child: Text(
-                  u.email,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-              const SizedBox(height: Space.lg),
-
-              Padding(
-                padding: const EdgeInsets.fromLTRB(Space.md, 0, Space.md, 0),
-                child: Text(t.account, style: theme.textTheme.titleSmall),
-              ),
-              _row(t.specialty, s.specialty ?? t.none),
-              _row(t.jobTitle, s.jobTitle ?? t.none),
-              _row(t.licenseNo, s.licenseNo ?? t.none),
-              _row(
-                t.department,
-                deptName.maybeWhen(
-                  data: (n) => n ?? t.none,
-                  orElse: () => '…',
-                ),
-              ),
-              _row(t.memberSince, fmtDate(u.createdAt)),
-              Padding(
+              child: ListView(
                 padding: const EdgeInsets.fromLTRB(
                   Space.md,
-                  Space.xs,
                   Space.md,
-                  0,
+                  Space.md,
+                  Space.xxl,
                 ),
-                child: Text(
-                  t.managedByAdmin,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                children: [
+                  ProfileHeader(
+                    name: u.fullName,
+                    email: u.email,
+                    role: t.roleStaff,
                   ),
-                ),
-              ),
+                  const SizedBox(height: Space.md),
+                  SectionHeader(t.account, overline: true),
+                  AppCard(
+                    padding: EdgeInsets.zero,
+                    child: Column(
+                      children: [
+                        _row(t.specialty, s.specialty ?? t.none),
+                        const Divider(height: 1, indent: Space.md),
+                        _row(t.jobTitle, s.jobTitle ?? t.none),
+                        const Divider(height: 1, indent: Space.md),
+                        _row(t.licenseNo, s.licenseNo ?? t.none),
+                        const Divider(height: 1, indent: Space.md),
+                        _row(
+                          t.department,
+                          deptName.maybeWhen(
+                            data: (n) => n ?? t.none,
+                            orElse: () => '…',
+                          ),
+                        ),
+                        const Divider(height: 1, indent: Space.md),
+                        _row(t.memberSince, fmtDate(u.createdAt)),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      Space.xs,
+                      Space.xs,
+                      Space.xs,
+                      0,
+                    ),
+                    child: Text(
+                      t.managedByAdmin,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
 
-              const Divider(height: Space.xl),
-              const PreferencesSection(),
+                  const SizedBox(height: Space.md),
+                  const PreferencesSection(),
 
-              const Divider(height: Space.xl),
-              ListTile(
-                leading: Icon(Icons.logout, color: theme.colorScheme.error),
-                title: Text(
-                  t.signOut,
-                  style: TextStyle(color: theme.colorScheme.error),
-                ),
-                onTap: () async {
-                  final ok = await confirm(
-                    context,
-                    title: t.signOutConfirmTitle,
-                    message: t.signOutConfirmBody,
-                    confirmLabel: t.signOut,
-                    destructive: true,
-                  );
-                  if (ok) {
-                    unawaited(ref.read(sessionProvider.notifier).logout());
-                  }
-                },
+                  const SizedBox(height: Space.lg),
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      final ok = await confirm(
+                        context,
+                        title: t.signOutConfirmTitle,
+                        message: t.signOutConfirmBody,
+                        confirmLabel: t.signOut,
+                        destructive: true,
+                      );
+                      if (ok) {
+                        unawaited(
+                          ref.read(sessionProvider.notifier).logout(),
+                        );
+                      }
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: theme.colorScheme.error,
+                      side: BorderSide(
+                        color: theme.colorScheme.error.withValues(alpha: 0.4),
+                      ),
+                    ),
+                    icon: const Icon(Icons.logout),
+                    label: Text(t.signOut),
+                  ),
+                ],
               ),
-              const SizedBox(height: Space.lg),
-            ],
+            ),
           );
         },
       ),

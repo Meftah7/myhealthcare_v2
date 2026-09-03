@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
+import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
@@ -45,27 +46,85 @@ class DepartmentsScreen extends ConsumerWidget {
               message: 'No departments yet.',
             );
           }
-          return ListView.builder(
-            itemCount: list.length,
-            itemBuilder: (context, i) {
-              final d = list[i];
-              return ListTile(
-                leading: const Icon(Icons.apartment_outlined),
-                title: Text(d.name),
-                subtitle: d.description == null ? null : Text(d.description!),
-                onTap: () => _edit(context, ref, d),
-                trailing: PopupMenuButton<String>(
-                  onSelected: (v) {
-                    if (v == 'edit') unawaited(_edit(context, ref, d));
-                    if (v == 'delete') unawaited(_delete(context, ref, d));
-                  },
-                  itemBuilder: (context) => const [
-                    PopupMenuItem(value: 'edit', child: Text('Edit')),
-                    PopupMenuItem(value: 'delete', child: Text('Delete')),
-                  ],
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: Space.maxContentWidth,
+              ),
+              child: ListView.builder(
+                padding: const EdgeInsets.fromLTRB(
+                  Space.md,
+                  Space.sm,
+                  Space.md,
+                  Space.xxl + Space.xl,
                 ),
-              );
-            },
+                itemCount: list.length,
+                itemBuilder: (context, i) {
+                  final d = list[i];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: Space.xs),
+                    child: AppCard(
+                      padding: const EdgeInsets.fromLTRB(
+                        Space.md,
+                        Space.xs,
+                        Space.xs,
+                        Space.xs,
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.apartment_outlined,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: Space.sm),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  d.name,
+                                  style:
+                                      Theme.of(context).textTheme.titleSmall,
+                                ),
+                                if (d.description != null)
+                                  Text(
+                                    d.description!,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                        ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          PopupMenuButton<String>(
+                            onSelected: (v) {
+                              if (v == 'edit') {
+                                unawaited(_edit(context, ref, d));
+                              }
+                              if (v == 'delete') {
+                                unawaited(_delete(context, ref, d));
+                              }
+                            },
+                            itemBuilder: (context) => const [
+                              PopupMenuItem(value: 'edit', child: Text('Edit')),
+                              PopupMenuItem(
+                                value: 'delete',
+                                child: Text('Delete'),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
           );
         },
       ),

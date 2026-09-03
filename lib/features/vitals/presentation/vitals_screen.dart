@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
+import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -41,8 +42,18 @@ class VitalsScreen extends ConsumerWidget {
           }
           final sorted = [...list]
             ..sort((a, b) => a.recordedAt.compareTo(b.recordedAt));
-          return ListView(
-            padding: const EdgeInsets.all(Space.lg),
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: Space.maxContentWidth,
+              ),
+              child: ListView(
+            padding: const EdgeInsets.fromLTRB(
+              Space.md,
+              Space.sm,
+              Space.md,
+              Space.xxl,
+            ),
             children: [
               _VitalsChart(
                 title: 'Blood pressure',
@@ -80,13 +91,23 @@ class VitalsScreen extends ConsumerWidget {
                   ]),
                 ],
               ),
-              const SizedBox(height: Space.lg),
-              Text(
-                'Recent readings',
-                style: Theme.of(context).textTheme.titleSmall,
+              const SizedBox(height: Space.md),
+              const SectionHeader('Recent readings', overline: true),
+              AppCard(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    for (var i = 0; i < sorted.length && i < 15; i++) ...[
+                      if (i > 0)
+                        const Divider(height: 1, indent: Space.md),
+                      _ReadingTile(sorted[sorted.length - 1 - i]),
+                    ],
+                  ],
+                ),
               ),
-              for (final v in sorted.reversed.take(15)) _ReadingTile(v),
             ],
+              ),
+            ),
           );
         },
       ),
@@ -131,9 +152,9 @@ class _VitalsChart extends StatelessWidget {
         .reduce((a, b) => a > b ? a : b);
     final colors = [theme.colorScheme.primary, theme.colorScheme.tertiary];
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(Space.lg),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: Space.sm),
+      child: AppCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

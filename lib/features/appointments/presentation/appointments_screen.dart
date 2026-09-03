@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
+import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
@@ -54,12 +55,17 @@ class AppointmentsScreen extends ConsumerWidget {
           final past = list.where((a) => !a.isUpcoming).toList()
             ..sort((a, b) => b.slotStart.compareTo(a.slotStart));
 
-          return ListView(
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: Space.maxContentWidth,
+              ),
+              child: ListView(
             padding: const EdgeInsets.fromLTRB(
               Space.md,
               Space.sm,
               Space.md,
-              Space.xl,
+              Space.xxl,
             ),
             children: [
               _SectionLabel('Upcoming', count: upcoming.length),
@@ -87,6 +93,8 @@ class AppointmentsScreen extends ConsumerWidget {
                   ),
               ],
             ],
+              ),
+            ),
           );
         },
       ),
@@ -187,9 +195,9 @@ class _ApptCard extends ConsumerWidget {
       ?department,
     ].join('  ·  ');
 
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: Space.xxs),
-      child: Padding(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: Space.xxs),
+      child: AppCard(
         padding: const EdgeInsets.all(Space.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

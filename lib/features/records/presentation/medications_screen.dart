@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
+import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -33,32 +34,47 @@ class MedicationsScreen extends ConsumerWidget {
           }
           final active = list.where((m) => m.isCurrent).toList();
           final past = list.where((m) => !m.isCurrent).toList();
-          return ListView(
-            padding: const EdgeInsets.symmetric(vertical: Space.sm),
-            children: [
-              if (active.isNotEmpty) ...[
-                const _Header('Current'),
-                ...active.map(_MedTile.new),
-              ],
-              if (past.isNotEmpty) ...[
-                const _Header('Past'),
-                ...past.map(_MedTile.new),
-              ],
-            ],
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: Space.maxContentWidth,
+              ),
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(
+                  Space.md,
+                  Space.sm,
+                  Space.md,
+                  Space.xxl,
+                ),
+                children: [
+                  if (active.isNotEmpty) ...[
+                    const SectionHeader('Current', overline: true),
+                    _group(active),
+                  ],
+                  if (past.isNotEmpty) ...[
+                    const SizedBox(height: Space.md),
+                    const SectionHeader('Past', overline: true),
+                    _group(past),
+                  ],
+                ],
+              ),
+            ),
           );
         },
       ),
     );
   }
-}
 
-class _Header extends StatelessWidget {
-  const _Header(this.text);
-  final String text;
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(Space.lg, Space.md, Space.lg, Space.xs),
-    child: Text(text, style: Theme.of(context).textTheme.titleSmall),
+  Widget _group(List<Medication> meds) => AppCard(
+    padding: EdgeInsets.zero,
+    child: Column(
+      children: [
+        for (var i = 0; i < meds.length; i++) ...[
+          if (i > 0) const Divider(height: 1, indent: Space.md),
+          _MedTile(meds[i]),
+        ],
+      ],
+    ),
   );
 }
 

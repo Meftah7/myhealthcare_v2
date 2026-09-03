@@ -114,6 +114,82 @@ class SectionHeader extends StatelessWidget {
   }
 }
 
+/// The header on a profile screen: a gradient-ringed monogram, name, email,
+/// and a role pill.
+class ProfileHeader extends StatelessWidget {
+  const ProfileHeader({
+    required this.name,
+    required this.email,
+    this.role,
+    super.key,
+  });
+
+  final String name;
+  final String email;
+  final String? role;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return AppCard(
+      child: Row(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: AppColors.brandGradient,
+            ),
+            child: Text(
+              name.isNotEmpty ? name[0].toUpperCase() : '?',
+              style: theme.textTheme.titleLarge?.copyWith(color: Colors.white),
+            ),
+          ),
+          const SizedBox(width: Space.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: theme.textTheme.titleLarge),
+                Text(
+                  email,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (role != null) ...[
+                  const SizedBox(height: Space.xs),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: Space.xs,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: scheme.secondaryContainer,
+                      borderRadius: Radii.pill,
+                    ),
+                    child: Text(
+                      role!,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: scheme.onSecondaryContainer,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// A one-line inline message strip — for form errors, notices, empty hints
 /// inside a section. Filled container + icon + text, WCAG-safe pairs.
 class InlineBanner extends StatelessWidget {

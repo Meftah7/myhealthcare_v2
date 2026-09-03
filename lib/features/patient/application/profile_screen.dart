@@ -1,4 +1,4 @@
-/// Patient profile + settings (P2-17).
+/// Patient profile + settings (P2-17, redesign v2).
 library;
 
 import 'dart:async';
@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
+import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
@@ -23,7 +24,7 @@ class ProfileScreen extends ConsumerWidget {
     final profile = ref.watch(patientProfileProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile & settings')),
+      appBar: AppBar(title: const Text('Profile')),
       body: profile.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
@@ -32,72 +33,88 @@ class ProfileScreen extends ConsumerWidget {
         ),
         data: (p) {
           final u = p.user;
-          return ListView(
-            children: [
-              const SizedBox(height: Space.md),
-              Center(
-                child: CircleAvatar(
-                  radius: 36,
-                  child: Text(
-                    u.fullName.isNotEmpty ? u.fullName[0] : '?',
-                    style: theme.textTheme.headlineSmall,
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: Space.maxContentWidth,
+              ),
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(
+                  Space.md,
+                  Space.md,
+                  Space.md,
+                  Space.xxl,
+                ),
+                children: [
+                  ProfileHeader(name: u.fullName, email: u.email),
+                  const SizedBox(height: Space.md),
+                  const SectionHeader('Personal details', overline: true),
+                  AppCard(
+                    padding: EdgeInsets.zero,
+                    child: Column(
+                      children: [
+                        for (final (i, (label, value)) in [
+                          ('Phone', u.phone ?? '—'),
+                          (
+                            'Date of birth',
+                            u.dob == null ? '—' : fmtDate(u.dob!),
+                          ),
+                          ('Gender', u.gender?.name ?? '—'),
+                          ('National ID', u.nationalId ?? '—'),
+                          ('Blood type', p.bloodType ?? '—'),
+                          (
+                            'Allergies',
+                            p.allergies.isEmpty
+                                ? 'None'
+                                : p.allergies.join(', '),
+                          ),
+                          (
+                            'Chronic conditions',
+                            p.chronicConditions.isEmpty
+                                ? 'None'
+                                : p.chronicConditions.join(', '),
+                          ),
+                          ('Emergency contact', p.emergencyContact ?? '—'),
+                        ].indexed) ...[
+                          if (i > 0)
+                            const Divider(height: 1, indent: Space.md),
+                          _row(label, value),
+                        ],
+                      ],
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(height: Space.xs),
-              Center(
-                child: Text(u.fullName, style: theme.textTheme.titleLarge),
-              ),
-              Center(
-                child: Text(
-                  u.email,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+
+                  const SizedBox(height: Space.md),
+                  const PreferencesSection(),
+
+                  const SizedBox(height: Space.lg),
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      final ok = await confirm(
+                        context,
+                        title: 'Sign out?',
+                        message: 'You can sign back in any time.',
+                        confirmLabel: 'Sign out',
+                        destructive: true,
+                      );
+                      if (ok) {
+                        unawaited(
+                          ref.read(sessionProvider.notifier).logout(),
+                        );
+                      }
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: theme.colorScheme.error,
+                      side: BorderSide(
+                        color: theme.colorScheme.error.withValues(alpha: 0.4),
+                      ),
+                    ),
+                    icon: const Icon(Icons.logout),
+                    label: const Text('Sign out'),
                   ),
-                ),
+                ],
               ),
-              const SizedBox(height: Space.lg),
-              _row('Phone', u.phone ?? '—'),
-              _row('Date of birth', u.dob == null ? '—' : fmtDate(u.dob!)),
-              _row('Gender', u.gender?.name ?? '—'),
-              _row('National ID', u.nationalId ?? '—'),
-              _row('Blood type', p.bloodType ?? '—'),
-              _row(
-                'Allergies',
-                p.allergies.isEmpty ? 'None' : p.allergies.join(', '),
-              ),
-              _row(
-                'Chronic conditions',
-                p.chronicConditions.isEmpty
-                    ? 'None'
-                    : p.chronicConditions.join(', '),
-              ),
-              _row('Emergency contact', p.emergencyContact ?? '—'),
-
-              const Divider(height: Space.xl),
-              const PreferencesSection(),
-
-              const Divider(height: Space.xl),
-              ListTile(
-                leading: Icon(Icons.logout, color: theme.colorScheme.error),
-                title: Text(
-                  'Sign out',
-                  style: TextStyle(color: theme.colorScheme.error),
-                ),
-                onTap: () async {
-                  final ok = await confirm(
-                    context,
-                    title: 'Sign out?',
-                    message: 'You can sign back in any time.',
-                    confirmLabel: 'Sign out',
-                    destructive: true,
-                  );
-                  if (ok) {
-                    unawaited(ref.read(sessionProvider.notifier).logout());
-                  }
-                },
-              ),
-            ],
+            ),
           );
         },
       ),

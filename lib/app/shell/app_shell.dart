@@ -46,20 +46,28 @@ class AppShell extends StatelessWidget {
     final size = WindowSize.of(context);
     final current = navigationShell.currentIndex;
 
+    final scheme = Theme.of(context).colorScheme;
+    final hairline = scheme.outlineVariant.withValues(alpha: 0.7);
+
     if (size.isCompact) {
       return Scaffold(
         body: navigationShell,
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: current,
-          onDestinationSelected: _go,
-          destinations: [
-            for (final d in destinations)
-              NavigationDestination(
-                icon: Icon(d.icon),
-                selectedIcon: Icon(d.selectedIcon),
-                label: d.label,
-              ),
-          ],
+        bottomNavigationBar: DecoratedBox(
+          decoration: BoxDecoration(
+            border: Border(top: BorderSide(color: hairline)),
+          ),
+          child: NavigationBar(
+            selectedIndex: current,
+            onDestinationSelected: _go,
+            destinations: [
+              for (final d in destinations)
+                NavigationDestination(
+                  icon: Icon(d.icon),
+                  selectedIcon: Icon(d.selectedIcon),
+                  label: d.label,
+                ),
+            ],
+          ),
         ),
       );
     }
@@ -83,7 +91,7 @@ class AppShell extends StatelessWidget {
                 ),
             ],
           ),
-          const VerticalDivider(width: 1),
+          VerticalDivider(width: 1, color: hairline),
           Expanded(child: navigationShell),
         ],
       ),

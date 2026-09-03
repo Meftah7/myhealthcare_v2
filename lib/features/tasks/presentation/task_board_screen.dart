@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
+import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -42,22 +43,31 @@ class TaskBoardScreen extends ConsumerWidget {
               message: 'No open tasks. Run a panel scan from the dashboard.',
             );
           }
-          return ListView(
-            padding: const EdgeInsets.all(Space.md),
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: Space.xs,
-                  vertical: Space.xs,
-                ),
-                child: Text(
-                  'Priority = rule score blended ${(weight * 100).round()}% '
-                  'with AI score.',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: Space.maxContentWidth,
               ),
-              for (final t in list) _TaskCard(task: t, weight: weight),
-            ],
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(
+                  Space.md,
+                  Space.sm,
+                  Space.md,
+                  Space.xxl,
+                ),
+                children: [
+                  InlineBanner.info(
+                    'Priority blends the rule score '
+                    '${(weight * 100).round()}% with the AI score.',
+                  ),
+                  const SizedBox(height: Space.sm),
+                  for (final t in list) ...[
+                    _TaskCard(task: t, weight: weight),
+                    const SizedBox(height: Space.sm),
+                  ],
+                ],
+              ),
+            ),
           );
         },
       ),
@@ -113,10 +123,9 @@ class _TaskCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final priority = task.effectivePriority(weight);
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(Space.md),
-        child: Column(
+    return AppCard(
+      padding: const EdgeInsets.all(Space.md),
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -179,7 +188,6 @@ class _TaskCard extends ConsumerWidget {
             ],
           ],
         ),
-      ),
     );
   }
 }

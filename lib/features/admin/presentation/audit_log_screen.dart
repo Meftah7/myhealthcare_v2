@@ -4,6 +4,8 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/theme/theme.dart';
+import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../auth/presentation/sign_out_action.dart';
@@ -39,28 +41,69 @@ class AuditLogScreen extends ConsumerWidget {
               message: 'No audit entries yet.',
             );
           }
-          return ListView.separated(
-            itemCount: list.length,
-            separatorBuilder: (_, _) => const Divider(height: 1),
-            itemBuilder: (context, i) {
-              final e = list[i];
-              return ListTile(
-                dense: true,
-                title: Text(e.action),
-                subtitle: Text(
-                  [
-                    e.entityType,
-                    if (e.entityId != null) e.entityId,
-                    if (e.actorUserId != null) 'by ${e.actorUserId}',
-                    if (e.detail != null) e.detail,
-                  ].whereType<String>().join(' · '),
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: Space.maxContentWidth,
+              ),
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(
+                  Space.md,
+                  Space.sm,
+                  Space.md,
+                  Space.xxl,
                 ),
-                trailing: Text(
-                  fmtDateTime(e.at),
-                  style: Theme.of(context).textTheme.labelSmall,
-                ),
-              );
-            },
+                itemCount: list.length,
+                separatorBuilder: (_, _) => const SizedBox(height: Space.xs),
+                itemBuilder: (context, i) {
+                  final e = list[i];
+                  return AppCard(
+                    padding: const EdgeInsets.all(Space.md),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                e.action,
+                                style: Theme.of(context).textTheme.titleSmall,
+                              ),
+                            ),
+                            Text(
+                              fmtDateTime(e.at),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelSmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          [
+                            e.entityType,
+                            if (e.entityId != null) e.entityId,
+                            if (e.actorUserId != null) 'by ${e.actorUserId}',
+                            if (e.detail != null) e.detail,
+                          ].whereType<String>().join(' · '),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
           );
         },
       ),
