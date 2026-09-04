@@ -6,12 +6,13 @@ i ☰ MyHealth Care — Senior Project
   Location: C:\dev\myhealthcare  (moved out of OneDrive — restart Claude Code here)
 
   NOW: core build (Phases 0–6) complete. Phase 7 = report & presentation.
-       Phase 8 (post-review polish) + Phase 9 (full "v2" redesign) done on branch redesign-v2 — 81/81 tests green,
-       flutter analyze clean. Not merged to master yet.
+       Phase 8 (post-review polish) + Phase 9 (full "v2" redesign) done — 81/81 tests green, flutter analyze
+       clean. Rebased onto origin/main (co-author's GitHub Actions PR #1) and pushed: origin/main + origin/mohammed.
   128/130 core tasks done · repo: github.com/Meftah7/myhealthcare_v2 (main)
   open: P0-10 Android (AEHD driver) · P2-11..13 PDF import · P5-15 template editor · P6-07 participants ·
-        P8-08 admin profile · Gemini key (paste in Admin AI Settings) · merge redesign-v2 → master
-  BRANCHES: master = Phases 0–7 baseline · redesign-v2 = master + Phase 8 + Phase 9 (all recent work)
+        P8-08 admin profile · Gemini key (paste in Admin AI Settings)
+  BRANCHES: local main = master = mohammed = origin/main = bea42a3 (baseline + Phase 8 + Phase 9).
+        origin/mohammed pushed as a feature branch (was origin/Meftah7-patch-1, renamed).
   docs/: test_accounts.md · ai_setup.md · platform_smoke.md · performance.md · usability_study.md · ml_results.md
          · MyHealthCare_Feature_Report.pdf (feature_report.html source; regen via headless Chrome --print-to-pdf)
 
@@ -493,7 +494,9 @@ Phase 6 — Testing & results: @8of9  (P6-07 needs participants — protocol rea
     accessibility_test: meetsGuideline(textContrast / androidTapTarget / iOSTapTarget /
     labeledTapTarget) on login + patient home + staff dashboard; 2x textScaler no overflow.
 
-Phase 9 — Full redesign "v2" @done(2026-09-03) — branch redesign-v2, 4 commits, 81/81 tests
+Phase 9 — Full redesign "v2" @done(2026-09-03) — 5 commits (016cf5f 29e8337 11d2453 e4352e0 bea42a3),
+  81/81 tests. Rebased onto origin/main (over co-author PR #1) and pushed 2026-09-04 to origin/main
+  and origin/mohammed (feature branch; renamed from origin/Meftah7-patch-1). Plain-authored commits.
   Goal: rework the whole product — patient, staff, admin — into one polished,
   organized, premium application, driven off the new logo. DESIGN.md rewritten
   to v2 (identity, palette, flat surfaces, motion, IA for all 3 roles).
@@ -545,7 +548,7 @@ Phase 9 — Full redesign "v2" @done(2026-09-03) — branch redesign-v2, 4 commi
   R4 — IA reshuffle (deferred): patient Home/Health/Appointments/Profile;
     admin Overview/People/Departments/System/Profile. Router + test changes.
 
-  TO FINISH v2: the 3 theme-only screens above + R4 IA. Then merge → master.
+  TO FINISH v2: the 3 theme-only screens above + R4 IA.
 
 Phase 7 — Report & presentation: @0of5
   ☐ P7-01 Architecture, use-case, sequence diagrams @M @needs(P1-22)
