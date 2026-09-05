@@ -285,7 +285,6 @@ class _NotificationPrefsCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final prefs = ref.watch(notificationPrefsProvider);
     final notifier = ref.read(notificationPrefsProvider.notifier);
 

@@ -1,4 +1,6 @@
-/// Vitals — charts (P2-15), recent readings, and manual entry (P2-14).
+/// Vitals — charts (P2-15) and recent readings. Manual self-entry was
+/// removed in the patient dashboard rebuild: the "+" routes to Appointments
+/// instead, since readings now come from a visit.
 library;
 
 import 'package:fl_chart/fl_chart.dart';
@@ -40,7 +42,9 @@ class VitalsScreen extends ConsumerWidget {
           if (list.isEmpty) {
             return const EmptyState(
               icon: Icons.monitor_heart_outlined,
-              message: 'No vitals recorded yet.\nTap "Add reading" to start.',
+              message:
+                  'No vitals recorded yet.\nBook a visit to get your first '
+                  'reading.',
             );
           }
           final sorted = [...list]

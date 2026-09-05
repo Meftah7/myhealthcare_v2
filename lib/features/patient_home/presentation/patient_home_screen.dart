@@ -3,6 +3,8 @@
 /// quick actions, live appointment ticket(s).
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -213,10 +215,12 @@ class _QuickAppointmentAction extends ConsumerWidget {
   }
 
   Future<void> _bookUrgent(BuildContext context, WidgetRef ref) async {
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator()),
+    unawaited(
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(child: CircularProgressIndicator()),
+      ),
     );
     final result = await ref.read(quickAppointmentControllerProvider).bookUrgent();
     if (!context.mounted) return;

@@ -66,9 +66,12 @@ void main() {
       reason: 'timeline should list records',
     );
 
-    // Go to vitals.
+    // Go back to Home, then to Vitals via the Quick Actions tile — Vitals
+    // is a full-screen push now, not a bottom tab (patient dashboard rebuild).
+    await tester.tap(find.text('Home').first);
+    await _settle(tester);
     await tester.tap(find.text('Vitals').first);
     await _settle(tester);
-    expect(find.text('Add reading'), findsOneWidget);
+    expect(find.widgetWithText(AppBar, 'Vitals'), findsOneWidget);
   });
 }

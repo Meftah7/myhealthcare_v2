@@ -58,12 +58,14 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
     await _settle(tester);
 
-    // Appointments tab → Book.
-    await tester.tap(find.text('Appointments').last);
+    // The "+" bottom-nav action opens booking directly (patient dashboard
+    // rebuild: Appointments is no longer its own tab).
+    await tester.tap(find.byTooltip('Book an appointment'));
     await _settle(tester);
-    await tester.tap(find.widgetWithText(FloatingActionButton, 'Book'));
-    await _settle(tester);
-    expect(find.widgetWithText(AppBar, 'Book an appointment'), findsOneWidget);
+    expect(
+      find.widgetWithText(AppBar, 'Schedule an appointment'),
+      findsOneWidget,
+    );
 
     // Fill the draft (dept + doctor + a near clinic day) via the provider —
     // the wizard reacts and shows the slot list.
@@ -106,6 +108,8 @@ void main() {
     await _settle(tester);
     expect(find.text('Confirm booking'), findsOneWidget);
     await tester.tap(find.widgetWithText(FilledButton, 'Book'));
+    await _settle(tester);
+    // Let the checkmark success animation finish and auto-dismiss.
     await _settle(tester);
 
     // Landed back on Appointments with the new booking.
