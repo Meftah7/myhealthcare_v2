@@ -4,14 +4,14 @@ library;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
-import '../../../core/di.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
-import '../../auth/application/session.dart';
 import '../../patient/application/patient_data_providers.dart';
 
 class VitalsScreen extends ConsumerWidget {
@@ -22,10 +22,13 @@ class VitalsScreen extends ConsumerWidget {
     final vitals = ref.watch(patientVitalsProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('Vitals')),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openEntrySheet(context, ref),
-        icon: const Icon(Icons.add),
-        label: const Text('Add reading'),
+      // Readings come from a visit now, not manual self-entry — the "+"
+      // routes to Appointments instead of duplicating Timeline's controls
+      // (redesign v2).
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.go(AppRoutes.patientAppointments),
+        tooltip: 'Book an appointment',
+        child: const Icon(Icons.add),
       ),
       body: vitals.when(
         loading: () => const SkeletonList(),
@@ -278,110 +281,3 @@ class _ReadingTile extends StatelessWidget {
   }
 }
 
-Future<void> _openEntrySheet(BuildContext context, WidgetRef ref) async {
-  await showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    builder: (context) => Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: _VitalsEntryForm(
-        onSave: (vitals) async {
-          await ref.read(vitalsRepositoryProvider).add(vitals);
-          ref.invalidate(patientVitalsProvider);
-        },
-      ),
-    ),
-  );
-}
-
-class _VitalsEntryForm extends ConsumerStatefulWidget {
-  const _VitalsEntryForm({required this.onSave});
-  final Future<void> Function(Vitals) onSave;
-
-  @override
-  ConsumerState<_VitalsEntryForm> createState() => _VitalsEntryFormState();
-}
-
-class _VitalsEntryFormState extends ConsumerState<_VitalsEntryForm> {
-  final _fields = <String, TextEditingController>{
-    for (final k in [
-      'Systolic',
-      'Diastolic',
-      'Heart rate',
-      'SpO2',
-      'Weight (kg)',
-      'Glucose',
-      'Temp (°C)',
-    ])
-      k: TextEditingController(),
-  };
-  bool _busy = false;
-
-  @override
-  void dispose() {
-    for (final c in _fields.values) {
-      c.dispose();
-    }
-    super.dispose();
-  }
-
-  int? _int(String k) => int.tryParse(_fields[k]!.text.trim());
-  double? _dbl(String k) => double.tryParse(_fields[k]!.text.trim());
-
-  Future<void> _save() async {
-    setState(() => _busy = true);
-    final user = ref.read(currentUserProvider)!;
-    await widget.onSave(
-      Vitals(
-        id: '',
-        patientId: user.id,
-        recordedAt: DateTime.now(),
-        systolic: _int('Systolic'),
-        diastolic: _int('Diastolic'),
-        heartRate: _int('Heart rate'),
-        spo2: _int('SpO2'),
-        weightKg: _dbl('Weight (kg)'),
-        glucose: _dbl('Glucose'),
-        tempC: _dbl('Temp (°C)'),
-      ),
-    );
-    if (mounted) Navigator.of(context).pop();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(Space.lg),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text('New reading', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: Space.md),
-          Wrap(
-            spacing: Space.sm,
-            runSpacing: Space.sm,
-            children: [
-              for (final entry in _fields.entries)
-                SizedBox(
-                  width: 150,
-                  child: TextField(
-                    controller: entry.value,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    decoration: InputDecoration(labelText: entry.key),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: Space.lg),
-          FilledButton(
-            onPressed: _busy ? null : _save,
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-  }
-}

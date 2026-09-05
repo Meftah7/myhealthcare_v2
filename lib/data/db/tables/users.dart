@@ -49,6 +49,12 @@ class PatientProfiles extends Table {
       .withDefault(const Constant('[]'))();
   TextColumn get emergencyContact => text().nullable()();
 
+  /// Linked family members (redesign v2 patient dashboard: Family Network).
+  /// The whole list round-trips as one JSON blob — no table of its own.
+  TextColumn get familyMembers => text()
+      .map(const FamilyMemberListConverter())
+      .withDefault(const Constant('[]'))();
+
   @override
   Set<Column<Object>> get primaryKey => {userId};
 }

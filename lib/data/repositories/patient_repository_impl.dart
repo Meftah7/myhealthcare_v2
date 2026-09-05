@@ -91,6 +91,7 @@ class PatientRepositoryImpl implements PatientRepository {
       )..where((u) => u.id.equals(patient.id))).write(
         UsersCompanion(
           fullName: Value(patient.user.fullName),
+          email: Value(patient.user.email),
           phone: Value(patient.user.phone),
           dob: Value(patient.user.dob),
           gender: Value(patient.user.gender),
@@ -98,6 +99,62 @@ class PatientRepositoryImpl implements PatientRepository {
         ),
       );
     });
+  }
+
+  @override
+  Future<Result<List<FamilyMember>>> familyMembers(String patientId) {
+    return Result.guardAsync(() => _familyMembersOf(patientId));
+  }
+
+  @override
+  Future<Result<void>> addFamilyMember(String patientId, FamilyMember member) {
+    return Result.guardAsync(() async {
+      final current = await _familyMembersOf(patientId);
+      await _writeFamilyMembers(patientId, [...current, member]);
+    });
+  }
+
+  @override
+  Future<Result<void>> updateFamilyMember(
+    String patientId,
+    FamilyMember member,
+  ) {
+    return Result.guardAsync(() async {
+      final current = await _familyMembersOf(patientId);
+      final next = [
+        for (final m in current) if (m.id == member.id) member else m,
+      ];
+      await _writeFamilyMembers(patientId, next);
+    });
+  }
+
+  @override
+  Future<Result<void>> removeFamilyMember(String patientId, String memberId) {
+    return Result.guardAsync(() async {
+      final current = await _familyMembersOf(patientId);
+      await _writeFamilyMembers(
+        patientId,
+        current.where((m) => m.id != memberId).toList(),
+      );
+    });
+  }
+
+  Future<List<FamilyMember>> _familyMembersOf(String patientId) async {
+    final profile = await (_db.select(
+      _db.patientProfiles,
+    )..where((p) => p.userId.equals(patientId))).getSingleOrNull();
+    return profile?.familyMembers ?? const [];
+  }
+
+  Future<void> _writeFamilyMembers(
+    String patientId,
+    List<FamilyMember> members,
+  ) {
+    return (_db.update(
+      _db.patientProfiles,
+    )..where((p) => p.userId.equals(patientId))).write(
+      PatientProfilesCompanion(familyMembers: Value(members)),
+    );
   }
 }
 

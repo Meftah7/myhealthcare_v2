@@ -1063,12 +1063,26 @@ class $PatientProfilesTable extends PatientProfiles
     requiredDuringInsert: false,
   );
   @override
+  late final GeneratedColumnWithTypeConverter<List<FamilyMember>, String>
+  familyMembers =
+      GeneratedColumn<String>(
+        'family_members',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('[]'),
+      ).withConverter<List<FamilyMember>>(
+        $PatientProfilesTable.$converterfamilyMembers,
+      );
+  @override
   List<GeneratedColumn> get $columns => [
     userId,
     bloodType,
     allergies,
     chronicConditions,
     emergencyContact,
+    familyMembers,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1139,6 +1153,12 @@ class $PatientProfilesTable extends PatientProfiles
         DriftSqlType.string,
         data['${effectivePrefix}emergency_contact'],
       ),
+      familyMembers: $PatientProfilesTable.$converterfamilyMembers.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}family_members'],
+        )!,
+      ),
     );
   }
 
@@ -1151,6 +1171,8 @@ class $PatientProfilesTable extends PatientProfiles
       const StringListConverter();
   static TypeConverter<List<String>, String> $converterchronicConditions =
       const StringListConverter();
+  static TypeConverter<List<FamilyMember>, String> $converterfamilyMembers =
+      const FamilyMemberListConverter();
 }
 
 class PatientProfileRow extends DataClass
@@ -1160,12 +1182,14 @@ class PatientProfileRow extends DataClass
   final List<String> allergies;
   final List<String> chronicConditions;
   final String? emergencyContact;
+  final List<FamilyMember> familyMembers;
   const PatientProfileRow({
     required this.userId,
     this.bloodType,
     required this.allergies,
     required this.chronicConditions,
     this.emergencyContact,
+    required this.familyMembers,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1189,6 +1213,11 @@ class PatientProfileRow extends DataClass
     if (!nullToAbsent || emergencyContact != null) {
       map['emergency_contact'] = Variable<String>(emergencyContact);
     }
+    {
+      map['family_members'] = Variable<String>(
+        $PatientProfilesTable.$converterfamilyMembers.toSql(familyMembers),
+      );
+    }
     return map;
   }
 
@@ -1203,6 +1232,7 @@ class PatientProfileRow extends DataClass
       emergencyContact: emergencyContact == null && nullToAbsent
           ? const Value.absent()
           : Value(emergencyContact),
+      familyMembers: Value(familyMembers),
     );
   }
 
@@ -1219,6 +1249,9 @@ class PatientProfileRow extends DataClass
         json['chronicConditions'],
       ),
       emergencyContact: serializer.fromJson<String?>(json['emergencyContact']),
+      familyMembers: serializer.fromJson<List<FamilyMember>>(
+        json['familyMembers'],
+      ),
     );
   }
   @override
@@ -1230,6 +1263,7 @@ class PatientProfileRow extends DataClass
       'allergies': serializer.toJson<List<String>>(allergies),
       'chronicConditions': serializer.toJson<List<String>>(chronicConditions),
       'emergencyContact': serializer.toJson<String?>(emergencyContact),
+      'familyMembers': serializer.toJson<List<FamilyMember>>(familyMembers),
     };
   }
 
@@ -1239,6 +1273,7 @@ class PatientProfileRow extends DataClass
     List<String>? allergies,
     List<String>? chronicConditions,
     Value<String?> emergencyContact = const Value.absent(),
+    List<FamilyMember>? familyMembers,
   }) => PatientProfileRow(
     userId: userId ?? this.userId,
     bloodType: bloodType.present ? bloodType.value : this.bloodType,
@@ -1247,6 +1282,7 @@ class PatientProfileRow extends DataClass
     emergencyContact: emergencyContact.present
         ? emergencyContact.value
         : this.emergencyContact,
+    familyMembers: familyMembers ?? this.familyMembers,
   );
   PatientProfileRow copyWithCompanion(PatientProfilesCompanion data) {
     return PatientProfileRow(
@@ -1259,6 +1295,9 @@ class PatientProfileRow extends DataClass
       emergencyContact: data.emergencyContact.present
           ? data.emergencyContact.value
           : this.emergencyContact,
+      familyMembers: data.familyMembers.present
+          ? data.familyMembers.value
+          : this.familyMembers,
     );
   }
 
@@ -1269,7 +1308,8 @@ class PatientProfileRow extends DataClass
           ..write('bloodType: $bloodType, ')
           ..write('allergies: $allergies, ')
           ..write('chronicConditions: $chronicConditions, ')
-          ..write('emergencyContact: $emergencyContact')
+          ..write('emergencyContact: $emergencyContact, ')
+          ..write('familyMembers: $familyMembers')
           ..write(')'))
         .toString();
   }
@@ -1281,6 +1321,7 @@ class PatientProfileRow extends DataClass
     allergies,
     chronicConditions,
     emergencyContact,
+    familyMembers,
   );
   @override
   bool operator ==(Object other) =>
@@ -1290,7 +1331,8 @@ class PatientProfileRow extends DataClass
           other.bloodType == this.bloodType &&
           other.allergies == this.allergies &&
           other.chronicConditions == this.chronicConditions &&
-          other.emergencyContact == this.emergencyContact);
+          other.emergencyContact == this.emergencyContact &&
+          other.familyMembers == this.familyMembers);
 }
 
 class PatientProfilesCompanion extends UpdateCompanion<PatientProfileRow> {
@@ -1299,6 +1341,7 @@ class PatientProfilesCompanion extends UpdateCompanion<PatientProfileRow> {
   final Value<List<String>> allergies;
   final Value<List<String>> chronicConditions;
   final Value<String?> emergencyContact;
+  final Value<List<FamilyMember>> familyMembers;
   final Value<int> rowid;
   const PatientProfilesCompanion({
     this.userId = const Value.absent(),
@@ -1306,6 +1349,7 @@ class PatientProfilesCompanion extends UpdateCompanion<PatientProfileRow> {
     this.allergies = const Value.absent(),
     this.chronicConditions = const Value.absent(),
     this.emergencyContact = const Value.absent(),
+    this.familyMembers = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   PatientProfilesCompanion.insert({
@@ -1314,6 +1358,7 @@ class PatientProfilesCompanion extends UpdateCompanion<PatientProfileRow> {
     this.allergies = const Value.absent(),
     this.chronicConditions = const Value.absent(),
     this.emergencyContact = const Value.absent(),
+    this.familyMembers = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : userId = Value(userId);
   static Insertable<PatientProfileRow> custom({
@@ -1322,6 +1367,7 @@ class PatientProfilesCompanion extends UpdateCompanion<PatientProfileRow> {
     Expression<String>? allergies,
     Expression<String>? chronicConditions,
     Expression<String>? emergencyContact,
+    Expression<String>? familyMembers,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1330,6 +1376,7 @@ class PatientProfilesCompanion extends UpdateCompanion<PatientProfileRow> {
       if (allergies != null) 'allergies': allergies,
       if (chronicConditions != null) 'chronic_conditions': chronicConditions,
       if (emergencyContact != null) 'emergency_contact': emergencyContact,
+      if (familyMembers != null) 'family_members': familyMembers,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1340,6 +1387,7 @@ class PatientProfilesCompanion extends UpdateCompanion<PatientProfileRow> {
     Value<List<String>>? allergies,
     Value<List<String>>? chronicConditions,
     Value<String?>? emergencyContact,
+    Value<List<FamilyMember>>? familyMembers,
     Value<int>? rowid,
   }) {
     return PatientProfilesCompanion(
@@ -1348,6 +1396,7 @@ class PatientProfilesCompanion extends UpdateCompanion<PatientProfileRow> {
       allergies: allergies ?? this.allergies,
       chronicConditions: chronicConditions ?? this.chronicConditions,
       emergencyContact: emergencyContact ?? this.emergencyContact,
+      familyMembers: familyMembers ?? this.familyMembers,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1376,6 +1425,13 @@ class PatientProfilesCompanion extends UpdateCompanion<PatientProfileRow> {
     if (emergencyContact.present) {
       map['emergency_contact'] = Variable<String>(emergencyContact.value);
     }
+    if (familyMembers.present) {
+      map['family_members'] = Variable<String>(
+        $PatientProfilesTable.$converterfamilyMembers.toSql(
+          familyMembers.value,
+        ),
+      );
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1390,6 +1446,7 @@ class PatientProfilesCompanion extends UpdateCompanion<PatientProfileRow> {
           ..write('allergies: $allergies, ')
           ..write('chronicConditions: $chronicConditions, ')
           ..write('emergencyContact: $emergencyContact, ')
+          ..write('familyMembers: $familyMembers, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();

@@ -6,6 +6,7 @@ import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../domain/entities/family_member.dart';
 import '../../domain/enums.dart';
 import 'converters.dart';
 import 'tables/ai.dart';
@@ -63,7 +64,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -81,6 +82,10 @@ class AppDatabase extends _$AppDatabase {
         // at booking time (redesign v2).
         await m.addColumn(appointments, appointments.ticketTag);
         await m.addColumn(appointments, appointments.roomNumber);
+      }
+      if (from < 4) {
+        // Patient dashboard rebuild: Family Network (redesign v2).
+        await m.addColumn(patientProfiles, patientProfiles.familyMembers);
       }
     },
     beforeOpen: (details) async {
