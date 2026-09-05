@@ -21,6 +21,8 @@ class FamilyMember {
     this.dob,
     this.gender,
     this.bloodType,
+    this.phone,
+    this.email,
   });
 
   final String id;
@@ -34,6 +36,11 @@ class FamilyMember {
   final Gender? gender;
   final String? bloodType;
 
+  /// Pre-filled from the patient's own contact details when added, but
+  /// editable and stored per family member.
+  final String? phone;
+  final String? email;
+
   String get fullName => '$firstName $lastName'.trim();
 
   static const _unset = Object();
@@ -46,6 +53,8 @@ class FamilyMember {
     Object? dob = _unset,
     Object? gender = _unset,
     Object? bloodType = _unset,
+    Object? phone = _unset,
+    Object? email = _unset,
   }) => FamilyMember(
     id: id,
     relationship: relationship ?? this.relationship,
@@ -57,6 +66,8 @@ class FamilyMember {
     bloodType: identical(bloodType, _unset)
         ? this.bloodType
         : bloodType as String?,
+    phone: identical(phone, _unset) ? this.phone : phone as String?,
+    email: identical(email, _unset) ? this.email : email as String?,
   );
 
   factory FamilyMember.fromJson(Map<String, dynamic> json) => FamilyMember(
@@ -72,6 +83,8 @@ class FamilyMember {
         ? null
         : Gender.values.byName(json['gender'] as String),
     bloodType: json['bloodType'] as String?,
+    phone: json['phone'] as String?,
+    email: json['email'] as String?,
   );
 
   Map<String, dynamic> toJson() => {
@@ -83,6 +96,8 @@ class FamilyMember {
     'dob': dob?.toIso8601String(),
     'gender': gender?.name,
     'bloodType': bloodType,
+    'phone': phone,
+    'email': email,
   };
 
   @override
@@ -95,7 +110,9 @@ class FamilyMember {
       other.cpr == cpr &&
       other.dob == dob &&
       other.gender == gender &&
-      other.bloodType == bloodType;
+      other.bloodType == bloodType &&
+      other.phone == phone &&
+      other.email == email;
 
   @override
   int get hashCode => Object.hash(
@@ -107,6 +124,7 @@ class FamilyMember {
     dob,
     gender,
     bloodType,
+    Object.hash(phone, email),
   );
 }
 

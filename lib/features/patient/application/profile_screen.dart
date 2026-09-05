@@ -10,9 +10,9 @@ import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
-import '../../../core/utils/format.dart';
 import '../../auth/application/session.dart';
-import '../../settings/presentation/preferences_section.dart';
+import '../presentation/family_network_section.dart';
+import '../presentation/personal_info_section.dart';
 import 'patient_data_providers.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -48,19 +48,15 @@ class ProfileScreen extends ConsumerWidget {
                 children: [
                   ProfileHeader(name: u.fullName, email: u.email),
                   const SizedBox(height: Space.md),
-                  const SectionHeader('Personal details', overline: true),
+                  PersonalInfoSection(patient: p),
+
+                  const SizedBox(height: Space.lg),
+                  const SectionHeader('Health details', overline: true),
                   AppCard(
                     padding: EdgeInsets.zero,
                     child: Column(
                       children: [
                         for (final (i, (label, value)) in [
-                          ('Phone', u.phone ?? '—'),
-                          (
-                            'Date of birth',
-                            u.dob == null ? '—' : fmtDate(u.dob!),
-                          ),
-                          ('Gender', u.gender?.name ?? '—'),
-                          ('National ID', u.nationalId ?? '—'),
                           ('Blood type', p.bloodType ?? '—'),
                           (
                             'Allergies',
@@ -84,8 +80,8 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                   ),
 
-                  const SizedBox(height: Space.md),
-                  const PreferencesSection(),
+                  const SizedBox(height: Space.lg),
+                  FamilyNetworkSection(patient: p),
 
                   const SizedBox(height: Space.lg),
                   OutlinedButton.icon(
