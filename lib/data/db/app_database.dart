@@ -63,7 +63,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -75,6 +75,12 @@ class AppDatabase extends _$AppDatabase {
           "UPDATE app_settings SET model_id = 'gemini-2.0-flash' "
           "WHERE model_id = 'claude-sonnet-5'",
         );
+      }
+      if (from < 3) {
+        // Patient dashboard rebuild: ticket tag + room number, assigned once
+        // at booking time (redesign v2).
+        await m.addColumn(appointments, appointments.ticketTag);
+        await m.addColumn(appointments, appointments.roomNumber);
       }
     },
     beforeOpen: (details) async {

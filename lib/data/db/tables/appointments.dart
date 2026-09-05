@@ -51,6 +51,14 @@ class Appointments extends Table {
   IntColumn get remindersSent => integer().withDefault(const Constant(0))();
   DateTimeColumn get checkedInAt => dateTime().nullable()();
 
+  /// `[Hour letter A-X]-[facility-wide ticket number for that hour today]`,
+  /// assigned once at booking time (redesign v2 patient dashboard spec).
+  TextColumn get ticketTag => text().nullable()();
+
+  /// `[Department letter]-[doctor's sequence within that department]`,
+  /// assigned once at booking time (redesign v2 patient dashboard spec).
+  TextColumn get roomNumber => text().nullable()();
+
   @override
   Set<Column<Object>> get primaryKey => {id};
 }

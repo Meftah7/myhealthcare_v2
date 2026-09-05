@@ -60,6 +60,8 @@ extension AppointmentRowX on AppointmentRow {
     noShowRisk: noShowRisk,
     riskBand: riskBand,
     checkedInAt: checkedInAt,
+    ticketTag: ticketTag,
+    roomNumber: roomNumber,
   );
 }
 

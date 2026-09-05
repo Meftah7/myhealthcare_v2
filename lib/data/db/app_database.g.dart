@@ -2369,6 +2369,28 @@ class $AppointmentsTable extends Appointments
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _ticketTagMeta = const VerificationMeta(
+    'ticketTag',
+  );
+  @override
+  late final GeneratedColumn<String> ticketTag = GeneratedColumn<String>(
+    'ticket_tag',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _roomNumberMeta = const VerificationMeta(
+    'roomNumber',
+  );
+  @override
+  late final GeneratedColumn<String> roomNumber = GeneratedColumn<String>(
+    'room_number',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -2385,6 +2407,8 @@ class $AppointmentsTable extends Appointments
     riskBand,
     remindersSent,
     checkedInAt,
+    ticketTag,
+    roomNumber,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2483,6 +2507,21 @@ class $AppointmentsTable extends Appointments
         ),
       );
     }
+    if (data.containsKey('ticket_tag')) {
+      context.handle(
+        _ticketTagMeta,
+        ticketTag.isAcceptableOrUnknown(data['ticket_tag']!, _ticketTagMeta),
+      );
+    }
+    if (data.containsKey('room_number')) {
+      context.handle(
+        _roomNumberMeta,
+        roomNumber.isAcceptableOrUnknown(
+          data['room_number']!,
+          _roomNumberMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -2554,6 +2593,14 @@ class $AppointmentsTable extends Appointments
         DriftSqlType.dateTime,
         data['${effectivePrefix}checked_in_at'],
       ),
+      ticketTag: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}ticket_tag'],
+      ),
+      roomNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}room_number'],
+      ),
     );
   }
 
@@ -2592,6 +2639,8 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
   final RiskBand? riskBand;
   final int remindersSent;
   final DateTime? checkedInAt;
+  final String? ticketTag;
+  final String? roomNumber;
   const AppointmentRow({
     required this.id,
     required this.patientId,
@@ -2607,6 +2656,8 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
     this.riskBand,
     required this.remindersSent,
     this.checkedInAt,
+    this.ticketTag,
+    this.roomNumber,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2645,6 +2696,12 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
     if (!nullToAbsent || checkedInAt != null) {
       map['checked_in_at'] = Variable<DateTime>(checkedInAt);
     }
+    if (!nullToAbsent || ticketTag != null) {
+      map['ticket_tag'] = Variable<String>(ticketTag);
+    }
+    if (!nullToAbsent || roomNumber != null) {
+      map['room_number'] = Variable<String>(roomNumber);
+    }
     return map;
   }
 
@@ -2674,6 +2731,12 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
       checkedInAt: checkedInAt == null && nullToAbsent
           ? const Value.absent()
           : Value(checkedInAt),
+      ticketTag: ticketTag == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ticketTag),
+      roomNumber: roomNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(roomNumber),
     );
   }
 
@@ -2703,6 +2766,8 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
       ),
       remindersSent: serializer.fromJson<int>(json['remindersSent']),
       checkedInAt: serializer.fromJson<DateTime?>(json['checkedInAt']),
+      ticketTag: serializer.fromJson<String?>(json['ticketTag']),
+      roomNumber: serializer.fromJson<String?>(json['roomNumber']),
     );
   }
   @override
@@ -2729,6 +2794,8 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
       ),
       'remindersSent': serializer.toJson<int>(remindersSent),
       'checkedInAt': serializer.toJson<DateTime?>(checkedInAt),
+      'ticketTag': serializer.toJson<String?>(ticketTag),
+      'roomNumber': serializer.toJson<String?>(roomNumber),
     };
   }
 
@@ -2747,6 +2814,8 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
     Value<RiskBand?> riskBand = const Value.absent(),
     int? remindersSent,
     Value<DateTime?> checkedInAt = const Value.absent(),
+    Value<String?> ticketTag = const Value.absent(),
+    Value<String?> roomNumber = const Value.absent(),
   }) => AppointmentRow(
     id: id ?? this.id,
     patientId: patientId ?? this.patientId,
@@ -2762,6 +2831,8 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
     riskBand: riskBand.present ? riskBand.value : this.riskBand,
     remindersSent: remindersSent ?? this.remindersSent,
     checkedInAt: checkedInAt.present ? checkedInAt.value : this.checkedInAt,
+    ticketTag: ticketTag.present ? ticketTag.value : this.ticketTag,
+    roomNumber: roomNumber.present ? roomNumber.value : this.roomNumber,
   );
   AppointmentRow copyWithCompanion(AppointmentsCompanion data) {
     return AppointmentRow(
@@ -2789,6 +2860,10 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
       checkedInAt: data.checkedInAt.present
           ? data.checkedInAt.value
           : this.checkedInAt,
+      ticketTag: data.ticketTag.present ? data.ticketTag.value : this.ticketTag,
+      roomNumber: data.roomNumber.present
+          ? data.roomNumber.value
+          : this.roomNumber,
     );
   }
 
@@ -2808,7 +2883,9 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
           ..write('noShowRisk: $noShowRisk, ')
           ..write('riskBand: $riskBand, ')
           ..write('remindersSent: $remindersSent, ')
-          ..write('checkedInAt: $checkedInAt')
+          ..write('checkedInAt: $checkedInAt, ')
+          ..write('ticketTag: $ticketTag, ')
+          ..write('roomNumber: $roomNumber')
           ..write(')'))
         .toString();
   }
@@ -2829,6 +2906,8 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
     riskBand,
     remindersSent,
     checkedInAt,
+    ticketTag,
+    roomNumber,
   );
   @override
   bool operator ==(Object other) =>
@@ -2847,7 +2926,9 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
           other.noShowRisk == this.noShowRisk &&
           other.riskBand == this.riskBand &&
           other.remindersSent == this.remindersSent &&
-          other.checkedInAt == this.checkedInAt);
+          other.checkedInAt == this.checkedInAt &&
+          other.ticketTag == this.ticketTag &&
+          other.roomNumber == this.roomNumber);
 }
 
 class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
@@ -2865,6 +2946,8 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
   final Value<RiskBand?> riskBand;
   final Value<int> remindersSent;
   final Value<DateTime?> checkedInAt;
+  final Value<String?> ticketTag;
+  final Value<String?> roomNumber;
   final Value<int> rowid;
   const AppointmentsCompanion({
     this.id = const Value.absent(),
@@ -2881,6 +2964,8 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
     this.riskBand = const Value.absent(),
     this.remindersSent = const Value.absent(),
     this.checkedInAt = const Value.absent(),
+    this.ticketTag = const Value.absent(),
+    this.roomNumber = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   AppointmentsCompanion.insert({
@@ -2898,6 +2983,8 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
     this.riskBand = const Value.absent(),
     this.remindersSent = const Value.absent(),
     this.checkedInAt = const Value.absent(),
+    this.ticketTag = const Value.absent(),
+    this.roomNumber = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        patientId = Value(patientId),
@@ -2920,6 +3007,8 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
     Expression<String>? riskBand,
     Expression<int>? remindersSent,
     Expression<DateTime>? checkedInAt,
+    Expression<String>? ticketTag,
+    Expression<String>? roomNumber,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -2937,6 +3026,8 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
       if (riskBand != null) 'risk_band': riskBand,
       if (remindersSent != null) 'reminders_sent': remindersSent,
       if (checkedInAt != null) 'checked_in_at': checkedInAt,
+      if (ticketTag != null) 'ticket_tag': ticketTag,
+      if (roomNumber != null) 'room_number': roomNumber,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -2956,6 +3047,8 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
     Value<RiskBand?>? riskBand,
     Value<int>? remindersSent,
     Value<DateTime?>? checkedInAt,
+    Value<String?>? ticketTag,
+    Value<String?>? roomNumber,
     Value<int>? rowid,
   }) {
     return AppointmentsCompanion(
@@ -2973,6 +3066,8 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
       riskBand: riskBand ?? this.riskBand,
       remindersSent: remindersSent ?? this.remindersSent,
       checkedInAt: checkedInAt ?? this.checkedInAt,
+      ticketTag: ticketTag ?? this.ticketTag,
+      roomNumber: roomNumber ?? this.roomNumber,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -3028,6 +3123,12 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
     if (checkedInAt.present) {
       map['checked_in_at'] = Variable<DateTime>(checkedInAt.value);
     }
+    if (ticketTag.present) {
+      map['ticket_tag'] = Variable<String>(ticketTag.value);
+    }
+    if (roomNumber.present) {
+      map['room_number'] = Variable<String>(roomNumber.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -3051,6 +3152,8 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
           ..write('riskBand: $riskBand, ')
           ..write('remindersSent: $remindersSent, ')
           ..write('checkedInAt: $checkedInAt, ')
+          ..write('ticketTag: $ticketTag, ')
+          ..write('roomNumber: $roomNumber, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
