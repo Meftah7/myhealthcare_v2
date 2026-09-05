@@ -67,3 +67,59 @@ class LocaleController extends Notifier<Locale?> {
 final localeProvider = NotifierProvider<LocaleController, Locale?>(
   LocaleController.new,
 );
+
+// --- notification preferences (redesign v2 patient dashboard) -------------
+
+const _notifySmsKey = 'ui.notify.sms';
+const _notifyEmailKey = 'ui.notify.email';
+const _notifyPushKey = 'ui.notify.push';
+
+class NotificationPrefs {
+  const NotificationPrefs({
+    this.sms = false,
+    this.email = true,
+    this.push = true,
+  });
+
+  final bool sms;
+  final bool email;
+  final bool push;
+
+  NotificationPrefs copyWith({bool? sms, bool? email, bool? push}) =>
+      NotificationPrefs(
+        sms: sms ?? this.sms,
+        email: email ?? this.email,
+        push: push ?? this.push,
+      );
+}
+
+/// SMS / Email / Push toggles — a device preference like theme mode, not
+/// clinical data, so it lives in [SharedPreferences] too.
+class NotificationPrefsController extends Notifier<NotificationPrefs> {
+  @override
+  NotificationPrefs build() {
+    final prefs = ref.read(sharedPreferencesProvider);
+    return NotificationPrefs(
+      sms: prefs.getBool(_notifySmsKey) ?? false,
+      email: prefs.getBool(_notifyEmailKey) ?? true,
+      push: prefs.getBool(_notifyPushKey) ?? true,
+    );
+  }
+
+  Future<void> setSms(bool value) => _set(sms: value);
+  Future<void> setEmail(bool value) => _set(email: value);
+  Future<void> setPush(bool value) => _set(push: value);
+
+  Future<void> _set({bool? sms, bool? email, bool? push}) async {
+    state = state.copyWith(sms: sms, email: email, push: push);
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setBool(_notifySmsKey, state.sms);
+    await prefs.setBool(_notifyEmailKey, state.email);
+    await prefs.setBool(_notifyPushKey, state.push);
+  }
+}
+
+final notificationPrefsProvider =
+    NotifierProvider<NotificationPrefsController, NotificationPrefs>(
+      NotificationPrefsController.new,
+    );

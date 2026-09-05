@@ -93,6 +93,50 @@ final nextAppointmentProvider = FutureProvider<Appointment?>((ref) async {
   return upcoming.firstOrNull;
 });
 
+/// Linked family members (redesign v2 patient dashboard: Family Network).
+final patientFamilyMembersProvider = FutureProvider<List<FamilyMember>>((
+  ref,
+) async {
+  final id = _requirePatient(ref);
+  return _unwrap(await ref.watch(patientRepositoryProvider).familyMembers(id));
+});
+
+class FamilyMemberController {
+  FamilyMemberController(this._ref);
+  final Ref _ref;
+
+  Future<Result<void>> add(FamilyMember member) async {
+    final id = _requirePatient(_ref);
+    final result = await _ref
+        .read(patientRepositoryProvider)
+        .addFamilyMember(id, member);
+    if (result case Ok()) _ref.invalidate(patientFamilyMembersProvider);
+    return result;
+  }
+
+  Future<Result<void>> update(FamilyMember member) async {
+    final id = _requirePatient(_ref);
+    final result = await _ref
+        .read(patientRepositoryProvider)
+        .updateFamilyMember(id, member);
+    if (result case Ok()) _ref.invalidate(patientFamilyMembersProvider);
+    return result;
+  }
+
+  Future<Result<void>> remove(String memberId) async {
+    final id = _requirePatient(_ref);
+    final result = await _ref
+        .read(patientRepositoryProvider)
+        .removeFamilyMember(id, memberId);
+    if (result case Ok()) _ref.invalidate(patientFamilyMembersProvider);
+    return result;
+  }
+}
+
+final familyMemberControllerProvider = Provider<FamilyMemberController>(
+  FamilyMemberController.new,
+);
+
 T _unwrap<T>(Result<T> result) => switch (result) {
   Ok(:final value) => value,
   Err(:final failure) => throw failure,

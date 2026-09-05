@@ -8,18 +8,27 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/di.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
+import '../../../core/presentation/success_check.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/clinic_hours.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/enums.dart';
 import '../application/booking_providers.dart';
 
+/// Whether the wizard skips date selection and jumps straight to today's
+/// (or the soonest available) slots — the Appointments entry point's
+/// "Book Now" vs "Schedule" buttons (redesign v2).
+enum BookingMode { now, schedule }
+
 class BookingScreen extends ConsumerWidget {
-  const BookingScreen({super.key});
+  const BookingScreen({this.mode = BookingMode.schedule, super.key});
+
+  final BookingMode mode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,7 +37,11 @@ class BookingScreen extends ConsumerWidget {
     final notifier = ref.read(bookingDraftProvider.notifier);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Book an appointment')),
+      appBar: AppBar(
+        title: Text(
+          mode == BookingMode.now ? 'Book an appointment now' : 'Schedule an appointment',
+        ),
+      ),
       body: departments.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
@@ -59,7 +72,7 @@ class BookingScreen extends ConsumerWidget {
 
             if (draft.departmentId != null) ...[
               const SectionHeader('Doctor'),
-              _DoctorPicker(departmentId: draft.departmentId!),
+              _DoctorPicker(departmentId: draft.departmentId!, mode: mode),
             ],
 
             if (draft.staffId != null) ...[
@@ -82,6 +95,9 @@ class BookingScreen extends ConsumerWidget {
                 ],
                 onChanged: (v) => notifier.state = draft.copyWith(visitType: v),
               ),
+            ],
+
+            if (mode == BookingMode.schedule && draft.staffId != null) ...[
               const SizedBox(height: Space.md),
               OutlinedButton.icon(
                 onPressed: () async {
@@ -122,8 +138,9 @@ class BookingScreen extends ConsumerWidget {
 }
 
 class _DoctorPicker extends ConsumerWidget {
-  const _DoctorPicker({required this.departmentId});
+  const _DoctorPicker({required this.departmentId, required this.mode});
   final String departmentId;
+  final BookingMode mode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -147,10 +164,34 @@ class _DoctorPicker extends ConsumerWidget {
               ),
             ),
         ],
-        onChanged: (v) => ref.read(bookingDraftProvider.notifier).state = draft
-            .copyWith(staffId: v),
+        onChanged: (v) async {
+          if (v == null) return;
+          final notifier = ref.read(bookingDraftProvider.notifier);
+          if (mode == BookingMode.now) {
+            // Book Now: skip the date step, jump to the soonest open day.
+            final date = await _earliestAvailableDate(ref, v);
+            notifier.state = draft.copyWith(staffId: v, date: date);
+          } else {
+            notifier.state = draft.copyWith(staffId: v);
+          }
+        },
       ),
     );
+  }
+
+  static Future<DateTime> _earliestAvailableDate(
+    WidgetRef ref,
+    String staffId,
+  ) async {
+    final repo = ref.read(appointmentRepositoryProvider);
+    final now = DateTime.now();
+    final start = DateTime(now.year, now.month, now.day);
+    for (var i = 0; i < 14; i++) {
+      final day = start.add(Duration(days: i));
+      final result = await repo.openSlots(staffId, day);
+      if (result case Ok(:final value) when value.isNotEmpty) return day;
+    }
+    return start;
   }
 }
 
@@ -248,6 +289,8 @@ class _SlotList extends ConsumerWidget {
       case Ok():
         ref.read(bookingDraftProvider.notifier).state =
             const BookingRequestDraft();
+        await showSuccessCheck(context, message: 'Appointment booked');
+        if (!context.mounted) return;
         context.go(AppRoutes.patientAppointments);
       case Err(:final failure):
         ScaffoldMessenger.of(

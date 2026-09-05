@@ -17,6 +17,7 @@ import '../../../core/utils/clinic_hours.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../booking/presentation/booking_screen.dart';
 import '../../patient/application/patient_data_providers.dart';
 
 class AppointmentsScreen extends ConsumerWidget {
@@ -32,11 +33,6 @@ class AppointmentsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('My appointments')),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.go(AppRoutes.patientBook),
-        icon: const Icon(Icons.add),
-        label: const Text('Book'),
-      ),
       body: appts.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
@@ -44,12 +40,6 @@ class AppointmentsScreen extends ConsumerWidget {
           onRetry: () => ref.invalidate(patientAppointmentsProvider),
         ),
         data: (list) {
-          if (list.isEmpty) {
-            return const EmptyState(
-              icon: Icons.event_outlined,
-              message: 'No appointments yet. Tap Book to schedule a visit.',
-            );
-          }
           final upcoming = list.where((a) => a.isUpcoming).toList()
             ..sort((a, b) => a.slotStart.compareTo(b.slotStart));
           final past = list.where((a) => !a.isUpcoming).toList()
@@ -68,6 +58,8 @@ class AppointmentsScreen extends ConsumerWidget {
               Space.xxl,
             ),
             children: [
+              const _EntryButtons(),
+              const SizedBox(height: Space.sm),
               _SectionLabel('Upcoming', count: upcoming.length),
               if (upcoming.isEmpty)
                 const _MutedLine('Nothing booked. Tap Book to schedule a visit.')
@@ -108,6 +100,42 @@ class AppointmentsScreen extends ConsumerWidget {
       (out[key] ??= []).add(a);
     }
     return out;
+  }
+}
+
+/// The Appointments entry point (redesign v2): "Book Now" jumps straight to
+/// today's (or the soonest) open slots; "Schedule" keeps the date-picking
+/// step for a later visit.
+class _EntryButtons extends StatelessWidget {
+  const _EntryButtons();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: FilledButton.icon(
+            onPressed: () => context.push(
+              AppRoutes.patientBook,
+              extra: BookingMode.now,
+            ),
+            icon: const Icon(Icons.bolt_outlined),
+            label: const Text('Book now'),
+          ),
+        ),
+        const SizedBox(width: Space.sm),
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: () => context.push(
+              AppRoutes.patientBook,
+              extra: BookingMode.schedule,
+            ),
+            icon: const Icon(Icons.calendar_month_outlined),
+            label: const Text('Schedule'),
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -194,6 +222,10 @@ class _ApptCard extends ConsumerWidget {
       ?doctor,
       ?department,
     ].join('  ·  ');
+    final ticketMeta = [
+      ?appt.ticketTag,
+      if (appt.roomNumber != null) 'Room ${appt.roomNumber}',
+    ].join('  ·  ');
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: Space.xxs),
@@ -236,6 +268,15 @@ class _ApptCard extends ConsumerWidget {
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
+            if (ticketMeta.isNotEmpty) ...[
+              const SizedBox(height: Space.xxs),
+              Text(
+                ticketMeta,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+            ],
             if (appt.reasonText != null) ...[
               const SizedBox(height: Space.xxs),
               Text(appt.reasonText!, style: theme.textTheme.bodySmall),

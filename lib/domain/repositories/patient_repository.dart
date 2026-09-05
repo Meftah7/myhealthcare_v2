@@ -13,6 +13,18 @@ abstract interface class PatientRepository {
   Future<Result<List<Patient>>> all({int limit, int offset});
 
   Future<Result<void>> updateProfile(Patient patient);
+
+  /// Linked family members (redesign v2 patient dashboard: Family Network).
+  Future<Result<List<FamilyMember>>> familyMembers(String patientId);
+
+  Future<Result<void>> addFamilyMember(String patientId, FamilyMember member);
+
+  Future<Result<void>> updateFamilyMember(
+    String patientId,
+    FamilyMember member,
+  );
+
+  Future<Result<void>> removeFamilyMember(String patientId, String memberId);
 }
 
 abstract interface class DepartmentRepository {

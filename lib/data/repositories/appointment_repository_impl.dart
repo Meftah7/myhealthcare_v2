@@ -6,6 +6,7 @@ import 'package:drift/drift.dart';
 import '../../core/failures.dart';
 import '../../core/result.dart';
 import '../../core/utils/ids.dart';
+import '../../core/utils/ticketing.dart';
 import '../../domain/entities/entities.dart';
 import '../../domain/enums.dart';
 import '../../domain/repositories/appointment_repository.dart';
@@ -170,6 +171,10 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
       }
 
       final id = newId('appt');
+      final ticketTag = await _issueTicketTag(r.start);
+      final roomNumber = r.departmentId == null
+          ? null
+          : await _assignRoomNumber(r.departmentId!, r.staffId);
       await _db
           .into(_db.appointments)
           .insert(
@@ -184,6 +189,8 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
               reasonText: Value(r.reasonText),
               noShowRisk: Value(r.noShowRisk),
               riskBand: Value(r.riskBand),
+              ticketTag: Value(ticketTag),
+              roomNumber: Value(roomNumber),
             ),
           );
       final row = await (_db.select(
@@ -191,6 +198,56 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
       )..where((a) => a.id.equals(id))).getSingle();
       return row.toEntity();
     });
+  }
+
+  /// `[hour letter]-[facility-wide count of tickets already issued for that
+  /// local hour bucket, plus one]` — a fresh count per calendar day since the
+  /// bucket is the exact hour of [slotStart] (P8-xx redesign v2).
+  Future<String> _issueTicketTag(DateTime slotStart) async {
+    final bucketStart = DateTime(
+      slotStart.year,
+      slotStart.month,
+      slotStart.day,
+      slotStart.hour,
+    );
+    final bucketEnd = bucketStart.add(const Duration(hours: 1));
+    final existing =
+        await (_db.select(_db.appointments)..where(
+              (a) =>
+                  a.slotStart.isBiggerOrEqualValue(bucketStart) &
+                  a.slotStart.isSmallerThanValue(bucketEnd),
+            ))
+            .get();
+    return '${hourLetterFor(slotStart)}-${existing.length + 1}';
+  }
+
+  /// `[department letter]-[this doctor's 1-based position among that
+  /// department's staff, ordered by join date]`.
+  Future<String?> _assignRoomNumber(String departmentId, String staffId) async {
+    final department = await (_db.select(
+      _db.departments,
+    )..where((d) => d.id.equals(departmentId))).getSingleOrNull();
+    if (department == null) return null;
+
+    final profiles = await (_db.select(
+      _db.staffProfiles,
+    )..where((p) => p.departmentId.equals(departmentId))).get();
+    final ids = profiles.map((p) => p.userId).toList();
+    if (ids.isEmpty) return null;
+    // `createdAt` then `id` as a stable tiebreaker — seeded demo staff all
+    // share one backdated `createdAt`, so `id` (assigned in listing order)
+    // is what actually orders them.
+    final staffByJoinDate =
+        await (_db.select(_db.users)
+              ..where((u) => u.id.isIn(ids))
+              ..orderBy([
+                (u) => OrderingTerm(expression: u.createdAt),
+                (u) => OrderingTerm(expression: u.id),
+              ]))
+            .get();
+    final sequence = staffByJoinDate.indexWhere((u) => u.id == staffId) + 1;
+    if (sequence <= 0) return null;
+    return '${departmentLetterFor(department.name)}-$sequence';
   }
 
   @override

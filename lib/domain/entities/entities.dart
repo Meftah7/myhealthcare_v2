@@ -6,6 +6,7 @@ export 'app_settings.dart';
 export 'appointment.dart';
 export 'audit_entry.dart';
 export 'department.dart';
+export 'family_member.dart';
 export 'medical_record.dart';
 export 'medication.dart';
 export 'patient.dart';

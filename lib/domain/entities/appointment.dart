@@ -24,6 +24,15 @@ abstract class Appointment with _$Appointment {
     double? noShowRisk,
     RiskBand? riskBand,
     DateTime? checkedInAt,
+
+    /// `[Hour letter A-X]-[facility-wide ticket number for that hour today]`,
+    /// assigned once at booking time from [slotStart] (redesign v2 patient
+    /// dashboard spec).
+    String? ticketTag,
+
+    /// `[Department letter]-[doctor's sequence within that department]`,
+    /// assigned once at booking time (redesign v2 patient dashboard spec).
+    String? roomNumber,
   }) = _Appointment;
 
   const Appointment._();

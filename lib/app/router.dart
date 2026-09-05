@@ -112,14 +112,28 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
       ),
 
       // Standalone screens pushed full-screen over a shell (DESIGN.md §6:
-      // "Detail = full-screen push" on compact).
+      // "Detail = full-screen push" on compact). Vitals and Appointments
+      // moved here from the patient tab bar in the dashboard rebuild — the
+      // "+" tab opens booking directly, and both stay reachable from Home's
+      // Quick Actions / ticket cards.
       GoRoute(
         path: AppRoutes.patientSummary,
         builder: (_, _) => const AiSummaryScreen(),
       ),
       GoRoute(
-        path: AppRoutes.patientMedications,
-        builder: (_, _) => const MedicationsScreen(),
+        path: AppRoutes.patientVitals,
+        builder: (_, _) => const VitalsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.patientAppointments,
+        builder: (_, _) => const AppointmentsScreen(),
+        routes: [
+          GoRoute(
+            path: 'book',
+            builder: (_, state) =>
+                BookingScreen(mode: (state.extra as BookingMode?) ?? BookingMode.schedule),
+          ),
+        ],
       ),
       GoRoute(
         path: AppRoutes.staffAnalytics,
@@ -173,8 +187,15 @@ class _SplashScreen extends StatelessWidget {
 
 StatefulShellRoute _patientShell() {
   return StatefulShellRoute.indexedStack(
+    // Bottom nav order (patient dashboard rebuild): Home, Medications, "+"
+    // (opens the booking flow directly — not a tab), Timeline, Profile.
     builder: (context, state, navigationShell) => AppShell(
       navigationShell: navigationShell,
+      centerAction: AppCenterAction(
+        icon: Icons.add,
+        tooltip: 'Book an appointment',
+        onPressed: () => context.push(AppRoutes.patientBook),
+      ),
       destinations: const [
         AppDestination(
           icon: Icons.home_outlined,
@@ -182,19 +203,14 @@ StatefulShellRoute _patientShell() {
           label: 'Home',
         ),
         AppDestination(
+          icon: Icons.medication_outlined,
+          selectedIcon: Icons.medication,
+          label: 'Medications',
+        ),
+        AppDestination(
           icon: Icons.timeline_outlined,
           selectedIcon: Icons.timeline,
           label: 'Timeline',
-        ),
-        AppDestination(
-          icon: Icons.event_outlined,
-          selectedIcon: Icons.event,
-          label: 'Appointments',
-        ),
-        AppDestination(
-          icon: Icons.favorite_outline,
-          selectedIcon: Icons.favorite,
-          label: 'Vitals',
         ),
         AppDestination(
           icon: Icons.account_circle_outlined,
@@ -215,6 +231,14 @@ StatefulShellRoute _patientShell() {
       StatefulShellBranch(
         routes: [
           GoRoute(
+            path: AppRoutes.patientMedications,
+            builder: (_, _) => const MedicationsScreen(),
+          ),
+        ],
+      ),
+      StatefulShellBranch(
+        routes: [
+          GoRoute(
             path: AppRoutes.patientTimeline,
             builder: (_, _) => const TimelineScreen(),
             routes: [
@@ -224,25 +248,6 @@ StatefulShellRoute _patientShell() {
                     RecordDetailScreen(recordId: state.pathParameters['id']!),
               ),
             ],
-          ),
-        ],
-      ),
-      StatefulShellBranch(
-        routes: [
-          GoRoute(
-            path: AppRoutes.patientAppointments,
-            builder: (_, _) => const AppointmentsScreen(),
-            routes: [
-              GoRoute(path: 'book', builder: (_, _) => const BookingScreen()),
-            ],
-          ),
-        ],
-      ),
-      StatefulShellBranch(
-        routes: [
-          GoRoute(
-            path: AppRoutes.patientVitals,
-            builder: (_, _) => const VitalsScreen(),
           ),
         ],
       ),
