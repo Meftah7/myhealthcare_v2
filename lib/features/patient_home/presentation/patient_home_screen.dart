@@ -16,6 +16,7 @@ import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../domain/enums.dart';
 import '../../auth/application/session.dart';
 import '../../auth/presentation/sign_out_action.dart';
 import '../../booking/application/appointment_confirmation.dart';
@@ -81,12 +82,12 @@ class PatientHomeScreen extends ConsumerWidget {
                 _HealthSnapshot(),
                 const SizedBox(height: Space.md),
 
-                const SectionHeader('Quick actions', overline: true),
-                const _QuickActions(),
+                const SectionHeader('Upcoming appointments', overline: true),
+                const _UpcomingCarousel(),
                 const SizedBox(height: Space.md),
 
-                const SectionHeader('Upcoming appointment(s)', overline: true),
-                const _UpcomingTickets(),
+                const SectionHeader('Quick actions', overline: true),
+                const _QuickActions(),
               ],
             ),
           ),
@@ -405,28 +406,71 @@ class _ActionTile extends StatelessWidget {
   }
 }
 
-/// Live appointment ticket card(s) — the patient's booked appointment(s),
-/// each showing its ticket tag, date, time, doctor and room number.
-class _UpcomingTickets extends ConsumerWidget {
-  const _UpcomingTickets();
-
-  /// At-a-glance cap; the full list lives on the Appointments screen.
-  static const _maxShown = 3;
+/// The patient's booked appointments as an auto-advancing card carousel
+/// (redesign v3, matching the FirstSemMyHealth "active ticket" strip): a
+/// prominent ticket number, the room, date/time and doctor, with page dots
+/// and a "1 of N" count. Slides on its own every 5 seconds.
+class _UpcomingCarousel extends ConsumerStatefulWidget {
+  const _UpcomingCarousel();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_UpcomingCarousel> createState() => _UpcomingCarouselState();
+}
+
+class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
+  static const _slideEvery = Duration(seconds: 5);
+
+  final _controller = PageController(viewportFraction: 0.92);
+  Timer? _timer;
+  int _index = 0;
+  int _count = 0;
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _restartTimer() {
+    _timer?.cancel();
+    if (_count <= 1) return;
+    _timer = Timer.periodic(_slideEvery, (_) => _goTo(_index + 1));
+  }
+
+  void _goTo(int target) {
+    if (_count == 0 || !_controller.hasClients) return;
+    final next = ((target % _count) + _count) % _count;
+    _controller.animateToPage(
+      next,
+      duration: Motion.medium,
+      curve: Motion.standard,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final appts = ref.watch(patientAppointmentsProvider);
     final doctors = ref.watch(doctorDirectoryProvider).valueOrNull ?? const {};
 
     return appts.when(
-      loading: () => const LoadingSkeleton(height: 96),
+      loading: () => const LoadingSkeleton(height: 200),
       error: (e, _) => const InlineBanner.error('Could not load appointments.'),
       data: (list) {
-        final upcoming = list.where((a) => a.isUpcoming).toList()
-          ..sort((a, b) => a.slotStart.compareTo(b.slotStart));
-        if (upcoming.isEmpty) {
+        final active =
+            list
+                .where(
+                  (a) =>
+                      a.status == AppointmentStatus.booked ||
+                      a.status == AppointmentStatus.confirmed,
+                )
+                .toList()
+              ..sort((a, b) => a.slotStart.compareTo(b.slotStart));
+
+        if (active.isEmpty) {
+          _timer?.cancel();
           return AppCard(
             onTap: () => context.go(AppRoutes.patientBook),
             child: Row(
@@ -467,10 +511,90 @@ class _UpcomingTickets extends ConsumerWidget {
             ),
           );
         }
+
+        if (active.length != _count) {
+          _count = active.length;
+          if (_index >= _count) _index = _count - 1;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _restartTimer();
+          });
+        }
+
         return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            for (final appt in upcoming.take(_maxShown))
-              _TicketCard(appt: appt, doctorName: doctors[appt.staffId]?.name),
+            Row(
+              children: [
+                Text(
+                  '${_index + 1} of ${active.length}',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                    fontFeatures: kTabularFigures,
+                  ),
+                ),
+                const Spacer(),
+                if (active.length > 1) ...[
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () => _goTo(_index - 1),
+                    icon: const Icon(Icons.chevron_left),
+                  ),
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () => _goTo(_index + 1),
+                    icon: const Icon(Icons.chevron_right),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: Space.xs),
+            SizedBox(
+              height: 208,
+              child: PageView.builder(
+                controller: _controller,
+                itemCount: active.length,
+                onPageChanged: (i) {
+                  setState(() => _index = i);
+                  _restartTimer();
+                },
+                itemBuilder: (context, i) {
+                  final appt = active[i];
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      right: i == active.length - 1 ? 0 : Space.sm,
+                    ),
+                    child: _BigTicketCard(
+                      appt: appt,
+                      doctorName: doctors[appt.staffId]?.name,
+                    ),
+                  );
+                },
+              ),
+            ),
+            if (active.length > 1) ...[
+              const SizedBox(height: Space.sm),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  for (var i = 0; i < active.length; i++)
+                    GestureDetector(
+                      onTap: () => _goTo(i),
+                      child: AnimatedContainer(
+                        duration: Motion.fast,
+                        margin: const EdgeInsets.symmetric(horizontal: 3),
+                        width: i == _index ? 20 : 7,
+                        height: 7,
+                        decoration: BoxDecoration(
+                          color: i == _index
+                              ? scheme.primary
+                              : scheme.outlineVariant,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
           ],
         );
       },
@@ -478,8 +602,9 @@ class _UpcomingTickets extends ConsumerWidget {
   }
 }
 
-class _TicketCard extends StatelessWidget {
-  const _TicketCard({required this.appt, this.doctorName});
+/// One slide of [_UpcomingCarousel] — the ticket number is the headline.
+class _BigTicketCard extends StatelessWidget {
+  const _BigTicketCard({required this.appt, this.doctorName});
 
   final Appointment appt;
   final String? doctorName;
@@ -488,66 +613,125 @@ class _TicketCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: Space.sm),
-      child: AppCard(
-        elevated: true,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+
+    final (statusLabel, statusStyle) = switch (appt.status) {
+      AppointmentStatus.confirmed => (
+        'Confirmed',
+        theme.clinicalStatus.riskLow,
+      ),
+      _ => ('Booked', null),
+    };
+
+    return AppCard(
+      elevated: true,
+      color: scheme.primaryContainer,
+      onTap: () => context.go(AppRoutes.patientAppointments),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // The number, large.
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'TICKET',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: scheme.onPrimaryContainer.withValues(alpha: 0.7),
+                  letterSpacing: 1,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                appt.ticketTag ?? '—',
+                style: theme.textTheme.displaySmall?.copyWith(
+                  color: scheme.onPrimaryContainer,
+                  fontWeight: FontWeight.w800,
+                  fontFeatures: kTabularFigures,
+                  height: 1,
+                ),
+              ),
+              const SizedBox(height: Space.xs),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: Space.xs,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: statusStyle?.container ?? scheme.surface,
+                  borderRadius: Radii.pill,
+                ),
+                child: Text(
+                  statusLabel,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: statusStyle?.onContainer ?? scheme.onSurface,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: Space.md),
+          Container(
+            width: 1,
+            height: 120,
+            color: scheme.onPrimaryContainer.withValues(alpha: 0.2),
+          ),
+          const SizedBox(width: Space.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (appt.ticketTag != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: Space.sm,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: scheme.primaryContainer,
-                      borderRadius: Radii.pill,
-                    ),
-                    child: Text(
-                      appt.ticketTag!,
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: scheme.onPrimaryContainer,
-                        fontFeatures: kTabularFigures,
-                      ),
-                    ),
-                  ),
-                const Spacer(),
-                if (appt.roomNumber != null)
-                  Text(
-                    'Room ${appt.roomNumber}',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
-                  ),
+                _line(
+                  context,
+                  Icons.calendar_today_outlined,
+                  fmtRelativeDay(appt.slotStart),
+                ),
+                const SizedBox(height: Space.xs),
+                _line(
+                  context,
+                  Icons.schedule_outlined,
+                  fmtTime(appt.slotStart),
+                ),
+                const SizedBox(height: Space.xs),
+                _line(
+                  context,
+                  Icons.meeting_room_outlined,
+                  'Room ${appt.roomNumber ?? '—'}',
+                ),
+                const SizedBox(height: Space.xs),
+                _line(
+                  context,
+                  Icons.person_outline,
+                  doctorName ?? visitTypeLabel(appt.visitType),
+                ),
               ],
             ),
-            const SizedBox(height: Space.sm),
-            Text(
-              '${fmtRelativeDay(appt.slotStart)} · ${fmtTime(appt.slotStart)}',
-              style: theme.textTheme.titleLarge,
-            ),
-            const SizedBox(height: Space.xxs),
-            Text(
-              [visitTypeLabel(appt.visitType), ?doctorName].join('  ·  '),
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: Space.xs),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () => context.go(AppRoutes.patientAppointments),
-                child: const Text('View details'),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _line(BuildContext context, IconData icon, String text) {
+    final theme = Theme.of(context);
+    final fg = theme.colorScheme.onPrimaryContainer;
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: fg.withValues(alpha: 0.8)),
+        const SizedBox(width: Space.xs),
+        Expanded(
+          child: Text(
+            text,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: fg,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

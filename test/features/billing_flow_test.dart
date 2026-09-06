@@ -57,9 +57,13 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
     await _settle(tester);
 
-    // Billing is a Home quick action; it may sit below the fold.
+    // Billing is a Home quick action near the bottom of a lazy list.
     final tile = find.text('Billing');
-    await tester.ensureVisible(tile.first);
+    await tester.scrollUntilVisible(
+      tile,
+      240,
+      scrollable: find.byType(Scrollable).first,
+    );
     await _settle(tester);
     await tester.tap(tile.first);
     await _settle(tester);
