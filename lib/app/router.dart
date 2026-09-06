@@ -20,6 +20,7 @@ import '../features/auth/presentation/register_screen.dart';
 import '../features/billing/presentation/billing_screen.dart';
 import '../features/booking/presentation/booking_screen.dart';
 import '../features/notifications/presentation/notifications_screen.dart';
+import '../features/nutrition/presentation/nutrition_screen.dart';
 import '../features/patient/application/profile_screen.dart';
 import '../features/patient_chart/presentation/patient_chart_screen.dart';
 import '../features/patient_home/presentation/patient_home_screen.dart';
@@ -31,7 +32,7 @@ import '../features/staff_dashboard/presentation/staff_patients_screen.dart';
 import '../features/staff_dashboard/presentation/staff_profile_screen.dart';
 import '../features/staff_dashboard/presentation/staff_schedule_screen.dart';
 import '../features/tasks/presentation/task_board_screen.dart';
-import '../features/timeline/presentation/timeline_screen.dart';
+import '../features/timeline/presentation/health_records_screen.dart';
 import '../features/vitals/presentation/vitals_screen.dart';
 import 'shell/app_shell.dart';
 
@@ -75,6 +76,7 @@ abstract final class AppRoutes {
   static const patientSummary = '/patient/summary';
   static const patientSettings = '/patient/settings';
   static const patientMedications = '/patient/medications';
+  static const patientNutrition = '/patient/nutrition';
 
   /// Record detail — pass the record id: `'$patientTimeline/record/$id'`.
   static String patientRecord(String id) => '$patientTimeline/record/$id';
@@ -126,6 +128,12 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
         builder: (_, state) => BookingScreen(
           mode: (state.extra as BookingMode?) ?? BookingMode.schedule,
         ),
+      ),
+      // Medications is also reachable full-screen from Home; the same list
+      // lives behind the Health Records toggle.
+      GoRoute(
+        path: AppRoutes.patientMedications,
+        builder: (_, _) => const MedicationsScreen(),
       ),
       GoRoute(
         path: AppRoutes.staffAnalytics,
@@ -179,7 +187,7 @@ class _SplashScreen extends StatelessWidget {
 
 StatefulShellRoute _patientShell() {
   return StatefulShellRoute.indexedStack(
-    // Bottom nav order: Home, Medications, Appointments, Timeline, Profile.
+    // Bottom nav order: Home, Nutrition, Appointments, Health Records, Profile.
     // The bar stays visible on every patient screen (Vitals nests under Home).
     builder: (context, state, navigationShell) => AppShell(
       navigationShell: navigationShell,
@@ -190,9 +198,9 @@ StatefulShellRoute _patientShell() {
           label: 'Home',
         ),
         AppDestination(
-          icon: Icons.medication_outlined,
-          selectedIcon: Icons.medication,
-          label: 'Medications',
+          icon: Icons.restaurant_outlined,
+          selectedIcon: Icons.restaurant,
+          label: 'Nutrition',
         ),
         AppDestination(
           icon: Icons.event_note_outlined,
@@ -237,8 +245,8 @@ StatefulShellRoute _patientShell() {
       StatefulShellBranch(
         routes: [
           GoRoute(
-            path: AppRoutes.patientMedications,
-            builder: (_, _) => const MedicationsScreen(),
+            path: AppRoutes.patientNutrition,
+            builder: (_, _) => const NutritionScreen(),
           ),
         ],
       ),
@@ -254,7 +262,7 @@ StatefulShellRoute _patientShell() {
         routes: [
           GoRoute(
             path: AppRoutes.patientTimeline,
-            builder: (_, _) => const TimelineScreen(),
+            builder: (_, _) => const HealthRecordsScreen(),
             routes: [
               GoRoute(
                 path: 'record/:id',

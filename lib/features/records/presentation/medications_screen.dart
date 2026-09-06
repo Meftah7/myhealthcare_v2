@@ -12,20 +12,31 @@ import '../../../domain/entities/entities.dart';
 import '../../patient/application/patient_data_providers.dart';
 
 class MedicationsScreen extends ConsumerWidget {
-  const MedicationsScreen({super.key});
+  const MedicationsScreen({this.embedded = false, super.key});
+
+  /// When true, render the list without a Scaffold/AppBar — the caller (the
+  /// Health Records screen) supplies those.
+  final bool embedded;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final meds = ref.watch(patientMedicationsProvider);
+    final body = _body(ref);
+    if (embedded) return body;
     return Scaffold(
       appBar: AppBar(title: const Text('Medications')),
-      body: meds.when(
-        loading: () => const SkeletonList(),
-        error: (e, _) => ErrorStateView(
-          message: 'Could not load medications.',
-          onRetry: () => ref.invalidate(patientMedicationsProvider),
-        ),
-        data: (list) {
+      body: body,
+    );
+  }
+
+  Widget _body(WidgetRef ref) {
+    final meds = ref.watch(patientMedicationsProvider);
+    return meds.when(
+      loading: () => const SkeletonList(),
+      error: (e, _) => ErrorStateView(
+        message: 'Could not load medications.',
+        onRetry: () => ref.invalidate(patientMedicationsProvider),
+      ),
+      data: (list) {
           if (list.isEmpty) {
             return const EmptyState(
               icon: Icons.medication_outlined,
@@ -61,7 +72,6 @@ class MedicationsScreen extends ConsumerWidget {
             ),
           );
         },
-      ),
     );
   }
 

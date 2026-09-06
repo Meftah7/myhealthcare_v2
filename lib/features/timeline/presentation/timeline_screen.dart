@@ -53,7 +53,11 @@ final _queryProvider = StateProvider<String>((_) => '');
 final _showVitalsProvider = StateProvider<bool>((_) => true);
 
 class TimelineScreen extends ConsumerWidget {
-  const TimelineScreen({super.key});
+  const TimelineScreen({this.embedded = false, super.key});
+
+  /// When true, render the filters + feed without a Scaffold/AppBar — the
+  /// Health Records screen supplies those.
+  final bool embedded;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -63,6 +67,40 @@ class TimelineScreen extends ConsumerWidget {
     final query = ref.watch(_queryProvider).trim().toLowerCase();
     final showVitals = ref.watch(_showVitalsProvider);
 
+    final feed = records.when(
+      loading: () => SkeletonList(lines: embedded ? 3 : 5),
+      error: (e, _) => ErrorStateView(
+        message: 'Could not load your records.',
+        onRetry: () => ref.invalidate(patientTimelineProvider),
+      ),
+      data: (recs) {
+        final entries = <_Entry>[
+          for (final r in recs)
+            if (_matchesRecord(r, types, query)) _RecordEntry(r),
+          if (showVitals && query.isEmpty && types.isEmpty)
+            for (final v in vitals.valueOrNull ?? const <Vitals>[])
+              _VitalsEntry(v),
+        ]..sort((a, b) => b.at.compareTo(a.at));
+
+        if (entries.isEmpty) {
+          return const EmptyState(
+            icon: Icons.timeline_outlined,
+            message: 'Nothing matches these filters yet.',
+          );
+        }
+        return _GroupedList(entries: entries);
+      },
+    );
+
+    if (embedded) {
+      return Column(
+        children: [
+          _Filters(),
+          Expanded(child: feed),
+        ],
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Health Records'),
@@ -71,30 +109,7 @@ class TimelineScreen extends ConsumerWidget {
           child: _Filters(),
         ),
       ),
-      body: records.when(
-        loading: () => const SkeletonList(),
-        error: (e, _) => ErrorStateView(
-          message: 'Could not load your timeline.',
-          onRetry: () => ref.invalidate(patientTimelineProvider),
-        ),
-        data: (recs) {
-          final entries = <_Entry>[
-            for (final r in recs)
-              if (_matchesRecord(r, types, query)) _RecordEntry(r),
-            if (showVitals && query.isEmpty && types.isEmpty)
-              for (final v in vitals.valueOrNull ?? const <Vitals>[])
-                _VitalsEntry(v),
-          ]..sort((a, b) => b.at.compareTo(a.at));
-
-          if (entries.isEmpty) {
-            return const EmptyState(
-              icon: Icons.timeline_outlined,
-              message: 'Nothing matches these filters yet.',
-            );
-          }
-          return _GroupedList(entries: entries);
-        },
-      ),
+      body: feed,
     );
   }
 

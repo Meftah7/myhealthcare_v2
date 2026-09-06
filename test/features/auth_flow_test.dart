@@ -61,9 +61,9 @@ void main() {
     await _pump(tester);
 
     // Patient shell: bottom nav with these destinations —
-    // Home, Medications, Appointments, Health Records, Profile.
+    // Home, Nutrition, Appointments, Health Records, Profile.
     expect(find.text('Health Records'), findsWidgets);
-    expect(find.text('Medications'), findsWidgets);
+    expect(find.text('Nutrition'), findsWidgets);
     expect(find.text('Appointments'), findsWidgets);
 
     // Tear the tree down inside the test so the drift stream behind the
