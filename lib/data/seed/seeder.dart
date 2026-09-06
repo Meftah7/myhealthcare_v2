@@ -45,7 +45,8 @@ class Seeder {
 
   /// Bump when the generation logic changes so existing DBs re-seed.
   /// v4: clinic day extended to 08:00–20:00.
-  static const seedVersion = 4;
+  /// v5: completed visits are billed, so Billing has invoices to show.
+  static const seedVersion = 5;
 
   /// Password for every seeded account (documented in the README).
   static const demoPassword = 'password';
@@ -316,6 +317,7 @@ class Seeder {
       // A completed visit leaves a note; chronic reviews add labs + vitals.
       if (status == AppointmentStatus.completed) {
         records += await _seedVisitRecords(p, doc, slotStart);
+        await _seedInvoice(p, apptId, slotStart);
       }
 
       when = when.add(Duration(days: intervalDays + _rng.nextInt(21) - 10));
@@ -343,6 +345,53 @@ class Seeder {
 
     return (appts, records);
   }
+
+  /// Bills a completed visit. Most are already settled; the two most recent
+  /// stay open (the older of them past its due date) so Billing always has
+  /// something to pay and an overdue state to show.
+  Future<void> _seedInvoice(_Patient p, String apptId, DateTime visitAt) async {
+    const taxRate = 10.0;
+    final subtotal = (15 + _rng.nextInt(46)) * 2.5; // BD 37.50 – BD 150.00
+    final taxAmount = subtotal * (taxRate / 100);
+    final issuedAt = visitAt.add(const Duration(hours: 2));
+    final dueDate = issuedAt.add(const Duration(days: 14));
+
+    final daysAgo = _epoch.difference(visitAt).inDays;
+    final settled = daysAgo > 45;
+
+    await _db
+        .into(_db.invoices)
+        .insert(
+          InvoicesCompanion.insert(
+            id: 'inv_${p.id}_${visitAt.millisecondsSinceEpoch}',
+            patientId: p.id,
+            appointmentId: Value(apptId),
+            subtotal: Value(subtotal),
+            taxRate: const Value(taxRate),
+            taxAmount: Value(taxAmount),
+            totalAmount: Value(subtotal + taxAmount),
+            status: Value(
+              settled ? InvoiceStatus.paid : InvoiceStatus.pending,
+            ),
+            issuedAt: Value(issuedAt),
+            dueDate: Value(dueDate),
+            paidAt: Value(
+              settled ? issuedAt.add(const Duration(days: 3)) : null,
+            ),
+            paymentMethod: Value(settled ? 'Card ····4242' : null),
+            notes: Value(_pick(_invoiceNotes)),
+          ),
+        );
+  }
+
+  static const _invoiceNotes = [
+    'Consultation and clinical assessment',
+    'Follow-up review',
+    'Laboratory panel and processing',
+    'Chronic care review',
+    'Diagnostic imaging',
+    'Vaccination and administration',
+  ];
 
   Future<int> _seedVisitRecords(_Patient p, _Staff doc, DateTime at) async {
     var records = 0;
@@ -623,6 +672,7 @@ class Seeder {
       _db.vitals,
       _db.medications,
       _db.medicalRecords,
+      _db.invoices,
       _db.appointments,
       _db.scheduleTemplates,
       _db.auditLog,

@@ -7,6 +7,7 @@ export 'appointment.dart';
 export 'audit_entry.dart';
 export 'department.dart';
 export 'family_member.dart';
+export 'invoice.dart';
 export 'medical_record.dart';
 export 'medication.dart';
 export 'patient.dart';

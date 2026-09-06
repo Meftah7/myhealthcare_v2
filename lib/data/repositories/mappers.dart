@@ -65,6 +65,24 @@ extension AppointmentRowX on AppointmentRow {
   );
 }
 
+extension InvoiceRowX on InvoiceRow {
+  Invoice toEntity() => Invoice(
+    id: id,
+    patientId: patientId,
+    subtotal: subtotal,
+    taxRate: taxRate,
+    taxAmount: taxAmount,
+    totalAmount: totalAmount,
+    status: status,
+    issuedAt: issuedAt,
+    appointmentId: appointmentId,
+    dueDate: dueDate,
+    paidAt: paidAt,
+    paymentMethod: paymentMethod,
+    notes: notes,
+  );
+}
+
 extension LabValueRowX on LabValueRow {
   LabValue toEntity() => LabValue(
     id: id,

@@ -353,9 +353,11 @@ class _QuickActions extends StatelessWidget {
       (Icons.folder_shared_outlined, 'Health\nrecords', AppRoutes.patientTimeline),
       (Icons.favorite_outline, 'Vitals', AppRoutes.patientVitals),
       (Icons.medication_outlined, 'Medications', AppRoutes.patientMedications),
+      (Icons.receipt_long_outlined, 'Billing', AppRoutes.patientBilling),
     ];
+    // Two tiles per row on a phone, three once there's room for them.
     return GridView.count(
-      crossAxisCount: 2,
+      crossAxisCount: WindowSize.of(context).isCompact ? 2 : 3,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       mainAxisSpacing: Space.sm,

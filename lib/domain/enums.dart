@@ -66,3 +66,7 @@ enum FlagSource { rule, ai }
 enum ReminderKind { standard, escalated, confirmRequest }
 
 enum ReminderChannel { push, inApp, sms, email }
+
+/// Lifecycle of a patient invoice. `overdue` is derived at read time from the
+/// due date rather than stored, so it never goes stale in the database.
+enum InvoiceStatus { pending, paid, cancelled }

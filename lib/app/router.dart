@@ -17,6 +17,7 @@ import '../features/appointments/presentation/appointments_screen.dart';
 import '../features/auth/application/session.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
+import '../features/billing/presentation/billing_screen.dart';
 import '../features/booking/presentation/booking_screen.dart';
 import '../features/patient/application/profile_screen.dart';
 import '../features/patient_chart/presentation/patient_chart_screen.dart';
@@ -66,6 +67,7 @@ abstract final class AppRoutes {
   static const patientHome = '/patient/home';
   static const patientTimeline = '/patient/timeline';
   static const patientVitals = '/patient/home/vitals';
+  static const patientBilling = '/patient/home/billing';
   static const patientAppointments = '/patient/appointments';
   static const patientBook = '/patient/appointments/book';
   static const patientSummary = '/patient/summary';
@@ -217,6 +219,10 @@ StatefulShellRoute _patientShell() {
               GoRoute(
                 path: 'vitals',
                 builder: (_, _) => const VitalsScreen(),
+              ),
+              GoRoute(
+                path: 'billing',
+                builder: (_, _) => const BillingScreen(),
               ),
             ],
           ),

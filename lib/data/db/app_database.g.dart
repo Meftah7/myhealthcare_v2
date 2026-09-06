@@ -1182,6 +1182,9 @@ class PatientProfileRow extends DataClass
   final List<String> allergies;
   final List<String> chronicConditions;
   final String? emergencyContact;
+
+  /// Linked family members (redesign v2 patient dashboard: Family Network).
+  /// The whole list round-trips as one JSON blob — no table of its own.
   final List<FamilyMember> familyMembers;
   const PatientProfileRow({
     required this.userId,
@@ -2573,10 +2576,7 @@ class $AppointmentsTable extends Appointments
     if (data.containsKey('room_number')) {
       context.handle(
         _roomNumberMeta,
-        roomNumber.isAcceptableOrUnknown(
-          data['room_number']!,
-          _roomNumberMeta,
-        ),
+        roomNumber.isAcceptableOrUnknown(data['room_number']!, _roomNumberMeta),
       );
     }
     return context;
@@ -2696,7 +2696,13 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
   final RiskBand? riskBand;
   final int remindersSent;
   final DateTime? checkedInAt;
+
+  /// `[Hour letter A-X]-[facility-wide ticket number for that hour today]`,
+  /// assigned once at booking time (redesign v2 patient dashboard spec).
   final String? ticketTag;
+
+  /// `[Department letter]-[doctor's sequence within that department]`,
+  /// assigned once at booking time (redesign v2 patient dashboard spec).
   final String? roomNumber;
   const AppointmentRow({
     required this.id,
@@ -8204,6 +8210,786 @@ class RiskFlagsCompanion extends UpdateCompanion<RiskFlagRow> {
   }
 }
 
+class $InvoicesTable extends Invoices
+    with TableInfo<$InvoicesTable, InvoiceRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $InvoicesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _patientIdMeta = const VerificationMeta(
+    'patientId',
+  );
+  @override
+  late final GeneratedColumn<String> patientId = GeneratedColumn<String>(
+    'patient_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _appointmentIdMeta = const VerificationMeta(
+    'appointmentId',
+  );
+  @override
+  late final GeneratedColumn<String> appointmentId = GeneratedColumn<String>(
+    'appointment_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES appointments (id) ON DELETE SET NULL',
+    ),
+  );
+  static const VerificationMeta _subtotalMeta = const VerificationMeta(
+    'subtotal',
+  );
+  @override
+  late final GeneratedColumn<double> subtotal = GeneratedColumn<double>(
+    'subtotal',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _taxRateMeta = const VerificationMeta(
+    'taxRate',
+  );
+  @override
+  late final GeneratedColumn<double> taxRate = GeneratedColumn<double>(
+    'tax_rate',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(10),
+  );
+  static const VerificationMeta _taxAmountMeta = const VerificationMeta(
+    'taxAmount',
+  );
+  @override
+  late final GeneratedColumn<double> taxAmount = GeneratedColumn<double>(
+    'tax_amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _totalAmountMeta = const VerificationMeta(
+    'totalAmount',
+  );
+  @override
+  late final GeneratedColumn<double> totalAmount = GeneratedColumn<double>(
+    'total_amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<InvoiceStatus, String> status =
+      GeneratedColumn<String>(
+        'status',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('pending'),
+      ).withConverter<InvoiceStatus>($InvoicesTable.$converterstatus);
+  static const VerificationMeta _issuedAtMeta = const VerificationMeta(
+    'issuedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> issuedAt = GeneratedColumn<DateTime>(
+    'issued_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _dueDateMeta = const VerificationMeta(
+    'dueDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> dueDate = GeneratedColumn<DateTime>(
+    'due_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _paidAtMeta = const VerificationMeta('paidAt');
+  @override
+  late final GeneratedColumn<DateTime> paidAt = GeneratedColumn<DateTime>(
+    'paid_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _paymentMethodMeta = const VerificationMeta(
+    'paymentMethod',
+  );
+  @override
+  late final GeneratedColumn<String> paymentMethod = GeneratedColumn<String>(
+    'payment_method',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    patientId,
+    appointmentId,
+    subtotal,
+    taxRate,
+    taxAmount,
+    totalAmount,
+    status,
+    issuedAt,
+    dueDate,
+    paidAt,
+    paymentMethod,
+    notes,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'invoices';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<InvoiceRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('patient_id')) {
+      context.handle(
+        _patientIdMeta,
+        patientId.isAcceptableOrUnknown(data['patient_id']!, _patientIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_patientIdMeta);
+    }
+    if (data.containsKey('appointment_id')) {
+      context.handle(
+        _appointmentIdMeta,
+        appointmentId.isAcceptableOrUnknown(
+          data['appointment_id']!,
+          _appointmentIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('subtotal')) {
+      context.handle(
+        _subtotalMeta,
+        subtotal.isAcceptableOrUnknown(data['subtotal']!, _subtotalMeta),
+      );
+    }
+    if (data.containsKey('tax_rate')) {
+      context.handle(
+        _taxRateMeta,
+        taxRate.isAcceptableOrUnknown(data['tax_rate']!, _taxRateMeta),
+      );
+    }
+    if (data.containsKey('tax_amount')) {
+      context.handle(
+        _taxAmountMeta,
+        taxAmount.isAcceptableOrUnknown(data['tax_amount']!, _taxAmountMeta),
+      );
+    }
+    if (data.containsKey('total_amount')) {
+      context.handle(
+        _totalAmountMeta,
+        totalAmount.isAcceptableOrUnknown(
+          data['total_amount']!,
+          _totalAmountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('issued_at')) {
+      context.handle(
+        _issuedAtMeta,
+        issuedAt.isAcceptableOrUnknown(data['issued_at']!, _issuedAtMeta),
+      );
+    }
+    if (data.containsKey('due_date')) {
+      context.handle(
+        _dueDateMeta,
+        dueDate.isAcceptableOrUnknown(data['due_date']!, _dueDateMeta),
+      );
+    }
+    if (data.containsKey('paid_at')) {
+      context.handle(
+        _paidAtMeta,
+        paidAt.isAcceptableOrUnknown(data['paid_at']!, _paidAtMeta),
+      );
+    }
+    if (data.containsKey('payment_method')) {
+      context.handle(
+        _paymentMethodMeta,
+        paymentMethod.isAcceptableOrUnknown(
+          data['payment_method']!,
+          _paymentMethodMeta,
+        ),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  InvoiceRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return InvoiceRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      patientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}patient_id'],
+      )!,
+      appointmentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}appointment_id'],
+      ),
+      subtotal: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}subtotal'],
+      )!,
+      taxRate: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}tax_rate'],
+      )!,
+      taxAmount: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}tax_amount'],
+      )!,
+      totalAmount: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}total_amount'],
+      )!,
+      status: $InvoicesTable.$converterstatus.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}status'],
+        )!,
+      ),
+      issuedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}issued_at'],
+      )!,
+      dueDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}due_date'],
+      ),
+      paidAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}paid_at'],
+      ),
+      paymentMethod: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payment_method'],
+      ),
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+    );
+  }
+
+  @override
+  $InvoicesTable createAlias(String alias) {
+    return $InvoicesTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<InvoiceStatus, String, String> $converterstatus =
+      const EnumNameConverter<InvoiceStatus>(InvoiceStatus.values);
+}
+
+class InvoiceRow extends DataClass implements Insertable<InvoiceRow> {
+  final String id;
+  final String patientId;
+
+  /// The visit this bill covers, if it came from one. Kept when the
+  /// appointment is deleted so the financial record survives.
+  final String? appointmentId;
+  final double subtotal;
+
+  /// Percent, e.g. `10` for 10%.
+  final double taxRate;
+  final double taxAmount;
+  final double totalAmount;
+  final InvoiceStatus status;
+  final DateTime issuedAt;
+  final DateTime? dueDate;
+  final DateTime? paidAt;
+
+  /// Masked descriptor only — the full card number is never stored.
+  final String? paymentMethod;
+  final String? notes;
+  const InvoiceRow({
+    required this.id,
+    required this.patientId,
+    this.appointmentId,
+    required this.subtotal,
+    required this.taxRate,
+    required this.taxAmount,
+    required this.totalAmount,
+    required this.status,
+    required this.issuedAt,
+    this.dueDate,
+    this.paidAt,
+    this.paymentMethod,
+    this.notes,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['patient_id'] = Variable<String>(patientId);
+    if (!nullToAbsent || appointmentId != null) {
+      map['appointment_id'] = Variable<String>(appointmentId);
+    }
+    map['subtotal'] = Variable<double>(subtotal);
+    map['tax_rate'] = Variable<double>(taxRate);
+    map['tax_amount'] = Variable<double>(taxAmount);
+    map['total_amount'] = Variable<double>(totalAmount);
+    {
+      map['status'] = Variable<String>(
+        $InvoicesTable.$converterstatus.toSql(status),
+      );
+    }
+    map['issued_at'] = Variable<DateTime>(issuedAt);
+    if (!nullToAbsent || dueDate != null) {
+      map['due_date'] = Variable<DateTime>(dueDate);
+    }
+    if (!nullToAbsent || paidAt != null) {
+      map['paid_at'] = Variable<DateTime>(paidAt);
+    }
+    if (!nullToAbsent || paymentMethod != null) {
+      map['payment_method'] = Variable<String>(paymentMethod);
+    }
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    return map;
+  }
+
+  InvoicesCompanion toCompanion(bool nullToAbsent) {
+    return InvoicesCompanion(
+      id: Value(id),
+      patientId: Value(patientId),
+      appointmentId: appointmentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(appointmentId),
+      subtotal: Value(subtotal),
+      taxRate: Value(taxRate),
+      taxAmount: Value(taxAmount),
+      totalAmount: Value(totalAmount),
+      status: Value(status),
+      issuedAt: Value(issuedAt),
+      dueDate: dueDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dueDate),
+      paidAt: paidAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(paidAt),
+      paymentMethod: paymentMethod == null && nullToAbsent
+          ? const Value.absent()
+          : Value(paymentMethod),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+    );
+  }
+
+  factory InvoiceRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return InvoiceRow(
+      id: serializer.fromJson<String>(json['id']),
+      patientId: serializer.fromJson<String>(json['patientId']),
+      appointmentId: serializer.fromJson<String?>(json['appointmentId']),
+      subtotal: serializer.fromJson<double>(json['subtotal']),
+      taxRate: serializer.fromJson<double>(json['taxRate']),
+      taxAmount: serializer.fromJson<double>(json['taxAmount']),
+      totalAmount: serializer.fromJson<double>(json['totalAmount']),
+      status: $InvoicesTable.$converterstatus.fromJson(
+        serializer.fromJson<String>(json['status']),
+      ),
+      issuedAt: serializer.fromJson<DateTime>(json['issuedAt']),
+      dueDate: serializer.fromJson<DateTime?>(json['dueDate']),
+      paidAt: serializer.fromJson<DateTime?>(json['paidAt']),
+      paymentMethod: serializer.fromJson<String?>(json['paymentMethod']),
+      notes: serializer.fromJson<String?>(json['notes']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'patientId': serializer.toJson<String>(patientId),
+      'appointmentId': serializer.toJson<String?>(appointmentId),
+      'subtotal': serializer.toJson<double>(subtotal),
+      'taxRate': serializer.toJson<double>(taxRate),
+      'taxAmount': serializer.toJson<double>(taxAmount),
+      'totalAmount': serializer.toJson<double>(totalAmount),
+      'status': serializer.toJson<String>(
+        $InvoicesTable.$converterstatus.toJson(status),
+      ),
+      'issuedAt': serializer.toJson<DateTime>(issuedAt),
+      'dueDate': serializer.toJson<DateTime?>(dueDate),
+      'paidAt': serializer.toJson<DateTime?>(paidAt),
+      'paymentMethod': serializer.toJson<String?>(paymentMethod),
+      'notes': serializer.toJson<String?>(notes),
+    };
+  }
+
+  InvoiceRow copyWith({
+    String? id,
+    String? patientId,
+    Value<String?> appointmentId = const Value.absent(),
+    double? subtotal,
+    double? taxRate,
+    double? taxAmount,
+    double? totalAmount,
+    InvoiceStatus? status,
+    DateTime? issuedAt,
+    Value<DateTime?> dueDate = const Value.absent(),
+    Value<DateTime?> paidAt = const Value.absent(),
+    Value<String?> paymentMethod = const Value.absent(),
+    Value<String?> notes = const Value.absent(),
+  }) => InvoiceRow(
+    id: id ?? this.id,
+    patientId: patientId ?? this.patientId,
+    appointmentId: appointmentId.present
+        ? appointmentId.value
+        : this.appointmentId,
+    subtotal: subtotal ?? this.subtotal,
+    taxRate: taxRate ?? this.taxRate,
+    taxAmount: taxAmount ?? this.taxAmount,
+    totalAmount: totalAmount ?? this.totalAmount,
+    status: status ?? this.status,
+    issuedAt: issuedAt ?? this.issuedAt,
+    dueDate: dueDate.present ? dueDate.value : this.dueDate,
+    paidAt: paidAt.present ? paidAt.value : this.paidAt,
+    paymentMethod: paymentMethod.present
+        ? paymentMethod.value
+        : this.paymentMethod,
+    notes: notes.present ? notes.value : this.notes,
+  );
+  InvoiceRow copyWithCompanion(InvoicesCompanion data) {
+    return InvoiceRow(
+      id: data.id.present ? data.id.value : this.id,
+      patientId: data.patientId.present ? data.patientId.value : this.patientId,
+      appointmentId: data.appointmentId.present
+          ? data.appointmentId.value
+          : this.appointmentId,
+      subtotal: data.subtotal.present ? data.subtotal.value : this.subtotal,
+      taxRate: data.taxRate.present ? data.taxRate.value : this.taxRate,
+      taxAmount: data.taxAmount.present ? data.taxAmount.value : this.taxAmount,
+      totalAmount: data.totalAmount.present
+          ? data.totalAmount.value
+          : this.totalAmount,
+      status: data.status.present ? data.status.value : this.status,
+      issuedAt: data.issuedAt.present ? data.issuedAt.value : this.issuedAt,
+      dueDate: data.dueDate.present ? data.dueDate.value : this.dueDate,
+      paidAt: data.paidAt.present ? data.paidAt.value : this.paidAt,
+      paymentMethod: data.paymentMethod.present
+          ? data.paymentMethod.value
+          : this.paymentMethod,
+      notes: data.notes.present ? data.notes.value : this.notes,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('InvoiceRow(')
+          ..write('id: $id, ')
+          ..write('patientId: $patientId, ')
+          ..write('appointmentId: $appointmentId, ')
+          ..write('subtotal: $subtotal, ')
+          ..write('taxRate: $taxRate, ')
+          ..write('taxAmount: $taxAmount, ')
+          ..write('totalAmount: $totalAmount, ')
+          ..write('status: $status, ')
+          ..write('issuedAt: $issuedAt, ')
+          ..write('dueDate: $dueDate, ')
+          ..write('paidAt: $paidAt, ')
+          ..write('paymentMethod: $paymentMethod, ')
+          ..write('notes: $notes')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    patientId,
+    appointmentId,
+    subtotal,
+    taxRate,
+    taxAmount,
+    totalAmount,
+    status,
+    issuedAt,
+    dueDate,
+    paidAt,
+    paymentMethod,
+    notes,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is InvoiceRow &&
+          other.id == this.id &&
+          other.patientId == this.patientId &&
+          other.appointmentId == this.appointmentId &&
+          other.subtotal == this.subtotal &&
+          other.taxRate == this.taxRate &&
+          other.taxAmount == this.taxAmount &&
+          other.totalAmount == this.totalAmount &&
+          other.status == this.status &&
+          other.issuedAt == this.issuedAt &&
+          other.dueDate == this.dueDate &&
+          other.paidAt == this.paidAt &&
+          other.paymentMethod == this.paymentMethod &&
+          other.notes == this.notes);
+}
+
+class InvoicesCompanion extends UpdateCompanion<InvoiceRow> {
+  final Value<String> id;
+  final Value<String> patientId;
+  final Value<String?> appointmentId;
+  final Value<double> subtotal;
+  final Value<double> taxRate;
+  final Value<double> taxAmount;
+  final Value<double> totalAmount;
+  final Value<InvoiceStatus> status;
+  final Value<DateTime> issuedAt;
+  final Value<DateTime?> dueDate;
+  final Value<DateTime?> paidAt;
+  final Value<String?> paymentMethod;
+  final Value<String?> notes;
+  final Value<int> rowid;
+  const InvoicesCompanion({
+    this.id = const Value.absent(),
+    this.patientId = const Value.absent(),
+    this.appointmentId = const Value.absent(),
+    this.subtotal = const Value.absent(),
+    this.taxRate = const Value.absent(),
+    this.taxAmount = const Value.absent(),
+    this.totalAmount = const Value.absent(),
+    this.status = const Value.absent(),
+    this.issuedAt = const Value.absent(),
+    this.dueDate = const Value.absent(),
+    this.paidAt = const Value.absent(),
+    this.paymentMethod = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  InvoicesCompanion.insert({
+    required String id,
+    required String patientId,
+    this.appointmentId = const Value.absent(),
+    this.subtotal = const Value.absent(),
+    this.taxRate = const Value.absent(),
+    this.taxAmount = const Value.absent(),
+    this.totalAmount = const Value.absent(),
+    this.status = const Value.absent(),
+    this.issuedAt = const Value.absent(),
+    this.dueDate = const Value.absent(),
+    this.paidAt = const Value.absent(),
+    this.paymentMethod = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       patientId = Value(patientId);
+  static Insertable<InvoiceRow> custom({
+    Expression<String>? id,
+    Expression<String>? patientId,
+    Expression<String>? appointmentId,
+    Expression<double>? subtotal,
+    Expression<double>? taxRate,
+    Expression<double>? taxAmount,
+    Expression<double>? totalAmount,
+    Expression<String>? status,
+    Expression<DateTime>? issuedAt,
+    Expression<DateTime>? dueDate,
+    Expression<DateTime>? paidAt,
+    Expression<String>? paymentMethod,
+    Expression<String>? notes,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (patientId != null) 'patient_id': patientId,
+      if (appointmentId != null) 'appointment_id': appointmentId,
+      if (subtotal != null) 'subtotal': subtotal,
+      if (taxRate != null) 'tax_rate': taxRate,
+      if (taxAmount != null) 'tax_amount': taxAmount,
+      if (totalAmount != null) 'total_amount': totalAmount,
+      if (status != null) 'status': status,
+      if (issuedAt != null) 'issued_at': issuedAt,
+      if (dueDate != null) 'due_date': dueDate,
+      if (paidAt != null) 'paid_at': paidAt,
+      if (paymentMethod != null) 'payment_method': paymentMethod,
+      if (notes != null) 'notes': notes,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  InvoicesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? patientId,
+    Value<String?>? appointmentId,
+    Value<double>? subtotal,
+    Value<double>? taxRate,
+    Value<double>? taxAmount,
+    Value<double>? totalAmount,
+    Value<InvoiceStatus>? status,
+    Value<DateTime>? issuedAt,
+    Value<DateTime?>? dueDate,
+    Value<DateTime?>? paidAt,
+    Value<String?>? paymentMethod,
+    Value<String?>? notes,
+    Value<int>? rowid,
+  }) {
+    return InvoicesCompanion(
+      id: id ?? this.id,
+      patientId: patientId ?? this.patientId,
+      appointmentId: appointmentId ?? this.appointmentId,
+      subtotal: subtotal ?? this.subtotal,
+      taxRate: taxRate ?? this.taxRate,
+      taxAmount: taxAmount ?? this.taxAmount,
+      totalAmount: totalAmount ?? this.totalAmount,
+      status: status ?? this.status,
+      issuedAt: issuedAt ?? this.issuedAt,
+      dueDate: dueDate ?? this.dueDate,
+      paidAt: paidAt ?? this.paidAt,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      notes: notes ?? this.notes,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (patientId.present) {
+      map['patient_id'] = Variable<String>(patientId.value);
+    }
+    if (appointmentId.present) {
+      map['appointment_id'] = Variable<String>(appointmentId.value);
+    }
+    if (subtotal.present) {
+      map['subtotal'] = Variable<double>(subtotal.value);
+    }
+    if (taxRate.present) {
+      map['tax_rate'] = Variable<double>(taxRate.value);
+    }
+    if (taxAmount.present) {
+      map['tax_amount'] = Variable<double>(taxAmount.value);
+    }
+    if (totalAmount.present) {
+      map['total_amount'] = Variable<double>(totalAmount.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(
+        $InvoicesTable.$converterstatus.toSql(status.value),
+      );
+    }
+    if (issuedAt.present) {
+      map['issued_at'] = Variable<DateTime>(issuedAt.value);
+    }
+    if (dueDate.present) {
+      map['due_date'] = Variable<DateTime>(dueDate.value);
+    }
+    if (paidAt.present) {
+      map['paid_at'] = Variable<DateTime>(paidAt.value);
+    }
+    if (paymentMethod.present) {
+      map['payment_method'] = Variable<String>(paymentMethod.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('InvoicesCompanion(')
+          ..write('id: $id, ')
+          ..write('patientId: $patientId, ')
+          ..write('appointmentId: $appointmentId, ')
+          ..write('subtotal: $subtotal, ')
+          ..write('taxRate: $taxRate, ')
+          ..write('taxAmount: $taxAmount, ')
+          ..write('totalAmount: $totalAmount, ')
+          ..write('status: $status, ')
+          ..write('issuedAt: $issuedAt, ')
+          ..write('dueDate: $dueDate, ')
+          ..write('paidAt: $paidAt, ')
+          ..write('paymentMethod: $paymentMethod, ')
+          ..write('notes: $notes, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $AuditLogTable extends AuditLog
     with TableInfo<$AuditLogTable, AuditLogRow> {
   @override
@@ -9145,6 +9931,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $AiSummariesTable aiSummaries = $AiSummariesTable(this);
   late final $StaffTasksTable staffTasks = $StaffTasksTable(this);
   late final $RiskFlagsTable riskFlags = $RiskFlagsTable(this);
+  late final $InvoicesTable invoices = $InvoicesTable(this);
   late final $AuditLogTable auditLog = $AuditLogTable(this);
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
   @override
@@ -9166,6 +9953,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     aiSummaries,
     staffTasks,
     riskFlags,
+    invoices,
     auditLog,
     appSettings,
   ];
@@ -9254,6 +10042,20 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('risk_flags', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('invoices', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'appointments',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('invoices', kind: UpdateKind.update)],
     ),
   ]);
 }

@@ -14,7 +14,12 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Appointment {
 
- String get id; String get patientId; String get staffId; DateTime get slotStart; DateTime get slotEnd; VisitType get visitType; AppointmentStatus get status; DateTime get bookedAt; int get remindersSent; String? get departmentId; String? get reasonText; double? get noShowRisk; RiskBand? get riskBand; DateTime? get checkedInAt; String? get ticketTag; String? get roomNumber;
+ String get id; String get patientId; String get staffId; DateTime get slotStart; DateTime get slotEnd; VisitType get visitType; AppointmentStatus get status; DateTime get bookedAt; int get remindersSent; String? get departmentId; String? get reasonText; double? get noShowRisk; RiskBand? get riskBand; DateTime? get checkedInAt;/// `[Hour letter A-X]-[facility-wide ticket number for that hour today]`,
+/// assigned once at booking time from [slotStart] (redesign v2 patient
+/// dashboard spec).
+ String? get ticketTag;/// `[Department letter]-[doctor's sequence within that department]`,
+/// assigned once at booking time (redesign v2 patient dashboard spec).
+ String? get roomNumber;
 /// Create a copy of Appointment
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -222,7 +227,7 @@ return $default(_that.id,_that.patientId,_that.staffId,_that.slotStart,_that.slo
 
 class _Appointment extends Appointment {
   const _Appointment({required this.id, required this.patientId, required this.staffId, required this.slotStart, required this.slotEnd, required this.visitType, required this.status, required this.bookedAt, required this.remindersSent, this.departmentId, this.reasonText, this.noShowRisk, this.riskBand, this.checkedInAt, this.ticketTag, this.roomNumber}): super._();
-
+  
 
 @override final  String id;
 @override final  String patientId;
@@ -238,7 +243,12 @@ class _Appointment extends Appointment {
 @override final  double? noShowRisk;
 @override final  RiskBand? riskBand;
 @override final  DateTime? checkedInAt;
+/// `[Hour letter A-X]-[facility-wide ticket number for that hour today]`,
+/// assigned once at booking time from [slotStart] (redesign v2 patient
+/// dashboard spec).
 @override final  String? ticketTag;
+/// `[Department letter]-[doctor's sequence within that department]`,
+/// assigned once at booking time (redesign v2 patient dashboard spec).
 @override final  String? roomNumber;
 
 /// Create a copy of Appointment

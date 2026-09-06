@@ -11,6 +11,7 @@ import '../../domain/enums.dart';
 import 'converters.dart';
 import 'tables/ai.dart';
 import 'tables/appointments.dart';
+import 'tables/billing.dart';
 import 'tables/records.dart';
 import 'tables/system.dart';
 import 'tables/users.dart';
@@ -37,6 +38,8 @@ part 'app_database.g.dart';
     AiSummaries,
     StaffTasks,
     RiskFlags,
+    // billing
+    Invoices,
     // system
     AuditLog,
     AppSettings,
@@ -64,7 +67,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -86,6 +89,10 @@ class AppDatabase extends _$AppDatabase {
       if (from < 4) {
         // Patient dashboard rebuild: Family Network (redesign v2).
         await m.addColumn(patientProfiles, patientProfiles.familyMembers);
+      }
+      if (from < 5) {
+        // Billing: patient invoices.
+        await m.createTable(invoices);
       }
     },
     beforeOpen: (details) async {
