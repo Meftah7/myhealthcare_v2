@@ -24,13 +24,68 @@ import '../../../domain/enums.dart';
 import '../application/patient_data_providers.dart';
 
 class FamilyNetworkSection extends ConsumerWidget {
-  const FamilyNetworkSection({required this.patient, super.key});
+  const FamilyNetworkSection({
+    required this.patient,
+    this.embedded = false,
+    super.key,
+  });
 
   final Patient patient;
+
+  /// When true, drop the section header + outer card (the caller supplies the
+  /// surface) and move "Add" to a button at the top of the list.
+  final bool embedded;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final members = ref.watch(patientFamilyMembersProvider);
+
+    final list = members.when(
+      loading: () => const LoadingSkeleton(height: 72),
+      error: (e, _) =>
+          const InlineBanner.error('Could not load family members.'),
+      data: (items) {
+        if (items.isEmpty) {
+          return const EmptyState(
+            icon: Icons.family_restroom_outlined,
+            message: 'No family members linked yet.',
+          );
+        }
+        final tiles = Column(
+          children: [
+            for (final (i, m) in items.indexed) ...[
+              if (i > 0) const Divider(height: 1, indent: Space.md),
+              _FamilyMemberTile(
+                member: m,
+                onEdit: () => _openForm(context, ref, existing: m),
+                onRemove: () => _remove(context, ref, m),
+              ),
+            ],
+          ],
+        );
+        return embedded
+            ? tiles
+            : AppCard(padding: EdgeInsets.zero, child: tiles);
+      },
+    );
+
+    if (embedded) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: OutlinedButton.icon(
+              onPressed: () => _openForm(context, ref),
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Add family member'),
+            ),
+          ),
+          const SizedBox(height: Space.sm),
+          list,
+        ],
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,35 +96,7 @@ class FamilyNetworkSection extends ConsumerWidget {
           action: 'Add',
           onAction: () => _openForm(context, ref),
         ),
-        members.when(
-          loading: () => const LoadingSkeleton(height: 72),
-          error: (e, _) => const InlineBanner.error(
-            'Could not load family members.',
-          ),
-          data: (list) {
-            if (list.isEmpty) {
-              return const EmptyState(
-                icon: Icons.family_restroom_outlined,
-                message: 'No family members linked yet.',
-              );
-            }
-            return AppCard(
-              padding: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  for (final (i, m) in list.indexed) ...[
-                    if (i > 0) const Divider(height: 1, indent: Space.md),
-                    _FamilyMemberTile(
-                      member: m,
-                      onEdit: () => _openForm(context, ref, existing: m),
-                      onRemove: () => _remove(context, ref, m),
-                    ),
-                  ],
-                ],
-              ),
-            );
-          },
-        ),
+        list,
       ],
     );
   }

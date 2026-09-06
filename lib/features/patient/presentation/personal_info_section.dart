@@ -1,9 +1,9 @@
-/// Editable Personal Info + preferences (redesign v2 patient dashboard).
+/// Editable personal-info form (redesign v2 patient dashboard).
 ///
 /// First/last name, CPR (national id, live-validated as exactly 9 digits),
 /// date of birth (typed DD/MM/YYYY, validated as a real non-future date),
-/// gender, phone, email; notification toggles and the existing theme
-/// picker. Save/Cancel stay disabled until something actually changed.
+/// gender, phone, email. Save/Cancel stay disabled until something actually
+/// changed. Rendered bare — the caller wraps it (e.g. in an ExpandableSection).
 library;
 
 import 'package:flutter/material.dart';
@@ -13,12 +13,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
-import '../../../core/presentation/app_card.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/date_input.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
-import '../../settings/presentation/preferences_section.dart';
 import '../application/patient_data_providers.dart';
 
 class PersonalInfoSection extends ConsumerStatefulWidget {
@@ -167,107 +165,95 @@ class _PersonalInfoSectionState extends ConsumerState<PersonalInfoSection> {
     final canSave = _isDirty && _isValid && !_busy;
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionHeader('Personal info', overline: true),
-        AppCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _firstName,
-                      decoration: const InputDecoration(labelText: 'First name'),
-                    ),
-                  ),
-                  const SizedBox(width: Space.sm),
-                  Expanded(
-                    child: TextField(
-                      controller: _lastName,
-                      decoration: const InputDecoration(labelText: 'Last name'),
-                    ),
-                  ),
-                ],
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _firstName,
+                decoration: const InputDecoration(labelText: 'First name'),
               ),
-              const SizedBox(height: Space.sm),
-              TextField(
-                controller: _cpr,
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(9),
-                ],
-                decoration: InputDecoration(
-                  labelText: 'CPR',
-                  helperText: '${_cpr.text.length}/9 digits',
-                  errorText: _cprError,
-                ),
+            ),
+            const SizedBox(width: Space.sm),
+            Expanded(
+              child: TextField(
+                controller: _lastName,
+                decoration: const InputDecoration(labelText: 'Last name'),
               ),
-              const SizedBox(height: Space.sm),
-              TextField(
-                controller: _dob,
-                keyboardType: TextInputType.number,
-                inputFormatters: [DateSlashFormatter()],
-                decoration: InputDecoration(
-                  labelText: 'Date of birth (DD/MM/YYYY)',
-                  errorText: _dobError,
-                ),
-              ),
-              const SizedBox(height: Space.sm),
-              DropdownButtonFormField<Gender>(
-                initialValue: _gender,
-                decoration: const InputDecoration(labelText: 'Gender'),
-                items: [
-                  for (final g in Gender.values)
-                    DropdownMenuItem(value: g, child: Text(_genderLabel(g))),
-                ],
-                onChanged: (v) => setState(() => _gender = v),
-              ),
-              const SizedBox(height: Space.sm),
-              TextField(
-                controller: _phone,
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(labelText: 'Phone'),
-              ),
-              const SizedBox(height: Space.sm),
-              TextField(
-                controller: _email,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(labelText: 'Email'),
-              ),
-              const SizedBox(height: Space.md),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _isDirty && !_busy ? _cancel : null,
-                      child: const Text('Cancel'),
-                    ),
-                  ),
-                  const SizedBox(width: Space.sm),
-                  Expanded(
-                    child: FilledButton(
-                      onPressed: canSave ? _save : null,
-                      child: _busy
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text('Save'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+            ),
+          ],
+        ),
+        const SizedBox(height: Space.sm),
+        TextField(
+          controller: _cpr,
+          keyboardType: TextInputType.number,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(9),
+          ],
+          decoration: InputDecoration(
+            labelText: 'CPR',
+            helperText: '${_cpr.text.length}/9 digits',
+            errorText: _cprError,
           ),
         ),
+        const SizedBox(height: Space.sm),
+        TextField(
+          controller: _dob,
+          keyboardType: TextInputType.number,
+          inputFormatters: [DateSlashFormatter()],
+          decoration: InputDecoration(
+            labelText: 'Date of birth (DD/MM/YYYY)',
+            errorText: _dobError,
+          ),
+        ),
+        const SizedBox(height: Space.sm),
+        DropdownButtonFormField<Gender>(
+          initialValue: _gender,
+          decoration: const InputDecoration(labelText: 'Gender'),
+          items: [
+            for (final g in Gender.values)
+              DropdownMenuItem(value: g, child: Text(_genderLabel(g))),
+          ],
+          onChanged: (v) => setState(() => _gender = v),
+        ),
+        const SizedBox(height: Space.sm),
+        TextField(
+          controller: _phone,
+          keyboardType: TextInputType.phone,
+          decoration: const InputDecoration(labelText: 'Phone'),
+        ),
+        const SizedBox(height: Space.sm),
+        TextField(
+          controller: _email,
+          keyboardType: TextInputType.emailAddress,
+          decoration: const InputDecoration(labelText: 'Email'),
+        ),
         const SizedBox(height: Space.md),
-        const PreferencesSection(),
-        const SizedBox(height: Space.md),
-        const _NotificationPrefsCard(),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: _isDirty && !_busy ? _cancel : null,
+                child: const Text('Cancel'),
+              ),
+            ),
+            const SizedBox(width: Space.sm),
+            Expanded(
+              child: FilledButton(
+                onPressed: canSave ? _save : null,
+                child: _busy
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Save'),
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -280,8 +266,10 @@ class _PersonalInfoSectionState extends ConsumerState<PersonalInfoSection> {
   };
 }
 
-class _NotificationPrefsCard extends ConsumerWidget {
-  const _NotificationPrefsCard();
+/// The SMS / Email / Push delivery toggles. Rendered bare for an
+/// [ExpandableSection]; the caller supplies the surrounding surface.
+class NotificationChannelsSection extends ConsumerWidget {
+  const NotificationChannelsSection({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -289,32 +277,24 @@ class _NotificationPrefsCard extends ConsumerWidget {
     final notifier = ref.read(notificationPrefsProvider.notifier);
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionHeader('Notifications', overline: true),
-        AppCard(
-          padding: EdgeInsets.zero,
-          child: Column(
-            children: [
-              SwitchListTile(
-                title: const Text('SMS'),
-                value: prefs.sms,
-                onChanged: notifier.setSms,
-              ),
-              const Divider(height: 1, indent: Space.md),
-              SwitchListTile(
-                title: const Text('Email'),
-                value: prefs.email,
-                onChanged: notifier.setEmail,
-              ),
-              const Divider(height: 1, indent: Space.md),
-              SwitchListTile(
-                title: const Text('Push'),
-                value: prefs.push,
-                onChanged: notifier.setPush,
-              ),
-            ],
-          ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('SMS'),
+          value: prefs.sms,
+          onChanged: notifier.setSms,
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Email'),
+          value: prefs.email,
+          onChanged: notifier.setEmail,
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Push'),
+          value: prefs.push,
+          onChanged: notifier.setPush,
         ),
       ],
     );

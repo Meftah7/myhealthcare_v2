@@ -1,4 +1,7 @@
 /// Patient profile + settings (P2-17, redesign v2).
+///
+/// Every section is a collapsible panel — the page opens compact and the
+/// patient expands only what they need.
 library;
 
 import 'dart:async';
@@ -9,8 +12,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
+import '../../../core/presentation/expandable_section.dart';
 import '../../../core/presentation/states.dart';
+import '../../../domain/entities/entities.dart';
 import '../../auth/application/session.dart';
+import '../../settings/presentation/preferences_section.dart';
 import '../presentation/family_network_section.dart';
 import '../presentation/personal_info_section.dart';
 import 'patient_data_providers.dart';
@@ -22,6 +28,9 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final profile = ref.watch(patientProfileProvider);
+    final familyCount =
+        ref.watch(patientFamilyMembersProvider).valueOrNull?.length;
+    final gutter = WindowSize.of(context).gutter;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
@@ -39,49 +48,56 @@ class ProfileScreen extends ConsumerWidget {
                 maxWidth: Space.maxContentWidth,
               ),
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(
+                padding: EdgeInsets.fromLTRB(
+                  gutter,
                   Space.md,
-                  Space.md,
-                  Space.md,
+                  gutter,
                   Space.xxl,
                 ),
                 children: [
                   ProfileHeader(name: u.fullName, email: u.email),
                   const SizedBox(height: Space.md),
-                  PersonalInfoSection(patient: p),
 
-                  const SizedBox(height: Space.lg),
-                  const SectionHeader('Health details', overline: true),
-                  AppCard(
-                    padding: EdgeInsets.zero,
-                    child: Column(
-                      children: [
-                        for (final (i, (label, value)) in [
-                          ('Blood type', p.bloodType ?? '—'),
-                          (
-                            'Allergies',
-                            p.allergies.isEmpty
-                                ? 'None'
-                                : p.allergies.join(', '),
-                          ),
-                          (
-                            'Chronic conditions',
-                            p.chronicConditions.isEmpty
-                                ? 'None'
-                                : p.chronicConditions.join(', '),
-                          ),
-                          ('Emergency contact', p.emergencyContact ?? '—'),
-                        ].indexed) ...[
-                          if (i > 0)
-                            const Divider(height: 1, indent: Space.md),
-                          _row(label, value),
-                        ],
-                      ],
-                    ),
+                  ExpandableSection(
+                    icon: Icons.badge_outlined,
+                    title: 'Personal info',
+                    initiallyExpanded: true,
+                    child: PersonalInfoSection(patient: p),
                   ),
+                  const SizedBox(height: Space.sm),
 
-                  const SizedBox(height: Space.lg),
-                  FamilyNetworkSection(patient: p),
+                  ExpandableSection(
+                    icon: Icons.favorite_outline,
+                    title: 'Health details',
+                    summary: p.bloodType ?? '—',
+                    child: _HealthDetails(patient: p),
+                  ),
+                  const SizedBox(height: Space.sm),
+
+                  const ExpandableSection(
+                    icon: Icons.tune,
+                    title: 'Preferences',
+                    child: PreferencesSection(bare: true),
+                  ),
+                  const SizedBox(height: Space.sm),
+
+                  const ExpandableSection(
+                    icon: Icons.notifications_outlined,
+                    title: 'Notification channels',
+                    child: NotificationChannelsSection(),
+                  ),
+                  const SizedBox(height: Space.sm),
+
+                  ExpandableSection(
+                    icon: Icons.family_restroom_outlined,
+                    title: 'Family network',
+                    summary: familyCount == null
+                        ? null
+                        : familyCount == 0
+                        ? 'None'
+                        : '$familyCount linked',
+                    child: FamilyNetworkSection(patient: p, embedded: true),
+                  ),
 
                   const SizedBox(height: Space.lg),
                   OutlinedButton.icon(
@@ -94,9 +110,7 @@ class ProfileScreen extends ConsumerWidget {
                         destructive: true,
                       );
                       if (ok) {
-                        unawaited(
-                          ref.read(sessionProvider.notifier).logout(),
-                        );
+                        unawaited(ref.read(sessionProvider.notifier).logout());
                       }
                     },
                     style: OutlinedButton.styleFrom(
@@ -116,7 +130,37 @@ class ProfileScreen extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _row(String label, String value) =>
-      ListTile(dense: true, title: Text(label), subtitle: Text(value));
+class _HealthDetails extends StatelessWidget {
+  const _HealthDetails({required this.patient});
+
+  final Patient patient;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = patient;
+    final rows = <(String, String)>[
+      ('Blood type', p.bloodType ?? '—'),
+      ('Allergies', p.allergies.isEmpty ? 'None' : p.allergies.join(', ')),
+      (
+        'Chronic conditions',
+        p.chronicConditions.isEmpty ? 'None' : p.chronicConditions.join(', '),
+      ),
+      ('Emergency contact', p.emergencyContact ?? '—'),
+    ];
+    return Column(
+      children: [
+        for (final (i, (label, value)) in rows.indexed) ...[
+          if (i > 0) const Divider(height: 1),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            dense: true,
+            title: Text(label),
+            subtitle: Text(value),
+          ),
+        ],
+      ],
+    );
+  }
 }
