@@ -223,8 +223,8 @@ class _ApptCard extends ConsumerWidget {
       ?department,
     ].join('  ·  ');
     final ticketMeta = [
-      ?appt.ticketTag,
-      if (appt.roomNumber != null) 'Room ${appt.roomNumber}',
+      appt.ticketTag == null ? 'Ticket —' : 'Ticket ${appt.ticketTag}',
+      'Room ${appt.roomNumber ?? '—'}',
     ].join('  ·  ');
 
     return Padding(
@@ -268,19 +268,24 @@ class _ApptCard extends ConsumerWidget {
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            if (ticketMeta.isNotEmpty) ...[
-              const SizedBox(height: Space.xxs),
-              Text(
-                ticketMeta,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: theme.colorScheme.primary,
-                ),
+            const SizedBox(height: Space.xxs),
+            Text(
+              ticketMeta,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.primary,
               ),
-            ],
+            ),
             if (appt.reasonText != null) ...[
               const SizedBox(height: Space.xxs),
               Text(appt.reasonText!, style: theme.textTheme.bodySmall),
             ],
+            const SizedBox(height: Space.xxs),
+            Text(
+              'Booked ${fmtDate(appt.bookedAt)}',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
             if (upcoming && appt.riskBand != null) ...[
               const SizedBox(height: Space.xs),
               RiskBadge(appt.riskBand!),

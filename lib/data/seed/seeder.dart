@@ -12,6 +12,7 @@ import 'dart:math';
 import 'package:drift/drift.dart';
 
 import '../../core/utils/format.dart';
+import '../../core/utils/ticketing.dart';
 import '../../domain/enums.dart';
 import '../../services/auth/password_hasher.dart';
 import '../db/app_database.dart';
@@ -44,11 +45,16 @@ class Seeder {
   final Random _rng;
   final PasswordHasher _hasher;
 
+  /// Facility-wide ticket count per (day, hour) bucket — resets at midnight,
+  /// matching `AppointmentRepositoryImpl._issueTicketTag`.
+  final _ticketsPerBucket = <String, int>{};
+
   /// Bump when the generation logic changes so existing DBs re-seed.
   /// v4: clinic day extended to 08:00–20:00.
   /// v5: completed visits are billed, so Billing has invoices to show.
   /// v6: each patient gets a starter notification feed.
-  static const seedVersion = 6;
+  /// v7: every appointment carries a ticket tag + room number.
+  static const seedVersion = 7;
 
   /// Password for every seeded account (documented in the README).
   static const demoPassword = 'password';
@@ -78,6 +84,7 @@ class Seeder {
   // --- generation --------------------------------------------------------
 
   Future<SeedResult> _generate() async {
+    _ticketsPerBucket.clear();
     await _seedAdmin();
     final deptIds = await _seedDepartments();
     final staff = await _seedStaff(deptIds);
@@ -173,7 +180,13 @@ class Seeder {
                 ),
               );
         }
-        staff.add(_Staff(id, deptIds[d]));
+        staff.add(
+          _Staff(
+            id,
+            deptIds[d],
+            '${departmentLetterFor(dept.name)}-${i + 1}',
+          ),
+        );
       }
     }
     return staff;
@@ -291,6 +304,15 @@ class Seeder {
         _pick(const [0, 20, 40]),
       );
       final apptId = 'appt_${p.id}_${appts.toString().padLeft(2, '0')}';
+      // Every appointment — past, present and future — gets a ticket tag and
+      // a room, assigned the same way the live booking flow does.
+      final bucket =
+          '${slotStart.year}-${slotStart.month}-${slotStart.day}-${slotStart.hour}';
+      final ticketNo = _ticketsPerBucket.update(
+        bucket,
+        (n) => n + 1,
+        ifAbsent: () => 1,
+      );
       await _db
           .into(_db.appointments)
           .insert(
@@ -312,6 +334,8 @@ class Seeder {
               noShowRisk: Value(risk),
               riskBand: Value(_band(risk)),
               remindersSent: Value(isFuture ? 0 : 1 + _rng.nextInt(2)),
+              ticketTag: Value('${hourLetterFor(slotStart)}-$ticketNo'),
+              roomNumber: Value(doc.roomNumber),
             ),
           );
       appts++;
@@ -828,9 +852,14 @@ class Seeder {
 }
 
 class _Staff {
-  const _Staff(this.id, this.departmentId);
+  const _Staff(this.id, this.departmentId, this.roomNumber);
   final String id;
   final String departmentId;
+
+  /// `[department letter]-[sequence within the department]`, matching
+  /// `AppointmentRepositoryImpl._assignRoomNumber`. A doctor always works the
+  /// same room, so every appointment with them inherits it.
+  final String roomNumber;
 }
 
 class _Patient {

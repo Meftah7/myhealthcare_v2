@@ -172,9 +172,12 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
 
       final id = newId('appt');
       final ticketTag = await _issueTicketTag(r.start);
-      final roomNumber = r.departmentId == null
+      // Every appointment gets a room. If the request didn't name a
+      // department, fall back to the doctor's own.
+      final departmentId = r.departmentId ?? await _departmentOf(r.staffId);
+      final roomNumber = departmentId == null
           ? null
-          : await _assignRoomNumber(r.departmentId!, r.staffId);
+          : await _assignRoomNumber(departmentId, r.staffId);
       await _db
           .into(_db.appointments)
           .insert(
@@ -185,7 +188,7 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
               slotStart: r.start,
               slotEnd: r.end,
               visitType: r.visitType,
-              departmentId: Value(r.departmentId),
+              departmentId: Value(departmentId),
               reasonText: Value(r.reasonText),
               noShowRisk: Value(r.noShowRisk),
               riskBand: Value(r.riskBand),
@@ -223,6 +226,13 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
 
   /// `[department letter]-[this doctor's 1-based position among that
   /// department's staff, ordered by join date]`.
+  Future<String?> _departmentOf(String staffId) async {
+    final profile = await (_db.select(
+      _db.staffProfiles,
+    )..where((p) => p.userId.equals(staffId))).getSingleOrNull();
+    return profile?.departmentId;
+  }
+
   Future<String?> _assignRoomNumber(String departmentId, String staffId) async {
     final department = await (_db.select(
       _db.departments,
