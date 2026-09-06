@@ -54,7 +54,8 @@ class Seeder {
   /// v5: completed visits are billed, so Billing has invoices to show.
   /// v6: each patient gets a starter notification feed.
   /// v7: every appointment carries a ticket tag + room number.
-  static const seedVersion = 7;
+  /// v8: each patient starts with one saved card in their wallet.
+  static const seedVersion = 8;
 
   /// Password for every seeded account (documented in the README).
   static const demoPassword = 'password';
@@ -370,8 +371,31 @@ class Seeder {
     }
 
     await _seedNotifications(p);
+    await _seedWallet(p);
 
     return (appts, records);
+  }
+
+  /// One saved card per patient, matching the ····4242 shown in their paid
+  /// invoice history.
+  Future<void> _seedWallet(_Patient p) async {
+    // Derived from the patient id (not the shared RNG) so adding this step
+    // doesn't shift every later random draw.
+    final h = p.id.hashCode.toUnsigned(16);
+    await _db
+        .into(_db.paymentMethods)
+        .insert(
+          PaymentMethodsCompanion.insert(
+            id: 'card_${p.id}',
+            patientId: p.id,
+            brand: 'Visa',
+            last4: '4242',
+            expiryMonth: 1 + (h % 12),
+            expiryYear: 2028 + (h % 3),
+            holderName: 'Card holder',
+            isDefault: const Value(true),
+          ),
+        );
   }
 
   /// A small starter feed for the Notifications centre, tied to the patient's
@@ -823,6 +847,7 @@ class Seeder {
       _db.staffTasks,
       _db.aiSummaries,
       _db.notifications,
+      _db.paymentMethods,
       _db.vitals,
       _db.medications,
       _db.medicalRecords,

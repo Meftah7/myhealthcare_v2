@@ -83,6 +83,20 @@ extension InvoiceRowX on InvoiceRow {
   );
 }
 
+extension PaymentMethodRowX on PaymentMethodRow {
+  PaymentMethod toEntity() => PaymentMethod(
+    id: id,
+    patientId: patientId,
+    brand: brand,
+    last4: last4,
+    expiryMonth: expiryMonth,
+    expiryYear: expiryYear,
+    holderName: holderName,
+    addedAt: addedAt,
+    isDefault: isDefault,
+  );
+}
+
 extension NotificationRowX on NotificationRow {
   AppNotification toEntity() => AppNotification(
     id: id,

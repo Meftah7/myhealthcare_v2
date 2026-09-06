@@ -133,6 +133,104 @@ class BillingRepositoryImpl implements BillingRepository {
     });
   }
 
+  @override
+  Future<Result<List<PaymentMethod>>> cardsFor(String patientId) {
+    return Result.guardAsync(() async {
+      final rows =
+          await (_db.select(_db.paymentMethods)
+                ..where((c) => c.patientId.equals(patientId))
+                ..orderBy([
+                  (c) => OrderingTerm.desc(c.isDefault),
+                  (c) => OrderingTerm.desc(c.addedAt),
+                ]))
+              .get();
+      return rows.map((r) => r.toEntity()).toList();
+    });
+  }
+
+  @override
+  Future<Result<PaymentMethod>> addCard({
+    required String patientId,
+    required CardPayment card,
+  }) {
+    return Result.guardAsync(() async {
+      _validateCard(card);
+      final existing = await (_db.select(
+        _db.paymentMethods,
+      )..where((c) => c.patientId.equals(patientId))).get();
+
+      // Don't save the same card twice.
+      if (existing.any(
+        (c) =>
+            c.last4 == card.last4 &&
+            c.expiryMonth == card.expiryMonth &&
+            c.expiryYear == card.expiryYear,
+      )) {
+        throw const ValidationFailure('That card is already saved.');
+      }
+
+      final id = newId('card');
+      await _db
+          .into(_db.paymentMethods)
+          .insert(
+            PaymentMethodsCompanion.insert(
+              id: id,
+              patientId: patientId,
+              brand: card.brand,
+              last4: card.last4,
+              expiryMonth: card.expiryMonth,
+              expiryYear: card.expiryYear,
+              holderName: card.cardHolder.trim(),
+              isDefault: Value(existing.isEmpty),
+            ),
+          );
+      final row = await (_db.select(
+        _db.paymentMethods,
+      )..where((c) => c.id.equals(id))).getSingle();
+      return row.toEntity();
+    });
+  }
+
+  @override
+  Future<Result<void>> removeCard({
+    required String id,
+    required String patientId,
+  }) {
+    return Result.guardAsync(() async {
+      await (_db.delete(_db.paymentMethods)..where(
+            (c) => c.id.equals(id) & c.patientId.equals(patientId),
+          ))
+          .go();
+      // If we removed the default, promote the newest remaining card.
+      final left =
+          await (_db.select(_db.paymentMethods)
+                ..where((c) => c.patientId.equals(patientId))
+                ..orderBy([(c) => OrderingTerm.desc(c.addedAt)]))
+              .get();
+      if (left.isNotEmpty && !left.any((c) => c.isDefault)) {
+        await (_db.update(_db.paymentMethods)
+              ..where((c) => c.id.equals(left.first.id)))
+            .write(const PaymentMethodsCompanion(isDefault: Value(true)));
+      }
+    });
+  }
+
+  @override
+  Future<Result<void>> setDefaultCard({
+    required String id,
+    required String patientId,
+  }) {
+    return Result.guardAsync(() async {
+      await (_db.update(_db.paymentMethods)
+            ..where((c) => c.patientId.equals(patientId)))
+          .write(const PaymentMethodsCompanion(isDefault: Value(false)));
+      await (_db.update(_db.paymentMethods)..where(
+            (c) => c.id.equals(id) & c.patientId.equals(patientId),
+          ))
+          .write(const PaymentMethodsCompanion(isDefault: Value(true)));
+    });
+  }
+
   void _validateCard(CardPayment p) {
     if (p.cardHolder.trim().isEmpty) {
       throw const ValidationFailure('Enter the name on the card.');

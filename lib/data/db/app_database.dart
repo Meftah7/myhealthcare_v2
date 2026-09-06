@@ -41,6 +41,7 @@ part 'app_database.g.dart';
     RiskFlags,
     // billing
     Invoices,
+    PaymentMethods,
     // engagement
     Notifications,
     // system
@@ -70,7 +71,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -100,6 +101,10 @@ class AppDatabase extends _$AppDatabase {
       if (from < 6) {
         // Notifications centre.
         await m.createTable(notifications);
+      }
+      if (from < 7) {
+        // Wallet: saved cards.
+        await m.createTable(paymentMethods);
       }
     },
     beforeOpen: (details) async {

@@ -12,6 +12,7 @@ export 'medical_record.dart';
 export 'medication.dart';
 export 'notification.dart';
 export 'patient.dart';
+export 'payment_method.dart';
 export 'risk_flag.dart';
 export 'staff.dart';
 export 'staff_task.dart';

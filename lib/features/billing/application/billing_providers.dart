@@ -40,9 +40,55 @@ final billingSummaryProvider = Provider<AsyncValue<BillingSummary>>((ref) {
       );
 });
 
+/// The patient's saved cards.
+final walletCardsProvider = FutureProvider<List<PaymentMethod>>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null || !user.isPatient) return const [];
+  final result = await ref.watch(billingRepositoryProvider).cardsFor(user.id);
+  return switch (result) {
+    Ok(:final value) => value,
+    Err(:final failure) => throw failure,
+  };
+});
+
 class BillingController {
   BillingController(this._ref);
   final Ref _ref;
+
+  String? get _patientId {
+    final user = _ref.read(currentUserProvider);
+    return (user != null && user.isPatient) ? user.id : null;
+  }
+
+  Future<Result<PaymentMethod>> addCard(CardPayment card) async {
+    final id = _patientId;
+    if (id == null) return const Err(AuthFailure('Sign in to save a card.'));
+    final result = await _ref
+        .read(billingRepositoryProvider)
+        .addCard(patientId: id, card: card);
+    if (result case Ok()) _ref.invalidate(walletCardsProvider);
+    return result;
+  }
+
+  Future<Result<void>> removeCard(String cardId) async {
+    final id = _patientId;
+    if (id == null) return const Err(AuthFailure('Sign in first.'));
+    final result = await _ref
+        .read(billingRepositoryProvider)
+        .removeCard(id: cardId, patientId: id);
+    if (result case Ok()) _ref.invalidate(walletCardsProvider);
+    return result;
+  }
+
+  Future<Result<void>> setDefaultCard(String cardId) async {
+    final id = _patientId;
+    if (id == null) return const Err(AuthFailure('Sign in first.'));
+    final result = await _ref
+        .read(billingRepositoryProvider)
+        .setDefaultCard(id: cardId, patientId: id);
+    if (result case Ok()) _ref.invalidate(walletCardsProvider);
+    return result;
+  }
 
   /// Settles [invoiceId] for the signed-in patient. Scoped to their own id, so
   /// a tampered invoice id cannot pay (or reveal) someone else's bill.

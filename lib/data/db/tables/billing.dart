@@ -7,6 +7,25 @@ import '../../../domain/enums.dart';
 import 'appointments.dart';
 import 'users.dart';
 
+/// A card the patient has saved to their wallet. Only a masked descriptor is
+/// ever stored — never the full PAN or CVC.
+@DataClassName('PaymentMethodRow')
+class PaymentMethods extends Table {
+  TextColumn get id => text()();
+  TextColumn get patientId =>
+      text().references(Users, #id, onDelete: KeyAction.cascade)();
+  TextColumn get brand => text()();
+  TextColumn get last4 => text().withLength(min: 4, max: 4)();
+  IntColumn get expiryMonth => integer()();
+  IntColumn get expiryYear => integer()();
+  TextColumn get holderName => text()();
+  DateTimeColumn get addedAt => dateTime().withDefault(currentDateAndTime)();
+  BoolColumn get isDefault => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 @DataClassName('InvoiceRow')
 class Invoices extends Table {
   TextColumn get id => text()();

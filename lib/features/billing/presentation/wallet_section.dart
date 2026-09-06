@@ -1,0 +1,477 @@
+/// Wallet — the patient's saved cards, what they owe now, and past payments.
+/// Rendered bare inside a profile ExpandableSection.
+library;
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../app/theme/theme.dart';
+import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/confirm_dialog.dart';
+import '../../../core/presentation/states.dart';
+import '../../../core/result.dart';
+import '../../../core/utils/format.dart';
+import '../../../domain/entities/entities.dart';
+import '../../../domain/enums.dart';
+import '../../../domain/repositories/billing_repository.dart';
+import '../application/billing_providers.dart';
+import 'billing_screen.dart' show money;
+import 'pay_invoice_sheet.dart';
+
+class WalletSection extends ConsumerWidget {
+  const WalletSection({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final invoices = ref.watch(patientInvoicesProvider);
+    final cards = ref.watch(walletCardsProvider);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // --- Outstanding ---
+        invoices.when(
+          loading: () => const LoadingSkeleton(height: 60),
+          error: (e, _) =>
+              const InlineBanner.error('Could not load your bills.'),
+          data: (list) {
+            final open = list.where((i) => i.isOutstanding).toList()
+              ..sort((a, b) {
+                final ad = a.dueDate;
+                final bd = b.dueDate;
+                if (ad == null || bd == null) return 0;
+                return ad.compareTo(bd);
+              });
+            final owed = open.fold(0.0, (s, i) => s + i.totalAmount);
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _Label(open.isEmpty ? 'No bill due' : 'Current bill'),
+                if (open.isEmpty)
+                  Text(
+                    "You're all settled.",
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  )
+                else ...[
+                  Text(
+                    money(owed),
+                    style: theme.textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: Space.xs),
+                  for (final inv in open)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: Space.xs),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              '${inv.notes ?? 'Invoice'} · ${money(inv.totalAmount)}'
+                              '${inv.isOverdue ? ' · overdue' : ''}',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: inv.isOverdue
+                                    ? theme.clinicalStatus.riskHigh.onContainer
+                                    : theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () => showPayInvoiceSheet(context, inv),
+                            child: const Text('Pay'),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ],
+            );
+          },
+        ),
+
+        const SizedBox(height: Space.md),
+        const Divider(height: 1),
+        const SizedBox(height: Space.md),
+
+        // --- Saved cards ---
+        Row(
+          children: [
+            const Expanded(child: _Label('Saved cards')),
+            TextButton.icon(
+              onPressed: () => _addCard(context, ref),
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Add card'),
+            ),
+          ],
+        ),
+        cards.when(
+          loading: () => const LoadingSkeleton(height: 48),
+          error: (e, _) => const InlineBanner.error('Could not load cards.'),
+          data: (list) {
+            if (list.isEmpty) {
+              return Text(
+                'No cards saved yet.',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              );
+            }
+            return Column(
+              children: [for (final c in list) _CardTile(card: c)],
+            );
+          },
+        ),
+
+        const SizedBox(height: Space.md),
+        const Divider(height: 1),
+        const SizedBox(height: Space.md),
+
+        // --- History ---
+        const _Label('Transaction history'),
+        invoices.when(
+          loading: () => const LoadingSkeleton(height: 48),
+          error: (e, _) => const SizedBox.shrink(),
+          data: (list) {
+            final paid = list.where((i) => i.status == InvoiceStatus.paid).toList()
+              ..sort((a, b) {
+                final ap = a.paidAt ?? a.issuedAt;
+                final bp = b.paidAt ?? b.issuedAt;
+                return bp.compareTo(ap);
+              });
+            if (paid.isEmpty) {
+              return Text(
+                'No payments yet.',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              );
+            }
+            return Column(
+              children: [
+                for (final inv in paid.take(12))
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: Space.xxs),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.check_circle_outline,
+                          size: 16,
+                          color: theme.clinicalStatus.riskLow.onContainer,
+                        ),
+                        const SizedBox(width: Space.xs),
+                        Expanded(
+                          child: Text(
+                            fmtDate(inv.paidAt ?? inv.issuedAt),
+                            style: theme.textTheme.bodySmall,
+                          ),
+                        ),
+                        if (inv.paymentMethod != null)
+                          Text(
+                            inv.paymentMethod!,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        const SizedBox(width: Space.sm),
+                        Text(
+                          money(inv.totalAmount),
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Future<void> _addCard(BuildContext context, WidgetRef ref) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => const _AddCardSheet(),
+    );
+  }
+}
+
+class _Label extends StatelessWidget {
+  const _Label(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: Space.xs),
+      child: Text(
+        text.toUpperCase(),
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+          letterSpacing: 0.8,
+        ),
+      ),
+    );
+  }
+}
+
+class _CardTile extends ConsumerWidget {
+  const _CardTile({required this.card});
+  final PaymentMethod card;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: Space.xxs),
+      child: Row(
+        children: [
+          Icon(Icons.credit_card, size: 20, color: theme.colorScheme.primary),
+          const SizedBox(width: Space.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${card.brand} ····${card.last4}',
+                  style: theme.textTheme.bodyMedium,
+                ),
+                Text(
+                  'Expires ${card.expiry}'
+                  '${card.isExpired ? ' · expired' : ''}',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: card.isExpired
+                        ? theme.clinicalStatus.riskHigh.onContainer
+                        : theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (card.isDefault)
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: Space.xs,
+                vertical: 2,
+              ),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.secondaryContainer,
+                borderRadius: Radii.chip,
+              ),
+              child: Text(
+                'Default',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSecondaryContainer,
+                ),
+              ),
+            )
+          else
+            TextButton(
+              onPressed: () =>
+                  ref.read(billingControllerProvider).setDefaultCard(card.id),
+              child: const Text('Set default'),
+            ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            tooltip: 'Remove card',
+            onPressed: () async {
+              final ok = await confirm(
+                context,
+                title: 'Remove card?',
+                message: '${card.brand} ····${card.last4} will be removed.',
+                confirmLabel: 'Remove',
+                destructive: true,
+              );
+              if (ok) {
+                await ref
+                    .read(billingControllerProvider)
+                    .removeCard(card.id);
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AddCardSheet extends ConsumerStatefulWidget {
+  const _AddCardSheet();
+
+  @override
+  ConsumerState<_AddCardSheet> createState() => _AddCardSheetState();
+}
+
+class _AddCardSheetState extends ConsumerState<_AddCardSheet> {
+  final _formKey = GlobalKey<FormState>();
+  final _number = TextEditingController();
+  final _holder = TextEditingController();
+  final _expiry = TextEditingController();
+  final _cvc = TextEditingController();
+  bool _busy = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _number.dispose();
+    _holder.dispose();
+    _expiry.dispose();
+    _cvc.dispose();
+    super.dispose();
+  }
+
+  static (int, int)? _parseExpiry(String raw) {
+    final d = raw.replaceAll(RegExp(r'\D'), '');
+    if (d.length != 4) return null;
+    final m = int.tryParse(d.substring(0, 2));
+    final y = int.tryParse(d.substring(2));
+    if (m == null || y == null || m < 1 || m > 12) return null;
+    return (m, 2000 + y);
+  }
+
+  Future<void> _save() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    final exp = _parseExpiry(_expiry.text);
+    if (exp == null) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    final result = await ref.read(billingControllerProvider).addCard(
+          CardPayment(
+            cardNumber: _number.text,
+            cardHolder: _holder.text.trim(),
+            expiryMonth: exp.$1,
+            expiryYear: exp.$2,
+            cvc: _cvc.text,
+          ),
+        );
+    if (!mounted) return;
+    switch (result) {
+      case Ok():
+        Navigator.of(context).pop();
+      case Err(:final failure):
+        setState(() {
+          _busy = false;
+          _error = failure.message;
+        });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final insets = MediaQuery.viewInsetsOf(context).bottom;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(Space.lg, 0, Space.lg, Space.lg + insets),
+      child: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('Add a card', style: theme.textTheme.titleLarge),
+              const SizedBox(height: Space.lg),
+              TextFormField(
+                controller: _holder,
+                textCapitalization: TextCapitalization.words,
+                decoration: const InputDecoration(labelText: 'Name on card'),
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? 'Enter the name on the card'
+                    : null,
+              ),
+              const SizedBox(height: Space.sm),
+              TextFormField(
+                controller: _number,
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(19),
+                ],
+                decoration: const InputDecoration(
+                  labelText: 'Card number',
+                  hintText: '4242 4242 4242 4242',
+                ),
+                validator: (v) {
+                  final d = (v ?? '').replaceAll(RegExp(r'\D'), '');
+                  return d.length < 12 ? 'Enter a full card number' : null;
+                },
+              ),
+              const SizedBox(height: Space.sm),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _expiry,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9/]')),
+                        LengthLimitingTextInputFormatter(5),
+                      ],
+                      decoration: const InputDecoration(
+                        labelText: 'Expiry',
+                        hintText: 'MM/YY',
+                      ),
+                      validator: (v) =>
+                          _parseExpiry(v ?? '') == null ? 'MM/YY' : null,
+                    ),
+                  ),
+                  const SizedBox(width: Space.sm),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _cvc,
+                      keyboardType: TextInputType.number,
+                      obscureText: true,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(4),
+                      ],
+                      decoration: const InputDecoration(labelText: 'CVC'),
+                      validator: (v) => RegExp(r'^\d{3,4}$').hasMatch(v ?? '')
+                          ? null
+                          : '3–4 digits',
+                    ),
+                  ),
+                ],
+              ),
+              if (_error != null) ...[
+                const SizedBox(height: Space.sm),
+                Text(
+                  _error!,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
+                ),
+              ],
+              const SizedBox(height: Space.sm),
+              Text(
+                'Only the last 4 digits and expiry are saved — never the full '
+                'number or CVC.',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: Space.md),
+              FilledButton(
+                onPressed: _busy ? null : _save,
+                child: _busy
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Save card'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

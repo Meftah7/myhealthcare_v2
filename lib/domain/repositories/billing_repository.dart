@@ -27,10 +27,21 @@ class CardPayment {
   /// Digits only, for validation and masking.
   String get digits => cardNumber.replaceAll(RegExp(r'\D'), '');
 
-  String get maskedDescriptor {
+  String get last4 {
     final d = digits;
-    final last4 = d.length >= 4 ? d.substring(d.length - 4) : d;
-    return 'Card ····$last4';
+    return d.length >= 4 ? d.substring(d.length - 4) : d;
+  }
+
+  String get maskedDescriptor => 'Card ····$last4';
+
+  /// Best-effort network from the leading digits.
+  String get brand {
+    final d = digits;
+    if (d.startsWith('4')) return 'Visa';
+    if (RegExp(r'^(5[1-5]|2[2-7])').hasMatch(d)) return 'Mastercard';
+    if (RegExp(r'^3[47]').hasMatch(d)) return 'Amex';
+    if (d.startsWith('6')) return 'Discover';
+    return 'Card';
   }
 }
 
@@ -71,4 +82,25 @@ abstract interface class BillingRepository {
 
   /// Raises a new bill (admin/staff side).
   Future<Result<Invoice>> issue(NewInvoice invoice);
+
+  // --- wallet: saved cards ------------------------------------------------
+
+  Future<Result<List<PaymentMethod>>> cardsFor(String patientId);
+
+  /// Saves [card] to [patientId]'s wallet (masked descriptor only). The first
+  /// card added becomes the default.
+  Future<Result<PaymentMethod>> addCard({
+    required String patientId,
+    required CardPayment card,
+  });
+
+  Future<Result<void>> removeCard({
+    required String id,
+    required String patientId,
+  });
+
+  Future<Result<void>> setDefaultCard({
+    required String id,
+    required String patientId,
+  });
 }

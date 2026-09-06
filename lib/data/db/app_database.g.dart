@@ -8990,6 +8990,578 @@ class InvoicesCompanion extends UpdateCompanion<InvoiceRow> {
   }
 }
 
+class $PaymentMethodsTable extends PaymentMethods
+    with TableInfo<$PaymentMethodsTable, PaymentMethodRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PaymentMethodsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _patientIdMeta = const VerificationMeta(
+    'patientId',
+  );
+  @override
+  late final GeneratedColumn<String> patientId = GeneratedColumn<String>(
+    'patient_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _brandMeta = const VerificationMeta('brand');
+  @override
+  late final GeneratedColumn<String> brand = GeneratedColumn<String>(
+    'brand',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _last4Meta = const VerificationMeta('last4');
+  @override
+  late final GeneratedColumn<String> last4 = GeneratedColumn<String>(
+    'last4',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 4,
+      maxTextLength: 4,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _expiryMonthMeta = const VerificationMeta(
+    'expiryMonth',
+  );
+  @override
+  late final GeneratedColumn<int> expiryMonth = GeneratedColumn<int>(
+    'expiry_month',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _expiryYearMeta = const VerificationMeta(
+    'expiryYear',
+  );
+  @override
+  late final GeneratedColumn<int> expiryYear = GeneratedColumn<int>(
+    'expiry_year',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _holderNameMeta = const VerificationMeta(
+    'holderName',
+  );
+  @override
+  late final GeneratedColumn<String> holderName = GeneratedColumn<String>(
+    'holder_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _addedAtMeta = const VerificationMeta(
+    'addedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> addedAt = GeneratedColumn<DateTime>(
+    'added_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _isDefaultMeta = const VerificationMeta(
+    'isDefault',
+  );
+  @override
+  late final GeneratedColumn<bool> isDefault = GeneratedColumn<bool>(
+    'is_default',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_default" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    patientId,
+    brand,
+    last4,
+    expiryMonth,
+    expiryYear,
+    holderName,
+    addedAt,
+    isDefault,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'payment_methods';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PaymentMethodRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('patient_id')) {
+      context.handle(
+        _patientIdMeta,
+        patientId.isAcceptableOrUnknown(data['patient_id']!, _patientIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_patientIdMeta);
+    }
+    if (data.containsKey('brand')) {
+      context.handle(
+        _brandMeta,
+        brand.isAcceptableOrUnknown(data['brand']!, _brandMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_brandMeta);
+    }
+    if (data.containsKey('last4')) {
+      context.handle(
+        _last4Meta,
+        last4.isAcceptableOrUnknown(data['last4']!, _last4Meta),
+      );
+    } else if (isInserting) {
+      context.missing(_last4Meta);
+    }
+    if (data.containsKey('expiry_month')) {
+      context.handle(
+        _expiryMonthMeta,
+        expiryMonth.isAcceptableOrUnknown(
+          data['expiry_month']!,
+          _expiryMonthMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_expiryMonthMeta);
+    }
+    if (data.containsKey('expiry_year')) {
+      context.handle(
+        _expiryYearMeta,
+        expiryYear.isAcceptableOrUnknown(data['expiry_year']!, _expiryYearMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_expiryYearMeta);
+    }
+    if (data.containsKey('holder_name')) {
+      context.handle(
+        _holderNameMeta,
+        holderName.isAcceptableOrUnknown(data['holder_name']!, _holderNameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_holderNameMeta);
+    }
+    if (data.containsKey('added_at')) {
+      context.handle(
+        _addedAtMeta,
+        addedAt.isAcceptableOrUnknown(data['added_at']!, _addedAtMeta),
+      );
+    }
+    if (data.containsKey('is_default')) {
+      context.handle(
+        _isDefaultMeta,
+        isDefault.isAcceptableOrUnknown(data['is_default']!, _isDefaultMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PaymentMethodRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PaymentMethodRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      patientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}patient_id'],
+      )!,
+      brand: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}brand'],
+      )!,
+      last4: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last4'],
+      )!,
+      expiryMonth: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}expiry_month'],
+      )!,
+      expiryYear: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}expiry_year'],
+      )!,
+      holderName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}holder_name'],
+      )!,
+      addedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}added_at'],
+      )!,
+      isDefault: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_default'],
+      )!,
+    );
+  }
+
+  @override
+  $PaymentMethodsTable createAlias(String alias) {
+    return $PaymentMethodsTable(attachedDatabase, alias);
+  }
+}
+
+class PaymentMethodRow extends DataClass
+    implements Insertable<PaymentMethodRow> {
+  final String id;
+  final String patientId;
+  final String brand;
+  final String last4;
+  final int expiryMonth;
+  final int expiryYear;
+  final String holderName;
+  final DateTime addedAt;
+  final bool isDefault;
+  const PaymentMethodRow({
+    required this.id,
+    required this.patientId,
+    required this.brand,
+    required this.last4,
+    required this.expiryMonth,
+    required this.expiryYear,
+    required this.holderName,
+    required this.addedAt,
+    required this.isDefault,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['patient_id'] = Variable<String>(patientId);
+    map['brand'] = Variable<String>(brand);
+    map['last4'] = Variable<String>(last4);
+    map['expiry_month'] = Variable<int>(expiryMonth);
+    map['expiry_year'] = Variable<int>(expiryYear);
+    map['holder_name'] = Variable<String>(holderName);
+    map['added_at'] = Variable<DateTime>(addedAt);
+    map['is_default'] = Variable<bool>(isDefault);
+    return map;
+  }
+
+  PaymentMethodsCompanion toCompanion(bool nullToAbsent) {
+    return PaymentMethodsCompanion(
+      id: Value(id),
+      patientId: Value(patientId),
+      brand: Value(brand),
+      last4: Value(last4),
+      expiryMonth: Value(expiryMonth),
+      expiryYear: Value(expiryYear),
+      holderName: Value(holderName),
+      addedAt: Value(addedAt),
+      isDefault: Value(isDefault),
+    );
+  }
+
+  factory PaymentMethodRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PaymentMethodRow(
+      id: serializer.fromJson<String>(json['id']),
+      patientId: serializer.fromJson<String>(json['patientId']),
+      brand: serializer.fromJson<String>(json['brand']),
+      last4: serializer.fromJson<String>(json['last4']),
+      expiryMonth: serializer.fromJson<int>(json['expiryMonth']),
+      expiryYear: serializer.fromJson<int>(json['expiryYear']),
+      holderName: serializer.fromJson<String>(json['holderName']),
+      addedAt: serializer.fromJson<DateTime>(json['addedAt']),
+      isDefault: serializer.fromJson<bool>(json['isDefault']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'patientId': serializer.toJson<String>(patientId),
+      'brand': serializer.toJson<String>(brand),
+      'last4': serializer.toJson<String>(last4),
+      'expiryMonth': serializer.toJson<int>(expiryMonth),
+      'expiryYear': serializer.toJson<int>(expiryYear),
+      'holderName': serializer.toJson<String>(holderName),
+      'addedAt': serializer.toJson<DateTime>(addedAt),
+      'isDefault': serializer.toJson<bool>(isDefault),
+    };
+  }
+
+  PaymentMethodRow copyWith({
+    String? id,
+    String? patientId,
+    String? brand,
+    String? last4,
+    int? expiryMonth,
+    int? expiryYear,
+    String? holderName,
+    DateTime? addedAt,
+    bool? isDefault,
+  }) => PaymentMethodRow(
+    id: id ?? this.id,
+    patientId: patientId ?? this.patientId,
+    brand: brand ?? this.brand,
+    last4: last4 ?? this.last4,
+    expiryMonth: expiryMonth ?? this.expiryMonth,
+    expiryYear: expiryYear ?? this.expiryYear,
+    holderName: holderName ?? this.holderName,
+    addedAt: addedAt ?? this.addedAt,
+    isDefault: isDefault ?? this.isDefault,
+  );
+  PaymentMethodRow copyWithCompanion(PaymentMethodsCompanion data) {
+    return PaymentMethodRow(
+      id: data.id.present ? data.id.value : this.id,
+      patientId: data.patientId.present ? data.patientId.value : this.patientId,
+      brand: data.brand.present ? data.brand.value : this.brand,
+      last4: data.last4.present ? data.last4.value : this.last4,
+      expiryMonth: data.expiryMonth.present
+          ? data.expiryMonth.value
+          : this.expiryMonth,
+      expiryYear: data.expiryYear.present
+          ? data.expiryYear.value
+          : this.expiryYear,
+      holderName: data.holderName.present
+          ? data.holderName.value
+          : this.holderName,
+      addedAt: data.addedAt.present ? data.addedAt.value : this.addedAt,
+      isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PaymentMethodRow(')
+          ..write('id: $id, ')
+          ..write('patientId: $patientId, ')
+          ..write('brand: $brand, ')
+          ..write('last4: $last4, ')
+          ..write('expiryMonth: $expiryMonth, ')
+          ..write('expiryYear: $expiryYear, ')
+          ..write('holderName: $holderName, ')
+          ..write('addedAt: $addedAt, ')
+          ..write('isDefault: $isDefault')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    patientId,
+    brand,
+    last4,
+    expiryMonth,
+    expiryYear,
+    holderName,
+    addedAt,
+    isDefault,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PaymentMethodRow &&
+          other.id == this.id &&
+          other.patientId == this.patientId &&
+          other.brand == this.brand &&
+          other.last4 == this.last4 &&
+          other.expiryMonth == this.expiryMonth &&
+          other.expiryYear == this.expiryYear &&
+          other.holderName == this.holderName &&
+          other.addedAt == this.addedAt &&
+          other.isDefault == this.isDefault);
+}
+
+class PaymentMethodsCompanion extends UpdateCompanion<PaymentMethodRow> {
+  final Value<String> id;
+  final Value<String> patientId;
+  final Value<String> brand;
+  final Value<String> last4;
+  final Value<int> expiryMonth;
+  final Value<int> expiryYear;
+  final Value<String> holderName;
+  final Value<DateTime> addedAt;
+  final Value<bool> isDefault;
+  final Value<int> rowid;
+  const PaymentMethodsCompanion({
+    this.id = const Value.absent(),
+    this.patientId = const Value.absent(),
+    this.brand = const Value.absent(),
+    this.last4 = const Value.absent(),
+    this.expiryMonth = const Value.absent(),
+    this.expiryYear = const Value.absent(),
+    this.holderName = const Value.absent(),
+    this.addedAt = const Value.absent(),
+    this.isDefault = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PaymentMethodsCompanion.insert({
+    required String id,
+    required String patientId,
+    required String brand,
+    required String last4,
+    required int expiryMonth,
+    required int expiryYear,
+    required String holderName,
+    this.addedAt = const Value.absent(),
+    this.isDefault = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       patientId = Value(patientId),
+       brand = Value(brand),
+       last4 = Value(last4),
+       expiryMonth = Value(expiryMonth),
+       expiryYear = Value(expiryYear),
+       holderName = Value(holderName);
+  static Insertable<PaymentMethodRow> custom({
+    Expression<String>? id,
+    Expression<String>? patientId,
+    Expression<String>? brand,
+    Expression<String>? last4,
+    Expression<int>? expiryMonth,
+    Expression<int>? expiryYear,
+    Expression<String>? holderName,
+    Expression<DateTime>? addedAt,
+    Expression<bool>? isDefault,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (patientId != null) 'patient_id': patientId,
+      if (brand != null) 'brand': brand,
+      if (last4 != null) 'last4': last4,
+      if (expiryMonth != null) 'expiry_month': expiryMonth,
+      if (expiryYear != null) 'expiry_year': expiryYear,
+      if (holderName != null) 'holder_name': holderName,
+      if (addedAt != null) 'added_at': addedAt,
+      if (isDefault != null) 'is_default': isDefault,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PaymentMethodsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? patientId,
+    Value<String>? brand,
+    Value<String>? last4,
+    Value<int>? expiryMonth,
+    Value<int>? expiryYear,
+    Value<String>? holderName,
+    Value<DateTime>? addedAt,
+    Value<bool>? isDefault,
+    Value<int>? rowid,
+  }) {
+    return PaymentMethodsCompanion(
+      id: id ?? this.id,
+      patientId: patientId ?? this.patientId,
+      brand: brand ?? this.brand,
+      last4: last4 ?? this.last4,
+      expiryMonth: expiryMonth ?? this.expiryMonth,
+      expiryYear: expiryYear ?? this.expiryYear,
+      holderName: holderName ?? this.holderName,
+      addedAt: addedAt ?? this.addedAt,
+      isDefault: isDefault ?? this.isDefault,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (patientId.present) {
+      map['patient_id'] = Variable<String>(patientId.value);
+    }
+    if (brand.present) {
+      map['brand'] = Variable<String>(brand.value);
+    }
+    if (last4.present) {
+      map['last4'] = Variable<String>(last4.value);
+    }
+    if (expiryMonth.present) {
+      map['expiry_month'] = Variable<int>(expiryMonth.value);
+    }
+    if (expiryYear.present) {
+      map['expiry_year'] = Variable<int>(expiryYear.value);
+    }
+    if (holderName.present) {
+      map['holder_name'] = Variable<String>(holderName.value);
+    }
+    if (addedAt.present) {
+      map['added_at'] = Variable<DateTime>(addedAt.value);
+    }
+    if (isDefault.present) {
+      map['is_default'] = Variable<bool>(isDefault.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PaymentMethodsCompanion(')
+          ..write('id: $id, ')
+          ..write('patientId: $patientId, ')
+          ..write('brand: $brand, ')
+          ..write('last4: $last4, ')
+          ..write('expiryMonth: $expiryMonth, ')
+          ..write('expiryYear: $expiryYear, ')
+          ..write('holderName: $holderName, ')
+          ..write('addedAt: $addedAt, ')
+          ..write('isDefault: $isDefault, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $NotificationsTable extends Notifications
     with TableInfo<$NotificationsTable, NotificationRow> {
   @override
@@ -10462,6 +11034,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $StaffTasksTable staffTasks = $StaffTasksTable(this);
   late final $RiskFlagsTable riskFlags = $RiskFlagsTable(this);
   late final $InvoicesTable invoices = $InvoicesTable(this);
+  late final $PaymentMethodsTable paymentMethods = $PaymentMethodsTable(this);
   late final $NotificationsTable notifications = $NotificationsTable(this);
   late final $AuditLogTable auditLog = $AuditLogTable(this);
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
@@ -10485,6 +11058,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     staffTasks,
     riskFlags,
     invoices,
+    paymentMethods,
     notifications,
     auditLog,
     appSettings,
@@ -10588,6 +11162,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('invoices', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('payment_methods', kind: UpdateKind.delete)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(

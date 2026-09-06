@@ -69,9 +69,13 @@ void main() {
     expect(find.byType(ExpandableSection), findsWidgets);
     expect(find.text('Personal info'), findsOneWidget);
     expect(find.text('Health details'), findsOneWidget);
+    expect(find.text('Wallet'), findsOneWidget);
     expect(find.text('Preferences'), findsOneWidget);
     expect(find.text('Notification channels'), findsOneWidget);
     expect(find.text('Family network'), findsOneWidget);
+
+    // Collapsed sections show only their title — no leaked field values.
+    expect(find.widgetWithText(TextField, 'First name'), findsNothing);
 
     // Preferences starts collapsed — its body (the theme picker) is not built.
     expect(find.byType(SegmentedButton<ThemeMode>), findsNothing);
@@ -86,7 +90,9 @@ void main() {
     await _settle(tester);
     expect(find.byType(SegmentedButton<ThemeMode>), findsNothing);
 
-    // Personal info opens expanded, so its form is reachable straight away.
+    // Expand Personal info and its form is reachable.
+    await tester.tap(find.text('Personal info'));
+    await _settle(tester);
     expect(find.widgetWithText(TextField, 'First name'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox());

@@ -16,6 +16,7 @@ import '../../../core/presentation/expandable_section.dart';
 import '../../../core/presentation/states.dart';
 import '../../../domain/entities/entities.dart';
 import '../../auth/application/session.dart';
+import '../../billing/presentation/wallet_section.dart';
 import '../../settings/presentation/preferences_section.dart';
 import '../presentation/family_network_section.dart';
 import '../presentation/personal_info_section.dart';
@@ -28,8 +29,6 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final profile = ref.watch(patientProfileProvider);
-    final familyCount =
-        ref.watch(patientFamilyMembersProvider).valueOrNull?.length;
     final gutter = WindowSize.of(context).gutter;
 
     return Scaffold(
@@ -61,7 +60,6 @@ class ProfileScreen extends ConsumerWidget {
                   ExpandableSection(
                     icon: Icons.badge_outlined,
                     title: 'Personal info',
-                    initiallyExpanded: true,
                     child: PersonalInfoSection(patient: p),
                   ),
                   const SizedBox(height: Space.sm),
@@ -69,8 +67,14 @@ class ProfileScreen extends ConsumerWidget {
                   ExpandableSection(
                     icon: Icons.favorite_outline,
                     title: 'Health details',
-                    summary: p.bloodType ?? '—',
                     child: _HealthDetails(patient: p),
+                  ),
+                  const SizedBox(height: Space.sm),
+
+                  const ExpandableSection(
+                    icon: Icons.account_balance_wallet_outlined,
+                    title: 'Wallet',
+                    child: WalletSection(),
                   ),
                   const SizedBox(height: Space.sm),
 
@@ -91,11 +95,6 @@ class ProfileScreen extends ConsumerWidget {
                   ExpandableSection(
                     icon: Icons.family_restroom_outlined,
                     title: 'Family network',
-                    summary: familyCount == null
-                        ? null
-                        : familyCount == 0
-                        ? 'None'
-                        : '$familyCount linked',
                     child: FamilyNetworkSection(patient: p, embedded: true),
                   ),
 

@@ -11,14 +11,18 @@ import 'timeline_screen.dart';
 enum _RecordsView { timeline, medications }
 
 class HealthRecordsScreen extends StatefulWidget {
-  const HealthRecordsScreen({super.key});
+  const HealthRecordsScreen({this.startOnMedications = false, super.key});
+
+  final bool startOnMedications;
 
   @override
   State<HealthRecordsScreen> createState() => _HealthRecordsScreenState();
 }
 
 class _HealthRecordsScreenState extends State<HealthRecordsScreen> {
-  _RecordsView _view = _RecordsView.timeline;
+  late _RecordsView _view = widget.startOnMedications
+      ? _RecordsView.medications
+      : _RecordsView.timeline;
 
   @override
   Widget build(BuildContext context) {

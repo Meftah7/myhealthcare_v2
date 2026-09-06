@@ -24,7 +24,6 @@ import '../features/nutrition/presentation/nutrition_screen.dart';
 import '../features/patient/application/profile_screen.dart';
 import '../features/patient_chart/presentation/patient_chart_screen.dart';
 import '../features/patient_home/presentation/patient_home_screen.dart';
-import '../features/records/presentation/medications_screen.dart';
 import '../features/records/presentation/record_detail_screen.dart';
 import '../features/staff_dashboard/presentation/panel_analytics_screen.dart';
 import '../features/staff_dashboard/presentation/staff_dashboard_screen.dart';
@@ -75,7 +74,9 @@ abstract final class AppRoutes {
   static const patientBook = '/patient/appointments/book';
   static const patientSummary = '/patient/summary';
   static const patientSettings = '/patient/settings';
-  static const patientMedications = '/patient/medications';
+  /// Opens Health Records with the Medications view selected (keeps the shell
+  /// nav rail / bar visible, unlike a standalone route).
+  static const patientMedications = '/patient/timeline?view=medications';
   static const patientNutrition = '/patient/nutrition';
 
   /// Record detail — pass the record id: `'$patientTimeline/record/$id'`.
@@ -128,12 +129,6 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
         builder: (_, state) => BookingScreen(
           mode: (state.extra as BookingMode?) ?? BookingMode.schedule,
         ),
-      ),
-      // Medications is also reachable full-screen from Home; the same list
-      // lives behind the Health Records toggle.
-      GoRoute(
-        path: AppRoutes.patientMedications,
-        builder: (_, _) => const MedicationsScreen(),
       ),
       GoRoute(
         path: AppRoutes.staffAnalytics,
@@ -262,7 +257,10 @@ StatefulShellRoute _patientShell() {
         routes: [
           GoRoute(
             path: AppRoutes.patientTimeline,
-            builder: (_, _) => const HealthRecordsScreen(),
+            builder: (_, state) => HealthRecordsScreen(
+              startOnMedications:
+                  state.uri.queryParameters['view'] == 'medications',
+            ),
             routes: [
               GoRoute(
                 path: 'record/:id',
