@@ -200,9 +200,9 @@ StatefulShellRoute _patientShell() {
           label: 'Appointments',
         ),
         AppDestination(
-          icon: Icons.timeline_outlined,
-          selectedIcon: Icons.timeline,
-          label: 'Timeline',
+          icon: Icons.folder_shared_outlined,
+          selectedIcon: Icons.folder_shared,
+          label: 'Health Records',
         ),
         AppDestination(
           icon: Icons.account_circle_outlined,

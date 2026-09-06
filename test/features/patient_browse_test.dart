@@ -55,10 +55,10 @@ void main() {
     // Home greeting.
     expect(find.textContaining('Good '), findsOneWidget);
 
-    // Go to the timeline tab.
-    await tester.tap(find.text('Timeline').first);
+    // Go to the Health Records tab.
+    await tester.tap(find.text('Health Records').first);
     await _settle(tester);
-    expect(find.text('Health timeline'), findsOneWidget);
+    expect(find.widgetWithText(AppBar, 'Health Records'), findsOneWidget);
     // Seeded chronic patient has visit notes / lab panels.
     expect(
       find.byType(ListTile),

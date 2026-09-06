@@ -454,7 +454,7 @@ class Seeder {
         category: NotificationCategory.labResult,
         title: 'Lab results ready',
         body: 'Results from your ${fmtDate(lab.occurredAt)} visit are now in '
-            'your health timeline.',
+            'your health records.',
         createdAt: lab.occurredAt.add(const Duration(days: 1)),
         deepLink: '/patient/timeline',
       );

@@ -313,7 +313,13 @@ class _AmountRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [Text(label, style: style), Text(value, style: style)],
+        children: [
+          Flexible(
+            child: Text(label, style: style, overflow: TextOverflow.ellipsis),
+          ),
+          const SizedBox(width: Space.sm),
+          Text(value, style: style),
+        ],
       ),
     );
   }

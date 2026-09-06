@@ -349,8 +349,6 @@ class _QuickActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const items = [
-      (Icons.event_available_outlined, 'Book\nappointment', AppRoutes.patientBook),
-      (Icons.folder_shared_outlined, 'Health\nrecords', AppRoutes.patientTimeline),
       (Icons.favorite_outline, 'Vitals', AppRoutes.patientVitals),
       (Icons.medication_outlined, 'Medications', AppRoutes.patientMedications),
       (Icons.receipt_long_outlined, 'Billing', AppRoutes.patientBilling),
