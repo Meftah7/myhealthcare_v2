@@ -396,13 +396,17 @@ class Seeder {
               ..limit(1))
             .getSingleOrNull();
     if (nextAppt != null) {
+      final place = [
+        if (nextAppt.roomNumber != null) 'Room ${nextAppt.roomNumber}',
+        if (nextAppt.ticketTag != null) 'ticket ${nextAppt.ticketTag}',
+      ].join(', ');
       add(
         category: NotificationCategory.appointment,
         title: 'Upcoming appointment',
         body:
             'You have a visit on ${fmtDate(nextAppt.slotStart)} at '
-            '${fmtTime(nextAppt.slotStart)}. Room ${nextAppt.roomNumber ?? 'TBC'}, '
-            'ticket ${nextAppt.ticketTag ?? '—'}.',
+            '${fmtTime(nextAppt.slotStart)}.'
+            '${place.isEmpty ? '' : ' $place.'}',
         createdAt: _epoch.subtract(const Duration(hours: 20)),
         deepLink: '/patient/appointments',
       );
