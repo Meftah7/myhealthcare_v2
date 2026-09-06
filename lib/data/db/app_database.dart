@@ -12,6 +12,7 @@ import 'converters.dart';
 import 'tables/ai.dart';
 import 'tables/appointments.dart';
 import 'tables/billing.dart';
+import 'tables/notifications.dart';
 import 'tables/records.dart';
 import 'tables/system.dart';
 import 'tables/users.dart';
@@ -40,6 +41,8 @@ part 'app_database.g.dart';
     RiskFlags,
     // billing
     Invoices,
+    // engagement
+    Notifications,
     // system
     AuditLog,
     AppSettings,
@@ -67,7 +70,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -93,6 +96,10 @@ class AppDatabase extends _$AppDatabase {
       if (from < 5) {
         // Billing: patient invoices.
         await m.createTable(invoices);
+      }
+      if (from < 6) {
+        // Notifications centre.
+        await m.createTable(notifications);
       }
     },
     beforeOpen: (details) async {

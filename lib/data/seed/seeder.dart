@@ -11,6 +11,7 @@ import 'dart:math';
 
 import 'package:drift/drift.dart';
 
+import '../../core/utils/format.dart';
 import '../../domain/enums.dart';
 import '../../services/auth/password_hasher.dart';
 import '../db/app_database.dart';
@@ -46,7 +47,8 @@ class Seeder {
   /// Bump when the generation logic changes so existing DBs re-seed.
   /// v4: clinic day extended to 08:00–20:00.
   /// v5: completed visits are billed, so Billing has invoices to show.
-  static const seedVersion = 5;
+  /// v6: each patient gets a starter notification feed.
+  static const seedVersion = 6;
 
   /// Password for every seeded account (documented in the README).
   static const demoPassword = 'password';
@@ -343,7 +345,130 @@ class Seeder {
           );
     }
 
+    await _seedNotifications(p);
+
     return (appts, records);
+  }
+
+  /// A small starter feed for the Notifications centre, tied to the patient's
+  /// real seeded data: a reminder for their next appointment, a nudge for any
+  /// unpaid bill, a heads-up about their most recent lab record, and a system
+  /// welcome. The most recent one or two stay unread.
+  Future<void> _seedNotifications(_Patient p) async {
+    final out = <NotificationsCompanion>[];
+    var seq = 0;
+    void add({
+      required NotificationCategory category,
+      required String title,
+      required String body,
+      required DateTime createdAt,
+      String? deepLink,
+    }) {
+      out.add(
+        NotificationsCompanion.insert(
+          id: 'ntf_${p.id}_${seq++}',
+          recipientId: p.id,
+          category: category,
+          title: title,
+          body: body,
+          createdAt: Value(createdAt),
+          deepLink: Value(deepLink),
+        ),
+      );
+    }
+
+    add(
+      category: NotificationCategory.system,
+      title: 'Welcome to MyHealth Care',
+      body: 'Your records, appointments, vitals and bills now live in one '
+          'place. Tap any section to explore.',
+      createdAt: _historyStart.add(const Duration(days: 1)),
+    );
+
+    final nextAppt =
+        await (_db.select(_db.appointments)
+              ..where(
+                (a) =>
+                    a.patientId.equals(p.id) &
+                    a.slotStart.isBiggerThanValue(_epoch),
+              )
+              ..orderBy([(a) => OrderingTerm.asc(a.slotStart)])
+              ..limit(1))
+            .getSingleOrNull();
+    if (nextAppt != null) {
+      add(
+        category: NotificationCategory.appointment,
+        title: 'Upcoming appointment',
+        body:
+            'You have a visit on ${fmtDate(nextAppt.slotStart)} at '
+            '${fmtTime(nextAppt.slotStart)}. Room ${nextAppt.roomNumber ?? 'TBC'}, '
+            'ticket ${nextAppt.ticketTag ?? '—'}.',
+        createdAt: _epoch.subtract(const Duration(hours: 20)),
+        deepLink: '/patient/appointments',
+      );
+    }
+
+    final unpaid =
+        await (_db.select(_db.invoices)
+              ..where(
+                (i) =>
+                    i.patientId.equals(p.id) &
+                    i.status.equalsValue(InvoiceStatus.pending),
+              )
+              ..orderBy([(i) => OrderingTerm.asc(i.dueDate)])
+              ..limit(1))
+            .getSingleOrNull();
+    if (unpaid != null) {
+      final overdue =
+          unpaid.dueDate != null && unpaid.dueDate!.isBefore(_epoch);
+      add(
+        category: NotificationCategory.billing,
+        title: overdue ? 'Invoice overdue' : 'New invoice',
+        body:
+            'An invoice for BD ${unpaid.totalAmount.toStringAsFixed(2)} is '
+            '${overdue ? 'past its due date' : 'awaiting payment'}. '
+            'You can settle it in Billing.',
+        createdAt: (unpaid.dueDate ?? unpaid.issuedAt).add(
+          Duration(days: overdue ? 1 : -2),
+        ),
+        deepLink: '/patient/home/billing',
+      );
+    }
+
+    final lab =
+        await (_db.select(_db.medicalRecords)
+              ..where(
+                (r) =>
+                    r.patientId.equals(p.id) &
+                    r.recordType.equalsValue(RecordType.labResult),
+              )
+              ..orderBy([(r) => OrderingTerm.desc(r.occurredAt)])
+              ..limit(1))
+            .getSingleOrNull();
+    if (lab != null) {
+      add(
+        category: NotificationCategory.labResult,
+        title: 'Lab results ready',
+        body: 'Results from your ${fmtDate(lab.occurredAt)} visit are now in '
+            'your health timeline.',
+        createdAt: lab.occurredAt.add(const Duration(days: 1)),
+        deepLink: '/patient/timeline',
+      );
+    }
+
+    // Newest first; the two most recent stay unread, the rest are already read.
+    out.sort((a, b) => b.createdAt.value.compareTo(a.createdAt.value));
+    for (final (i, n) in out.indexed) {
+      await _db
+          .into(_db.notifications)
+          .insert(
+            n.copyWith(
+              readAt: i < 2
+                  ? const Value.absent()
+                  : Value(n.createdAt.value.add(const Duration(hours: 6))),
+            ),
+          );
+    }
   }
 
   /// Bills a completed visit. Most are already settled; the two most recent
@@ -669,6 +794,7 @@ class Seeder {
       _db.riskFlags,
       _db.staffTasks,
       _db.aiSummaries,
+      _db.notifications,
       _db.vitals,
       _db.medications,
       _db.medicalRecords,

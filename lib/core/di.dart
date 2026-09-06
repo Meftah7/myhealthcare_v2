@@ -12,6 +12,7 @@ import '../data/repositories/ai_summary_repository_impl.dart';
 import '../data/repositories/appointment_repository_impl.dart';
 import '../data/repositories/auth_repository_impl.dart';
 import '../data/repositories/billing_repository_impl.dart';
+import '../data/repositories/notification_repository_impl.dart';
 import '../data/repositories/patient_repository_impl.dart';
 import '../data/repositories/record_repository_impl.dart';
 import '../data/repositories/system_repository_impl.dart';
@@ -79,6 +80,10 @@ final appointmentRepositoryProvider = Provider<AppointmentRepository>(
 
 final billingRepositoryProvider = Provider<BillingRepository>(
   (ref) => BillingRepositoryImpl(ref.watch(appDatabaseProvider)),
+);
+
+final notificationRepositoryProvider = Provider<NotificationRepository>(
+  (ref) => NotificationRepositoryImpl(ref.watch(appDatabaseProvider)),
 );
 
 final recordRepositoryProvider = Provider<RecordRepository>(

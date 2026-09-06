@@ -39,6 +39,16 @@ String greeting(String name, {DateTime? now}) {
   return '$part, $name';
 }
 
+/// Compact "time ago" for feeds: "just now", "5m", "3h", "2d", then a date.
+String fmtTimeAgo(DateTime d, {DateTime? now}) {
+  final diff = (now ?? DateTime.now()).difference(d);
+  if (diff.inMinutes < 1) return 'just now';
+  if (diff.inMinutes < 60) return '${diff.inMinutes}m';
+  if (diff.inHours < 24) return '${diff.inHours}h';
+  if (diff.inDays < 7) return '${diff.inDays}d';
+  return _date.format(d);
+}
+
 String fmtRelativeDay(DateTime d) {
   final now = DateTime.now();
   final day = DateTime(d.year, d.month, d.day);

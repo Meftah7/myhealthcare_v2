@@ -10,6 +10,7 @@ export 'family_member.dart';
 export 'invoice.dart';
 export 'medical_record.dart';
 export 'medication.dart';
+export 'notification.dart';
 export 'patient.dart';
 export 'risk_flag.dart';
 export 'staff.dart';

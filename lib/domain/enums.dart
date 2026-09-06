@@ -70,3 +70,13 @@ enum ReminderChannel { push, inApp, sms, email }
 /// Lifecycle of a patient invoice. `overdue` is derived at read time from the
 /// due date rather than stored, so it never goes stale in the database.
 enum InvoiceStatus { pending, paid, cancelled }
+
+/// What a patient notification is about — drives its icon and accent.
+enum NotificationCategory {
+  appointment,
+  billing,
+  labResult,
+  prescription,
+  message,
+  system,
+}

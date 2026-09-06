@@ -83,6 +83,19 @@ extension InvoiceRowX on InvoiceRow {
   );
 }
 
+extension NotificationRowX on NotificationRow {
+  AppNotification toEntity() => AppNotification(
+    id: id,
+    recipientId: recipientId,
+    category: category,
+    title: title,
+    body: body,
+    createdAt: createdAt,
+    deepLink: deepLink,
+    readAt: readAt,
+  );
+}
+
 extension LabValueRowX on LabValueRow {
   LabValue toEntity() => LabValue(
     id: id,

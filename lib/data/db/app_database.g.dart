@@ -8990,6 +8990,536 @@ class InvoicesCompanion extends UpdateCompanion<InvoiceRow> {
   }
 }
 
+class $NotificationsTable extends Notifications
+    with TableInfo<$NotificationsTable, NotificationRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $NotificationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _recipientIdMeta = const VerificationMeta(
+    'recipientId',
+  );
+  @override
+  late final GeneratedColumn<String> recipientId = GeneratedColumn<String>(
+    'recipient_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE CASCADE',
+    ),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<NotificationCategory, String>
+  category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  ).withConverter<NotificationCategory>($NotificationsTable.$convertercategory);
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 200,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+    'body',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deepLinkMeta = const VerificationMeta(
+    'deepLink',
+  );
+  @override
+  late final GeneratedColumn<String> deepLink = GeneratedColumn<String>(
+    'deep_link',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _readAtMeta = const VerificationMeta('readAt');
+  @override
+  late final GeneratedColumn<DateTime> readAt = GeneratedColumn<DateTime>(
+    'read_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    recipientId,
+    category,
+    title,
+    body,
+    deepLink,
+    createdAt,
+    readAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'notifications';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<NotificationRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('recipient_id')) {
+      context.handle(
+        _recipientIdMeta,
+        recipientId.isAcceptableOrUnknown(
+          data['recipient_id']!,
+          _recipientIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_recipientIdMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('body')) {
+      context.handle(
+        _bodyMeta,
+        body.isAcceptableOrUnknown(data['body']!, _bodyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bodyMeta);
+    }
+    if (data.containsKey('deep_link')) {
+      context.handle(
+        _deepLinkMeta,
+        deepLink.isAcceptableOrUnknown(data['deep_link']!, _deepLinkMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('read_at')) {
+      context.handle(
+        _readAtMeta,
+        readAt.isAcceptableOrUnknown(data['read_at']!, _readAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  NotificationRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return NotificationRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      recipientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}recipient_id'],
+      )!,
+      category: $NotificationsTable.$convertercategory.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}category'],
+        )!,
+      ),
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      body: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}body'],
+      )!,
+      deepLink: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}deep_link'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      readAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}read_at'],
+      ),
+    );
+  }
+
+  @override
+  $NotificationsTable createAlias(String alias) {
+    return $NotificationsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<NotificationCategory, String, String>
+  $convertercategory = const EnumNameConverter<NotificationCategory>(
+    NotificationCategory.values,
+  );
+}
+
+class NotificationRow extends DataClass implements Insertable<NotificationRow> {
+  final String id;
+  final String recipientId;
+  final NotificationCategory category;
+  final String title;
+  final String body;
+
+  /// Optional in-app route to open when the notification is tapped
+  /// (e.g. `/patient/appointments`). Null = detail view only.
+  final String? deepLink;
+  final DateTime createdAt;
+
+  /// Null until the recipient opens it.
+  final DateTime? readAt;
+  const NotificationRow({
+    required this.id,
+    required this.recipientId,
+    required this.category,
+    required this.title,
+    required this.body,
+    this.deepLink,
+    required this.createdAt,
+    this.readAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['recipient_id'] = Variable<String>(recipientId);
+    {
+      map['category'] = Variable<String>(
+        $NotificationsTable.$convertercategory.toSql(category),
+      );
+    }
+    map['title'] = Variable<String>(title);
+    map['body'] = Variable<String>(body);
+    if (!nullToAbsent || deepLink != null) {
+      map['deep_link'] = Variable<String>(deepLink);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || readAt != null) {
+      map['read_at'] = Variable<DateTime>(readAt);
+    }
+    return map;
+  }
+
+  NotificationsCompanion toCompanion(bool nullToAbsent) {
+    return NotificationsCompanion(
+      id: Value(id),
+      recipientId: Value(recipientId),
+      category: Value(category),
+      title: Value(title),
+      body: Value(body),
+      deepLink: deepLink == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deepLink),
+      createdAt: Value(createdAt),
+      readAt: readAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(readAt),
+    );
+  }
+
+  factory NotificationRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return NotificationRow(
+      id: serializer.fromJson<String>(json['id']),
+      recipientId: serializer.fromJson<String>(json['recipientId']),
+      category: $NotificationsTable.$convertercategory.fromJson(
+        serializer.fromJson<String>(json['category']),
+      ),
+      title: serializer.fromJson<String>(json['title']),
+      body: serializer.fromJson<String>(json['body']),
+      deepLink: serializer.fromJson<String?>(json['deepLink']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      readAt: serializer.fromJson<DateTime?>(json['readAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'recipientId': serializer.toJson<String>(recipientId),
+      'category': serializer.toJson<String>(
+        $NotificationsTable.$convertercategory.toJson(category),
+      ),
+      'title': serializer.toJson<String>(title),
+      'body': serializer.toJson<String>(body),
+      'deepLink': serializer.toJson<String?>(deepLink),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'readAt': serializer.toJson<DateTime?>(readAt),
+    };
+  }
+
+  NotificationRow copyWith({
+    String? id,
+    String? recipientId,
+    NotificationCategory? category,
+    String? title,
+    String? body,
+    Value<String?> deepLink = const Value.absent(),
+    DateTime? createdAt,
+    Value<DateTime?> readAt = const Value.absent(),
+  }) => NotificationRow(
+    id: id ?? this.id,
+    recipientId: recipientId ?? this.recipientId,
+    category: category ?? this.category,
+    title: title ?? this.title,
+    body: body ?? this.body,
+    deepLink: deepLink.present ? deepLink.value : this.deepLink,
+    createdAt: createdAt ?? this.createdAt,
+    readAt: readAt.present ? readAt.value : this.readAt,
+  );
+  NotificationRow copyWithCompanion(NotificationsCompanion data) {
+    return NotificationRow(
+      id: data.id.present ? data.id.value : this.id,
+      recipientId: data.recipientId.present
+          ? data.recipientId.value
+          : this.recipientId,
+      category: data.category.present ? data.category.value : this.category,
+      title: data.title.present ? data.title.value : this.title,
+      body: data.body.present ? data.body.value : this.body,
+      deepLink: data.deepLink.present ? data.deepLink.value : this.deepLink,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      readAt: data.readAt.present ? data.readAt.value : this.readAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NotificationRow(')
+          ..write('id: $id, ')
+          ..write('recipientId: $recipientId, ')
+          ..write('category: $category, ')
+          ..write('title: $title, ')
+          ..write('body: $body, ')
+          ..write('deepLink: $deepLink, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('readAt: $readAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    recipientId,
+    category,
+    title,
+    body,
+    deepLink,
+    createdAt,
+    readAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is NotificationRow &&
+          other.id == this.id &&
+          other.recipientId == this.recipientId &&
+          other.category == this.category &&
+          other.title == this.title &&
+          other.body == this.body &&
+          other.deepLink == this.deepLink &&
+          other.createdAt == this.createdAt &&
+          other.readAt == this.readAt);
+}
+
+class NotificationsCompanion extends UpdateCompanion<NotificationRow> {
+  final Value<String> id;
+  final Value<String> recipientId;
+  final Value<NotificationCategory> category;
+  final Value<String> title;
+  final Value<String> body;
+  final Value<String?> deepLink;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> readAt;
+  final Value<int> rowid;
+  const NotificationsCompanion({
+    this.id = const Value.absent(),
+    this.recipientId = const Value.absent(),
+    this.category = const Value.absent(),
+    this.title = const Value.absent(),
+    this.body = const Value.absent(),
+    this.deepLink = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.readAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  NotificationsCompanion.insert({
+    required String id,
+    required String recipientId,
+    required NotificationCategory category,
+    required String title,
+    required String body,
+    this.deepLink = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.readAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       recipientId = Value(recipientId),
+       category = Value(category),
+       title = Value(title),
+       body = Value(body);
+  static Insertable<NotificationRow> custom({
+    Expression<String>? id,
+    Expression<String>? recipientId,
+    Expression<String>? category,
+    Expression<String>? title,
+    Expression<String>? body,
+    Expression<String>? deepLink,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? readAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (recipientId != null) 'recipient_id': recipientId,
+      if (category != null) 'category': category,
+      if (title != null) 'title': title,
+      if (body != null) 'body': body,
+      if (deepLink != null) 'deep_link': deepLink,
+      if (createdAt != null) 'created_at': createdAt,
+      if (readAt != null) 'read_at': readAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  NotificationsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? recipientId,
+    Value<NotificationCategory>? category,
+    Value<String>? title,
+    Value<String>? body,
+    Value<String?>? deepLink,
+    Value<DateTime>? createdAt,
+    Value<DateTime?>? readAt,
+    Value<int>? rowid,
+  }) {
+    return NotificationsCompanion(
+      id: id ?? this.id,
+      recipientId: recipientId ?? this.recipientId,
+      category: category ?? this.category,
+      title: title ?? this.title,
+      body: body ?? this.body,
+      deepLink: deepLink ?? this.deepLink,
+      createdAt: createdAt ?? this.createdAt,
+      readAt: readAt ?? this.readAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (recipientId.present) {
+      map['recipient_id'] = Variable<String>(recipientId.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(
+        $NotificationsTable.$convertercategory.toSql(category.value),
+      );
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (deepLink.present) {
+      map['deep_link'] = Variable<String>(deepLink.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (readAt.present) {
+      map['read_at'] = Variable<DateTime>(readAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NotificationsCompanion(')
+          ..write('id: $id, ')
+          ..write('recipientId: $recipientId, ')
+          ..write('category: $category, ')
+          ..write('title: $title, ')
+          ..write('body: $body, ')
+          ..write('deepLink: $deepLink, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('readAt: $readAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $AuditLogTable extends AuditLog
     with TableInfo<$AuditLogTable, AuditLogRow> {
   @override
@@ -9932,6 +10462,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $StaffTasksTable staffTasks = $StaffTasksTable(this);
   late final $RiskFlagsTable riskFlags = $RiskFlagsTable(this);
   late final $InvoicesTable invoices = $InvoicesTable(this);
+  late final $NotificationsTable notifications = $NotificationsTable(this);
   late final $AuditLogTable auditLog = $AuditLogTable(this);
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
   @override
@@ -9954,6 +10485,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     staffTasks,
     riskFlags,
     invoices,
+    notifications,
     auditLog,
     appSettings,
   ];
@@ -10056,6 +10588,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('invoices', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('notifications', kind: UpdateKind.delete)],
     ),
   ]);
 }

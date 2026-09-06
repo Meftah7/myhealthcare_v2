@@ -65,6 +65,12 @@ void main() {
     expect(find.text('Timeline'), findsWidgets);
     expect(find.text('Medications'), findsWidgets);
     expect(find.text('Appointments'), findsWidgets);
+
+    // Tear the tree down inside the test so the drift stream behind the
+    // notifications badge is cancelled (and its cleanup timer flushed) before
+    // the framework's end-of-test timer check.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
   });
 
   testWidgets('staff sign-in lands on the staff dashboard', (tester) async {
