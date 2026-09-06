@@ -60,11 +60,11 @@ void main() {
     await _pump(tester);
     await _pump(tester);
 
-    // Patient shell: bottom nav with these destinations (patient dashboard
-    // rebuild: Home, Medications, "+", Timeline, Profile).
+    // Patient shell: bottom nav with these destinations —
+    // Home, Medications, Appointments, Timeline, Profile.
     expect(find.text('Timeline'), findsWidgets);
     expect(find.text('Medications'), findsWidgets);
-    expect(find.byTooltip('Book an appointment'), findsOneWidget);
+    expect(find.text('Appointments'), findsWidgets);
   });
 
   testWidgets('staff sign-in lands on the staff dashboard', (tester) async {

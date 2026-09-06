@@ -65,7 +65,7 @@ abstract final class AppRoutes {
   // Patient
   static const patientHome = '/patient/home';
   static const patientTimeline = '/patient/timeline';
-  static const patientVitals = '/patient/vitals';
+  static const patientVitals = '/patient/home/vitals';
   static const patientAppointments = '/patient/appointments';
   static const patientBook = '/patient/appointments/book';
   static const patientSummary = '/patient/summary';
@@ -111,29 +111,17 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
         builder: (_, _) => const RegisterScreen(),
       ),
 
-      // Standalone screens pushed full-screen over a shell (DESIGN.md §6:
-      // "Detail = full-screen push" on compact). Vitals and Appointments
-      // moved here from the patient tab bar in the dashboard rebuild — the
-      // "+" tab opens booking directly, and both stay reachable from Home's
-      // Quick Actions / ticket cards.
+      // The booking wizard is a focused full-screen flow over the shell — no
+      // bottom nav while a multi-step task is in progress (DESIGN.md §6).
       GoRoute(
         path: AppRoutes.patientSummary,
         builder: (_, _) => const AiSummaryScreen(),
       ),
       GoRoute(
-        path: AppRoutes.patientVitals,
-        builder: (_, _) => const VitalsScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.patientAppointments,
-        builder: (_, _) => const AppointmentsScreen(),
-        routes: [
-          GoRoute(
-            path: 'book',
-            builder: (_, state) =>
-                BookingScreen(mode: (state.extra as BookingMode?) ?? BookingMode.schedule),
-          ),
-        ],
+        path: AppRoutes.patientBook,
+        builder: (_, state) => BookingScreen(
+          mode: (state.extra as BookingMode?) ?? BookingMode.schedule,
+        ),
       ),
       GoRoute(
         path: AppRoutes.staffAnalytics,
@@ -187,15 +175,10 @@ class _SplashScreen extends StatelessWidget {
 
 StatefulShellRoute _patientShell() {
   return StatefulShellRoute.indexedStack(
-    // Bottom nav order (patient dashboard rebuild): Home, Medications, "+"
-    // (opens the booking flow directly — not a tab), Timeline, Profile.
+    // Bottom nav order: Home, Medications, Appointments, Timeline, Profile.
+    // The bar stays visible on every patient screen (Vitals nests under Home).
     builder: (context, state, navigationShell) => AppShell(
       navigationShell: navigationShell,
-      centerAction: AppCenterAction(
-        icon: Icons.add,
-        tooltip: 'Book an appointment',
-        onPressed: () => context.push(AppRoutes.patientBook),
-      ),
       destinations: const [
         AppDestination(
           icon: Icons.home_outlined,
@@ -206,6 +189,11 @@ StatefulShellRoute _patientShell() {
           icon: Icons.medication_outlined,
           selectedIcon: Icons.medication,
           label: 'Medications',
+        ),
+        AppDestination(
+          icon: Icons.event_note_outlined,
+          selectedIcon: Icons.event_note,
+          label: 'Appointments',
         ),
         AppDestination(
           icon: Icons.timeline_outlined,
@@ -225,6 +213,12 @@ StatefulShellRoute _patientShell() {
           GoRoute(
             path: AppRoutes.patientHome,
             builder: (_, _) => const PatientHomeScreen(),
+            routes: [
+              GoRoute(
+                path: 'vitals',
+                builder: (_, _) => const VitalsScreen(),
+              ),
+            ],
           ),
         ],
       ),
@@ -233,6 +227,14 @@ StatefulShellRoute _patientShell() {
           GoRoute(
             path: AppRoutes.patientMedications,
             builder: (_, _) => const MedicationsScreen(),
+          ),
+        ],
+      ),
+      StatefulShellBranch(
+        routes: [
+          GoRoute(
+            path: AppRoutes.patientAppointments,
+            builder: (_, _) => const AppointmentsScreen(),
           ),
         ],
       ),

@@ -1,14 +1,11 @@
 /// Vitals — charts (P2-15) and recent readings. Manual self-entry was
-/// removed in the patient dashboard rebuild: the "+" routes to Appointments
-/// instead, since readings now come from a visit.
+/// removed in the patient dashboard rebuild: readings now come from a visit.
 library;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
@@ -24,14 +21,6 @@ class VitalsScreen extends ConsumerWidget {
     final vitals = ref.watch(patientVitalsProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('Vitals')),
-      // Readings come from a visit now, not manual self-entry — the "+"
-      // routes to Appointments instead of duplicating Timeline's controls
-      // (redesign v2).
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.go(AppRoutes.patientAppointments),
-        tooltip: 'Book an appointment',
-        child: const Icon(Icons.add),
-      ),
       body: vitals.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(

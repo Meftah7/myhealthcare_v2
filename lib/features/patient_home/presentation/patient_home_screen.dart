@@ -13,12 +13,12 @@ import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
-import '../../../core/presentation/success_check.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../auth/application/session.dart';
 import '../../auth/presentation/sign_out_action.dart';
+import '../../booking/application/appointment_confirmation.dart';
 import '../../patient/application/patient_data_providers.dart';
 import '../../quick_appointment/application/quick_appointment_providers.dart';
 import '../../settings/presentation/theme_mode_icon_toggle.dart';
@@ -224,13 +224,16 @@ class _QuickAppointmentAction extends ConsumerWidget {
     );
     final result = await ref.read(quickAppointmentControllerProvider).bookUrgent();
     if (!context.mounted) return;
-    Navigator.of(context).pop(); // close the loading indicator
+    // The loader sits on the root navigator — close it there, not on the shell
+    // branch's navigator (which would pop Home and leave a blank screen).
+    Navigator.of(context, rootNavigator: true).pop();
 
     switch (result) {
       case Ok():
         ref.invalidate(patientAppointmentsProvider);
-        if (!context.mounted) return;
-        await showSuccessCheck(context, message: "You're on the schedule");
+        ref
+            .read(appointmentConfirmationProvider.notifier)
+            .show("You're on the schedule");
       case Err(:final failure):
         if (!context.mounted) return;
         ScaffoldMessenger.of(

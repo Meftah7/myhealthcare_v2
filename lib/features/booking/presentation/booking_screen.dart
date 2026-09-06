@@ -13,11 +13,11 @@ import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
-import '../../../core/presentation/success_check.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/clinic_hours.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/enums.dart';
+import '../application/appointment_confirmation.dart';
 import '../application/booking_providers.dart';
 
 /// Whether the wizard skips date selection and jumps straight to today's
@@ -289,9 +289,13 @@ class _SlotList extends ConsumerWidget {
       case Ok():
         ref.read(bookingDraftProvider.notifier).state =
             const BookingRequestDraft();
-        await showSuccessCheck(context, message: 'Appointment booked');
+        // Fire the app-level checkmark, then head Home — the overlay lives above
+        // the router, so it plays over the whole transition and fades out there.
+        ref
+            .read(appointmentConfirmationProvider.notifier)
+            .show('Appointment booked');
         if (!context.mounted) return;
-        context.go(AppRoutes.patientAppointments);
+        context.go(AppRoutes.patientHome);
       case Err(:final failure):
         ScaffoldMessenger.of(
           context,

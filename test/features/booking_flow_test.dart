@@ -1,12 +1,14 @@
 // Booking wizard UI: with department/doctor/date chosen, the slot list runs
 // the full clinic day (opening → closing) with a recommended slot on top, and
-// tapping a time books it and returns to Appointments (P4-13, P4-14, P8-10).
+// tapping a time books it, plays the confirmation checkmark, and lands on Home
+// (P4-13, P4-14, P8-10).
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/app.dart';
 import 'package:myhealthcare/core/di.dart';
+import 'package:myhealthcare/core/presentation/appointment_confirmation_overlay.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:myhealthcare/features/booking/application/booking_providers.dart';
 import 'package:myhealthcare/features/booking/presentation/booking_screen.dart';
@@ -58,9 +60,10 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
     await _settle(tester);
 
-    // The "+" bottom-nav action opens booking directly (patient dashboard
-    // rebuild: Appointments is no longer its own tab).
-    await tester.tap(find.byTooltip('Book an appointment'));
+    // Open the Appointments tab, then start the scheduling wizard from it.
+    await tester.tap(find.text('Appointments').last);
+    await _settle(tester);
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Schedule'));
     await _settle(tester);
     expect(
       find.widgetWithText(AppBar, 'Schedule an appointment'),
@@ -108,12 +111,19 @@ void main() {
     await _settle(tester);
     expect(find.text('Confirm booking'), findsOneWidget);
     await tester.tap(find.widgetWithText(FilledButton, 'Book'));
+    // The confirmation checkmark plays over the transition to Home. Pump just
+    // far enough to catch it mid-animation (it clears itself after ~1.4s).
+    for (var i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 80));
+    }
+    expect(find.byType(AppointmentConfirmationOverlay), findsOneWidget);
+    expect(find.text('Appointment booked'), findsOneWidget);
+    // Let the overlay animation finish and clear itself.
     await _settle(tester);
-    // Let the checkmark success animation finish and auto-dismiss.
     await _settle(tester);
 
-    // Landed back on Appointments with the new booking.
-    expect(find.widgetWithText(AppBar, 'My appointments'), findsOneWidget);
+    // Landed on Home with the new booking.
+    expect(find.widgetWithText(AppBar, 'MyHealth Care'), findsOneWidget);
     final after =
         (await container.read(patientAppointmentsProvider.future)).length;
     expect(after, before + 1);

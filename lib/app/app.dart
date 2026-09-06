@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/presentation/appointment_confirmation_overlay.dart';
 import 'router.dart';
 import 'settings/ui_prefs.dart';
 import 'theme/theme.dart';
@@ -30,6 +31,12 @@ class MyHealthCareApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       routerConfig: ref.watch(routerProvider),
+      builder: (context, child) => Stack(
+        children: [
+          child ?? const SizedBox.shrink(),
+          const AppointmentConfirmationOverlay(),
+        ],
+      ),
     );
   }
 }

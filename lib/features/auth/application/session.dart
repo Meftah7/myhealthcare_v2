@@ -33,23 +33,10 @@ class SessionController extends Notifier<Session> {
 
   @override
   Session build() {
-    // Deferred so we never write `state` during build().
-    unawaited(Future.microtask(_restore));
-    return const Session(isRestoring: true);
-  }
-
-  Future<void> _restore() async {
-    final prefs = ref.read(sharedPreferencesProvider);
-    final id = prefs.getString(_prefsKey);
-    if (id == null) {
-      state = const Session();
-      return;
-    }
-    final result = await ref.read(userRepositoryProvider).byId(id);
-    state = Session(user: result.valueOrNull);
-    if (result.isErr) {
-      await prefs.remove(_prefsKey);
-    }
+    // The session is intentionally *not* restored on startup: every cold start
+    // must land on the Login screen (see `_guard` in `lib/app/router.dart`).
+    unawaited(ref.read(sharedPreferencesProvider).remove(_prefsKey));
+    return const Session();
   }
 
   Future<Result<User>> login({
