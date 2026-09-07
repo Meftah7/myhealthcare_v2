@@ -68,6 +68,54 @@ final localeProvider = NotifierProvider<LocaleController, Locale?>(
   LocaleController.new,
 );
 
+// --- text size ----------------------------------------------------------
+
+const _textScaleKey = 'ui.textScale';
+
+/// The five in-app text sizes. [TextScaleLevel.medium] is the default and
+/// leaves the platform's own text size untouched (multiplier 1.0); the other
+/// four scale it down or up. Applied app-wide in `app.dart`.
+enum TextScaleLevel {
+  xSmall(0.85, 'Smaller'),
+  small(0.92, 'Small'),
+  medium(1, 'Default'),
+  large(1.15, 'Large'),
+  xLarge(1.3, 'Larger');
+
+  const TextScaleLevel(this.factor, this.label);
+
+  /// Multiplier applied on top of the device's own text-scale setting.
+  final double factor;
+
+  /// Short human label for the picker.
+  final String label;
+}
+
+/// A per-device text-size preference, like [themeModeProvider]. Stored in
+/// [SharedPreferences] by [TextScaleLevel.name].
+class TextScaleController extends Notifier<TextScaleLevel> {
+  @override
+  TextScaleLevel build() {
+    final raw = ref.read(sharedPreferencesProvider).getString(_textScaleKey);
+    return TextScaleLevel.values.firstWhere(
+      (l) => l.name == raw,
+      orElse: () => TextScaleLevel.medium,
+    );
+  }
+
+  Future<void> set(TextScaleLevel level) async {
+    state = level;
+    await ref
+        .read(sharedPreferencesProvider)
+        .setString(_textScaleKey, level.name);
+  }
+}
+
+final textScaleProvider =
+    NotifierProvider<TextScaleController, TextScaleLevel>(
+      TextScaleController.new,
+    );
+
 // --- notification preferences (redesign v2 patient dashboard) -------------
 
 const _notifySmsKey = 'ui.notify.sms';

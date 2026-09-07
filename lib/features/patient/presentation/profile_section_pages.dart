@@ -113,13 +113,3 @@ class PreferencesPage extends StatelessWidget {
     child: PreferencesSection(bare: true),
   );
 }
-
-class NotificationChannelsPage extends StatelessWidget {
-  const NotificationChannelsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) => const _SectionScaffold(
-    title: 'Notification channels',
-    child: NotificationChannelsSection(),
-  );
-}

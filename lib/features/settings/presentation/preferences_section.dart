@@ -1,8 +1,10 @@
-/// Device UI preferences: theme mode + language (P8-07, redesign v2).
+/// Device UI preferences: theme mode, text size, language, and the alert
+/// channels (P8-07, redesign v2).
 ///
 /// A self-contained block for the profile screens — reads and writes
-/// [themeModeProvider] / [localeProvider], which drive `MaterialApp` in
-/// `app.dart`.
+/// [themeModeProvider] / [textScaleProvider] / [localeProvider] /
+/// [notificationPrefsProvider], which drive `MaterialApp` in `app.dart` and the
+/// reminder delivery preferences.
 library;
 
 import 'package:flutter/material.dart';
@@ -26,22 +28,14 @@ class PreferencesSection extends ConsumerWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final mode = ref.watch(themeModeProvider);
+    final textSize = ref.watch(textScaleProvider);
     final locale = ref.watch(localeProvider);
+    final notify = ref.watch(notificationPrefsProvider);
 
     final themeBlock = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            Icon(
-              Icons.brightness_6_outlined,
-              size: 20,
-              color: scheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: Space.sm),
-            Text(t.theme, style: theme.textTheme.titleSmall),
-          ],
-        ),
+        _BlockLabel(icon: Icons.brightness_6_outlined, label: t.theme),
         const SizedBox(height: Space.sm),
         SegmentedButton<ThemeMode>(
           segments: [
@@ -57,20 +51,44 @@ class PreferencesSection extends ConsumerWidget {
       ],
     );
 
+    final textSizeBlock = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const _BlockLabel(icon: Icons.format_size_outlined, label: 'Text size'),
+        const SizedBox(height: Space.xs),
+        Row(
+          children: [
+            const _FixedA(13),
+            Expanded(
+              child: Slider(
+                value: textSize.index.toDouble(),
+                max: (TextScaleLevel.values.length - 1).toDouble(),
+                divisions: TextScaleLevel.values.length - 1,
+                label: textSize.label,
+                onChanged: (v) => ref
+                    .read(textScaleProvider.notifier)
+                    .set(TextScaleLevel.values[v.round()]),
+              ),
+            ),
+            const _FixedA(24),
+          ],
+        ),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: Text(
+            '${textSize.label} — applies to text across the whole app',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      ],
+    );
+
     final languageBlock = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            Icon(
-              Icons.translate_outlined,
-              size: 20,
-              color: scheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: Space.sm),
-            Text(t.language, style: theme.textTheme.titleSmall),
-          ],
-        ),
+        _BlockLabel(icon: Icons.translate_outlined, label: t.language),
         _LanguageOption(
           label: t.languageSystem,
           selected: locale == null,
@@ -98,16 +116,45 @@ class PreferencesSection extends ConsumerWidget {
       ],
     );
 
+    final notificationsBlock = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const _BlockLabel(
+          icon: Icons.notifications_outlined,
+          label: 'Notification channels',
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('SMS'),
+          value: notify.sms,
+          onChanged: ref.read(notificationPrefsProvider.notifier).setSms,
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Email'),
+          value: notify.email,
+          onChanged: ref.read(notificationPrefsProvider.notifier).setEmail,
+        ),
+        Text(
+          'Where appointment reminders and care alerts reach you.',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: scheme.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+
     if (bare) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           themeBlock,
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: Space.md),
-            child: Divider(height: 1),
-          ),
+          const _BlockDivider(),
+          textSizeBlock,
+          const _BlockDivider(),
           languageBlock,
+          const _BlockDivider(),
+          notificationsBlock,
         ],
       );
     }
@@ -123,9 +170,72 @@ class PreferencesSection extends ConsumerWidget {
         const SizedBox(height: Space.sm),
         AppCard(
           padding: const EdgeInsets.all(Space.md),
+          child: textSizeBlock,
+        ),
+        const SizedBox(height: Space.sm),
+        AppCard(
+          padding: const EdgeInsets.all(Space.md),
           child: languageBlock,
         ),
+        const SizedBox(height: Space.sm),
+        AppCard(
+          padding: const EdgeInsets.all(Space.md),
+          child: notificationsBlock,
+        ),
       ],
+    );
+  }
+}
+
+class _BlockLabel extends StatelessWidget {
+  const _BlockLabel({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: theme.colorScheme.onSurfaceVariant),
+        const SizedBox(width: Space.sm),
+        Text(label, style: theme.textTheme.titleSmall),
+      ],
+    );
+  }
+}
+
+class _BlockDivider extends StatelessWidget {
+  const _BlockDivider();
+
+  @override
+  Widget build(BuildContext context) => const Padding(
+    padding: EdgeInsets.symmetric(vertical: Space.md),
+    child: Divider(height: 1),
+  );
+}
+
+/// A capital "A" at a fixed point size that ignores the app text-scale setting,
+/// so the slider's end markers stay put while the sample text between them
+/// changes.
+class _FixedA extends StatelessWidget {
+  const _FixedA(this.size);
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return MediaQuery.withNoTextScaling(
+      child: Text(
+        'A',
+        style: TextStyle(
+          fontSize: size,
+          color: scheme.onSurfaceVariant,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
     );
   }
 }

@@ -82,15 +82,8 @@ class ProfileScreen extends ConsumerWidget {
                   const _ProfileRow(
                     icon: Icons.tune,
                     title: 'Preferences',
-                    subtitle: 'Theme and language',
+                    subtitle: 'Theme, text size, language, alerts',
                     route: AppRoutes.patientProfilePreferences,
-                  ),
-                  const SizedBox(height: Space.xs),
-                  const _ProfileRow(
-                    icon: Icons.notifications_outlined,
-                    title: 'Notification channels',
-                    subtitle: 'Where reminders and alerts reach you',
-                    route: AppRoutes.patientProfileNotifications,
                   ),
                   const SizedBox(height: Space.xs),
                   const _ProfileRow(

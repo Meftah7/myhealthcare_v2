@@ -95,7 +95,6 @@ abstract final class AppRoutes {
   static const patientProfileHealth = '/patient/settings/health';
   static const patientProfileWallet = '/patient/settings/wallet';
   static const patientProfilePreferences = '/patient/settings/preferences';
-  static const patientProfileNotifications = '/patient/settings/notifications';
   static const patientProfileFamily = '/patient/settings/family';
   /// Opens Health Records with the Medications view selected (keeps the shell
   /// nav rail / bar visible, unlike a standalone route).
@@ -384,10 +383,6 @@ StatefulShellRoute _patientShell() {
               GoRoute(
                 path: 'preferences',
                 builder: (_, _) => const PreferencesPage(),
-              ),
-              GoRoute(
-                path: 'notifications',
-                builder: (_, _) => const NotificationChannelsPage(),
               ),
               GoRoute(
                 path: 'family',

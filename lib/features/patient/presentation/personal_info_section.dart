@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
 import '../../../core/result.dart';
@@ -264,33 +263,4 @@ class _PersonalInfoSectionState extends ConsumerState<PersonalInfoSection> {
     Gender.other => 'Other',
     Gender.undisclosed => 'Prefer not to say',
   };
-}
-
-/// The SMS / Email delivery toggles. Rendered bare for an
-/// [ExpandableSection]; the caller supplies the surrounding surface.
-class NotificationChannelsSection extends ConsumerWidget {
-  const NotificationChannelsSection({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final prefs = ref.watch(notificationPrefsProvider);
-    final notifier = ref.read(notificationPrefsProvider.notifier);
-
-    return Column(
-      children: [
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('SMS'),
-          value: prefs.sms,
-          onChanged: notifier.setSms,
-        ),
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('Email'),
-          value: prefs.email,
-          onChanged: notifier.setEmail,
-        ),
-      ],
-    );
-  }
 }

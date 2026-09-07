@@ -33,15 +33,50 @@ class MyHealthCareApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       routerConfig: ref.watch(routerProvider),
-      builder: (context, child) => SessionActivityMonitor(
-        child: Stack(
-          children: [
-            child ?? const SizedBox.shrink(),
-            const AppointmentConfirmationOverlay(),
-            const SplashOverlay(),
-          ],
-        ),
-      ),
+      builder: (context, child) {
+        final level = ref.watch(textScaleProvider);
+        final media = MediaQuery.of(context);
+        return MediaQuery(
+          data: media.copyWith(
+            textScaler: _ScaledTextScaler(media.textScaler, level.factor),
+          ),
+          child: SessionActivityMonitor(
+            child: Stack(
+              children: [
+                child ?? const SizedBox.shrink(),
+                const AppointmentConfirmationOverlay(),
+                const SplashOverlay(),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
+}
+
+/// The device's own [TextScaler] multiplied by the in-app text-size preference
+/// ([TextScaleLevel.factor]). At the default level the factor is 1.0, so the
+/// platform setting passes through unchanged.
+class _ScaledTextScaler extends TextScaler {
+  const _ScaledTextScaler(this._base, this._factor);
+
+  final TextScaler _base;
+  final double _factor;
+
+  @override
+  double scale(double fontSize) => _base.scale(fontSize) * _factor;
+
+  @override
+  // ignore: deprecated_member_use
+  double get textScaleFactor => _base.textScaleFactor * _factor;
+
+  @override
+  bool operator ==(Object other) =>
+      other is _ScaledTextScaler &&
+      other._base == _base &&
+      other._factor == _factor;
+
+  @override
+  int get hashCode => Object.hash(_base, _factor);
 }
