@@ -43,6 +43,7 @@ class AppShell extends StatelessWidget {
     required this.navigationShell,
     required this.destinations,
     this.centerAction,
+    this.overlay,
     super.key,
   });
 
@@ -52,6 +53,11 @@ class AppShell extends StatelessWidget {
   /// An extra action rendered between the destinations — e.g. patient "+"
   /// (quick booking). Never becomes the selected/active tab.
   final AppCenterAction? centerAction;
+
+  /// A widget stacked over the whole shell — e.g. the patient Care Navigator
+  /// FAB. Sits below the router's Navigator, so tooltips / text selection
+  /// work; hidden on full-screen pushes over the shell.
+  final Widget? overlay;
 
   void _go(int index) {
     navigationShell.goBranch(
@@ -63,6 +69,13 @@ class AppShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scaffold = _content(context);
+    return overlay == null
+        ? scaffold
+        : Stack(children: [scaffold, overlay!]);
+  }
+
+  Widget _content(BuildContext context) {
     final size = WindowSize.of(context);
     final current = navigationShell.currentIndex;
     final action = centerAction;

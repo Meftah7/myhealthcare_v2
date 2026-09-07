@@ -12,6 +12,7 @@ import '../features/admin/presentation/audit_log_screen.dart';
 import '../features/admin/presentation/departments_screen.dart';
 import '../features/admin/presentation/system_analytics_screen.dart';
 import '../features/admin/presentation/user_management_screen.dart';
+import '../features/ai_chat/presentation/care_navigator_overlay.dart';
 import '../features/ai_summary/presentation/ai_summary_screen.dart';
 import '../features/appointments/presentation/appointments_screen.dart';
 import '../features/auth/application/session.dart';
@@ -186,6 +187,7 @@ StatefulShellRoute _patientShell() {
     // The bar stays visible on every patient screen (Vitals nests under Home).
     builder: (context, state, navigationShell) => AppShell(
       navigationShell: navigationShell,
+      overlay: const CareNavigatorOverlay(),
       destinations: const [
         AppDestination(
           icon: Icons.home_outlined,
