@@ -103,7 +103,7 @@ class TimelineScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Health Records'),
+        title: const Text('Records'),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(112),
           child: _Filters(),

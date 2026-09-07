@@ -99,9 +99,9 @@ void main() {
     final container = await _signIn(tester);
     addTearDown(container.dispose);
 
-    await tester.tap(find.text('Health Records').first);
+    await tester.tap(find.text('Records').first);
     await _settle(tester);
-    expect(find.widgetWithText(AppBar, 'Health Records'), findsOneWidget);
+    expect(find.widgetWithText(AppBar, 'Records'), findsOneWidget);
 
     // Timeline view first: the record search bar is present.
     expect(find.byType(SearchBar), findsOneWidget);

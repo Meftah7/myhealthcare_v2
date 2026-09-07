@@ -186,9 +186,9 @@ class CareNavigator extends Notifier<CareNavigatorState> {
     }
     if (has(['record', 'result', 'lab', 'timeline', 'history', 'note',
         'imaging', 'prescription', 'medication', 'medicine', 'meds', 'drug'])) {
-      return 'Go to Health Records. The "Visit timeline" view lists your visits, '
+      return 'Go to Records. The "Timeline" view lists your visits, '
           'labs and vitals; switch to "Medications" for your current and past '
-          'prescriptions.';
+          'prescriptions, or "Bills" for your invoices.';
     }
     if (has(['bill', 'invoice', 'pay', 'payment', 'card', 'wallet',
         'outstanding', 'owe', 'transaction'])) {
@@ -217,7 +217,7 @@ class CareNavigator extends Notifier<CareNavigatorState> {
           'Appointments tab so a doctor can help you properly. If it feels '
           "urgent, don't wait — contact emergency services.";
     }
-    return 'I can point you to Appointments, Health Records, Nutrition, Billing '
+    return 'I can point you to Appointments, Records, Nutrition, Billing '
         '& Wallet, Notifications or your Profile. Which would you like?';
   }
 }

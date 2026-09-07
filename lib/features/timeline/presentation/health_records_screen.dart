@@ -30,7 +30,7 @@ class _HealthRecordsScreenState extends State<HealthRecordsScreen> {
     final gutter = WindowSize.of(context).gutter;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Health Records')),
+      appBar: AppBar(title: const Text('Records')),
       body: Column(
         children: [
           Padding(

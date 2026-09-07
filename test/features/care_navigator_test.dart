@@ -71,7 +71,7 @@ void main() {
     test('navigation questions route to the right area', () async {
       expect(await ask('how do I book an appointment?'),
           contains('Appointments'));
-      expect(await ask('where are my lab results?'), contains('Health Records'));
+      expect(await ask('where are my lab results?'), contains('Records'));
       expect(await ask('I want to pay my bill'), contains('Wallet'));
       expect(await ask('help me with my calories'), contains('Nutrition'));
       expect(await ask('change my password'), contains('Profile'));

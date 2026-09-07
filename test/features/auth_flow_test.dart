@@ -61,8 +61,8 @@ void main() {
     await _pump(tester);
 
     // Patient shell: bottom nav with these destinations —
-    // Home, Nutrition, Appointments, Health Records, Profile.
-    expect(find.text('Health Records'), findsWidgets);
+    // Home, Nutrition, Appointments, Records, Profile.
+    expect(find.text('Records'), findsWidgets);
     expect(find.text('Nutrition'), findsWidgets);
     expect(find.text('Appointments'), findsWidgets);
 

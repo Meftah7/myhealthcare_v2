@@ -207,7 +207,7 @@ StatefulShellRoute _patientShell() {
         AppDestination(
           icon: Icons.folder_shared_outlined,
           selectedIcon: Icons.folder_shared,
-          label: 'Health Records',
+          label: 'Records',
         ),
         AppDestination(
           icon: Icons.account_circle_outlined,
