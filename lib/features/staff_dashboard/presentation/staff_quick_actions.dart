@@ -70,6 +70,26 @@ class StaffQuickActions extends ConsumerWidget {
         onTap: () => unawaited(showTransferSheet(context, ref)),
       ),
       _QuickAction(
+        icon: Icons.auto_awesome,
+        label: 'AI Scribe',
+        onTap: () => _pickPatientThenGo(
+          context,
+          ref,
+          title: 'Scribe a visit note for…',
+          route: (id) => '${AppRoutes.staffScribe}?patient=$id',
+        ),
+      ),
+      _QuickAction(
+        icon: Icons.summarize_outlined,
+        label: 'Patient summary',
+        onTap: () => _pickPatientThenGo(
+          context,
+          ref,
+          title: 'Summarise…',
+          route: AppRoutes.staffPatientSummary,
+        ),
+      ),
+      _QuickAction(
         icon: Icons.person_search_outlined,
         label: 'Patient lookup',
         onTap: () => context.go(AppRoutes.staffPatients),
@@ -130,6 +150,18 @@ class StaffQuickActions extends ConsumerWidget {
     final patientId = await showPatientPicker(context, ref, title: title);
     if (patientId != null && context.mounted) {
       await then(context, patientId);
+    }
+  }
+
+  Future<void> _pickPatientThenGo(
+    BuildContext context,
+    WidgetRef ref, {
+    required String title,
+    required String Function(String id) route,
+  }) async {
+    final patientId = await showPatientPicker(context, ref, title: title);
+    if (patientId != null && context.mounted) {
+      unawaited(context.push(route(patientId)));
     }
   }
 }

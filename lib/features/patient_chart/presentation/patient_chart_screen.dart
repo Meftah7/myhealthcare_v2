@@ -6,7 +6,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
@@ -28,6 +30,14 @@ class PatientChartScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(patient.valueOrNull?.fullName ?? 'Patient chart'),
+        actions: [
+          IconButton(
+            tooltip: 'AI summary',
+            icon: const Icon(Icons.summarize_outlined),
+            onPressed: () =>
+                context.push(AppRoutes.staffPatientSummary(patientId)),
+          ),
+        ],
       ),
       floatingActionButton: patient.hasValue
           ? _ChartFab(patientId: patientId)
@@ -330,10 +340,14 @@ class _ChartFab extends StatelessWidget {
         'note' => showChartNoteSheet(context, patientId),
         'rx' => showPrescribeSheet(context, patientId),
         'lab' => showLabResultSheet(context, patientId),
+        'scribe' => Future.sync(
+          () => context.push('${AppRoutes.staffScribe}?patient=$patientId'),
+        ),
         _ => Future<void>.value(),
       }),
       itemBuilder: (context) => const [
         PopupMenuItem(value: 'note', child: Text('Add clinical note')),
+        PopupMenuItem(value: 'scribe', child: Text('AI Scribe a note')),
         PopupMenuItem(value: 'rx', child: Text('Prescribe medication')),
         PopupMenuItem(value: 'lab', child: Text('Enter lab result')),
       ],

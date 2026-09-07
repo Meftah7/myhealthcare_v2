@@ -13,6 +13,7 @@ import '../features/admin/presentation/departments_screen.dart';
 import '../features/admin/presentation/system_analytics_screen.dart';
 import '../features/admin/presentation/user_management_screen.dart';
 import '../features/ai_chat/presentation/care_navigator_overlay.dart';
+import '../features/ai_scribe/presentation/clinical_scribe_screen.dart';
 import '../features/ai_summary/presentation/ai_summary_screen.dart';
 import '../features/appointments/presentation/appointments_screen.dart';
 import '../features/auth/application/session.dart';
@@ -24,6 +25,7 @@ import '../features/notifications/presentation/notifications_screen.dart';
 import '../features/nutrition/presentation/nutrition_screen.dart';
 import '../features/patient/application/profile_screen.dart';
 import '../features/patient_chart/presentation/patient_chart_screen.dart';
+import '../features/patient_chart/presentation/patient_summary_screen.dart';
 import '../features/patient_home/presentation/patient_home_screen.dart';
 import '../features/records/presentation/record_detail_screen.dart';
 import '../features/staff_dashboard/presentation/panel_analytics_screen.dart';
@@ -93,9 +95,12 @@ abstract final class AppRoutes {
   static const staffAnalytics = '/staff/analytics';
   static const staffDirectory = '/staff/directory';
   static const staffActivity = '/staff/activity';
+  static const staffScribe = '/staff/scribe';
   static const staffProfile = '/staff/profile';
 
   static String staffPatientChart(String id) => '$staffPatients/$id';
+  static String staffPatientSummary(String id) =>
+      '$staffPatients/$id/summary';
 
   // Admin
   static const adminDashboard = '/admin/dashboard';
@@ -146,6 +151,12 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
       GoRoute(
         path: AppRoutes.staffActivity,
         builder: (_, _) => const StaffActivityScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.staffScribe,
+        builder: (_, state) => ClinicalScribeScreen(
+          patientId: state.uri.queryParameters['patient'] ?? '',
+        ),
       ),
       GoRoute(
         path: AppRoutes.adminAnalytics,
@@ -352,6 +363,14 @@ StatefulShellRoute _staffShell() {
                 path: ':id',
                 builder: (_, state) =>
                     PatientChartScreen(patientId: state.pathParameters['id']!),
+                routes: [
+                  GoRoute(
+                    path: 'summary',
+                    builder: (_, state) => PatientSummaryScreen(
+                      patientId: state.pathParameters['id']!,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

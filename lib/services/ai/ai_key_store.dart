@@ -17,7 +17,14 @@ class AiKeyStore {
   static const _dartDefineKey = String.fromEnvironment('GEMINI_API_KEY');
 
   Future<String?> read() async {
-    final stored = await _storage.read(key: _key);
+    String? stored;
+    try {
+      stored = await _storage.read(key: _key);
+    } catch (_) {
+      // Secure storage can be unavailable (locked keystore, test harness with
+      // no plugin, …) — fall through to the dart-define / "no key" path.
+      stored = null;
+    }
     if (stored != null && stored.isNotEmpty) return stored;
     return _dartDefineKey.isEmpty ? null : _dartDefineKey;
   }
