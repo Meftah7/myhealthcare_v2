@@ -4,23 +4,38 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
 import '../../auth/presentation/sign_out_action.dart';
-import '../../settings/presentation/theme_mode_icon_toggle.dart';
 
 /// Drop straight into `AppBar.actions`: `actions: const [AdminTopActions()]`.
-class AdminTopActions extends StatelessWidget {
+class AdminTopActions extends ConsumerWidget {
   const AdminTopActions({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return const Row(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mode = ref.watch(themeModeProvider);
+    final platformIsDark =
+        MediaQuery.platformBrightnessOf(context) == Brightness.dark;
+    final isDark =
+        mode == ThemeMode.dark || (mode == ThemeMode.system && platformIsDark);
+
+    return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        ThemeModeIconToggle(),
-        SignOutAction(),
-        SizedBox(width: Space.xxs),
+        IconButton(
+          tooltip: isDark ? 'Switch to light mode' : 'Switch to dark mode',
+          icon: Icon(
+            isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+          ),
+          onPressed: () => ref
+              .read(themeModeProvider.notifier)
+              .set(isDark ? ThemeMode.light : ThemeMode.dark),
+        ),
+        const SignOutAction(),
+        const SizedBox(width: Space.xxs),
       ],
     );
   }

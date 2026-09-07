@@ -212,20 +212,33 @@ class _StatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final ramp = theme.clinicalStatus;
-    final (label, style) = switch (status) {
-      InvoiceStatus.paid => ('Paid', ramp.riskLow),
-      InvoiceStatus.pending => ('Open', ramp.severityWarning),
-      InvoiceStatus.cancelled => ('Cancelled', ramp.labNormal),
+    final scheme = theme.colorScheme;
+    final (label, bg, fg) = switch (status) {
+      InvoiceStatus.paid => (
+        'Paid',
+        ramp.riskLow.container,
+        ramp.riskLow.onContainer,
+      ),
+      InvoiceStatus.pending => (
+        'Open',
+        scheme.primaryContainer,
+        scheme.onPrimaryContainer,
+      ),
+      InvoiceStatus.cancelled => (
+        'Cancelled',
+        scheme.surfaceContainerHighest,
+        scheme.onSurfaceVariant,
+      ),
     };
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: Space.sm,
         vertical: Space.xxs,
       ),
-      decoration: BoxDecoration(color: style.container, borderRadius: Radii.chip),
+      decoration: BoxDecoration(color: bg, borderRadius: Radii.chip),
       child: Text(
         label,
-        style: theme.textTheme.labelMedium?.copyWith(color: style.onContainer),
+        style: theme.textTheme.labelMedium?.copyWith(color: fg),
       ),
     );
   }

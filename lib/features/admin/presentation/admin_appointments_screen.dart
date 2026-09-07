@@ -14,6 +14,14 @@ import '../../../domain/enums.dart';
 import '../application/admin_providers.dart';
 import 'admin_top_actions.dart';
 
+String _statusLabel(AppointmentStatus s) => switch (s) {
+  AppointmentStatus.booked => 'Booked',
+  AppointmentStatus.confirmed => 'Confirmed',
+  AppointmentStatus.completed => 'Completed',
+  AppointmentStatus.cancelled => 'Cancelled',
+  AppointmentStatus.noShow => 'No-show',
+};
+
 class AdminAppointmentsScreen extends ConsumerStatefulWidget {
   const AdminAppointmentsScreen({super.key});
 
@@ -46,13 +54,9 @@ class _AdminAppointmentsScreenState
             padding: const EdgeInsets.fromLTRB(Space.md, 0, Space.md, Space.xs),
             child: Row(
               children: [
-                for (final (label, value) in const [
+                for (final (label, value) in <(String, AppointmentStatus?)>[
                   ('All', null),
-                  ('Booked', AppointmentStatus.booked),
-                  ('Confirmed', AppointmentStatus.confirmed),
-                  ('Completed', AppointmentStatus.completed),
-                  ('Cancelled', AppointmentStatus.cancelled),
-                  ('No-show', AppointmentStatus.noShow),
+                  for (final s in AppointmentStatus.values) (_statusLabel(s), s),
                 ])
                   Padding(
                     padding: const EdgeInsets.only(right: Space.xs),
@@ -115,7 +119,7 @@ class _AdminAppointmentsScreenState
                               ),
                             ),
                             Text(
-                              a.status.name,
+                              _statusLabel(a.status),
                               style: theme.textTheme.labelMedium?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),
