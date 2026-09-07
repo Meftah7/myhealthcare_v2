@@ -420,7 +420,15 @@ class _UpcomingCarousel extends ConsumerStatefulWidget {
 class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
   static const _slideEvery = Duration(seconds: 5);
 
-  final _controller = PageController(viewportFraction: 0.92);
+  // A large mid-point so the PageView can scroll forever in both directions;
+  // the real card is `rawPage % count`, so advancing past the last one brings
+  // the first back in from the right instead of snapping backwards.
+  static const _origin = 100000;
+
+  final _controller = PageController(
+    initialPage: _origin,
+    viewportFraction: 0.92,
+  );
   Timer? _timer;
   int _index = 0;
   int _count = 0;
@@ -435,14 +443,33 @@ class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
   void _restartTimer() {
     _timer?.cancel();
     if (_count <= 1) return;
-    _timer = Timer.periodic(_slideEvery, (_) => _goTo(_index + 1));
+    _timer = Timer.periodic(_slideEvery, (_) => _step(1));
   }
 
-  void _goTo(int target) {
+  int _rawPage() =>
+      _controller.hasClients ? (_controller.page ?? _origin).round() : _origin;
+
+  /// Move [delta] cards in that direction — always animates the way you'd
+  /// expect (next = slide left, first-after-last comes from the right).
+  void _step(int delta) {
     if (_count == 0 || !_controller.hasClients) return;
-    final next = ((target % _count) + _count) % _count;
     _controller.animateToPage(
-      next,
+      _rawPage() + delta,
+      duration: Motion.medium,
+      curve: Motion.standard,
+    );
+  }
+
+  /// Jump to real index [i] by the shortest raw hop from where we are.
+  void _goToIndex(int i) {
+    if (_count == 0 || !_controller.hasClients) return;
+    final raw = _rawPage();
+    final curMod = ((raw % _count) + _count) % _count;
+    var diff = i - curMod;
+    if (diff > _count / 2) diff -= _count;
+    if (diff < -_count / 2) diff += _count;
+    _controller.animateToPage(
+      raw + diff,
       duration: Motion.medium,
       curve: Motion.standard,
     );
@@ -514,7 +541,7 @@ class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
 
         if (active.length != _count) {
           _count = active.length;
-          if (_index >= _count) _index = _count - 1;
+          if (_index >= _count) _index = 0;
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) _restartTimer();
           });
@@ -536,12 +563,12 @@ class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
                 if (active.length > 1) ...[
                   IconButton(
                     visualDensity: VisualDensity.compact,
-                    onPressed: () => _goTo(_index - 1),
+                    onPressed: () => _step(-1),
                     icon: const Icon(Icons.chevron_left),
                   ),
                   IconButton(
                     visualDensity: VisualDensity.compact,
-                    onPressed: () => _goTo(_index + 1),
+                    onPressed: () => _step(1),
                     icon: const Icon(Icons.chevron_right),
                   ),
                 ],
@@ -552,17 +579,20 @@ class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
               height: 208,
               child: PageView.builder(
                 controller: _controller,
-                itemCount: active.length,
-                onPageChanged: (i) {
-                  setState(() => _index = i);
+                // No itemCount → scrolls forever; the card shown is
+                // `rawPage % count`, so the list wraps in either direction.
+                onPageChanged: (raw) {
+                  setState(
+                    () => _index = ((raw % _count) + _count) % _count,
+                  );
                   _restartTimer();
                 },
-                itemBuilder: (context, i) {
+                itemBuilder: (context, raw) {
+                  if (_count == 0) return const SizedBox.shrink();
+                  final i = ((raw % _count) + _count) % _count;
                   final appt = active[i];
                   return Padding(
-                    padding: EdgeInsets.only(
-                      right: i == active.length - 1 ? 0 : Space.sm,
-                    ),
+                    padding: const EdgeInsets.only(right: Space.sm),
                     child: _BigTicketCard(
                       appt: appt,
                       doctorName: doctors[appt.staffId]?.name,
@@ -578,7 +608,7 @@ class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
                 children: [
                   for (var i = 0; i < active.length; i++)
                     GestureDetector(
-                      onTap: () => _goTo(i),
+                      onTap: () => _goToIndex(i),
                       child: AnimatedContainer(
                         duration: Motion.fast,
                         margin: const EdgeInsets.symmetric(horizontal: 3),
