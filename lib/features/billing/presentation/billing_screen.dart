@@ -19,22 +19,37 @@ import 'pay_invoice_sheet.dart';
 String money(double amount) => 'BD ${amount.toStringAsFixed(2)}';
 
 class BillingScreen extends ConsumerWidget {
-  const BillingScreen({super.key});
+  const BillingScreen({this.embedded = false, super.key});
+
+  /// When true, render the list without a Scaffold/AppBar — the Health Records
+  /// screen supplies those.
+  final bool embedded;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final invoices = ref.watch(patientInvoicesProvider);
     final size = WindowSize.of(context);
-    final gutter = size.gutter;
 
+    final body = RefreshIndicator(
+      onRefresh: () async => ref.invalidate(patientInvoicesProvider),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: Space.maxContentWidth),
+          child: _list(context, ref, size),
+        ),
+      ),
+    );
+
+    if (embedded) return body;
     return Scaffold(
       appBar: AppBar(title: const Text('Billing')),
-      body: RefreshIndicator(
-        onRefresh: () async => ref.invalidate(patientInvoicesProvider),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: Space.maxContentWidth),
-            child: invoices.when(
+      body: body,
+    );
+  }
+
+  Widget _list(BuildContext context, WidgetRef ref, WindowSize size) {
+    final invoices = ref.watch(patientInvoicesProvider);
+    final gutter = size.gutter;
+    return invoices.when(
               loading: () => const SkeletonList(),
               error: (e, _) => ErrorStateView(
                 message: 'Could not load your invoices.',
@@ -80,10 +95,6 @@ class BillingScreen extends ConsumerWidget {
                   ],
                 );
               },
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

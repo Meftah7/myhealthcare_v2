@@ -113,6 +113,11 @@ void main() {
     // Seeded chronic patient is on medication.
     expect(find.text('CURRENT'), findsOneWidget);
 
+    // Switch to Bills — the invoice list is here now too.
+    await tester.tap(find.text('Bills'));
+    await _settle(tester);
+    expect(find.textContaining('BD '), findsWidgets);
+
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
   });

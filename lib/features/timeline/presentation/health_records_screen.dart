@@ -5,10 +5,11 @@ library;
 import 'package:flutter/material.dart';
 
 import '../../../app/theme/theme.dart';
+import '../../billing/presentation/billing_screen.dart';
 import '../../records/presentation/medications_screen.dart';
 import 'timeline_screen.dart';
 
-enum _RecordsView { timeline, medications }
+enum _RecordsView { timeline, medications, bills }
 
 class HealthRecordsScreen extends StatefulWidget {
   const HealthRecordsScreen({this.startOnMedications = false, super.key});
@@ -46,12 +47,17 @@ class _HealthRecordsScreenState extends State<HealthRecordsScreen> {
                       ButtonSegment(
                         value: _RecordsView.timeline,
                         icon: Icon(Icons.timeline_outlined),
-                        label: Text('Visit timeline'),
+                        label: Text('Timeline'),
                       ),
                       ButtonSegment(
                         value: _RecordsView.medications,
                         icon: Icon(Icons.medication_outlined),
                         label: Text('Medications'),
+                      ),
+                      ButtonSegment(
+                        value: _RecordsView.bills,
+                        icon: Icon(Icons.receipt_long_outlined),
+                        label: Text('Bills'),
                       ),
                     ],
                     selected: {_view},
@@ -69,6 +75,7 @@ class _HealthRecordsScreenState extends State<HealthRecordsScreen> {
               _RecordsView.medications => const MedicationsScreen(
                 embedded: true,
               ),
+              _RecordsView.bills => const BillingScreen(embedded: true),
             },
           ),
         ],

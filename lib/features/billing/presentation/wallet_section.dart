@@ -17,7 +17,6 @@ import '../../../domain/enums.dart';
 import '../../../domain/repositories/billing_repository.dart';
 import '../application/billing_providers.dart';
 import 'billing_screen.dart' show money;
-import 'pay_invoice_sheet.dart';
 
 class WalletSection extends ConsumerWidget {
   const WalletSection({super.key});
@@ -31,70 +30,6 @@ class WalletSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // --- Outstanding ---
-        invoices.when(
-          loading: () => const LoadingSkeleton(height: 60),
-          error: (e, _) =>
-              const InlineBanner.error('Could not load your bills.'),
-          data: (list) {
-            final open = list.where((i) => i.isOutstanding).toList()
-              ..sort((a, b) {
-                final ad = a.dueDate;
-                final bd = b.dueDate;
-                if (ad == null || bd == null) return 0;
-                return ad.compareTo(bd);
-              });
-            final owed = open.fold(0.0, (s, i) => s + i.totalAmount);
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _Label(open.isEmpty ? 'No bill due' : 'Current bill'),
-                if (open.isEmpty)
-                  Text(
-                    "You're all settled.",
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  )
-                else ...[
-                  Text(
-                    money(owed),
-                    style: theme.textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: Space.xs),
-                  for (final inv in open)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: Space.xs),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              '${inv.notes ?? 'Invoice'} · ${money(inv.totalAmount)}'
-                              '${inv.isOverdue ? ' · overdue' : ''}',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: inv.isOverdue
-                                    ? theme.clinicalStatus.riskHigh.onContainer
-                                    : theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () => showPayInvoiceSheet(context, inv),
-                            child: const Text('Pay'),
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-              ],
-            );
-          },
-        ),
-
-        const SizedBox(height: Space.md),
-        const Divider(height: 1),
-        const SizedBox(height: Space.md),
-
         // --- Saved cards ---
         Row(
           children: [
