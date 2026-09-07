@@ -313,4 +313,47 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
       );
     });
   }
+
+  @override
+  Future<Result<Appointment>> transfer({
+    required String id,
+    required String toStaffId,
+  }) {
+    return Result.guardAsync(() async {
+      final current = await (_db.select(
+        _db.appointments,
+      )..where((a) => a.id.equals(id))).getSingleOrNull();
+      if (current == null) throw NotFoundFailure('No appointment $id.');
+      if (current.staffId == toStaffId) {
+        throw const ValidationFailure(
+          'That appointment is already with this clinician.',
+        );
+      }
+      final target = await (_db.select(
+        _db.users,
+      )..where((u) => u.id.equals(toStaffId))).getSingleOrNull();
+      if (target == null || target.role != UserRole.staff) {
+        throw NotFoundFailure('No staff member $toStaffId.');
+      }
+
+      final departmentId = await _departmentOf(toStaffId);
+      final roomNumber = departmentId == null
+          ? null
+          : await _assignRoomNumber(departmentId, toStaffId);
+
+      await (_db.update(_db.appointments)..where((a) => a.id.equals(id))).write(
+        AppointmentsCompanion(
+          staffId: Value(toStaffId),
+          departmentId: Value(departmentId),
+          roomNumber: Value(roomNumber),
+          checkedInAt: const Value(null),
+          status: const Value(AppointmentStatus.booked),
+        ),
+      );
+      final row = await (_db.select(
+        _db.appointments,
+      )..where((a) => a.id.equals(id))).getSingle();
+      return row.toEntity();
+    });
+  }
 }

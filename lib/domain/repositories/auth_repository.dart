@@ -61,7 +61,17 @@ abstract interface class UserRepository {
 
   Future<Result<List<Staff>>> staffInDepartment(String departmentId);
 
+  /// Every staff member, name-sorted — the staff directory (ported from the
+  /// FirstSemMyHealth doctor "Staff Directory" view).
+  Future<Result<List<Staff>>> allStaff();
+
   Future<Result<Staff>> staffById(String id);
+
+  /// Set a staff member's live availability (staff dashboard presence toggle).
+  Future<Result<void>> setPresence({
+    required String id,
+    required PresenceStatus status,
+  });
 
   Stream<User?> watchById(String id);
 

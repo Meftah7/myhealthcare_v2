@@ -189,6 +189,35 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
+  Future<Result<List<Staff>>> allStaff() {
+    return Result.guardAsync(() async {
+      final users =
+          await (_db.select(_db.users)
+                ..where((u) => u.role.equalsValue(UserRole.staff))
+                ..orderBy([(u) => OrderingTerm(expression: u.fullName)]))
+              .get();
+      if (users.isEmpty) return const <Staff>[];
+      final profiles = await _db.select(_db.staffProfiles).get();
+      final byId = {for (final p in profiles) p.userId: p};
+      return users.map((u) => staffFrom(u, byId[u.id])).toList();
+    });
+  }
+
+  @override
+  Future<Result<void>> setPresence({
+    required String id,
+    required PresenceStatus status,
+  }) {
+    return Result.guardAsync(() async {
+      final updated =
+          await (_db.update(_db.staffProfiles)
+                ..where((p) => p.userId.equals(id)))
+              .write(StaffProfilesCompanion(presence: Value(status)));
+      if (updated == 0) throw NotFoundFailure('No staff profile for $id.');
+    });
+  }
+
+  @override
   Future<Result<List<Staff>>> staffInDepartment(String departmentId) {
     return Result.guardAsync(() async {
       final profiles = await (_db.select(

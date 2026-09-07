@@ -10,6 +10,7 @@ import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../application/staff_providers.dart';
+import 'staff_top_actions.dart';
 
 class PanelAnalyticsScreen extends ConsumerWidget {
   const PanelAnalyticsScreen({super.key});
@@ -18,7 +19,10 @@ class PanelAnalyticsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final stats = ref.watch(panelStatsProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Panel analytics')),
+      appBar: AppBar(
+        title: const Text('Panel analytics'),
+        actions: const [StaffTopActions()],
+      ),
       body: stats.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(

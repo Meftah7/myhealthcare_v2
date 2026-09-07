@@ -103,6 +103,22 @@ class RecordRepositoryImpl implements RecordRepository {
   }
 
   @override
+  Future<Result<List<MedicalRecord>>> authoredBy(
+    String staffId, {
+    int limit = 100,
+  }) {
+    return Result.guardAsync(() async {
+      final rows =
+          await (_db.select(_db.medicalRecords)
+                ..where((r) => r.authorStaffId.equals(staffId))
+                ..orderBy([(r) => OrderingTerm.desc(r.occurredAt)])
+                ..limit(limit))
+              .get();
+      return _hydrate(rows);
+    });
+  }
+
+  @override
   Future<Result<MedicalRecord>> add(NewRecord record) {
     return Result.guardAsync(() async {
       final id = newId('rec');
@@ -260,6 +276,22 @@ class MedicationRepositoryImpl implements MedicationRepository {
         _db.medications,
       )..where((r) => r.id.equals(id))).getSingle();
       return row.toEntity();
+    });
+  }
+
+  @override
+  Future<Result<List<Medication>>> prescribedBy(
+    String staffId, {
+    int limit = 100,
+  }) {
+    return Result.guardAsync(() async {
+      final rows =
+          await (_db.select(_db.medications)
+                ..where((m) => m.prescriberId.equals(staffId))
+                ..orderBy([(m) => OrderingTerm.desc(m.startDate)])
+                ..limit(limit))
+              .get();
+      return rows.map((r) => r.toEntity()).toList();
     });
   }
 

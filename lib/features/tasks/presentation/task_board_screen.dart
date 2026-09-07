@@ -12,8 +12,8 @@ import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
-import '../../auth/presentation/sign_out_action.dart';
 import '../../staff_dashboard/application/staff_providers.dart';
+import '../../staff_dashboard/presentation/staff_top_actions.dart';
 
 class TaskBoardScreen extends ConsumerWidget {
   const TaskBoardScreen({super.key});
@@ -27,7 +27,7 @@ class TaskBoardScreen extends ConsumerWidget {
         title: const Text('Task board'),
         actions: [
           _PrioritiseButton(),
-          const SignOutAction(),
+          const StaffTopActions(),
         ],
       ),
       body: tasks.when(

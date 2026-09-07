@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Staff {
 
- User get user; String? get specialty; String? get departmentId; String? get licenseNo; String? get jobTitle;
+ User get user; String? get specialty; String? get departmentId; String? get licenseNo; String? get jobTitle; PresenceStatus get presence;
 /// Create a copy of Staff
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $StaffCopyWith<Staff> get copyWith => _$StaffCopyWithImpl<Staff>(this as Staff, 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Staff&&(identical(other.user, user) || other.user == user)&&(identical(other.specialty, specialty) || other.specialty == specialty)&&(identical(other.departmentId, departmentId) || other.departmentId == departmentId)&&(identical(other.licenseNo, licenseNo) || other.licenseNo == licenseNo)&&(identical(other.jobTitle, jobTitle) || other.jobTitle == jobTitle));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Staff&&(identical(other.user, user) || other.user == user)&&(identical(other.specialty, specialty) || other.specialty == specialty)&&(identical(other.departmentId, departmentId) || other.departmentId == departmentId)&&(identical(other.licenseNo, licenseNo) || other.licenseNo == licenseNo)&&(identical(other.jobTitle, jobTitle) || other.jobTitle == jobTitle)&&(identical(other.presence, presence) || other.presence == presence));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,user,specialty,departmentId,licenseNo,jobTitle);
+int get hashCode => Object.hash(runtimeType,user,specialty,departmentId,licenseNo,jobTitle,presence);
 
 @override
 String toString() {
-  return 'Staff(user: $user, specialty: $specialty, departmentId: $departmentId, licenseNo: $licenseNo, jobTitle: $jobTitle)';
+  return 'Staff(user: $user, specialty: $specialty, departmentId: $departmentId, licenseNo: $licenseNo, jobTitle: $jobTitle, presence: $presence)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $StaffCopyWith<$Res>  {
   factory $StaffCopyWith(Staff value, $Res Function(Staff) _then) = _$StaffCopyWithImpl;
 @useResult
 $Res call({
- User user, String? specialty, String? departmentId, String? licenseNo, String? jobTitle
+ User user, String? specialty, String? departmentId, String? licenseNo, String? jobTitle, PresenceStatus presence
 });
 
 
@@ -62,14 +62,15 @@ class _$StaffCopyWithImpl<$Res>
 
 /// Create a copy of Staff
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? user = null,Object? specialty = freezed,Object? departmentId = freezed,Object? licenseNo = freezed,Object? jobTitle = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? user = null,Object? specialty = freezed,Object? departmentId = freezed,Object? licenseNo = freezed,Object? jobTitle = freezed,Object? presence = null,}) {
   return _then(_self.copyWith(
 user: null == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
 as User,specialty: freezed == specialty ? _self.specialty : specialty // ignore: cast_nullable_to_non_nullable
 as String?,departmentId: freezed == departmentId ? _self.departmentId : departmentId // ignore: cast_nullable_to_non_nullable
 as String?,licenseNo: freezed == licenseNo ? _self.licenseNo : licenseNo // ignore: cast_nullable_to_non_nullable
 as String?,jobTitle: freezed == jobTitle ? _self.jobTitle : jobTitle // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,presence: null == presence ? _self.presence : presence // ignore: cast_nullable_to_non_nullable
+as PresenceStatus,
   ));
 }
 /// Create a copy of Staff
@@ -163,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( User user,  String? specialty,  String? departmentId,  String? licenseNo,  String? jobTitle)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( User user,  String? specialty,  String? departmentId,  String? licenseNo,  String? jobTitle,  PresenceStatus presence)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Staff() when $default != null:
-return $default(_that.user,_that.specialty,_that.departmentId,_that.licenseNo,_that.jobTitle);case _:
+return $default(_that.user,_that.specialty,_that.departmentId,_that.licenseNo,_that.jobTitle,_that.presence);case _:
   return orElse();
 
 }
@@ -184,10 +185,10 @@ return $default(_that.user,_that.specialty,_that.departmentId,_that.licenseNo,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( User user,  String? specialty,  String? departmentId,  String? licenseNo,  String? jobTitle)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( User user,  String? specialty,  String? departmentId,  String? licenseNo,  String? jobTitle,  PresenceStatus presence)  $default,) {final _that = this;
 switch (_that) {
 case _Staff():
-return $default(_that.user,_that.specialty,_that.departmentId,_that.licenseNo,_that.jobTitle);case _:
+return $default(_that.user,_that.specialty,_that.departmentId,_that.licenseNo,_that.jobTitle,_that.presence);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -204,10 +205,10 @@ return $default(_that.user,_that.specialty,_that.departmentId,_that.licenseNo,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( User user,  String? specialty,  String? departmentId,  String? licenseNo,  String? jobTitle)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( User user,  String? specialty,  String? departmentId,  String? licenseNo,  String? jobTitle,  PresenceStatus presence)?  $default,) {final _that = this;
 switch (_that) {
 case _Staff() when $default != null:
-return $default(_that.user,_that.specialty,_that.departmentId,_that.licenseNo,_that.jobTitle);case _:
+return $default(_that.user,_that.specialty,_that.departmentId,_that.licenseNo,_that.jobTitle,_that.presence);case _:
   return null;
 
 }
@@ -219,7 +220,7 @@ return $default(_that.user,_that.specialty,_that.departmentId,_that.licenseNo,_t
 
 
 class _Staff extends Staff {
-  const _Staff({required this.user, this.specialty, this.departmentId, this.licenseNo, this.jobTitle}): super._();
+  const _Staff({required this.user, this.specialty, this.departmentId, this.licenseNo, this.jobTitle, this.presence = PresenceStatus.offShift}): super._();
   
 
 @override final  User user;
@@ -227,6 +228,7 @@ class _Staff extends Staff {
 @override final  String? departmentId;
 @override final  String? licenseNo;
 @override final  String? jobTitle;
+@override@JsonKey() final  PresenceStatus presence;
 
 /// Create a copy of Staff
 /// with the given fields replaced by the non-null parameter values.
@@ -238,16 +240,16 @@ _$StaffCopyWith<_Staff> get copyWith => __$StaffCopyWithImpl<_Staff>(this, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Staff&&(identical(other.user, user) || other.user == user)&&(identical(other.specialty, specialty) || other.specialty == specialty)&&(identical(other.departmentId, departmentId) || other.departmentId == departmentId)&&(identical(other.licenseNo, licenseNo) || other.licenseNo == licenseNo)&&(identical(other.jobTitle, jobTitle) || other.jobTitle == jobTitle));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Staff&&(identical(other.user, user) || other.user == user)&&(identical(other.specialty, specialty) || other.specialty == specialty)&&(identical(other.departmentId, departmentId) || other.departmentId == departmentId)&&(identical(other.licenseNo, licenseNo) || other.licenseNo == licenseNo)&&(identical(other.jobTitle, jobTitle) || other.jobTitle == jobTitle)&&(identical(other.presence, presence) || other.presence == presence));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,user,specialty,departmentId,licenseNo,jobTitle);
+int get hashCode => Object.hash(runtimeType,user,specialty,departmentId,licenseNo,jobTitle,presence);
 
 @override
 String toString() {
-  return 'Staff(user: $user, specialty: $specialty, departmentId: $departmentId, licenseNo: $licenseNo, jobTitle: $jobTitle)';
+  return 'Staff(user: $user, specialty: $specialty, departmentId: $departmentId, licenseNo: $licenseNo, jobTitle: $jobTitle, presence: $presence)';
 }
 
 
@@ -258,7 +260,7 @@ abstract mixin class _$StaffCopyWith<$Res> implements $StaffCopyWith<$Res> {
   factory _$StaffCopyWith(_Staff value, $Res Function(_Staff) _then) = __$StaffCopyWithImpl;
 @override @useResult
 $Res call({
- User user, String? specialty, String? departmentId, String? licenseNo, String? jobTitle
+ User user, String? specialty, String? departmentId, String? licenseNo, String? jobTitle, PresenceStatus presence
 });
 
 
@@ -275,14 +277,15 @@ class __$StaffCopyWithImpl<$Res>
 
 /// Create a copy of Staff
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? user = null,Object? specialty = freezed,Object? departmentId = freezed,Object? licenseNo = freezed,Object? jobTitle = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? user = null,Object? specialty = freezed,Object? departmentId = freezed,Object? licenseNo = freezed,Object? jobTitle = freezed,Object? presence = null,}) {
   return _then(_Staff(
 user: null == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
 as User,specialty: freezed == specialty ? _self.specialty : specialty // ignore: cast_nullable_to_non_nullable
 as String?,departmentId: freezed == departmentId ? _self.departmentId : departmentId // ignore: cast_nullable_to_non_nullable
 as String?,licenseNo: freezed == licenseNo ? _self.licenseNo : licenseNo // ignore: cast_nullable_to_non_nullable
 as String?,jobTitle: freezed == jobTitle ? _self.jobTitle : jobTitle // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,presence: null == presence ? _self.presence : presence // ignore: cast_nullable_to_non_nullable
+as PresenceStatus,
   ));
 }
 

@@ -6,6 +6,10 @@ library;
 
 enum UserRole { patient, staff, admin }
 
+/// A staff member's live availability, shown on the staff dashboard and in the
+/// staff directory (ported from the FirstSemMyHealth doctor "presence" toggle).
+enum PresenceStatus { onDuty, inConsultation, onBreak, offShift }
+
 enum Gender { female, male, other, undisclosed }
 
 enum AppointmentStatus { booked, confirmed, completed, cancelled, noShow }

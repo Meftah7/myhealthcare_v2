@@ -9,8 +9,8 @@ import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
-import '../../auth/presentation/sign_out_action.dart';
 import '../application/staff_providers.dart';
+import 'staff_top_actions.dart';
 
 class StaffPatientsScreen extends ConsumerWidget {
   const StaffPatientsScreen({super.key});
@@ -21,7 +21,7 @@ class StaffPatientsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Patients'),
-        actions: const [SignOutAction()],
+        actions: const [StaffTopActions()],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: Padding(

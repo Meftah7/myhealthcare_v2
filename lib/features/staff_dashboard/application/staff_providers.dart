@@ -64,6 +64,52 @@ final staffTodayProvider = FutureProvider<List<Appointment>>((ref) async {
   );
 });
 
+/// Today's queue — the actionable slice of [staffTodayProvider]: still-open
+/// visits (booked / confirmed), soonest first. Mirrors the FirstSemMyHealth
+/// doctor "Today's Patients" list.
+final staffQueueProvider = FutureProvider<List<Appointment>>((ref) async {
+  final today = await ref.watch(staffTodayProvider.future);
+  final open = today
+      .where(
+        (a) =>
+            a.status == AppointmentStatus.booked ||
+            a.status == AppointmentStatus.confirmed,
+      )
+      .toList()
+    ..sort((a, b) => a.slotStart.compareTo(b.slotStart));
+  return open;
+});
+
+/// Every staff member, for the staff directory + transfer picker.
+final staffDirectoryProvider = FutureProvider<List<Staff>>((ref) async {
+  return _unwrap(await ref.watch(userRepositoryProvider).allStaff());
+});
+
+/// Patient id → full name, for screens that list records/appointments across
+/// many patients (staff activity, transfer picker).
+final patientNameLookupProvider = FutureProvider<Map<String, String>>((
+  ref,
+) async {
+  final patients = await ref.watch(staffPanelProvider.future);
+  return {for (final p in patients) p.id: p.fullName};
+});
+
+/// Records the signed-in staff member authored (staff "Activity" view).
+final staffRecordsAuthoredProvider = FutureProvider<List<MedicalRecord>>((
+  ref,
+) async {
+  final id = _staffId(ref);
+  return _unwrap(await ref.watch(recordRepositoryProvider).authoredBy(id));
+});
+
+/// Medications the signed-in staff member prescribed (staff "Activity" view).
+final staffPrescriptionsIssuedProvider = FutureProvider<List<Medication>>((
+  ref,
+) async {
+  final id = _staffId(ref);
+  return _unwrap(await ref.watch(medicationRepositoryProvider).prescribedBy(id));
+});
+
 /// The whole patient panel (small single-clinic demo) (P5-06).
 final staffPanelProvider = FutureProvider<List<Patient>>((ref) async {
   return _unwrap(await ref.watch(patientRepositoryProvider).all(limit: 500));
@@ -78,6 +124,16 @@ final patientSearchResultsProvider = FutureProvider<List<Patient>>((ref) async {
   if (q.isEmpty) return _unwrap(await repo.all(limit: 200));
   return _unwrap(await repo.search(q, limit: 50));
 });
+
+/// Patient lookup for the quick-action pickers (note / prescribe / lab /
+/// transfer). Keyed on the raw query so each picker dialog owns its own state.
+final patientPickerResultsProvider =
+    FutureProvider.family<List<Patient>, String>((ref, query) async {
+      final repo = ref.watch(patientRepositoryProvider);
+      final q = query.trim();
+      if (q.isEmpty) return _unwrap(await repo.all(limit: 30));
+      return _unwrap(await repo.search(q, limit: 30));
+    });
 
 final unacknowledgedFlagsProvider = FutureProvider<List<RiskFlag>>((ref) async {
   return _unwrap(await ref.watch(riskRepositoryProvider).unacknowledged());
@@ -161,6 +217,92 @@ class StaffOps {
   Future<void> setTaskStatus(String taskId, TaskStatus status) async {
     await _ref.read(taskRepositoryProvider).setStatus(taskId, status);
     _ref.invalidate(staffTasksProvider);
+  }
+
+  // --- presence + queue (FirstSemMyHealth doctor-dashboard parity) -------
+
+  /// Set the signed-in staff member's live availability.
+  Future<Result<void>> setPresence(PresenceStatus status) async {
+    final id = _ref.read(currentUserProvider)!.id;
+    final result = await _ref
+        .read(userRepositoryProvider)
+        .setPresence(id: id, status: status);
+    if (result.isOk) {
+      _ref
+        ..invalidate(staffProfileProvider)
+        ..invalidate(staffDirectoryProvider);
+    }
+    return result;
+  }
+
+  void _refreshQueue() {
+    _ref
+      ..invalidate(staffTodayProvider)
+      ..invalidate(staffQueueProvider)
+      ..invalidate(staffWeekProvider);
+  }
+
+  /// Accept a booked visit (→ confirmed).
+  Future<void> acceptAppointment(String id) async {
+    await _ref
+        .read(appointmentRepositoryProvider)
+        .updateStatus(id: id, status: AppointmentStatus.confirmed);
+    _refreshQueue();
+  }
+
+  /// Start the visit — stamps check-in time.
+  Future<void> startVisit(String id) async {
+    await _ref
+        .read(appointmentRepositoryProvider)
+        .markCheckedIn(id, DateTime.now());
+    _refreshQueue();
+  }
+
+  /// Complete the visit (→ completed).
+  Future<void> completeAppointment(String id) async {
+    await _ref
+        .read(appointmentRepositoryProvider)
+        .updateStatus(id: id, status: AppointmentStatus.completed);
+    _refreshQueue();
+  }
+
+  /// Mark the visit cancelled / no-show.
+  Future<void> cancelAppointment(
+    String id, {
+    bool noShow = false,
+  }) async {
+    await _ref
+        .read(appointmentRepositoryProvider)
+        .updateStatus(
+          id: id,
+          status: noShow
+              ? AppointmentStatus.noShow
+              : AppointmentStatus.cancelled,
+        );
+    _refreshQueue();
+  }
+
+  /// Reassign a visit to another clinician.
+  Future<Result<Appointment>> transferAppointment({
+    required String id,
+    required String toStaffId,
+  }) async {
+    final actorId = _ref.read(currentUserProvider)!.id;
+    final result = await _ref
+        .read(appointmentRepositoryProvider)
+        .transfer(id: id, toStaffId: toStaffId);
+    if (result.isOk) {
+      await _ref
+          .read(auditRepositoryProvider)
+          .record(
+            action: 'appointment.transfer',
+            entityType: 'appointment',
+            entityId: id,
+            actorUserId: actorId,
+          );
+      _refreshQueue();
+    }
+    return result;
   }
 }
 

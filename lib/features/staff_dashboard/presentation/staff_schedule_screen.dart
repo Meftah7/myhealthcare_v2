@@ -12,8 +12,8 @@ import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
-import '../../auth/presentation/sign_out_action.dart';
 import '../application/staff_providers.dart';
+import 'staff_top_actions.dart';
 
 class StaffScheduleScreen extends ConsumerWidget {
   const StaffScheduleScreen({super.key});
@@ -28,7 +28,7 @@ class StaffScheduleScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My schedule'),
-        actions: const [SignOutAction()],
+        actions: const [StaffTopActions()],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: Row(

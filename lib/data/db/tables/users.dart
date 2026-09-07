@@ -70,6 +70,10 @@ class StaffProfiles extends Table {
   TextColumn get licenseNo => text().nullable()();
   TextColumn get jobTitle => text().nullable()();
 
+  /// Live availability shown on the staff dashboard + directory. Null rows
+  /// (pre-migration) read as [PresenceStatus.offShift].
+  TextColumn get presence => textEnum<PresenceStatus>().nullable()();
+
   @override
   Set<Column<Object>> get primaryKey => {userId};
 }

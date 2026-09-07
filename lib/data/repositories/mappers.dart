@@ -6,6 +6,7 @@
 library;
 
 import '../../domain/entities/entities.dart';
+import '../../domain/enums.dart';
 import '../db/app_database.dart';
 
 extension UserRowX on UserRow {
@@ -42,6 +43,7 @@ Staff staffFrom(UserRow user, StaffProfileRow? profile) => Staff(
   departmentId: profile?.departmentId,
   licenseNo: profile?.licenseNo,
   jobTitle: profile?.jobTitle,
+  presence: profile?.presence ?? PresenceStatus.offShift,
 );
 
 extension AppointmentRowX on AppointmentRow {

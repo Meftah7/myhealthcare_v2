@@ -3,6 +3,7 @@ library;
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../enums.dart';
 import 'user.dart';
 
 part 'staff.freezed.dart';
@@ -15,6 +16,7 @@ abstract class Staff with _$Staff {
     String? departmentId,
     String? licenseNo,
     String? jobTitle,
+    @Default(PresenceStatus.offShift) PresenceStatus presence,
   }) = _Staff;
 
   const Staff._();

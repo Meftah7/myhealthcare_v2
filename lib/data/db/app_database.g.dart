@@ -1522,12 +1522,22 @@ class $StaffProfilesTable extends StaffProfiles
     requiredDuringInsert: false,
   );
   @override
+  late final GeneratedColumnWithTypeConverter<PresenceStatus?, String>
+  presence = GeneratedColumn<String>(
+    'presence',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  ).withConverter<PresenceStatus?>($StaffProfilesTable.$converterpresencen);
+  @override
   List<GeneratedColumn> get $columns => [
     userId,
     specialty,
     departmentId,
     licenseNo,
     jobTitle,
+    presence,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1605,6 +1615,12 @@ class $StaffProfilesTable extends StaffProfiles
         DriftSqlType.string,
         data['${effectivePrefix}job_title'],
       ),
+      presence: $StaffProfilesTable.$converterpresencen.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}presence'],
+        ),
+      ),
     );
   }
 
@@ -1612,6 +1628,11 @@ class $StaffProfilesTable extends StaffProfiles
   $StaffProfilesTable createAlias(String alias) {
     return $StaffProfilesTable(attachedDatabase, alias);
   }
+
+  static JsonTypeConverter2<PresenceStatus, String, String> $converterpresence =
+      const EnumNameConverter<PresenceStatus>(PresenceStatus.values);
+  static JsonTypeConverter2<PresenceStatus?, String?, String?>
+  $converterpresencen = JsonTypeConverter2.asNullable($converterpresence);
 }
 
 class StaffProfileRow extends DataClass implements Insertable<StaffProfileRow> {
@@ -1620,12 +1641,17 @@ class StaffProfileRow extends DataClass implements Insertable<StaffProfileRow> {
   final String? departmentId;
   final String? licenseNo;
   final String? jobTitle;
+
+  /// Live availability shown on the staff dashboard + directory. Null rows
+  /// (pre-migration) read as [PresenceStatus.offShift].
+  final PresenceStatus? presence;
   const StaffProfileRow({
     required this.userId,
     this.specialty,
     this.departmentId,
     this.licenseNo,
     this.jobTitle,
+    this.presence,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1642,6 +1668,11 @@ class StaffProfileRow extends DataClass implements Insertable<StaffProfileRow> {
     }
     if (!nullToAbsent || jobTitle != null) {
       map['job_title'] = Variable<String>(jobTitle);
+    }
+    if (!nullToAbsent || presence != null) {
+      map['presence'] = Variable<String>(
+        $StaffProfilesTable.$converterpresencen.toSql(presence),
+      );
     }
     return map;
   }
@@ -1661,6 +1692,9 @@ class StaffProfileRow extends DataClass implements Insertable<StaffProfileRow> {
       jobTitle: jobTitle == null && nullToAbsent
           ? const Value.absent()
           : Value(jobTitle),
+      presence: presence == null && nullToAbsent
+          ? const Value.absent()
+          : Value(presence),
     );
   }
 
@@ -1675,6 +1709,9 @@ class StaffProfileRow extends DataClass implements Insertable<StaffProfileRow> {
       departmentId: serializer.fromJson<String?>(json['departmentId']),
       licenseNo: serializer.fromJson<String?>(json['licenseNo']),
       jobTitle: serializer.fromJson<String?>(json['jobTitle']),
+      presence: $StaffProfilesTable.$converterpresencen.fromJson(
+        serializer.fromJson<String?>(json['presence']),
+      ),
     );
   }
   @override
@@ -1686,6 +1723,9 @@ class StaffProfileRow extends DataClass implements Insertable<StaffProfileRow> {
       'departmentId': serializer.toJson<String?>(departmentId),
       'licenseNo': serializer.toJson<String?>(licenseNo),
       'jobTitle': serializer.toJson<String?>(jobTitle),
+      'presence': serializer.toJson<String?>(
+        $StaffProfilesTable.$converterpresencen.toJson(presence),
+      ),
     };
   }
 
@@ -1695,12 +1735,14 @@ class StaffProfileRow extends DataClass implements Insertable<StaffProfileRow> {
     Value<String?> departmentId = const Value.absent(),
     Value<String?> licenseNo = const Value.absent(),
     Value<String?> jobTitle = const Value.absent(),
+    Value<PresenceStatus?> presence = const Value.absent(),
   }) => StaffProfileRow(
     userId: userId ?? this.userId,
     specialty: specialty.present ? specialty.value : this.specialty,
     departmentId: departmentId.present ? departmentId.value : this.departmentId,
     licenseNo: licenseNo.present ? licenseNo.value : this.licenseNo,
     jobTitle: jobTitle.present ? jobTitle.value : this.jobTitle,
+    presence: presence.present ? presence.value : this.presence,
   );
   StaffProfileRow copyWithCompanion(StaffProfilesCompanion data) {
     return StaffProfileRow(
@@ -1711,6 +1753,7 @@ class StaffProfileRow extends DataClass implements Insertable<StaffProfileRow> {
           : this.departmentId,
       licenseNo: data.licenseNo.present ? data.licenseNo.value : this.licenseNo,
       jobTitle: data.jobTitle.present ? data.jobTitle.value : this.jobTitle,
+      presence: data.presence.present ? data.presence.value : this.presence,
     );
   }
 
@@ -1721,14 +1764,21 @@ class StaffProfileRow extends DataClass implements Insertable<StaffProfileRow> {
           ..write('specialty: $specialty, ')
           ..write('departmentId: $departmentId, ')
           ..write('licenseNo: $licenseNo, ')
-          ..write('jobTitle: $jobTitle')
+          ..write('jobTitle: $jobTitle, ')
+          ..write('presence: $presence')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(userId, specialty, departmentId, licenseNo, jobTitle);
+  int get hashCode => Object.hash(
+    userId,
+    specialty,
+    departmentId,
+    licenseNo,
+    jobTitle,
+    presence,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1737,7 +1787,8 @@ class StaffProfileRow extends DataClass implements Insertable<StaffProfileRow> {
           other.specialty == this.specialty &&
           other.departmentId == this.departmentId &&
           other.licenseNo == this.licenseNo &&
-          other.jobTitle == this.jobTitle);
+          other.jobTitle == this.jobTitle &&
+          other.presence == this.presence);
 }
 
 class StaffProfilesCompanion extends UpdateCompanion<StaffProfileRow> {
@@ -1746,6 +1797,7 @@ class StaffProfilesCompanion extends UpdateCompanion<StaffProfileRow> {
   final Value<String?> departmentId;
   final Value<String?> licenseNo;
   final Value<String?> jobTitle;
+  final Value<PresenceStatus?> presence;
   final Value<int> rowid;
   const StaffProfilesCompanion({
     this.userId = const Value.absent(),
@@ -1753,6 +1805,7 @@ class StaffProfilesCompanion extends UpdateCompanion<StaffProfileRow> {
     this.departmentId = const Value.absent(),
     this.licenseNo = const Value.absent(),
     this.jobTitle = const Value.absent(),
+    this.presence = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   StaffProfilesCompanion.insert({
@@ -1761,6 +1814,7 @@ class StaffProfilesCompanion extends UpdateCompanion<StaffProfileRow> {
     this.departmentId = const Value.absent(),
     this.licenseNo = const Value.absent(),
     this.jobTitle = const Value.absent(),
+    this.presence = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : userId = Value(userId);
   static Insertable<StaffProfileRow> custom({
@@ -1769,6 +1823,7 @@ class StaffProfilesCompanion extends UpdateCompanion<StaffProfileRow> {
     Expression<String>? departmentId,
     Expression<String>? licenseNo,
     Expression<String>? jobTitle,
+    Expression<String>? presence,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1777,6 +1832,7 @@ class StaffProfilesCompanion extends UpdateCompanion<StaffProfileRow> {
       if (departmentId != null) 'department_id': departmentId,
       if (licenseNo != null) 'license_no': licenseNo,
       if (jobTitle != null) 'job_title': jobTitle,
+      if (presence != null) 'presence': presence,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1787,6 +1843,7 @@ class StaffProfilesCompanion extends UpdateCompanion<StaffProfileRow> {
     Value<String?>? departmentId,
     Value<String?>? licenseNo,
     Value<String?>? jobTitle,
+    Value<PresenceStatus?>? presence,
     Value<int>? rowid,
   }) {
     return StaffProfilesCompanion(
@@ -1795,6 +1852,7 @@ class StaffProfilesCompanion extends UpdateCompanion<StaffProfileRow> {
       departmentId: departmentId ?? this.departmentId,
       licenseNo: licenseNo ?? this.licenseNo,
       jobTitle: jobTitle ?? this.jobTitle,
+      presence: presence ?? this.presence,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1817,6 +1875,11 @@ class StaffProfilesCompanion extends UpdateCompanion<StaffProfileRow> {
     if (jobTitle.present) {
       map['job_title'] = Variable<String>(jobTitle.value);
     }
+    if (presence.present) {
+      map['presence'] = Variable<String>(
+        $StaffProfilesTable.$converterpresencen.toSql(presence.value),
+      );
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1831,6 +1894,7 @@ class StaffProfilesCompanion extends UpdateCompanion<StaffProfileRow> {
           ..write('departmentId: $departmentId, ')
           ..write('licenseNo: $licenseNo, ')
           ..write('jobTitle: $jobTitle, ')
+          ..write('presence: $presence, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();

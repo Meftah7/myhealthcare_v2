@@ -71,7 +71,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -105,6 +105,10 @@ class AppDatabase extends _$AppDatabase {
       if (from < 7) {
         // Wallet: saved cards.
         await m.createTable(paymentMethods);
+      }
+      if (from < 8) {
+        // Staff dashboard rebuild: live presence status.
+        await m.addColumn(staffProfiles, staffProfiles.presence);
       }
     },
     beforeOpen: (details) async {

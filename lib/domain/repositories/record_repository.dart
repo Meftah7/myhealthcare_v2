@@ -61,6 +61,13 @@ abstract interface class RecordRepository {
 
   Stream<List<MedicalRecord>> watchTimeline(String patientId, {int limit});
 
+  /// Records a staff member authored, newest first — the staff "Records
+  /// authored" view (ported from the FirstSemMyHealth doctor dashboard).
+  Future<Result<List<MedicalRecord>>> authoredBy(
+    String staffId, {
+    int limit,
+  });
+
   /// Adds a record and any attached lab values in one transaction. Computes
   /// each lab value's [AbnormalFlag] from its reference range.
   Future<Result<MedicalRecord>> add(NewRecord record);
@@ -85,6 +92,11 @@ abstract interface class MedicationRepository {
   });
 
   Future<Result<Medication>> prescribe(Medication medication);
+
+  /// Medications a staff member prescribed, newest first — the staff
+  /// "Prescriptions issued" view (ported from the FirstSemMyHealth doctor
+  /// dashboard).
+  Future<Result<List<Medication>>> prescribedBy(String staffId, {int limit});
 
   Future<Result<void>> discontinue(String id, DateTime endDate);
 }

@@ -1,7 +1,10 @@
-/// Staff dashboard (P5-05, redesign v2): the shift overview — a stat row,
-/// today's schedule, open risk flags, and the top tasks. Rule-engine driven,
-/// fully useful with AI off.
+/// Staff dashboard (staff-dashboard rebuild): the shift overview — greeting +
+/// presence, a stat row, the Quick actions grid, today's queue with clinical
+/// actions, open risk flags and the top tasks. Rule-engine driven, fully
+/// useful with AI off. Mirrors the FirstSemMyHealth doctor dashboard.
 library;
+
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,10 +16,13 @@ import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
 import '../../../core/utils/format.dart';
+import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
 import '../../auth/application/session.dart';
-import '../../auth/presentation/sign_out_action.dart';
+import '../../patient_chart/presentation/chart_write_sheets.dart';
 import '../application/staff_providers.dart';
+import 'staff_quick_actions.dart';
+import 'staff_top_actions.dart';
 
 class StaffDashboardScreen extends ConsumerWidget {
   const StaffDashboardScreen({super.key});
@@ -31,12 +37,13 @@ class StaffDashboardScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dashboard'),
-        actions: [_ScanButton(), const SignOutAction()],
+        actions: const [StaffTopActions()],
       ),
       body: RefreshIndicator(
         onRefresh: () async {
           ref
             ..invalidate(staffTodayProvider)
+            ..invalidate(staffQueueProvider)
             ..invalidate(unacknowledgedFlagsProvider)
             ..invalidate(staffTasksProvider);
         },
@@ -56,16 +63,20 @@ class StaffDashboardScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: Space.lg),
 
-                _StatRow(),
+                _StatGrid(),
+                const SizedBox(height: Space.md),
+
+                const SectionHeader('Quick actions', overline: true),
+                const StaffQuickActions(),
                 const SizedBox(height: Space.md),
 
                 SectionHeader(
-                  'Today',
+                  'Today’s queue',
                   overline: true,
                   action: 'Schedule',
                   onAction: () => context.go(AppRoutes.staffSchedule),
                 ),
-                _TodaySchedule(),
+                _QueueCard(),
                 const SizedBox(height: Space.md),
 
                 SectionHeader(
@@ -93,81 +104,49 @@ class StaffDashboardScreen extends ConsumerWidget {
   }
 }
 
-class _StatRow extends ConsumerWidget {
+class _StatGrid extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final today = ref.watch(staffTodayProvider).valueOrNull;
+    final queue = ref.watch(staffQueueProvider).valueOrNull;
     final flags = ref.watch(unacknowledgedFlagsProvider).valueOrNull;
     final tasks = ref.watch(staffTasksProvider).valueOrNull;
     final overdue = tasks?.where((t) => t.isOverdue).length ?? 0;
+    final compact = WindowSize.of(context).isCompact;
 
-    return Row(
+    return GridView.count(
+      crossAxisCount: compact ? 2 : 4,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      mainAxisSpacing: Space.sm,
+      crossAxisSpacing: Space.sm,
+      childAspectRatio: compact ? 1.8 : 1.5,
       children: [
-        Expanded(
-          child: MetricTile(
-            value: '${today?.length ?? 0}',
-            label: 'Appointments today',
-            icon: Icons.calendar_today_outlined,
-            onTap: () => context.go(AppRoutes.staffSchedule),
-          ),
+        MetricTile(
+          value: '${today?.length ?? 0}',
+          label: 'Appointments today',
+          icon: Icons.calendar_today_outlined,
+          onTap: () => context.go(AppRoutes.staffSchedule),
         ),
-        const SizedBox(width: Space.sm),
-        Expanded(
-          child: MetricTile(
-            value: '${flags?.length ?? 0}',
-            label: 'Open flags',
-            icon: Icons.flag_outlined,
-            onTap: () => context.go(AppRoutes.staffPatients),
-          ),
+        MetricTile(
+          value: '${queue?.length ?? 0}',
+          label: 'In your queue',
+          icon: Icons.groups_outlined,
         ),
-        const SizedBox(width: Space.sm),
-        Expanded(
-          child: MetricTile(
-            value: '${tasks?.length ?? 0}',
-            label: 'Open tasks',
-            caption: overdue > 0 ? '$overdue overdue' : null,
-            icon: Icons.checklist_outlined,
-            onTap: () => context.go(AppRoutes.staffTasks),
-          ),
+        MetricTile(
+          value: '${flags?.length ?? 0}',
+          label: 'Open flags',
+          icon: Icons.flag_outlined,
+          onTap: () => context.go(AppRoutes.staffPatients),
+        ),
+        MetricTile(
+          value: '${tasks?.length ?? 0}',
+          label: 'Open tasks',
+          caption: overdue > 0 ? '$overdue overdue' : null,
+          icon: Icons.checklist_outlined,
+          onTap: () => context.go(AppRoutes.staffTasks),
         ),
       ],
-    );
-  }
-}
-
-class _ScanButton extends ConsumerStatefulWidget {
-  @override
-  ConsumerState<_ScanButton> createState() => _ScanButtonState();
-}
-
-class _ScanButtonState extends ConsumerState<_ScanButton> {
-  bool _running = false;
-
-  Future<void> _scan() async {
-    setState(() => _running = true);
-    try {
-      final count = await ref.read(staffOpsProvider).refreshPanel();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Panel scan complete — $count open flag(s).')),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _running = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      tooltip: 'Scan panel for risks',
-      onPressed: _running ? null : _scan,
-      icon: _running
-          ? const SizedBox.square(
-              dimension: 18,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : const Icon(Icons.radar),
     );
   }
 }
@@ -217,53 +196,158 @@ class _ListCard extends StatelessWidget {
   }
 }
 
-class _TodaySchedule extends ConsumerWidget {
+/// Today's queue — soonest first, with the status-driven clinical actions
+/// (Accept → Start → Complete) plus an overflow menu for chart / transfer /
+/// cancel. Mirrors the FirstSemMyHealth "Today's Patients" table.
+class _QueueCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final today = ref.watch(staffTodayProvider);
-    return today.when(
-      loading: () => const LoadingSkeleton(height: 72),
-      error: (e, _) =>
-          const InlineBanner.error('Could not load your schedule.'),
+    final queue = ref.watch(staffQueueProvider);
+    final names = ref.watch(patientNameLookupProvider).valueOrNull ?? const {};
+
+    return queue.when(
+      loading: () => const LoadingSkeleton(height: 88),
+      error: (e, _) => const InlineBanner.error('Could not load your queue.'),
       data: (appts) => _ListCard(
         emptyIcon: Icons.event_available_outlined,
-        emptyText: 'Nothing booked today.',
+        emptyText: 'Nobody waiting — your queue is clear.',
         children: [
           for (final a in appts)
-            ListTile(
-              leading: Container(
-                width: 52,
-                alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(vertical: Space.xs),
-                decoration: BoxDecoration(
-                  color: scheme.secondaryContainer,
-                  borderRadius: Radii.chip,
-                ),
-                child: Text(
-                  fmtTime(a.slotStart),
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: scheme.onSecondaryContainer,
-                  ),
-                ),
-              ),
-              title: Text(visitTypeLabel(a.visitType)),
-              subtitle: a.reasonText == null
-                  ? null
-                  : Text(
-                      a.reasonText!,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-              trailing: a.riskBand == null ? null : RiskBadge(a.riskBand!),
-              onTap: () =>
-                  context.go(AppRoutes.staffPatientChart(a.patientId)),
+            _QueueRow(
+              appointment: a,
+              patientName: names[a.patientId],
+              scheme: scheme,
+              theme: theme,
             ),
         ],
       ),
     );
   }
+}
+
+class _QueueRow extends ConsumerWidget {
+  const _QueueRow({
+    required this.appointment,
+    required this.patientName,
+    required this.scheme,
+    required this.theme,
+  });
+
+  final Appointment appointment;
+  final String? patientName;
+  final ColorScheme scheme;
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final a = appointment;
+    final ops = ref.read(staffOpsProvider);
+    final accepted = a.status == AppointmentStatus.confirmed;
+    final checkedIn = a.checkedInAt != null;
+
+    return ListTile(
+      isThreeLine: true,
+      leading: Container(
+        width: 54,
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(vertical: Space.xs),
+        decoration: BoxDecoration(
+          color: scheme.secondaryContainer,
+          borderRadius: Radii.chip,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              fmtTime(a.slotStart),
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: scheme.onSecondaryContainer,
+              ),
+            ),
+            if (a.ticketTag != null)
+              Text(
+                a.ticketTag!,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: scheme.onSecondaryContainer,
+                ),
+              ),
+          ],
+        ),
+      ),
+      title: Text(patientName ?? visitTypeLabel(a.visitType)),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            [
+              visitTypeLabel(a.visitType),
+              if (a.roomNumber != null) 'Room ${a.roomNumber}',
+              if (checkedIn) 'checked in',
+            ].join(' · '),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: Space.xxs),
+          Wrap(
+            spacing: Space.xs,
+            runSpacing: Space.xxs,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              if (a.riskBand != null) RiskBadge(a.riskBand!),
+              if (!accepted)
+                FilledButton.tonal(
+                  onPressed: () => unawaited(ops.acceptAppointment(a.id)),
+                  style: _btnStyle,
+                  child: const Text('Accept'),
+                )
+              else if (!checkedIn)
+                FilledButton.tonal(
+                  onPressed: () => unawaited(ops.startVisit(a.id)),
+                  style: _btnStyle,
+                  child: const Text('Start visit'),
+                )
+              else
+                FilledButton(
+                  onPressed: () => unawaited(ops.completeAppointment(a.id)),
+                  style: _btnStyle,
+                  child: const Text('Complete'),
+                ),
+            ],
+          ),
+        ],
+      ),
+      trailing: PopupMenuButton<String>(
+        onSelected: (v) => unawaited(switch (v) {
+          'chart' => Future.sync(
+            () => context.go(AppRoutes.staffPatientChart(a.patientId)),
+          ),
+          'note' => showChartNoteSheet(context, a.patientId),
+          'transfer' => showTransferSheet(context, ref),
+          'cancel' => ops.cancelAppointment(a.id),
+          'noshow' => ops.cancelAppointment(a.id, noShow: true),
+          _ => Future<void>.value(),
+        }),
+        itemBuilder: (context) => const [
+          PopupMenuItem(value: 'chart', child: Text('Open chart')),
+          PopupMenuItem(value: 'note', child: Text('Add note')),
+          PopupMenuItem(value: 'transfer', child: Text('Transfer visit')),
+          PopupMenuDivider(),
+          PopupMenuItem(value: 'cancel', child: Text('Cancel visit')),
+          PopupMenuItem(value: 'noshow', child: Text('Mark no-show')),
+        ],
+      ),
+      onTap: () => context.go(AppRoutes.staffPatientChart(a.patientId)),
+    );
+  }
+
+  static final ButtonStyle _btnStyle = FilledButton.styleFrom(
+    visualDensity: VisualDensity.compact,
+    padding: const EdgeInsets.symmetric(horizontal: Space.sm),
+    minimumSize: const Size(0, 32),
+    textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+  );
 }
 
 class _RiskFlags extends ConsumerWidget {
@@ -273,8 +357,7 @@ class _RiskFlags extends ConsumerWidget {
     final flags = ref.watch(unacknowledgedFlagsProvider);
     return flags.when(
       loading: () => const LoadingSkeleton(height: 72),
-      error: (e, _) =>
-          const InlineBanner.error('Could not load risk flags.'),
+      error: (e, _) => const InlineBanner.error('Could not load risk flags.'),
       data: (list) {
         final sorted = [...list]
           ..sort((a, b) => b.severity.index.compareTo(a.severity.index));
@@ -327,7 +410,7 @@ class _TaskPreview extends ConsumerWidget {
       error: (e, _) => const InlineBanner.error('Could not load tasks.'),
       data: (list) => _ListCard(
         emptyIcon: Icons.checklist_outlined,
-        emptyText: 'No open tasks. Run a panel scan from the app bar.',
+        emptyText: 'No open tasks. Run a panel scan from Quick actions.',
         children: [
           for (final t in list.take(5))
             ListTile(

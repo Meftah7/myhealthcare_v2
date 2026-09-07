@@ -86,4 +86,13 @@ abstract interface class AppointmentRepository {
   });
 
   Future<Result<void>> markCheckedIn(String id, DateTime at);
+
+  /// Reassign an appointment to another staff member. The visit goes back to
+  /// [AppointmentStatus.booked] so the receiving clinician re-accepts it, and
+  /// the room number is recomputed for the new staff member's department
+  /// (ported from the FirstSemMyHealth "transfer_appointment" action).
+  Future<Result<Appointment>> transfer({
+    required String id,
+    required String toStaffId,
+  });
 }

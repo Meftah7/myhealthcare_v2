@@ -1,4 +1,5 @@
-// A staff member signs in, scans the panel and works the dashboard (P5-04..P5-11).
+// A staff member signs in, works the redesigned dashboard: Quick actions,
+// a panel scan, the queue, and the task board (P5-04..P5-11 + rebuild).
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,9 +18,14 @@ Future<void> _settle(WidgetTester tester) async {
 }
 
 void main() {
-  testWidgets('staff dashboard: sign in, scan panel, see tasks', (
+  testWidgets('staff dashboard: sign in, quick actions, scan panel, tasks', (
     tester,
   ) async {
+    tester.view.physicalSize = const Size(1200, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     final db = newTestDatabase();
     await Seeder(db).run();
 
@@ -51,18 +57,28 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
     await _settle(tester);
 
-    // Lands on the staff dashboard.
+    // Lands on the staff dashboard, with the presence pill + Quick actions.
     expect(find.widgetWithText(AppBar, 'Dashboard'), findsOneWidget);
     expect(find.textContaining('Good '), findsOneWidget);
+    expect(find.text('On duty'), findsWidgets);
+    expect(find.text('QUICK ACTIONS'), findsOneWidget);
 
-    // Run a panel scan from the app bar.
-    await tester.tap(find.byTooltip('Scan panel for risks'));
-    await _settle(tester);
+    // Run a panel scan from the Quick actions grid.
+    expect(find.text('Panel scan'), findsOneWidget);
+    await tester.tap(find.text('Panel scan'));
+    // Let the in-memory scan finish and the result snackbar animate in, but
+    // stop before its ~4s auto-dismiss.
+    for (var i = 0; i < 12; i++) {
+      await tester.pump(const Duration(milliseconds: 120));
+    }
     expect(find.textContaining('Panel scan complete'), findsOneWidget);
 
     // Task board is reachable and renders.
     await tester.tap(find.text('Tasks').first);
     await _settle(tester);
     expect(find.text('Task board'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
   });
 }

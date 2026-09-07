@@ -55,7 +55,8 @@ class Seeder {
   /// v6: each patient gets a starter notification feed.
   /// v7: every appointment carries a ticket tag + room number.
   /// v8: each patient starts with one saved card in their wallet.
-  static const seedVersion = 8;
+  /// v9: staff members get a starting presence status.
+  static const seedVersion = 9;
 
   /// Password for every seeded account (documented in the README).
   static const demoPassword = 'password';
@@ -165,6 +166,13 @@ class Seeder {
                 departmentId: Value(deptIds[d]),
                 licenseNo: Value('BH-${10000 + n}'),
                 jobTitle: const Value('Consultant'),
+                // Most on duty; a couple mid-consultation or on a break so the
+                // dashboard + directory show a realistic mix.
+                presence: Value(switch (n % 5) {
+                  0 => PresenceStatus.inConsultation,
+                  3 => PresenceStatus.onBreak,
+                  _ => PresenceStatus.onDuty,
+                }),
               ),
             );
         // A weekday schedule: Sun–Thu, 08:00–20:00, 20-minute slots.

@@ -27,7 +27,9 @@ import '../features/patient_chart/presentation/patient_chart_screen.dart';
 import '../features/patient_home/presentation/patient_home_screen.dart';
 import '../features/records/presentation/record_detail_screen.dart';
 import '../features/staff_dashboard/presentation/panel_analytics_screen.dart';
+import '../features/staff_dashboard/presentation/staff_activity_screen.dart';
 import '../features/staff_dashboard/presentation/staff_dashboard_screen.dart';
+import '../features/staff_dashboard/presentation/staff_directory_screen.dart';
 import '../features/staff_dashboard/presentation/staff_patients_screen.dart';
 import '../features/staff_dashboard/presentation/staff_profile_screen.dart';
 import '../features/staff_dashboard/presentation/staff_schedule_screen.dart';
@@ -89,6 +91,8 @@ abstract final class AppRoutes {
   static const staffTasks = '/staff/tasks';
   static const staffSchedule = '/staff/schedule';
   static const staffAnalytics = '/staff/analytics';
+  static const staffDirectory = '/staff/directory';
+  static const staffActivity = '/staff/activity';
   static const staffProfile = '/staff/profile';
 
   static String staffPatientChart(String id) => '$staffPatients/$id';
@@ -134,6 +138,14 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
       GoRoute(
         path: AppRoutes.staffAnalytics,
         builder: (_, _) => const PanelAnalyticsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.staffDirectory,
+        builder: (_, _) => const StaffDirectoryScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.staffActivity,
+        builder: (_, _) => const StaffActivityScreen(),
       ),
       GoRoute(
         path: AppRoutes.adminAnalytics,
