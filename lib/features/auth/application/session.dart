@@ -19,9 +19,13 @@ const kSessionIdleTimeout = Duration(minutes: 24);
 
 /// When true, every sign-in / registration must pass the MFA code screen
 /// before reaching a dashboard (ported from the FirstSemMyHealth `MFA.html`
-/// step). Off by default so the demo and test flows aren't gated; flip on with
-/// `--dart-define=REQUIRE_MFA=true`.
-const kRequireMfaAtSignIn = bool.fromEnvironment('REQUIRE_MFA');
+/// step). On by default; the code field is pre-filled with [kDemoMfaCode] so
+/// the only step is pressing "Verify". Disable with
+/// `--dart-define=REQUIRE_MFA=false`.
+const kRequireMfaAtSignIn = bool.fromEnvironment(
+  'REQUIRE_MFA',
+  defaultValue: true,
+);
 
 /// The demo verification code (matches `MFA.html`'s hard-coded `111111`).
 const kDemoMfaCode = '111111';

@@ -13,6 +13,7 @@ import 'package:myhealthcare/features/admin/application/admin_providers.dart';
 import 'package:myhealthcare/features/auth/application/session.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../support/mfa.dart';
 import '../support/test_database.dart';
 
 Future<void> _settle(WidgetTester tester) async {
@@ -51,6 +52,7 @@ Future<ProviderContainer> _signInAdmin(WidgetTester tester) async {
     Seeder.demoPassword,
   );
   await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
+  await passMfa(tester);
   await _settle(tester);
   return container;
 }

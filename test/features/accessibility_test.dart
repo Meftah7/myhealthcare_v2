@@ -10,10 +10,12 @@ import 'package:myhealthcare/data/db/app_database.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../support/mfa.dart';
 import '../support/test_database.dart';
 
 Future<void> _pump(WidgetTester tester) async {
-  for (var i = 0; i < 10; i++) {
+  // Long enough for the opening splash overlay to finish and clear.
+  for (var i = 0; i < 20; i++) {
     await tester.pump(const Duration(milliseconds: 80));
   }
 }
@@ -40,6 +42,7 @@ Future<void> _login(WidgetTester tester, String email) async {
     Seeder.demoPassword,
   );
   await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
+  await passMfa(tester);
   await _pump(tester);
 }
 

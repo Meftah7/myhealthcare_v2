@@ -11,6 +11,7 @@ import 'package:myhealthcare/features/nutrition/application/macro_calculator.dar
 import 'package:myhealthcare/features/nutrition/presentation/nutrition_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../support/mfa.dart';
 import '../support/test_database.dart';
 
 Future<void> _settle(WidgetTester tester) async {
@@ -49,6 +50,7 @@ Future<ProviderContainer> _signIn(WidgetTester tester) async {
     Seeder.demoPassword,
   );
   await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
+  await passMfa(tester);
   await _settle(tester);
   return container;
 }

@@ -138,10 +138,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               onPressed: _busy
                   ? null
                   : () => context.push(AppRoutes.forgotPassword),
-              style: TextButton.styleFrom(
-                minimumSize: const Size(0, 36),
-                padding: const EdgeInsets.symmetric(horizontal: Space.xs),
-              ),
               child: const Text('Forgot password?'),
             ),
           ),

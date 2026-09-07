@@ -10,6 +10,7 @@ import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../support/mfa.dart';
 import '../support/test_database.dart';
 
 Future<void> _settle(WidgetTester tester) async {
@@ -51,6 +52,7 @@ void main() {
       Seeder.demoPassword,
     );
     await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
+    await passMfa(tester);
     await _settle(tester);
 
     await tester.tap(find.text('Schedule').first);

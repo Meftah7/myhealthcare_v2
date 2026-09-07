@@ -11,6 +11,7 @@ import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:myhealthcare/features/staff_dashboard/presentation/staff_profile_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../support/mfa.dart';
 import '../support/test_database.dart';
 
 Future<void> _settle(WidgetTester tester) async {
@@ -54,6 +55,7 @@ void main() {
       Seeder.demoPassword,
     );
     await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
+    await passMfa(tester);
     await _settle(tester);
 
     // Open the Profile tab from the bottom navigation.

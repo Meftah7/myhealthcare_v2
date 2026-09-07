@@ -196,12 +196,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                 decoration: const InputDecoration(
                                   labelText: 'Gender',
                                 ),
-                                items: [
-                                  for (final g in Gender.values)
-                                    DropdownMenuItem(
-                                      value: g,
-                                      child: Text(g.name),
-                                    ),
+                                items: const [
+                                  DropdownMenuItem(
+                                    value: Gender.male,
+                                    child: Text('Male'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: Gender.female,
+                                    child: Text('Female'),
+                                  ),
                                 ],
                                 onChanged: (v) => setState(() => _gender = v),
                               ),

@@ -10,6 +10,7 @@ import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:myhealthcare/features/auth/application/session.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../support/mfa.dart';
 import '../support/test_database.dart';
 
 Future<void> _settle(WidgetTester tester) async {
@@ -52,6 +53,7 @@ void main() {
     );
     await tester.ensureVisible(find.widgetWithText(FilledButton, 'Sign in'));
     await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
+    await passMfa(tester);
     await _settle(tester);
 
     expect(container.read(sessionProvider).isAuthenticated, isTrue);
@@ -75,6 +77,7 @@ void main() {
     );
     await tester.ensureVisible(find.widgetWithText(FilledButton, 'Sign in'));
     await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
+    await passMfa(tester);
     await _settle(tester);
     expect(container.read(sessionProvider).endedByInactivity, isFalse);
 

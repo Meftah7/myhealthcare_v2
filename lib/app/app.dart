@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/presentation/appointment_confirmation_overlay.dart';
 import '../features/auth/presentation/session_activity_monitor.dart';
+import '../features/auth/presentation/splash_overlay.dart';
 import 'router.dart';
 import 'settings/ui_prefs.dart';
 import 'theme/theme.dart';
@@ -37,6 +38,7 @@ class MyHealthCareApp extends ConsumerWidget {
           children: [
             child ?? const SizedBox.shrink(),
             const AppointmentConfirmationOverlay(),
+            const SplashOverlay(),
           ],
         ),
       ),

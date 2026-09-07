@@ -15,6 +15,7 @@ import 'package:myhealthcare/features/booking/presentation/booking_screen.dart';
 import 'package:myhealthcare/features/patient/application/patient_data_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../support/mfa.dart';
 import '../support/test_database.dart';
 
 Future<void> _settle(WidgetTester tester) async {
@@ -58,6 +59,7 @@ void main() {
       Seeder.demoPassword,
     );
     await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
+    await passMfa(tester);
     await _settle(tester);
 
     // Open the Appointments tab, then start the scheduling wizard from it.
@@ -166,6 +168,7 @@ void main() {
       Seeder.demoPassword,
     );
     await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
+    await passMfa(tester);
     await _settle(tester);
 
     // Simulate a half-finished pick from a previous visit.
