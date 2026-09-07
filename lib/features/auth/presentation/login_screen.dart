@@ -62,7 +62,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const _BrandLockup(subtitle: 'Sign in to your health record'),
+          const _BrandLockup(
+            subtitle: 'Your records, appointments and care team — '
+                'in one calm place.',
+          ),
           const SizedBox(height: Space.xl),
           if (endedByInactivity) ...[
             Container(
@@ -95,15 +98,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ],
           TextFormField(
             controller: _email,
-            autofillHints: const [AutofillHints.email],
+            autofillHints: const [AutofillHints.username],
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.next,
+            autocorrect: false,
             decoration: const InputDecoration(
               labelText: 'Email',
-              prefixIcon: Icon(Icons.mail_outline),
+              helperText: 'You can also sign in with your national ID',
+              prefixIcon: Icon(Icons.person_outline),
             ),
-            validator: (v) => (v == null || !v.contains('@'))
-                ? 'Enter a valid email'
+            validator: (v) => (v == null || v.trim().isEmpty)
+                ? 'Enter your email or national ID'
                 : null,
           ),
           const SizedBox(height: Space.md),
@@ -126,6 +131,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
             validator: (v) =>
                 (v == null || v.isEmpty) ? 'Enter your password' : null,
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: _busy
+                  ? null
+                  : () => context.push(AppRoutes.forgotPassword),
+              style: TextButton.styleFrom(
+                minimumSize: const Size(0, 36),
+                padding: const EdgeInsets.symmetric(horizontal: Space.xs),
+              ),
+              child: const Text('Forgot password?'),
+            ),
           ),
           AnimatedSize(
             duration: Motion.medium,

@@ -22,13 +22,17 @@ import '../features/ai_scribe/presentation/clinical_scribe_screen.dart';
 import '../features/ai_summary/presentation/ai_summary_screen.dart';
 import '../features/appointments/presentation/appointments_screen.dart';
 import '../features/auth/application/session.dart';
+import '../features/auth/presentation/forgot_password_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
+import '../features/auth/presentation/mfa_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
+import '../features/auth/presentation/reset_password_screen.dart';
 import '../features/billing/presentation/billing_screen.dart';
 import '../features/booking/presentation/booking_screen.dart';
 import '../features/notifications/presentation/notifications_screen.dart';
 import '../features/nutrition/presentation/nutrition_screen.dart';
 import '../features/patient/application/profile_screen.dart';
+import '../features/patient/presentation/profile_section_pages.dart';
 import '../features/patient_chart/presentation/patient_chart_screen.dart';
 import '../features/patient_chart/presentation/patient_summary_screen.dart';
 import '../features/patient_home/presentation/patient_home_screen.dart';
@@ -73,6 +77,9 @@ bool _canAccess(String location, UserRole role) {
 abstract final class AppRoutes {
   static const login = '/login';
   static const register = '/register';
+  static const forgotPassword = '/forgot-password';
+  static const resetPassword = '/reset-password';
+  static const mfa = '/verify';
 
   // Patient
   static const patientHome = '/patient/home';
@@ -84,6 +91,12 @@ abstract final class AppRoutes {
   static const patientBook = '/patient/appointments/book';
   static const patientSummary = '/patient/summary';
   static const patientSettings = '/patient/settings';
+  static const patientProfilePersonal = '/patient/settings/personal';
+  static const patientProfileHealth = '/patient/settings/health';
+  static const patientProfileWallet = '/patient/settings/wallet';
+  static const patientProfilePreferences = '/patient/settings/preferences';
+  static const patientProfileNotifications = '/patient/settings/notifications';
+  static const patientProfileFamily = '/patient/settings/family';
   /// Opens Health Records with the Medications view selected (keeps the shell
   /// nav rail / bar visible, unlike a standalone route).
   static const patientMedications = '/patient/timeline?view=medications';
@@ -137,6 +150,17 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
         path: AppRoutes.register,
         builder: (_, _) => const RegisterScreen(),
       ),
+      GoRoute(
+        path: AppRoutes.forgotPassword,
+        builder: (_, _) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.resetPassword,
+        builder: (_, state) => ResetPasswordScreen(
+          userId: state.uri.queryParameters['user'] ?? '',
+        ),
+      ),
+      GoRoute(path: AppRoutes.mfa, builder: (_, _) => const MfaScreen()),
 
       // The booking wizard is a focused full-screen flow over the shell — no
       // bottom nav while a multi-step task is in progress (DESIGN.md §6).
@@ -205,7 +229,13 @@ String? _guard(Ref ref, GoRouterState state) {
   final session = ref.read(sessionProvider);
   final loc = state.matchedLocation;
   const onSplash = '/';
-  final onAuthScreen = loc == AppRoutes.login || loc == AppRoutes.register;
+  const publicAuth = {
+    AppRoutes.login,
+    AppRoutes.register,
+    AppRoutes.forgotPassword,
+    AppRoutes.resetPassword,
+  };
+  final onAuthScreen = publicAuth.contains(loc);
 
   // Still loading the persisted session → sit on the splash.
   if (session.isRestoring) return loc == onSplash ? null : onSplash;
@@ -214,6 +244,13 @@ String? _guard(Ref ref, GoRouterState state) {
   if (user == null) {
     return onAuthScreen ? null : AppRoutes.login;
   }
+
+  // Signed in but still owes the MFA code → hold on the verify screen.
+  if (session.needsMfa) {
+    return loc == AppRoutes.mfa ? null : AppRoutes.mfa;
+  }
+  // MFA done (or not required): /verify is no longer a valid place to be.
+  if (loc == AppRoutes.mfa) return homeForRole(user.role);
 
   // Signed in: keep them out of the splash / auth screens, and out of
   // another role's area.
@@ -331,6 +368,32 @@ StatefulShellRoute _patientShell() {
           GoRoute(
             path: AppRoutes.patientSettings,
             builder: (_, _) => const ProfileScreen(),
+            routes: [
+              GoRoute(
+                path: 'personal',
+                builder: (_, _) => const PersonalInfoPage(),
+              ),
+              GoRoute(
+                path: 'health',
+                builder: (_, _) => const HealthDetailsPage(),
+              ),
+              GoRoute(
+                path: 'wallet',
+                builder: (_, _) => const WalletPage(),
+              ),
+              GoRoute(
+                path: 'preferences',
+                builder: (_, _) => const PreferencesPage(),
+              ),
+              GoRoute(
+                path: 'notifications',
+                builder: (_, _) => const NotificationChannelsPage(),
+              ),
+              GoRoute(
+                path: 'family',
+                builder: (_, _) => const FamilyNetworkPage(),
+              ),
+            ],
           ),
         ],
       ),

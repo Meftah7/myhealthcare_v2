@@ -17,11 +17,21 @@ import '../../../domain/repositories/auth_repository.dart';
 /// default `session.gc_maxlifetime` of 1440 seconds (24 minutes) of inactivity.
 const kSessionIdleTimeout = Duration(minutes: 24);
 
+/// When true, every sign-in / registration must pass the MFA code screen
+/// before reaching a dashboard (ported from the FirstSemMyHealth `MFA.html`
+/// step). Off by default so the demo and test flows aren't gated; flip on with
+/// `--dart-define=REQUIRE_MFA=true`.
+const kRequireMfaAtSignIn = bool.fromEnvironment('REQUIRE_MFA');
+
+/// The demo verification code (matches `MFA.html`'s hard-coded `111111`).
+const kDemoMfaCode = '111111';
+
 class Session {
   const Session({
     this.user,
     this.isRestoring = false,
     this.endedByInactivity = false,
+    this.mfaPassed = false,
   });
 
   final User? user;
@@ -33,18 +43,27 @@ class Session {
   /// screen shows a notice. Cleared on the next successful sign-in.
   final bool endedByInactivity;
 
+  /// True once the MFA code screen has been cleared for this session. Only
+  /// consulted when [kRequireMfaAtSignIn] is on.
+  final bool mfaPassed;
+
   bool get isAuthenticated => user != null;
+
+  /// True when the user is signed in but still owes the MFA step.
+  bool get needsMfa => user != null && kRequireMfaAtSignIn && !mfaPassed;
 
   Session copyWith({
     User? user,
     bool? isRestoring,
     bool? endedByInactivity,
+    bool? mfaPassed,
     bool clearUser = false,
   }) {
     return Session(
       user: clearUser ? null : (user ?? this.user),
       isRestoring: isRestoring ?? this.isRestoring,
       endedByInactivity: endedByInactivity ?? this.endedByInactivity,
+      mfaPassed: mfaPassed ?? this.mfaPassed,
     );
   }
 }
@@ -80,6 +99,10 @@ class SessionController extends Notifier<Session> {
     await ref.read(sharedPreferencesProvider).remove(_prefsKey);
     state = Session(endedByInactivity: inactivity);
   }
+
+  /// Clear the MFA challenge for this session (called by the MFA screen once
+  /// the code is verified).
+  void passMfa() => state = state.copyWith(mfaPassed: true);
 
   Future<Result<Patient>> register(PatientRegistration registration) async {
     final result = await ref
