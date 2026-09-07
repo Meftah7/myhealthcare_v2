@@ -4,6 +4,16 @@
 /// build a masked descriptor ("Card ····4242"), and then discarded — nothing
 /// is stored or transmitted. The sheet says so, so nobody mistakes it for a
 /// real gateway.
+///
+/// Payment-security parity with the FirstSemMyHealth `pay_invoice` handler:
+///  - the CVC never leaves this sheet — it is validated here and never passed
+///    to any store (the PHP original simply never POSTs it);
+///  - only the last four digits + a masked descriptor are persisted, never the
+///    PAN (`billing_repository_impl.pay` writes `payment.maskedDescriptor`);
+///  - the invoice is only settled if it belongs to the signed-in patient and
+///    is still open (ownership + state checked inside the same query);
+///  - the fields opt out of keyboard learning / autocorrect so the PAN and CVC
+///    are not cached by the OS, and use the platform credit-card autofill.
 library;
 
 import 'package:flutter/material.dart';
@@ -61,149 +71,161 @@ class _PayInvoiceSheetState extends ConsumerState<_PayInvoiceSheet> {
     final insets = MediaQuery.viewInsetsOf(context).bottom;
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(
-        Space.lg,
-        0,
-        Space.lg,
-        Space.lg + insets,
-      ),
+      padding: EdgeInsets.fromLTRB(Space.lg, 0, Space.lg, Space.lg + insets),
       child: SingleChildScrollView(
         child: Form(
           key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Pay invoice', style: theme.textTheme.titleLarge),
-              const SizedBox(height: Space.xxs),
-              Text(
-                '${money(widget.invoice.totalAmount)} due',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: Space.lg),
-
-              TextFormField(
-                controller: _holder,
-                textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(labelText: 'Name on card'),
-                validator: (v) => (v == null || v.trim().isEmpty)
-                    ? 'Enter the name on the card'
-                    : null,
-              ),
-              const SizedBox(height: Space.sm),
-
-              TextFormField(
-                controller: _number,
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(19),
-                ],
-                decoration: const InputDecoration(
-                  labelText: 'Card number',
-                  hintText: '4242 4242 4242 4242',
-                ),
-                validator: (v) {
-                  final d = (v ?? '').replaceAll(RegExp(r'\D'), '');
-                  if (d.length < 12) return 'Enter a full card number';
-                  return null;
-                },
-              ),
-              const SizedBox(height: Space.sm),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _expiry,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'[0-9/]')),
-                        LengthLimitingTextInputFormatter(5),
-                      ],
-                      decoration: const InputDecoration(
-                        labelText: 'Expiry',
-                        hintText: 'MM/YY',
-                      ),
-                      validator: (v) =>
-                          _parseExpiry(v ?? '') == null ? 'MM/YY' : null,
-                    ),
+          child: AutofillGroup(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Pay invoice', style: theme.textTheme.titleLarge),
+                const SizedBox(height: Space.xxs),
+                Text(
+                  '${money(widget.invoice.totalAmount)} due',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
-                  const SizedBox(width: Space.sm),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _cvc,
-                      keyboardType: TextInputType.number,
-                      obscureText: true,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                        LengthLimitingTextInputFormatter(4),
-                      ],
-                      decoration: const InputDecoration(labelText: 'CVC'),
-                      validator: (v) => RegExp(r'^\d{3,4}$').hasMatch(v ?? '')
-                          ? null
-                          : '3–4 digits',
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(height: Space.lg),
 
-              if (_error != null) ...[
+                TextFormField(
+                  controller: _holder,
+                  textCapitalization: TextCapitalization.words,
+                  autocorrect: false,
+                  autofillHints: const [AutofillHints.creditCardName],
+                  decoration: const InputDecoration(labelText: 'Name on card'),
+                  validator: (v) => (v == null || v.trim().isEmpty)
+                      ? 'Enter the name on the card'
+                      : null,
+                ),
                 const SizedBox(height: Space.sm),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(Space.sm),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.errorContainer,
-                    borderRadius: Radii.card,
+
+                TextFormField(
+                  controller: _number,
+                  keyboardType: TextInputType.number,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  autofillHints: const [AutofillHints.creditCardNumber],
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(19),
+                  ],
+                  decoration: const InputDecoration(
+                    labelText: 'Card number',
+                    hintText: '4242 4242 4242 4242',
                   ),
-                  child: Text(
-                    _error!,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onErrorContainer,
+                  validator: (v) {
+                    final d = (v ?? '').replaceAll(RegExp(r'\D'), '');
+                    if (d.length < 12) return 'Enter a full card number';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: Space.sm),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _expiry,
+                        keyboardType: TextInputType.number,
+                        autocorrect: false,
+                        enableSuggestions: false,
+                        autofillHints: const [
+                          AutofillHints.creditCardExpirationDate,
+                        ],
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'[0-9/]')),
+                          LengthLimitingTextInputFormatter(5),
+                        ],
+                        decoration: const InputDecoration(
+                          labelText: 'Expiry',
+                          hintText: 'MM/YY',
+                        ),
+                        validator: (v) =>
+                            _parseExpiry(v ?? '') == null ? 'MM/YY' : null,
+                      ),
                     ),
+                    const SizedBox(width: Space.sm),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _cvc,
+                        keyboardType: TextInputType.number,
+                        obscureText: true,
+                        autocorrect: false,
+                        enableSuggestions: false,
+                        autofillHints: const [
+                          AutofillHints.creditCardSecurityCode,
+                        ],
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(4),
+                        ],
+                        decoration: const InputDecoration(labelText: 'CVC'),
+                        validator: (v) => RegExp(r'^\d{3,4}$').hasMatch(v ?? '')
+                            ? null
+                            : '3–4 digits',
+                      ),
+                    ),
+                  ],
+                ),
+
+                if (_error != null) ...[
+                  const SizedBox(height: Space.sm),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(Space.sm),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.errorContainer,
+                      borderRadius: Radii.card,
+                    ),
+                    child: Text(
+                      _error!,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onErrorContainer,
+                      ),
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: Space.md),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      size: 16,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: Space.xs),
+                    Expanded(
+                      child: Text(
+                        'Demo payment — card details are checked on this device '
+                        'and never stored or sent anywhere.',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: Space.md),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: _submitting ? null : _submit,
+                    child: _submitting
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text('Pay ${money(widget.invoice.totalAmount)}'),
                   ),
                 ),
               ],
-
-              const SizedBox(height: Space.md),
-              Row(
-                children: [
-                  Icon(
-                    Icons.info_outline,
-                    size: 16,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: Space.xs),
-                  Expanded(
-                    child: Text(
-                      'Demo payment — card details are checked on this device '
-                      'and never stored or sent anywhere.',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: Space.md),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: _submitting ? null : _submit,
-                  child: _submitting
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text('Pay ${money(widget.invoice.totalAmount)}'),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

@@ -53,9 +53,7 @@ class WalletSection extends ConsumerWidget {
                 ),
               );
             }
-            return Column(
-              children: [for (final c in list) _CardTile(card: c)],
-            );
+            return Column(children: [for (final c in list) _CardTile(card: c)]);
           },
         ),
 
@@ -69,12 +67,13 @@ class WalletSection extends ConsumerWidget {
           loading: () => const LoadingSkeleton(height: 48),
           error: (e, _) => const SizedBox.shrink(),
           data: (list) {
-            final paid = list.where((i) => i.status == InvoiceStatus.paid).toList()
-              ..sort((a, b) {
-                final ap = a.paidAt ?? a.issuedAt;
-                final bp = b.paidAt ?? b.issuedAt;
-                return bp.compareTo(ap);
-              });
+            final paid =
+                list.where((i) => i.status == InvoiceStatus.paid).toList()
+                  ..sort((a, b) {
+                    final ap = a.paidAt ?? a.issuedAt;
+                    final bp = b.paidAt ?? b.issuedAt;
+                    return bp.compareTo(ap);
+                  });
             if (paid.isEmpty) {
               return Text(
                 'No payments yet.',
@@ -223,9 +222,7 @@ class _CardTile extends ConsumerWidget {
                 destructive: true,
               );
               if (ok) {
-                await ref
-                    .read(billingControllerProvider)
-                    .removeCard(card.id);
+                await ref.read(billingControllerProvider).removeCard(card.id);
               }
             },
           ),
@@ -277,7 +274,9 @@ class _AddCardSheetState extends ConsumerState<_AddCardSheet> {
       _busy = true;
       _error = null;
     });
-    final result = await ref.read(billingControllerProvider).addCard(
+    final result = await ref
+        .read(billingControllerProvider)
+        .addCard(
           CardPayment(
             cardNumber: _number.text,
             cardHolder: _holder.text.trim(),
@@ -307,103 +306,120 @@ class _AddCardSheetState extends ConsumerState<_AddCardSheet> {
       child: SingleChildScrollView(
         child: Form(
           key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text('Add a card', style: theme.textTheme.titleLarge),
-              const SizedBox(height: Space.lg),
-              TextFormField(
-                controller: _holder,
-                textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(labelText: 'Name on card'),
-                validator: (v) => (v == null || v.trim().isEmpty)
-                    ? 'Enter the name on the card'
-                    : null,
-              ),
-              const SizedBox(height: Space.sm),
-              TextFormField(
-                controller: _number,
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(19),
-                ],
-                decoration: const InputDecoration(
-                  labelText: 'Card number',
-                  hintText: '4242 4242 4242 4242',
+          child: AutofillGroup(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('Add a card', style: theme.textTheme.titleLarge),
+                const SizedBox(height: Space.lg),
+                TextFormField(
+                  controller: _holder,
+                  textCapitalization: TextCapitalization.words,
+                  autocorrect: false,
+                  autofillHints: const [AutofillHints.creditCardName],
+                  decoration: const InputDecoration(labelText: 'Name on card'),
+                  validator: (v) => (v == null || v.trim().isEmpty)
+                      ? 'Enter the name on the card'
+                      : null,
                 ),
-                validator: (v) {
-                  final d = (v ?? '').replaceAll(RegExp(r'\D'), '');
-                  return d.length < 12 ? 'Enter a full card number' : null;
-                },
-              ),
-              const SizedBox(height: Space.sm),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _expiry,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'[0-9/]')),
-                        LengthLimitingTextInputFormatter(5),
-                      ],
-                      decoration: const InputDecoration(
-                        labelText: 'Expiry',
-                        hintText: 'MM/YY',
-                      ),
-                      validator: (v) =>
-                          _parseExpiry(v ?? '') == null ? 'MM/YY' : null,
-                    ),
+                const SizedBox(height: Space.sm),
+                TextFormField(
+                  controller: _number,
+                  keyboardType: TextInputType.number,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  autofillHints: const [AutofillHints.creditCardNumber],
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(19),
+                  ],
+                  decoration: const InputDecoration(
+                    labelText: 'Card number',
+                    hintText: '4242 4242 4242 4242',
                   ),
-                  const SizedBox(width: Space.sm),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _cvc,
-                      keyboardType: TextInputType.number,
-                      obscureText: true,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                        LengthLimitingTextInputFormatter(4),
-                      ],
-                      decoration: const InputDecoration(labelText: 'CVC'),
-                      validator: (v) => RegExp(r'^\d{3,4}$').hasMatch(v ?? '')
-                          ? null
-                          : '3–4 digits',
+                  validator: (v) {
+                    final d = (v ?? '').replaceAll(RegExp(r'\D'), '');
+                    return d.length < 12 ? 'Enter a full card number' : null;
+                  },
+                ),
+                const SizedBox(height: Space.sm),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _expiry,
+                        keyboardType: TextInputType.number,
+                        autocorrect: false,
+                        enableSuggestions: false,
+                        autofillHints: const [
+                          AutofillHints.creditCardExpirationDate,
+                        ],
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'[0-9/]')),
+                          LengthLimitingTextInputFormatter(5),
+                        ],
+                        decoration: const InputDecoration(
+                          labelText: 'Expiry',
+                          hintText: 'MM/YY',
+                        ),
+                        validator: (v) =>
+                            _parseExpiry(v ?? '') == null ? 'MM/YY' : null,
+                      ),
+                    ),
+                    const SizedBox(width: Space.sm),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _cvc,
+                        keyboardType: TextInputType.number,
+                        obscureText: true,
+                        autocorrect: false,
+                        enableSuggestions: false,
+                        autofillHints: const [
+                          AutofillHints.creditCardSecurityCode,
+                        ],
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(4),
+                        ],
+                        decoration: const InputDecoration(labelText: 'CVC'),
+                        validator: (v) => RegExp(r'^\d{3,4}$').hasMatch(v ?? '')
+                            ? null
+                            : '3–4 digits',
+                      ),
+                    ),
+                  ],
+                ),
+                if (_error != null) ...[
+                  const SizedBox(height: Space.sm),
+                  Text(
+                    _error!,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.error,
                     ),
                   ),
                 ],
-              ),
-              if (_error != null) ...[
                 const SizedBox(height: Space.sm),
                 Text(
-                  _error!,
+                  'Only the last 4 digits and expiry are saved — never the full '
+                  'number or CVC.',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.error,
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
-              ],
-              const SizedBox(height: Space.sm),
-              Text(
-                'Only the last 4 digits and expiry are saved — never the full '
-                'number or CVC.',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                const SizedBox(height: Space.md),
+                FilledButton(
+                  onPressed: _busy ? null : _save,
+                  child: _busy
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Save card'),
                 ),
-              ),
-              const SizedBox(height: Space.md),
-              FilledButton(
-                onPressed: _busy ? null : _save,
-                child: _busy
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Save card'),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

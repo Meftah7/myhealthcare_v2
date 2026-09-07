@@ -53,6 +53,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final endedByInactivity = ref.watch(
+      sessionProvider.select((s) => s.endedByInactivity),
+    );
 
     final form = Form(
       key: _formKey,
@@ -61,6 +64,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         children: [
           const _BrandLockup(subtitle: 'Sign in to your health record'),
           const SizedBox(height: Space.xl),
+          if (endedByInactivity) ...[
+            Container(
+              padding: const EdgeInsets.all(Space.sm),
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerHighest,
+                borderRadius: Radii.cardSmall,
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.timer_off_outlined,
+                    size: 18,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: Space.xs),
+                  Expanded(
+                    child: Text(
+                      'Your session ended after 24 minutes of inactivity. '
+                      'Please sign in again.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: Space.md),
+          ],
           TextFormField(
             controller: _email,
             autofillHints: const [AutofillHints.email],
