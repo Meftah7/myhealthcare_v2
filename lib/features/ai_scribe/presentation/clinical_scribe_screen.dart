@@ -144,25 +144,19 @@ class _ClinicalScribeScreenState extends ConsumerState<ClinicalScribeScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text(
-                            'Dictation',
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          const SizedBox(height: Space.xs),
                           TextField(
                             controller: _dictation,
                             minLines: 4,
                             maxLines: 10,
                             decoration: const InputDecoration(
+                              labelText: 'Dictation',
+                              alignLabelWithHint: true,
                               hintText:
                                   'Type or paste your visit notes in plain '
                                   'language — the scribe will structure them.',
-                              border: OutlineInputBorder(),
                             ),
                           ),
-                          const SizedBox(height: Space.sm),
+                          const SizedBox(height: Space.md),
                           FilledButton.icon(
                             onPressed: _structuring ? null : _structure,
                             icon: _structuring
@@ -248,7 +242,6 @@ class _ClinicalScribeScreenState extends ConsumerState<ClinicalScribeScreen> {
         decoration: InputDecoration(
           labelText: label,
           alignLabelWithHint: true,
-          border: const OutlineInputBorder(),
         ),
       ),
     );

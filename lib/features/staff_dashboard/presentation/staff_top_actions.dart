@@ -113,9 +113,19 @@ class PresenceMenu extends ConsumerWidget {
             value: status,
             child: Row(
               children: [
-                _Dot(color: presenceMeta(context, status).color),
+                Icon(
+                  presenceMeta(context, status).icon,
+                  size: 18,
+                  color: presenceMeta(context, status).color,
+                ),
                 const SizedBox(width: Space.sm),
-                Text(presenceMeta(context, status).label),
+                Expanded(child: Text(presenceMeta(context, status).label)),
+                if (status == current)
+                  Icon(
+                    Icons.check,
+                    size: 16,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
               ],
             ),
           ),
@@ -135,7 +145,7 @@ class PresenceMenu extends ConsumerWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _Dot(color: meta.color),
+            Icon(meta.icon, size: 15, color: meta.color),
             const SizedBox(width: Space.xs),
             Flexible(
               child: Text(
@@ -156,16 +166,3 @@ class PresenceMenu extends ConsumerWidget {
   }
 }
 
-class _Dot extends StatelessWidget {
-  const _Dot({required this.color});
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 9,
-      height: 9,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-    );
-  }
-}

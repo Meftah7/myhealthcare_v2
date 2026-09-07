@@ -28,10 +28,10 @@ class StaffQuickActions extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final size = WindowSize.of(context);
     final crossAxisCount = size.isCompact
-        ? 2
-        : size.isExpanded || size.isLarge
+        ? 3
+        : size.isMedium
         ? 4
-        : 3;
+        : 6;
 
     final actions = <_QuickAction>[
       _QuickAction(
@@ -120,9 +120,9 @@ class StaffQuickActions extends ConsumerWidget {
       crossAxisCount: crossAxisCount,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: Space.sm,
-      crossAxisSpacing: Space.sm,
-      childAspectRatio: 2.6,
+      mainAxisSpacing: Space.xs,
+      crossAxisSpacing: Space.xs,
+      childAspectRatio: 0.92,
       children: [for (final a in actions) _QuickActionTile(action: a)],
     );
   }
@@ -186,17 +186,19 @@ class _QuickActionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return AppCard(
-      padding: const EdgeInsets.symmetric(
-        horizontal: Space.md,
-        vertical: Space.sm,
-      ),
+      padding: const EdgeInsets.all(Space.xs),
       onTap: action.onTap,
-      child: Row(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(action.icon, size: 20, color: theme.colorScheme.primary),
-          const SizedBox(width: Space.sm),
-          Expanded(
-            child: Text(action.label, style: theme.textTheme.titleSmall),
+          Icon(action.icon, size: 22, color: theme.colorScheme.primary),
+          const SizedBox(height: Space.xs),
+          Text(
+            action.label,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelMedium,
           ),
         ],
       ),

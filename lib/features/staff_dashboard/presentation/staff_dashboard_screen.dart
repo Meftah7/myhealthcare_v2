@@ -13,6 +13,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
 import '../../../core/utils/format.dart';
@@ -247,107 +248,133 @@ class _QueueRow extends ConsumerWidget {
     final accepted = a.status == AppointmentStatus.confirmed;
     final checkedIn = a.checkedInAt != null;
 
-    return ListTile(
-      isThreeLine: true,
-      leading: Container(
-        width: 54,
-        alignment: Alignment.center,
-        padding: const EdgeInsets.symmetric(vertical: Space.xs),
-        decoration: BoxDecoration(
-          color: scheme.secondaryContainer,
-          borderRadius: Radii.chip,
+    final (String actionLabel, VoidCallback onAction) = !accepted
+        ? ('Accept', () => unawaited(ops.acceptAppointment(a.id)))
+        : !checkedIn
+        ? ('Start', () => unawaited(ops.startVisit(a.id)))
+        : ('Complete', () => unawaited(ops.completeAppointment(a.id)));
+
+    return InkWell(
+      onTap: () => context.go(AppRoutes.staffPatientChart(a.patientId)),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          Space.md,
+          Space.sm,
+          Space.xs,
+          Space.sm,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        child: Row(
           children: [
-            Text(
-              fmtTime(a.slotStart),
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: scheme.onSecondaryContainer,
+            Container(
+              width: 52,
+              alignment: Alignment.center,
+              padding: const EdgeInsets.symmetric(vertical: Space.xs),
+              decoration: BoxDecoration(
+                color: scheme.secondaryContainer,
+                borderRadius: Radii.chip,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    fmtTime(a.slotStart),
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: scheme.onSecondaryContainer,
+                    ),
+                  ),
+                  if (a.ticketTag != null)
+                    Text(
+                      a.ticketTag!,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: scheme.onSecondaryContainer,
+                        fontFeatures: kTabularFigures,
+                      ),
+                    ),
+                ],
               ),
             ),
-            if (a.ticketTag != null)
-              Text(
-                a.ticketTag!,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: scheme.onSecondaryContainer,
-                ),
+            const SizedBox(width: Space.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          patientName ?? visitTypeLabel(a.visitType),
+                          style: theme.textTheme.titleSmall,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (a.riskBand == RiskBand.high) ...[
+                        const SizedBox(width: Space.xs),
+                        RiskBadge(a.riskBand!),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    [
+                      visitTypeLabel(a.visitType),
+                      if (a.roomNumber != null) 'Room ${a.roomNumber}',
+                      if (checkedIn) 'checked in',
+                    ].join(' · '),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ),
+            ),
+            const SizedBox(width: Space.xs),
+            accepted && checkedIn
+                ? FilledButton(onPressed: onAction, child: Text(actionLabel))
+                : FilledButton.tonal(
+                    onPressed: onAction,
+                    child: Text(actionLabel),
+                  ),
+            PopupMenuButton<String>(
+              tooltip: 'More actions',
+              onSelected: (v) => unawaited(switch (v) {
+                'chart' => Future.sync(
+                  () => context.go(AppRoutes.staffPatientChart(a.patientId)),
+                ),
+                'note' => showChartNoteSheet(context, a.patientId),
+                'transfer' => showTransferSheet(context, ref),
+                'cancel' => _confirmThen(
+                  context,
+                  title: 'Cancel this visit?',
+                  message: 'The patient will need to rebook.',
+                  confirmLabel: 'Cancel visit',
+                  action: () => ops.cancelAppointment(a.id),
+                ),
+                'noshow' => _confirmThen(
+                  context,
+                  title: 'Mark as no-show?',
+                  message: 'This records that the patient did not attend.',
+                  confirmLabel: 'Mark no-show',
+                  action: () => ops.cancelAppointment(a.id, noShow: true),
+                ),
+                _ => Future<void>.value(),
+              }),
+              itemBuilder: (context) => const [
+                PopupMenuItem(value: 'chart', child: Text('Open chart')),
+                PopupMenuItem(value: 'note', child: Text('Add note')),
+                PopupMenuItem(value: 'transfer', child: Text('Transfer visit')),
+                PopupMenuDivider(),
+                PopupMenuItem(value: 'cancel', child: Text('Cancel visit')),
+                PopupMenuItem(value: 'noshow', child: Text('Mark no-show')),
+              ],
+            ),
           ],
         ),
       ),
-      title: Text(patientName ?? visitTypeLabel(a.visitType)),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            [
-              visitTypeLabel(a.visitType),
-              if (a.roomNumber != null) 'Room ${a.roomNumber}',
-              if (checkedIn) 'checked in',
-            ].join(' · '),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: Space.xxs),
-          Wrap(
-            spacing: Space.xs,
-            runSpacing: Space.xxs,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              if (a.riskBand != null) RiskBadge(a.riskBand!),
-              if (!accepted)
-                FilledButton.tonal(
-                  onPressed: () => unawaited(ops.acceptAppointment(a.id)),
-                  style: _btnStyle,
-                  child: const Text('Accept'),
-                )
-              else if (!checkedIn)
-                FilledButton.tonal(
-                  onPressed: () => unawaited(ops.startVisit(a.id)),
-                  style: _btnStyle,
-                  child: const Text('Start visit'),
-                )
-              else
-                FilledButton(
-                  onPressed: () => unawaited(ops.completeAppointment(a.id)),
-                  style: _btnStyle,
-                  child: const Text('Complete'),
-                ),
-            ],
-          ),
-        ],
-      ),
-      trailing: PopupMenuButton<String>(
-        onSelected: (v) => unawaited(switch (v) {
-          'chart' => Future.sync(
-            () => context.go(AppRoutes.staffPatientChart(a.patientId)),
-          ),
-          'note' => showChartNoteSheet(context, a.patientId),
-          'transfer' => showTransferSheet(context, ref),
-          'cancel' => ops.cancelAppointment(a.id),
-          'noshow' => ops.cancelAppointment(a.id, noShow: true),
-          _ => Future<void>.value(),
-        }),
-        itemBuilder: (context) => const [
-          PopupMenuItem(value: 'chart', child: Text('Open chart')),
-          PopupMenuItem(value: 'note', child: Text('Add note')),
-          PopupMenuItem(value: 'transfer', child: Text('Transfer visit')),
-          PopupMenuDivider(),
-          PopupMenuItem(value: 'cancel', child: Text('Cancel visit')),
-          PopupMenuItem(value: 'noshow', child: Text('Mark no-show')),
-        ],
-      ),
-      onTap: () => context.go(AppRoutes.staffPatientChart(a.patientId)),
     );
   }
-
-  static final ButtonStyle _btnStyle = FilledButton.styleFrom(
-    visualDensity: VisualDensity.compact,
-    padding: const EdgeInsets.symmetric(horizontal: Space.sm),
-    minimumSize: const Size(0, 32),
-    textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-  );
 }
 
 class _RiskFlags extends ConsumerWidget {
@@ -439,6 +466,23 @@ class _TaskPreview extends ConsumerWidget {
       ),
     );
   }
+}
+
+Future<void> _confirmThen(
+  BuildContext context, {
+  required String title,
+  required String message,
+  required String confirmLabel,
+  required Future<void> Function() action,
+}) async {
+  final ok = await confirm(
+    context,
+    title: title,
+    message: message,
+    confirmLabel: confirmLabel,
+    destructive: true,
+  );
+  if (ok) await action();
 }
 
 String _kindLabel(RiskFlagKind k) => switch (k) {

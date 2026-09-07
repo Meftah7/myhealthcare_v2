@@ -112,10 +112,10 @@ class _RecordsList extends ConsumerWidget {
           );
         }
         return ListView.separated(
-          padding: const EdgeInsets.fromLTRB(
-            Space.md,
+          padding: EdgeInsets.fromLTRB(
+            WindowSize.of(context).gutter,
             Space.xs,
-            Space.md,
+            WindowSize.of(context).gutter,
             Space.xxl,
           ),
           itemCount: list.length,
@@ -190,10 +190,10 @@ class _PrescriptionsList extends ConsumerWidget {
           );
         }
         return ListView.separated(
-          padding: const EdgeInsets.fromLTRB(
-            Space.md,
+          padding: EdgeInsets.fromLTRB(
+            WindowSize.of(context).gutter,
             Space.xs,
-            Space.md,
+            WindowSize.of(context).gutter,
             Space.xxl,
           ),
           itemCount: list.length,

@@ -119,7 +119,7 @@ class _StaffCard extends StatelessWidget {
                 const SizedBox(height: Space.xxs),
                 Row(
                   children: [
-                    Icon(Icons.circle, size: 8, color: meta.color),
+                    Icon(meta.icon, size: 14, color: meta.color),
                     const SizedBox(width: Space.xxs),
                     Text(meta.label, style: theme.textTheme.labelSmall),
                   ],
