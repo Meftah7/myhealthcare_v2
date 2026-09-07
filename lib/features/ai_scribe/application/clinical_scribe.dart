@@ -9,6 +9,7 @@
 /// never dead-ends.
 library;
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
@@ -17,7 +18,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/di.dart';
 import '../../../core/failures.dart';
 import '../../../core/result.dart';
+import '../../../domain/enums.dart';
 import '../../admin/application/settings_providers.dart';
+import '../../auth/application/session.dart';
 
 /// A structured note draft. Every field is editable on screen before saving —
 /// nothing here is committed to the record until the clinician says so.
@@ -99,16 +102,29 @@ covered in the dictation, use "Not provided."; output valid JSON only.''';
       return const Err(ValidationFailure('Enter some notes to structure.'));
     }
 
+    ScribeDraft draft;
     try {
       final settings = await _ref.read(appSettingsProvider.future);
       final key = await _ref.read(aiKeyStoreProvider).read();
       if (!settings.usesRealAi || key == null || key.isEmpty) {
-        return Ok(ScribeDraft.offline(text));
+        draft = ScribeDraft.offline(text);
+      } else {
+        draft = await _ask(text, apiKey: key, model: settings.modelId);
       }
-      return Ok(await _ask(text, apiKey: key, model: settings.modelId));
     } catch (_) {
-      return Ok(ScribeDraft.offline(text));
+      draft = ScribeDraft.offline(text);
     }
+    unawaited(
+      _ref
+          .read(aiUsageRepositoryProvider)
+          .log(
+            feature: AiFeature.clinicalScribe,
+            usedLiveModel: draft.usedAi,
+            userId: _ref.read(currentUserProvider)?.id,
+            summary: text.length > 80 ? '${text.substring(0, 80)}…' : text,
+          ),
+    );
+    return Ok(draft);
   }
 
   Future<ScribeDraft> _ask(

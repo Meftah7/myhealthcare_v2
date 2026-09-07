@@ -225,3 +225,28 @@ extension AppSettingsRowX on AppSettingsRow {
     updatedAt: updatedAt,
   );
 }
+
+UserFeedback feedbackFrom(FeedbackRow row, {String? name, String? email}) =>
+    UserFeedback(
+  id: row.id,
+  category: row.category,
+  message: row.message,
+  status: row.status,
+  createdAt: row.createdAt,
+  reporterId: row.reporterId,
+  reporterName: name,
+  reporterEmail: email,
+  handledByAdminId: row.handledByAdminId,
+  handledAt: row.handledAt,
+);
+
+extension AiUsageRowX on AiUsageRow {
+  AiUsageEntry toEntity() => AiUsageEntry(
+    id: id,
+    feature: feature,
+    at: at,
+    usedLiveModel: usedLiveModel,
+    userId: userId,
+    summary: summary,
+  );
+}

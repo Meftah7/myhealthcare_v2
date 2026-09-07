@@ -16,6 +16,7 @@ import '../../../core/presentation/expandable_section.dart';
 import '../../../core/presentation/states.dart';
 import '../../auth/application/session.dart';
 import '../../billing/presentation/wallet_section.dart';
+import '../../feedback/presentation/feedback_sheet.dart';
 import '../../settings/presentation/preferences_section.dart';
 import '../presentation/family_network_section.dart';
 import '../presentation/health_details_section.dart';
@@ -103,6 +104,12 @@ class ProfileScreen extends ConsumerWidget {
                   ),
 
                   const SizedBox(height: Space.lg),
+                  OutlinedButton.icon(
+                    onPressed: () => unawaited(showFeedbackSheet(context, ref)),
+                    icon: const Icon(Icons.forum_outlined),
+                    label: const Text('Send feedback'),
+                  ),
+                  const SizedBox(height: Space.sm),
                   OutlinedButton.icon(
                     onPressed: () async {
                       final ok = await confirm(

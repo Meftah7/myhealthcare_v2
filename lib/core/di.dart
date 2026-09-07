@@ -118,6 +118,14 @@ final settingsRepositoryProvider = Provider<SettingsRepository>(
   (ref) => SettingsRepositoryImpl(ref.watch(appDatabaseProvider)),
 );
 
+final feedbackRepositoryProvider = Provider<FeedbackRepository>(
+  (ref) => FeedbackRepositoryImpl(ref.watch(appDatabaseProvider)),
+);
+
+final aiUsageRepositoryProvider = Provider<AiUsageRepository>(
+  (ref) => AiUsageRepositoryImpl(ref.watch(appDatabaseProvider)),
+);
+
 final seederProvider = Provider<Seeder>(
   (ref) => Seeder(ref.watch(appDatabaseProvider)),
 );

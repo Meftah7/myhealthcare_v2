@@ -11078,6 +11078,962 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettingsRow> {
   }
 }
 
+class $FeedbacksTable extends Feedbacks
+    with TableInfo<$FeedbacksTable, FeedbackRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FeedbacksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _reporterIdMeta = const VerificationMeta(
+    'reporterId',
+  );
+  @override
+  late final GeneratedColumn<String> reporterId = GeneratedColumn<String>(
+    'reporter_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<FeedbackCategory, String>
+  category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  ).withConverter<FeedbackCategory>($FeedbacksTable.$convertercategory);
+  static const VerificationMeta _messageMeta = const VerificationMeta(
+    'message',
+  );
+  @override
+  late final GeneratedColumn<String> message = GeneratedColumn<String>(
+    'message',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<FeedbackStatus, String> status =
+      GeneratedColumn<String>(
+        'status',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('open'),
+      ).withConverter<FeedbackStatus>($FeedbacksTable.$converterstatus);
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _handledByAdminIdMeta = const VerificationMeta(
+    'handledByAdminId',
+  );
+  @override
+  late final GeneratedColumn<String> handledByAdminId = GeneratedColumn<String>(
+    'handled_by_admin_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _handledAtMeta = const VerificationMeta(
+    'handledAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> handledAt = GeneratedColumn<DateTime>(
+    'handled_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    reporterId,
+    category,
+    message,
+    status,
+    createdAt,
+    handledByAdminId,
+    handledAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'feedbacks';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FeedbackRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('reporter_id')) {
+      context.handle(
+        _reporterIdMeta,
+        reporterId.isAcceptableOrUnknown(data['reporter_id']!, _reporterIdMeta),
+      );
+    }
+    if (data.containsKey('message')) {
+      context.handle(
+        _messageMeta,
+        message.isAcceptableOrUnknown(data['message']!, _messageMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_messageMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('handled_by_admin_id')) {
+      context.handle(
+        _handledByAdminIdMeta,
+        handledByAdminId.isAcceptableOrUnknown(
+          data['handled_by_admin_id']!,
+          _handledByAdminIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('handled_at')) {
+      context.handle(
+        _handledAtMeta,
+        handledAt.isAcceptableOrUnknown(data['handled_at']!, _handledAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FeedbackRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FeedbackRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      reporterId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reporter_id'],
+      ),
+      category: $FeedbacksTable.$convertercategory.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}category'],
+        )!,
+      ),
+      message: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}message'],
+      )!,
+      status: $FeedbacksTable.$converterstatus.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}status'],
+        )!,
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      handledByAdminId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}handled_by_admin_id'],
+      ),
+      handledAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}handled_at'],
+      ),
+    );
+  }
+
+  @override
+  $FeedbacksTable createAlias(String alias) {
+    return $FeedbacksTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<FeedbackCategory, String, String>
+  $convertercategory = const EnumNameConverter<FeedbackCategory>(
+    FeedbackCategory.values,
+  );
+  static JsonTypeConverter2<FeedbackStatus, String, String> $converterstatus =
+      const EnumNameConverter<FeedbackStatus>(FeedbackStatus.values);
+}
+
+class FeedbackRow extends DataClass implements Insertable<FeedbackRow> {
+  final String id;
+  final String? reporterId;
+  final FeedbackCategory category;
+  final String message;
+  final FeedbackStatus status;
+  final DateTime createdAt;
+  final String? handledByAdminId;
+  final DateTime? handledAt;
+  const FeedbackRow({
+    required this.id,
+    this.reporterId,
+    required this.category,
+    required this.message,
+    required this.status,
+    required this.createdAt,
+    this.handledByAdminId,
+    this.handledAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || reporterId != null) {
+      map['reporter_id'] = Variable<String>(reporterId);
+    }
+    {
+      map['category'] = Variable<String>(
+        $FeedbacksTable.$convertercategory.toSql(category),
+      );
+    }
+    map['message'] = Variable<String>(message);
+    {
+      map['status'] = Variable<String>(
+        $FeedbacksTable.$converterstatus.toSql(status),
+      );
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || handledByAdminId != null) {
+      map['handled_by_admin_id'] = Variable<String>(handledByAdminId);
+    }
+    if (!nullToAbsent || handledAt != null) {
+      map['handled_at'] = Variable<DateTime>(handledAt);
+    }
+    return map;
+  }
+
+  FeedbacksCompanion toCompanion(bool nullToAbsent) {
+    return FeedbacksCompanion(
+      id: Value(id),
+      reporterId: reporterId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reporterId),
+      category: Value(category),
+      message: Value(message),
+      status: Value(status),
+      createdAt: Value(createdAt),
+      handledByAdminId: handledByAdminId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(handledByAdminId),
+      handledAt: handledAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(handledAt),
+    );
+  }
+
+  factory FeedbackRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FeedbackRow(
+      id: serializer.fromJson<String>(json['id']),
+      reporterId: serializer.fromJson<String?>(json['reporterId']),
+      category: $FeedbacksTable.$convertercategory.fromJson(
+        serializer.fromJson<String>(json['category']),
+      ),
+      message: serializer.fromJson<String>(json['message']),
+      status: $FeedbacksTable.$converterstatus.fromJson(
+        serializer.fromJson<String>(json['status']),
+      ),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      handledByAdminId: serializer.fromJson<String?>(json['handledByAdminId']),
+      handledAt: serializer.fromJson<DateTime?>(json['handledAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'reporterId': serializer.toJson<String?>(reporterId),
+      'category': serializer.toJson<String>(
+        $FeedbacksTable.$convertercategory.toJson(category),
+      ),
+      'message': serializer.toJson<String>(message),
+      'status': serializer.toJson<String>(
+        $FeedbacksTable.$converterstatus.toJson(status),
+      ),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'handledByAdminId': serializer.toJson<String?>(handledByAdminId),
+      'handledAt': serializer.toJson<DateTime?>(handledAt),
+    };
+  }
+
+  FeedbackRow copyWith({
+    String? id,
+    Value<String?> reporterId = const Value.absent(),
+    FeedbackCategory? category,
+    String? message,
+    FeedbackStatus? status,
+    DateTime? createdAt,
+    Value<String?> handledByAdminId = const Value.absent(),
+    Value<DateTime?> handledAt = const Value.absent(),
+  }) => FeedbackRow(
+    id: id ?? this.id,
+    reporterId: reporterId.present ? reporterId.value : this.reporterId,
+    category: category ?? this.category,
+    message: message ?? this.message,
+    status: status ?? this.status,
+    createdAt: createdAt ?? this.createdAt,
+    handledByAdminId: handledByAdminId.present
+        ? handledByAdminId.value
+        : this.handledByAdminId,
+    handledAt: handledAt.present ? handledAt.value : this.handledAt,
+  );
+  FeedbackRow copyWithCompanion(FeedbacksCompanion data) {
+    return FeedbackRow(
+      id: data.id.present ? data.id.value : this.id,
+      reporterId: data.reporterId.present
+          ? data.reporterId.value
+          : this.reporterId,
+      category: data.category.present ? data.category.value : this.category,
+      message: data.message.present ? data.message.value : this.message,
+      status: data.status.present ? data.status.value : this.status,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      handledByAdminId: data.handledByAdminId.present
+          ? data.handledByAdminId.value
+          : this.handledByAdminId,
+      handledAt: data.handledAt.present ? data.handledAt.value : this.handledAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FeedbackRow(')
+          ..write('id: $id, ')
+          ..write('reporterId: $reporterId, ')
+          ..write('category: $category, ')
+          ..write('message: $message, ')
+          ..write('status: $status, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('handledByAdminId: $handledByAdminId, ')
+          ..write('handledAt: $handledAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    reporterId,
+    category,
+    message,
+    status,
+    createdAt,
+    handledByAdminId,
+    handledAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FeedbackRow &&
+          other.id == this.id &&
+          other.reporterId == this.reporterId &&
+          other.category == this.category &&
+          other.message == this.message &&
+          other.status == this.status &&
+          other.createdAt == this.createdAt &&
+          other.handledByAdminId == this.handledByAdminId &&
+          other.handledAt == this.handledAt);
+}
+
+class FeedbacksCompanion extends UpdateCompanion<FeedbackRow> {
+  final Value<String> id;
+  final Value<String?> reporterId;
+  final Value<FeedbackCategory> category;
+  final Value<String> message;
+  final Value<FeedbackStatus> status;
+  final Value<DateTime> createdAt;
+  final Value<String?> handledByAdminId;
+  final Value<DateTime?> handledAt;
+  final Value<int> rowid;
+  const FeedbacksCompanion({
+    this.id = const Value.absent(),
+    this.reporterId = const Value.absent(),
+    this.category = const Value.absent(),
+    this.message = const Value.absent(),
+    this.status = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.handledByAdminId = const Value.absent(),
+    this.handledAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FeedbacksCompanion.insert({
+    required String id,
+    this.reporterId = const Value.absent(),
+    required FeedbackCategory category,
+    required String message,
+    this.status = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.handledByAdminId = const Value.absent(),
+    this.handledAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       category = Value(category),
+       message = Value(message);
+  static Insertable<FeedbackRow> custom({
+    Expression<String>? id,
+    Expression<String>? reporterId,
+    Expression<String>? category,
+    Expression<String>? message,
+    Expression<String>? status,
+    Expression<DateTime>? createdAt,
+    Expression<String>? handledByAdminId,
+    Expression<DateTime>? handledAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (reporterId != null) 'reporter_id': reporterId,
+      if (category != null) 'category': category,
+      if (message != null) 'message': message,
+      if (status != null) 'status': status,
+      if (createdAt != null) 'created_at': createdAt,
+      if (handledByAdminId != null) 'handled_by_admin_id': handledByAdminId,
+      if (handledAt != null) 'handled_at': handledAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FeedbacksCompanion copyWith({
+    Value<String>? id,
+    Value<String?>? reporterId,
+    Value<FeedbackCategory>? category,
+    Value<String>? message,
+    Value<FeedbackStatus>? status,
+    Value<DateTime>? createdAt,
+    Value<String?>? handledByAdminId,
+    Value<DateTime?>? handledAt,
+    Value<int>? rowid,
+  }) {
+    return FeedbacksCompanion(
+      id: id ?? this.id,
+      reporterId: reporterId ?? this.reporterId,
+      category: category ?? this.category,
+      message: message ?? this.message,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+      handledByAdminId: handledByAdminId ?? this.handledByAdminId,
+      handledAt: handledAt ?? this.handledAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (reporterId.present) {
+      map['reporter_id'] = Variable<String>(reporterId.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(
+        $FeedbacksTable.$convertercategory.toSql(category.value),
+      );
+    }
+    if (message.present) {
+      map['message'] = Variable<String>(message.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(
+        $FeedbacksTable.$converterstatus.toSql(status.value),
+      );
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (handledByAdminId.present) {
+      map['handled_by_admin_id'] = Variable<String>(handledByAdminId.value);
+    }
+    if (handledAt.present) {
+      map['handled_at'] = Variable<DateTime>(handledAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FeedbacksCompanion(')
+          ..write('id: $id, ')
+          ..write('reporterId: $reporterId, ')
+          ..write('category: $category, ')
+          ..write('message: $message, ')
+          ..write('status: $status, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('handledByAdminId: $handledByAdminId, ')
+          ..write('handledAt: $handledAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AiUsageLogTable extends AiUsageLog
+    with TableInfo<$AiUsageLogTable, AiUsageRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AiUsageLogTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<AiFeature, String> feature =
+      GeneratedColumn<String>(
+        'feature',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<AiFeature>($AiUsageLogTable.$converterfeature);
+  static const VerificationMeta _usedLiveModelMeta = const VerificationMeta(
+    'usedLiveModel',
+  );
+  @override
+  late final GeneratedColumn<bool> usedLiveModel = GeneratedColumn<bool>(
+    'used_live_model',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("used_live_model" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _summaryMeta = const VerificationMeta(
+    'summary',
+  );
+  @override
+  late final GeneratedColumn<String> summary = GeneratedColumn<String>(
+    'summary',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _atMeta = const VerificationMeta('at');
+  @override
+  late final GeneratedColumn<DateTime> at = GeneratedColumn<DateTime>(
+    'at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    userId,
+    feature,
+    usedLiveModel,
+    summary,
+    at,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'ai_usage_log';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AiUsageRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    }
+    if (data.containsKey('used_live_model')) {
+      context.handle(
+        _usedLiveModelMeta,
+        usedLiveModel.isAcceptableOrUnknown(
+          data['used_live_model']!,
+          _usedLiveModelMeta,
+        ),
+      );
+    }
+    if (data.containsKey('summary')) {
+      context.handle(
+        _summaryMeta,
+        summary.isAcceptableOrUnknown(data['summary']!, _summaryMeta),
+      );
+    }
+    if (data.containsKey('at')) {
+      context.handle(_atMeta, at.isAcceptableOrUnknown(data['at']!, _atMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AiUsageRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AiUsageRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      ),
+      feature: $AiUsageLogTable.$converterfeature.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}feature'],
+        )!,
+      ),
+      usedLiveModel: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}used_live_model'],
+      )!,
+      summary: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}summary'],
+      ),
+      at: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}at'],
+      )!,
+    );
+  }
+
+  @override
+  $AiUsageLogTable createAlias(String alias) {
+    return $AiUsageLogTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<AiFeature, String, String> $converterfeature =
+      const EnumNameConverter<AiFeature>(AiFeature.values);
+}
+
+class AiUsageRow extends DataClass implements Insertable<AiUsageRow> {
+  final String id;
+  final String? userId;
+  final AiFeature feature;
+  final bool usedLiveModel;
+  final String? summary;
+  final DateTime at;
+  const AiUsageRow({
+    required this.id,
+    this.userId,
+    required this.feature,
+    required this.usedLiveModel,
+    this.summary,
+    required this.at,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || userId != null) {
+      map['user_id'] = Variable<String>(userId);
+    }
+    {
+      map['feature'] = Variable<String>(
+        $AiUsageLogTable.$converterfeature.toSql(feature),
+      );
+    }
+    map['used_live_model'] = Variable<bool>(usedLiveModel);
+    if (!nullToAbsent || summary != null) {
+      map['summary'] = Variable<String>(summary);
+    }
+    map['at'] = Variable<DateTime>(at);
+    return map;
+  }
+
+  AiUsageLogCompanion toCompanion(bool nullToAbsent) {
+    return AiUsageLogCompanion(
+      id: Value(id),
+      userId: userId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(userId),
+      feature: Value(feature),
+      usedLiveModel: Value(usedLiveModel),
+      summary: summary == null && nullToAbsent
+          ? const Value.absent()
+          : Value(summary),
+      at: Value(at),
+    );
+  }
+
+  factory AiUsageRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AiUsageRow(
+      id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String?>(json['userId']),
+      feature: $AiUsageLogTable.$converterfeature.fromJson(
+        serializer.fromJson<String>(json['feature']),
+      ),
+      usedLiveModel: serializer.fromJson<bool>(json['usedLiveModel']),
+      summary: serializer.fromJson<String?>(json['summary']),
+      at: serializer.fromJson<DateTime>(json['at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String?>(userId),
+      'feature': serializer.toJson<String>(
+        $AiUsageLogTable.$converterfeature.toJson(feature),
+      ),
+      'usedLiveModel': serializer.toJson<bool>(usedLiveModel),
+      'summary': serializer.toJson<String?>(summary),
+      'at': serializer.toJson<DateTime>(at),
+    };
+  }
+
+  AiUsageRow copyWith({
+    String? id,
+    Value<String?> userId = const Value.absent(),
+    AiFeature? feature,
+    bool? usedLiveModel,
+    Value<String?> summary = const Value.absent(),
+    DateTime? at,
+  }) => AiUsageRow(
+    id: id ?? this.id,
+    userId: userId.present ? userId.value : this.userId,
+    feature: feature ?? this.feature,
+    usedLiveModel: usedLiveModel ?? this.usedLiveModel,
+    summary: summary.present ? summary.value : this.summary,
+    at: at ?? this.at,
+  );
+  AiUsageRow copyWithCompanion(AiUsageLogCompanion data) {
+    return AiUsageRow(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      feature: data.feature.present ? data.feature.value : this.feature,
+      usedLiveModel: data.usedLiveModel.present
+          ? data.usedLiveModel.value
+          : this.usedLiveModel,
+      summary: data.summary.present ? data.summary.value : this.summary,
+      at: data.at.present ? data.at.value : this.at,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AiUsageRow(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('feature: $feature, ')
+          ..write('usedLiveModel: $usedLiveModel, ')
+          ..write('summary: $summary, ')
+          ..write('at: $at')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, userId, feature, usedLiveModel, summary, at);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AiUsageRow &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.feature == this.feature &&
+          other.usedLiveModel == this.usedLiveModel &&
+          other.summary == this.summary &&
+          other.at == this.at);
+}
+
+class AiUsageLogCompanion extends UpdateCompanion<AiUsageRow> {
+  final Value<String> id;
+  final Value<String?> userId;
+  final Value<AiFeature> feature;
+  final Value<bool> usedLiveModel;
+  final Value<String?> summary;
+  final Value<DateTime> at;
+  final Value<int> rowid;
+  const AiUsageLogCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.feature = const Value.absent(),
+    this.usedLiveModel = const Value.absent(),
+    this.summary = const Value.absent(),
+    this.at = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AiUsageLogCompanion.insert({
+    required String id,
+    this.userId = const Value.absent(),
+    required AiFeature feature,
+    this.usedLiveModel = const Value.absent(),
+    this.summary = const Value.absent(),
+    this.at = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       feature = Value(feature);
+  static Insertable<AiUsageRow> custom({
+    Expression<String>? id,
+    Expression<String>? userId,
+    Expression<String>? feature,
+    Expression<bool>? usedLiveModel,
+    Expression<String>? summary,
+    Expression<DateTime>? at,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (feature != null) 'feature': feature,
+      if (usedLiveModel != null) 'used_live_model': usedLiveModel,
+      if (summary != null) 'summary': summary,
+      if (at != null) 'at': at,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AiUsageLogCompanion copyWith({
+    Value<String>? id,
+    Value<String?>? userId,
+    Value<AiFeature>? feature,
+    Value<bool>? usedLiveModel,
+    Value<String?>? summary,
+    Value<DateTime>? at,
+    Value<int>? rowid,
+  }) {
+    return AiUsageLogCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      feature: feature ?? this.feature,
+      usedLiveModel: usedLiveModel ?? this.usedLiveModel,
+      summary: summary ?? this.summary,
+      at: at ?? this.at,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (feature.present) {
+      map['feature'] = Variable<String>(
+        $AiUsageLogTable.$converterfeature.toSql(feature.value),
+      );
+    }
+    if (usedLiveModel.present) {
+      map['used_live_model'] = Variable<bool>(usedLiveModel.value);
+    }
+    if (summary.present) {
+      map['summary'] = Variable<String>(summary.value);
+    }
+    if (at.present) {
+      map['at'] = Variable<DateTime>(at.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AiUsageLogCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('feature: $feature, ')
+          ..write('usedLiveModel: $usedLiveModel, ')
+          ..write('summary: $summary, ')
+          ..write('at: $at, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   late final $DepartmentsTable departments = $DepartmentsTable(this);
@@ -11102,6 +12058,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $NotificationsTable notifications = $NotificationsTable(this);
   late final $AuditLogTable auditLog = $AuditLogTable(this);
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
+  late final $FeedbacksTable feedbacks = $FeedbacksTable(this);
+  late final $AiUsageLogTable aiUsageLog = $AiUsageLogTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -11126,6 +12084,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     notifications,
     auditLog,
     appSettings,
+    feedbacks,
+    aiUsageLog,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([

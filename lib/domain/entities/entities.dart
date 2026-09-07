@@ -2,11 +2,13 @@
 library;
 
 export 'ai_summary.dart';
+export 'ai_usage_entry.dart';
 export 'app_settings.dart';
 export 'appointment.dart';
 export 'audit_entry.dart';
 export 'department.dart';
 export 'family_member.dart';
+export 'feedback.dart';
 export 'invoice.dart';
 export 'medical_record.dart';
 export 'medication.dart';

@@ -7,10 +7,13 @@
 /// deterministic offline responder otherwise, so the widget always answers.
 library;
 
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/di.dart';
+import '../../../domain/enums.dart';
 import '../../admin/application/settings_providers.dart';
 import '../../auth/application/session.dart';
 
@@ -91,8 +94,11 @@ class CareNavigator extends Notifier<CareNavigatorState> {
 
     state = state.copyWith(sending: true);
     String reply;
+    var usedAi = false;
     try {
-      reply = await _answer(text);
+      final (r, live) = await _answer(text);
+      reply = r;
+      usedAi = live;
     } catch (_) {
       reply = _offlineReply(text);
     }
@@ -100,17 +106,31 @@ class CareNavigator extends Notifier<CareNavigatorState> {
       sending: false,
       messages: [...state.messages, ChatMessage(ChatRole.model, reply)],
     );
+    unawaited(
+      ref
+          .read(aiUsageRepositoryProvider)
+          .log(
+            feature: AiFeature.careNavigator,
+            usedLiveModel: usedAi,
+            userId: ref.read(currentUserProvider)?.id,
+            summary: text.length > 80 ? '${text.substring(0, 80)}…' : text,
+          ),
+    );
   }
 
   void reset() => state = const CareNavigatorState(messages: [_greeting]);
 
-  Future<String> _answer(String text) async {
+  /// Returns `(reply, usedLiveModel)`.
+  Future<(String, bool)> _answer(String text) async {
     final settings = await ref.read(appSettingsProvider.future);
     final key = await ref.read(aiKeyStoreProvider).read();
     if (!settings.usesRealAi || key == null || key.isEmpty) {
-      return _offlineReply(text);
+      return (_offlineReply(text), false);
     }
-    return _askGemini(text, apiKey: key, model: settings.modelId);
+    return (
+      await _askGemini(text, apiKey: key, model: settings.modelId),
+      true,
+    );
   }
 
   Future<String> _askGemini(

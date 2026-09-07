@@ -56,7 +56,8 @@ class Seeder {
   /// v7: every appointment carries a ticket tag + room number.
   /// v8: each patient starts with one saved card in their wallet.
   /// v9: staff members get a starting presence status.
-  static const seedVersion = 9;
+  /// v10: a starter feedback inbox for the admin dashboard.
+  static const seedVersion = 10;
 
   /// Password for every seeded account (documented in the README).
   static const demoPassword = 'password';
@@ -99,6 +100,8 @@ class Seeder {
       appts += counts.$1;
       records += counts.$2;
     }
+
+    await _seedFeedback(patients, staff);
 
     return SeedResult(
       departments: deptIds.length,
@@ -404,6 +407,75 @@ class Seeder {
             isDefault: const Value(true),
           ),
         );
+  }
+
+  /// A starter feedback inbox so the admin "Feedback" view isn't empty —
+  /// a handful of reports from real seeded patients and staff.
+  Future<void> _seedFeedback(
+    List<_Patient> patients,
+    List<_Staff> staff,
+  ) async {
+    final samples = <(String, FeedbackCategory, String, FeedbackStatus)>[
+      (
+        patients[2].id,
+        FeedbackCategory.featureRequest,
+        'Could the appointment reminders be sent the evening before as well? '
+            'A same-day nudge is easy to miss.',
+        FeedbackStatus.open,
+      ),
+      (
+        patients[7].id,
+        FeedbackCategory.bug,
+        'The vitals chart briefly shows last month twice after I add a new '
+            'reading, until I pull to refresh.',
+        FeedbackStatus.open,
+      ),
+      (
+        staff[0].id,
+        FeedbackCategory.generalFeedback,
+        'The AI Scribe saves a lot of time on routine follow-ups — the '
+            'structured plan field is spot on.',
+        FeedbackStatus.resolved,
+      ),
+      (
+        patients[13].id,
+        FeedbackCategory.complaint,
+        'I was charged tax on a cancelled visit and had to email to get it '
+            'reversed.',
+        FeedbackStatus.resolved,
+      ),
+      (
+        patients[21].id,
+        FeedbackCategory.featureRequest,
+        'Please add a way to download an invoice as a PDF for insurance.',
+        FeedbackStatus.open,
+      ),
+    ];
+    var i = 0;
+    for (final (reporterId, category, message, status) in samples) {
+      final daysAgo = 2 + i * 4;
+      await _db
+          .into(_db.feedbacks)
+          .insert(
+            FeedbacksCompanion.insert(
+              id: 'fbk_${i.toString().padLeft(2, '0')}',
+              category: category,
+              message: message,
+              reporterId: Value(reporterId),
+              status: Value(status),
+              createdAt: Value(
+                _epoch.subtract(Duration(days: daysAgo, hours: i * 3)),
+              ),
+              handledByAdminId: status == FeedbackStatus.resolved
+                  ? const Value('admin_01')
+                  : const Value.absent(),
+              handledAt: status == FeedbackStatus.resolved
+                  ? Value(_epoch.subtract(Duration(days: daysAgo - 1)))
+                  : const Value.absent(),
+            ),
+          );
+      i++;
+    }
   }
 
   /// A small starter feed for the Notifications centre, tied to the patient's
@@ -856,6 +928,8 @@ class Seeder {
       _db.aiSummaries,
       _db.notifications,
       _db.paymentMethods,
+      _db.feedbacks,
+      _db.aiUsageLog,
       _db.vitals,
       _db.medications,
       _db.medicalRecords,

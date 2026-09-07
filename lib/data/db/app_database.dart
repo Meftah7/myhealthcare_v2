@@ -47,6 +47,8 @@ part 'app_database.g.dart';
     // system
     AuditLog,
     AppSettings,
+    Feedbacks,
+    AiUsageLog,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -71,7 +73,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -109,6 +111,11 @@ class AppDatabase extends _$AppDatabase {
       if (from < 8) {
         // Staff dashboard rebuild: live presence status.
         await m.addColumn(staffProfiles, staffProfiles.presence);
+      }
+      if (from < 9) {
+        // Admin dashboard Tier B: feedback inbox + AI usage log.
+        await m.createTable(feedbacks);
+        await m.createTable(aiUsageLog);
       }
     },
     beforeOpen: (details) async {

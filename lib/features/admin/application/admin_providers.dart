@@ -13,6 +13,7 @@ import '../../../domain/repositories/auth_repository.dart';
 import '../../../domain/repositories/billing_repository.dart';
 import '../../../domain/repositories/notification_repository.dart';
 import '../../../domain/repositories/system_repository.dart';
+import '../../auth/application/session.dart';
 
 final usersByRoleProvider = FutureProvider.family<List<User>, UserRole>((
   ref,
@@ -30,6 +31,35 @@ final auditLogProvider = FutureProvider<List<AuditEntry>>((ref) async {
     await ref
         .watch(auditRepositoryProvider)
         .query(const AuditQuery(limit: 200)),
+  );
+});
+
+/// User feedback / issue reports, optionally filtered by status.
+final feedbackProvider =
+    FutureProvider.family<List<UserFeedback>, FeedbackStatus?>((
+      ref,
+      status,
+    ) async {
+      return _unwrap(
+        await ref.watch(feedbackRepositoryProvider).all(status: status),
+      );
+    });
+
+/// Count of open feedback reports — a dashboard stat.
+final openFeedbackCountProvider = FutureProvider<int>((ref) async {
+  final list = await ref.watch(feedbackProvider(FeedbackStatus.open).future);
+  return list.length;
+});
+
+/// The AI usage log, optionally filtered to one feature.
+final aiUsageProvider = FutureProvider.family<List<AiUsageEntry>, AiFeature?>((
+  ref,
+  feature,
+) async {
+  return _unwrap(
+    await ref
+        .watch(aiUsageRepositoryProvider)
+        .recent(feature: feature, limit: 200),
   );
 });
 
@@ -287,6 +317,20 @@ class AdminActions {
       ..invalidate(allInvoicesProvider)
       ..invalidate(unpaidInvoiceCountProvider);
     return r;
+  }
+
+  /// Mark a feedback report resolved / re-open it.
+  Future<void> setFeedbackStatus({
+    required String id,
+    required FeedbackStatus status,
+  }) async {
+    final adminId = _ref.read(currentUserProvider)?.id;
+    await _ref
+        .read(feedbackRepositoryProvider)
+        .setStatus(id: id, status: status, adminId: adminId);
+    _ref
+      ..invalidate(feedbackProvider)
+      ..invalidate(openFeedbackCountProvider);
   }
 
   Future<Result<void>> deleteDepartment(String id) async {

@@ -71,6 +71,21 @@ class AdminQuickActions extends ConsumerWidget {
         onTap: () => unawaited(showNewDepartmentDialog(context, ref)),
       ),
       _QuickAction(
+        icon: Icons.forum_outlined,
+        label: 'Feedback',
+        onTap: () => unawaited(context.push(AppRoutes.adminFeedback)),
+      ),
+      _QuickAction(
+        icon: Icons.auto_awesome_outlined,
+        label: 'AI activity',
+        onTap: () => unawaited(context.push(AppRoutes.adminAiLog)),
+      ),
+      _QuickAction(
+        icon: Icons.query_stats_outlined,
+        label: 'Forecast',
+        onTap: () => unawaited(context.push(AppRoutes.adminForecast)),
+      ),
+      _QuickAction(
         icon: Icons.insights_outlined,
         label: 'Analytics',
         onTap: () => unawaited(context.push(AppRoutes.adminAnalytics)),

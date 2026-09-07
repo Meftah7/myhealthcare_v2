@@ -84,3 +84,12 @@ enum NotificationCategory {
   message,
   system,
 }
+
+/// What a piece of user feedback is about (ported from the FirstSemMyHealth
+/// admin "Reports" / `feedback_reports.type`).
+enum FeedbackCategory { bug, featureRequest, generalFeedback, complaint }
+
+enum FeedbackStatus { open, resolved }
+
+/// Which AI surface produced a log entry (admin "AI Logs" view).
+enum AiFeature { careNavigator, clinicalScribe, patientSummary }

@@ -2,12 +2,15 @@
 /// (P3-02, P3-07, P3-08, P3-14).
 library;
 
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/di.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/ids.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../domain/enums.dart';
 import '../../../services/ai/ai_models.dart';
 import '../../../services/ai/ai_service.dart';
 import '../../../services/ai/gemini_ai_service.dart';
@@ -83,6 +86,17 @@ class AiSummaryController {
       Ok(:final value) => value,
       Err(:final failure) => throw failure,
     };
+
+    unawaited(
+      _ref
+          .read(aiUsageRepositoryProvider)
+          .log(
+            feature: AiFeature.patientSummary,
+            usedLiveModel: summary.modelId != 'mock-ai',
+            userId: ctx.patientId,
+            summary: 'Patient self-summary',
+          ),
+    );
 
     final entity = AiSummary(
       id: newId('sum'),

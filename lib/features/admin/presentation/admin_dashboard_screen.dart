@@ -41,6 +41,7 @@ class AdminDashboardScreen extends ConsumerWidget {
             ..invalidate(systemStatsProvider)
             ..invalidate(panelStatsProvider)
             ..invalidate(unpaidInvoiceCountProvider)
+            ..invalidate(openFeedbackCountProvider)
             ..invalidate(auditLogProvider);
         },
         child: Center(
@@ -66,6 +67,9 @@ class AdminDashboardScreen extends ConsumerWidget {
                   data: (s) {
                     final unpaid = ref
                         .watch(unpaidInvoiceCountProvider)
+                        .valueOrNull;
+                    final openFeedback = ref
+                        .watch(openFeedbackCountProvider)
                         .valueOrNull;
                     final compact = WindowSize.of(context).isCompact;
                     return GridView.count(
@@ -110,6 +114,12 @@ class AdminDashboardScreen extends ConsumerWidget {
                           label: 'Unpaid invoices',
                           icon: Icons.request_quote_outlined,
                           onTap: () => context.push(AppRoutes.adminBilling),
+                        ),
+                        MetricTile(
+                          value: '${openFeedback ?? 0}',
+                          label: 'Open feedback',
+                          icon: Icons.forum_outlined,
+                          onTap: () => context.push(AppRoutes.adminFeedback),
                         ),
                       ],
                     );

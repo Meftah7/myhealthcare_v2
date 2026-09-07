@@ -4,12 +4,15 @@
 /// configured, deterministic mock otherwise.
 library;
 
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/di.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/ids.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../domain/enums.dart';
 import '../../../services/ai/ai_service.dart';
 import '../../../services/ai/gemini_ai_service.dart';
 import '../../../services/ai/mock_ai_service.dart';
@@ -73,6 +76,16 @@ final chartPatientSummaryProvider = FutureProvider.family<AiSummary, String>((
     Ok(:final value) => value,
     Err(:final failure) => throw failure,
   };
+
+  unawaited(
+    ref
+        .read(aiUsageRepositoryProvider)
+        .log(
+          feature: AiFeature.patientSummary,
+          usedLiveModel: summary.modelId != 'mock-ai',
+          summary: 'Chart summary for ${patient.fullName}',
+        ),
+  );
 
   final entity = AiSummary(
     id: newId('sum'),

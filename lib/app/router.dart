@@ -6,9 +6,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../domain/enums.dart';
+import '../features/admin/presentation/admin_ai_log_screen.dart';
 import '../features/admin/presentation/admin_appointments_screen.dart';
 import '../features/admin/presentation/admin_billing_screen.dart';
 import '../features/admin/presentation/admin_dashboard_screen.dart';
+import '../features/admin/presentation/admin_feedback_screen.dart';
+import '../features/admin/presentation/admin_forecast_screen.dart';
 import '../features/admin/presentation/ai_settings_screen.dart';
 import '../features/admin/presentation/audit_log_screen.dart';
 import '../features/admin/presentation/departments_screen.dart';
@@ -113,6 +116,9 @@ abstract final class AppRoutes {
   static const adminAiSettings = '/admin/ai';
   static const adminBilling = '/admin/billing';
   static const adminAppointments = '/admin/appointments';
+  static const adminFeedback = '/admin/feedback';
+  static const adminAiLog = '/admin/ai-log';
+  static const adminForecast = '/admin/forecast';
 }
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -173,6 +179,18 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
       GoRoute(
         path: AppRoutes.adminAppointments,
         builder: (_, _) => const AdminAppointmentsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminFeedback,
+        builder: (_, _) => const AdminFeedbackScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminAiLog,
+        builder: (_, _) => const AdminAiLogScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminForecast,
+        builder: (_, _) => const AdminForecastScreen(),
       ),
 
       _patientShell(),
