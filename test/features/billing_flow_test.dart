@@ -81,7 +81,7 @@ void main() {
     );
 
     // The bottom nav stays visible on Billing (it nests under the Home branch).
-    expect(find.text('Appointments'), findsWidgets);
+    expect(find.text('Appointment'), findsWidgets);
     expect(find.text('Records'), findsWidgets);
   });
 }

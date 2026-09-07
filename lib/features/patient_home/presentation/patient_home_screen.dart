@@ -269,19 +269,34 @@ class _HealthSnapshot extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final appts = ref.watch(patientAppointmentsProvider);
     final meds = ref.watch(patientMedicationsProvider);
-    final vitals = ref.watch(patientVitalsProvider);
 
-    final upcoming = appts.valueOrNull?.where((a) => a.isUpcoming).length ?? 0;
-    final activeMeds =
-        meds.valueOrNull?.where((m) => m.isCurrent).length ?? 0;
-    final lastVital = vitals.valueOrNull?.isNotEmpty ?? false
-        ? vitals.valueOrNull!
-              .map((v) => v.recordedAt)
-              .reduce((a, b) => a.isAfter(b) ? a : b)
-        : null;
-    final vitalAge = lastVital == null
+    final all = appts.valueOrNull ?? const <Appointment>[];
+
+    // Ticket — the tag on the next upcoming appointment.
+    final nextUpcoming =
+        (all.where((a) => a.isUpcoming).toList()
+              ..sort((a, b) => a.slotStart.compareTo(b.slotStart)))
+            .firstOrNull;
+    final ticket = nextUpcoming?.ticketTag ?? '—';
+
+    final activeMeds = meds.valueOrNull?.where((m) => m.isCurrent).length ?? 0;
+
+    // Last visit — the most recent appointment that has actually happened.
+    final lastVisit =
+        (all
+                  .where(
+                    (a) =>
+                        a.status == AppointmentStatus.completed ||
+                        (a.slotEnd.isBefore(DateTime.now()) &&
+                            a.status != AppointmentStatus.cancelled &&
+                            a.status != AppointmentStatus.noShow),
+                  )
+                  .toList()
+              ..sort((a, b) => b.slotStart.compareTo(a.slotStart)))
+            .firstOrNull;
+    final lastVisitLabel = lastVisit == null
         ? '—'
-        : '${DateTime.now().difference(lastVital).inDays}d';
+        : fmtShortDate(lastVisit.slotStart);
 
     if (appts.isLoading && meds.isLoading) {
       return const LoadingSkeleton(height: 92);
@@ -291,9 +306,9 @@ class _HealthSnapshot extends ConsumerWidget {
       children: [
         Expanded(
           child: MetricTile(
-            value: '$upcoming',
-            label: 'Upcoming',
-            icon: Icons.event_outlined,
+            value: ticket,
+            label: 'Ticket',
+            icon: Icons.confirmation_number_outlined,
             onTap: () => context.go(AppRoutes.patientAppointments),
           ),
         ),
@@ -301,7 +316,7 @@ class _HealthSnapshot extends ConsumerWidget {
         Expanded(
           child: MetricTile(
             value: '$activeMeds',
-            label: 'Active meds',
+            label: 'Medicine',
             icon: Icons.medication_outlined,
             onTap: () => context.go(AppRoutes.patientMedications),
           ),
@@ -309,10 +324,10 @@ class _HealthSnapshot extends ConsumerWidget {
         const SizedBox(width: Space.sm),
         Expanded(
           child: MetricTile(
-            value: vitalAge,
-            label: 'Last vitals',
-            icon: Icons.favorite_outline,
-            onTap: () => context.go(AppRoutes.patientVitals),
+            value: lastVisitLabel,
+            label: 'Last visit',
+            icon: Icons.event_available_outlined,
+            onTap: () => context.go(AppRoutes.patientAppointments),
           ),
         ),
       ],

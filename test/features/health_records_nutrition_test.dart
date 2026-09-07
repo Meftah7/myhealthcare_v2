@@ -141,7 +141,7 @@ void main() {
     expect(find.widgetWithText(AppBar, 'Nutrition'), findsOneWidget);
 
     // The bottom nav is still visible (Nutrition is a shell branch).
-    expect(find.text('Appointments'), findsWidgets);
+    expect(find.text('Appointment'), findsWidgets);
 
     // Targets view is default; calculate.
     await tester.tap(find.widgetWithText(FilledButton, 'Calculate targets'));

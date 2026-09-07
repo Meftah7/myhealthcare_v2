@@ -63,7 +63,7 @@ void main() {
     await _settle(tester);
 
     // Open the Appointments tab, then start the scheduling wizard from it.
-    await tester.tap(find.text('Appointments').last);
+    await tester.tap(find.text('Appointment').last);
     await _settle(tester);
     await tester.tap(find.text('Schedule'));
     await _settle(tester);
@@ -176,7 +176,7 @@ void main() {
     container.read(bookingDraftProvider.notifier).state =
         BookingRequestDraft(departmentId: depts.first.id);
 
-    await tester.tap(find.text('Appointments').last);
+    await tester.tap(find.text('Appointment').last);
     await _settle(tester);
     await tester.tap(find.text('Book now'));
     await _settle(tester);

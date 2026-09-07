@@ -272,7 +272,7 @@ class _SplashScreen extends StatelessWidget {
 
 StatefulShellRoute _patientShell() {
   return StatefulShellRoute.indexedStack(
-    // Bottom nav order: Home, Nutrition, Appointments, Health Records, Profile.
+    // Bottom nav order: Home, Nutrition, Appointment, Records, Profile.
     // The bar stays visible on every patient screen (Vitals nests under Home).
     builder: (context, state, navigationShell) => AppShell(
       navigationShell: navigationShell,
@@ -291,7 +291,7 @@ StatefulShellRoute _patientShell() {
         AppDestination(
           icon: Icons.event_note_outlined,
           selectedIcon: Icons.event_note,
-          label: 'Appointments',
+          label: 'Appointment',
         ),
         AppDestination(
           icon: Icons.folder_shared_outlined,

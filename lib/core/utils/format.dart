@@ -6,11 +6,15 @@ import 'package:intl/intl.dart';
 import '../../domain/enums.dart';
 
 final _date = DateFormat('d MMM yyyy');
+final _shortDate = DateFormat('d MMM');
 final _dateTime = DateFormat('d MMM yyyy · HH:mm');
 final _monthYear = DateFormat('MMMM yyyy');
 final _time = DateFormat('HH:mm');
 
 String fmtDate(DateTime d) => _date.format(d);
+
+/// Day + month, no year — for compact tiles ("14 Aug").
+String fmtShortDate(DateTime d) => _shortDate.format(d);
 String fmtDateTime(DateTime d) => _dateTime.format(d);
 String fmtMonthYear(DateTime d) => _monthYear.format(d);
 String fmtTime(DateTime d) => _time.format(d);
