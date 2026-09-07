@@ -8,20 +8,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
-import '../../../core/presentation/expandable_section.dart';
 import '../../../core/presentation/states.dart';
 import '../../auth/application/session.dart';
-import '../../billing/presentation/wallet_section.dart';
 import '../../feedback/presentation/feedback_sheet.dart';
-import '../../settings/presentation/preferences_section.dart';
-import '../presentation/family_network_section.dart';
-import '../presentation/health_details_section.dart';
 import '../presentation/patient_top_actions.dart';
-import '../presentation/personal_info_section.dart';
 import 'patient_data_providers.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -62,45 +58,46 @@ class ProfileScreen extends ConsumerWidget {
                   ProfileHeader(name: u.fullName, email: u.email),
                   const SizedBox(height: Space.md),
 
-                  ExpandableSection(
+                  const _ProfileRow(
                     icon: Icons.badge_outlined,
                     title: 'Personal info',
-                    child: PersonalInfoSection(patient: p),
+                    subtitle: 'Name, contact, date of birth',
+                    route: AppRoutes.patientProfilePersonal,
                   ),
-                  const SizedBox(height: Space.sm),
-
-                  ExpandableSection(
+                  const SizedBox(height: Space.xs),
+                  const _ProfileRow(
                     icon: Icons.favorite_outline,
                     title: 'Health details',
-                    child: HealthDetailsSection(patient: p),
+                    subtitle: 'Blood type, allergies, conditions',
+                    route: AppRoutes.patientProfileHealth,
                   ),
-                  const SizedBox(height: Space.sm),
-
-                  const ExpandableSection(
+                  const SizedBox(height: Space.xs),
+                  const _ProfileRow(
                     icon: Icons.account_balance_wallet_outlined,
                     title: 'Wallet',
-                    child: WalletSection(),
+                    subtitle: 'Saved cards and payment history',
+                    route: AppRoutes.patientProfileWallet,
                   ),
-                  const SizedBox(height: Space.sm),
-
-                  const ExpandableSection(
+                  const SizedBox(height: Space.xs),
+                  const _ProfileRow(
                     icon: Icons.tune,
                     title: 'Preferences',
-                    child: PreferencesSection(bare: true),
+                    subtitle: 'Theme and language',
+                    route: AppRoutes.patientProfilePreferences,
                   ),
-                  const SizedBox(height: Space.sm),
-
-                  const ExpandableSection(
+                  const SizedBox(height: Space.xs),
+                  const _ProfileRow(
                     icon: Icons.notifications_outlined,
                     title: 'Notification channels',
-                    child: NotificationChannelsSection(),
+                    subtitle: 'Where reminders and alerts reach you',
+                    route: AppRoutes.patientProfileNotifications,
                   ),
-                  const SizedBox(height: Space.sm),
-
-                  ExpandableSection(
+                  const SizedBox(height: Space.xs),
+                  const _ProfileRow(
                     icon: Icons.family_restroom_outlined,
                     title: 'Family network',
-                    child: FamilyNetworkSection(patient: p, embedded: true),
+                    subtitle: 'People linked to your account',
+                    route: AppRoutes.patientProfileFamily,
                   ),
 
                   const SizedBox(height: Space.lg),
@@ -137,6 +134,52 @@ class ProfileScreen extends ConsumerWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// One tappable row in the profile list — opens the section as its own page.
+class _ProfileRow extends StatelessWidget {
+  const _ProfileRow({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.route,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final String route;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return AppCard(
+      padding: const EdgeInsets.all(Space.md),
+      onTap: () => context.push(route),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: scheme.onSurfaceVariant),
+          const SizedBox(width: Space.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: theme.textTheme.titleSmall),
+                Text(
+                  subtitle,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(Icons.chevron_right, color: scheme.onSurfaceVariant),
+        ],
       ),
     );
   }

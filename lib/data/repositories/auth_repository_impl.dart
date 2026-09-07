@@ -20,19 +20,25 @@ class AuthRepositoryImpl implements AuthRepository {
   final AppDatabase _db;
   final PasswordHasher _hasher;
 
+  /// The account behind an "email or national ID" identifier.
+  Future<UserRow?> _rowForIdentifier(String identifier) {
+    final id = identifier.trim();
+    return (_db.select(_db.users)..where(
+          (u) => u.email.equals(id.toLowerCase()) | u.nationalId.equals(id),
+        ))
+        .getSingleOrNull();
+  }
+
   @override
   Future<Result<User>> login({
     required String email,
     required String password,
   }) {
     return Result.guardAsync(() async {
-      final row =
-          await (_db.select(_db.users)
-                ..where((u) => u.email.equals(email.trim().toLowerCase())))
-              .getSingleOrNull();
+      final row = await _rowForIdentifier(email);
 
       if (row == null) {
-        throw const AuthFailure('No account found for that email.');
+        throw const AuthFailure('No account found for that email or ID.');
       }
       if (!row.isActive) {
         throw const AuthFailure('This account has been deactivated.');
@@ -124,6 +130,47 @@ class AuthRepositoryImpl implements AuthRepository {
       )) {
         throw const AuthFailure('Current password is incorrect.');
       }
+      final pw = _hasher.hashNew(newPassword);
+      await (_db.update(_db.users)..where((u) => u.id.equals(userId))).write(
+        UsersCompanion(
+          passwordHash: Value(pw.hash),
+          passwordSalt: Value(pw.salt),
+        ),
+      );
+    });
+  }
+
+  @override
+  Future<Result<User>> accountForIdentifier(String identifier) {
+    return Result.guardAsync(() async {
+      final row = await _rowForIdentifier(identifier);
+      if (row == null) {
+        throw const NotFoundFailure(
+          'No account matches that email or national ID.',
+        );
+      }
+      if (!row.isActive) {
+        throw const AuthFailure('This account has been deactivated.');
+      }
+      return row.toEntity();
+    });
+  }
+
+  @override
+  Future<Result<void>> resetPassword({
+    required String userId,
+    required String newPassword,
+  }) {
+    return Result.guardAsync(() async {
+      if (newPassword.trim().length < 8) {
+        throw const ValidationFailure(
+          'Choose a password of at least 8 characters.',
+        );
+      }
+      final exists = await (_db.select(
+        _db.users,
+      )..where((u) => u.id.equals(userId))).getSingleOrNull();
+      if (exists == null) throw const NotFoundFailure('Account not found.');
       final pw = _hasher.hashNew(newPassword);
       await (_db.update(_db.users)..where((u) => u.id.equals(userId))).write(
         UsersCompanion(

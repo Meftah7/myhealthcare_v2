@@ -39,8 +39,9 @@ class PatientRegistration {
 }
 
 abstract interface class AuthRepository {
-  /// Verify credentials and return the account. [AuthFailure] on mismatch or
-  /// inactive account.
+  /// Verify credentials and return the account. [email] is matched against the
+  /// account email *or* the national ID (the FirstSemMyHealth login accepts
+  /// "email or CPR"). [AuthFailure] on mismatch or inactive account.
   Future<Result<User>> login({required String email, required String password});
 
   /// Create a patient account + profile.
@@ -49,6 +50,17 @@ abstract interface class AuthRepository {
   Future<Result<void>> changePassword({
     required String userId,
     required String currentPassword,
+    required String newPassword,
+  });
+
+  /// Look up the account behind an "email or national ID" identifier — backs
+  /// the forgot-password flow. [NotFoundFailure] when nothing matches.
+  Future<Result<User>> accountForIdentifier(String identifier);
+
+  /// Set a new password without the current one — the reset-password step of
+  /// the forgot-password flow (the FirstSemMyHealth reset page does the same).
+  Future<Result<void>> resetPassword({
+    required String userId,
     required String newPassword,
   });
 }
