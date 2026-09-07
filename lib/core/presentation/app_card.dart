@@ -11,6 +11,10 @@ import '../../app/theme/theme.dart';
 
 /// The app's single card. Flat fill + hairline border by default; pass
 /// [elevated] for [Shadows.e1]; pass [onTap] for press feedback.
+///
+/// The card colour comes one step above the page (white on the tinted light
+/// page, lifted slate in dark), so the hairline is a definition line rather
+/// than the only thing separating card from background.
 class AppCard extends StatelessWidget {
   const AppCard({
     required this.child,
@@ -18,6 +22,7 @@ class AppCard extends StatelessWidget {
     this.onTap,
     this.elevated = false,
     this.color,
+    this.borderColor,
     super.key,
   });
 
@@ -26,6 +31,10 @@ class AppCard extends StatelessWidget {
   final VoidCallback? onTap;
   final bool elevated;
   final Color? color;
+
+  /// Overrides the hairline — e.g. a tinted card that wants its own accent
+  /// edge instead of the neutral one.
+  final Color? borderColor;
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +49,7 @@ class AppCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: Radii.card,
-        side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.7)),
+        side: BorderSide(color: borderColor ?? scheme.outlineVariant),
       ),
       child: Padding(padding: padding, child: child),
     );
@@ -58,6 +67,124 @@ class AppCard extends StatelessWidget {
       surface = Pressable(onTap: onTap, child: surface);
     }
     return surface;
+  }
+}
+
+/// The one saturated surface a screen is allowed (DESIGN.md §1): a brand
+/// gradient card carrying an icon, a title, a supporting line and a chevron.
+///
+/// Everything on it is white-on-gradient, so it needs no colour-scheme roles —
+/// which also means it looks identical in light and dark, deliberately: it is
+/// the screen's anchor, not part of the neutral field.
+class GradientHeroCard extends StatelessWidget {
+  const GradientHeroCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    this.onTap,
+    this.trailing,
+    super.key,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback? onTap;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final surface = DecoratedBox(
+      decoration: const BoxDecoration(
+        borderRadius: Radii.card,
+        gradient: AppColors.heroGradient,
+      ),
+      child: Stack(
+        children: [
+          // A soft highlight bloom in the top-right corner keeps the gradient
+          // from reading as a flat two-stop fill.
+          Positioned(
+            right: -40,
+            top: -60,
+            child: Container(
+              width: 180,
+              height: 180,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.10),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(Space.lg),
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.18),
+                    borderRadius: Radii.cardSmall,
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.22),
+                    ),
+                  ),
+                  child: Icon(icon, color: Colors.white, size: 22),
+                ),
+                const SizedBox(width: Space.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.82),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: Space.xs),
+                trailing ??
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withValues(alpha: 0.18),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_forward,
+                        size: 17,
+                        color: Colors.white,
+                      ),
+                    ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+
+    // Shadow outside the clip, gradient inside it — a ClipRRect wrapping the
+    // shadow would eat the bloom.
+    final lifted = DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: Radii.card,
+        boxShadow: Shadows.glow(AppColors.brandViolet),
+      ),
+      child: ClipRRect(borderRadius: Radii.card, child: surface),
+    );
+    return onTap == null ? lifted : Pressable(onTap: onTap, child: lifted);
   }
 }
 
@@ -305,13 +432,27 @@ class MetricTile extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              if (icon != null)
-                Icon(icon, size: 18, color: scheme.onSurfaceVariant),
+              if (icon != null) ...[
+                const SizedBox(width: Space.xxs),
+                // A seated chip, not a floating glyph — it keeps the tile's
+                // top row weighted at both ends.
+                Container(
+                  width: 26,
+                  height: 26,
+                  decoration: BoxDecoration(
+                    color: scheme.surfaceContainerHigh,
+                    borderRadius: Radii.chip,
+                  ),
+                  child: Icon(icon, size: 15, color: scheme.onSurfaceVariant),
+                ),
+              ],
             ],
           ),
           const SizedBox(height: Space.xs),
           Text(
             value,
+            // headlineSmall, not Medium: callers size these tiles by aspect
+            // ratio, and a taller number overflows the shortest of them.
             style: theme.textTheme.headlineSmall?.copyWith(
               fontFeatures: kTabularFigures,
             ),

@@ -33,9 +33,27 @@ abstract final class AppTheme {
       displayColor: scheme.onSurface,
     );
     final isLight = brightness == Brightness.light;
-    final hairline = scheme.outlineVariant.withValues(alpha: isLight ? 0.7 : 0.5);
+
+    // The hairline is the whole border story: full-strength outlineVariant is
+    // already a whisper (#DCDFE8 / #2E323C), so it needs no further alpha.
+    final hairline = scheme.outlineVariant;
+
+    // Cards sit one step *above* the page in both themes — white on a tinted
+    // page in light, a lifted slate on near-black in dark. That single step is
+    // what lets a card read as a card without a heavy shadow.
     final cardColor = isLight
-        ? scheme.surface
+        ? scheme.surfaceContainerLowest
+        : scheme.surfaceContainerHigh;
+
+    // Inset fields: a filled well with its own hairline, so a text field is
+    // legible whether it sits on a white card or on the tinted page.
+    final fieldFill = isLight
+        ? scheme.surfaceContainer
+        : scheme.surfaceContainerHigh;
+
+    // Bars, rails and sheets share the card's plane.
+    final navSurface = isLight
+        ? scheme.surfaceContainerLowest
         : scheme.surfaceContainerLow;
 
     OutlineInputBorder fieldBorder(Color c, [double w = 1]) => OutlineInputBorder(
@@ -67,6 +85,8 @@ abstract final class AppTheme {
 
       appBarTheme: AppBarTheme(
         backgroundColor: scheme.surface,
+        // Content scrolling underneath tints the bar a step darker instead of
+        // dropping a shadow — a quieter separation that survives dark mode.
         foregroundColor: scheme.onSurface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -95,6 +115,9 @@ abstract final class AppTheme {
       listTileTheme: ListTileThemeData(
         minVerticalPadding: 12,
         iconColor: scheme.onSurfaceVariant,
+        shape: const RoundedRectangleBorder(borderRadius: Radii.cardSmall),
+        selectedColor: scheme.onSecondaryContainer,
+        selectedTileColor: scheme.secondaryContainer,
         titleTextStyle: text.titleMedium?.copyWith(color: scheme.onSurface),
         subtitleTextStyle: text.bodyMedium?.copyWith(
           color: scheme.onSurfaceVariant,
@@ -103,18 +126,24 @@ abstract final class AppTheme {
 
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
+        fillColor: fieldFill,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: Space.md,
           vertical: Space.md,
         ),
-        border: fieldBorder(Colors.transparent),
-        enabledBorder: fieldBorder(Colors.transparent),
+        // A hairline at rest so the field has an edge on a white card as well
+        // as on the tinted page; the focus ring is the only saturated stroke.
+        border: fieldBorder(hairline),
+        enabledBorder: fieldBorder(hairline),
         focusedBorder: fieldBorder(scheme.primary, 2),
+        disabledBorder: fieldBorder(hairline),
         errorBorder: fieldBorder(scheme.error),
         focusedErrorBorder: fieldBorder(scheme.error, 2),
+        hintStyle: text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
         // Persistent, visible label — never placeholder-only (§8).
         floatingLabelBehavior: FloatingLabelBehavior.always,
         floatingLabelStyle: text.labelLarge?.copyWith(color: scheme.primary),
+        helperStyle: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
       ),
 
       filledButtonTheme: FilledButtonThemeData(
@@ -157,8 +186,9 @@ abstract final class AppTheme {
       chipTheme: ChipThemeData(
         labelStyle: text.labelMedium,
         side: BorderSide(color: hairline),
-        backgroundColor: scheme.surface,
+        backgroundColor: cardColor,
         selectedColor: scheme.secondaryContainer,
+        checkmarkColor: scheme.onSecondaryContainer,
         showCheckmark: false,
         shape: const RoundedRectangleBorder(borderRadius: Radii.chip),
         padding: const EdgeInsets.symmetric(
@@ -170,15 +200,23 @@ abstract final class AppTheme {
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: SegmentedButton.styleFrom(
           textStyle: text.labelMedium,
+          backgroundColor: isLight
+              ? scheme.surfaceContainer
+              : scheme.surfaceContainerLow,
+          foregroundColor: scheme.onSurfaceVariant,
           selectedBackgroundColor: scheme.secondaryContainer,
           selectedForegroundColor: scheme.onSecondaryContainer,
-          side: BorderSide(color: scheme.outline),
+          // Hairline, not full outline — a segmented control is a single
+          // object, not three bordered buttons.
+          side: BorderSide(color: hairline),
+          shape: const RoundedRectangleBorder(borderRadius: Radii.button),
         ),
       ),
 
       bottomSheetTheme: BottomSheetThemeData(
         showDragHandle: true,
-        backgroundColor: scheme.surface,
+        backgroundColor: isLight ? scheme.surfaceContainerLowest : cardColor,
+        dragHandleColor: scheme.outlineVariant,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         modalElevation: 0,
@@ -186,7 +224,7 @@ abstract final class AppTheme {
       ),
 
       dialogTheme: DialogThemeData(
-        backgroundColor: scheme.surface,
+        backgroundColor: isLight ? scheme.surfaceContainerLowest : cardColor,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -195,6 +233,17 @@ abstract final class AppTheme {
         ),
         titleTextStyle: text.titleLarge?.copyWith(color: scheme.onSurface),
         contentTextStyle: text.bodyMedium?.copyWith(color: scheme.onSurface),
+      ),
+
+      popupMenuTheme: PopupMenuThemeData(
+        color: isLight ? scheme.surfaceContainerLowest : cardColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: Radii.cardSmall,
+          side: BorderSide(color: hairline),
+        ),
+        textStyle: text.bodyMedium?.copyWith(color: scheme.onSurface),
       ),
 
       snackBarTheme: SnackBarThemeData(
@@ -207,23 +256,54 @@ abstract final class AppTheme {
         insetPadding: const EdgeInsets.all(Space.md),
       ),
 
+      // Navigation surfaces sit one step above the page (white on the tinted
+      // light page, lifted slate in dark) so the chrome reads as a frame around
+      // the content rather than more of the same field.
       navigationBarTheme: NavigationBarThemeData(
         elevation: 0,
         height: 68,
-        backgroundColor: scheme.surface,
+        backgroundColor: navSurface,
         surfaceTintColor: Colors.transparent,
+        indicatorColor: scheme.secondaryContainer,
+        indicatorShape: const StadiumBorder(),
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        labelTextStyle: WidgetStatePropertyAll(
-          text.labelMedium?.copyWith(fontWeight: FontWeight.w600),
+        labelTextStyle: WidgetStateProperty.resolveWith(
+          (states) => text.labelMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: states.contains(WidgetState.selected)
+                ? scheme.onSurface
+                : scheme.onSurfaceVariant,
+          ),
+        ),
+        iconTheme: WidgetStateProperty.resolveWith(
+          (states) => IconThemeData(
+            size: 24,
+            color: states.contains(WidgetState.selected)
+                ? scheme.onSecondaryContainer
+                : scheme.onSurfaceVariant,
+          ),
         ),
       ),
       navigationRailTheme: NavigationRailThemeData(
         elevation: 0,
-        backgroundColor: scheme.surface,
+        backgroundColor: navSurface,
+        indicatorColor: scheme.secondaryContainer,
+        indicatorShape: const StadiumBorder(),
+        selectedIconTheme: IconThemeData(color: scheme.onSecondaryContainer),
+        unselectedIconTheme: IconThemeData(color: scheme.onSurfaceVariant),
         selectedLabelTextStyle: text.labelMedium?.copyWith(
           fontWeight: FontWeight.w600,
+          color: scheme.onSurface,
         ),
-        unselectedLabelTextStyle: text.labelMedium,
+        unselectedLabelTextStyle: text.labelMedium?.copyWith(
+          color: scheme.onSurfaceVariant,
+        ),
+      ),
+      bottomAppBarTheme: BottomAppBarThemeData(
+        color: navSurface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        height: 68,
       ),
 
       tabBarTheme: TabBarThemeData(

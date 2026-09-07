@@ -93,17 +93,25 @@ class _CenteredState extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: bg,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: fg.withValues(alpha: 0.14),
+                    width: 6,
+                  ),
+                ),
                 child: Icon(icon, size: 28, color: fg),
               ),
               const SizedBox(height: Space.md),
               Text(
                 title,
                 textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium?.copyWith(
+                style: theme.textTheme.bodyLarge?.copyWith(
                   color: scheme.onSurfaceVariant,
+                  height: 1.45,
                 ),
               ),
               if (actionLabel != null && onAction != null) ...[
@@ -206,10 +214,9 @@ class SkeletonList extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: Space.sm),
               padding: const EdgeInsets.all(Space.md),
               decoration: BoxDecoration(
+                color: scheme.surfaceContainerLowest,
                 borderRadius: Radii.card,
-                border: Border.all(
-                  color: scheme.outlineVariant.withValues(alpha: 0.6),
-                ),
+                border: Border.all(color: scheme.outlineVariant),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

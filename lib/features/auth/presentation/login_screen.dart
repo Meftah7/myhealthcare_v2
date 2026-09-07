@@ -181,22 +181,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final wide = WindowSize.of(context).usesRail;
 
     return Scaffold(
-      backgroundColor: wide ? scheme.surfaceContainerLow : scheme.surface,
+      // On a wide window the form becomes a floating card on the tinted page;
+      // on a phone it is the page, so the card chrome would just be noise.
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(Space.lg),
+          padding: const EdgeInsets.symmetric(
+            horizontal: Space.lg,
+            vertical: Space.xl,
+          ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420),
             child: wide
                 ? Container(
                     padding: const EdgeInsets.all(Space.xl),
                     decoration: BoxDecoration(
-                      color: scheme.surface,
+                      color: scheme.surfaceContainerLowest,
                       borderRadius: Radii.card,
-                      border: Border.all(
-                        color: scheme.outlineVariant.withValues(alpha: 0.7),
-                      ),
-                      boxShadow: Shadows.e1,
+                      border: Border.all(color: scheme.outlineVariant),
+                      boxShadow: Shadows.e2,
                     ),
                     child: form,
                   )
@@ -209,7 +211,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 }
 
 /// The gradient-medallion mark + wordmark. One of the sanctioned brand-gradient
-/// surfaces (DESIGN.md §1).
+/// surfaces (DESIGN.md §1) — and the only saturated thing on this screen, so it
+/// gets the coloured bloom rather than a neutral shadow.
 class _BrandLockup extends StatelessWidget {
   const _BrandLockup({required this.subtitle});
   final String subtitle;
@@ -220,28 +223,29 @@ class _BrandLockup extends StatelessWidget {
     return Column(
       children: [
         Container(
-          width: 76,
-          height: 76,
+          width: 80,
+          height: 80,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(24),
             gradient: AppColors.brandGradient,
-            boxShadow: Shadows.e2,
+            boxShadow: Shadows.glow(AppColors.brandViolet),
           ),
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(13),
           child: Image.asset('assets/images/logo.png'),
         ),
-        const SizedBox(height: Space.md),
+        const SizedBox(height: Space.lg),
         Text(
           'MyHealth Care',
           textAlign: TextAlign.center,
-          style: theme.textTheme.headlineSmall,
+          style: theme.textTheme.headlineMedium,
         ),
-        const SizedBox(height: Space.xxs),
+        const SizedBox(height: Space.xs),
         Text(
           subtitle,
           textAlign: TextAlign.center,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
+            height: 1.5,
           ),
         ),
       ],
@@ -293,8 +297,9 @@ class _DemoHint extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(Space.md),
       decoration: BoxDecoration(
+        color: scheme.surfaceContainer,
         borderRadius: Radii.cardSmall,
-        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.7)),
+        border: Border.all(color: scheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

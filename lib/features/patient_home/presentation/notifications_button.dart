@@ -32,16 +32,21 @@ class NotificationsButton extends ConsumerWidget {
           onPressed: () => context.go(AppRoutes.patientNotifications),
         ),
         if (unread > 0)
+          // Sits on the circle's top-right edge — the button draws a 40dp
+          // circle centred in a 48dp tap target, so the rim is 4dp in.
           Positioned(
-            right: 2,
-            top: 2,
+            right: 3,
+            top: 3,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 4),
               constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
               decoration: BoxDecoration(
                 color: scheme.error,
                 borderRadius: BorderRadius.circular(7),
-                border: Border.all(color: scheme.surface, width: 1.5),
+                border: Border.all(
+                  color: scheme.surfaceContainerLowest,
+                  width: 1.5,
+                ),
               ),
               child: Text(
                 unread > 9 ? '9+' : '$unread',

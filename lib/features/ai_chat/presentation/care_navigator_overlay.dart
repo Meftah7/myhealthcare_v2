@@ -147,68 +147,97 @@ class _NavigatorFabState extends State<_NavigatorFab>
     final scheme = Theme.of(context).colorScheme;
     final reduce = Motion.reduced(context);
 
-    return SizedBox(
-      width: 76,
-      height: 76,
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.center,
-        children: [
-          if (!reduce)
-            AnimatedBuilder(
-              animation: _pulse,
-              builder: (context, _) {
-                final t = Curves.easeOut.transform(_pulse.value);
-                return Container(
-                  width: 56 + 20 * t,
-                  height: 56 + 20 * t,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: scheme.primary.withValues(alpha: 0.25 * (1 - t)),
-                  ),
-                );
-              },
-            ),
-          GestureDetector(
-            onTap: widget.onOpen,
-            child: Material(
-              color: scheme.primary,
-              shape: const CircleBorder(),
-              elevation: 4,
-              child: const SizedBox(
-                width: 56,
-                height: 56,
-                child: Icon(
-                  Icons.smart_toy_outlined,
-                  color: Colors.white,
-                  size: 26,
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            top: 8,
-            right: 8,
+    // The dismiss control sits *above* the button rather than on its rim: a
+    // 48dp tap target (DESIGN.md §8) centred on a 22dp badge would otherwise
+    // cover the button's own centre and swallow every tap meant to open it.
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Semantics(
+          button: true,
+          label: 'Hide Care Navigator',
+          child: Tooltip(
+            message: 'Hide Care Navigator',
             child: GestureDetector(
               onTap: widget.onDismiss,
-              child: Container(
-                width: 20,
-                height: 20,
-                decoration: BoxDecoration(
-                  color: scheme.error,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: scheme.surface, width: 1.5),
-                ),
-                child: Icon(
-                  Icons.close,
-                  size: 12,
-                  color: scheme.onError,
+              behavior: HitTestBehavior.opaque,
+              child: SizedBox(
+                width: 48,
+                height: 48,
+                child: Center(
+                  child: Container(
+                    width: 22,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      color: scheme.surfaceContainerLowest,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: scheme.outlineVariant),
+                      boxShadow: Shadows.e1,
+                    ),
+                    child: Icon(
+                      Icons.close,
+                      size: 13,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
-        ],
-      ),
+        ),
+        SizedBox(
+          width: 76,
+          height: 76,
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
+            children: [
+              if (!reduce)
+                AnimatedBuilder(
+                  animation: _pulse,
+                  builder: (context, _) {
+                    final t = Curves.easeOut.transform(_pulse.value);
+                    return Container(
+                      width: 56 + 20 * t,
+                      height: 56 + 20 * t,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: scheme.primary.withValues(alpha: 0.25 * (1 - t)),
+                      ),
+                    );
+                  },
+                ),
+              Semantics(
+                button: true,
+                label: 'Open Care Navigator',
+                child: GestureDetector(
+                  onTap: widget.onOpen,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: Shadows.glow(scheme.primary),
+                    ),
+                    child: Material(
+                      color: scheme.primary,
+                      shape: const CircleBorder(),
+                      child: SizedBox(
+                        width: 56,
+                        height: 56,
+                        child: Icon(
+                          Icons.smart_toy_outlined,
+                          color: scheme.onPrimary,
+                          size: 26,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

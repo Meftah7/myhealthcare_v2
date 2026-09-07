@@ -81,29 +81,52 @@ class AppShell extends StatelessWidget {
     final action = centerAction;
 
     final scheme = Theme.of(context).colorScheme;
-    final hairline = scheme.outlineVariant.withValues(alpha: 0.7);
+    final hairline = scheme.outlineVariant;
 
     if (size.isCompact) {
       final half = (destinations.length / 2).ceil();
       Widget destinationButton(AppDestination d, int index) {
         final selected = index == current;
+        // Mirrors NavigationBar's own treatment: a stadium indicator behind the
+        // icon, label in full-strength onSurface. Hand-built because the FAB
+        // notch rules out a real NavigationBar here.
         return Expanded(
           child: InkWell(
             onTap: () => _go(index),
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: Space.xs),
+              padding: const EdgeInsets.symmetric(vertical: Space.xxs),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    selected ? d.selectedIcon : d.icon,
-                    color: selected ? scheme.primary : scheme.onSurfaceVariant,
+                  AnimatedContainer(
+                    duration: Motion.medium,
+                    curve: Motion.standard,
+                    height: 30,
+                    width: 56,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? scheme.secondaryContainer
+                          : Colors.transparent,
+                      borderRadius: Radii.pill,
+                    ),
+                    child: Icon(
+                      selected ? d.selectedIcon : d.icon,
+                      size: 22,
+                      color: selected
+                          ? scheme.onSecondaryContainer
+                          : scheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     d.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: selected ? scheme.primary : scheme.onSurfaceVariant,
+                      color: selected
+                          ? scheme.onSurface
+                          : scheme.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -141,16 +164,22 @@ class AppShell extends StatelessWidget {
                   ],
                 ),
               )
-            : BottomAppBar(
-                shape: const CircularNotchedRectangle(),
-                notchMargin: Space.xs,
-                child: Row(
-                  children: [
-                    for (final (i, d) in destinations.indexed) ...[
-                      destinationButton(d, i),
-                      if (i == half - 1) const SizedBox(width: 56),
+            : DecoratedBox(
+                decoration: BoxDecoration(
+                  border: Border(top: BorderSide(color: hairline)),
+                ),
+                child: BottomAppBar(
+                  shape: const CircularNotchedRectangle(),
+                  notchMargin: Space.xs,
+                  padding: EdgeInsets.zero,
+                  child: Row(
+                    children: [
+                      for (final (i, d) in destinations.indexed) ...[
+                        destinationButton(d, i),
+                        if (i == half - 1) const SizedBox(width: 56),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
       );

@@ -14,8 +14,10 @@ import '../support/mfa.dart';
 import '../support/test_database.dart';
 
 Future<void> _pump(WidgetTester tester) async {
-  // Long enough for the opening splash overlay to finish and clear.
-  for (var i = 0; i < 20; i++) {
+  // Long enough for the opening splash overlay to finish and clear — it holds
+  // for kSplashDuration (~3.15s), and until it does it covers the screen the
+  // contrast guidelines are measuring.
+  for (var i = 0; i < 44; i++) {
     await tester.pump(const Duration(milliseconds: 80));
   }
 }
@@ -80,6 +82,9 @@ void main() {
     await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
 
     handle.dispose();
+    // Tear the tree down so the home carousel cancels its auto-advance timer.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
   });
 
   testWidgets('staff dashboard meets contrast + tap-target guidelines', (
@@ -97,6 +102,9 @@ void main() {
     await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
 
     handle.dispose();
+    // Tear the tree down so the home carousel cancels its auto-advance timer.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
   });
 
   testWidgets('login screen survives a 2x text scale without overflow', (

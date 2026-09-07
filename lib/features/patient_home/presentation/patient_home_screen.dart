@@ -58,13 +58,19 @@ class PatientHomeScreen extends ConsumerWidget {
                 Space.xxl,
               ),
               children: [
-                Text(greeting(firstName), style: theme.textTheme.headlineSmall),
+                // Date above the greeting: the small line sets context, the
+                // big line is the thing you actually read.
+                Text(
+                  fmtDate(DateTime.now()).toUpperCase(),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    letterSpacing: 0.8,
+                  ),
+                ),
                 const SizedBox(height: Space.xxs),
                 Text(
-                  fmtDate(DateTime.now()),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
+                  greeting(firstName),
+                  style: theme.textTheme.headlineMedium,
                 ),
                 const SizedBox(height: Space.lg),
 
@@ -73,11 +79,11 @@ class PatientHomeScreen extends ConsumerWidget {
 
                 const SectionHeader('Your health', overline: true),
                 _HealthSnapshot(),
-                const SizedBox(height: Space.md),
+                const SizedBox(height: Space.lg),
 
                 const SectionHeader('Upcoming appointments', overline: true),
                 const _UpcomingCarousel(),
-                const SizedBox(height: Space.md),
+                const SizedBox(height: Space.lg),
 
                 const SectionHeader('Quick actions', overline: true),
                 const _QuickActions(),
@@ -100,9 +106,15 @@ class _AppBarLockup extends StatelessWidget {
       children: [
         Image.asset('assets/images/logo.png', height: 26),
         const SizedBox(width: Space.xs),
-        Text(
-          'MyHealth Care',
-          style: Theme.of(context).textTheme.titleMedium,
+        // Flexible so the wordmark ellipsises on a narrow phone rather than
+        // colliding with the three action buttons.
+        Flexible(
+          child: Text(
+            'MyHealth Care',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
         ),
       ],
     );
@@ -119,42 +131,13 @@ class _QuickAppointmentAction extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return AppCard(
-      color: scheme.primaryContainer,
+    // The screen's one saturated surface — the primary action gets the brand
+    // gradient, everything below it stays neutral (DESIGN.md §1).
+    return GradientHeroCard(
+      icon: Icons.bolt,
+      title: 'Quick appointment',
+      subtitle: 'Urgent or normal — get seen sooner',
       onTap: () => _chooseUrgency(context, ref),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(color: scheme.primary, shape: BoxShape.circle),
-            child: Icon(Icons.bolt, color: scheme.onPrimary),
-          ),
-          const SizedBox(width: Space.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Quick appointment',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: scheme.onPrimaryContainer,
-                  ),
-                ),
-                Text(
-                  'Urgent or normal — get seen sooner',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: scheme.onPrimaryContainer,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Icon(Icons.chevron_right, color: scheme.onPrimaryContainer),
-        ],
-      ),
     );
   }
 
@@ -377,22 +360,36 @@ class _ActionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return AppCard(
       padding: const EdgeInsets.symmetric(
-        horizontal: Space.md,
+        horizontal: Space.sm,
         vertical: Space.sm,
       ),
       onTap: () => context.go(route),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: theme.colorScheme.primary),
+          // A tinted medallion rather than a bare glyph — it anchors the row
+          // and reads as an object you can press.
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: scheme.primaryContainer,
+              borderRadius: Radii.chip,
+            ),
+            child: Icon(icon, size: 18, color: scheme.onPrimaryContainer),
+          ),
           const SizedBox(width: Space.sm),
           Expanded(
             child: Text(
               label.replaceAll('\n', ' '),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: theme.textTheme.titleSmall,
             ),
           ),
+          Icon(Icons.chevron_right, size: 18, color: scheme.onSurfaceVariant),
         ],
       ),
     );
@@ -453,20 +450,6 @@ class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
     );
   }
 
-  /// Jump to real index [i] by the shortest raw hop from where we are.
-  void _goToIndex(int i) {
-    if (_count == 0 || !_controller.hasClients) return;
-    final raw = _rawPage();
-    final curMod = ((raw % _count) + _count) % _count;
-    var diff = i - curMod;
-    if (diff > _count / 2) diff -= _count;
-    if (diff < -_count / 2) diff += _count;
-    _controller.animateToPage(
-      raw + diff,
-      duration: Motion.medium,
-      curve: Motion.standard,
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -555,12 +538,12 @@ class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
                 const Spacer(),
                 if (active.length > 1) ...[
                   IconButton(
-                    visualDensity: VisualDensity.compact,
+                    tooltip: 'Previous appointment',
                     onPressed: () => _step(-1),
                     icon: const Icon(Icons.chevron_left),
                   ),
                   IconButton(
-                    visualDensity: VisualDensity.compact,
+                    tooltip: 'Next appointment',
                     onPressed: () => _step(1),
                     icon: const Icon(Icons.chevron_right),
                   ),
@@ -596,26 +579,30 @@ class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
             ),
             if (active.length > 1) ...[
               const SizedBox(height: Space.sm),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  for (var i = 0; i < active.length; i++)
-                    GestureDetector(
-                      onTap: () => _goToIndex(i),
-                      child: AnimatedContainer(
-                        duration: Motion.fast,
+              // Position readout, not a control: a 7dp dot can never carry a
+              // 48dp tap target, and the arrows above plus the swipe already
+              // move the carousel. The "n of m" line above is the accessible
+              // equivalent, so these are hidden from semantics.
+              ExcludeSemantics(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    for (var i = 0; i < active.length; i++)
+                      AnimatedContainer(
+                        duration: Motion.medium,
+                        curve: Motion.standard,
                         margin: const EdgeInsets.symmetric(horizontal: 3),
-                        width: i == _index ? 20 : 7,
+                        width: i == _index ? 22 : 7,
                         height: 7,
                         decoration: BoxDecoration(
                           color: i == _index
                               ? scheme.primary
                               : scheme.outlineVariant,
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: Radii.pill,
                         ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ],
           ],
@@ -648,6 +635,9 @@ class _BigTicketCard extends StatelessWidget {
     return AppCard(
       elevated: true,
       color: scheme.primaryContainer,
+      // Tinted edge, not the neutral hairline — a grey line around a lavender
+      // card reads as a mistake.
+      borderColor: scheme.onPrimaryContainer.withValues(alpha: 0.12),
       onTap: () => context.go(AppRoutes.patientAppointments),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

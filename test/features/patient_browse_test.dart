@@ -21,6 +21,13 @@ void main() {
   testWidgets('patient sees home, timeline and vitals from seeded data', (
     tester,
   ) async {
+    // Same width class as the default viewport (medium), but tall enough that
+    // Home's Quick actions sit above the fold.
+    tester.view.physicalSize = const Size(800, 2000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     final db = newTestDatabase();
     await Seeder(db).run();
 
@@ -75,5 +82,8 @@ void main() {
     await tester.tap(find.text('Vitals').first);
     await _settle(tester);
     expect(find.widgetWithText(AppBar, 'Vitals'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
   });
 }

@@ -78,9 +78,31 @@ static const seed = Color(0xFF5B4FE9); // indigo-violet — the centre of the ma
 
 The visual centre of the logo gradient. Indigo-violet reads as *considered*
 rather than clinical-cold, sits far from every status hue (amber / orange /
-red / green), and holds WCAG contrast in both themes. Generate the full scheme
-with `ColorScheme.fromSeed` for light **and** dark. Do **not** hand-pick M3
-roles — the generated tonal palette is already contrast-checked.
+red / green), and holds WCAG contrast in both themes.
+
+Generate the **accent** families from the seed with
+`ColorScheme.fromSeed(..., dynamicSchemeVariant: DynamicSchemeVariant.fidelity)`
+for light **and** dark — `fidelity` keeps the seed's chroma instead of
+flattening it to M3's default muted 36.
+
+The **neutral ramp is hand-authored** (`AppColors.light` / `.dark`), because the
+generated greys carry the seed's violet cast into every surface and the
+container steps land too close together for a card to separate from the page.
+The replacement is a cool near-achromatic slate:
+
+| role | light | dark |
+| --- | --- | --- |
+| `surface` (page) | `#F7F8FB` | `#0E1015` |
+| `surfaceContainerLowest` (cards, bars, sheets) | `#FFFFFF` | `#08090C` |
+| `surfaceContainerHigh` (dark cards, field fill) | `#ECEEF4` | `#1E2129` |
+| `onSurface` | `#161922` | `#E8EAF1` |
+| `onSurfaceVariant` | `#585F70` | `#A7AEC0` |
+| `outlineVariant` (the hairline) | `#DCDFE8` | `#2E323C` |
+
+A card is always **one step above the page**, which is what lets the hairline be
+a definition line rather than the only thing holding the card up. Every text
+pair above clears WCAG AA; `test/features/accessibility_test.dart` asserts it, so
+re-run it after touching any of these values.
 
 ### 2.2 Brand gradient (a token, used sparingly)
 
@@ -170,8 +192,8 @@ A test asserts the whole ramp (P6-09).
 ### 4.2 Shape
 
 ```dart
-Radii.card       20   // the default container
-Radii.cardSmall  14   // nested / dense cards, snackbars
+Radii.card       22   // the default container
+Radii.cardSmall  16   // nested / dense cards, snackbars
 Radii.field      14   // text fields
 Radii.button     14   // buttons (never a full pill on dense screens)
 Radii.chip       10   // filter chips
@@ -183,12 +205,17 @@ Radii.sheet      28   // bottom sheets (top corners)
 
 v2 abandons M3 surface-tint elevation. Depth comes from three things, in order:
 
-1. **A hairline border** (`outlineVariant` at ~0.7 alpha light / 0.5 dark) —
-   the primary separator for cards, dialogs, nav edges.
-2. **A whisper-soft shadow** (`Shadows.e1/e2/e3`) — only on surfaces that
-   genuinely lift off the page: raised cards, menus, dialogs, the FAB.
-3. **Fill contrast** — `surface` for the page, a hair lighter/darker for a
-   card in dark mode.
+1. **Fill contrast** — the page is `surface`, a card is one step above it
+   (`surfaceContainerLowest` in light, `surfaceContainerHigh` in dark). This is
+   the load-bearing one; the two below only sharpen it.
+2. **A hairline border** — `outlineVariant` at *full* strength (the token is
+   already a whisper: `#DCDFE8` / `#2E323C`). Never re-alpha it at the call
+   site, or the same edge ends up four different weights across the app.
+3. **A soft shadow** (`Shadows.e1/e2/e3`) — only on surfaces that genuinely lift
+   off the page: raised cards, menus, dialogs, the FAB. Every one is tinted
+   toward the neutral ramp's deep slate (`#1B1F3B`), never neutral black: a grey
+   shadow on a cool page reads as dirt. `Shadows.glow(color)` is the coloured
+   bloom for the one brand surface a screen is allowed.
 
 | Token | Use |
 |---|---|
