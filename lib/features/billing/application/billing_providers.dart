@@ -103,6 +103,28 @@ class BillingController {
     if (result case Ok()) _ref.invalidate(patientInvoicesProvider);
     return result;
   }
+
+  /// Settles [invoiceId] with one of the patient's saved cards.
+  Future<Result<Invoice>> payWithSavedCard({
+    required String invoiceId,
+    required String cardId,
+    required String cvc,
+  }) async {
+    final user = _ref.read(currentUserProvider);
+    if (user == null || !user.isPatient) {
+      return const Err(AuthFailure('Sign in to pay an invoice.'));
+    }
+    final result = await _ref
+        .read(billingRepositoryProvider)
+        .payWithSavedCard(
+          invoiceId: invoiceId,
+          patientId: user.id,
+          cardId: cardId,
+          cvc: cvc,
+        );
+    if (result case Ok()) _ref.invalidate(patientInvoicesProvider);
+    return result;
+  }
 }
 
 final billingControllerProvider = Provider<BillingController>(

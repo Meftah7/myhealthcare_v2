@@ -140,6 +140,65 @@ class BillingRepositoryImpl implements BillingRepository {
   }
 
   @override
+  Future<Result<Invoice>> payWithSavedCard({
+    required String invoiceId,
+    required String patientId,
+    required String cardId,
+    required String cvc,
+  }) {
+    return Result.guardAsync(() async {
+      if (!RegExp(r'^\d{3,4}$').hasMatch(cvc)) {
+        throw const ValidationFailure('CVC must be 3 or 4 digits.');
+      }
+
+      final card =
+          await (_db.select(_db.paymentMethods)..where(
+                (c) => c.id.equals(cardId) & c.patientId.equals(patientId),
+              ))
+              .getSingleOrNull();
+      if (card == null) throw const NotFoundFailure('Card not found.');
+
+      final firstOfNextMonth = card.expiryMonth == 12
+          ? DateTime(card.expiryYear + 1)
+          : DateTime(card.expiryYear, card.expiryMonth + 1);
+      if (!firstOfNextMonth.isAfter(DateTime.now())) {
+        throw const ValidationFailure(
+          'That card has expired. Choose another card.',
+        );
+      }
+
+      final row =
+          await (_db.select(_db.invoices)..where(
+                (i) => i.id.equals(invoiceId) & i.patientId.equals(patientId),
+              ))
+              .getSingleOrNull();
+      if (row == null) throw const NotFoundFailure('Invoice not found.');
+
+      final invoice = row.toEntity();
+      if (invoice.status == InvoiceStatus.paid) {
+        throw const ValidationFailure('This invoice is already paid.');
+      }
+      if (invoice.status == InvoiceStatus.cancelled) {
+        throw const ValidationFailure('This invoice was cancelled.');
+      }
+
+      await (_db.update(_db.invoices)..where((i) => i.id.equals(invoiceId)))
+          .write(
+            InvoicesCompanion(
+              status: const Value(InvoiceStatus.paid),
+              paidAt: Value(DateTime.now()),
+              paymentMethod: Value('${card.brand} ····${card.last4}'),
+            ),
+          );
+
+      final updated = await (_db.select(
+        _db.invoices,
+      )..where((i) => i.id.equals(invoiceId))).getSingle();
+      return updated.toEntity();
+    });
+  }
+
+  @override
   Future<Result<Invoice>> issue(NewInvoice invoice) {
     return Result.guardAsync(() async {
       if (invoice.subtotal < 0) {

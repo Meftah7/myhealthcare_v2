@@ -11,6 +11,7 @@ import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
+import '../../../core/utils/card_input.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
@@ -257,18 +258,25 @@ class _AddCardSheetState extends ConsumerState<_AddCardSheet> {
     super.dispose();
   }
 
-  static (int, int)? _parseExpiry(String raw) {
-    final d = raw.replaceAll(RegExp(r'\D'), '');
-    if (d.length != 4) return null;
-    final m = int.tryParse(d.substring(0, 2));
-    final y = int.tryParse(d.substring(2));
-    if (m == null || y == null || m < 1 || m > 12) return null;
-    return (m, 2000 + y);
+  CardBrand get _brand => cardBrandOf(_number.text);
+
+  String? _validateExpiry(String? v) {
+    final parsed = parseExpiry(v ?? '');
+    if (parsed == null) {
+      final d = (v ?? '').replaceAll(RegExp(r'\D'), '');
+      if (d.length >= 2) {
+        final mm = int.tryParse(d.substring(0, 2)) ?? 0;
+        if (mm < 1 || mm > 12) return 'Month must be 01–12';
+      }
+      return 'MM/YY';
+    }
+    if (!expiryInFuture(parsed.month, parsed.year)) return 'Card has expired';
+    return null;
   }
 
   Future<void> _save() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    final exp = _parseExpiry(_expiry.text);
+    final exp = parseExpiry(_expiry.text);
     if (exp == null) return;
     setState(() {
       _busy = true;
@@ -280,8 +288,8 @@ class _AddCardSheetState extends ConsumerState<_AddCardSheet> {
           CardPayment(
             cardNumber: _number.text,
             cardHolder: _holder.text.trim(),
-            expiryMonth: exp.$1,
-            expiryYear: exp.$2,
+            expiryMonth: exp.month,
+            expiryYear: exp.year,
             cvc: _cvc.text,
           ),
         );
@@ -330,17 +338,21 @@ class _AddCardSheetState extends ConsumerState<_AddCardSheet> {
                   autocorrect: false,
                   enableSuggestions: false,
                   autofillHints: const [AutofillHints.creditCardNumber],
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(19),
-                  ],
-                  decoration: const InputDecoration(
+                  inputFormatters: const [CardNumberInputFormatter()],
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
                     labelText: 'Card number',
                     hintText: '4242 4242 4242 4242',
+                    suffixIcon: Padding(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: CardBrandBadge(_brand),
+                    ),
                   ),
                   validator: (v) {
                     final d = (v ?? '').replaceAll(RegExp(r'\D'), '');
-                    return d.length < 12 ? 'Enter a full card number' : null;
+                    if (d.length < 12) return 'Enter a full card number';
+                    if (!luhnValid(d)) return 'That card number is not valid';
+                    return null;
                   },
                 ),
                 const SizedBox(height: Space.sm),
@@ -355,16 +367,12 @@ class _AddCardSheetState extends ConsumerState<_AddCardSheet> {
                         autofillHints: const [
                           AutofillHints.creditCardExpirationDate,
                         ],
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(RegExp(r'[0-9/]')),
-                          LengthLimitingTextInputFormatter(5),
-                        ],
+                        inputFormatters: const [ExpiryInputFormatter()],
                         decoration: const InputDecoration(
                           labelText: 'Expiry',
                           hintText: 'MM/YY',
                         ),
-                        validator: (v) =>
-                            _parseExpiry(v ?? '') == null ? 'MM/YY' : null,
+                        validator: _validateExpiry,
                       ),
                     ),
                     const SizedBox(width: Space.sm),
@@ -382,7 +390,9 @@ class _AddCardSheetState extends ConsumerState<_AddCardSheet> {
                           FilteringTextInputFormatter.digitsOnly,
                           LengthLimitingTextInputFormatter(4),
                         ],
-                        decoration: const InputDecoration(labelText: 'CVC'),
+                        decoration: InputDecoration(
+                          labelText: _brand == CardBrand.amex ? 'CID' : 'CVC',
+                        ),
                         validator: (v) => RegExp(r'^\d{3,4}$').hasMatch(v ?? '')
                             ? null
                             : '3–4 digits',

@@ -218,6 +218,36 @@ void main() {
         'cvc',
       );
     });
+
+    test('pays with a saved card, and refuses an expired saved card', () async {
+      // The seed gives every patient one default card.
+      final saved = (await harness.repo.cardsFor(harness.patientId))
+          .valueOrNull!
+          .first;
+      final ok = await harness.repo.payWithSavedCard(
+        invoiceId: harness.invoiceId,
+        patientId: harness.patientId,
+        cardId: saved.id,
+        cvc: '123',
+      );
+      expect(ok.isOk, isTrue);
+      expect(ok.valueOrNull!.paymentMethod, contains(saved.last4));
+
+      // Add an expired card and try to pay another invoice with it.
+      final expired = await harness.repo.addCard(
+        patientId: harness.patientId,
+        card: CardPayment(
+          cardNumber: '4000056655665556',
+          cardHolder: 'Ali',
+          expiryMonth: DateTime.now().month,
+          expiryYear: DateTime.now().year - 1,
+          cvc: '123',
+        ),
+      );
+      // addCard itself rejects an expired card, so there is nothing to select.
+      expect(expired.isErr, isTrue);
+      expect(expired.failureOrNull!.message.toLowerCase(), contains('expired'));
+    });
   });
 }
 

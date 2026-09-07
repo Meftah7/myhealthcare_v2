@@ -92,6 +92,18 @@ abstract interface class BillingRepository {
     required CardPayment payment,
   });
 
+  /// Settles [invoiceId] with a card already saved to the patient's wallet.
+  ///
+  /// The PAN was Luhn-checked when the card was added, so this only re-checks
+  /// the card belongs to [patientId], is not expired, and the CVC is the right
+  /// shape. Like [pay], the invoice must be the patient's own and still open.
+  Future<Result<Invoice>> payWithSavedCard({
+    required String invoiceId,
+    required String patientId,
+    required String cardId,
+    required String cvc,
+  });
+
   /// Raises a new bill (admin/staff side).
   Future<Result<Invoice>> issue(NewInvoice invoice);
 
