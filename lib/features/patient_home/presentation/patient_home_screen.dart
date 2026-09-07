@@ -18,12 +18,10 @@ import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
 import '../../auth/application/session.dart';
-import '../../auth/presentation/sign_out_action.dart';
 import '../../booking/application/appointment_confirmation.dart';
 import '../../patient/application/patient_data_providers.dart';
+import '../../patient/presentation/patient_top_actions.dart';
 import '../../quick_appointment/application/quick_appointment_providers.dart';
-import '../../settings/presentation/theme_mode_icon_toggle.dart';
-import 'notifications_button.dart';
 
 class PatientHomeScreen extends ConsumerWidget {
   const PatientHomeScreen({super.key});
@@ -40,12 +38,7 @@ class PatientHomeScreen extends ConsumerWidget {
       appBar: AppBar(
         titleSpacing: gutter,
         title: const _AppBarLockup(),
-        actions: const [
-          NotificationsButton(),
-          ThemeModeIconToggle(),
-          SignOutAction(),
-          SizedBox(width: Space.xs),
-        ],
+        actions: const [PatientTopActions()],
       ),
       body: RefreshIndicator(
         onRefresh: () async {

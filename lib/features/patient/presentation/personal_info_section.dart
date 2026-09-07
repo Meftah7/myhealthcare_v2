@@ -266,7 +266,7 @@ class _PersonalInfoSectionState extends ConsumerState<PersonalInfoSection> {
   };
 }
 
-/// The SMS / Email / Push delivery toggles. Rendered bare for an
+/// The SMS / Email delivery toggles. Rendered bare for an
 /// [ExpandableSection]; the caller supplies the surrounding surface.
 class NotificationChannelsSection extends ConsumerWidget {
   const NotificationChannelsSection({super.key});
@@ -289,12 +289,6 @@ class NotificationChannelsSection extends ConsumerWidget {
           title: const Text('Email'),
           value: prefs.email,
           onChanged: notifier.setEmail,
-        ),
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('Push'),
-          value: prefs.push,
-          onChanged: notifier.setPush,
         ),
       ],
     );

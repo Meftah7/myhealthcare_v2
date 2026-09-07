@@ -14,11 +14,12 @@ import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/expandable_section.dart';
 import '../../../core/presentation/states.dart';
-import '../../../domain/entities/entities.dart';
 import '../../auth/application/session.dart';
 import '../../billing/presentation/wallet_section.dart';
 import '../../settings/presentation/preferences_section.dart';
 import '../presentation/family_network_section.dart';
+import '../presentation/health_details_section.dart';
+import '../presentation/patient_top_actions.dart';
 import '../presentation/personal_info_section.dart';
 import 'patient_data_providers.dart';
 
@@ -32,7 +33,10 @@ class ProfileScreen extends ConsumerWidget {
     final gutter = WindowSize.of(context).gutter;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: AppBar(
+        title: const Text('Profile'),
+        actions: const [PatientTopActions()],
+      ),
       body: profile.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
@@ -67,7 +71,7 @@ class ProfileScreen extends ConsumerWidget {
                   ExpandableSection(
                     icon: Icons.favorite_outline,
                     title: 'Health details',
-                    child: _HealthDetails(patient: p),
+                    child: HealthDetailsSection(patient: p),
                   ),
                   const SizedBox(height: Space.sm),
 
@@ -131,35 +135,3 @@ class ProfileScreen extends ConsumerWidget {
   }
 }
 
-class _HealthDetails extends StatelessWidget {
-  const _HealthDetails({required this.patient});
-
-  final Patient patient;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = patient;
-    final rows = <(String, String)>[
-      ('Blood type', p.bloodType ?? '—'),
-      ('Allergies', p.allergies.isEmpty ? 'None' : p.allergies.join(', ')),
-      (
-        'Chronic conditions',
-        p.chronicConditions.isEmpty ? 'None' : p.chronicConditions.join(', '),
-      ),
-      ('Emergency contact', p.emergencyContact ?? '—'),
-    ];
-    return Column(
-      children: [
-        for (final (i, (label, value)) in rows.indexed) ...[
-          if (i > 0) const Divider(height: 1),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            dense: true,
-            title: Text(label),
-            subtitle: Text(value),
-          ),
-        ],
-      ],
-    );
-  }
-}

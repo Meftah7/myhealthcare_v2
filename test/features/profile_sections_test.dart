@@ -90,6 +90,23 @@ void main() {
     await _settle(tester);
     expect(find.byType(SegmentedButton<ThemeMode>), findsNothing);
 
+    // Notification channels: SMS + Email only — Push was removed.
+    await tester.tap(find.text('Notification channels'));
+    await _settle(tester);
+    expect(find.widgetWithText(SwitchListTile, 'SMS'), findsOneWidget);
+    expect(find.widgetWithText(SwitchListTile, 'Email'), findsOneWidget);
+    expect(find.widgetWithText(SwitchListTile, 'Push'), findsNothing);
+    await tester.tap(find.text('Notification channels'));
+    await _settle(tester);
+
+    // Health details is an editable form now (blood type + save).
+    await tester.tap(find.text('Health details'));
+    await _settle(tester);
+    expect(find.widgetWithText(TextField, 'Allergies'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Save'), findsOneWidget);
+    await tester.tap(find.text('Health details'));
+    await _settle(tester);
+
     // Expand Personal info and its form is reachable.
     await tester.tap(find.text('Personal info'));
     await _settle(tester);

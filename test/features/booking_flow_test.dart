@@ -63,10 +63,10 @@ void main() {
     // Open the Appointments tab, then start the scheduling wizard from it.
     await tester.tap(find.text('Appointments').last);
     await _settle(tester);
-    await tester.tap(find.widgetWithText(OutlinedButton, 'Schedule'));
+    await tester.tap(find.text('Schedule'));
     await _settle(tester);
     expect(
-      find.widgetWithText(AppBar, 'Schedule an appointment'),
+      find.widgetWithText(AppBar, 'Schedule a visit'),
       findsOneWidget,
     );
 
@@ -88,29 +88,34 @@ void main() {
     );
     await _settle(tester);
 
-    // Opening → closing list is present with a recommended slot on top.
-    expect(find.text('Available times'), findsOneWidget);
-    expect(find.textContaining('recommended'), findsOneWidget);
+    // Recommended slot on top, then the full open-times grid.
+    await tester.scrollUntilVisible(
+      find.text('RECOMMENDED'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await _settle(tester);
+    expect(find.text('RECOMMENDED'), findsOneWidget);
     expect(find.text('ALL OPEN TIMES'), findsOneWidget);
 
     // A fresh future clinic day opens the whole 08:00–13:40 span (18 × 20-min).
     expect(find.text('08:00'), findsWidgets);
-    final tiles = find.descendant(
+    final chips = find.descendant(
       of: find.byType(BookingScreen),
-      matching: find.byType(ListTile),
+      matching: find.byType(ActionChip),
     );
-    expect(tiles.evaluate().length, greaterThanOrEqualTo(12));
+    expect(chips.evaluate().length, greaterThanOrEqualTo(12));
 
     final before =
         (await container.read(patientAppointmentsProvider.future)).length;
 
-    // Book the recommended slot (first tile).
-    await tester.ensureVisible(tiles.first);
+    // Pick the first open time → review sheet → confirm.
+    await tester.ensureVisible(chips.first);
     await _settle(tester);
-    await tester.tap(tiles.first);
+    await tester.tap(chips.first);
     await _settle(tester);
-    expect(find.text('Confirm booking'), findsOneWidget);
-    await tester.tap(find.widgetWithText(FilledButton, 'Book'));
+    expect(find.text('Review & confirm'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Confirm booking'));
     // The confirmation checkmark plays over the transition to Home. Pump just
     // far enough to catch it mid-animation (it clears itself after ~1.4s).
     for (var i = 0; i < 6; i++) {
@@ -127,5 +132,56 @@ void main() {
     final after =
         (await container.read(patientAppointmentsProvider.future)).length;
     expect(after, before + 1);
+  });
+
+  testWidgets('opening the wizard clears a leftover draft', (tester) async {
+    final db = newTestDatabase();
+    await Seeder(db).run();
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        appDatabaseProvider.overrideWith((ref) {
+          ref.onDispose(db.close);
+          return db;
+        }),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MyHealthCareApp(),
+      ),
+    );
+    await _settle(tester);
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Email'),
+      'patient3@myhealth.demo',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Password'),
+      Seeder.demoPassword,
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
+    await _settle(tester);
+
+    // Simulate a half-finished pick from a previous visit.
+    final depts = await container.read(departmentsProvider.future);
+    container.read(bookingDraftProvider.notifier).state =
+        BookingRequestDraft(departmentId: depts.first.id);
+
+    await tester.tap(find.text('Appointments').last);
+    await _settle(tester);
+    await tester.tap(find.text('Book now'));
+    await _settle(tester);
+
+    // The wizard reset it on entry.
+    expect(container.read(bookingDraftProvider).departmentId, isNull);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
   });
 }

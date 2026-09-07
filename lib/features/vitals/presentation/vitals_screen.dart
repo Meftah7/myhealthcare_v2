@@ -12,6 +12,7 @@ import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../patient/application/patient_data_providers.dart';
+import '../../patient/presentation/patient_top_actions.dart';
 
 class VitalsScreen extends ConsumerWidget {
   const VitalsScreen({super.key});
@@ -20,7 +21,10 @@ class VitalsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final vitals = ref.watch(patientVitalsProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Vitals')),
+      appBar: AppBar(
+        title: const Text('Vitals'),
+        actions: const [PatientTopActions()],
+      ),
       body: vitals.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(

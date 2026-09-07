@@ -66,6 +66,17 @@ void main() {
     expect(find.text('Nutrition'), findsWidgets);
     expect(find.text('Appointments'), findsWidgets);
 
+    // The three persistent top actions ride along on every patient page.
+    expect(find.byTooltip('Profile'), findsOneWidget);
+    expect(
+      find.byTooltip('Switch to dark mode').evaluate().isNotEmpty ||
+          find.byTooltip('Switch to light mode').evaluate().isNotEmpty,
+      isTrue,
+    );
+    await tester.tap(find.text('Appointments').first);
+    await _pump(tester);
+    expect(find.byTooltip('Profile'), findsOneWidget);
+
     // Tear the tree down inside the test so the drift stream behind the
     // notifications badge is cancelled (and its cleanup timer flushed) before
     // the framework's end-of-test timer check.

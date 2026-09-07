@@ -19,6 +19,7 @@ import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
 import '../../booking/presentation/booking_screen.dart';
 import '../../patient/application/patient_data_providers.dart';
+import '../../patient/presentation/patient_top_actions.dart';
 
 class AppointmentsScreen extends ConsumerWidget {
   const AppointmentsScreen({super.key});
@@ -32,7 +33,10 @@ class AppointmentsScreen extends ConsumerWidget {
         ref.watch(departmentDirectoryProvider).valueOrNull ?? const {};
 
     return Scaffold(
-      appBar: AppBar(title: const Text('My appointments')),
+      appBar: AppBar(
+        title: const Text('My appointments'),
+        actions: const [PatientTopActions()],
+      ),
       body: appts.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
@@ -111,30 +115,94 @@ class _EntryButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
         Expanded(
-          child: FilledButton.icon(
-            onPressed: () => context.push(
+          child: _EntryCard(
+            icon: Icons.bolt_outlined,
+            title: 'Book now',
+            subtitle: 'Soonest opening',
+            filled: true,
+            onTap: () => context.push(
               AppRoutes.patientBook,
               extra: BookingMode.now,
             ),
-            icon: const Icon(Icons.bolt_outlined),
-            label: const Text('Book now'),
           ),
         ),
         const SizedBox(width: Space.sm),
         Expanded(
-          child: OutlinedButton.icon(
-            onPressed: () => context.push(
+          child: _EntryCard(
+            icon: Icons.calendar_month_outlined,
+            title: 'Schedule',
+            subtitle: 'Pick a date',
+            filled: false,
+            onTap: () => context.push(
               AppRoutes.patientBook,
               extra: BookingMode.schedule,
             ),
-            icon: const Icon(Icons.calendar_month_outlined),
-            label: const Text('Schedule'),
           ),
         ),
-      ],
+        ],
+      ),
+    );
+  }
+}
+
+class _EntryCard extends StatelessWidget {
+  const _EntryCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.filled,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final bool filled;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final fg = filled ? scheme.onPrimary : scheme.onSurface;
+    return Material(
+      color: filled ? scheme.primary : scheme.surface,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: Radii.card,
+        side: BorderSide(
+          color: filled
+              ? Colors.transparent
+              : scheme.outlineVariant.withValues(alpha: 0.7),
+        ),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(Space.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: fg),
+              const SizedBox(height: Space.sm),
+              Text(title, style: theme.textTheme.titleMedium?.copyWith(color: fg)),
+              Text(
+                subtitle,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: filled
+                      ? scheme.onPrimary.withValues(alpha: 0.85)
+                      : scheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

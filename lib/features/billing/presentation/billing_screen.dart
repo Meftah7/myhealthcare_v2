@@ -13,6 +13,7 @@ import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../patient/presentation/patient_top_actions.dart';
 import '../application/billing_providers.dart';
 import 'pay_invoice_sheet.dart';
 
@@ -41,7 +42,10 @@ class BillingScreen extends ConsumerWidget {
 
     if (embedded) return body;
     return Scaffold(
-      appBar: AppBar(title: const Text('Billing')),
+      appBar: AppBar(
+        title: const Text('Billing'),
+        actions: const [PatientTopActions()],
+      ),
       body: body,
     );
   }

@@ -15,6 +15,7 @@ import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../patient/presentation/patient_top_actions.dart';
 import '../application/notification_providers.dart';
 
 class NotificationsScreen extends ConsumerWidget {
@@ -36,7 +37,7 @@ class NotificationsScreen extends ConsumerWidget {
                   ref.read(notificationControllerProvider).markAllRead(),
               child: const Text('Mark all read'),
             ),
-          const SizedBox(width: Space.xs),
+          const PatientTopActions(),
         ],
       ),
       body: Center(

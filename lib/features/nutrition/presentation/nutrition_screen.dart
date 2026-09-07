@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
+import '../../patient/presentation/patient_top_actions.dart';
 import '../application/macro_calculator.dart';
 import '../application/nutrition_providers.dart';
 import '../domain/nutrition_data.dart';
@@ -31,7 +32,10 @@ class _NutritionScreenState extends State<NutritionScreen> {
     final gutter = WindowSize.of(context).gutter;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Nutrition')),
+      appBar: AppBar(
+        title: const Text('Nutrition'),
+        actions: const [PatientTopActions()],
+      ),
       body: Column(
         children: [
           Padding(

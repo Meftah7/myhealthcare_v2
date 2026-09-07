@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../billing/presentation/billing_screen.dart';
+import '../../patient/presentation/patient_top_actions.dart';
 import '../../records/presentation/medications_screen.dart';
 import 'timeline_screen.dart';
 
@@ -30,7 +31,10 @@ class _HealthRecordsScreenState extends State<HealthRecordsScreen> {
     final gutter = WindowSize.of(context).gutter;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Records')),
+      appBar: AppBar(
+        title: const Text('Records'),
+        actions: const [PatientTopActions()],
+      ),
       body: Column(
         children: [
           Padding(

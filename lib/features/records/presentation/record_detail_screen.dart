@@ -12,6 +12,7 @@ import '../../../core/presentation/status_badges.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
+import '../../patient/presentation/patient_top_actions.dart';
 
 final recordDetailProvider = FutureProvider.family<MedicalRecord, String>((
   ref,
@@ -35,7 +36,10 @@ class RecordDetailScreen extends ConsumerWidget {
     final record = ref.watch(recordDetailProvider(recordId));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Record')),
+      appBar: AppBar(
+        title: const Text('Record'),
+        actions: const [PatientTopActions()],
+      ),
       body: record.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
