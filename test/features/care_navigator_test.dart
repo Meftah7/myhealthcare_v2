@@ -2,6 +2,7 @@
 // floating widget opening from the FAB.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/app.dart';
@@ -24,6 +25,16 @@ Future<void> _settle(WidgetTester tester) async {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    // flutter_secure_storage has no test implementation; make it a no-op so
+    // the AI key store resolves to "no key" instead of stalling the reply.
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('plugins.it_nomads.com/flutter_secure_storage'),
+      (call) async => null,
+    );
+  });
 
   group('offline responder', () {
     late ProviderContainer container;
@@ -147,7 +158,8 @@ void main() {
       find.widgetWithText(TextField, 'Ask about the app…'),
       'how do I book an appointment',
     );
-    await tester.testTextInput.receiveAction(TextInputAction.send);
+    await tester.pump();
+    await tester.tap(find.widgetWithIcon(IconButton, Icons.send));
     await _settle(tester);
     expect(find.textContaining('Appointments'), findsWidgets);
 
@@ -167,6 +179,70 @@ void main() {
     await _settle(tester);
     // FAB + its dismiss badge are both back.
     expect(find.byIcon(Icons.close), findsWidgets);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('the button can be dragged to the left and the tab follows',
+      (tester) async {
+    final db = newTestDatabase();
+    await Seeder(db).run();
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        appDatabaseProvider.overrideWith((ref) {
+          ref.onDispose(db.close);
+          return db;
+        }),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MyHealthCareApp(),
+      ),
+    );
+    await _settle(tester);
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Email'),
+      'patient3@myhealth.demo',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Password'),
+      Seeder.demoPassword,
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
+    await passMfa(tester);
+    await _settle(tester);
+
+    // Starts on the right.
+    expect(container.read(careNavPlacementProvider).onRight, isTrue);
+
+    // Drag the button across to the left half of the screen and release.
+    final fab = find.byIcon(Icons.smart_toy_outlined).first;
+    await tester.drag(fab, const Offset(-500, -120));
+    await _settle(tester);
+
+    final placement = container.read(careNavPlacementProvider);
+    expect(placement.onRight, isFalse, reason: 'snapped to the near side');
+    // Persisted.
+    expect(prefs.getString('ui.careNav.placement'), isNotNull);
+
+    // Dismiss → the edge tab appears on the left now.
+    await tester.tap(find.byIcon(Icons.close).first);
+    await _settle(tester);
+    final tab = tester.getTopLeft(
+      find.ancestor(
+        of: find.byIcon(Icons.smart_toy_outlined),
+        matching: find.byType(Material),
+      ).first,
+    );
+    expect(tab.dx, lessThan(40), reason: 'tab is on the left edge');
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));

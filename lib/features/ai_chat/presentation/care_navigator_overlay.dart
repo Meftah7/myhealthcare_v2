@@ -1,11 +1,19 @@
 /// The floating Care Navigator. Three states, matching the FirstSemMyHealth
 /// widget:
-///   • a slim tab against the right edge once dismissed;
-///   • the round button (with a small "×" to dismiss it);
+///   • a slim tab tucked against the nearest side once dismissed;
+///   • the round button (with a small "×" on its top-right corner to dismiss);
 ///   • the chat panel.
+///
+/// The button can be dragged anywhere; on release it glides to the nearer side
+/// at the height it was left. Dismissing it drops the edge tab on that same
+/// side at that same height, and the tab itself can be slid up and down its
+/// edge. The resting place is remembered per device.
+///
 /// Mounted as an `AppShell` overlay for signed-in patients, so it sits below
 /// the router's Navigator and hides during full-screen flows.
 library;
+
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -69,24 +77,19 @@ class CareNavigatorOverlay extends ConsumerWidget {
             ),
           ),
 
-          // The round button, with its dismiss "×".
           if (view == CareNavView.fab)
-            Positioned(
-              right: 16,
-              bottom: 20,
-              child: _NavigatorFab(
-                onOpen: () => setView(CareNavView.panel),
-                onDismiss: () => setView(CareNavView.edge),
-              ),
+            _DraggableFab(
+              onOpen: () => setView(CareNavView.panel),
+              onDismiss: () async {
+                await ref
+                    .read(careNavPlacementProvider.notifier)
+                    .settle(snapToSide: true);
+                setView(CareNavView.edge);
+              },
             ),
 
-          // The edge tab that brings the button back.
           if (view == CareNavView.edge)
-            Positioned(
-              right: 0,
-              bottom: 36,
-              child: _EdgeTab(onTap: () => setView(CareNavView.fab)),
-            ),
+            _EdgeTab(onOpen: () => setView(CareNavView.fab)),
         ],
       ),
     );
@@ -118,23 +121,35 @@ class _PanelHost extends StatelessWidget {
   }
 }
 
-/// A gently pulsing round button with a small dismiss badge.
-class _NavigatorFab extends StatefulWidget {
-  const _NavigatorFab({required this.onOpen, required this.onDismiss});
+// ---------------------------------------------------------------------------
+// The draggable round button
+// ---------------------------------------------------------------------------
+
+// The button lives in an oversized box so its dismiss "×" can sit exactly on
+// the top-right corner (badge centre = circle corner) with a full 48dp tap
+// target that clears the circle's centre and stays on screen.
+const double _fabBox = 104;
+const double _fabCircle = 56;
+const double _edgeMargin = 6;
+
+class _DraggableFab extends ConsumerStatefulWidget {
+  const _DraggableFab({required this.onOpen, required this.onDismiss});
 
   final VoidCallback onOpen;
   final VoidCallback onDismiss;
 
   @override
-  State<_NavigatorFab> createState() => _NavigatorFabState();
+  ConsumerState<_DraggableFab> createState() => _DraggableFabState();
 }
 
-class _NavigatorFabState extends State<_NavigatorFab>
+class _DraggableFabState extends ConsumerState<_DraggableFab>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pulse = AnimationController(
     vsync: this,
     duration: const Duration(seconds: 2),
   )..repeat();
+
+  bool _dragging = false;
 
   @override
   void dispose() {
@@ -146,88 +161,135 @@ class _NavigatorFabState extends State<_NavigatorFab>
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final reduce = Motion.reduced(context);
+    final media = MediaQuery.of(context);
+    final placement = ref.watch(careNavPlacementProvider);
+    final placer = ref.read(careNavPlacementProvider.notifier);
 
-    // The dismiss control sits *above* the button rather than on its rim: a
-    // 48dp tap target (DESIGN.md §8) centred on a 22dp badge would otherwise
-    // cover the button's own centre and swallow every tap meant to open it.
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Semantics(
-          button: true,
-          label: 'Hide Care Navigator',
-          child: Tooltip(
-            message: 'Hide Care Navigator',
-            child: GestureDetector(
-              onTap: widget.onDismiss,
-              behavior: HitTestBehavior.opaque,
-              child: SizedBox(
-                width: 48,
-                height: 48,
-                child: Center(
-                  child: Container(
-                    width: 22,
-                    height: 22,
-                    decoration: BoxDecoration(
-                      color: scheme.surfaceContainerLowest,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: scheme.outlineVariant),
-                      boxShadow: Shadows.e1,
-                    ),
-                    child: Icon(
-                      Icons.close,
-                      size: 13,
-                      color: scheme.onSurfaceVariant,
-                    ),
+    // The rectangle the button centre may roam in.
+    final pad = media.padding;
+    final free = Rect.fromLTRB(
+      pad.left + _edgeMargin + _fabBox / 2,
+      pad.top + _edgeMargin + _fabBox / 2,
+      media.size.width - pad.right - _edgeMargin - _fabBox / 2,
+      media.size.height - pad.bottom - _edgeMargin - _fabBox / 2,
+    );
+    final centre = Offset(
+      free.left + placement.dx * free.width,
+      free.top + placement.dy * free.height,
+    );
+
+    Offset toFraction(Offset c) => Offset(
+      ((c.dx - free.left) / free.width).clamp(0.0, 1.0),
+      ((c.dy - free.top) / free.height).clamp(0.0, 1.0),
+    );
+
+    return AnimatedPositioned(
+      duration: _dragging ? Duration.zero : Motion.medium,
+      curve: Motion.standard,
+      left: centre.dx - _fabBox / 2,
+      top: centre.dy - _fabBox / 2,
+      child: GestureDetector(
+        onPanStart: (_) => setState(() => _dragging = true),
+        onPanUpdate: (d) {
+          final next = toFraction(centre + d.delta);
+          placer.drag(dx: next.dx, dy: next.dy);
+        },
+        onPanEnd: (_) {
+          setState(() => _dragging = false);
+          unawaited(placer.settle(snapToSide: true));
+        },
+        child: SizedBox(
+          width: _fabBox,
+          height: _fabBox,
+          child: Stack(
+            children: [
+              // The button, centred in the box.
+              Center(
+                child: SizedBox(
+                  width: _fabCircle,
+                  height: _fabCircle,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    alignment: Alignment.center,
+                    children: [
+                      if (!reduce && !_dragging)
+                        AnimatedBuilder(
+                          animation: _pulse,
+                          builder: (context, _) {
+                            final t = Curves.easeOut.transform(_pulse.value);
+                            return Container(
+                              width: _fabCircle + 20 * t,
+                              height: _fabCircle + 20 * t,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: scheme.primary.withValues(
+                                  alpha: 0.25 * (1 - t),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      Semantics(
+                        button: true,
+                        label: 'Open Care Navigator',
+                        child: GestureDetector(
+                          onTap: widget.onOpen,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              boxShadow: Shadows.glow(scheme.primary),
+                            ),
+                            child: Material(
+                              color: scheme.primary,
+                              shape: const CircleBorder(),
+                              child: const SizedBox(
+                                width: _fabCircle,
+                                height: _fabCircle,
+                                child: Icon(
+                                  Icons.smart_toy_outlined,
+                                  color: Colors.white,
+                                  size: 26,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
-          ),
-        ),
-        SizedBox(
-          width: 76,
-          height: 76,
-          child: Stack(
-            clipBehavior: Clip.none,
-            alignment: Alignment.center,
-            children: [
-              if (!reduce)
-                AnimatedBuilder(
-                  animation: _pulse,
-                  builder: (context, _) {
-                    final t = Curves.easeOut.transform(_pulse.value);
-                    return Container(
-                      width: 56 + 20 * t,
-                      height: 56 + 20 * t,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: scheme.primary.withValues(alpha: 0.25 * (1 - t)),
-                      ),
-                    );
-                  },
-                ),
-              Semantics(
-                button: true,
-                label: 'Open Care Navigator',
-                child: GestureDetector(
-                  onTap: widget.onOpen,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: Shadows.glow(scheme.primary),
-                    ),
-                    child: Material(
-                      color: scheme.primary,
-                      shape: const CircleBorder(),
-                      child: SizedBox(
-                        width: 56,
-                        height: 56,
-                        child: Icon(
-                          Icons.smart_toy_outlined,
-                          color: scheme.onPrimary,
-                          size: 26,
+
+              // The dismiss "×" — a 22dp badge on the button's top-right
+              // corner. Its 48dp tap target fills the box's top-right and does
+              // not reach the button's centre, so it never eats an "open" tap.
+              Positioned(
+                right: 0,
+                top: 0,
+                child: Semantics(
+                  button: true,
+                  label: 'Hide Care Navigator',
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: widget.onDismiss,
+                    child: SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: Center(
+                        child: Container(
+                          width: 22,
+                          height: 22,
+                          decoration: BoxDecoration(
+                            color: scheme.surfaceContainerLowest,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: scheme.outlineVariant),
+                            boxShadow: Shadows.e1,
+                          ),
+                          child: Icon(
+                            Icons.close,
+                            size: 13,
+                            color: scheme.onSurfaceVariant,
+                          ),
                         ),
                       ),
                     ),
@@ -237,36 +299,96 @@ class _NavigatorFabState extends State<_NavigatorFab>
             ],
           ),
         ),
-      ],
+      ),
     );
   }
 }
 
-/// The slim tab against the right edge — tap to bring the button back.
-class _EdgeTab extends StatelessWidget {
-  const _EdgeTab({required this.onTap});
+// ---------------------------------------------------------------------------
+// The slim edge tab
+// ---------------------------------------------------------------------------
 
-  final VoidCallback onTap;
+class _EdgeTab extends ConsumerStatefulWidget {
+  const _EdgeTab({required this.onOpen});
+
+  final VoidCallback onOpen;
+
+  @override
+  ConsumerState<_EdgeTab> createState() => _EdgeTabState();
+}
+
+class _EdgeTabState extends ConsumerState<_EdgeTab> {
+  static const double _w = 30;
+  static const double _h = 64;
+  bool _dragging = false;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return GestureDetector(
-      onTap: onTap,
-      child: Material(
-        color: scheme.primary,
-        elevation: 4,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(14),
-          bottomLeft: Radius.circular(14),
-        ),
-        child: SizedBox(
-          width: 30,
-          height: 64,
-          child: Icon(
-            Icons.smart_toy_outlined,
-            color: scheme.onPrimary,
-            size: 18,
+    final media = MediaQuery.of(context);
+    final placement = ref.watch(careNavPlacementProvider);
+    final placer = ref.read(careNavPlacementProvider.notifier);
+    final onRight = placement.onRight;
+
+    final pad = media.padding;
+    final minY = pad.top + _edgeMargin;
+    final maxY = media.size.height - pad.bottom - _edgeMargin - _h;
+    final top = (minY + placement.dy * (maxY - minY)).clamp(minY, maxY);
+
+    final radius = onRight
+        ? const BorderRadius.only(
+            topLeft: Radius.circular(14),
+            bottomLeft: Radius.circular(14),
+          )
+        : const BorderRadius.only(
+            topRight: Radius.circular(14),
+            bottomRight: Radius.circular(14),
+          );
+
+    return AnimatedPositioned(
+      duration: _dragging ? Duration.zero : Motion.medium,
+      curve: Motion.standard,
+      top: top,
+      left: onRight ? null : 0,
+      right: onRight ? 0 : null,
+      child: Semantics(
+        button: true,
+        label: 'Show Care Navigator',
+        child: GestureDetector(
+          onTap: widget.onOpen,
+          onVerticalDragStart: (_) => setState(() => _dragging = true),
+          onVerticalDragUpdate: (d) {
+            final span = (maxY - minY).clamp(1.0, double.infinity);
+            placer.drag(dy: placement.dy + d.delta.dy / span);
+          },
+          onVerticalDragEnd: (_) {
+            setState(() => _dragging = false);
+            unawaited(placer.settle());
+          },
+          child: Material(
+            color: scheme.primary,
+            elevation: 4,
+            borderRadius: radius,
+            child: SizedBox(
+              width: _w,
+              height: _h,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.drag_indicator,
+                    color: scheme.onPrimary.withValues(alpha: 0.6),
+                    size: 12,
+                  ),
+                  const SizedBox(height: 2),
+                  Icon(
+                    Icons.smart_toy_outlined,
+                    color: scheme.onPrimary,
+                    size: 18,
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

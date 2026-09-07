@@ -246,7 +246,7 @@ final careNavigatorProvider =
     NotifierProvider<CareNavigator, CareNavigatorState>(CareNavigator.new);
 
 /// How the floating widget is showing:
-///  - [edge]  a slim tab tucked against the right edge (dismissed)
+///  - [edge]  a slim tab tucked against the nearest side (dismissed)
 ///  - [fab]   the round button, ready to open
 ///  - [panel] the chat panel is open
 /// Kept out of [CareNavigator] so toggling it doesn't rebuild the conversation.
@@ -254,3 +254,57 @@ enum CareNavView { edge, fab, panel }
 
 final careNavigatorViewProvider =
     StateProvider<CareNavView>((_) => CareNavView.fab);
+
+/// Where the patient has parked the floating button. [dx] / [dy] are fractions
+/// (0–1) of the free area — `dx` is which side it gravitates to, `dy` its
+/// height. Persisted per device so it stays where they put it.
+class CareNavPlacement {
+  const CareNavPlacement({this.dx = 1, this.dy = 0.82});
+
+  final double dx;
+  final double dy;
+
+  /// The button (and, once dismissed, the edge tab) sits on the right half.
+  bool get onRight => dx >= 0.5;
+
+  CareNavPlacement copyWith({double? dx, double? dy}) => CareNavPlacement(
+    dx: (dx ?? this.dx).clamp(0.0, 1.0),
+    dy: (dy ?? this.dy).clamp(0.0, 1.0),
+  );
+
+  /// Snap [dx] to whichever side is nearer — used when the button is released
+  /// or the widget is dismissed to the edge.
+  CareNavPlacement snappedToSide() => copyWith(dx: onRight ? 1 : 0);
+}
+
+const _placementKey = 'ui.careNav.placement';
+
+class CareNavPlacementController extends Notifier<CareNavPlacement> {
+  @override
+  CareNavPlacement build() {
+    final raw = ref.read(sharedPreferencesProvider).getString(_placementKey);
+    if (raw == null) return const CareNavPlacement();
+    final parts = raw.split(',');
+    if (parts.length != 2) return const CareNavPlacement();
+    return CareNavPlacement(
+      dx: double.tryParse(parts[0]) ?? 1,
+      dy: double.tryParse(parts[1]) ?? 0.82,
+    );
+  }
+
+  void drag({double? dx, double? dy}) =>
+      state = state.copyWith(dx: dx, dy: dy);
+
+  /// Persist the final resting place (called on drag end).
+  Future<void> settle({bool snapToSide = false}) async {
+    if (snapToSide) state = state.snappedToSide();
+    await ref
+        .read(sharedPreferencesProvider)
+        .setString(_placementKey, '${state.dx},${state.dy}');
+  }
+}
+
+final careNavPlacementProvider =
+    NotifierProvider<CareNavPlacementController, CareNavPlacement>(
+      CareNavPlacementController.new,
+    );
