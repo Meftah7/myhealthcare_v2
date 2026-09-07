@@ -225,6 +225,12 @@ class CareNavigator extends Notifier<CareNavigatorState> {
 final careNavigatorProvider =
     NotifierProvider<CareNavigator, CareNavigatorState>(CareNavigator.new);
 
-/// Whether the floating widget is open. Kept out of [CareNavigator] so opening
-/// the panel doesn't rebuild the conversation.
-final careNavigatorOpenProvider = StateProvider<bool>((_) => false);
+/// How the floating widget is showing:
+///  - [edge]  a slim tab tucked against the right edge (dismissed)
+///  - [fab]   the round button, ready to open
+///  - [panel] the chat panel is open
+/// Kept out of [CareNavigator] so toggling it doesn't rebuild the conversation.
+enum CareNavView { edge, fab, panel }
+
+final careNavigatorViewProvider =
+    StateProvider<CareNavView>((_) => CareNavView.fab);

@@ -8,6 +8,7 @@ import 'package:myhealthcare/app/app.dart';
 import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:myhealthcare/features/ai_chat/application/care_navigator.dart';
+import 'package:myhealthcare/features/ai_chat/presentation/care_navigator_overlay.dart';
 import 'package:myhealthcare/features/ai_chat/presentation/care_navigator_panel.dart';
 import 'package:myhealthcare/features/auth/application/session.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -147,6 +148,23 @@ void main() {
     await tester.testTextInput.receiveAction(TextInputAction.send);
     await _settle(tester);
     expect(find.textContaining('Appointments'), findsWidgets);
+
+    // Close the panel → back to the FAB.
+    await tester.tap(find.byIcon(Icons.close).first);
+    await _settle(tester);
+    expect(find.byType(CareNavigatorPanel), findsNothing);
+
+    // Dismiss the FAB with its "×" → it tucks to a right-edge tab.
+    expect(find.byType(CareNavigatorOverlay), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.close).first);
+    await _settle(tester);
+    expect(find.byIcon(Icons.smart_toy_outlined), findsOneWidget); // the tab
+
+    // Tapping the edge tab brings the FAB back.
+    await tester.tap(find.byIcon(Icons.smart_toy_outlined));
+    await _settle(tester);
+    // FAB + its dismiss badge are both back.
+    expect(find.byIcon(Icons.close), findsWidgets);
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));

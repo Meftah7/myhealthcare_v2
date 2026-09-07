@@ -116,8 +116,8 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
                 IconButton(
                   icon: const Icon(Icons.close, size: 20),
                   onPressed: () => ref
-                      .read(careNavigatorOpenProvider.notifier)
-                      .state = false,
+                      .read(careNavigatorViewProvider.notifier)
+                      .state = CareNavView.fab,
                 ),
               ],
             ),

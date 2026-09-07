@@ -1,6 +1,10 @@
-/// The floating Care Navigator — a pulsing FAB bottom-right that expands into
-/// a chat panel. Mounted above the router from `MaterialApp.router`'s builder,
-/// so it rides along on every signed-in screen (like the confirmation overlay).
+/// The floating Care Navigator. Three states, matching the FirstSemMyHealth
+/// widget:
+///   • a slim tab against the right edge once dismissed;
+///   • the round button (with a small "×" to dismiss it);
+///   • the chat panel.
+/// Mounted as an `AppShell` overlay for signed-in patients, so it sits below
+/// the router's Navigator and hides during full-screen flows.
 library;
 
 import 'package:flutter/material.dart';
@@ -16,57 +20,74 @@ class CareNavigatorOverlay extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Only for signed-in patients.
     final user = ref.watch(currentUserProvider);
     if (user == null || !user.isPatient) return const SizedBox.shrink();
 
-    final open = ref.watch(careNavigatorOpenProvider);
+    final view = ref.watch(careNavigatorViewProvider);
+    void setView(CareNavView v) =>
+        ref.read(careNavigatorViewProvider.notifier).state = v;
 
     return Positioned.fill(
-      child: IgnorePointer(
-        ignoring: false,
-        child: Stack(
-          children: [
-            if (open)
-              Positioned.fill(
-                child: GestureDetector(
-                  onTap: () => ref
-                      .read(careNavigatorOpenProvider.notifier)
-                      .state = false,
-                  child: AnimatedContainer(
-                    duration: Motion.medium,
-                    color: Colors.black.withValues(alpha: open ? 0.4 : 0),
-                  ),
-                ),
-              ),
-
-            // The panel (animated open/close).
-            Positioned.fill(
-              child: IgnorePointer(
-                ignoring: !open,
-                child: AnimatedSwitcher(
+      child: Stack(
+        children: [
+          // Dim backdrop behind the open panel.
+          Positioned.fill(
+            child: IgnorePointer(
+              ignoring: view != CareNavView.panel,
+              child: GestureDetector(
+                onTap: () => setView(CareNavView.fab),
+                child: AnimatedContainer(
                   duration: Motion.medium,
-                  switchInCurve: Motion.emphasized,
-                  switchOutCurve: Motion.standard,
-                  transitionBuilder: (child, anim) => FadeTransition(
-                    opacity: anim,
-                    child: ScaleTransition(
-                      scale: Tween<double>(begin: 0.9, end: 1).animate(anim),
-                      alignment: Alignment.bottomRight,
-                      child: child,
-                    ),
+                  color: Colors.black.withValues(
+                    alpha: view == CareNavView.panel ? 0.4 : 0,
                   ),
-                  child: open
-                      ? const _PanelHost(key: ValueKey('panel'))
-                      : const SizedBox.shrink(key: ValueKey('empty')),
                 ),
               ),
             ),
+          ),
 
-            if (!open)
-              const Positioned(right: 20, bottom: 24, child: _NavigatorFab()),
-          ],
-        ),
+          // The panel.
+          Positioned.fill(
+            child: IgnorePointer(
+              ignoring: view != CareNavView.panel,
+              child: AnimatedSwitcher(
+                duration: Motion.medium,
+                switchInCurve: Motion.emphasized,
+                switchOutCurve: Motion.standard,
+                transitionBuilder: (child, anim) => FadeTransition(
+                  opacity: anim,
+                  child: ScaleTransition(
+                    scale: Tween<double>(begin: 0.9, end: 1).animate(anim),
+                    alignment: Alignment.bottomRight,
+                    child: child,
+                  ),
+                ),
+                child: view == CareNavView.panel
+                    ? const _PanelHost(key: ValueKey('panel'))
+                    : const SizedBox.shrink(key: ValueKey('empty')),
+              ),
+            ),
+          ),
+
+          // The round button, with its dismiss "×".
+          if (view == CareNavView.fab)
+            Positioned(
+              right: 16,
+              bottom: 20,
+              child: _NavigatorFab(
+                onOpen: () => setView(CareNavView.panel),
+                onDismiss: () => setView(CareNavView.edge),
+              ),
+            ),
+
+          // The edge tab that brings the button back.
+          if (view == CareNavView.edge)
+            Positioned(
+              right: 0,
+              bottom: 36,
+              child: _EdgeTab(onTap: () => setView(CareNavView.fab)),
+            ),
+        ],
       ),
     );
   }
@@ -97,15 +118,18 @@ class _PanelHost extends StatelessWidget {
   }
 }
 
-/// A gently pulsing round button with the assistant glyph.
-class _NavigatorFab extends ConsumerStatefulWidget {
-  const _NavigatorFab();
+/// A gently pulsing round button with a small dismiss badge.
+class _NavigatorFab extends StatefulWidget {
+  const _NavigatorFab({required this.onOpen, required this.onDismiss});
+
+  final VoidCallback onOpen;
+  final VoidCallback onDismiss;
 
   @override
-  ConsumerState<_NavigatorFab> createState() => _NavigatorFabState();
+  State<_NavigatorFab> createState() => _NavigatorFabState();
 }
 
-class _NavigatorFabState extends ConsumerState<_NavigatorFab>
+class _NavigatorFabState extends State<_NavigatorFab>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pulse = AnimationController(
     vsync: this,
@@ -123,31 +147,31 @@ class _NavigatorFabState extends ConsumerState<_NavigatorFab>
     final scheme = Theme.of(context).colorScheme;
     final reduce = Motion.reduced(context);
 
-    return GestureDetector(
-      onTap: () =>
-          ref.read(careNavigatorOpenProvider.notifier).state = true,
-      child: SizedBox(
-        width: 76,
-        height: 76,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            if (!reduce)
-              AnimatedBuilder(
-                animation: _pulse,
-                builder: (context, _) {
-                  final t = Curves.easeOut.transform(_pulse.value);
-                  return Container(
-                    width: 56 + 20 * t,
-                    height: 56 + 20 * t,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: scheme.primary.withValues(alpha: 0.25 * (1 - t)),
-                    ),
-                  );
-                },
-              ),
-            Material(
+    return SizedBox(
+      width: 76,
+      height: 76,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          if (!reduce)
+            AnimatedBuilder(
+              animation: _pulse,
+              builder: (context, _) {
+                final t = Curves.easeOut.transform(_pulse.value);
+                return Container(
+                  width: 56 + 20 * t,
+                  height: 56 + 20 * t,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: scheme.primary.withValues(alpha: 0.25 * (1 - t)),
+                  ),
+                );
+              },
+            ),
+          GestureDetector(
+            onTap: widget.onOpen,
+            child: Material(
               color: scheme.primary,
               shape: const CircleBorder(),
               elevation: 4,
@@ -161,7 +185,60 @@ class _NavigatorFabState extends ConsumerState<_NavigatorFab>
                 ),
               ),
             ),
-          ],
+          ),
+          Positioned(
+            top: 8,
+            right: 8,
+            child: GestureDetector(
+              onTap: widget.onDismiss,
+              child: Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: scheme.error,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: scheme.surface, width: 1.5),
+                ),
+                child: Icon(
+                  Icons.close,
+                  size: 12,
+                  color: scheme.onError,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The slim tab against the right edge — tap to bring the button back.
+class _EdgeTab extends StatelessWidget {
+  const _EdgeTab({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: onTap,
+      child: Material(
+        color: scheme.primary,
+        elevation: 4,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(14),
+          bottomLeft: Radius.circular(14),
+        ),
+        child: SizedBox(
+          width: 30,
+          height: 64,
+          child: Icon(
+            Icons.smart_toy_outlined,
+            color: scheme.onPrimary,
+            size: 18,
+          ),
         ),
       ),
     );
