@@ -67,17 +67,37 @@ class AdminForecastScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: Space.md),
-                      GridView.count(
-                        crossAxisCount: compact ? 1 : 2,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        mainAxisSpacing: Space.sm,
-                        crossAxisSpacing: Space.sm,
-                        childAspectRatio: compact ? 3.0 : 2.2,
-                        children: [
-                          for (final d in f.days) _DayCard(day: d, theme: theme),
-                        ],
-                      ),
+                      if (compact)
+                        for (final d in f.days)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: Space.xs),
+                            child: _DayCard(day: d, theme: theme),
+                          )
+                      else
+                        for (var r = 0; r < f.days.length; r += 2)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: Space.sm),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: _DayCard(
+                                    day: f.days[r],
+                                    theme: theme,
+                                  ),
+                                ),
+                                const SizedBox(width: Space.sm),
+                                Expanded(
+                                  child: r + 1 < f.days.length
+                                      ? _DayCard(
+                                          day: f.days[r + 1],
+                                          theme: theme,
+                                        )
+                                      : const SizedBox.shrink(),
+                                ),
+                              ],
+                            ),
+                          ),
                     ],
                   ),
                 ),

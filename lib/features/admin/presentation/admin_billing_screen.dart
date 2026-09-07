@@ -40,7 +40,8 @@ class _AdminBillingScreenState extends ConsumerState<AdminBillingScreen> {
         actions: const [AdminTopActions()],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(52),
-          child: Padding(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.fromLTRB(Space.md, 0, Space.md, Space.xs),
             child: Row(
               children: [
