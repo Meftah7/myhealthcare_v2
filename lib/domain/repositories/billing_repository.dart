@@ -3,6 +3,7 @@ library;
 
 import '../../core/result.dart';
 import '../entities/entities.dart';
+import '../enums.dart';
 
 /// The card details a patient enters to settle an invoice.
 ///
@@ -67,7 +68,18 @@ abstract interface class BillingRepository {
   /// A patient's invoices, newest issue date first.
   Future<Result<List<Invoice>>> forPatient(String patientId);
 
+  /// Every invoice across all patients — the admin billing overview. Optionally
+  /// filtered to one [status].
+  Future<Result<List<Invoice>>> all({InvoiceStatus? status});
+
   Future<Result<Invoice>> byId(String id);
+
+  /// Admin sets an invoice's status directly (no card). Moving to
+  /// [InvoiceStatus.paid] stamps `paidAt`; moving away from it clears it.
+  Future<Result<Invoice>> setStatus({
+    required String id,
+    required InvoiceStatus status,
+  });
 
   /// Settles [invoiceId] with [payment].
   ///

@@ -23,6 +23,10 @@ class NewNotification {
   final DateTime? createdAt;
 }
 
+/// Who an admin broadcast goes to (ported from the FirstSemMyHealth admin
+/// "Quick Notification" send-to options).
+enum NotificationAudience { allPatients, allStaff, everyone }
+
 abstract interface class NotificationRepository {
   /// A recipient's notifications, newest first.
   Future<Result<List<AppNotification>>> forRecipient(String recipientId);
@@ -43,4 +47,14 @@ abstract interface class NotificationRepository {
   Future<Result<void>> markAllRead(String recipientId);
 
   Future<Result<AppNotification>> send(NewNotification notification);
+
+  /// Fan a message out to everyone in [audience] (one row per recipient, each
+  /// with its own read state). Returns the number of recipients. Admin only.
+  Future<Result<int>> broadcast({
+    required NotificationAudience audience,
+    required NotificationCategory category,
+    required String title,
+    required String body,
+    String? deepLink,
+  });
 }

@@ -254,6 +254,16 @@ Future<String?> _promptPassword(BuildContext context) {
 
 // --- create: patient / admin (simple account) --------------------------------
 
+/// Opens the right "add user" sheet for [role] — used by the admin dashboard's
+/// Quick actions as well as this screen's FAB.
+Future<void> showAddUserSheet(
+  BuildContext context,
+  WidgetRef ref,
+  UserRole role,
+) => role == UserRole.staff
+    ? _showCreateStaff(context, ref)
+    : _showCreate(context, ref, role);
+
 Future<void> _showCreate(BuildContext context, WidgetRef ref, UserRole role) {
   return showModalBottomSheet<void>(
     context: context,

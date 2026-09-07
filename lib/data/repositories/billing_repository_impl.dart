@@ -49,6 +49,42 @@ class BillingRepositoryImpl implements BillingRepository {
   }
 
   @override
+  Future<Result<List<Invoice>>> all({InvoiceStatus? status}) {
+    return Result.guardAsync(() async {
+      final q = _db.select(_db.invoices)
+        ..orderBy([(i) => OrderingTerm.desc(i.issuedAt)]);
+      if (status != null) q.where((i) => i.status.equalsValue(status));
+      final rows = await q.get();
+      return rows.map((r) => r.toEntity()).toList();
+    });
+  }
+
+  @override
+  Future<Result<Invoice>> setStatus({
+    required String id,
+    required InvoiceStatus status,
+  }) {
+    return Result.guardAsync(() async {
+      final row = await (_db.select(
+        _db.invoices,
+      )..where((i) => i.id.equals(id))).getSingleOrNull();
+      if (row == null) throw const NotFoundFailure('Invoice not found.');
+      await (_db.update(_db.invoices)..where((i) => i.id.equals(id))).write(
+        InvoicesCompanion(
+          status: Value(status),
+          paidAt: Value(
+            status == InvoiceStatus.paid ? DateTime.now() : null,
+          ),
+        ),
+      );
+      final updated = await (_db.select(
+        _db.invoices,
+      )..where((i) => i.id.equals(id))).getSingle();
+      return updated.toEntity();
+    });
+  }
+
+  @override
   Future<Result<Invoice>> byId(String id) {
     return Result.guardAsync(() async {
       final row = await (_db.select(

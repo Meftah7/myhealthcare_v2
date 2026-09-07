@@ -12,9 +12,10 @@ import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../auth/application/session.dart';
-import '../../auth/presentation/sign_out_action.dart';
 import '../../staff_dashboard/application/staff_providers.dart';
 import '../application/admin_providers.dart';
+import 'admin_quick_actions.dart';
+import 'admin_top_actions.dart';
 
 class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});
@@ -32,13 +33,14 @@ class AdminDashboardScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dashboard'),
-        actions: const [SignOutAction()],
+        actions: const [AdminTopActions()],
       ),
       body: RefreshIndicator(
         onRefresh: () async {
           ref
             ..invalidate(systemStatsProvider)
             ..invalidate(panelStatsProvider)
+            ..invalidate(unpaidInvoiceCountProvider)
             ..invalidate(auditLogProvider);
         },
         child: Center(
@@ -61,46 +63,62 @@ class AdminDashboardScreen extends ConsumerWidget {
                   loading: () => const LoadingSkeleton(height: 180),
                   error: (e, _) =>
                       const InlineBanner.error('Could not load system stats.'),
-                  data: (s) => GridView.count(
-                    crossAxisCount: 3,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    mainAxisSpacing: Space.sm,
-                    crossAxisSpacing: Space.sm,
-                    childAspectRatio: 1.5,
-                    children: [
-                      MetricTile(
-                        value: '${s.patients}',
-                        label: 'Patients',
-                        icon: Icons.people_outline,
-                        onTap: () => context.go(AppRoutes.adminUsers),
-                      ),
-                      MetricTile(
-                        value: '${s.staff}',
-                        label: 'Staff',
-                        icon: Icons.badge_outlined,
-                        onTap: () => context.go(AppRoutes.adminUsers),
-                      ),
-                      MetricTile(
-                        value: '${s.admins}',
-                        label: 'Admins',
-                        icon: Icons.shield_outlined,
-                        onTap: () => context.go(AppRoutes.adminUsers),
-                      ),
-                      MetricTile(
-                        value: '${s.departments}',
-                        label: 'Departments',
-                        icon: Icons.apartment_outlined,
-                        onTap: () => context.go(AppRoutes.adminDepartments),
-                      ),
-                      MetricTile(
-                        value: '${s.openFlags}',
-                        label: 'Open risk flags',
-                        icon: Icons.flag_outlined,
-                      ),
-                    ],
-                  ),
+                  data: (s) {
+                    final unpaid = ref
+                        .watch(unpaidInvoiceCountProvider)
+                        .valueOrNull;
+                    final compact = WindowSize.of(context).isCompact;
+                    return GridView.count(
+                      crossAxisCount: compact ? 2 : 3,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      mainAxisSpacing: Space.sm,
+                      crossAxisSpacing: Space.sm,
+                      childAspectRatio: compact ? 1.7 : 1.6,
+                      children: [
+                        MetricTile(
+                          value: '${s.patients}',
+                          label: 'Patients',
+                          icon: Icons.people_outline,
+                          onTap: () => context.go(AppRoutes.adminUsers),
+                        ),
+                        MetricTile(
+                          value: '${s.staff}',
+                          label: 'Staff',
+                          icon: Icons.badge_outlined,
+                          onTap: () => context.go(AppRoutes.adminUsers),
+                        ),
+                        MetricTile(
+                          value: '${s.admins}',
+                          label: 'Admins',
+                          icon: Icons.shield_outlined,
+                          onTap: () => context.go(AppRoutes.adminUsers),
+                        ),
+                        MetricTile(
+                          value: '${s.departments}',
+                          label: 'Departments',
+                          icon: Icons.apartment_outlined,
+                          onTap: () => context.go(AppRoutes.adminDepartments),
+                        ),
+                        MetricTile(
+                          value: '${s.openFlags}',
+                          label: 'Open risk flags',
+                          icon: Icons.flag_outlined,
+                        ),
+                        MetricTile(
+                          value: '${unpaid ?? 0}',
+                          label: 'Unpaid invoices',
+                          icon: Icons.request_quote_outlined,
+                          onTap: () => context.push(AppRoutes.adminBilling),
+                        ),
+                      ],
+                    );
+                  },
                 ),
+
+                const SizedBox(height: Space.md),
+                const SectionHeader('Quick actions', overline: true),
+                const AdminQuickActions(),
 
                 const SizedBox(height: Space.md),
                 const SectionHeader('Appointments · last 90 days', overline: true),
@@ -136,36 +154,6 @@ class AdminDashboardScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                ),
-
-                const SizedBox(height: Space.md),
-                const SectionHeader('Manage', overline: true),
-                const _LinkCard(
-                  icon: Icons.manage_accounts_outlined,
-                  title: 'Users',
-                  subtitle: 'Patients, staff and admins',
-                  route: AppRoutes.adminUsers,
-                ),
-                const SizedBox(height: Space.xs),
-                const _LinkCard(
-                  icon: Icons.apartment_outlined,
-                  title: 'Departments',
-                  subtitle: 'Create, rename and remove departments',
-                  route: AppRoutes.adminDepartments,
-                ),
-                const SizedBox(height: Space.xs),
-                const _LinkCard(
-                  icon: Icons.receipt_long_outlined,
-                  title: 'Audit log',
-                  subtitle: 'Full trail of system activity',
-                  route: AppRoutes.adminAudit,
-                ),
-                const SizedBox(height: Space.xs),
-                const _LinkCard(
-                  icon: Icons.auto_awesome_outlined,
-                  title: 'AI settings',
-                  subtitle: 'Provider, key, mock mode and demo data',
-                  route: AppRoutes.adminAiSettings,
                 ),
 
                 const SizedBox(height: Space.md),
@@ -251,55 +239,3 @@ class _Kv extends StatelessWidget {
   }
 }
 
-class _LinkCard extends StatelessWidget {
-  const _LinkCard({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.route,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final String route;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return AppCard(
-      padding: const EdgeInsets.all(Space.md),
-      onTap: () => context.go(route),
-      child: Row(
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: scheme.surfaceContainerHighest,
-              borderRadius: Radii.chip,
-            ),
-            child: Icon(icon, size: 20, color: scheme.onSurfaceVariant),
-          ),
-          const SizedBox(width: Space.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: theme.textTheme.titleSmall),
-                Text(
-                  subtitle,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Icon(Icons.chevron_right, color: scheme.onSurfaceVariant),
-        ],
-      ),
-    );
-  }
-}

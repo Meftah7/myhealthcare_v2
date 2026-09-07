@@ -10,6 +10,8 @@ import '../../../core/utils/ids.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
 import '../../../domain/repositories/auth_repository.dart';
+import '../../../domain/repositories/billing_repository.dart';
+import '../../../domain/repositories/notification_repository.dart';
 import '../../../domain/repositories/system_repository.dart';
 
 final usersByRoleProvider = FutureProvider.family<List<User>, UserRole>((
@@ -46,6 +48,53 @@ class SystemStats {
   final int departments;
   final int openFlags;
 }
+
+/// Every invoice, optionally filtered by status — the admin billing overview.
+final allInvoicesProvider =
+    FutureProvider.family<List<Invoice>, InvoiceStatus?>((ref, status) async {
+      return _unwrap(
+        await ref.watch(billingRepositoryProvider).all(status: status),
+      );
+    });
+
+/// Count of unpaid (pending) invoices — a dashboard stat.
+final unpaidInvoiceCountProvider = FutureProvider<int>((ref) async {
+  final list = await ref.watch(allInvoicesProvider(null).future);
+  return list.where((i) => i.status == InvoiceStatus.pending).length;
+});
+
+/// Every appointment in a ±1 year window — the admin all-appointments view.
+final allAppointmentsProvider = FutureProvider<List<Appointment>>((ref) async {
+  final now = DateTime.now();
+  return _unwrap(
+    await ref
+        .watch(appointmentRepositoryProvider)
+        .inRange(
+          now.subtract(const Duration(days: 365)),
+          now.add(const Duration(days: 365)),
+        ),
+  );
+});
+
+/// Patient id → full name, for the cross-patient admin lists.
+final adminPatientNamesProvider = FutureProvider<Map<String, String>>((
+  ref,
+) async {
+  final patients = _unwrap(
+    await ref.watch(userRepositoryProvider).byRole(UserRole.patient),
+  );
+  return {for (final p in patients) p.id: p.fullName};
+});
+
+/// Staff id → full name, for the admin appointment list.
+final adminStaffNamesProvider = FutureProvider<Map<String, String>>((
+  ref,
+) async {
+  final staff = _unwrap(
+    await ref.watch(userRepositoryProvider).byRole(UserRole.staff),
+  );
+  return {for (final s in staff) s.id: s.fullName};
+});
 
 final systemStatsProvider = FutureProvider<SystemStats>((ref) async {
   final users = ref.watch(userRepositoryProvider);
@@ -156,6 +205,87 @@ class AdminActions {
         );
     _ref.invalidate(departmentsProvider);
     _ref.invalidate(systemStatsProvider);
+    return r;
+  }
+
+  /// Send a message to every patient / every staff member / everyone.
+  Future<Result<int>> broadcast({
+    required NotificationAudience audience,
+    required NotificationCategory category,
+    required String title,
+    required String body,
+  }) async {
+    final r = await _ref
+        .read(notificationRepositoryProvider)
+        .broadcast(
+          audience: audience,
+          category: category,
+          title: title,
+          body: body,
+        );
+    if (r.isOk) {
+      await _ref
+          .read(auditRepositoryProvider)
+          .record(
+            action: 'notification.broadcast',
+            entityType: 'notification',
+            detail: '${audience.name}: $title',
+          );
+    }
+    return r;
+  }
+
+  /// Raise a bill for a patient — 10% tax, due in 30 days.
+  Future<Result<Invoice>> issueInvoice({
+    required String patientId,
+    required double subtotal,
+    String? notes,
+  }) async {
+    final r = await _ref
+        .read(billingRepositoryProvider)
+        .issue(
+          NewInvoice(
+            patientId: patientId,
+            subtotal: subtotal,
+            dueDate: DateTime.now().add(const Duration(days: 30)),
+            notes: notes,
+          ),
+        );
+    if (r case Ok(:final value)) {
+      await _ref
+          .read(auditRepositoryProvider)
+          .record(
+            action: 'invoice.issue',
+            entityType: 'invoice',
+            entityId: value.id,
+          );
+    }
+    _ref
+      ..invalidate(allInvoicesProvider)
+      ..invalidate(unpaidInvoiceCountProvider);
+    return r;
+  }
+
+  /// Admin changes an invoice's status (mark paid / cancel).
+  Future<Result<Invoice>> setInvoiceStatus({
+    required String id,
+    required InvoiceStatus status,
+  }) async {
+    final r = await _ref
+        .read(billingRepositoryProvider)
+        .setStatus(id: id, status: status);
+    if (r.isOk) {
+      await _ref
+          .read(auditRepositoryProvider)
+          .record(
+            action: 'invoice.status.${status.name}',
+            entityType: 'invoice',
+            entityId: id,
+          );
+    }
+    _ref
+      ..invalidate(allInvoicesProvider)
+      ..invalidate(unpaidInvoiceCountProvider);
     return r;
   }
 

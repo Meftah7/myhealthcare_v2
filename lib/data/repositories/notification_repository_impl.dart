@@ -6,6 +6,7 @@ import 'package:drift/drift.dart';
 import '../../core/result.dart';
 import '../../core/utils/ids.dart';
 import '../../domain/entities/entities.dart';
+import '../../domain/enums.dart';
 import '../../domain/repositories/notification_repository.dart';
 import '../db/app_database.dart';
 import 'mappers.dart';
@@ -86,6 +87,45 @@ class NotificationRepositoryImpl implements NotificationRepository {
         _db.notifications,
       )..where((r) => r.id.equals(id))).getSingle();
       return row.toEntity();
+    });
+  }
+
+  @override
+  Future<Result<int>> broadcast({
+    required NotificationAudience audience,
+    required NotificationCategory category,
+    required String title,
+    required String body,
+    String? deepLink,
+  }) {
+    return Result.guardAsync(() async {
+      final roles = switch (audience) {
+        NotificationAudience.allPatients => [UserRole.patient],
+        NotificationAudience.allStaff => [UserRole.staff],
+        NotificationAudience.everyone => [UserRole.patient, UserRole.staff],
+      };
+      final recipients =
+          await (_db.select(_db.users)
+                ..where((u) => u.role.isInValues(roles) & u.isActive.equals(true)))
+              .get();
+      final now = DateTime.now();
+      await _db.batch((b) {
+        for (final u in recipients) {
+          b.insert(
+            _db.notifications,
+            NotificationsCompanion.insert(
+              id: newId('ntf'),
+              recipientId: u.id,
+              category: category,
+              title: title,
+              body: body,
+              deepLink: Value(deepLink),
+              createdAt: Value(now),
+            ),
+          );
+        }
+      });
+      return recipients.length;
     });
   }
 }

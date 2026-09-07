@@ -17,6 +17,11 @@ import '../../../domain/entities/entities.dart';
 import '../../auth/presentation/sign_out_action.dart';
 import '../application/admin_providers.dart';
 
+/// Opens the "new department" dialog — used by the admin dashboard's Quick
+/// actions as well as this screen's FAB.
+Future<void> showNewDepartmentDialog(BuildContext context, WidgetRef ref) =>
+    const DepartmentsScreen()._edit(context, ref, null);
+
 class DepartmentsScreen extends ConsumerWidget {
   const DepartmentsScreen({super.key});
 
