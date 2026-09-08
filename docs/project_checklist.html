@@ -37,7 +37,7 @@
   <p class="sub">Senior Project · University of Bahrain, College of IT<br>
   Ali Mohamed Jaafar Mohamed (202208244) · Mohammed A. Redha Meftah (202209027) · Supervisor: Dr. Amal Ghanim<br>
   Repository: github.com/Meftah7/myhealthcare_v2</p>
-  <p class="result">Status: 116 / 118 tasks done · 74 automated tests passing · Windows + Web builds working</p>
+  <p class="result">Status: core build (Phases 0–6) complete + Phases 8–10 (polish · "v2" redesign · patient services &amp; documents) · 178 automated tests passing · flutter analyze clean · Windows + Web builds working</p>
 </div>
 
 <div class="phase">
@@ -241,8 +241,43 @@
   <li class="done">Performance — timeline load, AI latency, cold start, database size</li>
   <li class="done">Accessibility — contrast, tap targets, labels, text scaling</li>
 </ul>
-<p class="result">Result: 74 tests, all passing. flutter analyze clean.</p>
+<p class="result">Result: 178 tests, all passing. flutter analyze clean.</p>
 <div class="donewhen"><b>✅ Done when:</b> every number in the report has a test or measurement behind it.</div>
+</div>
+
+<div class="phase">
+<h2>Phase 8 — Post-Review Polish</h2>
+<ul>
+  <li class="done">Admin sign-out everywhere; tab-aware "Add" + search in user management; department delete</li>
+  <li class="done">Admin dashboard landing; staff Schedule crash fix; staff + patient profile hubs (theme + language prefs)</li>
+  <li class="done">Full-day booking slots; 08:00–20:00 clinic day; appointments tab reorganised; new logo</li>
+  <li class="done">Billing &amp; wallet; notifications centre; AI Clinical Scribe; feedback inbox; AI usage log; capacity forecast</li>
+  <li class="todo">Admin profile screen — deferred</li>
+</ul>
+</div>
+
+<div class="phase">
+<h2>Phase 9 — Full "v2" Redesign</h2>
+<ul>
+  <li class="done">New design system — palette, flat surfaces, motion tokens, size-specific typography</li>
+  <li class="done">One shared card + component set (SectionHeader, MetricTile, InlineBanner, empty/loading/error states)</li>
+  <li class="done">~24 screens rebuilt across all three roles; schedule becomes a calendar; nutrition section; Care Navigator AI chat</li>
+  <li class="done"><code>DESIGN.md</code> rewritten to v2</li>
+  <li class="todo">R4 information-architecture reshuffle + 3 theme-only screens — deferred</li>
+</ul>
+</div>
+
+<div class="phase">
+<h2>Phase 10 — Patient Services &amp; Documents</h2>
+<ul>
+  <li class="done">Offline PDF engine (clinic letterhead, allergy banner, footer) — <code>printing</code> + <code>pdf</code></li>
+  <li class="done">Vital-signs report, radiology results, sick-leave certificate — all exportable to PDF</li>
+  <li class="done">Visited-doctors list ("book again"); high-visibility allergies view + alert strips</li>
+  <li class="done">Ask your doctor — patient ↔ doctor message threads + a staff inbox</li>
+  <li class="done">Home health care — patient request form + admin triage queue (schedule / decline / complete)</li>
+  <li class="done">3 new tables (schema v11, seedVersion 13); repository + end-to-end flow tests</li>
+</ul>
+<div class="donewhen"><b>✅ Done when:</b> a patient can get every routine clinic document and service without a phone call.</div>
 </div>
 
 <div class="phase">

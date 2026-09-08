@@ -6,15 +6,18 @@ i ☰ MyHealth Care — Senior Project
   Location: C:\dev\myhealthcare  (moved out of OneDrive — restart Claude Code here)
 
   NOW: core build (Phases 0–6) complete. Phase 7 = report & presentation.
-       Phase 8 (post-review polish) + Phase 9 (full "v2" redesign) done — 81/81 tests green, flutter analyze
-       clean. Rebased onto origin/main (co-author's GitHub Actions PR #1) and pushed: origin/main + origin/mohammed.
-  128/130 core tasks done · repo: github.com/Meftah7/myhealthcare_v2 (main)
+       Phase 8 (post-review polish) + Phase 9 (full "v2" redesign) + Phase 10 (patient services & documents)
+       all done — 178 tests green, flutter analyze clean (3 pre-existing infos not from this work).
+  Latest work sits on branch `mohammed` (== origin/mohammed); it is well ahead of origin/main.
   open: P0-10 Android (AEHD driver) · P2-11..13 PDF import · P5-15 template editor · P6-07 participants ·
         P8-08 admin profile · Gemini key (paste in Admin AI Settings)
-  BRANCHES: local main = master = mohammed = origin/main = bea42a3 (baseline + Phase 8 + Phase 9).
-        origin/mohammed pushed as a feature branch (was origin/Meftah7-patch-1, renamed).
+  DEPS added in P10: printing ^5.15.0 + pdf ^3.13.0 (offline PDF); Inter.ttf also loaded at runtime by the
+        PDF layer. schema 11 · seedVersion 13.
+  BRANCHES: work on `mohammed`; `main`/`master` local copies are stale — refresh before use. Never push to
+        the old Abu1Hussain/myhealthcareapp repo. Co-author commits are authored "Abu1Hussain" (the teammate).
   docs/: test_accounts.md · ai_setup.md · platform_smoke.md · performance.md · usability_study.md · ml_results.md
-         · MyHealthCare_Feature_Report.pdf (feature_report.html source; regen via headless Chrome --print-to-pdf)
+         · PROJECT_CHECKLIST.md · MyHealthCare_Feature_Report.pdf (feature_report.html source; regen via
+         headless Chrome --print-to-pdf)
 
 Phase 0 — Scaffold: @13of14
   Goal: empty app builds and runs on Windows, Android, Chrome with a working local DB.

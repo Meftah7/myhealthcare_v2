@@ -109,6 +109,6 @@ lib/
   domain/     entities + repository interfaces (the swap point)
   data/       Drift DB, DAOs, repository implementations, seeder
   features/   one folder per feature: presentation/ + application/
-  services/   ai/ (mock + Claude), ml/ (no-show predictor), notifications/, ingestion/
+  services/   ai/ (mock + Gemini), ml/ (no-show predictor), notifications/, pdf/ (patient documents)
 tools/ml/     Python — offline model training (not shipped in the app)
 ```
