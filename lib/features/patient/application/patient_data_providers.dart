@@ -43,6 +43,17 @@ final patientVitalsProvider = FutureProvider<List<Vitals>>((ref) async {
   return _unwrap(await ref.watch(vitalsRepositoryProvider).forPatient(id));
 });
 
+/// The patient's diagnostic-imaging records, newest first (P10-03).
+final patientImagingProvider = FutureProvider<List<MedicalRecord>>((ref) async {
+  final id = _requirePatient(ref);
+  final recs = _unwrap(
+    await ref
+        .watch(recordRepositoryProvider)
+        .timeline(id, limit: 200, types: {RecordType.imaging}),
+  );
+  return recs..sort((a, b) => b.occurredAt.compareTo(a.occurredAt));
+});
+
 final patientMedicationsProvider = FutureProvider<List<Medication>>((
   ref,
 ) async {

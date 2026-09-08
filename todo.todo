@@ -550,6 +550,51 @@ Phase 9 — Full redesign "v2" @done(2026-09-03) — 5 commits (016cf5f 29e8337 
 
   TO FINISH v2: the 3 theme-only screens above + R4 IA.
 
+Phase 10 — Patient services & documents: @5of11  (Batch A done; Batch B pending)
+  Goal: printable clinic documents + the patient-facing services a real clinic
+  portal has. Split into two batches — A (no new tables) reviewed before B.
+  Deps added: printing ^5.15.0 + pdf ^3.13.0 (offline PDF generate/preview/share).
+
+  BATCH A — done (seedVersion 11 → 12; adds RecordType.imaging seed data):
+  ✔ P10-01 PDF engine @M
+    lib/services/pdf/clinic_pdf.dart — one letterhead (logo, clinic block),
+    patient identity strip with an ALLERGIES banner on every clinical PDF, and
+    a page footer (disclaimer, generated-at, page x/y). ClinicPdf.present()
+    opens the platform print/preview/share sheet. reports.dart holds the
+    per-document builders. DocumentDownloadButton owns the busy state + failure
+    SnackBar. pdfIdentityProvider + buildVitalsReport/buildRadiologyReport wire
+    the builders to live patient data.
+  ✔ P10-02 Vital signs report (PDF) @S
+    Latest-reading summary + BMI, then the full reading-history table. Export
+    from the Vitals app bar and from the Records "documents" strip.
+  ✔ P10-03 Radiology results (PDF) @M
+    RecordType.imaging seeded (~1/3 of visits) from 8 studies + plausible
+    reports (vocab/clinical.dart::imagingStudies). patientImagingProvider →
+    /patient/timeline/imaging (RadiologyScreen). Each result opens in the
+    existing record detail and exports a one-page radiology report.
+  ✔ P10-04 Visited doctors @M
+    visitedDoctorsProvider derives the care team from appointment history
+    (visit count, last visit, next visit). /patient/appointments/doctors
+    (VisitedDoctorsScreen) + Home quick action. "Book again" deep-links the
+    booking wizard with the doctor prefilled (BookingScreen.initialStaffId,
+    ?staff= query param).
+  ✔ P10-06 Allergies list @S
+    AllergiesScreen (/patient/timeline/allergies) — read-only, red alert card
+    or calm empty state, "Update allergies" → Profile → Health. Alert strip on
+    Home (above the fold) + top of Records when allergies are on file.
+  Tests: test/services/clinic_pdf_test.dart, test/features/patient_documents_test.dart,
+    test/features/allergies_screen_test.dart.
+
+  BATCH B — pending (3 new tables + staff/admin side):
+  ☐ P10-05 Sick leave certificates @L — doctor-issued; patient views + downloads
+    the PDF. New table sick_leave_certificates. Staff: issue from a visit.
+  ☐ P10-07 Ask your doctor @L — patient↔doctor message threads (one per doctor
+    seen) + a minimal staff inbox. New table care_messages.
+  ☐ P10-08 Home health care @L — patient requests a home visit (address, date,
+    reason); status list. Surfaced to staff/admin as a queue. New table
+    home_visit_requests.
+  Quick actions to add in Batch B: Sick leave, Ask your doctor, Home health care.
+
 Phase 7 — Report & presentation: @0of5
   ☐ P7-01 Architecture, use-case, sequence diagrams @M @needs(P1-22)
   ☐ P7-02 Screenshots: all screens, both roles, light + dark @M

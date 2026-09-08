@@ -145,3 +145,71 @@ const facilities = [
   'Al Kindi Specialised Hospital',
   'Ibn Al-Nafees Hospital',
 ];
+
+/// Diagnostic-imaging studies + a plausible normal/near-normal report, used to
+/// seed `RecordType.imaging` records (P10-03).
+const imagingStudies = [
+  (
+    name: 'Chest X-ray (PA and lateral)',
+    findings:
+        'The lungs are clear and well expanded. No focal consolidation, '
+        'pleural effusion or pneumothorax. Cardiomediastinal silhouette is '
+        'within normal limits. Visualised bony structures are intact. '
+        'Impression: no acute cardiopulmonary abnormality.',
+  ),
+  (
+    name: 'Abdominal ultrasound',
+    findings:
+        'Liver is normal in size and echotexture without focal lesion. '
+        'Gallbladder is unremarkable with no stones or wall thickening. '
+        'Common bile duct is not dilated. Pancreas, spleen and both kidneys '
+        'are normal. No free intraperitoneal fluid. Impression: normal '
+        'abdominal ultrasound.',
+  ),
+  (
+    name: 'Right knee X-ray',
+    findings:
+        'Mild medial compartment joint-space narrowing with small marginal '
+        'osteophytes. No acute fracture or dislocation. No joint effusion. '
+        'Alignment is preserved. Impression: mild degenerative change.',
+  ),
+  (
+    name: 'Non-contrast brain CT',
+    findings:
+        'No intracranial haemorrhage, established infarct, mass or mass '
+        'effect. Ventricles and cortical sulci are age-appropriate. '
+        'Grey–white differentiation is preserved. Paranasal sinuses and '
+        'mastoids are clear. Impression: no acute intracranial abnormality.',
+  ),
+  (
+    name: 'Lumbar spine MRI',
+    findings:
+        'Maintained vertebral body height and alignment. Mild L4–L5 disc '
+        'desiccation with a broad posterior bulge, no significant canal or '
+        'foraminal stenosis and no nerve-root compression. Conus terminates '
+        'normally. Impression: mild L4–L5 degenerative disc disease.',
+  ),
+  (
+    name: 'Bilateral screening mammogram',
+    findings:
+        'Scattered areas of fibroglandular density. No dominant mass, '
+        'architectural distortion or suspicious microcalcification. No skin '
+        'thickening or nipple retraction. Impression: benign findings, '
+        'BI-RADS category 1.',
+  ),
+  (
+    name: 'Thyroid ultrasound',
+    findings:
+        'Thyroid gland is normal in size and vascularity. No discrete '
+        'nodule or cyst. No suspicious cervical lymphadenopathy. '
+        'Impression: normal thyroid ultrasound.',
+  ),
+  (
+    name: 'Echocardiogram',
+    findings:
+        'Normal left-ventricular size and systolic function, estimated '
+        'ejection fraction 60%. No regional wall-motion abnormality. Valves '
+        'are structurally normal with trivial mitral regurgitation. No '
+        'pericardial effusion. Impression: structurally normal heart.',
+  ),
+];

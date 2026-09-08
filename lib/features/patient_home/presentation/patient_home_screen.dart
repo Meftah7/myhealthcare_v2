@@ -74,6 +74,8 @@ class PatientHomeScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: Space.lg),
 
+                const _AllergyAlert(),
+
                 const _QuickAppointmentAction(),
                 const SizedBox(height: Space.lg),
 
@@ -331,15 +333,79 @@ class _HealthSnapshot extends ConsumerWidget {
   }
 }
 
+/// A slim red strip shown only when the patient has allergies on file — it
+/// rides above the fold so a clinician glancing at the phone can't miss it.
+class _AllergyAlert extends ConsumerWidget {
+  const _AllergyAlert();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final allergies =
+        ref.watch(patientProfileProvider).valueOrNull?.allergies ??
+        const <String>[];
+    if (allergies.isEmpty) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: Space.lg),
+      child: AppCard(
+        onTap: () => context.push(AppRoutes.patientAllergies),
+        color: scheme.errorContainer,
+        borderColor: scheme.error.withValues(alpha: 0.35),
+        padding: const EdgeInsets.symmetric(
+          horizontal: Space.md,
+          vertical: Space.sm,
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.warning_amber_rounded,
+              size: 20,
+              color: scheme.onErrorContainer,
+            ),
+            const SizedBox(width: Space.sm),
+            Expanded(
+              child: Text(
+                'Allergies: ${allergies.join(', ')}',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: scheme.onErrorContainer,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            Icon(Icons.chevron_right, color: scheme.onErrorContainer),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _QuickActions extends StatelessWidget {
   const _QuickActions();
 
   @override
   Widget build(BuildContext context) {
+    // (icon, label, route, push) — `push` keeps the nav bar and adds a back
+    // button for section screens that aren't a nav destination of their own.
     const items = [
-      (Icons.favorite_outline, 'Vitals', AppRoutes.patientVitals),
-      (Icons.medication_outlined, 'Medications', AppRoutes.patientMedications),
-      (Icons.receipt_long_outlined, 'Billing', AppRoutes.patientBilling),
+      (Icons.favorite_outline, 'Vitals', AppRoutes.patientVitals, false),
+      (
+        Icons.medication_outlined,
+        'Medications',
+        AppRoutes.patientMedications,
+        false,
+      ),
+      (
+        Icons.groups_outlined,
+        'Visited doctors',
+        AppRoutes.patientVisitedDoctors,
+        true,
+      ),
+      (Icons.receipt_long_outlined, 'Billing', AppRoutes.patientBilling, false),
     ];
     // Two tiles per row on a phone, three once there's room for them.
     return GridView.count(
@@ -350,8 +416,8 @@ class _QuickActions extends StatelessWidget {
       crossAxisSpacing: Space.sm,
       childAspectRatio: 2.6,
       children: [
-        for (final (icon, label, route) in items)
-          _ActionTile(icon: icon, label: label, route: route),
+        for (final (icon, label, route, push) in items)
+          _ActionTile(icon: icon, label: label, route: route, push: push),
       ],
     );
   }
@@ -362,11 +428,13 @@ class _ActionTile extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.route,
+    this.push = false,
   });
 
   final IconData icon;
   final String label;
   final String route;
+  final bool push;
 
   @override
   Widget build(BuildContext context) {
@@ -377,7 +445,13 @@ class _ActionTile extends StatelessWidget {
         horizontal: Space.sm,
         vertical: Space.sm,
       ),
-      onTap: () => context.go(route),
+      onTap: () {
+        if (push) {
+          unawaited(context.push(route));
+        } else {
+          context.go(route);
+        }
+      },
       child: Row(
         children: [
           // A tinted medallion rather than a bare glyph — it anchors the row
@@ -454,10 +528,12 @@ class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
   /// expect (next = slide left, first-after-last comes from the right).
   void _step(int delta) {
     if (_count == 0 || !_controller.hasClients) return;
-    _controller.animateToPage(
-      _rawPage() + delta,
-      duration: Motion.medium,
-      curve: Motion.standard,
+    unawaited(
+      _controller.animateToPage(
+        _rawPage() + delta,
+        duration: Motion.medium,
+        curve: Motion.standard,
+      ),
     );
   }
 

@@ -79,6 +79,8 @@ dependencies:
   shared_preferences: ^2.5.5
   google_fonts: ^8.2.1
   audioplayers: ^6.8.1
+  printing: ^5.15.0
+  pdf: ^3.13.0
 
 dev_dependencies:
   flutter_test:
@@ -127,6 +129,7 @@ flutter:
 
   assets:
     - assets/models/no_show_model.json
+    - assets/fonts/Inter.ttf   # also read at runtime by the PDF layer (P10-01)
     - assets/images/
     - assets/sounds/
 

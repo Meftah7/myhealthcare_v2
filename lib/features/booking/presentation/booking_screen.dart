@@ -30,9 +30,19 @@ import '../application/booking_providers.dart';
 enum BookingMode { now, schedule }
 
 class BookingScreen extends ConsumerStatefulWidget {
-  const BookingScreen({this.mode = BookingMode.schedule, super.key});
+  const BookingScreen({
+    this.mode = BookingMode.schedule,
+    this.initialDepartmentId,
+    this.initialStaffId,
+    super.key,
+  });
 
   final BookingMode mode;
+
+  /// Prefilled department / doctor — set when the patient arrives from "Book
+  /// again" on a doctor they have already seen (P10-04).
+  final String? initialDepartmentId;
+  final String? initialStaffId;
 
   @override
   ConsumerState<BookingScreen> createState() => _BookingScreenState();
@@ -43,12 +53,15 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   void initState() {
     super.initState();
     // Start from a clean slate every time the page opens — a half-finished
-    // pick from a previous visit never carries over. Deferred a frame so the
-    // provider isn't mutated mid-build.
+    // pick from a previous visit never carries over, unless the caller
+    // prefilled a doctor. Deferred a frame so the provider isn't mutated
+    // mid-build.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        ref.read(bookingDraftProvider.notifier).state =
-            const BookingRequestDraft();
+        ref.read(bookingDraftProvider.notifier).state = BookingRequestDraft(
+          departmentId: widget.initialDepartmentId,
+          staffId: widget.initialStaffId,
+        );
       }
     });
   }

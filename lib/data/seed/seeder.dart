@@ -57,7 +57,7 @@ class Seeder {
   /// v8: each patient starts with one saved card in their wallet.
   /// v9: staff members get a starting presence status.
   /// v10: a starter feedback inbox for the admin dashboard.
-  static const seedVersion = 11;
+  static const seedVersion = 12;
 
   /// Password for every seeded account (documented in the README).
   static const demoPassword = 'password';
@@ -671,6 +671,26 @@ class Seeder {
           ),
         );
     records++;
+
+    // Roughly a third of visits order imaging (P10-03).
+    if (_rng.nextDouble() < 0.32) {
+      final study = _pick(imagingStudies);
+      await _db
+          .into(_db.medicalRecords)
+          .insert(
+            MedicalRecordsCompanion.insert(
+              id: 'rec_${p.id}_${at.millisecondsSinceEpoch}_img',
+              patientId: p.id,
+              recordType: RecordType.imaging,
+              title: study.name,
+              occurredAt: at.add(const Duration(days: 1)),
+              authorStaffId: Value(doc.id),
+              body: Value(study.findings),
+              sourceFacility: Value(_pick(facilities)),
+            ),
+          );
+      records++;
+    }
 
     // Vitals at every visit.
     final progress = _monthsSinceStart(at) / 24.0;
