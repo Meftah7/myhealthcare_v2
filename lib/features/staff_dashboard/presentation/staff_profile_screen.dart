@@ -16,6 +16,7 @@ import '../../../core/i18n/app_strings.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
+import '../../../core/utils/format.dart';
 import '../../auth/application/session.dart';
 import '../../feedback/presentation/feedback_sheet.dart';
 import '../application/staff_providers.dart';
@@ -54,7 +55,7 @@ class StaffProfileScreen extends ConsumerWidget {
                 ),
                 children: [
                   ProfileHeader(
-                    name: u.fullName,
+                    name: clinicianName(u.fullName),
                     email: u.email,
                     role: t.roleStaff,
                   ),

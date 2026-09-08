@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
+import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../application/staff_providers.dart';
 import 'staff_top_actions.dart' show presenceMeta;
@@ -105,7 +106,7 @@ class _StaffCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(staff.fullName, style: theme.textTheme.titleSmall),
+                Text(clinicianName(staff.fullName), style: theme.textTheme.titleSmall),
                 Text(
                   [
                     if (staff.specialty != null) staff.specialty,

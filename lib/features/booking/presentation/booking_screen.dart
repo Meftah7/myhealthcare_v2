@@ -507,7 +507,7 @@ class _DoctorTile extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Dr ${staff.fullName}',
+                        clinicianName(staff.fullName),
                         style: theme.textTheme.titleSmall?.copyWith(
                           color: selected ? scheme.onPrimaryContainer : null,
                         ),
@@ -759,7 +759,7 @@ class _SlotList extends ConsumerWidget {
         .valueOrNull;
     final doctor = staff
         ?.where((s) => s.id == draft.staffId)
-        .map((s) => 'Dr ${s.fullName}')
+        .map((s) => clinicianName(s.fullName))
         .firstOrNull;
     final depts = ref.read(departmentsProvider).valueOrNull;
     final department = depts

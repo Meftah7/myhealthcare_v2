@@ -133,6 +133,12 @@ abstract final class AppRoutes {
   static const staffNotifications = '/staff/dashboard/notifications';
   static const staffProfile = '/staff/profile';
   static const staffInbox = '/staff/dashboard/inbox';
+
+  /// One patient thread in the staff inbox.
+  static String staffInboxThread(String patientId, {String? name}) {
+    final base = '$staffInbox/$patientId';
+    return name == null ? base : '$base?name=${Uri.encodeComponent(name)}';
+  }
   // Profile-section pages — each its own page, reached from the Profile hub
   // with a back button (mirrors the patient Profile).
   static const staffProfileAccount = '/staff/profile/account';
@@ -509,6 +515,15 @@ StatefulShellRoute _staffShell() {
               GoRoute(
                 path: 'inbox',
                 builder: (_, _) => const StaffInboxScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':patientId',
+                    builder: (_, state) => StaffMessageThreadPage(
+                      patientId: state.pathParameters['patientId']!,
+                      title: state.uri.queryParameters['name'],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

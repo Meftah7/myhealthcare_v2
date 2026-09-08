@@ -9,7 +9,9 @@ import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:myhealthcare/domain/enums.dart';
 import 'package:myhealthcare/features/auth/application/session.dart';
 import 'package:myhealthcare/features/care/application/care_providers.dart';
+import 'package:myhealthcare/features/patient/application/patient_data_providers.dart';
 import 'package:myhealthcare/features/patient/application/patient_documents.dart';
+import 'package:myhealthcare/features/staff_dashboard/application/staff_providers.dart';
 import 'package:myhealthcare/services/pdf/reports.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -77,11 +79,28 @@ void main() {
         );
     expect(sent.isOk, isTrue);
 
+    // The patient's message dropped a notification for the doctor.
+    final staffInbox = await c
+        .read(notificationRepositoryProvider)
+        .forRecipient(staffId);
+    expect(
+      staffInbox.valueOrNull!.where(
+        (n) => n.category == NotificationCategory.message,
+      ),
+      isNotEmpty,
+      reason: 'a new message must notify the recipient (bell badge + cue)',
+    );
+
     // The doctor signs in and sees the thread in their inbox.
     final staffEmail = _staffEmail(staffId);
     await _login(c, staffEmail);
     final inbox = await c.read(staffThreadsProvider.future);
-    expect(inbox.where((t) => t.patientId == patientId), isNotEmpty);
+    final mine = inbox.where((t) => t.patientId == patientId).toList();
+    expect(mine, isNotEmpty);
+    // The doctor's own name never double-prefixes ("Dr Dr …").
+    for (final t in inbox) {
+      expect(t.counterpartName, isNot(startsWith('Dr Dr')));
+    }
 
     await c
         .read(messageActionsProvider)
@@ -94,6 +113,32 @@ void main() {
 
     final thread = await c.read(staffThreadProvider(patientId).future);
     expect(thread, hasLength(greaterThanOrEqualTo(2)));
+
+    // …and the reply notified the patient.
+    final patientNotes = await c
+        .read(notificationRepositoryProvider)
+        .forRecipient(patientId);
+    expect(
+      patientNotes.valueOrNull!.where(
+        (n) => n.category == NotificationCategory.message,
+      ),
+      isNotEmpty,
+    );
+  });
+
+  test('a doctor name shows the "Dr" honorific exactly once', () async {
+    final c = await _container();
+    await _login(c, 'patient3@myhealth.demo');
+
+    // The patient's own appointment labels.
+    final directory = await c.read(doctorDirectoryProvider.future);
+    for (final entry in directory.values) {
+      expect(entry.name, startsWith('Dr '));
+      expect(entry.name, isNot(startsWith('Dr Dr')));
+    }
+    // The stored name has no honorific baked in.
+    final anyStaff = await c.read(staffDirectoryProvider.future);
+    expect(anyStaff.first.fullName, isNot(startsWith('Dr ')));
   });
 
   test('a home-visit request is created and the clinic can schedule it', () async {

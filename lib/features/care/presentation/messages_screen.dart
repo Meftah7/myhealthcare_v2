@@ -38,7 +38,9 @@ class MessagesScreen extends ConsumerWidget {
               icon: const Icon(Icons.edit_outlined),
               label: const Text('New message'),
             ),
-      body: threads.when(
+      body: RefreshIndicator(
+        onRefresh: () async => ref.invalidate(patientThreadsProvider),
+        child: threads.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
           message: 'Could not load your messages.',
@@ -46,12 +48,17 @@ class MessagesScreen extends ConsumerWidget {
         ),
         data: (list) {
           if (list.isEmpty) {
-            return EmptyState(
-              icon: Icons.chat_bubble_outline,
-              message: doctors.isEmpty
-                  ? 'Once you have seen a doctor you can message them here.'
-                  : 'No conversations yet.\nTap "New message" to ask a '
-                        'non-urgent question.',
+            return ListView(
+              children: [
+                const SizedBox(height: 120),
+                EmptyState(
+                  icon: Icons.chat_bubble_outline,
+                  message: doctors.isEmpty
+                      ? 'Once you have seen a doctor you can message them here.'
+                      : 'No conversations yet.\nTap "New message" to ask a '
+                            'non-urgent question.',
+                ),
+              ],
             );
           }
           return Center(
@@ -80,6 +87,7 @@ class MessagesScreen extends ConsumerWidget {
             ),
           );
         },
+        ),
       ),
     );
   }
@@ -140,6 +148,37 @@ class PatientMessageThreadPage extends ConsumerWidget {
       staffId: staffId,
       title: name,
       viewerIsStaff: false,
+    );
+  }
+}
+
+/// Router entry for a staff thread — the clinician id comes from the session.
+class StaffMessageThreadPage extends ConsumerWidget {
+  const StaffMessageThreadPage({required this.patientId, this.title, super.key});
+
+  final String patientId;
+  final String? title;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(currentUserProvider);
+    final threads = ref.watch(staffThreadsProvider).valueOrNull ?? const [];
+    final name =
+        title ??
+        threads
+            .where((t) => t.patientId == patientId)
+            .map((t) => t.counterpartName)
+            .firstOrNull ??
+        'Patient';
+
+    if (user == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    return MessageThreadScreen(
+      patientId: patientId,
+      staffId: user.id,
+      title: name,
+      viewerIsStaff: true,
     );
   }
 }

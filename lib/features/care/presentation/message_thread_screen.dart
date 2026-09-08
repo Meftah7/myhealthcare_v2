@@ -6,7 +6,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
@@ -105,7 +107,19 @@ class _MessageThreadScreenState extends ConsumerState<MessageThreadScreen> {
     final messages = ref.watch(_threadProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
+      appBar: AppBar(
+        title: Text(widget.title),
+        actions: [
+          if (widget.viewerIsStaff)
+            IconButton(
+              tooltip: 'Open patient chart',
+              icon: const Icon(Icons.folder_shared_outlined),
+              onPressed: () => context.go(
+                AppRoutes.staffPatientChart(widget.patientId),
+              ),
+            ),
+        ],
+      ),
       body: Column(
         children: [
           Expanded(

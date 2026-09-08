@@ -4,11 +4,14 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/router.dart';
 import '../../../core/di.dart';
 import '../../../core/result.dart';
+import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
 import '../../../domain/repositories/care_repository.dart';
+import '../../../domain/repositories/notification_repository.dart';
 import '../../auth/application/session.dart';
 import '../../patient/application/visited_doctors_provider.dart';
 
@@ -113,8 +116,48 @@ class MessageActions {
           fromStaff: fromStaff,
           body: body,
         );
-    if (result.isOk) _invalidate(patientId, staffId);
+    if (result.isOk) {
+      _invalidate(patientId, staffId);
+      await _notifyRecipient(
+        patientId: patientId,
+        staffId: staffId,
+        fromStaff: fromStaff,
+        body: result.valueOrNull!.body,
+      );
+    }
     return result;
+  }
+
+  /// Drop an in-app notification for the other side — this drives the bell
+  /// badge and the arrival sound cue, which a bare `care_messages` row does not.
+  Future<void> _notifyRecipient({
+    required String patientId,
+    required String staffId,
+    required bool fromStaff,
+    required String body,
+  }) async {
+    final recipientId = fromStaff ? patientId : staffId;
+    final senderId = fromStaff ? staffId : patientId;
+    final sender = (await _ref.read(userRepositoryProvider).byId(senderId))
+        .valueOrNull;
+    final senderName = sender == null
+        ? (fromStaff ? 'your clinician' : 'a patient')
+        : (fromStaff ? clinicianName(sender.fullName) : sender.fullName);
+    final preview = body.length <= 120 ? body : '${body.substring(0, 117)}…';
+
+    await _ref
+        .read(notificationRepositoryProvider)
+        .send(
+          NewNotification(
+            recipientId: recipientId,
+            category: NotificationCategory.message,
+            title: 'New message from $senderName',
+            body: preview,
+            deepLink: fromStaff
+                ? '${AppRoutes.patientMessages}/$staffId'
+                : AppRoutes.staffInbox,
+          ),
+        );
   }
 
   Future<void> markRead({

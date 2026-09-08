@@ -5,6 +5,7 @@ import 'package:drift/drift.dart';
 
 import '../../core/failures.dart';
 import '../../core/result.dart';
+import '../../core/utils/format.dart';
 import '../../core/utils/ids.dart';
 import '../../domain/entities/entities.dart';
 import '../../domain/enums.dart';
@@ -132,7 +133,7 @@ class CareMessageRepositoryImpl implements CareMessageRepository {
             staffId: last.staffId,
             counterpartName: staffLed
                 ? (names[last.patientId] ?? 'Patient')
-                : 'Dr ${names[last.staffId] ?? 'Clinician'}',
+                : clinicianName(names[last.staffId] ?? 'Clinician'),
             lastMessage: last.toEntity(),
             unreadForPatient: msgs
                 .where((m) => m.fromStaff && m.readAt == null)

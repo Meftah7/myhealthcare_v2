@@ -19,6 +19,14 @@ String fmtDateTime(DateTime d) => _dateTime.format(d);
 String fmtMonthYear(DateTime d) => _monthYear.format(d);
 String fmtTime(DateTime d) => _time.format(d);
 
+/// A clinician's name with the "Dr" honorific — added exactly once. Names are
+/// stored plain (`users.fullName`); this is the display form. Idempotent, so
+/// it's safe to call on a value that already carries the prefix.
+String clinicianName(String fullName) {
+  final trimmed = fullName.trim();
+  return trimmed.startsWith('Dr ') ? trimmed : 'Dr $trimmed';
+}
+
 /// Human-readable label for a [VisitType] ("chronicCareReview" → "Chronic care
 /// review").
 String visitTypeLabel(VisitType t) => switch (t) {

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/di.dart';
 import '../../../core/result.dart';
+import '../../../core/utils/format.dart';
 import '../../../core/utils/ids.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
@@ -123,7 +124,7 @@ final adminStaffNamesProvider = FutureProvider<Map<String, String>>((
   final staff = _unwrap(
     await ref.watch(userRepositoryProvider).byRole(UserRole.staff),
   );
-  return {for (final s in staff) s.id: s.fullName};
+  return {for (final s in staff) s.id: clinicianName(s.fullName)};
 });
 
 final systemStatsProvider = FutureProvider<SystemStats>((ref) async {

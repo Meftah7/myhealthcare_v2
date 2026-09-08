@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/di.dart';
 import '../../../core/result.dart';
+import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
 import '../../auth/application/session.dart';
@@ -81,7 +82,7 @@ final doctorDirectoryProvider = FutureProvider<Map<String, ({String name, String
         .watch(userRepositoryProvider)
         .staffById(u.id)).valueOrNull;
     out[u.id] = (
-      name: 'Dr ${u.fullName}',
+      name: clinicianName(u.fullName),
       departmentId: profile?.departmentId,
     );
   }

@@ -57,7 +57,7 @@ class Seeder {
   /// v8: each patient starts with one saved card in their wallet.
   /// v9: staff members get a starting presence status.
   /// v10: a starter feedback inbox for the admin dashboard.
-  static const seedVersion = 13;
+  static const seedVersion = 14;
 
   /// Password for every seeded account (documented in the README).
   static const demoPassword = 'password';
@@ -156,7 +156,7 @@ class Seeder {
         await _insertUser(
           id: id,
           role: UserRole.staff,
-          fullName: 'Dr $name',
+          fullName: name, // honorific added at display time (clinicianName)
           email: 'staff$n@myhealth.demo',
           male: male,
           dob: _epoch.subtract(Duration(days: 365 * (32 + _rng.nextInt(25)))),
