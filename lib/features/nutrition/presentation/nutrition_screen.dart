@@ -588,13 +588,28 @@ class _FoodCard extends StatelessWidget {
             ],
           ),
           if (food.micros.isNotEmpty) ...[
-            const SizedBox(height: Space.xs),
-            // Micronutrients, same pill treatment as the macros above.
-            _PillGrid(
-              pills: [
-                for (final e in food.micros.entries)
-                  _Pill(e.key, e.value, accent: scheme.primary),
-              ],
+            const SizedBox(height: Space.sm),
+            // Everything else is an extra note, not one of the six figures.
+            Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'Also  ',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  TextSpan(
+                    text: food.micros.entries
+                        .map((e) => '${e.key} ${e.value}')
+                        .join('  ·  '),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
           if (food.allergens.isNotEmpty) ...[
