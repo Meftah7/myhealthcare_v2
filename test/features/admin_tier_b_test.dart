@@ -149,7 +149,7 @@ void main() {
     expect(log.first.usedLiveModel, isFalse); // no key in tests
   });
 
-  testWidgets('admin dashboard: Feedback / AI activity / Forecast tiles', (
+  testWidgets('feedback inbox opens from the dashboard Quick actions', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(1400, 2800);
@@ -160,12 +160,8 @@ void main() {
     final container = await _signInAdmin(tester);
     addTearDown(container.dispose);
 
-    expect(find.text('Feedback'), findsWidgets);
-    expect(find.text('AI activity'), findsOneWidget);
-    expect(find.text('Forecast'), findsOneWidget);
-
-    // Feedback inbox opens and shows the seeded reports.
-    await tester.tap(find.text('Feedback').first);
+    // "Feedback" is a Quick-action row tile (the label may carry a count).
+    await tester.tap(find.textContaining('Feedback').first);
     await _settle(tester);
     expect(find.widgetWithText(AppBar, 'Feedback'), findsOneWidget);
     expect(find.widgetWithText(FilledButton, 'Mark resolved'), findsWidgets);
@@ -177,7 +173,9 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
   });
 
-  testWidgets('capacity forecast screen renders 7 day cards', (tester) async {
+  testWidgets('capacity forecast opens from Profile › Capacity forecast', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1400, 2800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -186,11 +184,14 @@ void main() {
     final container = await _signInAdmin(tester);
     addTearDown(container.dispose);
 
-    await tester.tap(find.text('Forecast'));
+    await tester.tap(find.text('Profile').last);
+    await _settle(tester);
+    await tester.tap(find.text('Capacity forecast'));
     await _settle(tester);
     expect(find.widgetWithText(AppBar, 'Capacity forecast'), findsOneWidget);
     expect(find.text('Monday'), findsOneWidget);
     expect(find.text('Sunday'), findsOneWidget);
+    expect(find.byType(BackButton), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));

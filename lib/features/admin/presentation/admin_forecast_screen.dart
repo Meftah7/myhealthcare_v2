@@ -11,7 +11,6 @@ import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
 import '../application/capacity_forecast.dart';
-import 'admin_top_actions.dart';
 
 class AdminForecastScreen extends ConsumerWidget {
   const AdminForecastScreen({super.key});
@@ -32,7 +31,6 @@ class AdminForecastScreen extends ConsumerWidget {
             icon: const Icon(Icons.refresh),
             onPressed: () => ref.invalidate(capacityForecastProvider),
           ),
-          const AdminTopActions(),
         ],
       ),
       body: forecast.when(

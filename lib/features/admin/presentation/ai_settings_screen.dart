@@ -11,7 +11,6 @@ import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
 import '../../../services/ai/ai_models.dart';
 import '../../../services/ai/gemini_ai_service.dart';
-import '../../auth/presentation/sign_out_action.dart';
 import '../application/settings_providers.dart';
 
 class AiSettingsScreen extends ConsumerWidget {
@@ -25,7 +24,6 @@ class AiSettingsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('AI settings'),
-        actions: const [SignOutAction()],
       ),
       body: settings.when(
         loading: () => const SkeletonList(),

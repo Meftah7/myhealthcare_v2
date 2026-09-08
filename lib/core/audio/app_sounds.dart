@@ -35,6 +35,14 @@ enum AppSound {
     PresenceStatus.onBreak => presenceOnBreak,
     PresenceStatus.offShift => presenceOffShift,
   };
+
+  /// The cue for an admin's working status — reuses the four status sounds.
+  static AppSound forAdminStatus(AdminStatus status) => switch (status) {
+    AdminStatus.available => presenceOnDuty,
+    AdminStatus.meeting => presenceInConsultation,
+    AdminStatus.away => presenceOnBreak,
+    AdminStatus.off => presenceOffShift,
+  };
 }
 
 /// Plays one short cue at a time. The underlying player is built lazily on the

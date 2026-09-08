@@ -13,6 +13,8 @@ import '../features/admin/presentation/admin_billing_screen.dart';
 import '../features/admin/presentation/admin_dashboard_screen.dart';
 import '../features/admin/presentation/admin_feedback_screen.dart';
 import '../features/admin/presentation/admin_forecast_screen.dart';
+import '../features/admin/presentation/admin_profile_pages.dart';
+import '../features/admin/presentation/admin_profile_screen.dart';
 import '../features/admin/presentation/admin_top_actions.dart';
 import '../features/admin/presentation/ai_settings_screen.dart';
 import '../features/admin/presentation/audit_log_screen.dart';
@@ -151,20 +153,35 @@ abstract final class AppRoutes {
   static String staffPatientSummary(String id) =>
       '$staffPatients/$id/summary';
 
-  // Admin
+  // Admin — nav tabs
   static const adminDashboard = '/admin/dashboard';
   static const adminUsers = '/admin/users';
   static const adminDepartments = '/admin/departments';
-  static const adminAnalytics = '/admin/analytics';
-  static const adminAudit = '/admin/audit';
-  static const adminAiSettings = '/admin/ai';
   static const adminBilling = '/admin/billing';
+  static const adminProfile = '/admin/profile';
+
+  // Admin — operational pushes from the dashboard Quick actions
   static const adminAppointments = '/admin/appointments';
   static const adminFeedback = '/admin/feedback';
-  static const adminAiLog = '/admin/ai-log';
-  static const adminForecast = '/admin/forecast';
-  static const adminHomeVisits = '/admin/home-visits';
+  static const adminHomeVisits = '/admin/dashboard/home-visits';
   static const adminNotifications = '/admin/dashboard/notifications';
+
+  // Admin — Profile-section pages, each its own page under the Profile hub
+  static const adminProfileAccount = '/admin/profile/account';
+  static const adminProfileAudit = '/admin/profile/audit';
+  static const adminProfileAnalytics = '/admin/profile/analytics';
+  static const adminProfileForecast = '/admin/profile/forecast';
+  static const adminProfileAiSettings = '/admin/profile/ai';
+  static const adminProfileAiLog = '/admin/profile/ai-log';
+  static const adminProfilePreferences = '/admin/profile/preferences';
+
+  // Deprecated aliases — kept so old deep links / the audit `entityId`
+  // strings still resolve. Prefer the `adminProfile*` names.
+  static const adminAnalytics = adminProfileAnalytics;
+  static const adminAudit = adminProfileAudit;
+  static const adminAiSettings = adminProfileAiSettings;
+  static const adminAiLog = adminProfileAiLog;
+  static const adminForecast = adminProfileForecast;
 }
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -215,14 +232,8 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
           patientId: state.uri.queryParameters['patient'] ?? '',
         ),
       ),
-      GoRoute(
-        path: AppRoutes.adminAnalytics,
-        builder: (_, _) => const SystemAnalyticsScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.adminBilling,
-        builder: (_, _) => const AdminBillingScreen(),
-      ),
+      // Operational pushes from the dashboard Quick actions — full-screen over
+      // the shell, with the admin top bar.
       GoRoute(
         path: AppRoutes.adminAppointments,
         builder: (_, _) => const AdminAppointmentsScreen(),
@@ -230,18 +241,6 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
       GoRoute(
         path: AppRoutes.adminFeedback,
         builder: (_, _) => const AdminFeedbackScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.adminAiLog,
-        builder: (_, _) => const AdminAiLogScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.adminForecast,
-        builder: (_, _) => const AdminForecastScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.adminHomeVisits,
-        builder: (_, _) => const AdminHomeVisitsScreen(),
       ),
 
       _patientShell(),
@@ -629,12 +628,12 @@ StatefulShellRoute _adminShell() {
         AppDestination(
           icon: Icons.receipt_long_outlined,
           selectedIcon: Icons.receipt_long,
-          label: 'Audit',
+          label: 'Billing',
         ),
         AppDestination(
-          icon: Icons.auto_awesome_outlined,
-          selectedIcon: Icons.auto_awesome,
-          label: 'AI',
+          icon: Icons.account_circle_outlined,
+          selectedIcon: Icons.account_circle,
+          label: 'Profile',
         ),
       ],
     ),
@@ -650,6 +649,10 @@ StatefulShellRoute _adminShell() {
                 builder: (_, _) => const NotificationsScreen(
                   topActions: AdminTopActions(),
                 ),
+              ),
+              GoRoute(
+                path: 'home-visits',
+                builder: (_, _) => const AdminHomeVisitsScreen(),
               ),
             ],
           ),
@@ -674,16 +677,46 @@ StatefulShellRoute _adminShell() {
       StatefulShellBranch(
         routes: [
           GoRoute(
-            path: AppRoutes.adminAudit,
-            builder: (_, _) => const AuditLogScreen(),
+            path: AppRoutes.adminBilling,
+            builder: (_, _) => const AdminBillingScreen(),
           ),
         ],
       ),
       StatefulShellBranch(
         routes: [
           GoRoute(
-            path: AppRoutes.adminAiSettings,
-            builder: (_, _) => const AiSettingsScreen(),
+            path: AppRoutes.adminProfile,
+            builder: (_, _) => const AdminProfileScreen(),
+            routes: [
+              GoRoute(
+                path: 'account',
+                builder: (_, _) => const AdminAccountPage(),
+              ),
+              GoRoute(
+                path: 'audit',
+                builder: (_, _) => const AuditLogScreen(),
+              ),
+              GoRoute(
+                path: 'analytics',
+                builder: (_, _) => const SystemAnalyticsScreen(),
+              ),
+              GoRoute(
+                path: 'forecast',
+                builder: (_, _) => const AdminForecastScreen(),
+              ),
+              GoRoute(
+                path: 'ai',
+                builder: (_, _) => const AiSettingsScreen(),
+              ),
+              GoRoute(
+                path: 'ai-log',
+                builder: (_, _) => const AdminAiLogScreen(),
+              ),
+              GoRoute(
+                path: 'preferences',
+                builder: (_, _) => const AdminPreferencesPage(),
+              ),
+            ],
           ),
         ],
       ),

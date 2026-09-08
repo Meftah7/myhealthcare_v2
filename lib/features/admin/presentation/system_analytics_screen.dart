@@ -8,7 +8,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
-import '../../auth/presentation/sign_out_action.dart';
 import '../../staff_dashboard/application/staff_providers.dart';
 import '../application/admin_providers.dart';
 
@@ -23,7 +22,6 @@ class SystemAnalyticsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('System analytics'),
-        actions: const [SignOutAction()],
       ),
       body: RefreshIndicator(
         onRefresh: () async {

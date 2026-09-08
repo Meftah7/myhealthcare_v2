@@ -1,10 +1,10 @@
-/// The admin dashboard "Quick actions" grid (ported from the FirstSemMyHealth
-/// admin dashboard's scattered operations).
+/// The admin dashboard "Quick actions" — row tiles, the same shape the patient
+/// and staff dashboards use.
 ///
-/// Every admin operation is reachable here — add a user, broadcast a message,
-/// raise an invoice, jump to the billing / appointments / analytics / audit
-/// screens, add a department, re-seed the demo data. New admin features are
-/// added as tiles here.
+/// The *operations* live here: add a user, broadcast, raise an invoice, work
+/// the appointments / feedback / home-visit queues, add a department, re-seed.
+/// The *reports and config* (analytics, forecast, AI settings, AI activity,
+/// the audit log) live in the Profile hub instead.
 library;
 
 import 'dart:async';
@@ -33,12 +33,8 @@ class AdminQuickActions extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final size = WindowSize.of(context);
-    final crossAxisCount = size.isCompact
-        ? 3
-        : size.isMedium
-        ? 4
-        : 6;
+    final feedback = ref.watch(openFeedbackCountProvider).valueOrNull ?? 0;
+    final homeVisits = ref.watch(openHomeVisitCountProvider);
 
     final actions = <_QuickAction>[
       _QuickAction(
@@ -57,21 +53,18 @@ class AdminQuickActions extends ConsumerWidget {
         onTap: () => unawaited(showCreateInvoiceSheet(context, ref)),
       ),
       _QuickAction(
-        icon: Icons.receipt_long_outlined,
-        label: 'Billing',
-        onTap: () => unawaited(context.push(AppRoutes.adminBilling)),
-      ),
-      _QuickAction(
         icon: Icons.calendar_month_outlined,
         label: 'Appointments',
         onTap: () => unawaited(context.push(AppRoutes.adminAppointments)),
       ),
       _QuickAction(
+        icon: Icons.forum_outlined,
+        label: feedback == 0 ? 'Feedback' : 'Feedback ($feedback)',
+        onTap: () => unawaited(context.push(AppRoutes.adminFeedback)),
+      ),
+      _QuickAction(
         icon: Icons.add_home_outlined,
-        label: switch (ref.watch(openHomeVisitCountProvider)) {
-          0 => 'Home visits',
-          final n => 'Home visits ($n)',
-        },
+        label: homeVisits == 0 ? 'Home visits' : 'Home visits ($homeVisits)',
         onTap: () => unawaited(context.push(AppRoutes.adminHomeVisits)),
       ),
       _QuickAction(
@@ -80,44 +73,21 @@ class AdminQuickActions extends ConsumerWidget {
         onTap: () => unawaited(showNewDepartmentDialog(context, ref)),
       ),
       _QuickAction(
-        icon: Icons.forum_outlined,
-        label: 'Feedback',
-        onTap: () => unawaited(context.push(AppRoutes.adminFeedback)),
-      ),
-      _QuickAction(
-        icon: Icons.auto_awesome_outlined,
-        label: 'AI activity',
-        onTap: () => unawaited(context.push(AppRoutes.adminAiLog)),
-      ),
-      _QuickAction(
-        icon: Icons.query_stats_outlined,
-        label: 'Forecast',
-        onTap: () => unawaited(context.push(AppRoutes.adminForecast)),
-      ),
-      _QuickAction(
-        icon: Icons.insights_outlined,
-        label: 'Analytics',
-        onTap: () => unawaited(context.push(AppRoutes.adminAnalytics)),
-      ),
-      _QuickAction(
-        icon: Icons.fact_check_outlined,
-        label: 'Audit log',
-        onTap: () => context.go(AppRoutes.adminAudit),
-      ),
-      _QuickAction(
         icon: Icons.dataset_outlined,
         label: 'Re-seed data',
         onTap: () => unawaited(_reseed(context, ref)),
       ),
     ];
 
+    // Two tiles per row on a phone, three once there's room — the same shape
+    // the patient and staff dashboards use.
     return GridView.count(
-      crossAxisCount: crossAxisCount,
+      crossAxisCount: WindowSize.of(context).isCompact ? 2 : 3,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: Space.xs,
-      crossAxisSpacing: Space.xs,
-      childAspectRatio: 0.92,
+      mainAxisSpacing: Space.sm,
+      crossAxisSpacing: Space.sm,
+      childAspectRatio: 2.6,
       children: [for (final a in actions) _QuickActionTile(action: a)],
     );
   }
@@ -212,21 +182,34 @@ class _QuickActionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return AppCard(
-      padding: const EdgeInsets.all(Space.xs),
+      padding: const EdgeInsets.symmetric(
+        horizontal: Space.sm,
+        vertical: Space.sm,
+      ),
       onTap: action.onTap,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Row(
         children: [
-          Icon(action.icon, size: 22, color: theme.colorScheme.primary),
-          const SizedBox(height: Space.xs),
-          Text(
-            action.label,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.labelMedium,
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: scheme.primaryContainer,
+              borderRadius: Radii.chip,
+            ),
+            child: Icon(action.icon, size: 18, color: scheme.onPrimaryContainer),
           ),
+          const SizedBox(width: Space.sm),
+          Expanded(
+            child: Text(
+              action.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.titleSmall,
+            ),
+          ),
+          Icon(Icons.chevron_right, size: 18, color: scheme.onSurfaceVariant),
         ],
       ),
     );

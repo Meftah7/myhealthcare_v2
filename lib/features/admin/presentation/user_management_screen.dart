@@ -11,8 +11,8 @@ import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
-import '../../auth/presentation/sign_out_action.dart';
 import '../application/admin_providers.dart';
+import 'admin_top_actions.dart';
 
 class UserManagementScreen extends ConsumerStatefulWidget {
   const UserManagementScreen({super.key});
@@ -70,7 +70,7 @@ class _State extends ConsumerState<UserManagementScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('User management'),
-        actions: const [SignOutAction()],
+        actions: const [AdminTopActions()],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(104),
           child: Column(

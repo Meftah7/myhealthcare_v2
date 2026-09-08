@@ -1,5 +1,6 @@
-/// Admin dashboard (redesign v2): one overview of the whole system — headline
-/// metrics, appointment health, quick links, recent activity.
+/// Admin dashboard — the same layout language as the patient and staff
+/// dashboards: date overline + greeting, one saturated hero, a three-figure
+/// "System health" row, Quick actions as row tiles, then the live queues.
 library;
 
 import 'package:flutter/material.dart';
@@ -12,6 +13,7 @@ import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../auth/application/session.dart';
+import '../../care/application/care_providers.dart';
 import '../../staff_dashboard/application/staff_providers.dart';
 import '../application/admin_providers.dart';
 import 'admin_quick_actions.dart';
@@ -25,9 +27,6 @@ class AdminDashboardScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final user = ref.watch(currentUserProvider);
     final firstName = (user?.fullName ?? 'there').split(' ').first;
-    final stats = ref.watch(systemStatsProvider);
-    final panel = ref.watch(panelStatsProvider);
-    final audit = ref.watch(auditLogProvider);
     final gutter = WindowSize.of(context).gutter;
 
     return Scaffold(
@@ -42,7 +41,8 @@ class AdminDashboardScreen extends ConsumerWidget {
             ..invalidate(panelStatsProvider)
             ..invalidate(unpaidInvoiceCountProvider)
             ..invalidate(openFeedbackCountProvider)
-            ..invalidate(auditLogProvider);
+            ..invalidate(auditLogProvider)
+            ..invalidate(homeVisitQueueProvider(null));
         },
         child: Center(
           child: ConstrainedBox(
@@ -50,169 +50,226 @@ class AdminDashboardScreen extends ConsumerWidget {
             child: ListView(
               padding: EdgeInsets.fromLTRB(gutter, Space.md, gutter, Space.xxl),
               children: [
-                Text(greeting(firstName), style: theme.textTheme.headlineSmall),
+                Text(
+                  fmtDate(DateTime.now()).toUpperCase(),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    letterSpacing: 0.8,
+                  ),
+                ),
                 const SizedBox(height: Space.xxs),
                 Text(
-                  'System overview',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
+                  greeting(firstName),
+                  style: theme.textTheme.headlineMedium,
                 ),
                 const SizedBox(height: Space.lg),
 
-                stats.when(
-                  loading: () => const LoadingSkeleton(height: 180),
-                  error: (e, _) =>
-                      const InlineBanner.error('Could not load system stats.'),
-                  data: (s) {
-                    final unpaid = ref
-                        .watch(unpaidInvoiceCountProvider)
-                        .valueOrNull;
-                    final openFeedback = ref
-                        .watch(openFeedbackCountProvider)
-                        .valueOrNull;
-                    final compact = WindowSize.of(context).isCompact;
-                    return GridView.count(
-                      crossAxisCount: compact ? 2 : 3,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      mainAxisSpacing: Space.sm,
-                      crossAxisSpacing: Space.sm,
-                      childAspectRatio: compact ? 1.7 : 1.6,
-                      children: [
-                        MetricTile(
-                          value: '${s.patients}',
-                          label: 'Patients',
-                          icon: Icons.people_outline,
-                          onTap: () => context.go(AppRoutes.adminUsers),
-                        ),
-                        MetricTile(
-                          value: '${s.staff}',
-                          label: 'Staff',
-                          icon: Icons.badge_outlined,
-                          onTap: () => context.go(AppRoutes.adminUsers),
-                        ),
-                        MetricTile(
-                          value: '${s.admins}',
-                          label: 'Admins',
-                          icon: Icons.shield_outlined,
-                          onTap: () => context.go(AppRoutes.adminUsers),
-                        ),
-                        MetricTile(
-                          value: '${s.departments}',
-                          label: 'Departments',
-                          icon: Icons.apartment_outlined,
-                          onTap: () => context.go(AppRoutes.adminDepartments),
-                        ),
-                        MetricTile(
-                          value: '${s.openFlags}',
-                          label: 'Open risk flags',
-                          icon: Icons.flag_outlined,
-                        ),
-                        MetricTile(
-                          value: '${unpaid ?? 0}',
-                          label: 'Unpaid invoices',
-                          icon: Icons.request_quote_outlined,
-                          onTap: () => context.push(AppRoutes.adminBilling),
-                        ),
-                        MetricTile(
-                          value: '${openFeedback ?? 0}',
-                          label: 'Open feedback',
-                          icon: Icons.forum_outlined,
-                          onTap: () => context.push(AppRoutes.adminFeedback),
-                        ),
-                      ],
-                    );
-                  },
-                ),
+                const _NeedsYouHero(),
+                const SizedBox(height: Space.lg),
 
-                const SizedBox(height: Space.md),
+                const SectionHeader('System health', overline: true),
+                _SystemHealth(),
+                const SizedBox(height: Space.lg),
+
                 const SectionHeader('Quick actions', overline: true),
                 const AdminQuickActions(),
+                const SizedBox(height: Space.lg),
 
-                const SizedBox(height: Space.md),
-                const SectionHeader('Appointments · last 90 days', overline: true),
-                panel.when(
-                  loading: () => const LoadingSkeleton(height: 120),
-                  error: (e, _) => const InlineBanner.error(
-                    'Could not load appointment stats.',
-                  ),
-                  data: (p) => AppCard(
-                    onTap: () => context.push(AppRoutes.adminAnalytics),
-                    child: Column(
-                      children: [
-                        _Kv(
-                          'No-show rate',
-                          '${(p.noShowRate * 100).toStringAsFixed(1)}%',
-                        ),
-                        _Kv(
-                          'Cancellation rate',
-                          '${(p.cancellationRate * 100).toStringAsFixed(1)}%',
-                        ),
-                        _Kv('Completed', '${p.completed}'),
-                        _Kv('Upcoming', '${p.upcoming}', last: true),
-                        const SizedBox(height: Space.xs),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            'View detailed analytics  ›',
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              color: theme.colorScheme.primary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                SectionHeader(
+                  'Appointments · last 90 days',
+                  overline: true,
+                  action: 'Analytics',
+                  onAction: () =>
+                      context.push(AppRoutes.adminProfileAnalytics),
                 ),
+                _PanelCard(),
+                const SizedBox(height: Space.lg),
 
-                const SizedBox(height: Space.md),
-                const SectionHeader('Recent activity', overline: true),
-                audit.when(
-                  loading: () => const LoadingSkeleton(height: 90),
-                  error: (e, _) =>
-                      const InlineBanner.error('Could not load the audit log.'),
-                  data: (list) {
-                    if (list.isEmpty) {
-                      return const AppCard(
-                        padding: EdgeInsets.all(Space.md),
-                        child: Text('No audit entries yet.'),
-                      );
-                    }
-                    return AppCard(
-                      padding: EdgeInsets.zero,
-                      child: Column(
-                        children: [
-                          for (var i = 0; i < list.take(6).length; i++) ...[
-                            if (i > 0)
-                              const Divider(height: 1, indent: Space.md),
-                            ListTile(
-                              dense: true,
-                              title: Text(list[i].action),
-                              subtitle: Text(
-                                [
-                                  list[i].entityType,
-                                  ?list[i].entityId,
-                                ].join(' · '),
-                              ),
-                              trailing: Text(
-                                fmtDateTime(list[i].at),
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    );
-                  },
+                SectionHeader(
+                  'Recent activity',
+                  overline: true,
+                  action: 'Audit log',
+                  onAction: () => context.push(AppRoutes.adminProfileAudit),
                 ),
+                _ActivityCard(),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The screen's one saturated surface — how many things are waiting on the
+/// admin, and the way into the most urgent one.
+class _NeedsYouHero extends ConsumerWidget {
+  const _NeedsYouHero();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final unpaid = ref.watch(unpaidInvoiceCountProvider).valueOrNull ?? 0;
+    final feedback = ref.watch(openFeedbackCountProvider).valueOrNull ?? 0;
+    final homeVisits = ref.watch(openHomeVisitCountProvider);
+    final total = unpaid + feedback + homeVisits;
+
+    if (total == 0) {
+      return GradientHeroCard(
+        icon: Icons.check_circle_outline,
+        title: 'All clear',
+        subtitle: 'No invoices, reports or visit requests waiting',
+        onTap: () => context.push(AppRoutes.adminProfileAnalytics),
+      );
+    }
+
+    final parts = <String>[
+      if (unpaid > 0) '$unpaid unpaid invoice${unpaid == 1 ? '' : 's'}',
+      if (feedback > 0) '$feedback open report${feedback == 1 ? '' : 's'}',
+      if (homeVisits > 0)
+        '$homeVisits visit request${homeVisits == 1 ? '' : 's'}',
+    ];
+
+    // Deep-link to the busiest queue.
+    final route = unpaid >= feedback && unpaid >= homeVisits
+        ? AppRoutes.adminBilling
+        : feedback >= homeVisits
+        ? AppRoutes.adminFeedback
+        : AppRoutes.adminHomeVisits;
+
+    return GradientHeroCard(
+      icon: Icons.priority_high,
+      title: '$total ${total == 1 ? 'thing needs' : 'things need'} you',
+      subtitle: parts.join(' · '),
+      onTap: () => route == AppRoutes.adminBilling
+          ? context.go(route)
+          : context.push(route),
+    );
+  }
+}
+
+/// Three figures for the whole system — the admin mirror of the patient's
+/// "Your health" row.
+class _SystemHealth extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final stats = ref.watch(systemStatsProvider);
+
+    return stats.when(
+      loading: () => const LoadingSkeleton(height: 96),
+      error: (e, _) =>
+          const InlineBanner.error('Could not load system stats.'),
+      data: (s) => Row(
+        children: [
+          Expanded(
+            child: MetricTile(
+              value: '${s.patients}',
+              label: 'Patients',
+              icon: Icons.people_outline,
+              onTap: () => context.go(AppRoutes.adminUsers),
+            ),
+          ),
+          const SizedBox(width: Space.sm),
+          Expanded(
+            child: MetricTile(
+              value: '${s.staff}',
+              label: 'Staff',
+              icon: Icons.badge_outlined,
+              onTap: () => context.go(AppRoutes.adminUsers),
+            ),
+          ),
+          const SizedBox(width: Space.sm),
+          Expanded(
+            child: MetricTile(
+              value: '${s.departments}',
+              label: 'Departments',
+              icon: Icons.apartment_outlined,
+              onTap: () => context.go(AppRoutes.adminDepartments),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PanelCard extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final panel = ref.watch(panelStatsProvider);
+    return panel.when(
+      loading: () => const LoadingSkeleton(height: 120),
+      error: (e, _) =>
+          const InlineBanner.error('Could not load appointment stats.'),
+      data: (p) => AppCard(
+        onTap: () => context.push(AppRoutes.adminProfileAnalytics),
+        child: Column(
+          children: [
+            _Kv('No-show rate', '${(p.noShowRate * 100).toStringAsFixed(1)}%'),
+            _Kv(
+              'Cancellation rate',
+              '${(p.cancellationRate * 100).toStringAsFixed(1)}%',
+            ),
+            _Kv('Completed', '${p.completed}'),
+            _Kv('Upcoming', '${p.upcoming}', last: true),
+            const SizedBox(height: Space.xs),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'View detailed analytics  ›',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ActivityCard extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final audit = ref.watch(auditLogProvider);
+    return audit.when(
+      loading: () => const LoadingSkeleton(height: 90),
+      error: (e, _) =>
+          const InlineBanner.error('Could not load the audit log.'),
+      data: (list) {
+        if (list.isEmpty) {
+          return const AppCard(
+            padding: EdgeInsets.all(Space.md),
+            child: Text('No audit entries yet.'),
+          );
+        }
+        final rows = list.take(6).toList();
+        return AppCard(
+          padding: EdgeInsets.zero,
+          child: Column(
+            children: [
+              for (var i = 0; i < rows.length; i++) ...[
+                if (i > 0) const Divider(height: 1, indent: Space.md),
+                ListTile(
+                  dense: true,
+                  title: Text(rows[i].action),
+                  subtitle: Text(
+                    [rows[i].entityType, ?rows[i].entityId].join(' · '),
+                  ),
+                  trailing: Text(
+                    fmtDateTime(rows[i].at),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -248,4 +305,3 @@ class _Kv extends StatelessWidget {
     );
   }
 }
-

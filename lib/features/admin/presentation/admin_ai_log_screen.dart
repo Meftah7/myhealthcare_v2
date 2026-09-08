@@ -12,7 +12,6 @@ import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/enums.dart';
 import '../application/admin_providers.dart';
-import 'admin_top_actions.dart';
 
 String aiFeatureLabel(AiFeature f) => switch (f) {
   AiFeature.careNavigator => 'Care Navigator',
@@ -45,7 +44,6 @@ class _AdminAiLogScreenState extends ConsumerState<AdminAiLogScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('AI activity'),
-        actions: const [AdminTopActions()],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(52),
           child: SingleChildScrollView(

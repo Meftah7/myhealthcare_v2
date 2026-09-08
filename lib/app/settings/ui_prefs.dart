@@ -139,6 +139,47 @@ final soundsEnabledProvider =
       SoundsEnabledController.new,
     );
 
+// --- admin working status ---------------------------------------------
+
+const _adminStatusKey = 'ui.adminStatus';
+
+/// An administrator's self-set working status. Unlike a clinician's presence
+/// (which colleagues and the directory see), an admin's is a personal signal
+/// only — so it lives on the device in [SharedPreferences], never in the DB.
+enum AdminStatus {
+  available('Available'),
+  meeting('In a meeting'),
+  away('Away'),
+  off('Off');
+
+  const AdminStatus(this.label);
+
+  final String label;
+}
+
+class AdminStatusController extends Notifier<AdminStatus> {
+  @override
+  AdminStatus build() {
+    final raw = ref.read(sharedPreferencesProvider).getString(_adminStatusKey);
+    return AdminStatus.values.firstWhere(
+      (s) => s.name == raw,
+      orElse: () => AdminStatus.available,
+    );
+  }
+
+  Future<void> set(AdminStatus status) async {
+    state = status;
+    await ref
+        .read(sharedPreferencesProvider)
+        .setString(_adminStatusKey, status.name);
+  }
+}
+
+final adminStatusProvider =
+    NotifierProvider<AdminStatusController, AdminStatus>(
+      AdminStatusController.new,
+    );
+
 // --- notification preferences (redesign v2 patient dashboard) -------------
 
 const _notifySmsKey = 'ui.notify.sms';
