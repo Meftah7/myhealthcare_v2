@@ -57,7 +57,7 @@ class Seeder {
   /// v8: each patient starts with one saved card in their wallet.
   /// v9: staff members get a starting presence status.
   /// v10: a starter feedback inbox for the admin dashboard.
-  static const seedVersion = 12;
+  static const seedVersion = 13;
 
   /// Password for every seeded account (documented in the README).
   static const demoPassword = 'password';
@@ -102,6 +102,7 @@ class Seeder {
     }
 
     await _seedFeedback(patients, staff);
+    await _seedCareServices(patients, staff);
 
     return SeedResult(
       departments: deptIds.length,
@@ -477,6 +478,134 @@ class Seeder {
       i++;
     }
   }
+
+  /// Batch B care services: a few doctor-issued sick notes, a couple of
+  /// patient <-> doctor threads with a reply, and a small home-visit queue
+  /// (P10-05, P10-07, P10-08).
+  Future<void> _seedCareServices(
+    List<_Patient> patients,
+    List<_Staff> staff,
+  ) async {
+    // Sick leave — one for roughly every other patient, dated in the past.
+    for (var i = 0; i < patients.length; i += 2) {
+      final p = patients[i];
+      final doc = _pick(staff);
+      final from = _epoch.subtract(Duration(days: 20 + _rng.nextInt(90)));
+      await _db
+          .into(_db.sickLeaveCertificates)
+          .insert(
+            SickLeaveCertificatesCompanion.insert(
+              id: 'sick_${p.id}',
+              patientId: p.id,
+              issuedByStaffId: doc.id,
+              diagnosis: _pick(_sickReasons),
+              fromDate: from,
+              toDate: from.add(Duration(days: 1 + _rng.nextInt(4))),
+              issuedAt: Value(from),
+            ),
+          );
+    }
+
+    // Messaging — a short thread for a handful of patients.
+    for (var i = 0; i < patients.length && i < 5; i++) {
+      final p = patients[i * 2 % patients.length];
+      final doc = _pick(staff);
+      final base = _epoch.subtract(Duration(days: 3 + i));
+      await _db
+          .into(_db.careMessages)
+          .insert(
+            CareMessagesCompanion.insert(
+              id: 'msg_${p.id}_0',
+              patientId: p.id,
+              staffId: doc.id,
+              fromStaff: false,
+              body: _pick(_patientQuestions),
+              sentAt: Value(base),
+              readAt: Value(base.add(const Duration(hours: 2))),
+            ),
+          );
+      await _db
+          .into(_db.careMessages)
+          .insert(
+            CareMessagesCompanion.insert(
+              id: 'msg_${p.id}_1',
+              patientId: p.id,
+              staffId: doc.id,
+              fromStaff: true,
+              body: _pick(_doctorReplies),
+              sentAt: Value(base.add(const Duration(hours: 3))),
+              // Left unread for the patient so the badge shows on first open.
+            ),
+          );
+    }
+
+    // Home visits — one waiting for triage, one already scheduled, one done.
+    final hv = [
+      (patients[1], HomeVisitStatus.requested, null),
+      (patients[4], HomeVisitStatus.scheduled, 'Nurse visit booked for Thu AM.'),
+      (
+        patients[9],
+        HomeVisitStatus.completed,
+        'Visited and reviewed medications.',
+      ),
+    ];
+    var k = 0;
+    for (final (p, status, note) in hv) {
+      await _db
+          .into(_db.homeVisitRequests)
+          .insert(
+            HomeVisitRequestsCompanion.insert(
+              id: 'hv_${p.id}',
+              patientId: p.id,
+              addressText: 'Building ${100 + k * 37}, Road ${20 + k}, '
+                  'Block ${300 + k * 4}',
+              preferredDate: _epoch.add(Duration(days: 2 + k * 3)),
+              reasonText: _pick(_homeVisitReasons),
+              status: Value(status),
+              assignedStaffId: status == HomeVisitStatus.requested
+                  ? const Value.absent()
+                  : Value(_pick(staff).id),
+              decisionNote: note == null ? const Value.absent() : Value(note),
+              createdAt: Value(_epoch.subtract(Duration(days: 5 - k))),
+              decidedAt: status == HomeVisitStatus.requested
+                  ? const Value.absent()
+                  : Value(_epoch.subtract(Duration(days: 4 - k))),
+            ),
+          );
+      k++;
+    }
+  }
+
+  static const _sickReasons = [
+    'Acute upper respiratory tract infection',
+    'Acute gastroenteritis',
+    'Migraine',
+    'Post-procedure recovery',
+    'Influenza-like illness',
+    'Lower back strain',
+  ];
+
+  static const _patientQuestions = [
+    'Is it okay to keep taking my blood pressure tablet with the new cough syrup?',
+    'The rash from last visit is still there after a week — should I come in?',
+    'Can I get a refill on my inhaler before my next appointment?',
+    'My fasting sugar has been a bit high this week. Anything I should change?',
+    'Do I need to fast before the blood test you ordered?',
+  ];
+
+  static const _doctorReplies = [
+    'Yes, that combination is fine. Let me know if the cough is not better in a few days.',
+    'Please book a short review so I can take a look — no need for an urgent slot.',
+    "I've sent the refill to your pharmacy. Pick it up any time today.",
+    "Keep logging the readings and cut back on evening carbs; we'll review at your visit.",
+    'Yes — 8 hours fasting, water is fine.',
+  ];
+
+  static const _homeVisitReasons = [
+    'Recently discharged and unable to travel to the clinic for a wound check.',
+    'Elderly parent with limited mobility needs a medication review.',
+    'Severe vertigo makes leaving the house unsafe right now.',
+  ];
 
   /// A small starter feed for the Notifications centre, tied to the patient's
   /// real seeded data: a reminder for their next appointment, a nudge for any

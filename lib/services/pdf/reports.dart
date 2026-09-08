@@ -112,6 +112,67 @@ pw.Widget _vitalsTable(List<Vitals> rows) {
   );
 }
 
+/// Doctor-issued sick-leave certificate (P10-05).
+Future<Uint8List> sickLeavePdf({
+  required PdfIdentity patient,
+  required SickLeaveCertificate certificate,
+  required String issuingClinician,
+}) {
+  final c = certificate;
+  return ClinicPdf.build(
+    title: 'Medical certificate',
+    subtitle: 'Issued ${_dayFmt.format(c.issuedAt)}',
+    patient: patient,
+    body: [
+      pdfSection(
+        'Certificate',
+        pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Text(
+              'This is to certify that the above-named patient was examined '
+              'and, in my medical opinion, is unfit for work or study for the '
+              'period stated below.',
+              style: const pw.TextStyle(
+                fontSize: 10,
+                color: pdfInk,
+                lineSpacing: 3,
+              ),
+            ),
+            pw.SizedBox(height: 12),
+            pdfKeyValue('Reason', c.diagnosis),
+            pdfKeyValue('From', _dayFmt.format(c.fromDate)),
+            pdfKeyValue('To (inclusive)', _dayFmt.format(c.toDate)),
+            pdfKeyValue(
+              'Total',
+              '${c.days} day${c.days == 1 ? '' : 's'}',
+            ),
+            if (c.notes != null && c.notes!.isNotEmpty)
+              pdfKeyValue('Notes', c.notes!),
+          ],
+        ),
+      ),
+      pdfSection(
+        'Issued by',
+        pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pdfKeyValue('Clinician', issuingClinician),
+            pdfKeyValue('Date issued', _dayFmt.format(c.issuedAt)),
+            pw.SizedBox(height: 24),
+            pw.Container(width: 200, height: 0.7, color: pdfHairline),
+            pw.SizedBox(height: 3),
+            pw.Text(
+              'Signature / clinic stamp',
+              style: const pw.TextStyle(fontSize: 8, color: pdfMuted),
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
+}
+
 /// Diagnostic imaging / radiology result.
 Future<Uint8List> radiologyReportPdf({
   required PdfIdentity patient,

@@ -166,14 +166,23 @@ class _DocumentsStrip extends ConsumerWidget {
             ),
             const SizedBox(width: Space.sm),
             Expanded(
-              child: DocumentDownloadButton(
-                label: 'Vitals report',
-                filename: 'vital-signs-report.pdf',
-                icon: Icons.monitor_heart_outlined,
-                build: () => buildVitalsReport(ref),
+              child: OutlinedButton.icon(
+                onPressed: () => context.push(AppRoutes.patientSickLeave),
+                icon: const Icon(Icons.event_busy_outlined, size: 18),
+                label: const Text('Sick leave'),
               ),
             ),
           ],
+        ),
+        const SizedBox(height: Space.sm),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: DocumentDownloadButton(
+            label: 'Vital signs report',
+            filename: 'vital-signs-report.pdf',
+            icon: Icons.monitor_heart_outlined,
+            build: () => buildVitalsReport(ref),
+          ),
         ),
         if (allergies.isEmpty) ...[
           const SizedBox(height: Space.xs),

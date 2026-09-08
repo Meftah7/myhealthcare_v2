@@ -21,6 +21,10 @@ Future<void> showLabResultSheet(BuildContext context, String patientId) {
   return _open(context, _LabSheet(patientId: patientId));
 }
 
+Future<void> showSickLeaveSheet(BuildContext context, String patientId) {
+  return _open(context, _SickLeaveSheet(patientId: patientId));
+}
+
 Future<void> _open(BuildContext context, Widget child) {
   return showModalBottomSheet<void>(
     context: context,
@@ -334,6 +338,123 @@ class _LabSheetState extends ConsumerState<_LabSheet> {
               ),
             ),
           ],
+        ),
+      ],
+    );
+  }
+}
+
+// --- sick leave ----------------------------------------------------------
+
+class _SickLeaveSheet extends ConsumerStatefulWidget {
+  const _SickLeaveSheet({required this.patientId});
+  final String patientId;
+
+  @override
+  ConsumerState<_SickLeaveSheet> createState() => _SickLeaveSheetState();
+}
+
+class _SickLeaveSheetState extends ConsumerState<_SickLeaveSheet> {
+  final _diagnosis = TextEditingController();
+  final _notes = TextEditingController();
+  late DateTime _from = DateTime.now();
+  late DateTime _to = DateTime.now().add(const Duration(days: 2));
+  bool _busy = false;
+
+  @override
+  void dispose() {
+    _diagnosis.dispose();
+    _notes.dispose();
+    super.dispose();
+  }
+
+  int get _days => _to.difference(_from).inDays + 1;
+
+  Future<void> _pick({required bool isFrom}) async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: isFrom ? _from : _to,
+      firstDate: now.subtract(const Duration(days: 7)),
+      lastDate: now.add(const Duration(days: 120)),
+    );
+    if (picked == null) return;
+    setState(() {
+      if (isFrom) {
+        _from = picked;
+        if (_to.isBefore(_from)) _to = _from;
+      } else {
+        _to = picked;
+        if (_from.isAfter(_to)) _from = _to;
+      }
+    });
+  }
+
+  Future<void> _submit() async {
+    setState(() => _busy = true);
+    final result = await ref
+        .read(chartActionsProvider(widget.patientId))
+        .issueSickLeave(
+          diagnosis: _diagnosis.text.trim(),
+          fromDate: _from,
+          toDate: _to,
+          notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
+        );
+    if (!mounted) return;
+    setState(() => _busy = false);
+    _report(context, result, 'Certificate issued.');
+    if (result.isOk) Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final df = MaterialLocalizations.of(context);
+    return _SheetScaffold(
+      title: 'Issue sick leave',
+      submitting: _busy,
+      canSubmit: _diagnosis.text.trim().isNotEmpty && _days >= 1,
+      onSubmit: _submit,
+      children: [
+        TextField(
+          controller: _diagnosis,
+          decoration: const InputDecoration(
+            labelText: 'Reason / diagnosis',
+            hintText: 'e.g. Acute viral illness',
+          ),
+          onChanged: (_) => setState(() {}),
+        ),
+        const SizedBox(height: Space.sm),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () => _pick(isFrom: true),
+                child: Text('From: ${df.formatMediumDate(_from)}'),
+              ),
+            ),
+            const SizedBox(width: Space.sm),
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () => _pick(isFrom: false),
+                child: Text('To: ${df.formatMediumDate(_to)}'),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: Space.xs),
+        Text(
+          '$_days day${_days == 1 ? '' : 's'}',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        const SizedBox(height: Space.sm),
+        TextField(
+          controller: _notes,
+          minLines: 2,
+          maxLines: 4,
+          decoration: const InputDecoration(
+            labelText: 'Notes (optional)',
+            alignLabelWithHint: true,
+          ),
         ),
       ],
     );

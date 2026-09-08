@@ -550,7 +550,7 @@ Phase 9 — Full redesign "v2" @done(2026-09-03) — 5 commits (016cf5f 29e8337 
 
   TO FINISH v2: the 3 theme-only screens above + R4 IA.
 
-Phase 10 — Patient services & documents: @5of11  (Batch A done; Batch B pending)
+Phase 10 — Patient services & documents: @8of8  ✔ COMPLETE (Batch A + Batch B)
   Goal: printable clinic documents + the patient-facing services a real clinic
   portal has. Split into two batches — A (no new tables) reviewed before B.
   Deps added: printing ^5.15.0 + pdf ^3.13.0 (offline PDF generate/preview/share).
@@ -585,15 +585,38 @@ Phase 10 — Patient services & documents: @5of11  (Batch A done; Batch B pendin
   Tests: test/services/clinic_pdf_test.dart, test/features/patient_documents_test.dart,
     test/features/allergies_screen_test.dart.
 
-  BATCH B — pending (3 new tables + staff/admin side):
-  ☐ P10-05 Sick leave certificates @L — doctor-issued; patient views + downloads
-    the PDF. New table sick_leave_certificates. Staff: issue from a visit.
-  ☐ P10-07 Ask your doctor @L — patient↔doctor message threads (one per doctor
-    seen) + a minimal staff inbox. New table care_messages.
-  ☐ P10-08 Home health care @L — patient requests a home visit (address, date,
-    reason); status list. Surfaced to staff/admin as a queue. New table
-    home_visit_requests.
-  Quick actions to add in Batch B: Sick leave, Ask your doctor, Home health care.
+  BATCH B — done (schema 10 → 11, seedVersion 12 → 13; 3 new tables in
+  lib/data/db/tables/care.dart; entities in domain/entities/care.dart; repos
+  in care_repository_impl.dart; feature area lib/features/care/):
+  ✔ P10-05 Sick leave certificates @L @done(2026-09-08)
+    Doctor-issued only. Table sick_leave_certificates. Staff issues from the
+    patient chart FAB ("Issue sick leave" → _SickLeaveSheet → ChartActions
+    .issueSickLeave, writes a sick_leave.issue audit row). Patient:
+    /patient/timeline/sick-leave (SickLeaveScreen) — list + per-row PDF
+    (sickLeavePdf, with a signature/stamp block). Home quick action + Records
+    strip shortcut. Seeded for every other patient.
+  ✔ P10-07 Ask your doctor @L @done(2026-09-08)
+    Table care_messages (a "thread" = rows sharing patientId+staffId; fromStaff
+    flags the sender). CareThread view model built in the repo with per-side
+    unread counts. Patient: /patient/home/messages (MessagesScreen) + New
+    message picker (doctors seen) → /patient/home/messages/:staffId
+    (MessageThreadScreen, shared with staff via viewerIsStaff). Staff:
+    /staff/dashboard/inbox (StaffInboxScreen) + a "Messages (n)" quick action.
+    markRead on thread open. Seeded 5 threads (patient Q + unread doctor reply).
+  ✔ P10-08 Home health care @L @done(2026-09-08)
+    Table home_visit_requests + HomeVisitStatus enum (requested/scheduled/
+    completed/declined/cancelled). Patient: /patient/home/home-visit
+    (HomeVisitScreen) — request form (address, preferred date, reason, optional
+    department) + status list, cancel while still "requested". Admin:
+    /admin/home-visits (AdminHomeVisitsScreen) — filterable queue, Schedule /
+    Decline (with a note dialog) / Mark completed. Admin quick action shows the
+    open count. Home quick action for the patient. Seeded 3 (requested/
+    scheduled/completed).
+  Home quick actions now: Vitals, Medications, Ask your doctor, Visited doctors,
+  Sick leave, Home care, Billing.
+  Tests: test/data/care_repositories_test.dart, test/features/care_flow_test.dart.
+  Deferred: real-time message delivery (polling/refresh only); home-visit ->
+  appointment conversion; notifications on a doctor reply / a triage decision.
 
 Phase 7 — Report & presentation: @0of5
   ☐ P7-01 Architecture, use-case, sequence diagrams @M @needs(P1-22)

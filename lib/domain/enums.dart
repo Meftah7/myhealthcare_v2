@@ -75,6 +75,10 @@ enum ReminderChannel { push, inApp, sms, email }
 /// due date rather than stored, so it never goes stale in the database.
 enum InvoiceStatus { pending, paid, cancelled }
 
+/// Lifecycle of a home-visit request (P10-08). `requested` is the patient's
+/// submission; the clinic moves it from there.
+enum HomeVisitStatus { requested, scheduled, completed, declined, cancelled }
+
 /// What a patient notification is about — drives its icon and accent.
 enum NotificationCategory {
   appointment,

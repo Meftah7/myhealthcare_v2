@@ -43,3 +43,18 @@ Future<Uint8List> buildRadiologyReport(
     reportingClinician: doctors[record.authorStaffId]?.name,
   );
 }
+
+/// Builds a sick-leave certificate PDF.
+Future<Uint8List> buildSickLeave(
+  WidgetRef ref,
+  SickLeaveCertificate certificate,
+) async {
+  final identity = await ref.read(pdfIdentityProvider.future);
+  final doctors = await ref.read(doctorDirectoryProvider.future);
+  return sickLeavePdf(
+    patient: identity,
+    certificate: certificate,
+    issuingClinician:
+        doctors[certificate.issuedByStaffId]?.name ?? 'Attending clinician',
+  );
+}

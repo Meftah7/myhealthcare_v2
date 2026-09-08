@@ -18,6 +18,7 @@ import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
+import '../../care/application/care_providers.dart';
 import '../../patient_chart/presentation/chart_write_sheets.dart';
 import '../application/staff_providers.dart';
 
@@ -86,6 +87,14 @@ class StaffQuickActions extends ConsumerWidget {
         icon: Icons.person_search_outlined,
         label: 'Patient lookup',
         onTap: () => context.go(AppRoutes.staffPatients),
+      ),
+      _QuickAction(
+        icon: Icons.forum_outlined,
+        label: switch (ref.watch(staffUnreadCountProvider)) {
+          0 => 'Messages',
+          final n => 'Messages ($n)',
+        },
+        onTap: () => unawaited(context.push(AppRoutes.staffInbox)),
       ),
       _QuickAction(
         icon: Icons.radar,

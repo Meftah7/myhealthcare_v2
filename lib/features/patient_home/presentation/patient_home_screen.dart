@@ -400,9 +400,27 @@ class _QuickActions extends StatelessWidget {
         false,
       ),
       (
+        Icons.forum_outlined,
+        'Ask your doctor',
+        AppRoutes.patientMessages,
+        true,
+      ),
+      (
         Icons.groups_outlined,
         'Visited doctors',
         AppRoutes.patientVisitedDoctors,
+        true,
+      ),
+      (
+        Icons.event_busy_outlined,
+        'Sick leave',
+        AppRoutes.patientSickLeave,
+        true,
+      ),
+      (
+        Icons.add_home_outlined,
+        'Home care',
+        AppRoutes.patientHomeVisit,
         true,
       ),
       (Icons.receipt_long_outlined, 'Billing', AppRoutes.patientBilling, false),

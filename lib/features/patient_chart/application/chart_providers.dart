@@ -11,8 +11,10 @@ import '../../../core/result.dart';
 import '../../../core/utils/ids.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../domain/repositories/care_repository.dart';
 import '../../../domain/repositories/record_repository.dart';
 import '../../auth/application/session.dart';
+import '../../care/application/care_providers.dart';
 import '../../staff_dashboard/application/staff_providers.dart';
 
 final chartPatientProvider = FutureProvider.family<Patient, String>((
@@ -151,6 +153,39 @@ class ChartActions {
     if (result.isOk) {
       await _audit('record.lab.add', result.valueOrNull!.id);
       _refresh();
+    }
+    return result;
+  }
+
+  /// P10-05 — issue a sick-leave certificate the patient can download.
+  Future<Result<SickLeaveCertificate>> issueSickLeave({
+    required String diagnosis,
+    required DateTime fromDate,
+    required DateTime toDate,
+    String? notes,
+  }) async {
+    final result = await _ref
+        .read(sickLeaveRepositoryProvider)
+        .issue(
+          NewSickLeave(
+            patientId: _patientId,
+            issuedByStaffId: _authorId,
+            diagnosis: diagnosis,
+            fromDate: fromDate,
+            toDate: toDate,
+            notes: notes,
+          ),
+        );
+    if (result.isOk) {
+      await _ref
+          .read(auditRepositoryProvider)
+          .record(
+            action: 'sick_leave.issue',
+            entityType: 'sick_leave_certificate',
+            entityId: result.valueOrNull!.id,
+            actorUserId: _authorId,
+          );
+      _ref.invalidate(patientSickLeaveProvider);
     }
     return result;
   }

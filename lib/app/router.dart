@@ -31,6 +31,11 @@ import '../features/auth/presentation/register_screen.dart';
 import '../features/auth/presentation/reset_password_screen.dart';
 import '../features/billing/presentation/billing_screen.dart';
 import '../features/booking/presentation/booking_screen.dart';
+import '../features/care/presentation/admin_home_visits_screen.dart';
+import '../features/care/presentation/home_visit_screen.dart';
+import '../features/care/presentation/messages_screen.dart';
+import '../features/care/presentation/sick_leave_screen.dart';
+import '../features/care/presentation/staff_inbox_screen.dart';
 import '../features/notifications/presentation/notifications_screen.dart';
 import '../features/nutrition/presentation/nutrition_screen.dart';
 import '../features/patient/application/profile_screen.dart';
@@ -111,7 +116,10 @@ abstract final class AppRoutes {
   static const patientNutrition = '/patient/nutrition';
   static const patientImaging = '/patient/timeline/imaging';
   static const patientAllergies = '/patient/timeline/allergies';
+  static const patientSickLeave = '/patient/timeline/sick-leave';
   static const patientVisitedDoctors = '/patient/appointments/doctors';
+  static const patientMessages = '/patient/home/messages';
+  static const patientHomeVisit = '/patient/home/home-visit';
 
   /// Record detail — pass the record id: `'$patientTimeline/record/$id'`.
   static String patientRecord(String id) => '$patientTimeline/record/$id';
@@ -124,6 +132,7 @@ abstract final class AppRoutes {
   static const staffScribe = '/staff/scribe';
   static const staffNotifications = '/staff/dashboard/notifications';
   static const staffProfile = '/staff/profile';
+  static const staffInbox = '/staff/dashboard/inbox';
   // Profile-section pages — each its own page, reached from the Profile hub
   // with a back button (mirrors the patient Profile).
   static const staffProfileAccount = '/staff/profile/account';
@@ -148,6 +157,7 @@ abstract final class AppRoutes {
   static const adminFeedback = '/admin/feedback';
   static const adminAiLog = '/admin/ai-log';
   static const adminForecast = '/admin/forecast';
+  static const adminHomeVisits = '/admin/home-visits';
   static const adminNotifications = '/admin/dashboard/notifications';
 }
 
@@ -222,6 +232,10 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
       GoRoute(
         path: AppRoutes.adminForecast,
         builder: (_, _) => const AdminForecastScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminHomeVisits,
+        builder: (_, _) => const AdminHomeVisitsScreen(),
       ),
 
       _patientShell(),
@@ -336,6 +350,23 @@ StatefulShellRoute _patientShell() {
                 path: 'notifications',
                 builder: (_, _) => const NotificationsScreen(),
               ),
+              GoRoute(
+                path: 'messages',
+                builder: (_, _) => const MessagesScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':staffId',
+                    builder: (_, state) => PatientMessageThreadPage(
+                      staffId: state.pathParameters['staffId']!,
+                      title: state.uri.queryParameters['name'],
+                    ),
+                  ),
+                ],
+              ),
+              GoRoute(
+                path: 'home-visit',
+                builder: (_, _) => const HomeVisitScreen(),
+              ),
             ],
           ),
         ],
@@ -378,6 +409,10 @@ StatefulShellRoute _patientShell() {
               GoRoute(
                 path: 'allergies',
                 builder: (_, _) => const AllergiesScreen(),
+              ),
+              GoRoute(
+                path: 'sick-leave',
+                builder: (_, _) => const SickLeaveScreen(),
               ),
               GoRoute(
                 path: 'record/:id',
@@ -470,6 +505,10 @@ StatefulShellRoute _staffShell() {
                 builder: (_, _) => const NotificationsScreen(
                   topActions: StaffTopActions(),
                 ),
+              ),
+              GoRoute(
+                path: 'inbox',
+                builder: (_, _) => const StaffInboxScreen(),
               ),
             ],
           ),
