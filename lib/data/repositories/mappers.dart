@@ -64,6 +64,7 @@ extension AppointmentRowX on AppointmentRow {
     checkedInAt: checkedInAt,
     ticketTag: ticketTag,
     roomNumber: roomNumber,
+    bookedForName: bookedForName,
   );
 }
 

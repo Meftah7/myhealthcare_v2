@@ -20,6 +20,7 @@ import '../../../core/utils/clinic_hours.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../patient/application/patient_data_providers.dart';
 import '../../patient/presentation/patient_top_actions.dart';
 import '../application/appointment_confirmation.dart';
 import '../application/booking_providers.dart';
@@ -90,6 +91,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                 Space.xxl,
               ),
               children: [
+                const _BookingForSelector(),
                 _StepBar(current: _stepFor(draft)),
                 const SizedBox(height: Space.lg),
 
@@ -103,6 +105,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                     onSelected: (id) => notifier.state = BookingRequestDraft(
                       departmentId: id,
                       visitType: draft.visitType,
+                      bookedForName: draft.bookedForName,
                     ),
                   ),
                 ),
@@ -162,6 +165,80 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Who is this for?
+// ---------------------------------------------------------------------------
+
+/// A "Booking for" chooser shown above the wizard when the account holder has
+/// linked family members. "Myself" clears the draft's `bookedForName`; picking
+/// a member sets it, and the booking is stamped with that name.
+class _BookingForSelector extends ConsumerWidget {
+  const _BookingForSelector();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final members = ref.watch(patientFamilyMembersProvider).valueOrNull ?? const [];
+    if (members.isEmpty) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+    final draft = ref.watch(bookingDraftProvider);
+    final notifier = ref.read(bookingDraftProvider.notifier);
+    final selected = draft.bookedForName;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: Space.lg),
+      child: AppCard(
+        padding: const EdgeInsets.all(Space.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.people_outline,
+                  size: 20,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: Space.sm),
+                Text('Who is this for?', style: theme.textTheme.titleMedium),
+              ],
+            ),
+            const SizedBox(height: Space.sm),
+            Wrap(
+              spacing: Space.xs,
+              runSpacing: Space.xs,
+              children: [
+                ChoiceChip(
+                  label: const Text('Myself'),
+                  selected: selected == null,
+                  onSelected: (_) =>
+                      notifier.state = draft.copyWith(bookedForName: null),
+                ),
+                for (final m in members)
+                  ChoiceChip(
+                    label: Text(m.fullName),
+                    selected: selected == m.fullName,
+                    onSelected: (_) => notifier.state =
+                        draft.copyWith(bookedForName: m.fullName),
+                  ),
+              ],
+            ),
+            if (selected != null) ...[
+              const SizedBox(height: Space.xs),
+              Text(
+                'This visit will be booked for $selected.',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );
@@ -687,6 +764,7 @@ class _SlotList extends ConsumerWidget {
         doctor: doctor,
         department: department,
         visitType: draft.visitType,
+        bookedFor: draft.bookedForName,
       ),
     );
     if (confirmed != true || !context.mounted) return;
@@ -742,12 +820,14 @@ class _ReviewSheet extends StatelessWidget {
     required this.doctor,
     required this.department,
     required this.visitType,
+    this.bookedFor,
   });
 
   final RankedSlot slot;
   final String? doctor;
   final String? department;
   final VisitType visitType;
+  final String? bookedFor;
 
   @override
   Widget build(BuildContext context) {
@@ -766,6 +846,7 @@ class _ReviewSheet extends StatelessWidget {
           children: [
             Text('Review & confirm', style: theme.textTheme.titleLarge),
             const SizedBox(height: Space.md),
+            if (bookedFor != null) _Row(label: 'For', value: bookedFor!),
             _Row(label: 'When', value:
                 '${fmtRelativeDay(slot.slot.start)}, '
                 '${fmtDate(slot.slot.start)} · ${fmtTime(slot.slot.start)}'),

@@ -59,6 +59,10 @@ class Appointments extends Table {
   /// assigned once at booking time (redesign v2 patient dashboard spec).
   TextColumn get roomNumber => text().nullable()();
 
+  /// The linked family member this visit is for, when the account holder booked
+  /// on someone else's behalf. Null = the account holder's own visit.
+  TextColumn get bookedForName => text().nullable()();
+
   @override
   Set<Column<Object>> get primaryKey => {id};
 }

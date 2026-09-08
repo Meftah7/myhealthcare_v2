@@ -329,6 +329,25 @@ class _ApptCard extends ConsumerWidget {
                 _StatusChip(appt.status),
               ],
             ),
+            if (appt.bookedForName != null) ...[
+              const SizedBox(height: Space.xxs),
+              Row(
+                children: [
+                  Icon(
+                    Icons.person_outline,
+                    size: 15,
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(width: Space.xxs),
+                  Text(
+                    'For ${appt.bookedForName}',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ],
             const SizedBox(height: Space.xxs),
             Text(
               meta,

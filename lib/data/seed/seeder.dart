@@ -57,7 +57,7 @@ class Seeder {
   /// v8: each patient starts with one saved card in their wallet.
   /// v9: staff members get a starting presence status.
   /// v10: a starter feedback inbox for the admin dashboard.
-  static const seedVersion = 10;
+  static const seedVersion = 11;
 
   /// Password for every seeded account (documented in the README).
   static const demoPassword = 'password';

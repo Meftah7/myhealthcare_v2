@@ -74,5 +74,58 @@ void main() {
 
     final after = await container.read(patientAppointmentsProvider.future);
     expect(after.length, before + 1);
+    // Booked for the account holder — no family-member stamp.
+    expect(result.valueOrNull!.bookedForName, isNull);
+  });
+
+  test('a visit booked for a linked family member is stamped with their name',
+      () async {
+    final db = newTestDatabase();
+    addTearDown(db.close);
+    await Seeder(db).run();
+
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        appDatabaseProvider.overrideWithValue(db),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await container
+        .read(sessionProvider.notifier)
+        .login(email: 'patient3@myhealth.demo', password: Seeder.demoPassword);
+
+    final depts = await container.read(departmentsProvider.future);
+    final staff = await container
+        .read(departmentStaffProvider(depts.first.id).future);
+    var date = DateTime.now().add(const Duration(days: 2));
+    while (date.weekday == DateTime.friday ||
+        date.weekday == DateTime.saturday) {
+      date = date.add(const Duration(days: 1));
+    }
+
+    container.read(bookingDraftProvider.notifier).state = BookingRequestDraft(
+      departmentId: depts.first.id,
+      staffId: staff.first.id,
+      date: DateTime(date.year, date.month, date.day),
+      bookedForName: 'Sara Ali',
+    );
+
+    final ranked = await container.read(rankedSlotsProvider.future);
+    final result = await container
+        .read(bookingControllerProvider)
+        .confirm(ranked.first);
+    expect(result.isOk, isTrue);
+    expect(result.valueOrNull!.bookedForName, 'Sara Ali');
+
+    // Persisted and read back on the entity.
+    final appts = await container.read(patientAppointmentsProvider.future);
+    expect(
+      appts.where((a) => a.bookedForName == 'Sara Ali'),
+      isNotEmpty,
+    );
   });
 }

@@ -733,6 +733,14 @@ class _BigTicketCard extends StatelessWidget {
                   Icons.person_outline,
                   doctorName ?? visitTypeLabel(appt.visitType),
                 ),
+                if (appt.bookedForName != null) ...[
+                  const SizedBox(height: Space.xs),
+                  _line(
+                    context,
+                    Icons.people_outline,
+                    'For ${appt.bookedForName}',
+                  ),
+                ],
               ],
             ),
           ),

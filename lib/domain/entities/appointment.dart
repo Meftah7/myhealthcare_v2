@@ -33,6 +33,10 @@ abstract class Appointment with _$Appointment {
     /// `[Department letter]-[doctor's sequence within that department]`,
     /// assigned once at booking time (redesign v2 patient dashboard spec).
     String? roomNumber,
+
+    /// The linked family member this visit was booked for, or null for the
+    /// account holder's own visit.
+    String? bookedForName,
   }) = _Appointment;
 
   const Appointment._();

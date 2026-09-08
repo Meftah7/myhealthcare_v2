@@ -29,6 +29,7 @@ class BookingRequest {
     this.reasonText,
     this.noShowRisk,
     this.riskBand,
+    this.bookedForName,
   });
 
   final String patientId;
@@ -40,6 +41,10 @@ class BookingRequest {
   final String? reasonText;
   final double? noShowRisk;
   final RiskBand? riskBand;
+
+  /// A linked family member's name when the visit is for someone other than
+  /// the account holder.
+  final String? bookedForName;
 }
 
 abstract interface class AppointmentRepository {

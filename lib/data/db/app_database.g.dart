@@ -2515,6 +2515,17 @@ class $AppointmentsTable extends Appointments
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _bookedForNameMeta = const VerificationMeta(
+    'bookedForName',
+  );
+  @override
+  late final GeneratedColumn<String> bookedForName = GeneratedColumn<String>(
+    'booked_for_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -2533,6 +2544,7 @@ class $AppointmentsTable extends Appointments
     checkedInAt,
     ticketTag,
     roomNumber,
+    bookedForName,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2643,6 +2655,15 @@ class $AppointmentsTable extends Appointments
         roomNumber.isAcceptableOrUnknown(data['room_number']!, _roomNumberMeta),
       );
     }
+    if (data.containsKey('booked_for_name')) {
+      context.handle(
+        _bookedForNameMeta,
+        bookedForName.isAcceptableOrUnknown(
+          data['booked_for_name']!,
+          _bookedForNameMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -2722,6 +2743,10 @@ class $AppointmentsTable extends Appointments
         DriftSqlType.string,
         data['${effectivePrefix}room_number'],
       ),
+      bookedForName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}booked_for_name'],
+      ),
     );
   }
 
@@ -2768,6 +2793,10 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
   /// `[Department letter]-[doctor's sequence within that department]`,
   /// assigned once at booking time (redesign v2 patient dashboard spec).
   final String? roomNumber;
+
+  /// The linked family member this visit is for, when the account holder booked
+  /// on someone else's behalf. Null = the account holder's own visit.
+  final String? bookedForName;
   const AppointmentRow({
     required this.id,
     required this.patientId,
@@ -2785,6 +2814,7 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
     this.checkedInAt,
     this.ticketTag,
     this.roomNumber,
+    this.bookedForName,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2829,6 +2859,9 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
     if (!nullToAbsent || roomNumber != null) {
       map['room_number'] = Variable<String>(roomNumber);
     }
+    if (!nullToAbsent || bookedForName != null) {
+      map['booked_for_name'] = Variable<String>(bookedForName);
+    }
     return map;
   }
 
@@ -2864,6 +2897,9 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
       roomNumber: roomNumber == null && nullToAbsent
           ? const Value.absent()
           : Value(roomNumber),
+      bookedForName: bookedForName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bookedForName),
     );
   }
 
@@ -2895,6 +2931,7 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
       checkedInAt: serializer.fromJson<DateTime?>(json['checkedInAt']),
       ticketTag: serializer.fromJson<String?>(json['ticketTag']),
       roomNumber: serializer.fromJson<String?>(json['roomNumber']),
+      bookedForName: serializer.fromJson<String?>(json['bookedForName']),
     );
   }
   @override
@@ -2923,6 +2960,7 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
       'checkedInAt': serializer.toJson<DateTime?>(checkedInAt),
       'ticketTag': serializer.toJson<String?>(ticketTag),
       'roomNumber': serializer.toJson<String?>(roomNumber),
+      'bookedForName': serializer.toJson<String?>(bookedForName),
     };
   }
 
@@ -2943,6 +2981,7 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
     Value<DateTime?> checkedInAt = const Value.absent(),
     Value<String?> ticketTag = const Value.absent(),
     Value<String?> roomNumber = const Value.absent(),
+    Value<String?> bookedForName = const Value.absent(),
   }) => AppointmentRow(
     id: id ?? this.id,
     patientId: patientId ?? this.patientId,
@@ -2960,6 +2999,9 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
     checkedInAt: checkedInAt.present ? checkedInAt.value : this.checkedInAt,
     ticketTag: ticketTag.present ? ticketTag.value : this.ticketTag,
     roomNumber: roomNumber.present ? roomNumber.value : this.roomNumber,
+    bookedForName: bookedForName.present
+        ? bookedForName.value
+        : this.bookedForName,
   );
   AppointmentRow copyWithCompanion(AppointmentsCompanion data) {
     return AppointmentRow(
@@ -2991,6 +3033,9 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
       roomNumber: data.roomNumber.present
           ? data.roomNumber.value
           : this.roomNumber,
+      bookedForName: data.bookedForName.present
+          ? data.bookedForName.value
+          : this.bookedForName,
     );
   }
 
@@ -3012,7 +3057,8 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
           ..write('remindersSent: $remindersSent, ')
           ..write('checkedInAt: $checkedInAt, ')
           ..write('ticketTag: $ticketTag, ')
-          ..write('roomNumber: $roomNumber')
+          ..write('roomNumber: $roomNumber, ')
+          ..write('bookedForName: $bookedForName')
           ..write(')'))
         .toString();
   }
@@ -3035,6 +3081,7 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
     checkedInAt,
     ticketTag,
     roomNumber,
+    bookedForName,
   );
   @override
   bool operator ==(Object other) =>
@@ -3055,7 +3102,8 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
           other.remindersSent == this.remindersSent &&
           other.checkedInAt == this.checkedInAt &&
           other.ticketTag == this.ticketTag &&
-          other.roomNumber == this.roomNumber);
+          other.roomNumber == this.roomNumber &&
+          other.bookedForName == this.bookedForName);
 }
 
 class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
@@ -3075,6 +3123,7 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
   final Value<DateTime?> checkedInAt;
   final Value<String?> ticketTag;
   final Value<String?> roomNumber;
+  final Value<String?> bookedForName;
   final Value<int> rowid;
   const AppointmentsCompanion({
     this.id = const Value.absent(),
@@ -3093,6 +3142,7 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
     this.checkedInAt = const Value.absent(),
     this.ticketTag = const Value.absent(),
     this.roomNumber = const Value.absent(),
+    this.bookedForName = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   AppointmentsCompanion.insert({
@@ -3112,6 +3162,7 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
     this.checkedInAt = const Value.absent(),
     this.ticketTag = const Value.absent(),
     this.roomNumber = const Value.absent(),
+    this.bookedForName = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        patientId = Value(patientId),
@@ -3136,6 +3187,7 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
     Expression<DateTime>? checkedInAt,
     Expression<String>? ticketTag,
     Expression<String>? roomNumber,
+    Expression<String>? bookedForName,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -3155,6 +3207,7 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
       if (checkedInAt != null) 'checked_in_at': checkedInAt,
       if (ticketTag != null) 'ticket_tag': ticketTag,
       if (roomNumber != null) 'room_number': roomNumber,
+      if (bookedForName != null) 'booked_for_name': bookedForName,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -3176,6 +3229,7 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
     Value<DateTime?>? checkedInAt,
     Value<String?>? ticketTag,
     Value<String?>? roomNumber,
+    Value<String?>? bookedForName,
     Value<int>? rowid,
   }) {
     return AppointmentsCompanion(
@@ -3195,6 +3249,7 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
       checkedInAt: checkedInAt ?? this.checkedInAt,
       ticketTag: ticketTag ?? this.ticketTag,
       roomNumber: roomNumber ?? this.roomNumber,
+      bookedForName: bookedForName ?? this.bookedForName,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -3256,6 +3311,9 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
     if (roomNumber.present) {
       map['room_number'] = Variable<String>(roomNumber.value);
     }
+    if (bookedForName.present) {
+      map['booked_for_name'] = Variable<String>(bookedForName.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -3281,6 +3339,7 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
           ..write('checkedInAt: $checkedInAt, ')
           ..write('ticketTag: $ticketTag, ')
           ..write('roomNumber: $roomNumber, ')
+          ..write('bookedForName: $bookedForName, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();

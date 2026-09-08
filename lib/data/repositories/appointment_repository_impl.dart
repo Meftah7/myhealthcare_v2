@@ -194,6 +194,7 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
               riskBand: Value(r.riskBand),
               ticketTag: Value(ticketTag),
               roomNumber: Value(roomNumber),
+              bookedForName: Value(r.bookedForName),
             ),
           );
       final row = await (_db.select(

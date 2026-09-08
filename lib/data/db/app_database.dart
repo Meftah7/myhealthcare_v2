@@ -73,7 +73,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -116,6 +116,10 @@ class AppDatabase extends _$AppDatabase {
         // Admin dashboard Tier B: feedback inbox + AI usage log.
         await m.createTable(feedbacks);
         await m.createTable(aiUsageLog);
+      }
+      if (from < 10) {
+        // Book an appointment for a linked family member.
+        await m.addColumn(appointments, appointments.bookedForName);
       }
     },
     beforeOpen: (details) async {

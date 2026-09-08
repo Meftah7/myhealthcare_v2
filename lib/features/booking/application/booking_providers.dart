@@ -54,6 +54,7 @@ class BookingRequestDraft {
     this.date,
     this.visitType = VisitType.followUp,
     this.reason,
+    this.bookedForName,
   });
 
   final String? departmentId;
@@ -62,18 +63,28 @@ class BookingRequestDraft {
   final VisitType visitType;
   final String? reason;
 
+  /// Null = the account holder's own visit; otherwise a linked family
+  /// member's name.
+  final String? bookedForName;
+
+  static const _keep = Object();
+
   BookingRequestDraft copyWith({
     String? departmentId,
     String? staffId,
     DateTime? date,
     VisitType? visitType,
     String? reason,
+    Object? bookedForName = _keep,
   }) => BookingRequestDraft(
     departmentId: departmentId ?? this.departmentId,
     staffId: staffId ?? this.staffId,
     date: date ?? this.date,
     visitType: visitType ?? this.visitType,
     reason: reason ?? this.reason,
+    bookedForName: identical(bookedForName, _keep)
+        ? this.bookedForName
+        : bookedForName as String?,
   );
 }
 
@@ -175,6 +186,7 @@ class BookingController {
             reasonText: draft.reason,
             noShowRisk: slot.probability,
             riskBand: slot.band,
+            bookedForName: draft.bookedForName,
           ),
         );
     if (result case Ok(:final value)) {
