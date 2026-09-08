@@ -116,6 +116,29 @@ final textScaleProvider =
       TextScaleController.new,
     );
 
+// --- sound cues ---------------------------------------------------------
+
+const _soundsKey = 'ui.sounds';
+
+/// Whether the app plays its short cue sounds (a message arriving, a staff
+/// member changing their working status). A device preference like the theme,
+/// so it lives in [SharedPreferences].
+class SoundsEnabledController extends Notifier<bool> {
+  @override
+  bool build() =>
+      ref.read(sharedPreferencesProvider).getBool(_soundsKey) ?? true;
+
+  Future<void> set({required bool enabled}) async {
+    state = enabled;
+    await ref.read(sharedPreferencesProvider).setBool(_soundsKey, enabled);
+  }
+}
+
+final soundsEnabledProvider =
+    NotifierProvider<SoundsEnabledController, bool>(
+      SoundsEnabledController.new,
+    );
+
 // --- notification preferences (redesign v2 patient dashboard) -------------
 
 const _notifySmsKey = 'ui.notify.sms';

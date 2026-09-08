@@ -2,8 +2,11 @@
 /// flags, the task list, and the rules pipeline that fills them (P5-01…P5-11).
 library;
 
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/audio/app_sounds.dart';
 import '../../../core/di.dart';
 import '../../../core/result.dart';
 import '../../../domain/entities/entities.dart';
@@ -228,6 +231,11 @@ class StaffOps {
         .read(userRepositoryProvider)
         .setPresence(id: id, status: status);
     if (result.isOk) {
+      // Each working status has its own cue, so a hands-busy clinician hears
+      // the change land without looking at the pill.
+      unawaited(
+        _ref.read(soundPlayerProvider).play(AppSound.forPresence(status)),
+      );
       _ref
         ..invalidate(staffProfileProvider)
         ..invalidate(staffDirectoryProvider);

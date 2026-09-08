@@ -31,6 +31,7 @@ class PreferencesSection extends ConsumerWidget {
     final textSize = ref.watch(textScaleProvider);
     final locale = ref.watch(localeProvider);
     final notify = ref.watch(notificationPrefsProvider);
+    final soundsOn = ref.watch(soundsEnabledProvider);
 
     final themeBlock = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -134,6 +135,16 @@ class PreferencesSection extends ConsumerWidget {
           title: const Text('Email'),
           value: notify.email,
           onChanged: ref.read(notificationPrefsProvider.notifier).setEmail,
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Sounds'),
+          subtitle: const Text('A short cue when a message arrives, and when '
+              'a working status changes'),
+          value: soundsOn,
+          onChanged: (v) => ref
+              .read(soundsEnabledProvider.notifier)
+              .set(enabled: v),
         ),
         Text(
           'Where appointment reminders and care alerts reach you.',

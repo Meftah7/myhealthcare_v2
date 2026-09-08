@@ -13,6 +13,7 @@ import '../features/admin/presentation/admin_billing_screen.dart';
 import '../features/admin/presentation/admin_dashboard_screen.dart';
 import '../features/admin/presentation/admin_feedback_screen.dart';
 import '../features/admin/presentation/admin_forecast_screen.dart';
+import '../features/admin/presentation/admin_top_actions.dart';
 import '../features/admin/presentation/ai_settings_screen.dart';
 import '../features/admin/presentation/audit_log_screen.dart';
 import '../features/admin/presentation/departments_screen.dart';
@@ -46,6 +47,7 @@ import '../features/staff_dashboard/presentation/staff_patients_screen.dart';
 import '../features/staff_dashboard/presentation/staff_profile_pages.dart';
 import '../features/staff_dashboard/presentation/staff_profile_screen.dart';
 import '../features/staff_dashboard/presentation/staff_schedule_screen.dart';
+import '../features/staff_dashboard/presentation/staff_top_actions.dart';
 import '../features/tasks/presentation/task_board_screen.dart';
 import '../features/timeline/presentation/health_records_screen.dart';
 import '../features/vitals/presentation/vitals_screen.dart';
@@ -114,6 +116,7 @@ abstract final class AppRoutes {
   static const staffTasks = '/staff/tasks';
   static const staffSchedule = '/staff/schedule';
   static const staffScribe = '/staff/scribe';
+  static const staffNotifications = '/staff/dashboard/notifications';
   static const staffProfile = '/staff/profile';
   // Profile-section pages — each its own page, reached from the Profile hub
   // with a back button (mirrors the patient Profile).
@@ -139,6 +142,7 @@ abstract final class AppRoutes {
   static const adminFeedback = '/admin/feedback';
   static const adminAiLog = '/admin/ai-log';
   static const adminForecast = '/admin/forecast';
+  static const adminNotifications = '/admin/dashboard/notifications';
 }
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -438,6 +442,14 @@ StatefulShellRoute _staffShell() {
           GoRoute(
             path: AppRoutes.staffDashboard,
             builder: (_, _) => const StaffDashboardScreen(),
+            routes: [
+              GoRoute(
+                path: 'notifications',
+                builder: (_, _) => const NotificationsScreen(
+                  topActions: StaffTopActions(),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -556,6 +568,14 @@ StatefulShellRoute _adminShell() {
           GoRoute(
             path: AppRoutes.adminDashboard,
             builder: (_, _) => const AdminDashboardScreen(),
+            routes: [
+              GoRoute(
+                path: 'notifications',
+                builder: (_, _) => const NotificationsScreen(
+                  topActions: AdminTopActions(),
+                ),
+              ),
+            ],
           ),
         ],
       ),

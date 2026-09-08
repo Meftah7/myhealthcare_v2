@@ -6,9 +6,12 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/router.dart';
 import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/presentation/circle_icon_button.dart';
 import '../../auth/presentation/sign_out_action.dart';
+import '../../patient_home/presentation/notifications_button.dart';
 
 /// Drop straight into `AppBar.actions`: `actions: const [AdminTopActions()]`.
 class AdminTopActions extends ConsumerWidget {
@@ -25,11 +28,10 @@ class AdminTopActions extends ConsumerWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        IconButton(
+        const NotificationsButton(route: AppRoutes.adminNotifications),
+        CircleIconButton(
+          icon: isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
           tooltip: isDark ? 'Switch to light mode' : 'Switch to dark mode',
-          icon: Icon(
-            isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-          ),
           onPressed: () => ref
               .read(themeModeProvider.notifier)
               .set(isDark ? ThemeMode.light : ThemeMode.dark),

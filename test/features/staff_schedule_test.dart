@@ -67,5 +67,8 @@ void main() {
     await tester.tap(find.byIcon(Icons.chevron_right));
     await _settle(tester);
     expect(tester.takeException(), isNull);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
   });
 }

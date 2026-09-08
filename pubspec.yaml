@@ -78,6 +78,7 @@ dependencies:
   uuid: ^4.6.0
   shared_preferences: ^2.5.5
   google_fonts: ^8.2.1
+  audioplayers: ^6.8.1
 
 dev_dependencies:
   flutter_test:
@@ -127,6 +128,7 @@ flutter:
   assets:
     - assets/models/no_show_model.json
     - assets/images/
+    - assets/sounds/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

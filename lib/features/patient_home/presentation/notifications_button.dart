@@ -12,7 +12,13 @@ import '../../../core/presentation/circle_icon_button.dart';
 import '../../notifications/application/notification_providers.dart';
 
 class NotificationsButton extends ConsumerWidget {
-  const NotificationsButton({super.key});
+  const NotificationsButton({
+    this.route = AppRoutes.patientNotifications,
+    super.key,
+  });
+
+  /// Where the button goes — each role has its own notifications route.
+  final String route;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -29,7 +35,7 @@ class NotificationsButton extends ConsumerWidget {
           tooltip: unread > 0
               ? 'Notifications ($unread unread)'
               : 'Notifications',
-          onPressed: () => context.go(AppRoutes.patientNotifications),
+          onPressed: () => context.go(route),
         ),
         if (unread > 0)
           // Sits on the circle's top-right edge — the button draws a 40dp

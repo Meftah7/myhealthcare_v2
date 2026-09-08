@@ -19,11 +19,17 @@ import '../../patient/presentation/patient_top_actions.dart';
 import '../application/notification_providers.dart';
 
 class NotificationsScreen extends ConsumerWidget {
-  const NotificationsScreen({super.key});
+  const NotificationsScreen({
+    this.topActions = const PatientTopActions(),
+    super.key,
+  });
+
+  /// The role's persistent top-bar group — patient, staff or admin.
+  final Widget topActions;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final feed = ref.watch(patientNotificationsProvider);
+    final feed = ref.watch(myNotificationsProvider);
     final unread = ref.watch(unreadNotificationCountProvider);
     final gutter = WindowSize.of(context).gutter;
 
@@ -37,7 +43,7 @@ class NotificationsScreen extends ConsumerWidget {
                   ref.read(notificationControllerProvider).markAllRead(),
               child: const Text('Mark all read'),
             ),
-          const PatientTopActions(),
+          topActions,
         ],
       ),
       body: Center(
@@ -47,7 +53,7 @@ class NotificationsScreen extends ConsumerWidget {
             loading: () => const SkeletonList(),
             error: (e, _) => ErrorStateView(
               message: 'Could not load your notifications.',
-              onRetry: () => ref.invalidate(patientNotificationsProvider),
+              onRetry: () => ref.invalidate(myNotificationsProvider),
             ),
             data: (list) {
               if (list.isEmpty) {

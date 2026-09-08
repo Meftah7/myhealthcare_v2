@@ -10,24 +10,19 @@ import '../../../core/result.dart';
 import '../../../domain/entities/entities.dart';
 import '../../auth/application/session.dart';
 
-/// Every notification for the signed-in patient, newest first. A [Stream] so
-/// the badge and list update the moment one is marked read.
-final patientNotificationsProvider = StreamProvider<List<AppNotification>>((
-  ref,
-) {
+/// Every notification for the signed-in user, newest first — patient, staff or
+/// admin alike (an admin broadcast can target staff). A [Stream] so the badge
+/// and list update the moment one is marked read.
+final myNotificationsProvider = StreamProvider<List<AppNotification>>((ref) {
   final user = ref.watch(currentUserProvider);
-  if (user == null || !user.isPatient) {
-    return const Stream<List<AppNotification>>.empty();
-  }
-  return ref
-      .watch(notificationRepositoryProvider)
-      .watchForRecipient(user.id);
+  if (user == null) return const Stream<List<AppNotification>>.empty();
+  return ref.watch(notificationRepositoryProvider).watchForRecipient(user.id);
 });
 
 /// How many are unread — for the header badge.
 final unreadNotificationCountProvider = Provider<int>((ref) {
   return ref
-      .watch(patientNotificationsProvider)
+      .watch(myNotificationsProvider)
       .maybeWhen(
         data: (list) => list.where((n) => !n.isRead).length,
         orElse: () => 0,

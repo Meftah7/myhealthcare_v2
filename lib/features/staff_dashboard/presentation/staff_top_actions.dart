@@ -15,6 +15,7 @@ import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/circle_icon_button.dart';
 import '../../../domain/enums.dart';
+import '../../patient_home/presentation/notifications_button.dart';
 import '../application/staff_providers.dart';
 
 /// Drop straight into `AppBar.actions`: `actions: const [StaffTopActions()]`.
@@ -36,6 +37,7 @@ class StaffTopActions extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         const PresenceMenu(),
+        const NotificationsButton(route: AppRoutes.staffNotifications),
         CircleIconButton(
           icon: isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
           tooltip: isDark ? 'Switch to light mode' : 'Switch to dark mode',

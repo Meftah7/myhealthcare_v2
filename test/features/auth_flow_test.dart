@@ -105,6 +105,10 @@ void main() {
 
     expect(find.text('Dashboard'), findsWidgets);
     expect(find.text('Patients'), findsWidgets);
+
+    // Let the notification query stream close before teardown.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
   });
 
   testWidgets('wrong password shows an error, stays on login', (tester) async {

@@ -40,7 +40,7 @@ void main() {
 
     // Keep the stream provider alive for the whole test so its value tracks
     // writes (a StreamProvider's `.future` only ever yields the first event).
-    final sub = container.listen(patientNotificationsProvider, (_, _) {});
+    final sub = container.listen(myNotificationsProvider, (_, _) {});
     addTearDown(sub.close);
 
     Future<List<T>> settledList<T>(
@@ -62,7 +62,7 @@ void main() {
       return container.read(unreadNotificationCountProvider);
     }
 
-    final feed = await settledList(patientNotificationsProvider);
+    final feed = await settledList(myNotificationsProvider);
     expect(feed, isNotEmpty);
     // Newest first.
     for (var i = 1; i < feed.length; i++) {
