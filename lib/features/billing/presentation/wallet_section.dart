@@ -1,5 +1,5 @@
 /// Wallet — the patient's saved cards, what they owe now, and past payments.
-/// Rendered bare inside a profile ExpandableSection.
+/// Rendered bare inside its own profile page.
 library;
 
 import 'package:flutter/material.dart';

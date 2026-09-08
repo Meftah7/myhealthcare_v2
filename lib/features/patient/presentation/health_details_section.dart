@@ -1,6 +1,6 @@
 /// Editable health-details form (redesign v3): blood type, allergies, chronic
 /// conditions and emergency contact. Rendered bare inside a profile
-/// [ExpandableSection]; Save/Cancel stay disabled until something changes.
+/// its own profile page; Save/Cancel stay disabled until something changes.
 library;
 
 import 'package:flutter/material.dart';

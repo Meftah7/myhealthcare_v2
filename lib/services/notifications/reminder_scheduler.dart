@@ -6,7 +6,7 @@
 ///   medium  → two: 48 h and 3 h before
 ///   high    → three: 5 days before (confirm-or-release), 24 h, 2 h before
 ///
-/// Writes `reminders` rows; delivery is [PlatformNotifier]'s job (P4-18).
+/// Writes `reminders` rows; OS/in-app delivery is handled separately (P4-18).
 library;
 
 import 'package:drift/drift.dart';

@@ -3,7 +3,7 @@
 /// First/last name, CPR (national id, live-validated as exactly 9 digits),
 /// date of birth (typed DD/MM/YYYY, validated as a real non-future date),
 /// gender, phone, email. Save/Cancel stay disabled until something actually
-/// changed. Rendered bare — the caller wraps it (e.g. in an ExpandableSection).
+/// changed. Rendered bare — the caller supplies the surrounding page.
 library;
 
 import 'package:flutter/material.dart';

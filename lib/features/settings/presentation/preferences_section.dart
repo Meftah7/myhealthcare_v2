@@ -18,8 +18,8 @@ import '../../../core/presentation/app_card.dart';
 class PreferencesSection extends ConsumerWidget {
   const PreferencesSection({this.bare = false, super.key});
 
-  /// When true, drop the section header and outer cards — the caller (e.g. an
-  /// [ExpandableSection]) already provides the surrounding surface.
+  /// When true, drop the section header and outer cards — the caller already
+  /// provides the surrounding surface.
   final bool bare;
 
   @override

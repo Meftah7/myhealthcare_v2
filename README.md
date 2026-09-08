@@ -20,7 +20,7 @@ is a **synthetic seeded dataset** (no real patient data). The AI layer is behind
 an interface with a **mock implementation**, so the whole app is demoable with no
 API key and no internet.
 
-Planning docs: [`todo.todo`](todo.todo) (authoritative task tracker) ·
+Planning docs: [`tasks.md`](tasks.md) (task breakdown) ·
 [`plan.md`](plan.md) (rationale) · [`DESIGN.md`](DESIGN.md) (design system).
 
 ---
