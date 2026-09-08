@@ -54,22 +54,32 @@ class StaffDashboardScreen extends ConsumerWidget {
             child: ListView(
               padding: EdgeInsets.fromLTRB(gutter, Space.md, gutter, Space.xxl),
               children: [
-                Text(greeting(firstName), style: theme.textTheme.headlineSmall),
+                // Date above the greeting: the small line sets context, the
+                // big line is the thing you actually read.
+                Text(
+                  fmtDate(DateTime.now()).toUpperCase(),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    letterSpacing: 0.8,
+                  ),
+                ),
                 const SizedBox(height: Space.xxs),
                 Text(
-                  fmtDate(DateTime.now()),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
+                  greeting(firstName),
+                  style: theme.textTheme.headlineMedium,
                 ),
                 const SizedBox(height: Space.lg),
 
-                _StatGrid(),
-                const SizedBox(height: Space.md),
+                const _NextPatientHero(),
+                const SizedBox(height: Space.lg),
+
+                const SectionHeader('Your shift', overline: true),
+                _ShiftSnapshot(),
+                const SizedBox(height: Space.lg),
 
                 const SectionHeader('Quick actions', overline: true),
                 const StaffQuickActions(),
-                const SizedBox(height: Space.md),
+                const SizedBox(height: Space.lg),
 
                 SectionHeader(
                   'Today’s queue',
@@ -78,7 +88,7 @@ class StaffDashboardScreen extends ConsumerWidget {
                   onAction: () => context.go(AppRoutes.staffSchedule),
                 ),
                 _QueueCard(),
-                const SizedBox(height: Space.md),
+                const SizedBox(height: Space.lg),
 
                 SectionHeader(
                   'Risk flags',
@@ -87,7 +97,7 @@ class StaffDashboardScreen extends ConsumerWidget {
                   onAction: () => context.go(AppRoutes.staffPatients),
                 ),
                 _RiskFlags(),
-                const SizedBox(height: Space.md),
+                const SizedBox(height: Space.lg),
 
                 SectionHeader(
                   'Tasks',
@@ -105,47 +115,75 @@ class StaffDashboardScreen extends ConsumerWidget {
   }
 }
 
-class _StatGrid extends ConsumerWidget {
+/// The screen's one saturated surface — whoever you see next, and the way in
+/// to their chart. The staff equivalent of the patient's "Quick appointment".
+class _NextPatientHero extends ConsumerWidget {
+  const _NextPatientHero();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final queue = ref.watch(staffQueueProvider).valueOrNull;
+    final names = ref.watch(patientNameLookupProvider).valueOrNull ?? const {};
+    final next = (queue == null || queue.isEmpty) ? null : queue.first;
+
+    if (next == null) {
+      return GradientHeroCard(
+        icon: Icons.event_available_outlined,
+        title: 'Your queue is clear',
+        subtitle: 'Nobody waiting — open your week to plan ahead',
+        onTap: () => context.go(AppRoutes.staffSchedule),
+      );
+    }
+
+    final who = names[next.patientId] ?? visitTypeLabel(next.visitType);
+    return GradientHeroCard(
+      icon: Icons.play_circle_outline,
+      title: 'Next · $who',
+      subtitle: [
+        fmtTime(next.slotStart),
+        visitTypeLabel(next.visitType),
+        if (next.roomNumber != null) 'Room ${next.roomNumber}',
+      ].join(' · '),
+      onTap: () => context.go(AppRoutes.staffPatientChart(next.patientId)),
+    );
+  }
+}
+
+/// Three figures for the shift, side by side — the staff mirror of the
+/// patient's "Your health" row.
+class _ShiftSnapshot extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final today = ref.watch(staffTodayProvider).valueOrNull;
     final queue = ref.watch(staffQueueProvider).valueOrNull;
     final flags = ref.watch(unacknowledgedFlagsProvider).valueOrNull;
-    final tasks = ref.watch(staffTasksProvider).valueOrNull;
-    final overdue = tasks?.where((t) => t.isOverdue).length ?? 0;
-    final compact = WindowSize.of(context).isCompact;
 
-    return GridView.count(
-      crossAxisCount: compact ? 2 : 4,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: Space.sm,
-      crossAxisSpacing: Space.sm,
-      childAspectRatio: compact ? 1.8 : 1.5,
+    return Row(
       children: [
-        MetricTile(
-          value: '${today?.length ?? 0}',
-          label: 'Appointments today',
-          icon: Icons.calendar_today_outlined,
-          onTap: () => context.go(AppRoutes.staffSchedule),
+        Expanded(
+          child: MetricTile(
+            value: '${today?.length ?? 0}',
+            label: 'Today',
+            icon: Icons.calendar_today_outlined,
+            onTap: () => context.go(AppRoutes.staffSchedule),
+          ),
         ),
-        MetricTile(
-          value: '${queue?.length ?? 0}',
-          label: 'In your queue',
-          icon: Icons.groups_outlined,
+        const SizedBox(width: Space.sm),
+        Expanded(
+          child: MetricTile(
+            value: '${queue?.length ?? 0}',
+            label: 'In queue',
+            icon: Icons.groups_outlined,
+          ),
         ),
-        MetricTile(
-          value: '${flags?.length ?? 0}',
-          label: 'Open flags',
-          icon: Icons.flag_outlined,
-          onTap: () => context.go(AppRoutes.staffPatients),
-        ),
-        MetricTile(
-          value: '${tasks?.length ?? 0}',
-          label: 'Open tasks',
-          caption: overdue > 0 ? '$overdue overdue' : null,
-          icon: Icons.checklist_outlined,
-          onTap: () => context.go(AppRoutes.staffTasks),
+        const SizedBox(width: Space.sm),
+        Expanded(
+          child: MetricTile(
+            value: '${flags?.length ?? 0}',
+            label: 'Open flags',
+            icon: Icons.flag_outlined,
+            onTap: () => context.go(AppRoutes.staffPatients),
+          ),
         ),
       ],
     );

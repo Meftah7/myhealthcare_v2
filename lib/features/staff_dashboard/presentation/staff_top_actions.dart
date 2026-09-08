@@ -13,10 +13,14 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/presentation/circle_icon_button.dart';
 import '../../../domain/enums.dart';
 import '../application/staff_providers.dart';
 
 /// Drop straight into `AppBar.actions`: `actions: const [StaffTopActions()]`.
+///
+/// Same hairline-circle family as the patient app's [PatientTopActions], with
+/// the staff-only presence pill in front of them.
 class StaffTopActions extends ConsumerWidget {
   const StaffTopActions({super.key});
 
@@ -32,22 +36,19 @@ class StaffTopActions extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         const PresenceMenu(),
-        const SizedBox(width: Space.xxs),
-        IconButton(
+        CircleIconButton(
+          icon: isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
           tooltip: isDark ? 'Switch to light mode' : 'Switch to dark mode',
-          icon: Icon(
-            isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-          ),
           onPressed: () => ref
               .read(themeModeProvider.notifier)
               .set(isDark ? ThemeMode.light : ThemeMode.dark),
         ),
-        IconButton(
+        CircleIconButton(
+          icon: Icons.account_circle_outlined,
           tooltip: 'Profile',
-          icon: const Icon(Icons.account_circle_outlined),
           onPressed: () => context.go(AppRoutes.staffProfile),
         ),
-        const SizedBox(width: Space.xxs),
+        const SizedBox(width: Space.xs),
       ],
     );
   }
@@ -130,36 +131,41 @@ class PresenceMenu extends ConsumerWidget {
             ),
           ),
       ],
-      child: Container(
+      // 40dp pill (matching the circle buttons beside it) centred in a 48dp
+      // tap target — PopupMenuButton hit-tests its child (DESIGN.md §8).
+      child: SizedBox(
         height: 48,
-        alignment: Alignment.center,
-        constraints: const BoxConstraints(minWidth: 48, maxWidth: 180),
-        padding: const EdgeInsets.symmetric(horizontal: Space.sm),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: Radii.pill,
-          border: Border.all(
-            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.7),
+        child: Center(
+          child: Container(
+            height: 40,
+            alignment: Alignment.center,
+            constraints: const BoxConstraints(minWidth: 48, maxWidth: 156),
+            padding: const EdgeInsets.symmetric(horizontal: Space.sm),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerLowest,
+              borderRadius: Radii.pill,
+              border: Border.all(color: theme.colorScheme.outlineVariant),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(meta.icon, size: 15, color: meta.color),
+                const SizedBox(width: Space.xs),
+                Flexible(
+                  child: Text(
+                    meta.label,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelMedium,
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_drop_down,
+                  size: 18,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ),
           ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(meta.icon, size: 15, color: meta.color),
-            const SizedBox(width: Space.xs),
-            Flexible(
-              child: Text(
-                meta.label,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.labelMedium,
-              ),
-            ),
-            Icon(
-              Icons.arrow_drop_down,
-              size: 18,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ],
         ),
       ),
     );

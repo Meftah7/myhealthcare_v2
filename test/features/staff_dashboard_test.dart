@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/app.dart';
 import 'package:myhealthcare/core/di.dart';
+import 'package:myhealthcare/core/presentation/app_card.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -59,10 +60,16 @@ void main() {
     await passMfa(tester);
     await _settle(tester);
 
-    // Lands on the staff dashboard, with the presence pill + Quick actions.
+    // Lands on the staff dashboard, laid out like the patient one: greeting,
+    // a single gradient hero, a three-figure shift row, then Quick actions.
     expect(find.widgetWithText(AppBar, 'Dashboard'), findsOneWidget);
     expect(find.textContaining('Good '), findsOneWidget);
     expect(find.text('On duty'), findsWidgets);
+    expect(find.byType(GradientHeroCard), findsOneWidget);
+    expect(find.text('YOUR SHIFT'), findsOneWidget);
+    for (final label in const ['Today', 'In queue', 'Open flags']) {
+      expect(find.text(label), findsOneWidget);
+    }
     expect(find.text('QUICK ACTIONS'), findsOneWidget);
 
     // Run a panel scan from the Quick actions grid.

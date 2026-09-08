@@ -26,13 +26,6 @@ class StaffQuickActions extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final size = WindowSize.of(context);
-    final crossAxisCount = size.isCompact
-        ? 3
-        : size.isMedium
-        ? 4
-        : 6;
-
     final actions = <_QuickAction>[
       _QuickAction(
         icon: Icons.note_add_outlined,
@@ -101,13 +94,15 @@ class StaffQuickActions extends ConsumerWidget {
       ),
     ];
 
+    // Two tiles per row on a phone, three once there's room — the same shape
+    // the patient dashboard uses for its Quick actions.
     return GridView.count(
-      crossAxisCount: crossAxisCount,
+      crossAxisCount: WindowSize.of(context).isCompact ? 2 : 3,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: Space.xs,
-      crossAxisSpacing: Space.xs,
-      childAspectRatio: 0.92,
+      mainAxisSpacing: Space.sm,
+      crossAxisSpacing: Space.sm,
+      childAspectRatio: 2.6,
       children: [for (final a in actions) _QuickActionTile(action: a)],
     );
   }
@@ -170,21 +165,36 @@ class _QuickActionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return AppCard(
-      padding: const EdgeInsets.all(Space.xs),
+      padding: const EdgeInsets.symmetric(
+        horizontal: Space.sm,
+        vertical: Space.sm,
+      ),
       onTap: action.onTap,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Row(
         children: [
-          Icon(action.icon, size: 22, color: theme.colorScheme.primary),
-          const SizedBox(height: Space.xs),
-          Text(
-            action.label,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.labelMedium,
+          // A tinted medallion rather than a bare glyph — it anchors the row
+          // and reads as an object you can press.
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: scheme.primaryContainer,
+              borderRadius: Radii.chip,
+            ),
+            child: Icon(action.icon, size: 18, color: scheme.onPrimaryContainer),
           ),
+          const SizedBox(width: Space.sm),
+          Expanded(
+            child: Text(
+              action.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.titleSmall,
+            ),
+          ),
+          Icon(Icons.chevron_right, size: 18, color: scheme.onSurfaceVariant),
         ],
       ),
     );
