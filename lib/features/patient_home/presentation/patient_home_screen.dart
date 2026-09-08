@@ -568,7 +568,10 @@ class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
             const SizedBox(height: Space.xs),
             SizedBox(
               height: 208,
-              child: PageView.builder(
+              // The auto-advancing pager animates on its own; keep its repaints
+              // off the rest of Home.
+              child: RepaintBoundary(
+                child: PageView.builder(
                 controller: _controller,
                 // No itemCount → scrolls forever; the card shown is
                 // `rawPage % count`, so the list wraps in either direction.
@@ -590,6 +593,7 @@ class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
                     ),
                   );
                 },
+                ),
               ),
             ),
             if (active.length > 1) ...[

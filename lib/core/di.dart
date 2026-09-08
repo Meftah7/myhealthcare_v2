@@ -129,3 +129,11 @@ final aiUsageRepositoryProvider = Provider<AiUsageRepository>(
 final seederProvider = Provider<Seeder>(
   (ref) => Seeder(ref.watch(appDatabaseProvider)),
 );
+
+/// One-time app bootstrap: populate / migrate the synthetic dataset. Kicked
+/// off after the first frame (from `main`) so the DB work — which can be a
+/// full re-seed on a version bump — never blocks the opening frame. The router
+/// holds on the splash while this is still running.
+final appBootstrapProvider = FutureProvider<void>((ref) async {
+  await ref.read(seederProvider).run();
+});

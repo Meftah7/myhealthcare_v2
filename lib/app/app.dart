@@ -1,6 +1,6 @@
 /// Root widget: `MaterialApp.router` with the DESIGN.md theme, go_router, and
-/// the device UI preferences (theme mode + locale) (tasks P0-05, P0-06, P0-07,
-/// P8-07).
+/// the device UI preferences (theme mode + locale + text size) (tasks P0-05,
+/// P0-06, P0-07, P8-07).
 library;
 
 import 'package:flutter/material.dart';
@@ -33,24 +33,44 @@ class MyHealthCareApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       routerConfig: ref.watch(routerProvider),
-      builder: (context, child) {
-        final level = ref.watch(textScaleProvider);
-        final media = MediaQuery.of(context);
-        return MediaQuery(
-          data: media.copyWith(
-            textScaler: _ScaledTextScaler(media.textScaler, level.factor),
-          ),
-          child: SessionActivityMonitor(
-            child: Stack(
-              children: [
-                child ?? const SizedBox.shrink(),
-                const AppointmentConfirmationOverlay(),
-                const SplashOverlay(),
-              ],
-            ),
-          ),
-        );
-      },
+      builder: (context, child) => _AppFrame(
+        textScale: ref.watch(textScaleProvider).factor,
+        child: child ?? const SizedBox.shrink(),
+      ),
+    );
+  }
+}
+
+/// Wraps the routed content in the app-wide text-scale override plus the
+/// session-idle monitor and the two full-screen overlays (booking confirmation
+/// + the opening splash).
+///
+/// Split out so the overlays and the [child] subtree are not rebuilt when the
+/// only thing that changed is a MediaQuery inset (a keyboard opening, say).
+class _AppFrame extends StatelessWidget {
+  const _AppFrame({required this.textScale, required this.child});
+
+  final double textScale;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    // `textScalerOf` subscribes to just that aspect of MediaQuery; the rest of
+    // the data is read once here and passes straight through.
+    final base = MediaQuery.textScalerOf(context);
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(
+        textScaler: _ScaledTextScaler(base, textScale),
+      ),
+      child: SessionActivityMonitor(
+        child: Stack(
+          children: [
+            child,
+            const AppointmentConfirmationOverlay(),
+            const SplashOverlay(),
+          ],
+        ),
+      ),
     );
   }
 }

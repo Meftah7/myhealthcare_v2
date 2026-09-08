@@ -161,17 +161,19 @@ class _DraggableFabState extends ConsumerState<_DraggableFab>
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final reduce = Motion.reduced(context);
-    final media = MediaQuery.of(context);
+    // Read only the size / padding aspects — not the whole MediaQuery — so the
+    // button doesn't rebuild every time the keyboard changes the view insets.
+    final size = MediaQuery.sizeOf(context);
+    final pad = MediaQuery.paddingOf(context);
     final placement = ref.watch(careNavPlacementProvider);
     final placer = ref.read(careNavPlacementProvider.notifier);
 
     // The rectangle the button centre may roam in.
-    final pad = media.padding;
     final free = Rect.fromLTRB(
       pad.left + _edgeMargin + _fabBox / 2,
       pad.top + _edgeMargin + _fabBox / 2,
-      media.size.width - pad.right - _edgeMargin - _fabBox / 2,
-      media.size.height - pad.bottom - _edgeMargin - _fabBox / 2,
+      size.width - pad.right - _edgeMargin - _fabBox / 2,
+      size.height - pad.bottom - _edgeMargin - _fabBox / 2,
     );
     final centre = Offset(
       free.left + placement.dx * free.width,
@@ -213,21 +215,26 @@ class _DraggableFabState extends ConsumerState<_DraggableFab>
                     alignment: Alignment.center,
                     children: [
                       if (!reduce && !_dragging)
-                        AnimatedBuilder(
-                          animation: _pulse,
-                          builder: (context, _) {
-                            final t = Curves.easeOut.transform(_pulse.value);
-                            return Container(
-                              width: _fabCircle + 20 * t,
-                              height: _fabCircle + 20 * t,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: scheme.primary.withValues(
-                                  alpha: 0.25 * (1 - t),
+                        // Isolated so the 60fps pulse repaints only itself,
+                        // not the screen it floats over.
+                        RepaintBoundary(
+                          child: AnimatedBuilder(
+                            animation: _pulse,
+                            builder: (context, _) {
+                              final t =
+                                  Curves.easeOut.transform(_pulse.value);
+                              return Container(
+                                width: _fabCircle + 20 * t,
+                                height: _fabCircle + 20 * t,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: scheme.primary.withValues(
+                                    alpha: 0.25 * (1 - t),
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
+                              );
+                            },
+                          ),
                         ),
                       Semantics(
                         button: true,
@@ -325,14 +332,14 @@ class _EdgeTabState extends ConsumerState<_EdgeTab> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final media = MediaQuery.of(context);
+    final size = MediaQuery.sizeOf(context);
+    final pad = MediaQuery.paddingOf(context);
     final placement = ref.watch(careNavPlacementProvider);
     final placer = ref.read(careNavPlacementProvider.notifier);
     final onRight = placement.onRight;
 
-    final pad = media.padding;
     final minY = pad.top + _edgeMargin;
-    final maxY = media.size.height - pad.bottom - _edgeMargin - _h;
+    final maxY = size.height - pad.bottom - _edgeMargin - _h;
     final top = (minY + placement.dy * (maxY - minY)).clamp(minY, maxY);
 
     final radius = onRight

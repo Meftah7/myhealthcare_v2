@@ -16,13 +16,17 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          // This is a router smoke test — skip the real dataset seed.
+          appBootstrapProvider.overrideWith((ref) async {}),
+        ],
         child: const MyHealthCareApp(),
       ),
     );
 
-    // Splash → session restore (empty) → redirect to /login.
-    for (var i = 0; i < 5; i++) {
+    // Splash → bootstrap (no-op) → session restore (empty) → redirect to /login.
+    for (var i = 0; i < 8; i++) {
       await tester.pump(const Duration(milliseconds: 50));
     }
 

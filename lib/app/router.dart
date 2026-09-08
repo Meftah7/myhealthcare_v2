@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/di.dart';
 import '../domain/enums.dart';
 import '../features/admin/presentation/admin_ai_log_screen.dart';
 import '../features/admin/presentation/admin_appointments_screen.dart';
@@ -49,11 +50,13 @@ import '../features/timeline/presentation/health_records_screen.dart';
 import '../features/vitals/presentation/vitals_screen.dart';
 import 'shell/app_shell.dart';
 
-/// The app's [GoRouter], rebuilt-aware of the session.
+/// The app's [GoRouter], rebuilt-aware of the session and the one-time
+/// bootstrap (dataset seed / migration).
 final routerProvider = Provider<GoRouter>((ref) {
   final refresh = ValueNotifier(0);
   ref.onDispose(refresh.dispose);
   ref.listen(sessionProvider, (_, _) => refresh.value++);
+  ref.listen(appBootstrapProvider, (_, _) => refresh.value++);
   return buildAppRouter(ref, refresh);
 });
 
@@ -236,8 +239,12 @@ String? _guard(Ref ref, GoRouterState state) {
   };
   final onAuthScreen = publicAuth.contains(loc);
 
-  // Still loading the persisted session → sit on the splash.
-  if (session.isRestoring) return loc == onSplash ? null : onSplash;
+  // Dataset still seeding / migrating, or the persisted session still loading
+  // → sit on the splash so nothing reads half-populated data.
+  final booting = ref.read(appBootstrapProvider).isLoading;
+  if (booting || session.isRestoring) {
+    return loc == onSplash ? null : onSplash;
+  }
 
   final user = session.user;
   if (user == null) {

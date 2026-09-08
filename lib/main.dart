@@ -13,8 +13,12 @@ Future<void> main() async {
   final container = ProviderContainer(
     overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
   );
-  // Populate the synthetic dataset on first launch (idempotent afterwards).
-  await container.read(seederProvider).run();
+
+  // Render immediately — the opening splash is up within one frame. The
+  // synthetic dataset is populated / migrated in the background via
+  // [appBootstrapProvider]; the router keeps everyone on the splash until it
+  // finishes, so nothing reads half-seeded data.
+  container.read(appBootstrapProvider);
 
   runApp(
     UncontrolledProviderScope(
