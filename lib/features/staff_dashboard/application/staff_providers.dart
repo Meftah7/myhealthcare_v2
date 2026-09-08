@@ -247,7 +247,7 @@ class StaffOps {
     _ref
       ..invalidate(staffTodayProvider)
       ..invalidate(staffQueueProvider)
-      ..invalidate(staffWeekProvider);
+      ..invalidate(staffMonthProvider);
   }
 
   /// Accept a booked visit (→ confirmed).
@@ -316,29 +316,61 @@ class StaffOps {
 
 final staffOpsProvider = Provider<StaffOps>(StaffOps.new);
 
-// --- schedule week grid (P5-12) -----------------------------------------
+// --- schedule: year / month / day (P5-12, calendar rebuild) --------------
 
-/// Monday of the week the grid is showing, offset in weeks from this one.
-final scheduleWeekOffsetProvider = StateProvider<int>((ref) => 0);
+/// Which level of the calendar is on screen. Drills down year → month → day,
+/// and back up via the button in the app bar's top-left.
+enum ScheduleView { year, month, day }
 
-DateTime _mondayOf(DateTime d) {
-  final day = DateTime(d.year, d.month, d.day);
-  return day.subtract(Duration(days: day.weekday - 1));
+final scheduleViewProvider = StateProvider<ScheduleView>(
+  (ref) => ScheduleView.day,
+);
+
+DateTime dayOf(DateTime d) => DateTime(d.year, d.month, d.day);
+
+bool isSameCalendarDay(DateTime a, DateTime b) =>
+    a.year == b.year && a.month == b.month && a.day == b.day;
+
+/// Monday on or before the 1st of [focused]'s month — the first cell of the
+/// month grid, and the start of the window we query.
+DateTime monthGridStart(DateTime focused) {
+  final first = DateTime(focused.year, focused.month);
+  return first.subtract(Duration(days: first.weekday - 1));
 }
 
-final scheduleWeekStartProvider = Provider<DateTime>((ref) {
-  final offset = ref.watch(scheduleWeekOffsetProvider);
-  return _mondayOf(DateTime.now()).add(Duration(days: 7 * offset));
+/// The day the calendar is focused on. The month and year views take their
+/// period from it; the day view draws it.
+final scheduleFocusedDayProvider = StateProvider<DateTime>(
+  (ref) => dayOf(DateTime.now()),
+);
+
+/// The focused month, as its first day. Kept separate so moving between days
+/// inside one month doesn't re-run the query.
+final scheduleMonthProvider = Provider<DateTime>((ref) {
+  final f = ref.watch(scheduleFocusedDayProvider);
+  return DateTime(f.year, f.month);
 });
 
-final staffWeekProvider = FutureProvider<List<Appointment>>((ref) async {
+/// Every appointment inside the focused month's six-week grid window. One
+/// query feeds both the month grid's per-day marks and the day timeline, so
+/// drilling between them costs nothing.
+final staffMonthProvider = FutureProvider<List<Appointment>>((ref) async {
   final id = _staffId(ref);
-  final start = ref.watch(scheduleWeekStartProvider);
+  final start = monthGridStart(ref.watch(scheduleMonthProvider));
   return _unwrap(
     await ref
         .watch(appointmentRepositoryProvider)
-        .forStaffInRange(id, start, start.add(const Duration(days: 7))),
+        .forStaffInRange(id, start, start.add(const Duration(days: 42))),
   );
+});
+
+/// The focused day's appointments, soonest first.
+final staffFocusedDayProvider = Provider<List<Appointment>>((ref) {
+  final day = ref.watch(scheduleFocusedDayProvider);
+  final all =
+      ref.watch(staffMonthProvider).valueOrNull ?? const <Appointment>[];
+  return all.where((a) => isSameCalendarDay(a.slotStart, day)).toList()
+    ..sort((a, b) => a.slotStart.compareTo(b.slotStart));
 });
 
 // --- panel analytics (P5-13) -------------------------------------------
