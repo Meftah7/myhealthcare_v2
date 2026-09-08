@@ -129,17 +129,14 @@ class MealTargets {
   final int fat;
 }
 
-/// Meal-planner inputs and the generated plan.
+/// Meal-planner input: whether the day is split into three meals or four.
 class MealPlanRequest {
-  const MealPlanRequest({this.allergens = const [], this.includeSweet = true});
-  final List<String> allergens;
+  const MealPlanRequest({this.includeSweet = true});
   final bool includeSweet;
 }
 
 class GeneratedMealPlan {
-  const GeneratedMealPlan({required this.meals, required this.perMeal});
-
-  final List<MealRecipe> meals;
+  const GeneratedMealPlan({required this.perMeal});
 
   /// The daily targets divided across the meals — null when the patient hasn't
   /// run the calculator yet.
@@ -151,40 +148,31 @@ class MealPlanController extends Notifier<GeneratedMealPlan?> {
   GeneratedMealPlan? build() => null;
 
   void generate(MealPlanRequest req) {
-    final safe = <MealType, MealRecipe?>{};
-    for (final type in MealType.values) {
-      safe[type] = mealRecipes
-          .where((m) => m.type == type && m.isSafeFor(req.allergens))
-          .firstOrNull;
-    }
-    final meals = [
-      if (safe[MealType.breakfast] != null) safe[MealType.breakfast]!,
-      if (safe[MealType.lunch] != null) safe[MealType.lunch]!,
-      if (safe[MealType.dinner] != null) safe[MealType.dinner]!,
-      if (req.includeSweet && safe[MealType.sweet] != null)
-        safe[MealType.sweet]!,
+    final types = [
+      MealType.breakfast,
+      MealType.lunch,
+      MealType.dinner,
+      if (req.includeSweet) MealType.sweet,
     ];
 
     final targets = ref.read(macroTargetsProvider);
     List<MealTargets>? perMeal;
     if (targets != null) {
-      final split = const MealSplit().withDessert(
-        req.includeSweet && safe[MealType.sweet] != null,
-      );
+      final split = const MealSplit().withDessert(req.includeSweet);
       perMeal = [
-        for (final m in meals)
+        for (final t in types)
           MealTargets(
-            type: m.type,
-            calories: (targets.targetCalories * split.fractionFor(m.type))
-                .round(),
-            protein: (targets.protein * split.fractionFor(m.type)).round(),
-            carbs: (targets.carbs * split.fractionFor(m.type)).round(),
-            fat: (targets.fat * split.fractionFor(m.type)).round(),
+            type: t,
+            calories:
+                (targets.targetCalories * split.fractionFor(t)).round(),
+            protein: (targets.protein * split.fractionFor(t)).round(),
+            carbs: (targets.carbs * split.fractionFor(t)).round(),
+            fat: (targets.fat * split.fractionFor(t)).round(),
           ),
       ];
     }
 
-    state = GeneratedMealPlan(meals: meals, perMeal: perMeal);
+    state = GeneratedMealPlan(perMeal: perMeal);
   }
 
   void clear() => state = null;

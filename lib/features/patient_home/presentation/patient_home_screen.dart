@@ -272,12 +272,8 @@ class _HealthSnapshot extends ConsumerWidget {
 
     final all = appts.valueOrNull ?? const <Appointment>[];
 
-    // Ticket — the tag on the next upcoming appointment.
-    final nextUpcoming =
-        (all.where((a) => a.isUpcoming).toList()
-              ..sort((a, b) => a.slotStart.compareTo(b.slotStart)))
-            .firstOrNull;
-    final ticket = nextUpcoming?.ticketTag ?? '—';
+    // Ticket — how many upcoming appointments the patient is holding.
+    final ticketCount = all.where((a) => a.isUpcoming).length;
 
     final activeMeds = meds.valueOrNull?.where((m) => m.isCurrent).length ?? 0;
 
@@ -306,7 +302,7 @@ class _HealthSnapshot extends ConsumerWidget {
       children: [
         Expanded(
           child: MetricTile(
-            value: ticket,
+            value: '$ticketCount',
             label: 'Ticket',
             icon: Icons.confirmation_number_outlined,
             onTap: () => context.go(AppRoutes.patientAppointments),

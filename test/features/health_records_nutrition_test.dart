@@ -154,14 +154,15 @@ void main() {
     expect(find.text('PREFERENCES'), findsOneWidget); // was "Split"
     expect(find.textContaining('kcal / day'), findsWidgets);
 
-    // The Meal plan reads the calculator's targets and splits them per meal.
+    // The Meal plan reads the calculator's targets and splits them per meal —
+    // just the daily breakdown, no recipe cards.
     await tester.tap(find.text('Meal plan'));
     await _settle(tester);
-    await tester.tap(find.widgetWithText(FilledButton, 'Suggest meals'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Build my day'));
     await _settle(tester);
     expect(find.text('Your day'), findsOneWidget);
     expect(find.text('Breakfast'), findsWidgets);
-    expect(find.textContaining('Target for this meal'), findsWidgets);
+    expect(find.text('Lunch'), findsWidgets);
 
     // Foods view: the full database, a category filter, six figures per item.
     await tester.tap(find.text('Foods'));

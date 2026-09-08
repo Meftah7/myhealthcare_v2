@@ -418,10 +418,10 @@ class _FamilyMemberFormState extends ConsumerState<_FamilyMemberForm> {
             DropdownButtonFormField<Gender?>(
               initialValue: _gender,
               decoration: const InputDecoration(labelText: 'Gender (optional)'),
-              items: [
-                const DropdownMenuItem(value: null, child: Text('—')),
-                for (final g in Gender.values)
-                  DropdownMenuItem(value: g, child: Text(_genderLabel(g))),
+              items: const [
+                DropdownMenuItem(child: Text('—')),
+                DropdownMenuItem(value: Gender.male, child: Text('Male')),
+                DropdownMenuItem(value: Gender.female, child: Text('Female')),
               ],
               onChanged: (v) => setState(() => _gender = v),
             ),
@@ -458,11 +458,4 @@ class _FamilyMemberFormState extends ConsumerState<_FamilyMemberForm> {
       ),
     );
   }
-
-  static String _genderLabel(Gender g) => switch (g) {
-    Gender.female => 'Female',
-    Gender.male => 'Male',
-    Gender.other => 'Other',
-    Gender.undisclosed => 'Prefer not to say',
-  };
 }

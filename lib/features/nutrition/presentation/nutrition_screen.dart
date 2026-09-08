@@ -576,40 +576,24 @@ class _FoodCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: Space.sm),
-          // Six figures: calories + the five macros.
-          Wrap(
-            spacing: Space.xs,
-            runSpacing: Space.xs,
-            children: [
+          // Six figures: calories + the five macros, three to a row.
+          _PillGrid(
+            pills: [
               _Pill('Calories', '${food.calories}', accent: scheme.primary),
-              _Pill('Protein', _g(food.protein)),
-              _Pill('Carbs', _g(food.carbs)),
-              _Pill('Fat', _g(food.fat)),
-              _Pill('Sugar', _g(food.sugar)),
-              _Pill('Sat. fat', _g(food.satFat)),
+              _Pill('Protein', _g(food.protein), accent: scheme.primary),
+              _Pill('Carbs', _g(food.carbs), accent: scheme.primary),
+              _Pill('Fat', _g(food.fat), accent: scheme.primary),
+              _Pill('Sugar', _g(food.sugar), accent: scheme.primary),
+              _Pill('Sat. fat', _g(food.satFat), accent: scheme.primary),
             ],
           ),
           if (food.micros.isNotEmpty) ...[
-            const SizedBox(height: Space.sm),
-            Wrap(
-              spacing: Space.xs,
-              runSpacing: Space.xs,
-              children: [
+            const SizedBox(height: Space.xs),
+            // Micronutrients, same pill treatment as the macros above.
+            _PillGrid(
+              pills: [
                 for (final e in food.micros.entries)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: Space.xs,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: scheme.surfaceContainerHighest,
-                      borderRadius: Radii.chip,
-                    ),
-                    child: Text(
-                      '${e.key}: ${e.value}',
-                      style: theme.textTheme.labelSmall,
-                    ),
-                  ),
+                  _Pill(e.key, e.value, accent: scheme.primary),
               ],
             ),
           ],
@@ -631,7 +615,28 @@ class _FoodCard extends StatelessWidget {
       '${v == v.roundToDouble() ? '${v.round()}' : v.toStringAsFixed(1)} g';
 }
 
-/// One labelled figure in a food card's macro row.
+/// Lays [pills] out three to a row (so six figures = two rows), each cell the
+/// same size.
+class _PillGrid extends StatelessWidget {
+  const _PillGrid({required this.pills});
+
+  final List<_Pill> pills;
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.count(
+      crossAxisCount: 3,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisSpacing: Space.xs,
+      mainAxisSpacing: Space.xs,
+      mainAxisExtent: 54,
+      children: pills,
+    );
+  }
+}
+
+/// One labelled figure in a food card's macro / micro grid.
 class _Pill extends StatelessWidget {
   const _Pill(this.label, this.value, {this.accent});
 
@@ -644,7 +649,6 @@ class _Pill extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     return Container(
-      constraints: const BoxConstraints(minWidth: 74),
       padding: const EdgeInsets.symmetric(
         horizontal: Space.sm,
         vertical: Space.xs,
@@ -654,16 +658,21 @@ class _Pill extends StatelessWidget {
         borderRadius: Radii.chip,
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: theme.textTheme.labelSmall?.copyWith(
               color: scheme.onSurfaceVariant,
             ),
           ),
           Text(
             value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: accent,
               fontWeight: accent != null ? FontWeight.w700 : null,
@@ -687,29 +696,12 @@ class _MealPlanView extends ConsumerStatefulWidget {
 }
 
 class _MealPlanViewState extends ConsumerState<_MealPlanView> {
-  final _allergens = TextEditingController();
   bool _includeSweet = true;
 
-  @override
-  void dispose() {
-    _allergens.dispose();
-    super.dispose();
-  }
-
-  List<String> get _parsedAllergens => _allergens.text
-      .toLowerCase()
-      .split(',')
-      .map((s) => s.trim())
-      .where((s) => s.isNotEmpty)
-      .toList();
-
   void _generate() {
-    ref.read(mealPlanProvider.notifier).generate(
-          MealPlanRequest(
-            allergens: _parsedAllergens,
-            includeSweet: _includeSweet,
-          ),
-        );
+    ref
+        .read(mealPlanProvider.notifier)
+        .generate(MealPlanRequest(includeSweet: _includeSweet));
   }
 
   @override
@@ -726,16 +718,11 @@ class _MealPlanViewState extends ConsumerState<_MealPlanView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextField(
-                controller: _allergens,
-                decoration: const InputDecoration(
-                  labelText: 'Allergies & foods to avoid',
-                  hintText: 'e.g. dairy, nuts, fish, egg, gluten',
-                ),
-              ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('Include a dessert'),
+                subtitle: const Text('Splits the day into four meals instead '
+                    'of three'),
                 value: _includeSweet,
                 onChanged: (v) => setState(() => _includeSweet = v),
               ),
@@ -743,7 +730,7 @@ class _MealPlanViewState extends ConsumerState<_MealPlanView> {
               FilledButton.icon(
                 onPressed: _generate,
                 icon: const Icon(Icons.restaurant_menu),
-                label: const Text('Suggest meals'),
+                label: const Text('Build my day'),
               ),
             ],
           ),
@@ -763,8 +750,8 @@ class _MealPlanViewState extends ConsumerState<_MealPlanView> {
                 const SizedBox(width: Space.sm),
                 Expanded(
                   child: Text(
-                    'Run the Calculator first — then portions here are matched '
-                    'to your calorie goal and split across the meals.',
+                    'Run the Calculator first — then your calorie and macro '
+                    'goal is split across the meals here.',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -775,50 +762,9 @@ class _MealPlanViewState extends ConsumerState<_MealPlanView> {
           ),
         ],
 
-        if (plan != null) ...[
+        if (plan != null && targets != null && plan.perMeal != null) ...[
           const SizedBox(height: Space.lg),
-          if (targets != null && plan.perMeal != null)
-            _DailySplitCard(targets: targets, perMeal: plan.perMeal!),
-          if (_parsedAllergens.isNotEmpty) ...[
-            const SizedBox(height: Space.sm),
-            AppCard(
-              color: theme.clinicalStatus.riskLow.container,
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.verified_outlined,
-                    size: 18,
-                    color: theme.clinicalStatus.riskLow.onContainer,
-                  ),
-                  const SizedBox(width: Space.sm),
-                  Expanded(
-                    child: Text(
-                      'Excluded: ${_parsedAllergens.join(', ')}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.clinicalStatus.riskLow.onContainer,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-          const SizedBox(height: Space.sm),
-          if (plan.meals.isEmpty)
-            const EmptyState(
-              icon: Icons.no_meals_outlined,
-              message: 'No meals fit those exclusions. Try removing one.',
-            )
-          else
-            for (var i = 0; i < plan.meals.length; i++)
-              Padding(
-                padding: const EdgeInsets.only(bottom: Space.sm),
-                child: _MealCard(
-                  plan.meals[i],
-                  target: plan.perMeal == null ? null : plan.perMeal![i],
-                ),
-              ),
+          _DailySplitCard(targets: targets, perMeal: plan.perMeal!),
         ],
       ],
     );
@@ -889,81 +835,3 @@ String _mealLabel(MealType t) => switch (t) {
   MealType.dinner => 'Dinner',
   MealType.sweet => 'Dessert',
 };
-
-class _MealCard extends StatelessWidget {
-  const _MealCard(this.meal, {this.target});
-  final MealRecipe meal;
-  final MealTargets? target;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-
-    return AppCard(
-      padding: const EdgeInsets.all(Space.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: Space.xs,
-                  vertical: 2,
-                ),
-                decoration: BoxDecoration(
-                  color: scheme.primaryContainer,
-                  borderRadius: Radii.chip,
-                ),
-                child: Text(
-                  _mealLabel(meal.type).toUpperCase(),
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: scheme.onPrimaryContainer,
-                  ),
-                ),
-              ),
-              const Spacer(),
-              Text(
-                '${meal.calories} kcal',
-                style: theme.textTheme.titleSmall,
-              ),
-            ],
-          ),
-          const SizedBox(height: Space.xs),
-          Text(meal.name, style: theme.textTheme.titleSmall),
-          const SizedBox(height: Space.xxs),
-          Text(
-            'P ${meal.protein} g · C ${meal.carbs} g · F ${meal.fat} g',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: scheme.onSurfaceVariant,
-            ),
-          ),
-          if (target != null) ...[
-            const SizedBox(height: Space.xxs),
-            Text(
-              'Target for this meal: ${target!.calories} kcal · '
-              'P ${target!.protein} · C ${target!.carbs} · F ${target!.fat} g',
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: scheme.primary,
-              ),
-            ),
-          ],
-          const SizedBox(height: Space.xs),
-          Text(
-            meal.ingredients.join(', '),
-            style: theme.textTheme.bodySmall,
-          ),
-          const SizedBox(height: Space.xxs),
-          Text(
-            '${meal.prepTime} · ${meal.instructions}',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: scheme.onSurfaceVariant,
-              fontStyle: FontStyle.italic,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
