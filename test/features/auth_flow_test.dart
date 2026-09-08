@@ -66,7 +66,7 @@ void main() {
     // Home, Nutrition, Appointments, Records, Profile.
     expect(find.text('Records'), findsWidgets);
     expect(find.text('Nutrition'), findsWidgets);
-    expect(find.text('Appointments'), findsWidgets);
+    expect(find.text('Appointment'), findsWidgets);
 
     // The three persistent top actions ride along on every patient page.
     expect(find.byTooltip('Profile'), findsOneWidget);
@@ -75,7 +75,7 @@ void main() {
           find.byTooltip('Switch to light mode').evaluate().isNotEmpty,
       isTrue,
     );
-    await tester.tap(find.text('Appointments').first);
+    await tester.tap(find.text('Appointment').first);
     await _pump(tester);
     expect(find.byTooltip('Profile'), findsOneWidget);
 

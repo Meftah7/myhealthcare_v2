@@ -1,6 +1,11 @@
-/// Nutrition — macro/calorie targets, a food reference, and an allergen-safe
-/// meal planner. Ported from the standalone Nutrition project and rebuilt on
-/// the app's design system; runs the same on phone, tablet, desktop and web.
+/// Nutrition — a calorie/macro calculator, an allergen-safe meal plan, and a
+/// searchable food database. Ported from the standalone Nutrition project and
+/// rebuilt on the app's design system; runs the same on phone, tablet,
+/// desktop and web.
+///
+/// Tabs, in order: Calculator → Meal plan → Foods. The Calculator's result
+/// feeds the Meal plan (portions are matched to the day's targets and split
+/// across the meals).
 library;
 
 import 'package:flutter/material.dart';
@@ -15,7 +20,7 @@ import '../application/macro_calculator.dart';
 import '../application/nutrition_providers.dart';
 import '../domain/nutrition_data.dart';
 
-enum _View { targets, foods, meals }
+enum _View { calculator, meals, foods }
 
 class NutritionScreen extends StatefulWidget {
   const NutritionScreen({super.key});
@@ -25,7 +30,7 @@ class NutritionScreen extends StatefulWidget {
 }
 
 class _NutritionScreenState extends State<NutritionScreen> {
-  _View _view = _View.targets;
+  _View _view = _View.calculator;
 
   @override
   Widget build(BuildContext context) {
@@ -50,19 +55,19 @@ class _NutritionScreenState extends State<NutritionScreen> {
                   child: SegmentedButton<_View>(
                     segments: const [
                       ButtonSegment(
-                        value: _View.targets,
-                        icon: Icon(Icons.track_changes_outlined),
-                        label: Text('Targets'),
-                      ),
-                      ButtonSegment(
-                        value: _View.foods,
-                        icon: Icon(Icons.search),
-                        label: Text('Foods'),
+                        value: _View.calculator,
+                        icon: Icon(Icons.calculate_outlined),
+                        label: Text('Calculator'),
                       ),
                       ButtonSegment(
                         value: _View.meals,
                         icon: Icon(Icons.restaurant_menu),
                         label: Text('Meal plan'),
+                      ),
+                      ButtonSegment(
+                        value: _View.foods,
+                        icon: Icon(Icons.search),
+                        label: Text('Foods'),
                       ),
                     ],
                     selected: {_view},
@@ -80,9 +85,9 @@ class _NutritionScreenState extends State<NutritionScreen> {
                   maxWidth: Space.maxContentWidth,
                 ),
                 child: switch (_view) {
-                  _View.targets => const _TargetsView(),
-                  _View.foods => const _FoodsView(),
+                  _View.calculator => const _CalculatorView(),
                   _View.meals => const _MealPlanView(),
+                  _View.foods => const _FoodsView(),
                 },
               ),
             ),
@@ -94,17 +99,17 @@ class _NutritionScreenState extends State<NutritionScreen> {
 }
 
 // ---------------------------------------------------------------------------
-// Targets — the calorie & macro calculator
+// Calculator — the calorie & macro targets
 // ---------------------------------------------------------------------------
 
-class _TargetsView extends ConsumerStatefulWidget {
-  const _TargetsView();
+class _CalculatorView extends ConsumerStatefulWidget {
+  const _CalculatorView();
 
   @override
-  ConsumerState<_TargetsView> createState() => _TargetsViewState();
+  ConsumerState<_CalculatorView> createState() => _CalculatorViewState();
 }
 
-class _TargetsViewState extends ConsumerState<_TargetsView> {
+class _CalculatorViewState extends ConsumerState<_CalculatorView> {
   MacroInputs? _inputs;
   late final TextEditingController _age;
   late final TextEditingController _weight;
@@ -141,7 +146,6 @@ class _TargetsViewState extends ConsumerState<_TargetsView> {
 
   void _update(MacroInputs next) {
     setState(() => _inputs = next);
-    // Live-update the result if one is already showing.
     if (ref.read(macroTargetsProvider) != null) {
       ref.read(macroTargetsProvider.notifier).set(next);
     }
@@ -305,7 +309,14 @@ class _TargetsViewState extends ConsumerState<_TargetsView> {
 
         if (result != null) ...[
           const SizedBox(height: Space.lg),
-          const SectionHeader('Split', overline: true),
+          const SectionHeader('Preferences', overline: true),
+          Text(
+            'The macro split used for your targets and your meal plan.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: Space.xs),
           SizedBox(
             height: 40,
             child: ListView(
@@ -427,7 +438,7 @@ class _MacroCard extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Foods — the micronutrient reference
+// Foods — the macro + micronutrient database
 // ---------------------------------------------------------------------------
 
 class _FoodsView extends ConsumerWidget {
@@ -435,17 +446,63 @@ class _FoodsView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final categories = ref.watch(foodCategoriesProvider);
+    final selectedCat = ref.watch(foodCategoryFilterProvider);
     final foods = ref.watch(filteredFoodsProvider);
 
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(Space.md, 0, Space.md, Space.sm),
+          padding: const EdgeInsets.fromLTRB(Space.md, 0, Space.md, Space.xs),
           child: SearchBar(
             hintText: 'Search foods',
             leading: const Icon(Icons.search),
             onChanged: (v) =>
                 ref.read(foodSearchQueryProvider.notifier).state = v,
+          ),
+        ),
+        if (categories.isNotEmpty)
+          SizedBox(
+            height: 40,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: Space.md),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(right: Space.xs),
+                  child: ChoiceChip(
+                    label: const Text('All'),
+                    selected: selectedCat == null,
+                    onSelected: (_) => ref
+                        .read(foodCategoryFilterProvider.notifier)
+                        .state = null,
+                  ),
+                ),
+                for (final c in categories)
+                  Padding(
+                    padding: const EdgeInsets.only(right: Space.xs),
+                    child: ChoiceChip(
+                      label: Text(c),
+                      selected: selectedCat == c,
+                      onSelected: (_) => ref
+                          .read(foodCategoryFilterProvider.notifier)
+                          .state = (selectedCat == c ? null : c),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(Space.md, Space.xs, Space.md, 0),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              '${foods.length} ${foods.length == 1 ? 'item' : 'items'}',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
           ),
         ),
         Expanded(
@@ -457,7 +514,7 @@ class _FoodsView extends ConsumerWidget {
               : ListView.builder(
                   padding: const EdgeInsets.fromLTRB(
                     Space.md,
-                    0,
+                    Space.xs,
                     Space.md,
                     Space.xxl,
                   ),
@@ -519,15 +576,17 @@ class _FoodCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: Space.sm),
+          // Six figures: calories + the five macros.
           Wrap(
-            spacing: Space.md,
+            spacing: Space.xs,
             runSpacing: Space.xs,
             children: [
-              _macro('Protein', food.protein),
-              _macro('Carbs', food.carbs),
-              _macro('Fat', food.fat),
-              _macro('Sugar', food.sugar),
-              _macro('Sat. fat', food.satFat),
+              _Pill('Calories', '${food.calories}', accent: scheme.primary),
+              _Pill('Protein', _g(food.protein)),
+              _Pill('Carbs', _g(food.carbs)),
+              _Pill('Fat', _g(food.fat)),
+              _Pill('Sugar', _g(food.sugar)),
+              _Pill('Sat. fat', _g(food.satFat)),
             ],
           ),
           if (food.micros.isNotEmpty) ...[
@@ -568,30 +627,56 @@ class _FoodCard extends StatelessWidget {
     );
   }
 
-  Widget _macro(String label, double grams) => Builder(
-    builder: (context) {
-      final theme = Theme.of(context);
-      return Column(
+  static String _g(double v) =>
+      '${v == v.roundToDouble() ? '${v.round()}' : v.toStringAsFixed(1)} g';
+}
+
+/// One labelled figure in a food card's macro row.
+class _Pill extends StatelessWidget {
+  const _Pill(this.label, this.value, {this.accent});
+
+  final String label;
+  final String value;
+  final Color? accent;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Container(
+      constraints: const BoxConstraints(minWidth: 74),
+      padding: const EdgeInsets.symmetric(
+        horizontal: Space.sm,
+        vertical: Space.xs,
+      ),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHigh,
+        borderRadius: Radii.chip,
+      ),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             label,
             style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+              color: scheme.onSurfaceVariant,
             ),
           ),
-          Text('${_g(grams)} g', style: theme.textTheme.bodyMedium),
+          Text(
+            value,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: accent,
+              fontWeight: accent != null ? FontWeight.w700 : null,
+            ),
+          ),
         ],
-      );
-    },
-  );
-
-  static String _g(double v) =>
-      v == v.roundToDouble() ? '${v.round()}' : v.toStringAsFixed(1);
+      ),
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------
-// Meal plan — allergen-safe suggestions
+// Meal plan — allergen-safe suggestions matched to the day's targets
 // ---------------------------------------------------------------------------
 
 class _MealPlanView extends ConsumerStatefulWidget {
@@ -666,18 +751,36 @@ class _MealPlanViewState extends ConsumerState<_MealPlanView> {
 
         if (targets == null) ...[
           const SizedBox(height: Space.sm),
-          Text(
-            'Tip: calculate your targets first so portions can be matched to '
-            'your calorie goal.',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+          AppCard(
+            color: theme.colorScheme.surfaceContainerHighest,
+            child: Row(
+              children: [
+                Icon(
+                  Icons.tips_and_updates_outlined,
+                  size: 18,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: Space.sm),
+                Expanded(
+                  child: Text(
+                    'Run the Calculator first — then portions here are matched '
+                    'to your calorie goal and split across the meals.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
 
         if (plan != null) ...[
           const SizedBox(height: Space.lg),
-          if (_parsedAllergens.isNotEmpty)
+          if (targets != null && plan.perMeal != null)
+            _DailySplitCard(targets: targets, perMeal: plan.perMeal!),
+          if (_parsedAllergens.isNotEmpty) ...[
+            const SizedBox(height: Space.sm),
             AppCard(
               color: theme.clinicalStatus.riskLow.container,
               child: Row(
@@ -700,17 +803,21 @@ class _MealPlanViewState extends ConsumerState<_MealPlanView> {
                 ],
               ),
             ),
+          ],
           const SizedBox(height: Space.sm),
-          if (plan.isEmpty)
+          if (plan.meals.isEmpty)
             const EmptyState(
               icon: Icons.no_meals_outlined,
               message: 'No meals fit those exclusions. Try removing one.',
             )
           else
-            for (final m in plan)
+            for (var i = 0; i < plan.meals.length; i++)
               Padding(
                 padding: const EdgeInsets.only(bottom: Space.sm),
-                child: _MealCard(m),
+                child: _MealCard(
+                  plan.meals[i],
+                  target: plan.perMeal == null ? null : plan.perMeal![i],
+                ),
               ),
         ],
       ],
@@ -718,9 +825,75 @@ class _MealPlanViewState extends ConsumerState<_MealPlanView> {
   }
 }
 
+/// The daily targets and how they divide across the meals.
+class _DailySplitCard extends StatelessWidget {
+  const _DailySplitCard({required this.targets, required this.perMeal});
+
+  final MacroResult targets;
+  final List<MealTargets> perMeal;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Your day', style: theme.textTheme.titleSmall),
+          const SizedBox(height: Space.xxs),
+          Text(
+            '${targets.targetCalories} kcal · P ${targets.protein} g · '
+            'C ${targets.carbs} g · F ${targets.fat} g',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: Space.sm),
+          const Divider(height: 1),
+          const SizedBox(height: Space.sm),
+          for (final m in perMeal)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: Space.xxs),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 78,
+                    child: Text(
+                      _mealLabel(m.type),
+                      style: theme.textTheme.labelMedium,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      '${m.calories} kcal   ·   P ${m.protein} · '
+                      'C ${m.carbs} · F ${m.fat} g',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontFeatures: kTabularFigures,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+String _mealLabel(MealType t) => switch (t) {
+  MealType.breakfast => 'Breakfast',
+  MealType.lunch => 'Lunch',
+  MealType.dinner => 'Dinner',
+  MealType.sweet => 'Dessert',
+};
+
 class _MealCard extends StatelessWidget {
-  const _MealCard(this.meal);
+  const _MealCard(this.meal, {this.target});
   final MealRecipe meal;
+  final MealTargets? target;
 
   @override
   Widget build(BuildContext context) {
@@ -744,7 +917,7 @@ class _MealCard extends StatelessWidget {
                   borderRadius: Radii.chip,
                 ),
                 child: Text(
-                  _typeLabel(meal.type),
+                  _mealLabel(meal.type).toUpperCase(),
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: scheme.onPrimaryContainer,
                   ),
@@ -766,6 +939,16 @@ class _MealCard extends StatelessWidget {
               color: scheme.onSurfaceVariant,
             ),
           ),
+          if (target != null) ...[
+            const SizedBox(height: Space.xxs),
+            Text(
+              'Target for this meal: ${target!.calories} kcal · '
+              'P ${target!.protein} · C ${target!.carbs} · F ${target!.fat} g',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: scheme.primary,
+              ),
+            ),
+          ],
           const SizedBox(height: Space.xs),
           Text(
             meal.ingredients.join(', '),
@@ -783,11 +966,4 @@ class _MealCard extends StatelessWidget {
       ),
     );
   }
-
-  static String _typeLabel(MealType t) => switch (t) {
-    MealType.breakfast => 'BREAKFAST',
-    MealType.lunch => 'LUNCH',
-    MealType.dinner => 'DINNER',
-    MealType.sweet => 'DESSERT',
-  };
 }

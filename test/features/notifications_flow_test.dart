@@ -68,7 +68,7 @@ void main() {
     expect(find.text('Mark all read'), findsOneWidget);
 
     // Bottom nav is still visible (nested under the Home branch).
-    expect(find.text('Appointments'), findsWidgets);
+    expect(find.text('Appointment'), findsWidgets);
 
     // Open the first message; it opens a detail sheet and is marked read.
     final firstCard = find

@@ -143,19 +143,36 @@ void main() {
     // The bottom nav is still visible (Nutrition is a shell branch).
     expect(find.text('Appointment'), findsWidgets);
 
-    // Targets view is default; calculate.
+    // Tabs, in order: Calculator → Meal plan → Foods.
+    expect(find.text('Calculator'), findsOneWidget);
+    expect(find.text('Meal plan'), findsOneWidget);
+
+    // Calculator is the default view; calculate.
     await tester.tap(find.widgetWithText(FilledButton, 'Calculate targets'));
     await _settle(tester);
     expect(find.text('DAILY TARGETS'), findsOneWidget);
-    expect(find.text('Calories'), findsOneWidget);
+    expect(find.text('PREFERENCES'), findsOneWidget); // was "Split"
     expect(find.textContaining('kcal / day'), findsWidgets);
 
-    // Foods view searches the reference set.
+    // The Meal plan reads the calculator's targets and splits them per meal.
+    await tester.tap(find.text('Meal plan'));
+    await _settle(tester);
+    await tester.tap(find.widgetWithText(FilledButton, 'Suggest meals'));
+    await _settle(tester);
+    expect(find.text('Your day'), findsOneWidget);
+    expect(find.text('Breakfast'), findsWidgets);
+    expect(find.textContaining('Target for this meal'), findsWidgets);
+
+    // Foods view: the full database, a category filter, six figures per item.
     await tester.tap(find.text('Foods'));
     await _settle(tester);
+    expect(find.widgetWithText(ChoiceChip, 'All'), findsOneWidget);
     await tester.enterText(find.byType(SearchBar), 'salmon');
     await _settle(tester);
     expect(find.text('Baked salmon fillet'), findsOneWidget);
+    // Six figures per item, including Calories (the one that used to be missing).
+    expect(find.text('Calories'), findsWidgets);
+    expect(find.text('Sat. fat'), findsWidgets);
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
