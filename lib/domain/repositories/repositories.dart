@@ -5,6 +5,7 @@ export 'ai_repository.dart';
 export 'appointment_repository.dart';
 export 'auth_repository.dart';
 export 'billing_repository.dart';
+export 'care_repository.dart';
 export 'notification_repository.dart';
 export 'patient_repository.dart';
 export 'record_repository.dart';

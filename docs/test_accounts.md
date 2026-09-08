@@ -45,7 +45,20 @@ Useful ones for a demo:
 | Email | Why |
 | --- | --- |
 | `patient1@myhealth.demo` | General-purpose patient login used in the widget tests. |
-| `patient3@myhealth.demo` | Chronic patient — most history, lab panels, abnormal values, used in the booking / timeline tests. |
+| `patient3@myhealth.demo` | Chronic patient — most history, lab panels, abnormal values, imaging results, a sick-leave certificate and a message thread. Used across the booking / timeline / care tests. |
+| `patient5@myhealth.demo` | Has a scheduled home-visit request. |
+
+## Phase 10 seeded data (services & documents)
+
+| Feature | Where it lands |
+| --- | --- |
+| Sick-leave certificates | Every other patient (`patient1`, `patient3`, `patient5`, …). Patient → **Records → Sick leave**, or the **Sick leave** home quick action → **Certificate PDF**. |
+| Imaging / radiology results | ~⅓ of visits leave an imaging record. Patient → **Records → Imaging** → open a study → **Report PDF**. |
+| Message threads ("Ask your doctor") | `patient1`, `patient3`, `patient5`, `patient7`, `patient9` each have a thread with an **unread doctor reply**. Patient → **Ask your doctor**; the doctor sees it under **Dashboard → Messages**. |
+| Home-visit requests | `patient2` (requested — waiting), `patient5` (scheduled), `patient10` (completed). Admin triages at **Dashboard → Home visits**. |
+
+Staff can also issue a fresh sick note from a patient's chart (**Patients → open a
+patient → + → Issue sick leave**).
 
 Ages span ~8–83. Roughly a quarter of patients carry a raised hidden no-show
 tendency (this is what the no-show model is trained to detect); older patients

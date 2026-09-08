@@ -12,6 +12,8 @@ import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../patient/application/patient_data_providers.dart';
+import '../../patient/application/patient_documents.dart';
+import '../../patient/presentation/document_download_button.dart';
 import '../../patient/presentation/patient_top_actions.dart';
 
 class VitalsScreen extends ConsumerWidget {
@@ -23,7 +25,15 @@ class VitalsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Vitals'),
-        actions: const [PatientTopActions()],
+        actions: [
+          DocumentDownloadButton(
+            label: 'Vital signs report',
+            filename: 'vital-signs-report.pdf',
+            dense: true,
+            build: () => buildVitalsReport(ref),
+          ),
+          const PatientTopActions(),
+        ],
       ),
       body: vitals.when(
         loading: () => const SkeletonList(),

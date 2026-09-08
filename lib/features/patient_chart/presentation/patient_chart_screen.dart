@@ -340,6 +340,7 @@ class _ChartFab extends StatelessWidget {
         'note' => showChartNoteSheet(context, patientId),
         'rx' => showPrescribeSheet(context, patientId),
         'lab' => showLabResultSheet(context, patientId),
+        'sick' => showSickLeaveSheet(context, patientId),
         'scribe' => Future.sync(
           () => context.push('${AppRoutes.staffScribe}?patient=$patientId'),
         ),
@@ -350,6 +351,7 @@ class _ChartFab extends StatelessWidget {
         PopupMenuItem(value: 'scribe', child: Text('AI Scribe a note')),
         PopupMenuItem(value: 'rx', child: Text('Prescribe medication')),
         PopupMenuItem(value: 'lab', child: Text('Enter lab result')),
+        PopupMenuItem(value: 'sick', child: Text('Issue sick leave')),
       ],
       child: const FloatingActionButton(
         onPressed: null,

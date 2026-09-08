@@ -12,6 +12,7 @@ import 'converters.dart';
 import 'tables/ai.dart';
 import 'tables/appointments.dart';
 import 'tables/billing.dart';
+import 'tables/care.dart';
 import 'tables/notifications.dart';
 import 'tables/records.dart';
 import 'tables/system.dart';
@@ -44,6 +45,10 @@ part 'app_database.g.dart';
     PaymentMethods,
     // engagement
     Notifications,
+    // care services (P10 Batch B)
+    SickLeaveCertificates,
+    CareMessages,
+    HomeVisitRequests,
     // system
     AuditLog,
     AppSettings,
@@ -73,7 +78,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -120,6 +125,13 @@ class AppDatabase extends _$AppDatabase {
       if (from < 10) {
         // Book an appointment for a linked family member.
         await m.addColumn(appointments, appointments.bookedForName);
+      }
+      if (from < 11) {
+        // Care services: sick-leave notes, patient<->doctor messages, home
+        // visits (P10 Batch B).
+        await m.createTable(sickLeaveCertificates);
+        await m.createTable(careMessages);
+        await m.createTable(homeVisitRequests);
       }
     },
     beforeOpen: (details) async {

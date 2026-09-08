@@ -251,3 +251,45 @@ extension AiUsageRowX on AiUsageRow {
     summary: summary,
   );
 }
+
+extension SickLeaveRowX on SickLeaveRow {
+  SickLeaveCertificate toEntity() => SickLeaveCertificate(
+    id: id,
+    patientId: patientId,
+    issuedByStaffId: issuedByStaffId,
+    diagnosis: diagnosis,
+    fromDate: fromDate,
+    toDate: toDate,
+    issuedAt: issuedAt,
+    appointmentId: appointmentId,
+    notes: notes,
+  );
+}
+
+extension CareMessageRowX on CareMessageRow {
+  CareMessage toEntity() => CareMessage(
+    id: id,
+    patientId: patientId,
+    staffId: staffId,
+    fromStaff: fromStaff,
+    body: body,
+    sentAt: sentAt,
+    readAt: readAt,
+  );
+}
+
+extension HomeVisitRowX on HomeVisitRow {
+  HomeVisitRequest toEntity() => HomeVisitRequest(
+    id: id,
+    patientId: patientId,
+    addressText: addressText,
+    preferredDate: preferredDate,
+    reasonText: reasonText,
+    status: status,
+    createdAt: createdAt,
+    departmentId: departmentId,
+    assignedStaffId: assignedStaffId,
+    decisionNote: decisionNote,
+    decidedAt: decidedAt,
+  );
+}

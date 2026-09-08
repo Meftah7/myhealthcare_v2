@@ -23,6 +23,7 @@ import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/enums.dart';
 import '../../../domain/repositories/notification_repository.dart';
+import '../../care/application/care_providers.dart';
 import '../application/admin_providers.dart';
 import 'departments_screen.dart';
 import 'user_management_screen.dart';
@@ -64,6 +65,14 @@ class AdminQuickActions extends ConsumerWidget {
         icon: Icons.calendar_month_outlined,
         label: 'Appointments',
         onTap: () => unawaited(context.push(AppRoutes.adminAppointments)),
+      ),
+      _QuickAction(
+        icon: Icons.add_home_outlined,
+        label: switch (ref.watch(openHomeVisitCountProvider)) {
+          0 => 'Home visits',
+          final n => 'Home visits ($n)',
+        },
+        onTap: () => unawaited(context.push(AppRoutes.adminHomeVisits)),
       ),
       _QuickAction(
         icon: Icons.apartment_outlined,

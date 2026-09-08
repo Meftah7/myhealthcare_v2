@@ -5,7 +5,10 @@ Ali Mohamed Jaafar Mohamed (202208244) · Mohammed A. Redha Meftah (202209027)
 Supervisor: Dr. Amal Ghanim
 Repository: github.com/Meftah7/myhealthcare_v2
 
-**Status: 116 / 118 tasks done.** 74 automated tests passing. Windows + Web builds working.
+**Status: core build complete + three follow-up phases (8 post-review polish,
+9 full redesign, 10 patient services & documents).** 178 automated tests
+passing, `flutter analyze` clean. Windows + Web builds working; Android blocked
+on one admin step.
 
 Legend: `[x]` done · `[ ]` not done / deferred
 
@@ -41,12 +44,14 @@ Legend: `[x]` done · `[ ]` not done / deferred
 
 # Phase 1 — Database
 
-## Tables (16 total)
+## Tables
 - [x] Users, Patient Profiles, Staff Profiles, Departments
 - [x] Appointments, Schedule Templates, Reminders
 - [x] Medical Records, Lab Values, Vitals, Medications
 - [x] AI Summaries, Staff Tasks, Risk Flags
 - [x] Audit Log, App Settings
+- [x] Invoices, Payment Methods, Notifications, Feedback, AI Usage Log *(Phases 8–9)*
+- [x] Sick-Leave Certificates, Care Messages, Home-Visit Requests *(Phase 10)*
 
 ## Domain layer
 - [x] Entities (User, Patient, Staff, Appointment, Record, Vitals, Medication, …)
@@ -173,7 +178,7 @@ Legend: `[x]` done · `[ ]` not done / deferred
 - [x] Rule-based task generator
 
 ## Staff app
-- [x] Staff shell + navigation (Dashboard / Patients / Tasks / Schedule)
+- [x] Staff shell + navigation (Dashboard / Patients / Tasks / Schedule / Profile)
 - [x] Dashboard — today's schedule, risk flags, task preview, one-tap "scan panel"
 - [x] Patient search + list
 - [x] Patient chart (header, flags, medications, vitals, timeline)
@@ -210,10 +215,64 @@ Legend: `[x]` done · `[ ]` not done / deferred
 - [x] Performance — timeline load, AI latency, cold start, database size
 - [x] Accessibility — contrast, tap targets, labels, text scaling
 
-**Result: 74 tests, all passing.** `flutter analyze` clean.
+**Result: 178 tests, all passing.** `flutter analyze` clean.
 
 ✅ Done when:
 - Every number in the report has a test or measurement behind it
+
+---
+
+# Phase 8 — Post-Review Polish
+
+Gaps and bugs found while walking the build with the supervisor.
+
+- [x] Sign out available across the whole admin app
+- [x] User management: the "Add" button follows the selected tab (patient / staff / admin) + a search bar
+- [x] Departments: delete (refused while staff or appointments still reference it)
+- [x] Admin dashboard landing screen (counts, appointment health, quick links, recent audit)
+- [x] Fix: staff Schedule tab crashed on any week with an empty day
+- [x] Staff profile panel + theme (light/dark) and language (EN/AR) preferences
+- [x] Patient profile as a 5th bottom-nav tab (both roles)
+- [x] Booking flow shows every slot from opening to closing; weekend guard
+- [x] Clinic day extended to 08:00–20:00
+- [x] Appointments tab reorganised
+- [x] New "MyHealth Care" logo applied to every platform
+- [ ] Admin profile screen — deferred
+
+---
+
+# Phase 9 — Full "v2" Redesign
+
+One product, three experiences (patient / staff / admin) reworked together.
+
+- [x] Design system: indigo-violet palette, flat surfaces + hairline borders, motion tokens, size-specific typography
+- [x] Shared components: one `AppCard`, `SectionHeader`, `MetricTile`, `InlineBanner`, empty / loading / error states
+- [x] ~24 screens rebuilt across all three roles
+- [x] `DESIGN.md` rewritten to v2 (identity, palette, IA for all three roles, component catalogue)
+- [ ] R4 information-architecture reshuffle + 3 remaining theme-only screens — deferred
+
+---
+
+# Phase 10 — Patient Services & Documents
+
+## Documents (offline PDF via `printing` + `pdf`)
+- [x] PDF engine — one clinic letterhead, patient identity strip with an allergies banner, page footer
+- [x] Vital-signs report (PDF) — latest snapshot + full reading history
+- [x] Radiology results — imaging records seeded; list + one-page report PDF
+- [x] Sick-leave certificate (PDF) — doctor-issued, patient views + downloads
+
+## Services
+- [x] Visited doctors — the care team, derived from appointment history; "book again"
+- [x] Allergies — a read-only, high-visibility view + alert strips on Home and Records
+- [x] Ask your doctor — patient ↔ doctor message threads + a staff inbox
+- [x] Home health care — patient requests a home visit; admin triage queue (schedule / decline / complete)
+
+## Data
+- [x] 3 new tables (sick-leave certificates, care messages, home-visit requests); schema 11, seedVersion 13
+- [x] Seed data + repository tests + end-to-end flow tests
+
+✅ Done when:
+- A patient can get every routine clinic document and service without a phone call
 
 ---
 
@@ -235,10 +294,13 @@ Legend: `[x]` done · `[ ]` not done / deferred
 | Item | Status | To close |
 | --- | --- | --- |
 | Android build | Blocked | Run the AEHD hypervisor driver installer (admin) or use a physical phone |
-| PDF report import | Deferred | Wire file picker → text extractor → new record |
+| PDF report *import* | Deferred | Wire file picker → text extractor → new record (PDF *generation* is done, P10) |
 | Schedule-template editor | Deferred | Add a schedule-template repository |
+| Admin profile screen | Deferred | Mirror the patient / staff profile hub |
+| R4 IA reshuffle + 3 theme-only screens | Deferred | Finish the v2 redesign |
 | Usability study results | Pending | Run the protocol in `docs/usability_study.md` with 5–8 people |
 | Live Gemini output | Dormant | Paste a free API key in Admin → AI Settings, turn Mock mode off |
+| Message / triage notifications | Deferred | Notify on a doctor reply or a home-visit decision |
 
 ---
 
