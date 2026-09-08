@@ -43,6 +43,7 @@ import '../features/staff_dashboard/presentation/staff_activity_screen.dart';
 import '../features/staff_dashboard/presentation/staff_dashboard_screen.dart';
 import '../features/staff_dashboard/presentation/staff_directory_screen.dart';
 import '../features/staff_dashboard/presentation/staff_patients_screen.dart';
+import '../features/staff_dashboard/presentation/staff_profile_pages.dart';
 import '../features/staff_dashboard/presentation/staff_profile_screen.dart';
 import '../features/staff_dashboard/presentation/staff_schedule_screen.dart';
 import '../features/tasks/presentation/task_board_screen.dart';
@@ -112,11 +113,15 @@ abstract final class AppRoutes {
   static const staffPatients = '/staff/patients';
   static const staffTasks = '/staff/tasks';
   static const staffSchedule = '/staff/schedule';
-  static const staffAnalytics = '/staff/analytics';
-  static const staffDirectory = '/staff/directory';
-  static const staffActivity = '/staff/activity';
   static const staffScribe = '/staff/scribe';
   static const staffProfile = '/staff/profile';
+  // Profile-section pages — each its own page, reached from the Profile hub
+  // with a back button (mirrors the patient Profile).
+  static const staffProfileAccount = '/staff/profile/account';
+  static const staffProfileActivity = '/staff/profile/activity';
+  static const staffProfileDirectory = '/staff/profile/directory';
+  static const staffProfileAnalytics = '/staff/profile/analytics';
+  static const staffProfilePreferences = '/staff/profile/preferences';
 
   static String staffPatientChart(String id) => '$staffPatients/$id';
   static String staffPatientSummary(String id) =>
@@ -175,18 +180,6 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
         builder: (_, state) => BookingScreen(
           mode: (state.extra as BookingMode?) ?? BookingMode.schedule,
         ),
-      ),
-      GoRoute(
-        path: AppRoutes.staffAnalytics,
-        builder: (_, _) => const PanelAnalyticsScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.staffDirectory,
-        builder: (_, _) => const StaffDirectoryScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.staffActivity,
-        builder: (_, _) => const StaffActivityScreen(),
       ),
       GoRoute(
         path: AppRoutes.staffScribe,
@@ -492,6 +485,28 @@ StatefulShellRoute _staffShell() {
           GoRoute(
             path: AppRoutes.staffProfile,
             builder: (_, _) => const StaffProfileScreen(),
+            routes: [
+              GoRoute(
+                path: 'account',
+                builder: (_, _) => const StaffAccountPage(),
+              ),
+              GoRoute(
+                path: 'activity',
+                builder: (_, _) => const StaffActivityScreen(),
+              ),
+              GoRoute(
+                path: 'directory',
+                builder: (_, _) => const StaffDirectoryScreen(),
+              ),
+              GoRoute(
+                path: 'analytics',
+                builder: (_, _) => const PanelAnalyticsScreen(),
+              ),
+              GoRoute(
+                path: 'preferences',
+                builder: (_, _) => const StaffPreferencesPage(),
+              ),
+            ],
           ),
         ],
       ),

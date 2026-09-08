@@ -12,7 +12,6 @@ import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/enums.dart';
 import '../application/staff_providers.dart';
-import 'staff_top_actions.dart';
 
 enum _ActivityView { records, prescriptions }
 
@@ -35,7 +34,6 @@ class _StaffActivityScreenState extends ConsumerState<StaffActivityScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My activity'),
-        actions: const [StaffTopActions()],
       ),
       body: Column(
         children: [

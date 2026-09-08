@@ -99,21 +99,6 @@ class StaffQuickActions extends ConsumerWidget {
         label: 'Panel scan',
         onTap: () => unawaited(_runPanelScan(context, ref)),
       ),
-      _QuickAction(
-        icon: Icons.badge_outlined,
-        label: 'Staff directory',
-        onTap: () => context.go(AppRoutes.staffDirectory),
-      ),
-      _QuickAction(
-        icon: Icons.history_outlined,
-        label: 'My activity',
-        onTap: () => context.go(AppRoutes.staffActivity),
-      ),
-      _QuickAction(
-        icon: Icons.insights_outlined,
-        label: 'Analytics',
-        onTap: () => context.go(AppRoutes.staffAnalytics),
-      ),
     ];
 
     return GridView.count(

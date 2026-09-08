@@ -8,7 +8,6 @@ import 'package:myhealthcare/app/app.dart';
 import 'package:myhealthcare/app/settings/ui_prefs.dart';
 import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
-import 'package:myhealthcare/features/staff_dashboard/presentation/staff_profile_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/mfa.dart';
@@ -58,23 +57,26 @@ void main() {
     await passMfa(tester);
     await _settle(tester);
 
-    // Open the Profile tab from the bottom navigation.
+    // Open the Profile tab from the bottom navigation — now a hub of rows.
     await tester.tap(find.text('Profile').last);
     await _settle(tester);
-
     expect(find.widgetWithText(AppBar, 'Profile'), findsOneWidget);
+
+    // Account details is its own page.
+    await tester.tap(find.text('Account'));
+    await _settle(tester);
     expect(find.text('Specialty'), findsOneWidget);
     expect(find.text('Department'), findsOneWidget);
+    expect(find.byType(BackButton), findsOneWidget);
+    await tester.tap(find.byType(BackButton));
+    await _settle(tester);
 
-    final scrollable = find
-        .descendant(
-          of: find.byType(StaffProfileScreen),
-          matching: find.byType(Scrollable),
-        )
-        .first;
+    // Preferences is its own page.
+    await tester.tap(find.text('Preferences'));
+    await _settle(tester);
 
     Future<void> reveal(Finder f) async {
-      await tester.scrollUntilVisible(f, 120, scrollable: scrollable);
+      await tester.scrollUntilVisible(f, 120);
       await tester.ensureVisible(f);
       await _settle(tester);
     }
@@ -85,15 +87,21 @@ void main() {
     await _settle(tester);
     expect(container.read(themeModeProvider), ThemeMode.dark);
 
-    // Switch language to Arabic → app goes RTL and the label localises.
+    // Switch language to Arabic → app goes RTL and the labels localise.
     await reveal(find.text('العربية'));
     await tester.tap(find.text('العربية'));
     await _settle(tester);
     expect(container.read(localeProvider), const Locale('ar'));
-    expect(find.text('الملف الشخصي'), findsWidgets);
+    // The Preferences page's own app-bar title localises.
+    expect(find.text('التفضيلات'), findsWidgets);
     expect(
-      Directionality.of(tester.element(find.text('الملف الشخصي').first)),
+      Directionality.of(tester.element(find.text('التفضيلات').first)),
       TextDirection.rtl,
     );
+
+    // Back to the hub — its title is localised too.
+    await tester.tap(find.byType(BackButton));
+    await _settle(tester);
+    expect(find.text('الملف الشخصي'), findsWidgets);
   });
 }

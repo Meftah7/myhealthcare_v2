@@ -96,12 +96,17 @@ void main() {
     final container = await _signInStaff(tester);
     addTearDown(container.dispose);
 
+    // Now reached from the Profile hub, not a Quick action.
+    await tester.tap(find.text('Profile').last);
+    await _settle(tester);
     await tester.tap(find.text('Staff directory'));
     await _settle(tester);
 
     expect(find.widgetWithText(AppBar, 'Staff directory'), findsOneWidget);
     expect(find.textContaining('clinicians'), findsOneWidget);
     expect(find.textContaining('On duty'), findsWidgets);
+    // Back button returns to the Profile hub.
+    expect(find.byType(BackButton), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
@@ -118,6 +123,8 @@ void main() {
     final container = await _signInStaff(tester);
     addTearDown(container.dispose);
 
+    await tester.tap(find.text('Profile').last);
+    await _settle(tester);
     await tester.tap(find.text('My activity'));
     await _settle(tester);
 

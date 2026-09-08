@@ -10,7 +10,7 @@ import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../domain/entities/entities.dart';
 import '../application/staff_providers.dart';
-import 'staff_top_actions.dart';
+import 'staff_top_actions.dart' show presenceMeta;
 
 class StaffDirectoryScreen extends ConsumerWidget {
   const StaffDirectoryScreen({super.key});
@@ -24,7 +24,6 @@ class StaffDirectoryScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Staff directory'),
-        actions: const [StaffTopActions()],
       ),
       body: directory.when(
         loading: () => const SkeletonList(),
