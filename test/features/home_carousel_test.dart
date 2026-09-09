@@ -19,9 +19,14 @@ Future<void> _settle(WidgetTester tester) async {
 }
 
 void main() {
-  testWidgets('home carousel: ticket number, room, count, auto-slide',
-      (tester) async {
-    tester.view.physicalSize = const Size(1100, 2200);
+  testWidgets('home carousel: ticket number, room, count, auto-slide', (
+    tester,
+  ) async {
+    // A compact width on purpose: this test is about the *reading order* of
+    // the sections, which is a vertical stack on a phone. From `expanded` up
+    // the same sections deliberately split into two columns, so `dy` no longer
+    // encodes the order there — that layout is covered in responsive_test.dart.
+    tester.view.physicalSize = const Size(420, 2200);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -63,8 +68,7 @@ void main() {
     // New section order: greeting, quick appointment, Your health, then
     // Upcoming appointments, then Quick actions.
     final health = tester.getTopLeft(find.text('YOUR HEALTH')).dy;
-    final upcoming =
-        tester.getTopLeft(find.text('UPCOMING APPOINTMENTS')).dy;
+    final upcoming = tester.getTopLeft(find.text('UPCOMING APPOINTMENTS')).dy;
     final quick = tester.getTopLeft(find.text('QUICK ACTIONS')).dy;
     expect(health, lessThan(upcoming));
     expect(upcoming, lessThan(quick));

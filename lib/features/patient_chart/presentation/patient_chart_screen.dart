@@ -20,15 +20,26 @@ import '../application/chart_providers.dart';
 import 'chart_write_sheets.dart';
 
 class PatientChartScreen extends ConsumerWidget {
-  const PatientChartScreen({required this.patientId, super.key});
+  const PatientChartScreen({
+    required this.patientId,
+    this.embedded = false,
+    super.key,
+  });
 
   final String patientId;
+
+  /// True when this chart is the detail pane of a list-detail layout rather
+  /// than a pushed screen. The pane keeps its own toolbar — it names the
+  /// selected patient and carries the chart actions — but drops the back
+  /// button, because there is nothing to go back to: the list is right there.
+  final bool embedded;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final patient = ref.watch(chartPatientProvider(patientId));
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: !embedded,
         title: Text(patient.valueOrNull?.fullName ?? 'Patient chart'),
         actions: [
           IconButton(
@@ -50,9 +61,7 @@ class PatientChartScreen extends ConsumerWidget {
         ),
         data: (p) => Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: Space.maxContentWidth,
-            ),
+            constraints: const BoxConstraints(maxWidth: Space.maxContentWidth),
             child: ListView(
               padding: const EdgeInsets.fromLTRB(
                 Space.md,
@@ -89,55 +98,55 @@ class _Header extends StatelessWidget {
     final age = u.ageYears;
     return AppCard(
       child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(patient.fullName, style: theme.textTheme.titleLarge),
-            const SizedBox(height: Space.xxs),
-            Text(
-              [
-                if (age != null) '$age yrs',
-                u.gender?.name,
-                if (u.nationalId != null) 'ID ${u.nationalId}',
-                if (patient.bloodType != null) patient.bloodType,
-              ].whereType<String>().join(' · '),
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(patient.fullName, style: theme.textTheme.titleLarge),
+          const SizedBox(height: Space.xxs),
+          Text(
+            [
+              if (age != null) '$age yrs',
+              u.gender?.name,
+              if (u.nationalId != null) 'ID ${u.nationalId}',
+              if (patient.bloodType != null) patient.bloodType,
+            ].whereType<String>().join(' · '),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
-            if (patient.chronicConditions.isNotEmpty) ...[
-              const SizedBox(height: Space.sm),
-              Wrap(
-                spacing: Space.xs,
-                runSpacing: Space.xxs,
-                children: [
-                  for (final c in patient.chronicConditions)
-                    Chip(label: Text(c), visualDensity: VisualDensity.compact),
-                ],
-              ),
-            ],
-            if (patient.allergies.isNotEmpty) ...[
-              const SizedBox(height: Space.xs),
-              Row(
-                children: [
-                  Icon(
-                    Icons.warning_amber_outlined,
-                    size: 16,
-                    color: theme.colorScheme.error,
-                  ),
-                  const SizedBox(width: Space.xxs),
-                  Expanded(
-                    child: Text(
-                      'Allergies: ${patient.allergies.join(', ')}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.error,
-                      ),
+          ),
+          if (patient.chronicConditions.isNotEmpty) ...[
+            const SizedBox(height: Space.sm),
+            Wrap(
+              spacing: Space.xs,
+              runSpacing: Space.xxs,
+              children: [
+                for (final c in patient.chronicConditions)
+                  Chip(label: Text(c), visualDensity: VisualDensity.compact),
+              ],
+            ),
+          ],
+          if (patient.allergies.isNotEmpty) ...[
+            const SizedBox(height: Space.xs),
+            Row(
+              children: [
+                Icon(
+                  Icons.warning_amber_outlined,
+                  size: 16,
+                  color: theme.colorScheme.error,
+                ),
+                const SizedBox(width: Space.xxs),
+                Expanded(
+                  child: Text(
+                    'Allergies: ${patient.allergies.join(', ')}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.error,
                     ),
                   ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ],
-        ),
+        ],
+      ),
     );
   }
 }
@@ -227,8 +236,7 @@ class _VitalsCard extends ConsumerWidget {
     final vitals = ref.watch(chartVitalsProvider(patientId));
     return vitals.when(
       loading: () => const LoadingSkeleton(height: 40),
-      error: (e, _) =>
-          _note('Could not load vitals'),
+      error: (e, _) => _note('Could not load vitals'),
       data: (list) {
         if (list.isEmpty) {
           return _note('No vitals on record');
@@ -273,8 +281,7 @@ class _TimelineCard extends ConsumerWidget {
     final records = ref.watch(chartTimelineProvider(patientId));
     return records.when(
       loading: () => const LoadingSkeleton(height: 40),
-      error: (e, _) =>
-          _note('Could not load timeline'),
+      error: (e, _) => _note('Could not load timeline'),
       data: (list) {
         if (list.isEmpty) {
           return _note('No records yet');

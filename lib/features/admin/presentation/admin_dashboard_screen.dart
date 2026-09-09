@@ -10,6 +10,8 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../auth/application/session.dart';
@@ -24,79 +26,55 @@ class AdminDashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final user = ref.watch(currentUserProvider);
     final firstName = (user?.fullName ?? 'there').split(' ').first;
-    final gutter = WindowSize.of(context).gutter;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dashboard'),
-        actions: const [AdminTopActions()],
-      ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref
-            ..invalidate(systemStatsProvider)
-            ..invalidate(panelStatsProvider)
-            ..invalidate(unpaidInvoiceCountProvider)
-            ..invalidate(openFeedbackCountProvider)
-            ..invalidate(auditLogProvider)
-            ..invalidate(homeVisitQueueProvider(null));
-        },
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: Space.maxContentWidth),
-            child: ListView(
-              padding: EdgeInsets.fromLTRB(gutter, Space.md, gutter, Space.xxl),
-              children: [
-                Text(
-                  fmtDate(DateTime.now()).toUpperCase(),
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    letterSpacing: 0.8,
-                  ),
-                ),
-                const SizedBox(height: Space.xxs),
-                Text(
-                  greeting(firstName),
-                  style: theme.textTheme.headlineMedium,
-                ),
-                const SizedBox(height: Space.lg),
-
-                const _NeedsYouHero(),
-                const SizedBox(height: Space.lg),
-
-                const SectionHeader('System health', overline: true),
-                _SystemHealth(),
-                const SizedBox(height: Space.lg),
-
-                const SectionHeader('Quick actions', overline: true),
-                const AdminQuickActions(),
-                const SizedBox(height: Space.lg),
-
-                SectionHeader(
-                  'Appointments · last 90 days',
-                  overline: true,
-                  action: 'Analytics',
-                  onAction: () =>
-                      context.push(AppRoutes.adminProfileAnalytics),
-                ),
-                _PanelCard(),
-                const SizedBox(height: Space.lg),
-
-                SectionHeader(
-                  'Recent activity',
-                  overline: true,
-                  action: 'Audit log',
-                  onAction: () => context.push(AppRoutes.adminProfileAudit),
-                ),
-                _ActivityCard(),
-              ],
-            ),
-          ),
+    return AppScaffold(
+      titleWidget: const AppBrandLockup(subtitle: 'Admin'),
+      actions: const [AdminTopActions()],
+      onRefresh: () async {
+        ref
+          ..invalidate(systemStatsProvider)
+          ..invalidate(panelStatsProvider)
+          ..invalidate(unpaidInvoiceCountProvider)
+          ..invalidate(openFeedbackCountProvider)
+          ..invalidate(auditLogProvider)
+          ..invalidate(homeVisitQueueProvider(null));
+      },
+      children: [
+        PageGreeting(
+          overline: fmtDate(DateTime.now()),
+          greeting: greeting(firstName),
         ),
-      ),
+        const SizedBox(height: Space.lg),
+
+        const _NeedsYouHero(),
+
+        SectionColumns(
+          primary: [
+            const SectionHeader('System health', overline: true),
+            _SystemHealth(),
+            const SectionHeader('Quick actions', overline: true),
+            const AdminQuickActions(),
+          ],
+          secondary: [
+            SectionHeader(
+              'Appointments · last 90 days',
+              overline: true,
+              action: 'Analytics',
+              onAction: () => context.push(AppRoutes.adminProfileAnalytics),
+            ),
+            _PanelCard(),
+            SectionHeader(
+              'Recent activity',
+              overline: true,
+              action: 'Audit log',
+              onAction: () => context.push(AppRoutes.adminProfileAudit),
+            ),
+            _ActivityCard(),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -154,39 +132,37 @@ class _SystemHealth extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final stats = ref.watch(systemStatsProvider);
 
-    return stats.when(
-      loading: () => const LoadingSkeleton(height: 96),
-      error: (e, _) =>
-          const InlineBanner.error('Could not load system stats.'),
-      data: (s) => Row(
-        children: [
-          Expanded(
-            child: MetricTile(
+    return AppReveal(
+      child: stats.when(
+        loading: () =>
+            const LoadingSkeleton(key: ValueKey('s-load'), height: 96),
+        error: (e, _) => const InlineBanner.error(
+          'Could not load system stats.',
+          key: ValueKey('s-err'),
+        ),
+        data: (s) => MetricRow(
+          key: const ValueKey('s-data'),
+          children: [
+            MetricTile(
               value: '${s.patients}',
               label: 'Patients',
               icon: Icons.people_outline,
               onTap: () => context.go(AppRoutes.adminUsers),
             ),
-          ),
-          const SizedBox(width: Space.sm),
-          Expanded(
-            child: MetricTile(
+            MetricTile(
               value: '${s.staff}',
               label: 'Staff',
               icon: Icons.badge_outlined,
               onTap: () => context.go(AppRoutes.adminUsers),
             ),
-          ),
-          const SizedBox(width: Space.sm),
-          Expanded(
-            child: MetricTile(
+            MetricTile(
               value: '${s.departments}',
               label: 'Departments',
               icon: Icons.apartment_outlined,
               onTap: () => context.go(AppRoutes.adminDepartments),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -30,8 +30,27 @@ match the new brand and a modern health product:
   feedback, a quiet page fade-through, list entrances — all interruptible and
   all reduce-motion aware.
 - **A shared component vocabulary.** `AppScaffold`, `AppCard`, `SectionHeader`,
-  `MetricTile`, `StatusPill`, `AppEmpty/AppError/AppLoading` — so every screen
+  `MetricTile`, `StatusPill`, `EmptyState`/`ErrorStateView` — so every screen
   in all three apps is built from the same parts.
+
+## 0.1 What changed in v3
+
+v2 described the system; v3 is the pass that made every screen actually use it.
+
+- **`AppScaffold` exists.** It was specified in v2 and never built, so 54 screens
+  hand-rolled the same five layers and drifted. It now owns the page frame,
+  the gutter, refresh, entrance stagger and scroll-to-top.
+- **Wide windows do something with the width.** `SectionColumns`, `CardColumns`
+  and `TwoPane` re-flow dashboards, card lists and list-detail screens from
+  `expanded` up, and the rail extends there instead of at `large`.
+- **Motion is a real layer, not just tokens.** `AppEntrance`, `AppReveal`,
+  `AppCountUp` and `SharedAxisSwitcher` join `Pressable`, and every one degrades
+  under reduce-motion.
+- **The duplicates are gone.** Five private tile widgets became `NavRow` /
+  `EntryCard` / `ListCard`; two status chips became `StatusPill`; three error
+  patterns became one.
+- **Text scale is a layout input.** Fixed aspect ratios and pixel heights around
+  text were replaced with measurements from `MediaQuery.textScalerOf`.
 
 ---
 
@@ -185,9 +204,16 @@ A test asserts the whole ramp (P6-09).
 
 `Space.xxs 4 · xs 8 · sm 12 · md 16 · lg 24 · xl 32 · xxl 48` (+ `maxContentWidth 1120`).
 
-- Screen edge padding: `md` compact, `lg` medium+.
+- Screen edge padding: `md` compact, `lg` medium+ — supplied by `AppScaffold`,
+  never re-typed at the call site.
 - Card interior: `lg`. Gap between stacked cards: `sm`.
 - Related form fields: `md`; between form groups: `xl`.
+- Detail lines *inside* a card: `xs`. Never `xxs` — at 4dp a stack of facts
+  reads as one dense paragraph.
+- **`SectionHeader` owns the gap above itself** (`lg`). Never put a
+  `SizedBox(height: Space.lg)` in front of one; that was how sections ended up
+  48dp apart instead of 24. Use `SectionHeader(..., first: true)` for the
+  header that opens a screen.
 
 ### 4.2 Shape
 
@@ -242,18 +268,49 @@ label, 2px primary focus ring) · `SnackBar` (floating, `Radii.cardSmall`).
 
 ### 5.2 App components — `lib/core/presentation/`
 
-- **`AppScaffold`** — every screen's shell. Centres content at `maxContentWidth`
-  on large windows, applies the standard gutter, hosts the page title +
-  actions, and provides the pull-to-refresh + scroll-to-top wiring.
+- **`AppScaffold`** (`app_scaffold.dart`) — every screen's shell, and the only
+  place the page frame is described. Centres content at `maxContentWidth`,
+  applies the window-size gutter and the standard scroll padding, hosts the
+  title + actions + optional `bottom`, wires pull-to-refresh, staggers its
+  children in, and scrolls back to the top when the active nav destination is
+  re-tapped (via `ScrollToTopSignal`, which `AppShell` broadcasts).
+  Supply exactly one of:
+  - `children:` — the common case, a vertical list of sections;
+  - `slivers:` — sticky headers, `SliverList.builder` for long lists;
+  - `body:` — the escape hatch for a screen that owns its own scrolling
+    (a calendar, a chat thread, a two-pane split).
+- **`AppBrandLockup`** — logo + wordmark, the app-bar title on each role's home
+  screen. A dashboard shows the brand and lets its in-content greeting say
+  where you are; it never shows an app-bar title *and* a greeting headline.
+- **`PageGreeting`** — the date overline + greeting that opens each dashboard.
+  `headlineSmall` compact, `headlineMedium` from medium up.
+- **`TwoPane`** (`two_pane.dart`) — list-detail. Below `expanded` it renders the
+  list alone and the caller pushes a route on tap; from `expanded` up it puts a
+  fixed-width list beside the detail and selection becomes state. A detail
+  screen used in the pane takes `embedded: true` so it drops its back button.
+- **`SectionColumns` / `CardColumns` / `TileGrid` / `MetricRow`**
+  (`responsive.dart`) — the four re-flowing layouts. `SectionColumns` splits a
+  dashboard into two columns from `expanded` up (narrow output is
+  `[...primary, ...secondary]`, so the compact reading order is whatever the
+  caller wrote). `CardColumns` deals variable-height cards round-robin into
+  columns. `TileGrid` sizes its rows from the **text scaler**, never a fixed
+  `childAspectRatio`. `MetricRow` levels its tiles with `IntrinsicHeight`.
+- **`NavRow` / `EntryCard` / `ListCard`** (`app_card.dart`) — the three tappable
+  shapes. `NavRow` is any row that opens something (optionally `tinted` for a
+  grid of shortcuts); `EntryCard` is a big two-up choice; `ListCard` is a card
+  of hairline-separated rows with a built-in empty row. These replaced five
+  near-identical private widgets that had drifted to four icon sizes.
 - **`AppCard`** — the flat bordered card + optional `Shadows.e1`, optional
   `onTap` (wraps `Pressable` for press feedback), optional header row.
 - **`SectionHeader`** — overline + optional trailing action ("See all").
 - **`MetricTile`** — one number, its label, and an optional trend/delta. The
   honest replacement for a "score ring": real counts (upcoming appointments,
   open flags, no-show rate). Never invents a composite score.
-- **`StatusPill`** — the unified badge for `RiskBadge` / `SeverityChip`:
-  `Radii.pill`, container + icon + text from the status ramp. Never
-  icon-only, never colour-only.
+- **`StatusPill`** — the one badge in the app. `RiskBadge` / `SeverityChip`
+  build on it from the clinical ramp; `AppointmentStatusPill` builds on it from
+  `ColorScheme` roles for workflow state (booked / confirmed / completed /
+  cancelled / no-show). Always container + icon + text. Never icon-only, never
+  colour-only, and never a second hand-rolled `Container` pill.
 - **`AbnormalValueIndicator`** — inline arrow + coloured value + a
   screen-reader label ("High: 7.9, reference 3.5–5.5").
 - **`AiDisclaimerBanner`** — `tertiaryContainer` strip above any AI content.
@@ -276,47 +333,64 @@ label, 2px primary focus ring) · `SnackBar` (floating, `Radii.cardSmall`).
 One product, three role apps, a shared shell. Every screen answers: *Where am
 I? Where can I go? What's here? How do I leave?* (apple-design §16 wayfinding.)
 
-### 6.1 Patient — `Home · Health · Appointments · Profile`
+All three shells follow the same shape: a home/dashboard, two or three workflow
+tabs, and Profile last as the hub for account, preferences and the screens that
+are consulted rather than worked in.
+
+### 6.1 Patient — `Home · Nutrition · Appointments · Records · Profile`
 
 | Tab | Contains |
 |---|---|
-| **Home** | Greeting, next appointment, active medications, the AI summary card, quick actions. The at-a-glance screen. |
-| **Health** | The record. Sub-tabs: **Timeline** (records + vitals merged, filterable), **Vitals** (charts + manual entry), **Medications**, **AI summary** (full). |
-| **Appointments** | Upcoming + history (grouped by month), book / reschedule / cancel. |
-| **Profile** | Account details, preferences (theme + language), sign out. |
+| **Home** | Date + greeting, the allergy strip, Quick appointment (the one gradient surface), Your health (three figures), Upcoming appointments (ticket carousel), Quick actions. |
+| **Nutrition** | Targets from the profile, logging, daily totals. |
+| **Appointments** | Book now / Schedule, upcoming, then history grouped by month; reschedule + cancel on upcoming. |
+| **Records** | Health Records — timeline and medications, with imaging, allergies and sick-leave beneath it. |
+| **Profile** | Personal info, health details, wallet, preferences, family network; feedback and sign out. |
 
-*Was 5 tabs (Home / Timeline / Appointments / Vitals / Profile) with Medications
-and the AI summary stranded on standalone routes. "Health" is the fix.*
+Vitals, Billing, Messages, Home care and the AI summary hang off Home and
+Records as pushed routes, reached from Quick actions — they keep the nav bar.
 
 ### 6.2 Staff — `Dashboard · Patients · Tasks · Schedule · Profile`
 
 Each is a distinct clinical workflow, so each keeps its tab. Dashboard is the
-shift overview (today's schedule, unacked flags, top tasks, panel scan).
+shift overview (next patient, shift figures, quick actions, today's queue,
+open flags, top tasks). **Patients is list-detail**: the panel on the left, the
+selected chart beside it from `expanded` up.
 
-### 6.3 Admin — `Overview · People · Departments · System · Profile`
+### 6.3 Admin — `Dashboard · Users · Departments · Billing · Profile`
 
 | Tab | Contains |
 |---|---|
-| **Overview** | System counts, appointment health, recent activity, quick links. |
-| **People** | Patients / Staff / Admins directory with search; role-aware "Add". |
+| **Dashboard** | What needs you (the one gradient surface), system counts, quick actions, appointment health, recent activity. |
+| **Users** | Patients / Staff / Admins directory with search; role-aware "Add". |
 | **Departments** | Create / rename / delete. |
-| **System** | Sub-tabs: **Analytics**, **Audit log**, **AI settings**. |
-| **Profile** | Account + preferences + sign out. |
+| **Billing** | Invoices and payment state across the clinic. |
+| **Profile** | Account, audit log, analytics, forecast, AI settings + log, preferences, sign out. |
 
-*Was Users / Departments / Analytics / Audit / AI (5 flat tabs). Folding
-Analytics + Audit + AI into "System" gives the bar room and a clearer story.*
+Analytics, the audit log and AI settings live under Profile rather than in the
+nav bar: they are consulted occasionally, and the bar is for the work.
 
 ### 6.4 Responsive — Material 3 window size classes
 
 | Class | Width | Nav | Layout |
 |---|---|---|---|
-| Compact | < 600 | `NavigationBar` bottom | single pane; detail = full-screen push |
-| Medium | 600–839 | `NavigationRail` icons | single pane, wider gutter |
-| Expanded | 840–1199 | `NavigationRail` extended | list-detail where it helps |
-| Large | ≥ 1200 | `NavigationRail` extended | list-detail + persistent detail; content capped at `maxContentWidth`, centred |
+| Compact | < 600 | `NavigationBar` bottom | single column; detail = full-screen push; 2 tile columns |
+| Medium | 600–839 | `NavigationRail`, icons + labels | single column, wider gutter; 2 tile columns |
+| Expanded | 840–1199 | `NavigationRail` **extended** | `SectionColumns` / `CardColumns` split in two; `TwoPane` shows both panes; 3 tile columns |
+| Large | ≥ 1200 | `NavigationRail` extended | as expanded; content capped at `maxContentWidth`, centred; 4 tile columns |
 
 Compact is the baseline. Nothing scrolls horizontally except a scoped
-table/chart container.
+table/chart container. The rail scrolls internally, so a short landscape window
+never clips a destination.
+
+**Never pin a height or an aspect ratio that text has to fit inside.** A fixed
+`childAspectRatio` or `SizedBox(height:)` around scalable text is the single
+most common source of overflow in this app — it breaks at the OS's 2× text
+setting, and it breaks again whenever the content pane narrows (the extended
+rail did exactly that to the year grid). Measure with
+`MediaQuery.textScalerOf(context)` and pass `mainAxisExtent`, or let
+`IntrinsicHeight` do it. `test/features/responsive_test.dart` asserts all of
+this at four widths and at 2× text.
 
 ---
 
@@ -332,16 +406,30 @@ Functional, not decorative. Every helper honours OS "reduce motion".
 | `Motion.standard` | `easeOutCubic` | the house curve — entrances, settles |
 | `Motion.emphasized` | `easeOutBack` | momentum-driven moves only (flicked sheet, FAB) |
 
-- **Press feedback is instant and on pointer-down** (`Pressable`, scale 0.97).
-  apple-design §1: the moment feedback waits for release, directness "falls off
-  a cliff".
-- **Page transitions** are a quiet fade + 1.2% rise (`AppPageTransitions`),
-  same on every platform — this app runs on desktop and web, not just a phone.
-- **State changes**: implicit animations / `AnimatedSwitcher` at
-  `Motion.medium`, `Motion.standard`.
-- **List entrances**: fade + 8px rise, subtle, capped so long lists don't
-  cascade.
-- Reduce-motion: every slide/scale collapses to an opacity cross-fade.
+### 7.1 The helpers
+
+| Helper | What it does |
+|---|---|
+| `Pressable` | Scale 0.97 on **pointer-down**, plus the pointer cursor and a whisper of hover lift on desktop. |
+| `AppEntrance` | Fade + 8dp rise on first build. `index:` staggers siblings by 40ms, capped at 6 so a long list never cascades. `AppScaffold` applies it to its `children` automatically. |
+| `AppReveal` | Cross-fade between states of one region (loading → data, empty → list), top-aligned and size-animated so a taller replacement grows downwards. Children need distinct keys. |
+| `AppCountUp` | Rolls a figure up to its value, always with tabular figures. Used by `MetricTile`. |
+| `SharedAxisSwitcher` / `sharedAxisTransition` | Horizontal move *within* a section — the two-pane detail swapping records, a wizard advancing. |
+| `AppPageTransitions` | The route transition: fade-through with a 2% Z move, and the outgoing page dims and recedes as it is covered. |
+
+Every one is built on `TweenAnimationBuilder` / `AnimatedSwitcher` rather than a
+hand-rolled controller or a `Timer`, so nothing can outlive its element — which
+is also why the widget tests don't trip over pending timers.
+
+### 7.2 The rules
+
+- **Press feedback is instant and on pointer-down.** apple-design §1: the moment
+  feedback waits for release, directness "falls off a cliff".
+- **Reduce-motion is not optional.** Every helper checks `Motion.reduced`:
+  slides and scales collapse to a fade, entrances become instant, the home
+  carousel stops auto-advancing (motion nobody asked for), and chart lines are
+  drawn rather than animated. `responsive_test.dart` asserts the tree renders
+  and leaves no timers running with `disableAnimations: true`.
 - No parallax, no staggered hero reveals, no decorative loops.
 
 ---
@@ -377,12 +465,23 @@ lib/app/theme/
   window_size.dart     WindowSize enum + WindowSize.of(context)
 
 lib/core/presentation/
-  app_scaffold.dart    AppScaffold (shell, max-width, gutter, refresh)
-  app_card.dart        AppCard, SectionHeader, MetricTile
-  states.dart          AppEmpty / AppError / AppLoading (+ skeletons)
-  status_badges.dart   StatusPill / RiskBadge / SeverityChip / AbnormalValueIndicator
+  app_scaffold.dart    AppScaffold (shell, max-width, gutter, refresh, stagger,
+                       scroll-to-top), AppBrandLockup, PageGreeting,
+                       ScrollToTopSignal
+  responsive.dart      SectionColumns, CardColumns, TileGrid, MetricRow
+  two_pane.dart        TwoPane, PaneSelection
+  app_card.dart        AppCard, GradientHeroCard, SectionHeader, ProfileHeader,
+                       InlineBanner, MetricTile, NavRow, EntryCard, ListCard
+  states.dart          EmptyState / ErrorStateView / LoadingSkeleton / SkeletonList
+  status_badges.dart   StatusPill / RiskBadge / SeverityChip /
+                       AppointmentStatusPill / AbnormalValueIndicator
   confirm_dialog.dart  confirm()
 ```
+
+Tests that hold the system in place:
+`test/features/accessibility_test.dart` (contrast, tap targets, labels, 2× text)
+and `test/features/responsive_test.dart` (nav class at four widths, the column
+split, two-pane, 2× text at three widths, reduce-motion).
 
 `MaterialApp.router` consumes `AppTheme.light` / `AppTheme.dark` with the
 device theme-mode + locale preference (`lib/app/settings/ui_prefs.dart`).
@@ -393,12 +492,28 @@ device theme-mode + locale preference (`lib/app/settings/ui_prefs.dart`).
 
 **Do** — anchor on the neutral `surface`; separate with a hairline, lift with a
 soft shadow. Reserve saturated colour for the status ramp. Use `AppText.clinical`
-for measured values. Build from the shared components in §5.2. Design
-compact-first. Pair every status colour with an icon and a word. Give every tap
-target instant press feedback.
+for measured values. Build from the shared components in §5.2 — start every
+screen with `AppScaffold`. Design compact-first. Pair every status colour with
+an icon and a word. Give every tap target instant press feedback. Size anything
+holding text from the text scaler.
 
 **Don't** — hand-pick `ColorScheme` roles. Use the brand gradient anywhere not
 listed in §1. Use `primary` or `error` to mean "status". Ship placeholder-only
 labels. Add heavy shadows or decorative motion. Build separate phone/desktop
 layouts. Let any surface scroll horizontally except a scoped table/chart.
 Invent a composite "health score".
+
+**And specifically, don't re-grow what §5.2 already owns.** Every one of these
+was in the codebase before this pass, and each cost a real inconsistency:
+
+- a private card/tile/row widget that duplicates `NavRow`, `EntryCard` or
+  `ListCard` — five of them had drifted to four different chevron sizes;
+- a hand-rolled `Container` status pill next to `StatusPill`;
+- a third inline-error or empty-state pattern beside `ErrorStateView` /
+  `EmptyState`;
+- a `Scaffold` + `Center` + `ConstrainedBox` + `ListView` stack instead of
+  `AppScaffold` — nine screens forgot the max-width and the page silently
+  stretched to the window;
+- a `SizedBox(height: Space.lg)` in front of a `SectionHeader`;
+- a fixed `childAspectRatio` or pixel height wrapped around text;
+- a weight above 500 on display or headline type.

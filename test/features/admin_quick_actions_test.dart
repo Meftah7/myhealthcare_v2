@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/app.dart';
 import 'package:myhealthcare/core/di.dart';
+import 'package:myhealthcare/core/presentation/app_scaffold.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:myhealthcare/domain/enums.dart';
 import 'package:myhealthcare/features/admin/application/admin_providers.dart';
@@ -63,9 +64,9 @@ void main() {
   setUp(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('plugins.it_nomads.com/flutter_secure_storage'),
-      (call) async => null,
-    );
+          const MethodChannel('plugins.it_nomads.com/flutter_secure_storage'),
+          (call) async => null,
+        );
   });
 
   testWidgets('admin dashboard shows Quick actions', (tester) async {
@@ -77,7 +78,13 @@ void main() {
     final container = await _signInAdmin(tester);
     addTearDown(container.dispose);
 
-    expect(find.widgetWithText(AppBar, 'Dashboard'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(AppBar),
+        matching: find.byType(AppBrandLockup),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('QUICK ACTIONS'), findsOneWidget);
     expect(find.text('Broadcast'), findsOneWidget);
     expect(find.text('Create invoice'), findsOneWidget);
@@ -165,33 +172,31 @@ void main() {
       ],
     );
     addTearDown(container.dispose);
-    await container.read(sessionProvider.notifier).login(
-          email: 'admin@myhealth.demo',
-          password: Seeder.demoPassword,
-        );
+    await container
+        .read(sessionProvider.notifier)
+        .login(email: 'admin@myhealth.demo', password: Seeder.demoPassword);
 
-    final patients = (await container
-            .read(userRepositoryProvider)
-            .byRole(UserRole.patient))
-        .valueOrNull!;
+    final patients =
+        (await container.read(userRepositoryProvider).byRole(UserRole.patient))
+            .valueOrNull!;
     final target = patients.first;
-    final before = (await container
-            .read(billingRepositoryProvider)
-            .forPatient(target.id))
-        .valueOrNull!
-        .length;
+    final before =
+        (await container.read(billingRepositoryProvider).forPatient(target.id))
+            .valueOrNull!
+            .length;
 
-    final r = await container.read(adminActionsProvider).issueInvoice(
+    final r = await container
+        .read(adminActionsProvider)
+        .issueInvoice(
           patientId: target.id,
           subtotal: 80,
           notes: 'Consultation',
         );
     expect(r.isOk, isTrue);
 
-    final after = (await container
-            .read(billingRepositoryProvider)
-            .forPatient(target.id))
-        .valueOrNull!;
+    final after =
+        (await container.read(billingRepositoryProvider).forPatient(target.id))
+            .valueOrNull!;
     expect(after.length, before + 1);
     expect(after.first.totalAmount, closeTo(88.0, 0.01));
     expect(after.first.status, InvoiceStatus.pending);

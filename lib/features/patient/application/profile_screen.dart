@@ -13,6 +13,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
 import '../../auth/application/session.dart';
@@ -23,158 +24,103 @@ import 'patient_data_providers.dart';
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
+  static const _sections = [
+    (
+      Icons.badge_outlined,
+      'Personal info',
+      'Name, contact, date of birth',
+      AppRoutes.patientProfilePersonal,
+    ),
+    (
+      Icons.favorite_outline,
+      'Health details',
+      'Blood type, allergies, conditions',
+      AppRoutes.patientProfileHealth,
+    ),
+    (
+      Icons.account_balance_wallet_outlined,
+      'Wallet',
+      'Saved cards and payment history',
+      AppRoutes.patientProfileWallet,
+    ),
+    (
+      Icons.tune,
+      'Preferences',
+      'Theme, text size, language, alerts',
+      AppRoutes.patientProfilePreferences,
+    ),
+    (
+      Icons.family_restroom_outlined,
+      'Family network',
+      'People linked to your account',
+      AppRoutes.patientProfileFamily,
+    ),
+  ];
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final profile = ref.watch(patientProfileProvider);
-    final gutter = WindowSize.of(context).gutter;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        actions: const [PatientTopActions()],
-      ),
-      body: profile.when(
-        loading: () => const SkeletonList(),
-        error: (e, _) => ErrorStateView(
-          message: 'Could not load your profile.',
-          onRetry: () => ref.invalidate(patientProfileProvider),
-        ),
-        data: (p) {
-          final u = p.user;
-          return Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: Space.maxContentWidth,
-              ),
-              child: ListView(
-                padding: EdgeInsets.fromLTRB(
-                  gutter,
-                  Space.md,
-                  gutter,
-                  Space.xxl,
-                ),
-                children: [
-                  ProfileHeader(name: u.fullName, email: u.email),
-                  const SizedBox(height: Space.md),
-
-                  const _ProfileRow(
-                    icon: Icons.badge_outlined,
-                    title: 'Personal info',
-                    subtitle: 'Name, contact, date of birth',
-                    route: AppRoutes.patientProfilePersonal,
-                  ),
-                  const SizedBox(height: Space.xs),
-                  const _ProfileRow(
-                    icon: Icons.favorite_outline,
-                    title: 'Health details',
-                    subtitle: 'Blood type, allergies, conditions',
-                    route: AppRoutes.patientProfileHealth,
-                  ),
-                  const SizedBox(height: Space.xs),
-                  const _ProfileRow(
-                    icon: Icons.account_balance_wallet_outlined,
-                    title: 'Wallet',
-                    subtitle: 'Saved cards and payment history',
-                    route: AppRoutes.patientProfileWallet,
-                  ),
-                  const SizedBox(height: Space.xs),
-                  const _ProfileRow(
-                    icon: Icons.tune,
-                    title: 'Preferences',
-                    subtitle: 'Theme, text size, language, alerts',
-                    route: AppRoutes.patientProfilePreferences,
-                  ),
-                  const SizedBox(height: Space.xs),
-                  const _ProfileRow(
-                    icon: Icons.family_restroom_outlined,
-                    title: 'Family network',
-                    subtitle: 'People linked to your account',
-                    route: AppRoutes.patientProfileFamily,
-                  ),
-
-                  const SizedBox(height: Space.lg),
-                  OutlinedButton.icon(
-                    onPressed: () => unawaited(showFeedbackSheet(context, ref)),
-                    icon: const Icon(Icons.forum_outlined),
-                    label: const Text('Send feedback'),
-                  ),
-                  const SizedBox(height: Space.sm),
-                  OutlinedButton.icon(
-                    onPressed: () async {
-                      final ok = await confirm(
-                        context,
-                        title: 'Sign out?',
-                        message: 'You can sign back in any time.',
-                        confirmLabel: 'Sign out',
-                        destructive: true,
-                      );
-                      if (ok) {
-                        unawaited(ref.read(sessionProvider.notifier).logout());
-                      }
-                    },
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: theme.colorScheme.error,
-                      side: BorderSide(
-                        color: theme.colorScheme.error.withValues(alpha: 0.4),
-                      ),
-                    ),
-                    icon: const Icon(Icons.logout),
-                    label: const Text('Sign out'),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-/// One tappable row in the profile list — opens the section as its own page.
-class _ProfileRow extends StatelessWidget {
-  const _ProfileRow({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.route,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final String route;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return AppCard(
-      padding: const EdgeInsets.all(Space.md),
-      onTap: () => context.push(route),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: scheme.onSurfaceVariant),
-          const SizedBox(width: Space.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: theme.textTheme.titleSmall),
-                Text(
-                  subtitle,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
+    return AppScaffold(
+      title: 'Profile',
+      actions: const [PatientTopActions()],
+      onRefresh: () async => ref.invalidate(patientProfileProvider),
+      children: profile.when(
+        loading: () => const [SkeletonList()],
+        error: (e, _) => [
+          const SizedBox(height: Space.xl),
+          ErrorStateView(
+            message: 'Could not load your profile.',
+            onRetry: () => ref.invalidate(patientProfileProvider),
           ),
-          Icon(Icons.chevron_right, color: scheme.onSurfaceVariant),
+        ],
+        data: (p) => [
+          ProfileHeader(name: p.user.fullName, email: p.user.email),
+          const SizedBox(height: Space.md),
+
+          for (final (i, (icon, title, subtitle, route)) in _sections.indexed)
+            Padding(
+              padding: EdgeInsets.only(top: i == 0 ? 0 : Space.xs),
+              child: NavRow(
+                icon: icon,
+                title: title,
+                subtitle: subtitle,
+                onTap: () => unawaited(context.push(route)),
+              ),
+            ),
+
+          const SizedBox(height: Space.lg),
+          OutlinedButton.icon(
+            onPressed: () => unawaited(showFeedbackSheet(context, ref)),
+            icon: const Icon(Icons.forum_outlined),
+            label: const Text('Send feedback'),
+          ),
+          const SizedBox(height: Space.sm),
+          OutlinedButton.icon(
+            onPressed: () async {
+              final ok = await confirm(
+                context,
+                title: 'Sign out?',
+                message: 'You can sign back in any time.',
+                confirmLabel: 'Sign out',
+                destructive: true,
+              );
+              if (ok) {
+                unawaited(ref.read(sessionProvider.notifier).logout());
+              }
+            },
+            style: OutlinedButton.styleFrom(
+              foregroundColor: theme.colorScheme.error,
+              side: BorderSide(
+                color: theme.colorScheme.error.withValues(alpha: 0.4),
+              ),
+            ),
+            icon: const Icon(Icons.logout),
+            label: const Text('Sign out'),
+          ),
         ],
       ),
     );
   }
 }
-

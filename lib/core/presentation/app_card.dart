@@ -9,6 +9,11 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme/theme.dart';
 
+/// One size for every "this row opens something" chevron. Picked once here
+/// because the app previously drew them at 17, 18 and 24 on rows that sit a few
+/// pixels apart, which reads as sloppiness long before anyone can name it.
+const double kTrailingChevronSize = 20;
+
 /// The app's single card. Flat fill + hairline border by default; pass
 /// [elevated] for [Shadows.e1]; pass [onTap] for press feedback.
 ///
@@ -162,9 +167,12 @@ class GradientHeroCard extends StatelessWidget {
                         shape: BoxShape.circle,
                         color: Colors.white.withValues(alpha: 0.18),
                       ),
+                      // The same chevron every other tappable row uses — an
+                      // arrow here would make the hero look like a different
+                      // kind of control than the cards under it.
                       child: const Icon(
-                        Icons.arrow_forward,
-                        size: 17,
+                        Icons.chevron_right,
+                        size: kTrailingChevronSize,
                         color: Colors.white,
                       ),
                     ),
@@ -192,13 +200,20 @@ class GradientHeroCard extends StatelessWidget {
 ///
 /// Two looks: a clean small title (forms, detail screens — the default) and an
 /// [overline] caps label (dashboards, at-a-glance sections).
+///
+/// The leading gap is **built in** (`Space.lg` above, `Space.xs` below). Callers
+/// used to add their own `SizedBox(height: Space.lg)` before every header on top
+/// of this padding, which is why the dashboards' sections sat 40dp apart
+/// instead of 24. Pass [first] for the header that opens a screen, where there
+/// is nothing above to separate from.
 class SectionHeader extends StatelessWidget {
   const SectionHeader(
     this.title, {
     this.action,
     this.onAction,
     this.overline = false,
-    this.padding = const EdgeInsets.only(top: Space.lg, bottom: Space.xs),
+    this.first = false,
+    this.padding,
     super.key,
   });
 
@@ -206,7 +221,12 @@ class SectionHeader extends StatelessWidget {
   final String? action;
   final VoidCallback? onAction;
   final bool overline;
-  final EdgeInsetsGeometry padding;
+
+  /// Drops the top gap — for the first header on a screen.
+  final bool first;
+
+  /// Overrides the built-in gap entirely. Rarely needed.
+  final EdgeInsetsGeometry? padding;
 
   @override
   Widget build(BuildContext context) {
@@ -221,7 +241,9 @@ class SectionHeader extends StatelessWidget {
           )
         : Text(title, style: theme.textTheme.titleSmall);
     return Padding(
-      padding: padding,
+      padding:
+          padding ??
+          EdgeInsets.only(top: first ? 0 : Space.lg, bottom: Space.xs),
       child: Row(
         children: [
           Expanded(child: label),
@@ -235,6 +257,229 @@ class SectionHeader extends StatelessWidget {
               ),
               child: Text(action!),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A tappable row that opens something else — the shape behind the patient
+/// quick actions, the profile hub rows, the "urgent or normal?" sheet choices
+/// and the staff/admin shortcut tiles, all of which were separate private
+/// widgets drawing the same thing at four different icon sizes.
+///
+/// [subtitle] is optional: with it the row is a two-line list item, without it
+/// a compact single-line shortcut.
+class NavRow extends StatelessWidget {
+  const NavRow({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+    this.subtitle,
+    this.tinted = false,
+    this.trailing,
+    super.key,
+  });
+
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final VoidCallback onTap;
+
+  /// Seats the icon in a filled primary medallion instead of leaving it a bare
+  /// glyph — for grids of shortcuts, where the medallion is what makes the tile
+  /// read as an object you can press.
+  final bool tinted;
+
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final dense = subtitle == null;
+
+    return AppCard(
+      onTap: onTap,
+      padding: EdgeInsets.symmetric(
+        horizontal: dense ? Space.sm : Space.md,
+        vertical: dense ? Space.sm : Space.md,
+      ),
+      child: Row(
+        children: [
+          if (tinted)
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: scheme.primaryContainer,
+                borderRadius: Radii.chip,
+              ),
+              child: Icon(icon, size: 18, color: scheme.onPrimaryContainer),
+            )
+          else
+            Icon(icon, size: 20, color: scheme.onSurfaceVariant),
+          const SizedBox(width: Space.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  maxLines: dense ? 1 : 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleSmall,
+                ),
+                if (subtitle != null)
+                  Text(
+                    subtitle!,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: Space.xs),
+          trailing ??
+              Icon(
+                Icons.chevron_right,
+                size: kTrailingChevronSize,
+                color: scheme.onSurfaceVariant,
+              ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A big two-up entry button — an icon over a title over a supporting line,
+/// either filled (the primary way in) or bordered (the alternative).
+///
+/// Used for the Appointments screen's "Book now" / "Schedule" pair and
+/// anywhere else a screen opens with a choice between two routes.
+class EntryCard extends StatelessWidget {
+  const EntryCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    this.filled = false,
+    super.key,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+  final bool filled;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final fg = filled ? scheme.onPrimary : scheme.onSurface;
+
+    return Pressable(
+      onTap: onTap,
+      child: Material(
+        color: filled ? scheme.primary : scheme.surfaceContainerLowest,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: Radii.card,
+          side: BorderSide(
+            // The filled card carries its own weight; the bordered one gets the
+            // same hairline as every other surface, at full strength.
+            color: filled ? Colors.transparent : scheme.outlineVariant,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(Space.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: fg),
+              const SizedBox(height: Space.sm),
+              Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleMedium?.copyWith(color: fg),
+              ),
+              Text(
+                subtitle,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: filled
+                      ? scheme.onPrimary.withValues(alpha: 0.85)
+                      : scheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A card that holds a list of rows separated by hairlines, with a friendly
+/// single-row empty state when there is nothing to show.
+///
+/// The dashboards each had their own private copy of this; it is the shape of
+/// every "today's queue / open flags / recent activity" block in the app.
+class ListCard extends StatelessWidget {
+  const ListCard({
+    required this.children,
+    this.emptyIcon,
+    this.emptyText,
+    super.key,
+  });
+
+  final List<Widget> children;
+  final IconData? emptyIcon;
+  final String? emptyText;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    if (children.isEmpty) {
+      return AppCard(
+        padding: const EdgeInsets.all(Space.md),
+        child: Row(
+          children: [
+            Icon(
+              emptyIcon ?? Icons.check_circle_outline,
+              color: scheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: Space.sm),
+            Expanded(
+              child: Text(
+                emptyText ?? 'Nothing here.',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    return AppCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        children: [
+          for (var i = 0; i < children.length; i++) ...[
+            if (i > 0) const Divider(height: 1, indent: Space.md),
+            children[i],
+          ],
         ],
       ),
     );
@@ -353,10 +598,7 @@ class InlineBanner extends StatelessWidget {
     final scheme = theme.colorScheme;
     final (bg, fg) = switch (tone) {
       BannerTone.error => (scheme.errorContainer, scheme.onErrorContainer),
-      BannerTone.neutral => (
-        scheme.surfaceContainerHighest,
-        scheme.onSurface,
-      ),
+      BannerTone.neutral => (scheme.surfaceContainerHighest, scheme.onSurface),
     };
     return Container(
       padding: const EdgeInsets.all(Space.sm),
@@ -449,13 +691,23 @@ class MetricTile extends StatelessWidget {
             ],
           ),
           const SizedBox(height: Space.xs),
-          Text(
-            value,
-            // headlineSmall, not Medium: callers size these tiles by aspect
-            // ratio, and a taller number overflows the shortest of them.
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontFeatures: kTabularFigures,
-            ),
+          // A plain count rolls up to its figure; anything else (a date, a
+          // percentage, an em dash) is written straight out. headlineSmall, not
+          // Medium: these tiles sit three-up on a 360dp phone.
+          Builder(
+            builder: (context) {
+              final style = theme.textTheme.headlineSmall;
+              final number = int.tryParse(value);
+              if (number == null) {
+                return Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: style?.copyWith(fontFeatures: kTabularFigures),
+                );
+              }
+              return AppCountUp(number, style: style);
+            },
           ),
           if (trend != null && trendLabel != null) ...[
             const SizedBox(height: Space.xs),
@@ -481,11 +733,7 @@ class MetricTile extends StatelessWidget {
 }
 
 class _TrendChip extends StatelessWidget {
-  const _TrendChip({
-    required this.direction,
-    required this.label,
-    this.isGood,
-  });
+  const _TrendChip({required this.direction, required this.label, this.isGood});
 
   final TrendDirection direction;
   final String label;
@@ -506,10 +754,7 @@ class _TrendChip extends StatelessWidget {
       TrendDirection.flat => Icons.trending_flat,
     };
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: Space.xs,
-        vertical: 2,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: Space.xs, vertical: 2),
       decoration: BoxDecoration(
         color: style.container,
         borderRadius: Radii.pill,

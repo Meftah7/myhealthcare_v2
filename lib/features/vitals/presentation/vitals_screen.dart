@@ -8,6 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -22,103 +24,96 @@ class VitalsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final vitals = ref.watch(patientVitalsProvider);
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Vitals'),
-        actions: [
-          DocumentDownloadButton(
-            label: 'Vital signs report',
-            filename: 'vital-signs-report.pdf',
-            dense: true,
-            build: () => buildVitalsReport(ref),
-          ),
-          const PatientTopActions(),
-        ],
-      ),
-      body: vitals.when(
-        loading: () => const SkeletonList(),
-        error: (e, _) => ErrorStateView(
-          message: 'Could not load vitals.',
-          onRetry: () => ref.invalidate(patientVitalsProvider),
+    return AppScaffold(
+      title: 'Vitals',
+      actions: [
+        DocumentDownloadButton(
+          label: 'Vital signs report',
+          filename: 'vital-signs-report.pdf',
+          dense: true,
+          build: () => buildVitalsReport(ref),
         ),
+        const PatientTopActions(),
+      ],
+      onRefresh: () async => ref.invalidate(patientVitalsProvider),
+      children: vitals.when(
+        loading: () => const [SkeletonList()],
+        error: (e, _) => [
+          const SizedBox(height: Space.xl),
+          ErrorStateView(
+            message: 'Could not load vitals.',
+            onRetry: () => ref.invalidate(patientVitalsProvider),
+          ),
+        ],
         data: (list) {
           if (list.isEmpty) {
-            return const EmptyState(
-              icon: Icons.monitor_heart_outlined,
-              message:
-                  'No vitals recorded yet.\nBook a visit to get your first '
-                  'reading.',
-            );
+            return const [
+              SizedBox(height: Space.xl),
+              EmptyState(
+                icon: Icons.monitor_heart_outlined,
+                message:
+                    'No vitals recorded yet.\nBook a visit to get your first '
+                    'reading.',
+              ),
+            ];
           }
           final sorted = [...list]
             ..sort((a, b) => a.recordedAt.compareTo(b.recordedAt));
-          return Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: Space.maxContentWidth,
-              ),
-              child: ListView(
-            padding: const EdgeInsets.fromLTRB(
-              Space.md,
-              Space.sm,
-              Space.md,
-              Space.xxl,
-            ),
-            children: [
-              _VitalsChart(
-                title: 'Blood pressure',
-                unit: 'mmHg',
-                series: [
-                  _Series('Systolic', [
-                    for (final v in sorted)
-                      if (v.systolic != null)
-                        _P(v.recordedAt, v.systolic!.toDouble()),
-                  ]),
-                  _Series('Diastolic', [
-                    for (final v in sorted)
-                      if (v.diastolic != null)
-                        _P(v.recordedAt, v.diastolic!.toDouble()),
-                  ]),
-                ],
-              ),
-              _VitalsChart(
-                title: 'Weight',
-                unit: 'kg',
-                series: [
-                  _Series('Weight', [
-                    for (final v in sorted)
-                      if (v.weightKg != null) _P(v.recordedAt, v.weightKg!),
-                  ]),
-                ],
-              ),
-              _VitalsChart(
-                title: 'Glucose',
-                unit: 'mmol/L',
-                series: [
-                  _Series('Glucose', [
-                    for (final v in sorted)
-                      if (v.glucose != null) _P(v.recordedAt, v.glucose!),
-                  ]),
-                ],
-              ),
-              const SizedBox(height: Space.md),
-              const SectionHeader('Recent readings', overline: true),
-              AppCard(
-                padding: EdgeInsets.zero,
-                child: Column(
-                  children: [
-                    for (var i = 0; i < sorted.length && i < 15; i++) ...[
-                      if (i > 0)
-                        const Divider(height: 1, indent: Space.md),
-                      _ReadingTile(sorted[sorted.length - 1 - i]),
-                    ],
+          return [
+            // Two charts abreast once there is room; stacked on a phone.
+            CardColumns(
+              children: [
+                _VitalsChart(
+                  title: 'Blood pressure',
+                  unit: 'mmHg',
+                  series: [
+                    _Series('Systolic', [
+                      for (final v in sorted)
+                        if (v.systolic != null)
+                          _P(v.recordedAt, v.systolic!.toDouble()),
+                    ]),
+                    _Series('Diastolic', [
+                      for (final v in sorted)
+                        if (v.diastolic != null)
+                          _P(v.recordedAt, v.diastolic!.toDouble()),
+                    ]),
                   ],
                 ),
-              ),
-            ],
+                _VitalsChart(
+                  title: 'Weight',
+                  unit: 'kg',
+                  series: [
+                    _Series('Weight', [
+                      for (final v in sorted)
+                        if (v.weightKg != null) _P(v.recordedAt, v.weightKg!),
+                    ]),
+                  ],
+                ),
+                _VitalsChart(
+                  title: 'Glucose',
+                  unit: 'mmol/L',
+                  series: [
+                    _Series('Glucose', [
+                      for (final v in sorted)
+                        if (v.glucose != null) _P(v.recordedAt, v.glucose!),
+                    ]),
+                  ],
+                ),
+              ],
+            ),
+            const SectionHeader('Recent readings', overline: true),
+            AppCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  for (var i = 0; i < sorted.length && i < 15; i++) ...[
+                    if (i > 0) const Divider(height: 1, indent: Space.md),
+                    _ReadingTile(sorted[sorted.length - 1 - i]),
+                  ],
+                ],
               ),
             ),
-          );
+          ];
         },
       ),
     );
@@ -161,107 +156,108 @@ class _VitalsChart extends StatelessWidget {
         .map((p) => p.at.millisecondsSinceEpoch)
         .reduce((a, b) => a > b ? a : b);
     final colors = [theme.colorScheme.primary, theme.colorScheme.tertiary];
+    final reduce = Motion.reduced(context);
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: Space.sm),
-      child: AppCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('$title  ·  $unit', style: theme.textTheme.titleMedium),
-            const SizedBox(height: Space.md),
-            SizedBox(
-              height: 160,
-              child: LineChart(
-                LineChartData(
-                  minX: minX.toDouble(),
-                  maxX: maxX.toDouble(),
-                  gridData: FlGridData(
-                    drawVerticalLine: false,
-                    getDrawingHorizontalLine: (_) => FlLine(
-                      color: theme.colorScheme.outlineVariant,
-                      strokeWidth: 1,
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('$title  ·  $unit', style: theme.textTheme.titleMedium),
+          const SizedBox(height: Space.md),
+          SizedBox(
+            // A little taller where there's room — a trend line in 160dp on a
+            // desktop is a squashed trend line.
+            height: WindowSize.of(context).isCompact ? 160 : 190,
+            child: LineChart(
+              // The line draws itself in on first paint; static under
+              // reduce-motion (DESIGN.md §7).
+              duration: reduce ? Duration.zero : Motion.slow,
+              curve: Motion.standard,
+              LineChartData(
+                minX: minX.toDouble(),
+                maxX: maxX.toDouble(),
+                gridData: FlGridData(
+                  drawVerticalLine: false,
+                  getDrawingHorizontalLine: (_) => FlLine(
+                    color: theme.colorScheme.outlineVariant,
+                    strokeWidth: 1,
+                  ),
+                ),
+                titlesData: FlTitlesData(
+                  topTitles: const AxisTitles(),
+                  rightTitles: const AxisTitles(),
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 36,
+                      getTitlesWidget: (v, meta) => Text(
+                        v.toStringAsFixed(0),
+                        style: theme.textTheme.bodySmall,
+                      ),
                     ),
                   ),
-                  titlesData: FlTitlesData(
-                    topTitles: const AxisTitles(),
-                    rightTitles: const AxisTitles(),
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 36,
-                        getTitlesWidget: (v, meta) => Text(
-                          v.toStringAsFixed(0),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 28,
+                      interval: ((maxX - minX) / 3).clamp(1, double.infinity),
+                      getTitlesWidget: (v, meta) => Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          fmtDate(
+                            DateTime.fromMillisecondsSinceEpoch(v.toInt()),
+                          ),
                           style: theme.textTheme.bodySmall,
                         ),
                       ),
                     ),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 28,
-                        interval: ((maxX - minX) / 3).clamp(1, double.infinity),
-                        getTitlesWidget: (v, meta) => Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Text(
-                            fmtDate(
-                              DateTime.fromMillisecondsSinceEpoch(v.toInt()),
-                            ),
-                            style: theme.textTheme.bodySmall,
-                          ),
-                        ),
-                      ),
-                    ),
                   ),
-                  borderData: FlBorderData(show: false),
-                  lineBarsData: [
-                    for (var i = 0; i < series.length; i++)
-                      LineChartBarData(
-                        isCurved: true,
-                        color: colors[i % colors.length],
-                        dotData: const FlDotData(show: false),
-                        spots: [
-                          for (final p in series[i].points)
-                            FlSpot(
-                              p.at.millisecondsSinceEpoch.toDouble(),
-                              p.value,
-                            ),
-                        ],
-                      ),
-                  ],
                 ),
+                borderData: FlBorderData(show: false),
+                lineBarsData: [
+                  for (var i = 0; i < series.length; i++)
+                    LineChartBarData(
+                      isCurved: true,
+                      color: colors[i % colors.length],
+                      dotData: const FlDotData(show: false),
+                      spots: [
+                        for (final p in series[i].points)
+                          FlSpot(
+                            p.at.millisecondsSinceEpoch.toDouble(),
+                            p.value,
+                          ),
+                      ],
+                    ),
+                ],
               ),
             ),
-            if (series.length > 1)
-              Padding(
-                padding: const EdgeInsets.only(top: Space.xs),
-                child: Wrap(
-                  spacing: Space.md,
-                  children: [
-                    for (var i = 0; i < series.length; i++)
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 10,
-                            height: 10,
-                            decoration: BoxDecoration(
-                              color: colors[i % colors.length],
-                              shape: BoxShape.circle,
-                            ),
+          ),
+          if (series.length > 1)
+            Padding(
+              padding: const EdgeInsets.only(top: Space.xs),
+              child: Wrap(
+                spacing: Space.md,
+                children: [
+                  for (var i = 0; i < series.length; i++)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 10,
+                          height: 10,
+                          decoration: BoxDecoration(
+                            color: colors[i % colors.length],
+                            shape: BoxShape.circle,
                           ),
-                          const SizedBox(width: Space.xxs),
-                          Text(
-                            series[i].label,
-                            style: theme.textTheme.bodySmall,
-                          ),
-                        ],
-                      ),
-                  ],
-                ),
+                        ),
+                        const SizedBox(width: Space.xxs),
+                        Text(series[i].label, style: theme.textTheme.bodySmall),
+                      ],
+                    ),
+                ],
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }
@@ -287,4 +283,3 @@ class _ReadingTile extends StatelessWidget {
     );
   }
 }
-

@@ -58,16 +58,18 @@ Future<ProviderContainer> _signIn(WidgetTester tester) async {
 void main() {
   group('macro calculator', () {
     test('Mifflin–St Jeor matches the reference formula', () {
-      final r = calculateMacros(const MacroInputs(
-        age: 30,
-        sex: Sex.male,
-        weightKg: 80,
-        heightCm: 180,
-        activityFactor: 1.55,
-        goal: FitnessGoal.maintain,
-        weeklyRateKg: 0.5,
-        preset: MacroPreset.balanced,
-      ));
+      final r = calculateMacros(
+        const MacroInputs(
+          age: 30,
+          sex: Sex.male,
+          weightKg: 80,
+          heightCm: 180,
+          activityFactor: 1.55,
+          goal: FitnessGoal.maintain,
+          weeklyRateKg: 0.5,
+          preset: MacroPreset.balanced,
+        ),
+      );
       // BMR = 10*80 + 6.25*180 - 5*30 + 5 = 1780
       expect(r.bmr, 1780);
       expect(r.tdee, (1780 * 1.55).round());
@@ -77,22 +79,25 @@ void main() {
     });
 
     test('a cut never drops below the 1200 kcal floor', () {
-      final r = calculateMacros(const MacroInputs(
-        age: 60,
-        sex: Sex.female,
-        weightKg: 50,
-        heightCm: 155,
-        activityFactor: 1.2,
-        goal: FitnessGoal.lose,
-        weeklyRateKg: 1.0,
-        preset: MacroPreset.balanced,
-      ));
+      final r = calculateMacros(
+        const MacroInputs(
+          age: 60,
+          sex: Sex.female,
+          weightKg: 50,
+          heightCm: 155,
+          activityFactor: 1.2,
+          goal: FitnessGoal.lose,
+          weeklyRateKg: 1.0,
+          preset: MacroPreset.balanced,
+        ),
+      );
       expect(r.targetCalories, greaterThanOrEqualTo(1200));
     });
   });
 
-  testWidgets('Health Records toggles between timeline and medications',
-      (tester) async {
+  testWidgets('Health Records toggles between timeline and medications', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1200, 2200);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -141,7 +146,7 @@ void main() {
     expect(find.widgetWithText(AppBar, 'Nutrition'), findsOneWidget);
 
     // The bottom nav is still visible (Nutrition is a shell branch).
-    expect(find.text('Appointment'), findsWidgets);
+    expect(find.text('Appointments'), findsWidgets);
 
     // Tabs, in order: Calculator → Meal plan → Foods.
     expect(find.text('Calculator'), findsOneWidget);

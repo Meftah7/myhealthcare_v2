@@ -1,13 +1,14 @@
 /// Adaptive navigation shell (DESIGN.md §6).
 ///
 /// One widget tree, re-flowed by window size class: `NavigationBar` at the
-/// bottom on compact, `NavigationRail` (extended on large) from medium up.
-/// Used by every role shell in router.dart.
+/// bottom on compact, an icon `NavigationRail` on medium, and an **extended**
+/// rail from expanded up. Used by every role shell in router.dart.
 library;
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/presentation/app_scaffold.dart';
 import '../theme/theme.dart';
 
 /// One navigation destination in a role shell.
@@ -23,26 +24,10 @@ class AppDestination {
   final String label;
 }
 
-/// A standalone nav-bar action that doesn't correspond to a shell branch —
-/// e.g. the "+" quick-booking button, which launches a flow rather than
-/// switching tabs (DESIGN.md §6, patient dashboard rebuild).
-class AppCenterAction {
-  const AppCenterAction({
-    required this.icon,
-    required this.tooltip,
-    required this.onPressed,
-  });
-
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback onPressed;
-}
-
-class AppShell extends StatelessWidget {
+class AppShell extends StatefulWidget {
   const AppShell({
     required this.navigationShell,
     required this.destinations,
-    this.centerAction,
     this.overlay,
     super.key,
   });
@@ -50,173 +35,164 @@ class AppShell extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
   final List<AppDestination> destinations;
 
-  /// An extra action rendered between the destinations — e.g. patient "+"
-  /// (quick booking). Never becomes the selected/active tab.
-  final AppCenterAction? centerAction;
-
   /// A widget stacked over the whole shell — e.g. the patient Care Navigator
   /// FAB. Sits below the router's Navigator, so tooltips / text selection
   /// work; hidden on full-screen pushes over the shell.
   final Widget? overlay;
 
+  @override
+  State<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends State<AppShell> {
+  /// Bumped when the already-selected destination is tapped again, which every
+  /// [AppScaffold] below listens for to scroll its content back to the top.
+  final _scrollToTop = ValueNotifier<int>(0);
+
+  @override
+  void dispose() {
+    _scrollToTop.dispose();
+    super.dispose();
+  }
+
   void _go(int index) {
-    navigationShell.goBranch(
+    final reselected = index == widget.navigationShell.currentIndex;
+    widget.navigationShell.goBranch(
       index,
-      // Tapping the current tab again pops it to its root.
-      initialLocation: index == navigationShell.currentIndex,
+      // Tapping the current tab again pops it to its root...
+      initialLocation: reselected,
     );
+    // ...and, if it was already at its root, sends it back to the top.
+    if (reselected) _scrollToTop.value++;
   }
 
   @override
   Widget build(BuildContext context) {
     final scaffold = _content(context);
-    return overlay == null
+    return widget.overlay == null
         ? scaffold
-        : Stack(children: [scaffold, overlay!]);
+        : Stack(children: [scaffold, widget.overlay!]);
   }
 
   Widget _content(BuildContext context) {
     final size = WindowSize.of(context);
-    final current = navigationShell.currentIndex;
-    final action = centerAction;
+    final current = widget.navigationShell.currentIndex;
+    final hairline = Theme.of(context).colorScheme.outlineVariant;
 
-    final scheme = Theme.of(context).colorScheme;
-    final hairline = scheme.outlineVariant;
+    final body = ScrollToTopSignal(
+      notifier: _scrollToTop,
+      child: widget.navigationShell,
+    );
 
     if (size.isCompact) {
-      final half = (destinations.length / 2).ceil();
-      Widget destinationButton(AppDestination d, int index) {
-        final selected = index == current;
-        // Mirrors NavigationBar's own treatment: a stadium indicator behind the
-        // icon, label in full-strength onSurface. Hand-built because the FAB
-        // notch rules out a real NavigationBar here.
-        return Expanded(
-          child: InkWell(
-            onTap: () => _go(index),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: Space.xxs),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AnimatedContainer(
-                    duration: Motion.medium,
-                    curve: Motion.standard,
-                    height: 30,
-                    width: 56,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: selected
-                          ? scheme.secondaryContainer
-                          : Colors.transparent,
-                      borderRadius: Radii.pill,
-                    ),
-                    child: Icon(
-                      selected ? d.selectedIcon : d.icon,
-                      size: 22,
-                      color: selected
-                          ? scheme.onSecondaryContainer
-                          : scheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    d.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: selected
-                          ? scheme.onSurface
-                          : scheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      }
-
       return Scaffold(
-        body: navigationShell,
-        floatingActionButton: action == null
-            ? null
-            : FloatingActionButton(
-                tooltip: action.tooltip,
-                onPressed: action.onPressed,
-                child: Icon(action.icon),
-              ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        bottomNavigationBar: action == null
-            ? DecoratedBox(
-                decoration: BoxDecoration(
-                  border: Border(top: BorderSide(color: hairline)),
+        body: body,
+        bottomNavigationBar: DecoratedBox(
+          // The bar is flat (DESIGN.md §4.3); the hairline is what separates it
+          // from the content, not a shadow strip.
+          decoration: BoxDecoration(
+            border: Border(top: BorderSide(color: hairline)),
+          ),
+          child: NavigationBar(
+            selectedIndex: current,
+            onDestinationSelected: _go,
+            destinations: [
+              for (final d in widget.destinations)
+                NavigationDestination(
+                  icon: Icon(d.icon),
+                  selectedIcon: Icon(d.selectedIcon),
+                  label: d.label,
+                  tooltip: d.label,
                 ),
-                child: NavigationBar(
-                  selectedIndex: current,
-                  onDestinationSelected: _go,
-                  destinations: [
-                    for (final d in destinations)
-                      NavigationDestination(
-                        icon: Icon(d.icon),
-                        selectedIcon: Icon(d.selectedIcon),
-                        label: d.label,
-                      ),
-                  ],
-                ),
-              )
-            : DecoratedBox(
-                decoration: BoxDecoration(
-                  border: Border(top: BorderSide(color: hairline)),
-                ),
-                child: BottomAppBar(
-                  shape: const CircularNotchedRectangle(),
-                  notchMargin: Space.xs,
-                  padding: EdgeInsets.zero,
-                  child: Row(
-                    children: [
-                      for (final (i, d) in destinations.indexed) ...[
-                        destinationButton(d, i),
-                        if (i == half - 1) const SizedBox(width: 56),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
+            ],
+          ),
+        ),
       );
     }
+
+    // Extended from `expanded` up (DESIGN.md §6.4) — at 840dp there is room for
+    // a 256dp labelled rail and a full content column beside it.
+    final extended = size.isExpanded || size.isLarge;
 
     return Scaffold(
       body: Row(
         children: [
-          NavigationRail(
-            selectedIndex: current,
-            onDestinationSelected: _go,
-            extended: size.isLarge,
-            labelType: size.isLarge
-                ? NavigationRailLabelType.none
-                : NavigationRailLabelType.all,
-            leading: action == null
-                ? null
-                : Padding(
-                    padding: const EdgeInsets.only(bottom: Space.sm),
-                    child: FloatingActionButton(
-                      tooltip: action.tooltip,
-                      onPressed: action.onPressed,
-                      child: Icon(action.icon),
-                    ),
-                  ),
-            destinations: [
-              for (final d in destinations)
-                NavigationRailDestination(
-                  icon: Icon(d.icon),
-                  selectedIcon: Icon(d.selectedIcon),
-                  label: Text(d.label),
-                ),
-            ],
+          _Rail(
+            destinations: widget.destinations,
+            currentIndex: current,
+            onSelected: _go,
+            extended: extended,
           ),
           VerticalDivider(width: 1, color: hairline),
-          Expanded(child: navigationShell),
+          Expanded(child: body),
         ],
+      ),
+    );
+  }
+}
+
+/// The rail, with the brand lockup on top and room to scroll.
+///
+/// A plain [NavigationRail] overflows on a short landscape window (a 600×420
+/// tablet with five destinations); the scroll view plus [IntrinsicHeight] is
+/// the documented fix, and costs nothing when everything already fits.
+class _Rail extends StatelessWidget {
+  const _Rail({
+    required this.destinations,
+    required this.currentIndex,
+    required this.onSelected,
+    required this.extended,
+  });
+
+  final List<AppDestination> destinations;
+  final int currentIndex;
+  final ValueChanged<int> onSelected;
+  final bool extended;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: IntrinsicHeight(
+            child: NavigationRail(
+              selectedIndex: currentIndex,
+              onDestinationSelected: onSelected,
+              extended: extended,
+              // An extended rail draws its own inline labels, so the label type
+              // must be `none` there; the icon rail stacks them underneath.
+              labelType: extended
+                  ? NavigationRailLabelType.none
+                  : NavigationRailLabelType.all,
+              leading: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  Space.sm,
+                  Space.md,
+                  Space.sm,
+                  Space.lg,
+                ),
+                child: extended
+                    ? const SizedBox(
+                        width: 200,
+                        child: Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: AppBrandLockup(),
+                        ),
+                      )
+                    : Image.asset('assets/images/logo.png', height: 28),
+              ),
+              destinations: [
+                for (final d in destinations)
+                  NavigationRailDestination(
+                    icon: Icon(d.icon),
+                    selectedIcon: Icon(d.selectedIcon),
+                    label: Text(d.label),
+                  ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

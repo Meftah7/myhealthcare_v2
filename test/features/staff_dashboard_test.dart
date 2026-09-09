@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/app.dart';
 import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/core/presentation/app_card.dart';
+import 'package:myhealthcare/core/presentation/app_scaffold.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -62,7 +63,13 @@ void main() {
 
     // Lands on the staff dashboard, laid out like the patient one: greeting,
     // a single gradient hero, a three-figure shift row, then Quick actions.
-    expect(find.widgetWithText(AppBar, 'Dashboard'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(AppBar),
+        matching: find.byType(AppBrandLockup),
+      ),
+      findsOneWidget,
+    );
     expect(find.textContaining('Good '), findsOneWidget);
     expect(find.text('On duty'), findsWidgets);
     expect(find.byType(GradientHeroCard), findsOneWidget);

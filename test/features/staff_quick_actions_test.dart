@@ -75,7 +75,17 @@ void main() {
     await tester.enterText(find.byType(TextField).last, 'a');
     await _settle(tester);
     expect(find.byType(ListTile), findsWidgets);
-    await tester.tap(find.byType(ListTile).first, warnIfMissed: false);
+    await tester.tap(
+      // Scoped to the sheet: the dashboard behind it has ListTiles of its own,
+      // and an unscoped `.first` picks whichever the layout happens to build.
+      find
+          .descendant(
+            of: find.byType(BottomSheet),
+            matching: find.byType(ListTile),
+          )
+          .first,
+      warnIfMissed: false,
+    );
     for (var i = 0; i < 24; i++) {
       await tester.pump(const Duration(milliseconds: 80));
     }
@@ -132,10 +142,7 @@ void main() {
     await tester.tap(find.text('Prescriptions'));
     await _settle(tester);
     // Either issued prescriptions or the empty state — both are fine.
-    expect(
-      find.byType(Scaffold),
-      findsWidgets,
-    );
+    expect(find.byType(Scaffold), findsWidgets);
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
@@ -160,9 +167,7 @@ void main() {
 
     // Persisted.
     final me = container.read(currentUserProvider)!.id;
-    final staff = await container
-        .read(userRepositoryProvider)
-        .staffById(me);
+    final staff = await container.read(userRepositoryProvider).staffById(me);
     expect(staff.valueOrNull?.presence, PresenceStatus.onBreak);
 
     await tester.pumpWidget(const SizedBox());

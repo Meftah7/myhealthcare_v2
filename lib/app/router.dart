@@ -112,6 +112,7 @@ abstract final class AppRoutes {
   static const patientProfileWallet = '/patient/settings/wallet';
   static const patientProfilePreferences = '/patient/settings/preferences';
   static const patientProfileFamily = '/patient/settings/family';
+
   /// Opens Health Records with the Medications view selected (keeps the shell
   /// nav rail / bar visible, unlike a standalone route).
   static const patientMedications = '/patient/timeline?view=medications';
@@ -141,6 +142,7 @@ abstract final class AppRoutes {
     final base = '$staffInbox/$patientId';
     return name == null ? base : '$base?name=${Uri.encodeComponent(name)}';
   }
+
   // Profile-section pages — each its own page, reached from the Profile hub
   // with a back button (mirrors the patient Profile).
   static const staffProfileAccount = '/staff/profile/account';
@@ -150,8 +152,7 @@ abstract final class AppRoutes {
   static const staffProfilePreferences = '/staff/profile/preferences';
 
   static String staffPatientChart(String id) => '$staffPatients/$id';
-  static String staffPatientSummary(String id) =>
-      '$staffPatients/$id/summary';
+  static String staffPatientSummary(String id) => '$staffPatients/$id/summary';
 
   // Admin — nav tabs
   static const adminDashboard = '/admin/dashboard';
@@ -322,7 +323,7 @@ StatefulShellRoute _patientShell() {
         AppDestination(
           icon: Icons.event_note_outlined,
           selectedIcon: Icons.event_note,
-          label: 'Appointment',
+          label: 'Appointments',
         ),
         AppDestination(
           icon: Icons.folder_shared_outlined,
@@ -343,10 +344,7 @@ StatefulShellRoute _patientShell() {
             path: AppRoutes.patientHome,
             builder: (_, _) => const PatientHomeScreen(),
             routes: [
-              GoRoute(
-                path: 'vitals',
-                builder: (_, _) => const VitalsScreen(),
-              ),
+              GoRoute(path: 'vitals', builder: (_, _) => const VitalsScreen()),
               GoRoute(
                 path: 'billing',
                 builder: (_, _) => const BillingScreen(),
@@ -442,10 +440,7 @@ StatefulShellRoute _patientShell() {
                 path: 'health',
                 builder: (_, _) => const HealthDetailsPage(),
               ),
-              GoRoute(
-                path: 'wallet',
-                builder: (_, _) => const WalletPage(),
-              ),
+              GoRoute(path: 'wallet', builder: (_, _) => const WalletPage()),
               GoRoute(
                 path: 'preferences',
                 builder: (_, _) => const PreferencesPage(),
@@ -507,9 +502,8 @@ StatefulShellRoute _staffShell() {
             routes: [
               GoRoute(
                 path: 'notifications',
-                builder: (_, _) => const NotificationsScreen(
-                  topActions: StaffTopActions(),
-                ),
+                builder: (_, _) =>
+                    const NotificationsScreen(topActions: StaffTopActions()),
               ),
               GoRoute(
                 path: 'inbox',
@@ -646,9 +640,8 @@ StatefulShellRoute _adminShell() {
             routes: [
               GoRoute(
                 path: 'notifications',
-                builder: (_, _) => const NotificationsScreen(
-                  topActions: AdminTopActions(),
-                ),
+                builder: (_, _) =>
+                    const NotificationsScreen(topActions: AdminTopActions()),
               ),
               GoRoute(
                 path: 'home-visits',
@@ -692,10 +685,7 @@ StatefulShellRoute _adminShell() {
                 path: 'account',
                 builder: (_, _) => const AdminAccountPage(),
               ),
-              GoRoute(
-                path: 'audit',
-                builder: (_, _) => const AuditLogScreen(),
-              ),
+              GoRoute(path: 'audit', builder: (_, _) => const AuditLogScreen()),
               GoRoute(
                 path: 'analytics',
                 builder: (_, _) => const SystemAnalyticsScreen(),
@@ -704,10 +694,7 @@ StatefulShellRoute _adminShell() {
                 path: 'forecast',
                 builder: (_, _) => const AdminForecastScreen(),
               ),
-              GoRoute(
-                path: 'ai',
-                builder: (_, _) => const AiSettingsScreen(),
-              ),
+              GoRoute(path: 'ai', builder: (_, _) => const AiSettingsScreen()),
               GoRoute(
                 path: 'ai-log',
                 builder: (_, _) => const AdminAiLogScreen(),

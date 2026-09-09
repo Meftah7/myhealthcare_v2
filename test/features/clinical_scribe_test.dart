@@ -37,10 +37,9 @@ Future<ProviderContainer> _container() async {
       }),
     ],
   );
-  await container.read(sessionProvider.notifier).login(
-        email: 'staff1@myhealth.demo',
-        password: Seeder.demoPassword,
-      );
+  await container
+      .read(sessionProvider.notifier)
+      .login(email: 'staff1@myhealth.demo', password: Seeder.demoPassword);
   return container;
 }
 
@@ -52,9 +51,9 @@ void main() {
     // the AI key store resolves to "no key" instantly under fake-async.
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('plugins.it_nomads.com/flutter_secure_storage'),
-      (call) async => null,
-    );
+          const MethodChannel('plugins.it_nomads.com/flutter_secure_storage'),
+          (call) async => null,
+        );
   });
 
   test('scribe: with AI off, everything lands in the HPI, editable', () async {
@@ -63,7 +62,9 @@ void main() {
 
     final result = await container
         .read(clinicalScribeProvider)
-        .structure('Sore throat 3 days, no fever. Likely viral. Rest + fluids.');
+        .structure(
+          'Sore throat 3 days, no fever. Likely viral. Rest + fluids.',
+        );
 
     expect(result, isA<Ok<ScribeDraft>>());
     final draft = (result as Ok<ScribeDraft>).value;
@@ -76,8 +77,9 @@ void main() {
     final container = await _container();
     addTearDown(container.dispose);
 
-    final result =
-        await container.read(clinicalScribeProvider).structure('   ');
+    final result = await container
+        .read(clinicalScribeProvider)
+        .structure('   ');
     expect(result, isA<Err<ScribeDraft>>());
   });
 
@@ -86,12 +88,14 @@ void main() {
     addTearDown(container.dispose);
 
     // A seeded chronic patient with history.
-    final patients =
-        await container.read(patientRepositoryProvider).all(limit: 5);
+    final patients = await container
+        .read(patientRepositoryProvider)
+        .all(limit: 5);
     final id = patients.valueOrNull!.first.id;
 
-    final summary =
-        await container.read(chartPatientSummaryProvider(id).future);
+    final summary = await container.read(
+      chartPatientSummaryProvider(id).future,
+    );
     expect(summary.patientId, id);
     expect(summary.summaryMarkdown, isNotEmpty);
   });
@@ -143,7 +147,16 @@ void main() {
     expect(find.textContaining('Scribe a visit note for'), findsOneWidget);
     await tester.enterText(find.byType(TextField).last, 'a');
     await _settle(tester);
-    await tester.tap(find.byType(ListTile).first, warnIfMissed: false);
+    await tester.tap(
+      // Scoped to the sheet: the dashboard behind it has ListTiles of its own.
+      find
+          .descendant(
+            of: find.byType(BottomSheet),
+            matching: find.byType(ListTile),
+          )
+          .first,
+      warnIfMissed: false,
+    );
     await _settle(tester);
 
     // Scribe screen.

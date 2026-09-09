@@ -10,6 +10,7 @@ import 'package:myhealthcare/app/app.dart';
 import 'package:myhealthcare/app/settings/ui_prefs.dart';
 import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/core/presentation/app_card.dart';
+import 'package:myhealthcare/core/presentation/app_scaffold.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -72,7 +73,13 @@ void main() {
     final container = await _signInAdmin(tester);
     addTearDown(container.dispose);
 
-    expect(find.widgetWithText(AppBar, 'Dashboard'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(AppBar),
+        matching: find.byType(AppBrandLockup),
+      ),
+      findsOneWidget,
+    );
     expect(find.textContaining('Good '), findsOneWidget);
     expect(find.byType(GradientHeroCard), findsOneWidget);
     expect(find.text('SYSTEM HEALTH'), findsOneWidget);

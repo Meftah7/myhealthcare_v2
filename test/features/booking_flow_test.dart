@@ -63,14 +63,11 @@ void main() {
     await _settle(tester);
 
     // Open the Appointments tab, then start the scheduling wizard from it.
-    await tester.tap(find.text('Appointment').last);
+    await tester.tap(find.text('Appointments').last);
     await _settle(tester);
     await tester.tap(find.text('Schedule'));
     await _settle(tester);
-    expect(
-      find.widgetWithText(AppBar, 'Schedule a visit'),
-      findsOneWidget,
-    );
+    expect(find.widgetWithText(AppBar, 'Schedule a visit'), findsOneWidget);
 
     // Fill the draft (dept + doctor + a near clinic day) via the provider —
     // the wizard reacts and shows the slot list.
@@ -108,8 +105,9 @@ void main() {
     );
     expect(chips.evaluate().length, greaterThanOrEqualTo(12));
 
-    final before =
-        (await container.read(patientAppointmentsProvider.future)).length;
+    final before = (await container.read(
+      patientAppointmentsProvider.future,
+    )).length;
 
     // Pick the first open time → review sheet → confirm.
     await tester.ensureVisible(chips.first);
@@ -131,8 +129,9 @@ void main() {
 
     // Landed on Home with the new booking.
     expect(find.widgetWithText(AppBar, 'MyHealth Care'), findsOneWidget);
-    final after =
-        (await container.read(patientAppointmentsProvider.future)).length;
+    final after = (await container.read(
+      patientAppointmentsProvider.future,
+    )).length;
     expect(after, before + 1);
   });
 
@@ -173,10 +172,11 @@ void main() {
 
     // Simulate a half-finished pick from a previous visit.
     final depts = await container.read(departmentsProvider.future);
-    container.read(bookingDraftProvider.notifier).state =
-        BookingRequestDraft(departmentId: depts.first.id);
+    container.read(bookingDraftProvider.notifier).state = BookingRequestDraft(
+      departmentId: depts.first.id,
+    );
 
-    await tester.tap(find.text('Appointment').last);
+    await tester.tap(find.text('Appointments').last);
     await _settle(tester);
     await tester.tap(find.text('Book now'));
     await _settle(tester);

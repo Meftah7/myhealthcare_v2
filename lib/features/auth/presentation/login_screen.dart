@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/presentation/app_card.dart';
 import '../../../core/result.dart';
 import '../application/session.dart';
 
@@ -63,7 +64,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const _BrandLockup(
-            subtitle: 'Your records, appointments and care team — '
+            subtitle:
+                'Your records, appointments and care team — '
                 'in one calm place.',
           ),
           const SizedBox(height: Space.xl),
@@ -124,7 +126,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               suffixIcon: IconButton(
                 onPressed: () => setState(() => _obscure = !_obscure),
                 icon: Icon(
-                  _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                  _obscure
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
                 ),
                 tooltip: _obscure ? 'Show password' : 'Hide password',
               ),
@@ -149,7 +153,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ? const SizedBox(width: double.infinity)
                 : Padding(
                     padding: const EdgeInsets.only(top: Space.md),
-                    child: _InlineError(_error!),
+                    child: InlineBanner.error(_error!),
                   ),
           ),
           const SizedBox(height: Space.lg),
@@ -191,18 +195,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420),
-            child: wide
-                ? Container(
-                    padding: const EdgeInsets.all(Space.xl),
-                    decoration: BoxDecoration(
-                      color: scheme.surfaceContainerLowest,
-                      borderRadius: Radii.card,
-                      border: Border.all(color: scheme.outlineVariant),
-                      boxShadow: Shadows.e2,
-                    ),
-                    child: form,
-                  )
-                : form,
+            child: AppEntrance(
+              rise: 12,
+              child: wide
+                  ? Container(
+                      padding: const EdgeInsets.all(Space.xl),
+                      decoration: BoxDecoration(
+                        color: scheme.surfaceContainerLowest,
+                        borderRadius: Radii.card,
+                        border: Border.all(color: scheme.outlineVariant),
+                        boxShadow: Shadows.e2,
+                      ),
+                      child: form,
+                    )
+                  : form,
+            ),
           ),
         ),
       ),
@@ -217,20 +224,24 @@ class _BrandLockup extends StatelessWidget {
   const _BrandLockup({required this.subtitle});
   final String subtitle;
 
+  static const double _markSize = 80;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Column(
       children: [
         Container(
-          width: 80,
-          height: 80,
+          width: _markSize,
+          height: _markSize,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
             gradient: AppColors.brandGradient,
             boxShadow: Shadows.glow(AppColors.brandViolet),
           ),
-          padding: const EdgeInsets.all(13),
+          // The mark sits on ~16% padding inside its medallion, which is what
+          // keeps the heart optically centred in the rounded square.
+          padding: const EdgeInsets.all(_markSize * 0.16),
           child: Image.asset('assets/images/logo.png'),
         ),
         const SizedBox(height: Space.lg),
@@ -253,38 +264,6 @@ class _BrandLockup extends StatelessWidget {
   }
 }
 
-class _InlineError extends StatelessWidget {
-  const _InlineError(this.message);
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(Space.sm),
-      decoration: BoxDecoration(
-        color: scheme.errorContainer,
-        borderRadius: Radii.cardSmall,
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.error_outline, size: 18, color: scheme.onErrorContainer),
-          const SizedBox(width: Space.xs),
-          Expanded(
-            child: Text(
-              message,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: scheme.onErrorContainer,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Seeded-data helper so a demo doesn't need memorised credentials.
 class _DemoHint extends StatelessWidget {
   const _DemoHint({required this.onFill});
 
@@ -304,10 +283,7 @@ class _DemoHint extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Demo accounts',
-            style: theme.textTheme.titleSmall,
-          ),
+          Text('Demo accounts', style: theme.textTheme.titleSmall),
           const SizedBox(height: Space.xs),
           Wrap(
             spacing: Space.xs,
@@ -328,9 +304,7 @@ class _DemoHint extends StatelessWidget {
           const SizedBox(height: Space.xs),
           Text(
             'Password for all accounts: password',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: scheme.onSurface,
-            ),
+            style: theme.textTheme.bodySmall?.copyWith(color: scheme.onSurface),
           ),
         ],
       ),

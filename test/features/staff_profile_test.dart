@@ -76,7 +76,13 @@ void main() {
     await _settle(tester);
 
     Future<void> reveal(Finder f) async {
-      await tester.scrollUntilVisible(f, 120);
+      // The page's scroll view, not the navigation rail's — from `medium` up
+      // the rail is scrollable too, so an unscoped finder is ambiguous.
+      await tester.scrollUntilVisible(
+        f,
+        120,
+        scrollable: find.byType(Scrollable).last,
+      );
       await tester.ensureVisible(f);
       await _settle(tester);
     }

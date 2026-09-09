@@ -10,13 +10,14 @@ import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/confirm_dialog.dart';
+import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
 import '../../../core/utils/clinic_hours.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
-import '../../../domain/enums.dart';
 import '../../booking/presentation/booking_screen.dart';
 import '../../patient/application/patient_data_providers.dart';
 import '../../patient/presentation/patient_top_actions.dart';
@@ -27,73 +28,70 @@ class AppointmentsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appts = ref.watch(patientAppointmentsProvider);
-    final doctors =
-        ref.watch(doctorDirectoryProvider).valueOrNull ?? const {};
+    final doctors = ref.watch(doctorDirectoryProvider).valueOrNull ?? const {};
     final departments =
         ref.watch(departmentDirectoryProvider).valueOrNull ?? const {};
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('My appointments'),
-        actions: const [PatientTopActions()],
-      ),
-      body: appts.when(
-        loading: () => const SkeletonList(),
-        error: (e, _) => ErrorStateView(
-          message: 'Could not load appointments.',
-          onRetry: () => ref.invalidate(patientAppointmentsProvider),
-        ),
-        data: (list) {
-          final upcoming = list.where((a) => a.isUpcoming).toList()
-            ..sort((a, b) => a.slotStart.compareTo(b.slotStart));
-          final past = list.where((a) => !a.isUpcoming).toList()
-            ..sort((a, b) => b.slotStart.compareTo(a.slotStart));
-
-          return Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: Space.maxContentWidth,
-              ),
-              child: ListView(
-            padding: const EdgeInsets.fromLTRB(
-              Space.md,
-              Space.sm,
-              Space.md,
-              Space.xxl,
+    return AppScaffold(
+      title: 'My appointments',
+      actions: const [PatientTopActions()],
+      onRefresh: () async => ref.invalidate(patientAppointmentsProvider),
+      children: [
+        // The two ways in stay put while the list below them loads — there is
+        // no reason to make someone wait on a query to book a visit.
+        const _EntryButtons(),
+        ...appts.when(
+          loading: () => const [
+            SizedBox(height: Space.md),
+            SkeletonList(lines: 4),
+          ],
+          error: (e, _) => [
+            const SizedBox(height: Space.xl),
+            ErrorStateView(
+              message: 'Could not load appointments.',
+              onRetry: () => ref.invalidate(patientAppointmentsProvider),
             ),
-            children: [
-              const _EntryButtons(),
-              const SizedBox(height: Space.sm),
-              _SectionLabel('Upcoming', count: upcoming.length),
+          ],
+          data: (list) {
+            final upcoming = list.where((a) => a.isUpcoming).toList()
+              ..sort((a, b) => a.slotStart.compareTo(b.slotStart));
+            final past = list.where((a) => !a.isUpcoming).toList()
+              ..sort((a, b) => b.slotStart.compareTo(a.slotStart));
+
+            Widget card(Appointment a, {required bool upcoming}) => _ApptCard(
+              a,
+              upcoming: upcoming,
+              doctor: doctors[a.staffId]?.name,
+              department: departments[a.departmentId],
+            );
+
+            return [
+              SectionHeader('Upcoming (${upcoming.length})', overline: true),
               if (upcoming.isEmpty)
-                const _MutedLine('Nothing booked. Tap Book to schedule a visit.')
+                const _EmptyNote(
+                  'Nothing booked. Use Book now or Schedule above.',
+                )
               else
-                for (final a in upcoming)
-                  _ApptCard(
-                    a,
-                    upcoming: true,
-                    doctor: doctors[a.staffId]?.name,
-                    department: departments[a.departmentId],
-                  ),
+                CardColumns(
+                  children: [for (final a in upcoming) card(a, upcoming: true)],
+                ),
 
-              const SizedBox(height: Space.lg),
-              _SectionLabel('History', count: past.length),
-              for (final entry in _byMonth(past.take(40)).entries) ...[
-                _MonthLabel(entry.key),
-                for (final a in entry.value)
-                  _ApptCard(
-                    a,
-                    upcoming: false,
-                    doctor: doctors[a.staffId]?.name,
-                    department: departments[a.departmentId],
+              SectionHeader('History (${past.length})', overline: true),
+              if (past.isEmpty)
+                const _EmptyNote('No past visits yet.')
+              else
+                for (final entry in _byMonth(past.take(40)).entries) ...[
+                  _MonthLabel(entry.key),
+                  CardColumns(
+                    children: [
+                      for (final a in entry.value) card(a, upcoming: false),
+                    ],
                   ),
-              ],
-            ],
-              ),
-            ),
-          );
-        },
-      ),
+                ],
+            ];
+          },
+        ),
+      ],
     );
   }
 
@@ -119,116 +117,26 @@ class _EntryButtons extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-        Expanded(
-          child: _EntryCard(
-            icon: Icons.bolt_outlined,
-            title: 'Book now',
-            subtitle: 'Soonest opening',
-            filled: true,
-            onTap: () => context.push(
-              AppRoutes.patientBook,
-              extra: BookingMode.now,
+          Expanded(
+            child: EntryCard(
+              icon: Icons.bolt_outlined,
+              title: 'Book now',
+              subtitle: 'Soonest opening',
+              filled: true,
+              onTap: () =>
+                  context.push(AppRoutes.patientBook, extra: BookingMode.now),
             ),
           ),
-        ),
-        const SizedBox(width: Space.sm),
-        Expanded(
-          child: _EntryCard(
-            icon: Icons.calendar_month_outlined,
-            title: 'Schedule',
-            subtitle: 'Pick a date',
-            filled: false,
-            onTap: () => context.push(
-              AppRoutes.patientBook,
-              extra: BookingMode.schedule,
-            ),
-          ),
-        ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EntryCard extends StatelessWidget {
-  const _EntryCard({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.filled,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final bool filled;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final fg = filled ? scheme.onPrimary : scheme.onSurface;
-    return Material(
-      color: filled ? scheme.primary : scheme.surface,
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(
-        borderRadius: Radii.card,
-        side: BorderSide(
-          color: filled
-              ? Colors.transparent
-              : scheme.outlineVariant.withValues(alpha: 0.7),
-        ),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(Space.md),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, color: fg),
-              const SizedBox(height: Space.sm),
-              Text(title, style: theme.textTheme.titleMedium?.copyWith(color: fg)),
-              Text(
-                subtitle,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: filled
-                      ? scheme.onPrimary.withValues(alpha: 0.85)
-                      : scheme.onSurfaceVariant,
-                ),
+          const SizedBox(width: Space.sm),
+          Expanded(
+            child: EntryCard(
+              icon: Icons.calendar_month_outlined,
+              title: 'Schedule',
+              subtitle: 'Pick a date',
+              onTap: () => context.push(
+                AppRoutes.patientBook,
+                extra: BookingMode.schedule,
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel(this.text, {required this.count});
-  final String text;
-  final int count;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(
-        left: Space.xs,
-        top: Space.xs,
-        bottom: Space.xs,
-      ),
-      child: Row(
-        children: [
-          Text(text, style: theme.textTheme.titleMedium),
-          const SizedBox(width: Space.xs),
-          Text(
-            '$count',
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
         ],
@@ -243,7 +151,7 @@ class _MonthLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(Space.xs, Space.sm, Space.xs, Space.xxs),
+    padding: const EdgeInsets.only(top: Space.sm, bottom: Space.xs),
     child: Text(
       fmtMonthYear(month),
       style: Theme.of(context).textTheme.labelLarge?.copyWith(
@@ -253,13 +161,15 @@ class _MonthLabel extends StatelessWidget {
   );
 }
 
-class _MutedLine extends StatelessWidget {
-  const _MutedLine(this.text);
+/// A one-line "nothing here yet" note inside a section — the quiet sibling of
+/// [EmptyState], which owns a whole screen.
+class _EmptyNote extends StatelessWidget {
+  const _EmptyNote(this.text);
   final String text;
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(Space.xs, Space.xxs, Space.xs, Space.xs),
+    padding: const EdgeInsets.symmetric(vertical: Space.xs),
     child: Text(
       text,
       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -295,110 +205,121 @@ class _ApptCard extends ConsumerWidget {
       'Room ${appt.roomNumber ?? '—'}',
     ].join('  ·  ');
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: Space.xxs),
-      child: AppCard(
-        padding: const EdgeInsets.all(Space.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+    return AppCard(
+      padding: const EdgeInsets.all(Space.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      upcoming
+                          ? '${fmtRelativeDay(appt.slotStart)} · '
+                                '${fmtTime(appt.slotStart)}'
+                          : fmtDate(appt.slotStart),
+                      style: theme.textTheme.titleMedium,
+                    ),
+                    if (!upcoming)
                       Text(
-                        upcoming
-                            ? '${fmtRelativeDay(appt.slotStart)} · '
-                                  '${fmtTime(appt.slotStart)}'
-                            : fmtDate(appt.slotStart),
-                        style: theme.textTheme.titleMedium,
-                      ),
-                      if (!upcoming)
-                        Text(
-                          fmtTime(appt.slotStart),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
+                        fmtTime(appt.slotStart),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
-                    ],
-                  ),
+                      ),
+                  ],
                 ),
-                _StatusChip(appt.status),
-              ],
-            ),
-            if (appt.bookedForName != null) ...[
-              const SizedBox(height: Space.xxs),
-              Row(
-                children: [
-                  Icon(
-                    Icons.person_outline,
-                    size: 15,
+              ),
+              const SizedBox(width: Space.xs),
+              AppointmentStatusPill(appt.status, dense: true),
+            ],
+          ),
+          if (appt.bookedForName != null) ...[
+            const SizedBox(height: Space.xs),
+            Row(
+              children: [
+                Icon(
+                  Icons.person_outline,
+                  size: 15,
+                  color: theme.colorScheme.primary,
+                ),
+                const SizedBox(width: Space.xxs),
+                Text(
+                  'For ${appt.bookedForName}',
+                  style: theme.textTheme.labelMedium?.copyWith(
                     color: theme.colorScheme.primary,
                   ),
-                  const SizedBox(width: Space.xxs),
-                  Text(
-                    'For ${appt.bookedForName}',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-            const SizedBox(height: Space.xxs),
-            Text(
-              meta,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+                ),
+              ],
             ),
-            const SizedBox(height: Space.xxs),
-            Text(
-              ticketMeta,
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: theme.colorScheme.primary,
-              ),
+          ],
+          // Space.xs between the detail lines, not xxs: at 4dp the block read
+          // as one dense paragraph rather than four separate facts.
+          const SizedBox(height: Space.xs),
+          Text(
+            meta,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
-            if (appt.reasonText != null) ...[
-              const SizedBox(height: Space.xxs),
-              Text(appt.reasonText!, style: theme.textTheme.bodySmall),
-            ],
-            const SizedBox(height: Space.xxs),
-            Text(
-              'Booked ${fmtDate(appt.bookedAt)}',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+          ),
+          const SizedBox(height: Space.xs),
+          Text(
+            ticketMeta,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.primary,
             ),
-            if (upcoming && appt.riskBand != null) ...[
-              const SizedBox(height: Space.xs),
-              RiskBadge(appt.riskBand!),
-            ],
-            if (upcoming) ...[
-              const SizedBox(height: Space.xs),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+          ),
+          if (appt.reasonText != null) ...[
+            const SizedBox(height: Space.xs),
+            Text(appt.reasonText!, style: theme.textTheme.bodySmall),
+          ],
+          const SizedBox(height: Space.xs),
+          Text(
+            'Booked ${fmtDate(appt.bookedAt)}',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          if (upcoming && appt.riskBand != null) ...[
+            const SizedBox(height: Space.sm),
+            RiskBadge(appt.riskBand!),
+          ],
+          if (upcoming) ...[
+            const SizedBox(height: Space.sm),
+            // Outlined for the tertiary action and error-outlined for the
+            // destructive one — the same pair the rest of the app uses
+            // (DESIGN.md §5.1). Wrap so they stack instead of overflowing when
+            // the card is narrow or the text is scaled up.
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: Wrap(
+                alignment: WrapAlignment.end,
+                spacing: Space.xs,
+                runSpacing: Space.xs,
                 children: [
-                  TextButton(
+                  OutlinedButton(
                     onPressed: () => _reschedule(context, ref),
                     child: const Text('Reschedule'),
                   ),
-                  const SizedBox(width: Space.xs),
-                  TextButton(
+                  OutlinedButton(
                     onPressed: () => _cancel(context, ref),
-                    style: TextButton.styleFrom(
+                    style: OutlinedButton.styleFrom(
                       foregroundColor: theme.colorScheme.error,
+                      side: BorderSide(
+                        color: theme.colorScheme.error.withValues(alpha: 0.4),
+                      ),
                     ),
                     child: const Text('Cancel'),
                   ),
                 ],
               ),
-            ],
+            ),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -458,55 +379,5 @@ class _ApptCard extends ConsumerWidget {
           newEnd: newStart.add(appt.duration),
         );
     ref.invalidate(patientAppointmentsProvider);
-  }
-}
-
-class _StatusChip extends StatelessWidget {
-  const _StatusChip(this.status);
-  final AppointmentStatus status;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final (label, bg, fg) = switch (status) {
-      AppointmentStatus.booked => (
-        'Booked',
-        scheme.primaryContainer,
-        scheme.onPrimaryContainer,
-      ),
-      AppointmentStatus.confirmed => (
-        'Confirmed',
-        scheme.primaryContainer,
-        scheme.onPrimaryContainer,
-      ),
-      AppointmentStatus.completed => (
-        'Completed',
-        scheme.surfaceContainerHighest,
-        scheme.onSurfaceVariant,
-      ),
-      AppointmentStatus.cancelled => (
-        'Cancelled',
-        scheme.surfaceContainerHighest,
-        scheme.onSurfaceVariant,
-      ),
-      AppointmentStatus.noShow => (
-        'No-show',
-        scheme.errorContainer,
-        scheme.onErrorContainer,
-      ),
-    };
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: Space.sm,
-        vertical: Space.xxs,
-      ),
-      decoration: BoxDecoration(color: bg, borderRadius: Radii.chip),
-      child: Text(
-        label,
-        style: Theme.of(
-          context,
-        ).textTheme.labelMedium?.copyWith(color: fg),
-      ),
-    );
   }
 }

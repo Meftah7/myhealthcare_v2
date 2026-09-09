@@ -136,7 +136,9 @@ class _YearView extends ConsumerWidget {
                 ),
                 mainAxisSpacing: Space.md,
                 crossAxisSpacing: Space.md,
-                childAspectRatio: 0.86,
+                // Height from the content, not from the tile width — see
+                // _MiniMonth.extentFor.
+                mainAxisExtent: _MiniMonth.extentFor(context),
                 children: [
                   for (var m = 1; m <= 12; m++)
                     _MiniMonth(
@@ -170,6 +172,25 @@ class _MiniMonth extends StatelessWidget {
   final int month;
   final VoidCallback onTap;
 
+  /// A month grid needs up to six week rows; every tile is sized for six so
+  /// the grid stays uniform whichever months the year happens to contain.
+  static const int _maxWeekRows = 6;
+
+  /// One day cell, at the current text scale.
+  static double _cellSize(BuildContext context) =>
+      MediaQuery.textScalerOf(context).scale(15);
+
+  /// The exact height one tile needs.
+  ///
+  /// The year grid used to size these with `childAspectRatio: 0.86`, which ties
+  /// the height to the *width*: narrow the pane — as the extended navigation
+  /// rail does — and a six-row month overflows by a few pixels. Measuring the
+  /// content instead makes the tile correct at any width and any text scale.
+  static double extentFor(BuildContext context) {
+    final label = MediaQuery.textScalerOf(context).scale(16); // labelMedium
+    return Space.xs * 2 + label + Space.xxs + _cellSize(context) * _maxWeekRows;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -180,6 +201,7 @@ class _MiniMonth extends StatelessWidget {
     final days = DateUtils.getDaysInMonth(year, month);
     final rows = ((lead + days) / 7).ceil();
     final isThisMonth = now.year == year && now.month == month;
+    final cell = _cellSize(context);
 
     return AppCard(
       padding: const EdgeInsets.all(Space.xs),
@@ -200,7 +222,13 @@ class _MiniMonth extends StatelessWidget {
               children: [
                 for (var c = 0; c < 7; c++)
                   Expanded(
-                    child: _miniCell(theme, r * 7 + c - lead + 1, days, now),
+                    child: _miniCell(
+                      theme,
+                      r * 7 + c - lead + 1,
+                      days,
+                      now,
+                      cell,
+                    ),
                   ),
               ],
             ),
@@ -209,17 +237,22 @@ class _MiniMonth extends StatelessWidget {
     );
   }
 
-  Widget _miniCell(ThemeData theme, int day, int days, DateTime now) {
-    if (day < 1 || day > days) return const SizedBox(height: 15);
-    final isToday =
-        now.year == year && now.month == month && now.day == day;
+  Widget _miniCell(
+    ThemeData theme,
+    int day,
+    int days,
+    DateTime now,
+    double cell,
+  ) {
+    if (day < 1 || day > days) return SizedBox(height: cell);
+    final isToday = now.year == year && now.month == month && now.day == day;
     return SizedBox(
-      height: 15,
+      height: cell,
       child: Center(
         child: isToday
             ? Container(
-                width: 15,
-                height: 15,
+                width: cell,
+                height: cell,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: theme.colorScheme.primary,
@@ -305,9 +338,9 @@ class _MonthView extends ConsumerWidget {
                         Expanded(
                           child: Center(
                             child: Text(
-                              DateFormat('E').format(
-                                gridStart.add(Duration(days: i)),
-                              )[0],
+                              DateFormat(
+                                'E',
+                              ).format(gridStart.add(Duration(days: i)))[0],
                               style: theme.textTheme.labelSmall?.copyWith(
                                 color: scheme.onSurfaceVariant,
                               ),
@@ -340,9 +373,7 @@ class _MonthView extends ConsumerWidget {
                                       ),
                                       inMonth:
                                           gridStart
-                                              .add(
-                                                Duration(days: week * 7 + d),
-                                              )
+                                              .add(Duration(days: week * 7 + d))
                                               .month ==
                                           focused.month,
                                       count:
@@ -358,20 +389,17 @@ class _MonthView extends ConsumerWidget {
                                       ),
                                       onTap: () {
                                         ref
-                                                .read(
-                                                  scheduleFocusedDayProvider
-                                                      .notifier,
-                                                )
-                                                .state =
-                                            gridStart.add(
-                                              Duration(days: week * 7 + d),
-                                            );
+                                            .read(
+                                              scheduleFocusedDayProvider
+                                                  .notifier,
+                                            )
+                                            .state = gridStart.add(
+                                          Duration(days: week * 7 + d),
+                                        );
                                         ref
-                                                .read(
-                                                  scheduleViewProvider.notifier,
-                                                )
-                                                .state =
-                                            ScheduleView.day;
+                                            .read(scheduleViewProvider.notifier)
+                                            .state = ScheduleView
+                                            .day;
                                       },
                                     ),
                                   ),
@@ -776,7 +804,12 @@ class _WeekStrip extends StatelessWidget {
     final weekStart = focused.subtract(Duration(days: focused.weekday - 1));
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(Space.xs, Space.xs, Space.xs, Space.xs),
+      padding: const EdgeInsets.fromLTRB(
+        Space.xs,
+        Space.xs,
+        Space.xs,
+        Space.xs,
+      ),
       child: Row(
         children: [
           IconButton(
@@ -785,7 +818,9 @@ class _WeekStrip extends StatelessWidget {
             onPressed: onPrevious,
           ),
           for (var i = 0; i < 7; i++)
-            Expanded(child: _WeekStripDay(date: weekStart.add(Duration(days: i)))),
+            Expanded(
+              child: _WeekStripDay(date: weekStart.add(Duration(days: i))),
+            ),
           IconButton(
             tooltip: 'Next day',
             icon: const Icon(Icons.chevron_right),
@@ -801,7 +836,10 @@ extension on Widget {
   /// A hairline under a header strip, so the timeline scrolls under an edge.
   Widget withDivider(Color colour) => Column(
     mainAxisSize: MainAxisSize.min,
-    children: [this, Container(height: 1, color: colour)],
+    children: [
+      this,
+      Container(height: 1, color: colour),
+    ],
   );
 }
 

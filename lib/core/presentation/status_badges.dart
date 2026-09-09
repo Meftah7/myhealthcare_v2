@@ -7,33 +7,63 @@ import 'package:flutter/material.dart';
 import '../../app/theme/theme.dart';
 import '../../domain/enums.dart';
 
-class _Pill extends StatelessWidget {
-  const _Pill({required this.style, required this.label});
+/// The one status badge in the app: a filled container carrying an icon **and**
+/// a word (DESIGN.md §1 rule 3 — status is never colour alone, because ~8% of
+/// men can't separate red from green).
+///
+/// Every badge in the app is built from this — the clinical ones below from the
+/// status ramp, the workflow ones ([AppointmentStatusPill]) from `ColorScheme`
+/// roles — so a chip means the same thing and looks the same everywhere.
+class StatusPill extends StatelessWidget {
+  const StatusPill({
+    required this.label,
+    required this.icon,
+    required this.container,
+    required this.onContainer,
+    this.dense = false,
+    super.key,
+  });
 
-  final ClinicalStatusStyle style;
+  /// Builds one from a clinical ramp entry.
+  StatusPill.clinical(
+    ClinicalStatusStyle style, {
+    required this.label,
+    this.dense = false,
+    super.key,
+  }) : icon = style.icon,
+       container = style.container,
+       onContainer = style.onContainer;
+
   final String label;
+  final IconData icon;
+  final Color container;
+  final Color onContainer;
+
+  /// Tightens the padding for use inside a dense list row.
+  final bool dense;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: Space.sm,
+      padding: EdgeInsets.symmetric(
+        horizontal: dense ? Space.xs : Space.sm,
         vertical: Space.xxs,
       ),
-      decoration: BoxDecoration(
-        color: style.container,
-        borderRadius: Radii.chip,
-      ),
+      decoration: BoxDecoration(color: container, borderRadius: Radii.chip),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(style.icon, size: 15, color: style.onContainer),
+          Icon(icon, size: 15, color: onContainer),
           const SizedBox(width: Space.xxs),
-          Text(
-            label,
-            style: Theme.of(
-              context,
-            ).textTheme.labelMedium?.copyWith(color: style.onContainer),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(
+                context,
+              ).textTheme.labelMedium?.copyWith(color: onContainer),
+            ),
           ),
         ],
       ),
@@ -55,7 +85,64 @@ class RiskBadge extends StatelessWidget {
       RiskBand.medium => (ramp.riskMedium, 'Medium risk'),
       RiskBand.high => (ramp.riskHigh, 'High risk'),
     };
-    return _Pill(style: style, label: label);
+    return StatusPill.clinical(style, label: label);
+  }
+}
+
+/// Where an appointment sits in its workflow (booked → confirmed → completed,
+/// or cancelled / no-show).
+///
+/// Not a *clinical* status, so it draws from `ColorScheme` roles rather than
+/// the risk ramp — but it is still colour **plus icon plus word**, and still a
+/// [StatusPill], so it reads as the same kind of object as a risk badge.
+class AppointmentStatusPill extends StatelessWidget {
+  const AppointmentStatusPill(this.status, {this.dense = false, super.key});
+
+  final AppointmentStatus status;
+  final bool dense;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final (label, icon, bg, fg) = switch (status) {
+      AppointmentStatus.booked => (
+        'Booked',
+        Icons.event_outlined,
+        scheme.primaryContainer,
+        scheme.onPrimaryContainer,
+      ),
+      AppointmentStatus.confirmed => (
+        'Confirmed',
+        Icons.event_available_outlined,
+        scheme.primaryContainer,
+        scheme.onPrimaryContainer,
+      ),
+      AppointmentStatus.completed => (
+        'Completed',
+        Icons.check_circle_outline,
+        scheme.surfaceContainerHighest,
+        scheme.onSurfaceVariant,
+      ),
+      AppointmentStatus.cancelled => (
+        'Cancelled',
+        Icons.cancel_outlined,
+        scheme.surfaceContainerHighest,
+        scheme.onSurfaceVariant,
+      ),
+      AppointmentStatus.noShow => (
+        'No-show',
+        Icons.person_off_outlined,
+        scheme.errorContainer,
+        scheme.onErrorContainer,
+      ),
+    };
+    return StatusPill(
+      label: label,
+      icon: icon,
+      container: bg,
+      onContainer: fg,
+      dense: dense,
+    );
   }
 }
 
@@ -73,7 +160,7 @@ class SeverityChip extends StatelessWidget {
       Severity.warning => (ramp.severityWarning, 'Review'),
       Severity.urgent => (ramp.severityUrgent, 'Urgent'),
     };
-    return _Pill(style: style, label: label);
+    return StatusPill.clinical(style, label: label);
   }
 }
 

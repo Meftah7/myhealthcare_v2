@@ -4,6 +4,7 @@
 library;
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,7 +13,10 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
+import '../../../core/presentation/status_badges.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -28,95 +32,44 @@ class PatientHomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final user = ref.watch(currentUserProvider);
     final firstName = (user?.fullName ?? 'there').split(' ').first;
-    final size = WindowSize.of(context);
-    final gutter = size.gutter;
 
-    return Scaffold(
-      appBar: AppBar(
-        titleSpacing: gutter,
-        title: const _AppBarLockup(),
-        actions: const [PatientTopActions()],
-      ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref
-            ..invalidate(patientAppointmentsProvider)
-            ..invalidate(patientMedicationsProvider)
-            ..invalidate(patientVitalsProvider);
-        },
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: Space.maxContentWidth),
-            child: ListView(
-              padding: EdgeInsets.fromLTRB(
-                gutter,
-                Space.md,
-                gutter,
-                Space.xxl,
-              ),
-              children: [
-                // Date above the greeting: the small line sets context, the
-                // big line is the thing you actually read.
-                Text(
-                  fmtDate(DateTime.now()).toUpperCase(),
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    letterSpacing: 0.8,
-                  ),
-                ),
-                const SizedBox(height: Space.xxs),
-                Text(
-                  greeting(firstName),
-                  style: theme.textTheme.headlineMedium,
-                ),
-                const SizedBox(height: Space.lg),
-
-                const _AllergyAlert(),
-
-                const _QuickAppointmentAction(),
-                const SizedBox(height: Space.lg),
-
-                const SectionHeader('Your health', overline: true),
-                _HealthSnapshot(),
-                const SizedBox(height: Space.lg),
-
-                const SectionHeader('Upcoming appointments', overline: true),
-                const _UpcomingCarousel(),
-                const SizedBox(height: Space.lg),
-
-                const SectionHeader('Quick actions', overline: true),
-                const _QuickActions(),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _AppBarLockup extends StatelessWidget {
-  const _AppBarLockup();
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+    return AppScaffold(
+      titleWidget: const AppBrandLockup(),
+      actions: const [PatientTopActions()],
+      onRefresh: () async {
+        ref
+          ..invalidate(patientAppointmentsProvider)
+          ..invalidate(patientMedicationsProvider)
+          ..invalidate(patientVitalsProvider);
+      },
       children: [
-        Image.asset('assets/images/logo.png', height: 26),
-        const SizedBox(width: Space.xs),
-        // Flexible so the wordmark ellipsises on a narrow phone rather than
-        // colliding with the three action buttons.
-        Flexible(
-          child: Text(
-            'MyHealth Care',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
+        PageGreeting(
+          overline: fmtDate(DateTime.now()),
+          greeting: greeting(firstName),
+        ),
+        const SizedBox(height: Space.lg),
+
+        const _AllergyAlert(),
+
+        // The screen's one saturated surface, and on a wide window the anchor
+        // that spans both columns below it (DESIGN.md §1).
+        const _QuickAppointmentAction(),
+
+        // Split so the narrow reading order is unchanged — what's happening
+        // (figures, then the ticket carousel) before what you can do.
+        SectionColumns(
+          primary: [
+            const SectionHeader('Your health', overline: true),
+            _HealthSnapshot(),
+            const SectionHeader('Upcoming appointments', overline: true),
+            const _UpcomingCarousel(),
+          ],
+          secondary: const [
+            SectionHeader('Quick actions', overline: true),
+            _QuickActions(),
+          ],
         ),
       ],
     );
@@ -133,8 +86,6 @@ class _QuickAppointmentAction extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // The screen's one saturated surface — the primary action gets the brand
-    // gradient, everything below it stays neutral (DESIGN.md §1).
     return GradientHeroCard(
       icon: Icons.bolt,
       title: 'Quick appointment',
@@ -152,32 +103,51 @@ class _QuickAppointmentAction extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(Space.lg, 0, Space.lg, Space.lg),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                'Quick appointment',
-                style: Theme.of(sheetContext).textTheme.titleLarge,
-              ),
-              const SizedBox(height: Space.xs),
-              Text(
-                'How urgent is this visit?',
-                style: Theme.of(sheetContext).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(sheetContext).colorScheme.onSurfaceVariant,
+              AppEntrance(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Quick appointment',
+                      style: Theme.of(sheetContext).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: Space.xs),
+                    Text(
+                      'How urgent is this visit?',
+                      style: Theme.of(sheetContext).textTheme.bodyMedium
+                          ?.copyWith(
+                            color: Theme.of(
+                              sheetContext,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: Space.lg),
-              _ChoiceTile(
-                icon: Icons.bolt,
-                title: 'Urgent',
-                subtitle: 'Auto-route me to the soonest available doctor',
-                onTap: () => Navigator.of(sheetContext).pop(_QuickChoice.urgent),
+              AppEntrance(
+                index: 1,
+                child: NavRow(
+                  icon: Icons.bolt,
+                  title: 'Urgent',
+                  subtitle: 'Auto-route me to the soonest available doctor',
+                  onTap: () =>
+                      Navigator.of(sheetContext).pop(_QuickChoice.urgent),
+                ),
               ),
               const SizedBox(height: Space.sm),
-              _ChoiceTile(
-                icon: Icons.event_available_outlined,
-                title: 'Normal',
-                subtitle: 'Choose a department, doctor and time myself',
-                onTap: () => Navigator.of(sheetContext).pop(_QuickChoice.normal),
+              AppEntrance(
+                index: 2,
+                child: NavRow(
+                  icon: Icons.event_available_outlined,
+                  title: 'Normal',
+                  subtitle: 'Choose a department, doctor and time myself',
+                  onTap: () =>
+                      Navigator.of(sheetContext).pop(_QuickChoice.normal),
+                ),
               ),
             ],
           ),
@@ -201,7 +171,9 @@ class _QuickAppointmentAction extends ConsumerWidget {
         builder: (_) => const Center(child: CircularProgressIndicator()),
       ),
     );
-    final result = await ref.read(quickAppointmentControllerProvider).bookUrgent();
+    final result = await ref
+        .read(quickAppointmentControllerProvider)
+        .bookUrgent();
     if (!context.mounted) return;
     // The loader sits on the root navigator — close it there, not on the shell
     // branch's navigator (which would pop Home and leave a blank screen).
@@ -222,50 +194,6 @@ class _QuickAppointmentAction extends ConsumerWidget {
   }
 }
 
-class _ChoiceTile extends StatelessWidget {
-  const _ChoiceTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return AppCard(
-      onTap: onTap,
-      child: Row(
-        children: [
-          Icon(icon, color: scheme.primary),
-          const SizedBox(width: Space.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: theme.textTheme.titleMedium),
-                Text(
-                  subtitle,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Icon(Icons.chevron_right, color: scheme.onSurfaceVariant),
-        ],
-      ),
-    );
-  }
-}
-
 class _HealthSnapshot extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -282,53 +210,46 @@ class _HealthSnapshot extends ConsumerWidget {
     // Last visit — the most recent appointment that has actually happened.
     final lastVisit =
         (all
-                  .where(
-                    (a) =>
-                        a.status == AppointmentStatus.completed ||
-                        (a.slotEnd.isBefore(DateTime.now()) &&
-                            a.status != AppointmentStatus.cancelled &&
-                            a.status != AppointmentStatus.noShow),
-                  )
-                  .toList()
+                .where(
+                  (a) =>
+                      a.status == AppointmentStatus.completed ||
+                      (a.slotEnd.isBefore(DateTime.now()) &&
+                          a.status != AppointmentStatus.cancelled &&
+                          a.status != AppointmentStatus.noShow),
+                )
+                .toList()
               ..sort((a, b) => b.slotStart.compareTo(a.slotStart)))
             .firstOrNull;
     final lastVisitLabel = lastVisit == null
         ? '—'
         : fmtShortDate(lastVisit.slotStart);
 
-    if (appts.isLoading && meds.isLoading) {
-      return const LoadingSkeleton(height: 92);
-    }
-
-    return Row(
-      children: [
-        Expanded(
-          child: MetricTile(
-            value: '$ticketCount',
-            label: 'Ticket',
-            icon: Icons.confirmation_number_outlined,
-            onTap: () => context.go(AppRoutes.patientAppointments),
-          ),
-        ),
-        const SizedBox(width: Space.sm),
-        Expanded(
-          child: MetricTile(
-            value: '$activeMeds',
-            label: 'Medicine',
-            icon: Icons.medication_outlined,
-            onTap: () => context.go(AppRoutes.patientMedications),
-          ),
-        ),
-        const SizedBox(width: Space.sm),
-        Expanded(
-          child: MetricTile(
-            value: lastVisitLabel,
-            label: 'Last visit',
-            icon: Icons.event_available_outlined,
-            onTap: () => context.go(AppRoutes.patientAppointments),
-          ),
-        ),
-      ],
+    return AppReveal(
+      child: appts.isLoading && meds.isLoading
+          ? const LoadingSkeleton(key: ValueKey('loading'), height: 92)
+          : MetricRow(
+              key: const ValueKey('data'),
+              children: [
+                MetricTile(
+                  value: '$ticketCount',
+                  label: 'Ticket',
+                  icon: Icons.confirmation_number_outlined,
+                  onTap: () => context.go(AppRoutes.patientAppointments),
+                ),
+                MetricTile(
+                  value: '$activeMeds',
+                  label: 'Medicine',
+                  icon: Icons.medication_outlined,
+                  onTap: () => context.go(AppRoutes.patientMedications),
+                ),
+                MetricTile(
+                  value: lastVisitLabel,
+                  label: 'Last visit',
+                  icon: Icons.event_available_outlined,
+                  onTap: () => context.go(AppRoutes.patientAppointments),
+                ),
+              ],
+            ),
     );
   }
 }
@@ -376,7 +297,11 @@ class _AllergyAlert extends ConsumerWidget {
                 ),
               ),
             ),
-            Icon(Icons.chevron_right, color: scheme.onErrorContainer),
+            Icon(
+              Icons.chevron_right,
+              size: kTrailingChevronSize,
+              color: scheme.onErrorContainer,
+            ),
           ],
         ),
       ),
@@ -417,84 +342,26 @@ class _QuickActions extends StatelessWidget {
         AppRoutes.patientSickLeave,
         true,
       ),
-      (
-        Icons.add_home_outlined,
-        'Home care',
-        AppRoutes.patientHomeVisit,
-        true,
-      ),
+      (Icons.add_home_outlined, 'Home care', AppRoutes.patientHomeVisit, true),
       (Icons.receipt_long_outlined, 'Billing', AppRoutes.patientBilling, false),
     ];
-    // Two tiles per row on a phone, three once there's room for them.
-    return GridView.count(
-      crossAxisCount: WindowSize.of(context).isCompact ? 2 : 3,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: Space.sm,
-      crossAxisSpacing: Space.sm,
-      childAspectRatio: 2.6,
+
+    return TileGrid(
       children: [
         for (final (icon, label, route, push) in items)
-          _ActionTile(icon: icon, label: label, route: route, push: push),
+          NavRow(
+            icon: icon,
+            title: label,
+            tinted: true,
+            onTap: () {
+              if (push) {
+                unawaited(context.push(route));
+              } else {
+                context.go(route);
+              }
+            },
+          ),
       ],
-    );
-  }
-}
-
-class _ActionTile extends StatelessWidget {
-  const _ActionTile({
-    required this.icon,
-    required this.label,
-    required this.route,
-    this.push = false,
-  });
-
-  final IconData icon;
-  final String label;
-  final String route;
-  final bool push;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return AppCard(
-      padding: const EdgeInsets.symmetric(
-        horizontal: Space.sm,
-        vertical: Space.sm,
-      ),
-      onTap: () {
-        if (push) {
-          unawaited(context.push(route));
-        } else {
-          context.go(route);
-        }
-      },
-      child: Row(
-        children: [
-          // A tinted medallion rather than a bare glyph — it anchors the row
-          // and reads as an object you can press.
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: scheme.primaryContainer,
-              borderRadius: Radii.chip,
-            ),
-            child: Icon(icon, size: 18, color: scheme.onPrimaryContainer),
-          ),
-          const SizedBox(width: Space.sm),
-          Expanded(
-            child: Text(
-              label.replaceAll('\n', ' '),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.titleSmall,
-            ),
-          ),
-          Icon(Icons.chevron_right, size: 18, color: scheme.onSurfaceVariant),
-        ],
-      ),
     );
   }
 }
@@ -536,6 +403,9 @@ class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
   void _restartTimer() {
     _timer?.cancel();
     if (_count <= 1) return;
+    // An auto-advancing carousel is motion the user didn't ask for; when the
+    // OS says "reduce motion", it stops advancing and the arrows take over.
+    if (Motion.reduced(context)) return;
     _timer = Timer.periodic(_slideEvery, (_) => _step(1));
   }
 
@@ -554,7 +424,6 @@ class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -579,44 +448,11 @@ class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
 
         if (active.isEmpty) {
           _timer?.cancel();
-          return AppCard(
+          return NavRow(
+            icon: Icons.event_available_outlined,
+            title: 'No upcoming appointments',
+            subtitle: 'Tap to book a visit',
             onTap: () => context.go(AppRoutes.patientBook),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: scheme.surfaceContainerHighest,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.event_available_outlined,
-                    size: 20,
-                    color: scheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(width: Space.sm),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'No upcoming appointments',
-                        style: theme.textTheme.titleMedium,
-                      ),
-                      Text(
-                        'Tap to book a visit',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(Icons.chevron_right, color: scheme.onSurfaceVariant),
-              ],
-            ),
           );
         }
 
@@ -657,32 +493,30 @@ class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
             ),
             const SizedBox(height: Space.xs),
             SizedBox(
-              height: 208,
+              height: _BigTicketCard.heightFor(context, active),
               // The auto-advancing pager animates on its own; keep its repaints
               // off the rest of Home.
               child: RepaintBoundary(
                 child: PageView.builder(
-                controller: _controller,
-                // No itemCount → scrolls forever; the card shown is
-                // `rawPage % count`, so the list wraps in either direction.
-                onPageChanged: (raw) {
-                  setState(
-                    () => _index = ((raw % _count) + _count) % _count,
-                  );
-                  _restartTimer();
-                },
-                itemBuilder: (context, raw) {
-                  if (_count == 0) return const SizedBox.shrink();
-                  final i = ((raw % _count) + _count) % _count;
-                  final appt = active[i];
-                  return Padding(
-                    padding: const EdgeInsets.only(right: Space.sm),
-                    child: _BigTicketCard(
-                      appt: appt,
-                      doctorName: doctors[appt.staffId]?.name,
-                    ),
-                  );
-                },
+                  controller: _controller,
+                  // No itemCount → scrolls forever; the card shown is
+                  // `rawPage % count`, so the list wraps in either direction.
+                  onPageChanged: (raw) {
+                    setState(() => _index = ((raw % _count) + _count) % _count);
+                    _restartTimer();
+                  },
+                  itemBuilder: (context, raw) {
+                    if (_count == 0) return const SizedBox.shrink();
+                    final i = ((raw % _count) + _count) % _count;
+                    final appt = active[i];
+                    return Padding(
+                      padding: const EdgeInsets.only(right: Space.sm),
+                      child: _BigTicketCard(
+                        appt: appt,
+                        doctorName: doctors[appt.staffId]?.name,
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
@@ -700,7 +534,9 @@ class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
                       AnimatedContainer(
                         duration: Motion.medium,
                         curve: Motion.standard,
-                        margin: const EdgeInsets.symmetric(horizontal: 3),
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: Space.xxs / 2,
+                        ),
                         width: i == _index ? 22 : 7,
                         height: 7,
                         decoration: BoxDecoration(
@@ -728,18 +564,32 @@ class _BigTicketCard extends StatelessWidget {
   final Appointment appt;
   final String? doctorName;
 
+  /// The tallest card in [appts], measured at the current text scale.
+  ///
+  /// A `PageView` needs one height for every page, and the old fixed 208dp
+  /// clipped as soon as the OS text size went up. This asks the text scaler how
+  /// tall the detail lines actually are and sizes to the longest card.
+  static double heightFor(BuildContext context, List<Appointment> appts) {
+    final scaler = MediaQuery.textScalerOf(context);
+    // bodyMedium is 14/20; the rows are separated by Space.xs.
+    final lineHeight = scaler.scale(20);
+    final maxRows = appts.fold<int>(
+      4,
+      (best, a) => math.max(best, a.bookedForName == null ? 4 : 5),
+    );
+    final detail = maxRows * lineHeight + (maxRows - 1) * Space.xs;
+
+    // The ticket column: overline + the big number + the status pill.
+    final ticket =
+        scaler.scale(16) + 2 + scaler.scale(32) + Space.xs + scaler.scale(24);
+
+    return Space.lg * 2 + math.max(detail, ticket);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-
-    final (statusLabel, statusStyle) = switch (appt.status) {
-      AppointmentStatus.confirmed => (
-        'Confirmed',
-        theme.clinicalStatus.riskLow,
-      ),
-      _ => ('Booked', null),
-    };
 
     return AppCard(
       elevated: true,
@@ -749,11 +599,13 @@ class _BigTicketCard extends StatelessWidget {
       borderColor: scheme.onPrimaryContainer.withValues(alpha: 0.12),
       onTap: () => context.go(AppRoutes.patientAppointments),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        // Stretch so the rule between the two halves is exactly as tall as the
+        // card, at any text scale, instead of a hard-coded 120dp.
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // The number, large.
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 'TICKET',
@@ -765,37 +617,21 @@ class _BigTicketCard extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 appt.ticketTag ?? '—',
+                // w500 is the ceiling for display type (DESIGN.md §3.3) — this
+                // app doesn't shout, and the size is already doing the work.
                 style: theme.textTheme.displaySmall?.copyWith(
                   color: scheme.onPrimaryContainer,
-                  fontWeight: FontWeight.w800,
                   fontFeatures: kTabularFigures,
                   height: 1,
                 ),
               ),
               const SizedBox(height: Space.xs),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: Space.xs,
-                  vertical: 2,
-                ),
-                decoration: BoxDecoration(
-                  color: statusStyle?.container ?? scheme.surface,
-                  borderRadius: Radii.pill,
-                ),
-                child: Text(
-                  statusLabel,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: statusStyle?.onContainer ?? scheme.onSurface,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
+              AppointmentStatusPill(appt.status, dense: true),
             ],
           ),
           const SizedBox(width: Space.md),
           Container(
             width: 1,
-            height: 120,
             color: scheme.onPrimaryContainer.withValues(alpha: 0.2),
           ),
           const SizedBox(width: Space.md),
@@ -803,6 +639,7 @@ class _BigTicketCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 _line(
                   context,

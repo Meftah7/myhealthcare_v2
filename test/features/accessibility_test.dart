@@ -115,7 +115,12 @@ void main() {
 
     await tester.pumpWidget(
       MediaQuery(
-        data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+        // From the view, then overridden — a bare `MediaQueryData` defaults
+        // its size to zero, which made this assertion vacuous: nothing can
+        // overflow a window with no width.
+        data: MediaQueryData.fromView(
+          tester.view,
+        ).copyWith(textScaler: const TextScaler.linear(2)),
         child: await _app(db),
       ),
     );

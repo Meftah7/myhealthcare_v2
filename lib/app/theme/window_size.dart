@@ -43,4 +43,14 @@ enum WindowSize {
 
   /// Default screen edge padding for this size class (DESIGN.md §4.1).
   double get gutter => this == WindowSize.compact ? 16 : 24;
+
+  /// Columns for a grid of short shortcut tiles (`TileGrid`). Two on a phone,
+  /// and one more each time the content column can carry it without the tiles
+  /// growing wider than the label they hold.
+  int get tileColumns => switch (this) {
+    WindowSize.compact => 2,
+    WindowSize.medium => 2,
+    WindowSize.expanded => 3,
+    WindowSize.large => 4,
+  };
 }

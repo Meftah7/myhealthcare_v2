@@ -20,7 +20,9 @@ Future<void> _settle(WidgetTester tester) async {
 }
 
 void main() {
-  testWidgets('notifications: badge, open centre, mark one read', (tester) async {
+  testWidgets('notifications: badge, open centre, mark one read', (
+    tester,
+  ) async {
     final db = newTestDatabase();
     await Seeder(db).run();
 
@@ -68,7 +70,7 @@ void main() {
     expect(find.text('Mark all read'), findsOneWidget);
 
     // Bottom nav is still visible (nested under the Home branch).
-    expect(find.text('Appointment'), findsWidgets);
+    expect(find.text('Appointments'), findsWidgets);
 
     // Open the first message; it opens a detail sheet and is marked read.
     final firstCard = find
