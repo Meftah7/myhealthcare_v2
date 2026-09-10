@@ -11,6 +11,7 @@
 library;
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,10 +20,10 @@ import 'package:intl/intl.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
-import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
-import '../../consultation/presentation/ticket_sheet.dart';
 import '../application/staff_providers.dart';
+import 'schedule_appointment_card.dart';
+import 'schedule_queue_strip.dart';
 import 'staff_top_actions.dart';
 
 class StaffScheduleScreen extends ConsumerWidget {
@@ -509,7 +510,6 @@ class _MonthCell extends StatelessWidget {
 // Day — the live timeline
 // ---------------------------------------------------------------------------
 
-const double _hourHeight = 64;
 const double _timeGutter = 56;
 
 class _DayView extends ConsumerStatefulWidget {
@@ -522,6 +522,7 @@ class _DayView extends ConsumerStatefulWidget {
 class _DayViewState extends ConsumerState<_DayView> {
   final ScrollController _scroll = ScrollController();
   Timer? _tick;
+  Timer? _highlightClear;
   DateTime _now = DateTime.now();
 
   @override
@@ -535,15 +536,55 @@ class _DayViewState extends ConsumerState<_DayView> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToNow());
   }
 
+  double get _hourHeight => ref.read(scheduleHourHeightProvider);
+
   void _scrollToNow() {
     if (!_scroll.hasClients) return;
     final target = ((_now.hour - 1).clamp(0, 22)) * _hourHeight;
     _scroll.jumpTo(target.clamp(0, _scroll.position.maxScrollExtent));
   }
 
+  /// Brings a queue patient's card into view and glows it for a beat — driven
+  /// by the "Next" button in the queue strip.
+  void _focusAppointment(String appointmentId) {
+    final appts = ref.read(staffFocusedDayProvider);
+    Appointment? target;
+    for (final a in appts) {
+      if (a.id == appointmentId) {
+        target = a;
+        break;
+      }
+    }
+    if (target != null && _scroll.hasClients) {
+      final y = (_yFor(target.slotStart, _hourHeight) - 100).clamp(
+        0.0,
+        _scroll.position.maxScrollExtent,
+      );
+      unawaited(
+        _scroll.animateTo(y, duration: Motion.slow, curve: Motion.standard),
+      );
+    }
+    ref.read(scheduleHighlightIdProvider.notifier).state = appointmentId;
+    _highlightClear?.cancel();
+    _highlightClear = Timer(const Duration(milliseconds: 1800), () {
+      if (mounted) {
+        ref.read(scheduleHighlightIdProvider.notifier).state = null;
+      }
+    });
+  }
+
+  void _zoom(double factor) {
+    final next = (ref.read(scheduleHourHeightProvider) * factor).clamp(
+      scheduleHourHeightMin,
+      scheduleHourHeightMax,
+    );
+    ref.read(scheduleHourHeightProvider.notifier).state = next;
+  }
+
   @override
   void dispose() {
     _tick?.cancel();
+    _highlightClear?.cancel();
     _scroll.dispose();
     super.dispose();
   }
@@ -562,7 +603,12 @@ class _DayViewState extends ConsumerState<_DayView> {
     final focused = ref.watch(scheduleFocusedDayProvider);
     final month = ref.watch(staffMonthProvider);
     final appts = ref.watch(staffFocusedDayProvider);
+    final hourHeight = ref.watch(scheduleHourHeightProvider);
     final isToday = isSameCalendarDay(focused, _now);
+
+    ref.listen(scheduleQueueCurrentIdProvider, (_, next) {
+      if (next != null) _focusAppointment(next);
+    });
 
     return Center(
       child: ConstrainedBox(
@@ -578,6 +624,11 @@ class _DayViewState extends ConsumerState<_DayView> {
               const LinearProgressIndicator(minHeight: 2)
             else
               const SizedBox(height: 2),
+            if (isToday) const ScheduleQueueStrip(),
+            _ZoomBar(
+              onOut: () => _zoom(1 / 1.25),
+              onIn: () => _zoom(1.25),
+            ),
             Expanded(
               child: SingleChildScrollView(
                 controller: _scroll,
@@ -591,36 +642,47 @@ class _DayViewState extends ConsumerState<_DayView> {
                   child: LayoutBuilder(
                     builder: (context, constraints) {
                       final laneWidth = constraints.maxWidth - _timeGutter;
+                      final compact = hourHeight < scheduleCompactBelow;
                       return SizedBox(
-                        height: 24 * _hourHeight,
+                        height: 24 * hourHeight,
                         child: Stack(
                           children: [
                             // Hour rules + labels.
                             for (var h = 0; h < 24; h++)
                               Positioned(
-                                top: h * _hourHeight,
+                                top: h * hourHeight,
                                 left: 0,
                                 right: 0,
                                 child: _HourRule(hour: h),
                               ),
 
-                            for (final slot in _layoutDay(appts))
+                            for (final slot in _layoutDay(
+                              appts,
+                              hourHeight,
+                              compact,
+                            ))
                               Positioned(
-                                top: _yFor(slot.appointment.slotStart),
+                                top: slot.top,
                                 left:
                                     _timeGutter +
                                     slot.column * (laneWidth / slot.columns),
                                 width: laneWidth / slot.columns - 4,
-                                height: _heightFor(slot.appointment),
-                                child: _AppointmentBlock(
-                                  appointment: slot.appointment,
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    minHeight: slot.slotHeight,
+                                  ),
+                                  child: ScheduleAppointmentCard(
+                                    key: ValueKey(slot.appointment.id),
+                                    appointment: slot.appointment,
+                                    compact: compact,
+                                  ),
                                 ),
                               ),
 
                             if (isToday)
                               Positioned(
-                                top: _yFor(_now) - 5,
-                                left: _timeGutter - 26,
+                                top: _yFor(_now, hourHeight) - 9,
+                                left: 0,
                                 right: 0,
                                 child: _NowLine(now: _now),
                               ),
@@ -649,11 +711,46 @@ class _DayViewState extends ConsumerState<_DayView> {
   }
 }
 
-double _yFor(DateTime t) => (t.hour + t.minute / 60) * _hourHeight;
+double _yFor(DateTime t, double hourHeight) =>
+    (t.hour + t.minute / 60) * hourHeight;
 
-double _heightFor(Appointment a) {
+double _heightFor(Appointment a, double hourHeight) {
   final minutes = a.slotEnd.difference(a.slotStart).inMinutes;
-  return (minutes / 60 * _hourHeight).clamp(26.0, 24 * _hourHeight);
+  return (minutes / 60 * hourHeight).clamp(26.0, 24 * hourHeight);
+}
+
+/// The − / + zoom control: taller rows for working a patient, shorter for a
+/// whole-day overview. Mirrors pinch-zoom on the iOS Calendar day view.
+class _ZoomBar extends StatelessWidget {
+  const _ZoomBar({required this.onOut, required this.onIn});
+
+  final VoidCallback onOut;
+  final VoidCallback onIn;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(Space.md, Space.xs, Space.xs, 0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          IconButton(
+            tooltip: 'Compress the day',
+            visualDensity: VisualDensity.compact,
+            onPressed: onOut,
+            icon: Icon(Icons.remove, color: scheme.onSurfaceVariant),
+          ),
+          IconButton(
+            tooltip: 'Expand the day',
+            visualDensity: VisualDensity.compact,
+            onPressed: onIn,
+            icon: Icon(Icons.add, color: scheme.onSurfaceVariant),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _HourRule extends StatelessWidget {
@@ -687,7 +784,9 @@ class _HourRule extends StatelessWidget {
   }
 }
 
-/// The live marker. Sits on top of everything, tracks the clock.
+/// The live marker: a hairline across the grid with a dot at its start and the
+/// current time in a filled pill. The pill sits opaque in the gutter so it
+/// reads cleanly even when it lands on an hour label.
 class _NowLine extends StatelessWidget {
   const _NowLine({required this.now});
 
@@ -696,88 +795,44 @@ class _NowLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colour = theme.colorScheme.error;
+    final scheme = theme.colorScheme;
+    final colour = scheme.error;
     return Row(
       children: [
         SizedBox(
-          width: 26,
-          child: Text(
-            DateFormat('HH:mm').format(now),
-            textAlign: TextAlign.right,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: colour,
-              fontWeight: FontWeight.w700,
-              fontFeatures: kTabularFigures,
+          width: _timeGutter,
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: Padding(
+              padding: const EdgeInsets.only(right: Space.xxs),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: Space.xs,
+                  vertical: 1,
+                ),
+                decoration: BoxDecoration(
+                  color: colour,
+                  borderRadius: Radii.pill,
+                ),
+                child: Text(
+                  DateFormat('HH:mm').format(now),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: scheme.onError,
+                    fontWeight: FontWeight.w700,
+                    fontFeatures: kTabularFigures,
+                  ),
+                ),
+              ),
             ),
           ),
         ),
-        const SizedBox(width: Space.xxs),
         Container(
-          width: 10,
-          height: 10,
+          width: 8,
+          height: 8,
           decoration: BoxDecoration(color: colour, shape: BoxShape.circle),
         ),
         Expanded(child: Container(height: 2, color: colour)),
       ],
-    );
-  }
-}
-
-class _AppointmentBlock extends ConsumerWidget {
-  const _AppointmentBlock({required this.appointment});
-
-  final Appointment appointment;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final names = ref.watch(patientNameLookupProvider).valueOrNull ?? const {};
-    final who = names[appointment.patientId];
-    final tall = _heightFor(appointment) > 46;
-
-    return Material(
-      color: scheme.primaryContainer,
-      borderRadius: Radii.chip,
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => showTicketSheet(context, appointment),
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: Space.xs,
-            vertical: 3,
-          ),
-          decoration: BoxDecoration(
-            border: BorderDirectional(
-              start: BorderSide(color: scheme.primary, width: 3),
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                who ?? visitTypeLabel(appointment.visitType),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: scheme.onPrimaryContainer,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              if (tall)
-                Text(
-                  '${fmtTime(appointment.slotStart)} · '
-                  '${visitTypeLabel(appointment.visitType)}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: scheme.onPrimaryContainer.withValues(alpha: 0.8),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
@@ -968,18 +1023,38 @@ void _jumpToToday(WidgetRef ref, ScheduleView keep) {
 // ---------------------------------------------------------------------------
 
 class _DaySlot {
-  const _DaySlot(this.appointment, this.column, this.columns);
+  const _DaySlot(
+    this.appointment,
+    this.column,
+    this.columns,
+    this.top,
+    this.slotHeight,
+  );
 
   final Appointment appointment;
   final int column;
   final int columns;
+
+  /// Where the card sits on the timeline, in pixels.
+  final double top;
+
+  /// The card's minimum height — its duration on the grid. The card itself
+  /// sizes to its content and grows to fill this when the slot is taller.
+  final double slotHeight;
 }
 
 /// Packs overlapping appointments into side-by-side columns: appointments that
 /// share any minute end up in the same cluster, and every cluster is as wide as
-/// its busiest moment.
-List<_DaySlot> _layoutDay(List<Appointment> appointments) {
+/// its busiest moment. Each card is then positioned and pushed down within its
+/// column — by the larger of its duration and its estimated content height — so
+/// a run of short back-to-back visits never draws on top of the one before it.
+List<_DaySlot> _layoutDay(
+  List<Appointment> appointments,
+  double hourHeight,
+  bool compact,
+) {
   final out = <_DaySlot>[];
+  final columnBottom = <int, double>{};
   var cluster = <Appointment>[];
   DateTime? clusterEnd;
 
@@ -1004,7 +1079,19 @@ List<_DaySlot> _layoutDay(List<Appointment> appointments) {
       assigned.add(column);
     }
     for (var i = 0; i < cluster.length; i++) {
-      out.add(_DaySlot(cluster[i], assigned[i], columnEnds.length));
+      final a = cluster[i];
+      final column = assigned[i];
+      final slotHeight = _heightFor(a, hourHeight);
+      final rendered = math.max(
+        slotHeight,
+        scheduleCardEstimatedHeight(a, compact: compact),
+      );
+      final top = math.max(
+        _yFor(a.slotStart, hourHeight),
+        columnBottom[column] ?? 0,
+      );
+      columnBottom[column] = top + rendered + 4;
+      out.add(_DaySlot(a, column, columnEnds.length, top, slotHeight));
     }
     cluster = [];
     clusterEnd = null;

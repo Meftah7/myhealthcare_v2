@@ -268,30 +268,6 @@ class StaffOps {
       ..invalidate(staffMonthProvider);
   }
 
-  /// Accept a booked visit (→ confirmed).
-  Future<void> acceptAppointment(String id) async {
-    await _ref
-        .read(appointmentRepositoryProvider)
-        .updateStatus(id: id, status: AppointmentStatus.confirmed);
-    _refreshQueue();
-  }
-
-  /// Start the visit — stamps check-in time.
-  Future<void> startVisit(String id) async {
-    await _ref
-        .read(appointmentRepositoryProvider)
-        .markCheckedIn(id, DateTime.now());
-    _refreshQueue();
-  }
-
-  /// Complete the visit (→ completed).
-  Future<void> completeAppointment(String id) async {
-    await _ref
-        .read(appointmentRepositoryProvider)
-        .updateStatus(id: id, status: AppointmentStatus.completed);
-    _refreshQueue();
-  }
-
   /// Mark the visit cancelled / no-show.
   Future<void> cancelAppointment(String id, {bool noShow = false}) async {
     await _ref
@@ -424,6 +400,49 @@ final staffFocusedDayProvider = Provider<List<Appointment>>((ref) {
   return all.where((a) => isSameCalendarDay(a.slotStart, day)).toList()
     ..sort((a, b) => a.slotStart.compareTo(b.slotStart));
 });
+
+// --- day timeline: zoom, queue cursor, card highlight -------------------
+
+/// Pixels per hour on the day timeline. The doctor zooms this with the − / +
+/// control (iOS-Calendar style) to trade detail for a whole-day overview; it
+/// survives switching between the day / month / year views for the session.
+final scheduleHourHeightProvider = StateProvider<double>((ref) => 132);
+
+/// Zoom bounds for [scheduleHourHeightProvider].
+const double scheduleHourHeightMin = 72;
+const double scheduleHourHeightMax = 220;
+
+/// The queue patient the doctor is currently working through on the schedule.
+/// "Next" advances this; the day timeline listens and scrolls that patient's
+/// card into view. Null until the doctor starts stepping the queue.
+final scheduleQueueCurrentIdProvider = StateProvider<String?>((ref) => null);
+
+/// The appointment id to briefly glow on the timeline — set for a second or
+/// two after "Next" moves to it, then cleared.
+final scheduleHighlightIdProvider = StateProvider<String?>((ref) => null);
+
+/// Session record of "Call patient" presses per appointment, so the card can
+/// show "Called · 12:42" and, on a repeat page, "Called ×2 · 12:47". The
+/// database only keeps the last `calledInAt`; the count is session-only.
+typedef ScheduleCallEntry = ({int count, DateTime at});
+
+class ScheduleCallLog extends Notifier<Map<String, ScheduleCallEntry>> {
+  @override
+  Map<String, ScheduleCallEntry> build() => const {};
+
+  void bump(String appointmentId) {
+    final prior = state[appointmentId]?.count ?? 0;
+    state = {
+      ...state,
+      appointmentId: (count: prior + 1, at: DateTime.now()),
+    };
+  }
+}
+
+final scheduleCallLogProvider =
+    NotifierProvider<ScheduleCallLog, Map<String, ScheduleCallEntry>>(
+      ScheduleCallLog.new,
+    );
 
 // --- panel analytics (P5-13) -------------------------------------------
 
