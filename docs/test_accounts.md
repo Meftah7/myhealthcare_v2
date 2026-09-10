@@ -61,12 +61,21 @@ Useful ones for a demo:
 
 ## The consultation flow
 
-From **Schedule**, a doctor taps an appointment block → a ticket sheet with
-**Call patient / Patient arrived / Patient not shown**. "Patient arrived" opens
-`/staff/consultation/<id>`: write a clinical note, add medications, or **Request
-a referral** (the admin decides where). **Complete consultation** saves the note
-+ medications to the patient record. Everything typed is held in a draft, so
-leaving the page and returning resumes it.
+On **Schedule**, every appointment card on the day timeline carries its own
+actions — there is no popup. **Call patient** pages the patient in over the
+clinic system (repeatable; the card shows the last page). **Patient arrived**
+sets the visit in progress and plays a green ✓ on the card; **Patient not
+arrived** sets it to no-show with a red ✕ and leaves it on the timeline.
+**Open chart** is the only action that navigates. Once a patient has arrived a
+**Complete visit** action appears and opens `/staff/consultation/<id>`: write a
+clinical note, add medications, or **Request a referral** (the admin decides
+where). **Complete consultation** saves the note + medications to the patient
+record and closes the visit. Everything typed is held in a draft, so leaving the
+page and returning resumes it.
+
+The day view also has a **Today's queue** strip: **Next** steps through the
+waiting patients, scrolling each one's card into view — it never leaves the
+Schedule page.
 
 Staff can also issue a fresh sick note from a patient's chart (**Patients → open a
 patient → + → Issue sick leave**).

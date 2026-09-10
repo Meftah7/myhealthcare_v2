@@ -285,9 +285,10 @@ class _ShiftSnapshot extends ConsumerWidget {
   }
 }
 
-/// Today's queue — soonest first, with the status-driven clinical actions
-/// (Accept → Start → Complete) plus an overflow menu for chart / transfer /
-/// cancel. Mirrors the FirstSemMyHealth "Today's Patients" table.
+/// Today's queue — soonest first. A read-only tracking list: tap a row for the
+/// patient's chart, or use the overflow menu for note / transfer / cancel. The
+/// arrival workflow (call / arrived / not arrived / complete) lives on the
+/// Schedule timeline, not here.
 class _QueueCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -328,23 +329,7 @@ class _QueueRow extends ConsumerWidget {
     final scheme = theme.colorScheme;
     final a = appointment;
     final ops = ref.read(staffOpsProvider);
-    final accepted = a.status == AppointmentStatus.confirmed;
     final checkedIn = a.checkedInAt != null;
-
-    final (String actionLabel, VoidCallback onAction) = !accepted
-        ? ('Accept', () => unawaited(ops.acceptAppointment(a.id)))
-        : !checkedIn
-        ? ('Start', () => unawaited(ops.startVisit(a.id)))
-        : ('Complete', () => unawaited(ops.completeAppointment(a.id)));
-
-    // Once the OS text size is up, a time chip, a name, a filled button and an
-    // overflow menu can't share one line. Past ~1.4x the action drops to its
-    // own row rather than overflowing.
-    final stacked = MediaQuery.textScalerOf(context).scale(14) > 20;
-
-    final actionButton = accepted && checkedIn
-        ? FilledButton(onPressed: onAction, child: Text(actionLabel))
-        : FilledButton.tonal(onPressed: onAction, child: Text(actionLabel));
 
     final menu = PopupMenuButton<String>(
       tooltip: 'More actions',
@@ -460,31 +445,12 @@ class _QueueRow extends ConsumerWidget {
           Space.xs,
           Space.sm,
         ),
-        child: stacked
-            ? Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(child: identity),
-                      menu,
-                    ],
-                  ),
-                  const SizedBox(height: Space.xs),
-                  Align(
-                    alignment: AlignmentDirectional.centerEnd,
-                    child: actionButton,
-                  ),
-                ],
-              )
-            : Row(
-                children: [
-                  Expanded(child: identity),
-                  const SizedBox(width: Space.xs),
-                  actionButton,
-                  menu,
-                ],
-              ),
+        child: Row(
+          children: [
+            Expanded(child: identity),
+            menu,
+          ],
+        ),
       ),
     );
   }

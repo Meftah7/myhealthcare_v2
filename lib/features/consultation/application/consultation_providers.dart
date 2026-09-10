@@ -147,13 +147,18 @@ class ConsultationController {
     return r;
   }
 
-  /// "Patient arrived" — the visit goes in-progress and the consultation opens.
-  Future<Result<void>> markArrived() async {
+  /// "Patient arrived" — stamps the check-in time and moves the visit to
+  /// `inProgress`. [fromNoShow] is set when this is correcting an earlier
+  /// "Patient not arrived": the visit was `noShow` and is being reinstated, so
+  /// the audit trail records the reversal rather than a plain arrival.
+  Future<Result<void>> markArrived({bool fromNoShow = false}) async {
     final r = await _ref
         .read(appointmentRepositoryProvider)
         .markArrived(appointmentId, DateTime.now());
     if (r.isOk) {
-      await _audit('appointment.arrive');
+      await _audit(
+        fromNoShow ? 'appointment.noshow_cleared' : 'appointment.arrive',
+      );
       _refreshQueue();
     }
     return r;
