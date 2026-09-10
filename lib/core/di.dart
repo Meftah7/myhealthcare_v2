@@ -13,6 +13,7 @@ import '../data/repositories/appointment_repository_impl.dart';
 import '../data/repositories/auth_repository_impl.dart';
 import '../data/repositories/billing_repository_impl.dart';
 import '../data/repositories/care_repository_impl.dart';
+import '../data/repositories/consultation_repository_impl.dart';
 import '../data/repositories/notification_repository_impl.dart';
 import '../data/repositories/patient_repository_impl.dart';
 import '../data/repositories/record_repository_impl.dart';
@@ -93,6 +94,14 @@ final careMessageRepositoryProvider = Provider<CareMessageRepository>(
 
 final homeVisitRepositoryProvider = Provider<HomeVisitRepository>(
   (ref) => HomeVisitRepositoryImpl(ref.watch(appDatabaseProvider)),
+);
+
+final walkInTicketRepositoryProvider = Provider<WalkInTicketRepository>(
+  (ref) => WalkInTicketRepositoryImpl(ref.watch(appDatabaseProvider)),
+);
+
+final referralRequestRepositoryProvider = Provider<ReferralRequestRepository>(
+  (ref) => ReferralRequestRepositoryImpl(ref.watch(appDatabaseProvider)),
 );
 
 final notificationRepositoryProvider = Provider<NotificationRepository>(

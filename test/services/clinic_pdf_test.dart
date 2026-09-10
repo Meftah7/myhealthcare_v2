@@ -82,4 +82,15 @@ void main() {
     final bytes = await vitalsReportPdf(patient: bare, readings: const []);
     expect(_isPdf(bytes), isTrue);
   });
+
+  test('referral letter renders', () async {
+    final bytes = await referralLetterPdf(
+      patient: identity,
+      destination: 'Salmaniya Medical Complex',
+      reason: 'Suspected unstable angina — needs cardiology assessment.',
+      referringClinic: 'MyHealth Care',
+      date: DateTime(2026, 4, 10),
+    );
+    expect(_isPdf(bytes), isTrue);
+  });
 }

@@ -57,7 +57,9 @@ class Seeder {
   /// v8: each patient starts with one saved card in their wallet.
   /// v9: staff members get a starting presence status.
   /// v10: a starter feedback inbox for the admin dashboard.
-  static const seedVersion = 14;
+  /// v15: consultation flow — a couple of pending referral requests and
+  /// department walk-in tickets for the new admin / staff queues.
+  static const seedVersion = 15;
 
   /// Password for every seeded account (documented in the README).
   static const demoPassword = 'password';
@@ -194,11 +196,7 @@ class Seeder {
               );
         }
         staff.add(
-          _Staff(
-            id,
-            deptIds[d],
-            '${departmentLetterFor(dept.name)}-${i + 1}',
-          ),
+          _Staff(id, deptIds[d], '${departmentLetterFor(dept.name)}-${i + 1}'),
         );
       }
     }
@@ -542,7 +540,11 @@ class Seeder {
     // Home visits — one waiting for triage, one already scheduled, one done.
     final hv = [
       (patients[1], HomeVisitStatus.requested, null),
-      (patients[4], HomeVisitStatus.scheduled, 'Nurse visit booked for Thu AM.'),
+      (
+        patients[4],
+        HomeVisitStatus.scheduled,
+        'Nurse visit booked for Thu AM.',
+      ),
       (
         patients[9],
         HomeVisitStatus.completed,
@@ -557,7 +559,8 @@ class Seeder {
             HomeVisitRequestsCompanion.insert(
               id: 'hv_${p.id}',
               patientId: p.id,
-              addressText: 'Building ${100 + k * 37}, Road ${20 + k}, '
+              addressText:
+                  'Building ${100 + k * 37}, Road ${20 + k}, '
                   'Block ${300 + k * 4}',
               preferredDate: _epoch.add(Duration(days: 2 + k * 3)),
               reasonText: _pick(_homeVisitReasons),
@@ -573,6 +576,62 @@ class Seeder {
             ),
           );
       k++;
+    }
+
+    // A couple of pending doctor→admin referral requests for the admin queue.
+    for (var i = 0; i < 2; i++) {
+      final p = patients[3 + i * 5];
+      await _db
+          .into(_db.referralRequests)
+          .insert(
+            ReferralRequestsCompanion.insert(
+              id: 'refreq_${p.id}',
+              patientId: p.id,
+              requestedByStaffId: _pick(staff).id,
+              reason: i == 0
+                  ? 'Persistent chest pain with exertional component — needs '
+                        'cardiology assessment.'
+                  : 'Abnormal renal function on repeat testing; requesting '
+                        'nephrology input.',
+              createdAt: Value(_epoch.subtract(Duration(days: 1 + i))),
+            ),
+          );
+    }
+
+    // Department walk-in tickets — one waiting, one already claimed & done.
+    final cardiology = staff.firstWhere(
+      (s) => s.roomNumber.startsWith('C'),
+      orElse: () => staff.first,
+    );
+    final deptLetter = cardiology.roomNumber[0];
+    for (var i = 0; i < 2; i++) {
+      final p = patients[7 + i * 6];
+      await _db
+          .into(_db.walkInTickets)
+          .insert(
+            WalkInTicketsCompanion.insert(
+              id: 'walkin_${p.id}',
+              patientId: p.id,
+              departmentId: cardiology.departmentId,
+              ticketTag: '$deptLetter-${i + 1}',
+              status: Value(
+                i == 0 ? WalkInStatus.waiting : WalkInStatus.done,
+              ),
+              reason: Value(
+                i == 0
+                    ? 'Referred from Family Medicine for BP review'
+                    : 'Referred for arrhythmia symptoms',
+              ),
+              createdByStaffId: 'admin_01',
+              claimedByStaffId: i == 0
+                  ? const Value.absent()
+                  : Value(cardiology.id),
+              createdAt: Value(_epoch.subtract(Duration(hours: 3 + i))),
+              resolvedAt: i == 0
+                  ? const Value.absent()
+                  : Value(_epoch.subtract(const Duration(hours: 1))),
+            ),
+          );
     }
   }
 
@@ -637,7 +696,8 @@ class Seeder {
     add(
       category: NotificationCategory.system,
       title: 'Welcome to MyHealth Care',
-      body: 'Your records, appointments, vitals and bills now live in one '
+      body:
+          'Your records, appointments, vitals and bills now live in one '
           'place. Tap any section to explore.',
       createdAt: _historyStart.add(const Duration(days: 1)),
     );
@@ -710,7 +770,8 @@ class Seeder {
       add(
         category: NotificationCategory.labResult,
         title: 'Lab results ready',
-        body: 'Results from your ${fmtDate(lab.occurredAt)} visit are now in '
+        body:
+            'Results from your ${fmtDate(lab.occurredAt)} visit are now in '
             'your health records.',
         createdAt: lab.occurredAt.add(const Duration(days: 1)),
         deepLink: '/patient/timeline',
@@ -756,9 +817,7 @@ class Seeder {
             taxRate: const Value(taxRate),
             taxAmount: Value(taxAmount),
             totalAmount: Value(subtotal + taxAmount),
-            status: Value(
-              settled ? InvoiceStatus.paid : InvoiceStatus.pending,
-            ),
+            status: Value(settled ? InvoiceStatus.paid : InvoiceStatus.pending),
             issuedAt: Value(issuedAt),
             dueDate: Value(dueDate),
             paidAt: Value(
@@ -1083,6 +1142,8 @@ class Seeder {
       _db.medications,
       _db.medicalRecords,
       _db.invoices,
+      _db.walkInTickets,
+      _db.referralRequests,
       _db.appointments,
       _db.scheduleTemplates,
       _db.auditLog,

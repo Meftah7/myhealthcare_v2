@@ -12,7 +12,26 @@ enum PresenceStatus { onDuty, inConsultation, onBreak, offShift }
 
 enum Gender { female, male, other, undisclosed }
 
-enum AppointmentStatus { booked, confirmed, completed, cancelled, noShow }
+/// booked → confirmed (accepted) → inProgress (patient in the room) →
+/// completed. `cancelled` / `noShow` are terminal from any pre-completion
+/// state.
+enum AppointmentStatus {
+  booked,
+  confirmed,
+  inProgress,
+  completed,
+  cancelled,
+  noShow,
+}
+
+/// A walk-in ticket's lifecycle (`WalkInTickets`) — a patient sent to a
+/// department's desk without a scheduled slot, e.g. after a department
+/// referral. `inProgress` once a doctor there has started the visit.
+enum WalkInStatus { waiting, called, inProgress, done, cancelled }
+
+/// A doctor's request for the admin to refer a patient out (`ReferralRequests`).
+/// The doctor supplies only the reason; the admin decides where and executes.
+enum ReferralRequestStatus { pending, actioned, rejected }
 
 /// Why the patient is coming in — a feature of the no-show model (P4-03).
 enum VisitType {

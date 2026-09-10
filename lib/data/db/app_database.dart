@@ -49,6 +49,9 @@ part 'app_database.g.dart';
     SickLeaveCertificates,
     CareMessages,
     HomeVisitRequests,
+    // consultation flow + admin referral outcomes
+    WalkInTickets,
+    ReferralRequests,
     // system
     AuditLog,
     AppSettings,
@@ -78,7 +81,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -132,6 +135,17 @@ class AppDatabase extends _$AppDatabase {
         await m.createTable(sickLeaveCertificates);
         await m.createTable(careMessages);
         await m.createTable(homeVisitRequests);
+      }
+      if (from < 12) {
+        // Consultation flow: call/arrive timestamps + closing note on a visit,
+        // the visit link on records/prescriptions, the department walk-in
+        // queue, and the doctor→admin referral request.
+        await m.addColumn(appointments, appointments.calledInAt);
+        await m.addColumn(appointments, appointments.outcomeNote);
+        await m.addColumn(medicalRecords, medicalRecords.appointmentId);
+        await m.addColumn(medications, medications.appointmentId);
+        await m.createTable(walkInTickets);
+        await m.createTable(referralRequests);
       }
     },
     beforeOpen: (details) async {

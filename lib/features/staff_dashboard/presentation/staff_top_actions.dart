@@ -173,4 +173,3 @@ class PresenceMenu extends ConsumerWidget {
     );
   }
 }
-

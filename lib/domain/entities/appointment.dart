@@ -23,7 +23,15 @@ abstract class Appointment with _$Appointment {
     String? reasonText,
     double? noShowRisk,
     RiskBand? riskBand,
+
+    /// When the doctor pressed "Call patient" on the schedule ticket.
+    DateTime? calledInAt,
+
+    /// When the doctor pressed "Patient arrived" — the visit is `inProgress`.
     DateTime? checkedInAt,
+
+    /// The doctor's closing summary, written at "Complete consultation".
+    String? outcomeNote,
 
     /// `[Hour letter A-X]-[facility-wide ticket number for that hour today]`,
     /// assigned once at booking time from [slotStart] (redesign v2 patient
@@ -49,7 +57,13 @@ abstract class Appointment with _$Appointment {
   bool get isPast =>
       status == AppointmentStatus.completed ||
       status == AppointmentStatus.noShow ||
-      slotEnd.isBefore(DateTime.now());
+      (status != AppointmentStatus.inProgress &&
+          slotEnd.isBefore(DateTime.now()));
+
+  /// The patient is in the room — the consultation page is live.
+  bool get isInProgress => status == AppointmentStatus.inProgress;
+
+  bool get wasCalledIn => calledInAt != null;
 
   Duration get duration => slotEnd.difference(slotStart);
 }

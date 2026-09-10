@@ -18,9 +18,7 @@ class PanelAnalyticsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final stats = ref.watch(panelStatsProvider);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Panel analytics'),
-      ),
+      appBar: AppBar(title: const Text('Panel analytics')),
       body: stats.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
@@ -38,10 +36,7 @@ class PanelAnalyticsScreen extends ConsumerWidget {
                 Space.xxl,
               ),
               children: [
-                SectionHeader(
-                  'Last ${s.windowDays} days',
-                  overline: true,
-                ),
+                SectionHeader('Last ${s.windowDays} days', overline: true),
                 GridView.count(
                   crossAxisCount: 2,
                   shrinkWrap: true,

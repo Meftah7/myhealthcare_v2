@@ -14,15 +14,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
+import '../../consultation/presentation/ticket_sheet.dart';
 import '../application/staff_providers.dart';
 import 'staff_top_actions.dart';
 
@@ -742,8 +741,7 @@ class _AppointmentBlock extends ConsumerWidget {
       borderRadius: Radii.chip,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () =>
-            context.go(AppRoutes.staffPatientChart(appointment.patientId)),
+        onTap: () => showTicketSheet(context, appointment),
         child: Container(
           padding: const EdgeInsets.symmetric(
             horizontal: Space.xs,

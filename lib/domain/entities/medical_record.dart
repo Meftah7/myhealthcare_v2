@@ -36,6 +36,7 @@ abstract class MedicalRecord with _$MedicalRecord {
     required DateTime createdAt,
     @Default([]) List<LabValue> labValues,
     String? authorStaffId,
+    String? appointmentId,
     String? body,
     String? sourceFacility,
     String? attachmentPath,

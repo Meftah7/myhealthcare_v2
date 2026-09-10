@@ -44,6 +44,27 @@ Future<Uint8List> buildRadiologyReport(
   );
 }
 
+/// Builds a referral letter from an external `referral` record — the one the
+/// admin created when referring the patient to another hospital
+/// (`sourceFacility` = the hospital, `body` = the reason).
+Future<Uint8List> buildReferralLetter(
+  WidgetRef ref,
+  MedicalRecord record,
+) async {
+  final identity = await ref.read(pdfIdentityProvider.future);
+  final doctors = await ref.read(doctorDirectoryProvider.future);
+  final clinician = doctors[record.authorStaffId]?.name;
+  return referralLetterPdf(
+    patient: identity,
+    destination: record.sourceFacility ?? 'External service',
+    reason: (record.body ?? '').trim().isEmpty
+        ? 'See patient record.'
+        : record.body!.trim(),
+    referringClinic: clinician ?? 'MyHealth Care',
+    date: record.occurredAt,
+  );
+}
+
 /// Builds a sick-leave certificate PDF.
 Future<Uint8List> buildSickLeave(
   WidgetRef ref,

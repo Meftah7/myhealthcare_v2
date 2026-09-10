@@ -18,10 +18,9 @@ class NotificationRepositoryImpl implements NotificationRepository {
 
   SimpleSelectStatement<$NotificationsTable, NotificationRow> _query(
     String recipientId,
-  ) =>
-      _db.select(_db.notifications)
-        ..where((n) => n.recipientId.equals(recipientId))
-        ..orderBy([(n) => OrderingTerm.desc(n.createdAt)]);
+  ) => _db.select(_db.notifications)
+    ..where((n) => n.recipientId.equals(recipientId))
+    ..orderBy([(n) => OrderingTerm.desc(n.createdAt)]);
 
   @override
   Future<Result<List<AppNotification>>> forRecipient(String recipientId) {
@@ -105,8 +104,9 @@ class NotificationRepositoryImpl implements NotificationRepository {
         NotificationAudience.everyone => [UserRole.patient, UserRole.staff],
       };
       final recipients =
-          await (_db.select(_db.users)
-                ..where((u) => u.role.isInValues(roles) & u.isActive.equals(true)))
+          await (_db.select(_db.users)..where(
+                (u) => u.role.isInValues(roles) & u.isActive.equals(true),
+              ))
               .get();
       final now = DateTime.now();
       await _db.batch((b) {

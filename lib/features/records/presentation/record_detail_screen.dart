@@ -12,6 +12,9 @@ import '../../../core/presentation/status_badges.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../domain/enums.dart';
+import '../../patient/application/patient_documents.dart';
+import '../../patient/presentation/document_download_button.dart';
 import '../../patient/presentation/patient_top_actions.dart';
 
 final recordDetailProvider = FutureProvider.family<MedicalRecord, String>((
@@ -66,10 +69,32 @@ class RecordDetailScreen extends ConsumerWidget {
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
+                if (r.appointmentId != null) ...[
+                  const SizedBox(height: Space.xs),
+                  Text(
+                    'From your visit on ${fmtDate(r.occurredAt)}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ],
                 if (r.body != null) ...[
                   const SizedBox(height: Space.md),
                   AppCard(
                     child: Text(r.body!, style: theme.textTheme.bodyLarge),
+                  ),
+                ],
+                if (r.recordType == RecordType.referral &&
+                    r.sourceFacility != null) ...[
+                  const SizedBox(height: Space.md),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: DocumentDownloadButton(
+                      label: 'Referral letter',
+                      filename: 'referral-letter.pdf',
+                      icon: Icons.forward_to_inbox_outlined,
+                      build: () => buildReferralLetter(ref, r),
+                    ),
                   ),
                 ],
                 if (r.labValues.isNotEmpty) ...[

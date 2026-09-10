@@ -72,9 +72,7 @@ class BillingRepositoryImpl implements BillingRepository {
       await (_db.update(_db.invoices)..where((i) => i.id.equals(id))).write(
         InvoicesCompanion(
           status: Value(status),
-          paidAt: Value(
-            status == InvoiceStatus.paid ? DateTime.now() : null,
-          ),
+          paidAt: Value(status == InvoiceStatus.paid ? DateTime.now() : null),
         ),
       );
       final updated = await (_db.select(
@@ -122,15 +120,16 @@ class BillingRepositoryImpl implements BillingRepository {
       }
 
       final paidAt = DateTime.now();
-      await (_db.update(_db.invoices)..where((i) => i.id.equals(invoiceId)))
-          .write(
-            InvoicesCompanion(
-              status: const Value(InvoiceStatus.paid),
-              paidAt: Value(paidAt),
-              // Masked descriptor only — never the card number itself.
-              paymentMethod: Value(payment.maskedDescriptor),
-            ),
-          );
+      await (_db.update(
+        _db.invoices,
+      )..where((i) => i.id.equals(invoiceId))).write(
+        InvoicesCompanion(
+          status: const Value(InvoiceStatus.paid),
+          paidAt: Value(paidAt),
+          // Masked descriptor only — never the card number itself.
+          paymentMethod: Value(payment.maskedDescriptor),
+        ),
+      );
 
       final updated = await (_db.select(
         _db.invoices,
@@ -182,14 +181,15 @@ class BillingRepositoryImpl implements BillingRepository {
         throw const ValidationFailure('This invoice was cancelled.');
       }
 
-      await (_db.update(_db.invoices)..where((i) => i.id.equals(invoiceId)))
-          .write(
-            InvoicesCompanion(
-              status: const Value(InvoiceStatus.paid),
-              paidAt: Value(DateTime.now()),
-              paymentMethod: Value('${card.brand} ····${card.last4}'),
-            ),
-          );
+      await (_db.update(
+        _db.invoices,
+      )..where((i) => i.id.equals(invoiceId))).write(
+        InvoicesCompanion(
+          status: const Value(InvoiceStatus.paid),
+          paidAt: Value(DateTime.now()),
+          paymentMethod: Value('${card.brand} ····${card.last4}'),
+        ),
+      );
 
       final updated = await (_db.select(
         _db.invoices,
@@ -292,10 +292,9 @@ class BillingRepositoryImpl implements BillingRepository {
     required String patientId,
   }) {
     return Result.guardAsync(() async {
-      await (_db.delete(_db.paymentMethods)..where(
-            (c) => c.id.equals(id) & c.patientId.equals(patientId),
-          ))
-          .go();
+      await (_db.delete(
+        _db.paymentMethods,
+      )..where((c) => c.id.equals(id) & c.patientId.equals(patientId))).go();
       // If we removed the default, promote the newest remaining card.
       final left =
           await (_db.select(_db.paymentMethods)
@@ -319,9 +318,8 @@ class BillingRepositoryImpl implements BillingRepository {
       await (_db.update(_db.paymentMethods)
             ..where((c) => c.patientId.equals(patientId)))
           .write(const PaymentMethodsCompanion(isDefault: Value(false)));
-      await (_db.update(_db.paymentMethods)..where(
-            (c) => c.id.equals(id) & c.patientId.equals(patientId),
-          ))
+      await (_db.update(_db.paymentMethods)
+            ..where((c) => c.id.equals(id) & c.patientId.equals(patientId)))
           .write(const PaymentMethodsCompanion(isDefault: Value(true)));
     });
   }

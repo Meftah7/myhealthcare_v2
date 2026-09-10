@@ -70,9 +70,7 @@ class AuditLogScreen extends ConsumerWidget {
                             ),
                             Text(
                               fmtDateTime(e.at),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelSmall
+                              style: Theme.of(context).textTheme.labelSmall
                                   ?.copyWith(
                                     color: Theme.of(
                                       context,

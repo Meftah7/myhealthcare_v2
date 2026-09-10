@@ -113,8 +113,7 @@ class _AdminAiLogScreenState extends ConsumerState<AdminAiLogScreen> {
                     child: Column(
                       children: [
                         for (var i = 0; i < list.length; i++) ...[
-                          if (i > 0)
-                            const Divider(height: 1, indent: Space.md),
+                          if (i > 0) const Divider(height: 1, indent: Space.md),
                           ListTile(
                             leading: Icon(_aiFeatureIcon(list[i].feature)),
                             title: Text(aiFeatureLabel(list[i].feature)),

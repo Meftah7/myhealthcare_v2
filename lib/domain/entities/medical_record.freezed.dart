@@ -292,7 +292,7 @@ as double?,
 /// @nodoc
 mixin _$MedicalRecord {
 
- String get id; String get patientId; RecordType get recordType; String get title; DateTime get occurredAt; DateTime get createdAt; List<LabValue> get labValues; String? get authorStaffId; String? get body; String? get sourceFacility; String? get attachmentPath; String? get extractedText;
+ String get id; String get patientId; RecordType get recordType; String get title; DateTime get occurredAt; DateTime get createdAt; List<LabValue> get labValues; String? get authorStaffId; String? get appointmentId; String? get body; String? get sourceFacility; String? get attachmentPath; String? get extractedText;
 /// Create a copy of MedicalRecord
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -303,16 +303,16 @@ $MedicalRecordCopyWith<MedicalRecord> get copyWith => _$MedicalRecordCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MedicalRecord&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.recordType, recordType) || other.recordType == recordType)&&(identical(other.title, title) || other.title == title)&&(identical(other.occurredAt, occurredAt) || other.occurredAt == occurredAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other.labValues, labValues)&&(identical(other.authorStaffId, authorStaffId) || other.authorStaffId == authorStaffId)&&(identical(other.body, body) || other.body == body)&&(identical(other.sourceFacility, sourceFacility) || other.sourceFacility == sourceFacility)&&(identical(other.attachmentPath, attachmentPath) || other.attachmentPath == attachmentPath)&&(identical(other.extractedText, extractedText) || other.extractedText == extractedText));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MedicalRecord&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.recordType, recordType) || other.recordType == recordType)&&(identical(other.title, title) || other.title == title)&&(identical(other.occurredAt, occurredAt) || other.occurredAt == occurredAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other.labValues, labValues)&&(identical(other.authorStaffId, authorStaffId) || other.authorStaffId == authorStaffId)&&(identical(other.appointmentId, appointmentId) || other.appointmentId == appointmentId)&&(identical(other.body, body) || other.body == body)&&(identical(other.sourceFacility, sourceFacility) || other.sourceFacility == sourceFacility)&&(identical(other.attachmentPath, attachmentPath) || other.attachmentPath == attachmentPath)&&(identical(other.extractedText, extractedText) || other.extractedText == extractedText));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,patientId,recordType,title,occurredAt,createdAt,const DeepCollectionEquality().hash(labValues),authorStaffId,body,sourceFacility,attachmentPath,extractedText);
+int get hashCode => Object.hash(runtimeType,id,patientId,recordType,title,occurredAt,createdAt,const DeepCollectionEquality().hash(labValues),authorStaffId,appointmentId,body,sourceFacility,attachmentPath,extractedText);
 
 @override
 String toString() {
-  return 'MedicalRecord(id: $id, patientId: $patientId, recordType: $recordType, title: $title, occurredAt: $occurredAt, createdAt: $createdAt, labValues: $labValues, authorStaffId: $authorStaffId, body: $body, sourceFacility: $sourceFacility, attachmentPath: $attachmentPath, extractedText: $extractedText)';
+  return 'MedicalRecord(id: $id, patientId: $patientId, recordType: $recordType, title: $title, occurredAt: $occurredAt, createdAt: $createdAt, labValues: $labValues, authorStaffId: $authorStaffId, appointmentId: $appointmentId, body: $body, sourceFacility: $sourceFacility, attachmentPath: $attachmentPath, extractedText: $extractedText)';
 }
 
 
@@ -323,7 +323,7 @@ abstract mixin class $MedicalRecordCopyWith<$Res>  {
   factory $MedicalRecordCopyWith(MedicalRecord value, $Res Function(MedicalRecord) _then) = _$MedicalRecordCopyWithImpl;
 @useResult
 $Res call({
- String id, String patientId, RecordType recordType, String title, DateTime occurredAt, DateTime createdAt, List<LabValue> labValues, String? authorStaffId, String? body, String? sourceFacility, String? attachmentPath, String? extractedText
+ String id, String patientId, RecordType recordType, String title, DateTime occurredAt, DateTime createdAt, List<LabValue> labValues, String? authorStaffId, String? appointmentId, String? body, String? sourceFacility, String? attachmentPath, String? extractedText
 });
 
 
@@ -340,7 +340,7 @@ class _$MedicalRecordCopyWithImpl<$Res>
 
 /// Create a copy of MedicalRecord
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? patientId = null,Object? recordType = null,Object? title = null,Object? occurredAt = null,Object? createdAt = null,Object? labValues = null,Object? authorStaffId = freezed,Object? body = freezed,Object? sourceFacility = freezed,Object? attachmentPath = freezed,Object? extractedText = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? patientId = null,Object? recordType = null,Object? title = null,Object? occurredAt = null,Object? createdAt = null,Object? labValues = null,Object? authorStaffId = freezed,Object? appointmentId = freezed,Object? body = freezed,Object? sourceFacility = freezed,Object? attachmentPath = freezed,Object? extractedText = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,patientId: null == patientId ? _self.patientId : patientId // ignore: cast_nullable_to_non_nullable
@@ -350,6 +350,7 @@ as String,occurredAt: null == occurredAt ? _self.occurredAt : occurredAt // igno
 as DateTime,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,labValues: null == labValues ? _self.labValues : labValues // ignore: cast_nullable_to_non_nullable
 as List<LabValue>,authorStaffId: freezed == authorStaffId ? _self.authorStaffId : authorStaffId // ignore: cast_nullable_to_non_nullable
+as String?,appointmentId: freezed == appointmentId ? _self.appointmentId : appointmentId // ignore: cast_nullable_to_non_nullable
 as String?,body: freezed == body ? _self.body : body // ignore: cast_nullable_to_non_nullable
 as String?,sourceFacility: freezed == sourceFacility ? _self.sourceFacility : sourceFacility // ignore: cast_nullable_to_non_nullable
 as String?,attachmentPath: freezed == attachmentPath ? _self.attachmentPath : attachmentPath // ignore: cast_nullable_to_non_nullable
@@ -439,10 +440,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String patientId,  RecordType recordType,  String title,  DateTime occurredAt,  DateTime createdAt,  List<LabValue> labValues,  String? authorStaffId,  String? body,  String? sourceFacility,  String? attachmentPath,  String? extractedText)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String patientId,  RecordType recordType,  String title,  DateTime occurredAt,  DateTime createdAt,  List<LabValue> labValues,  String? authorStaffId,  String? appointmentId,  String? body,  String? sourceFacility,  String? attachmentPath,  String? extractedText)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MedicalRecord() when $default != null:
-return $default(_that.id,_that.patientId,_that.recordType,_that.title,_that.occurredAt,_that.createdAt,_that.labValues,_that.authorStaffId,_that.body,_that.sourceFacility,_that.attachmentPath,_that.extractedText);case _:
+return $default(_that.id,_that.patientId,_that.recordType,_that.title,_that.occurredAt,_that.createdAt,_that.labValues,_that.authorStaffId,_that.appointmentId,_that.body,_that.sourceFacility,_that.attachmentPath,_that.extractedText);case _:
   return orElse();
 
 }
@@ -460,10 +461,10 @@ return $default(_that.id,_that.patientId,_that.recordType,_that.title,_that.occu
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String patientId,  RecordType recordType,  String title,  DateTime occurredAt,  DateTime createdAt,  List<LabValue> labValues,  String? authorStaffId,  String? body,  String? sourceFacility,  String? attachmentPath,  String? extractedText)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String patientId,  RecordType recordType,  String title,  DateTime occurredAt,  DateTime createdAt,  List<LabValue> labValues,  String? authorStaffId,  String? appointmentId,  String? body,  String? sourceFacility,  String? attachmentPath,  String? extractedText)  $default,) {final _that = this;
 switch (_that) {
 case _MedicalRecord():
-return $default(_that.id,_that.patientId,_that.recordType,_that.title,_that.occurredAt,_that.createdAt,_that.labValues,_that.authorStaffId,_that.body,_that.sourceFacility,_that.attachmentPath,_that.extractedText);case _:
+return $default(_that.id,_that.patientId,_that.recordType,_that.title,_that.occurredAt,_that.createdAt,_that.labValues,_that.authorStaffId,_that.appointmentId,_that.body,_that.sourceFacility,_that.attachmentPath,_that.extractedText);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -480,10 +481,10 @@ return $default(_that.id,_that.patientId,_that.recordType,_that.title,_that.occu
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String patientId,  RecordType recordType,  String title,  DateTime occurredAt,  DateTime createdAt,  List<LabValue> labValues,  String? authorStaffId,  String? body,  String? sourceFacility,  String? attachmentPath,  String? extractedText)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String patientId,  RecordType recordType,  String title,  DateTime occurredAt,  DateTime createdAt,  List<LabValue> labValues,  String? authorStaffId,  String? appointmentId,  String? body,  String? sourceFacility,  String? attachmentPath,  String? extractedText)?  $default,) {final _that = this;
 switch (_that) {
 case _MedicalRecord() when $default != null:
-return $default(_that.id,_that.patientId,_that.recordType,_that.title,_that.occurredAt,_that.createdAt,_that.labValues,_that.authorStaffId,_that.body,_that.sourceFacility,_that.attachmentPath,_that.extractedText);case _:
+return $default(_that.id,_that.patientId,_that.recordType,_that.title,_that.occurredAt,_that.createdAt,_that.labValues,_that.authorStaffId,_that.appointmentId,_that.body,_that.sourceFacility,_that.attachmentPath,_that.extractedText);case _:
   return null;
 
 }
@@ -495,7 +496,7 @@ return $default(_that.id,_that.patientId,_that.recordType,_that.title,_that.occu
 
 
 class _MedicalRecord extends MedicalRecord {
-  const _MedicalRecord({required this.id, required this.patientId, required this.recordType, required this.title, required this.occurredAt, required this.createdAt, final  List<LabValue> labValues = const [], this.authorStaffId, this.body, this.sourceFacility, this.attachmentPath, this.extractedText}): _labValues = labValues,super._();
+  const _MedicalRecord({required this.id, required this.patientId, required this.recordType, required this.title, required this.occurredAt, required this.createdAt, final  List<LabValue> labValues = const [], this.authorStaffId, this.appointmentId, this.body, this.sourceFacility, this.attachmentPath, this.extractedText}): _labValues = labValues,super._();
   
 
 @override final  String id;
@@ -512,6 +513,7 @@ class _MedicalRecord extends MedicalRecord {
 }
 
 @override final  String? authorStaffId;
+@override final  String? appointmentId;
 @override final  String? body;
 @override final  String? sourceFacility;
 @override final  String? attachmentPath;
@@ -527,16 +529,16 @@ _$MedicalRecordCopyWith<_MedicalRecord> get copyWith => __$MedicalRecordCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MedicalRecord&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.recordType, recordType) || other.recordType == recordType)&&(identical(other.title, title) || other.title == title)&&(identical(other.occurredAt, occurredAt) || other.occurredAt == occurredAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other._labValues, _labValues)&&(identical(other.authorStaffId, authorStaffId) || other.authorStaffId == authorStaffId)&&(identical(other.body, body) || other.body == body)&&(identical(other.sourceFacility, sourceFacility) || other.sourceFacility == sourceFacility)&&(identical(other.attachmentPath, attachmentPath) || other.attachmentPath == attachmentPath)&&(identical(other.extractedText, extractedText) || other.extractedText == extractedText));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MedicalRecord&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.recordType, recordType) || other.recordType == recordType)&&(identical(other.title, title) || other.title == title)&&(identical(other.occurredAt, occurredAt) || other.occurredAt == occurredAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other._labValues, _labValues)&&(identical(other.authorStaffId, authorStaffId) || other.authorStaffId == authorStaffId)&&(identical(other.appointmentId, appointmentId) || other.appointmentId == appointmentId)&&(identical(other.body, body) || other.body == body)&&(identical(other.sourceFacility, sourceFacility) || other.sourceFacility == sourceFacility)&&(identical(other.attachmentPath, attachmentPath) || other.attachmentPath == attachmentPath)&&(identical(other.extractedText, extractedText) || other.extractedText == extractedText));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,patientId,recordType,title,occurredAt,createdAt,const DeepCollectionEquality().hash(_labValues),authorStaffId,body,sourceFacility,attachmentPath,extractedText);
+int get hashCode => Object.hash(runtimeType,id,patientId,recordType,title,occurredAt,createdAt,const DeepCollectionEquality().hash(_labValues),authorStaffId,appointmentId,body,sourceFacility,attachmentPath,extractedText);
 
 @override
 String toString() {
-  return 'MedicalRecord(id: $id, patientId: $patientId, recordType: $recordType, title: $title, occurredAt: $occurredAt, createdAt: $createdAt, labValues: $labValues, authorStaffId: $authorStaffId, body: $body, sourceFacility: $sourceFacility, attachmentPath: $attachmentPath, extractedText: $extractedText)';
+  return 'MedicalRecord(id: $id, patientId: $patientId, recordType: $recordType, title: $title, occurredAt: $occurredAt, createdAt: $createdAt, labValues: $labValues, authorStaffId: $authorStaffId, appointmentId: $appointmentId, body: $body, sourceFacility: $sourceFacility, attachmentPath: $attachmentPath, extractedText: $extractedText)';
 }
 
 
@@ -547,7 +549,7 @@ abstract mixin class _$MedicalRecordCopyWith<$Res> implements $MedicalRecordCopy
   factory _$MedicalRecordCopyWith(_MedicalRecord value, $Res Function(_MedicalRecord) _then) = __$MedicalRecordCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String patientId, RecordType recordType, String title, DateTime occurredAt, DateTime createdAt, List<LabValue> labValues, String? authorStaffId, String? body, String? sourceFacility, String? attachmentPath, String? extractedText
+ String id, String patientId, RecordType recordType, String title, DateTime occurredAt, DateTime createdAt, List<LabValue> labValues, String? authorStaffId, String? appointmentId, String? body, String? sourceFacility, String? attachmentPath, String? extractedText
 });
 
 
@@ -564,7 +566,7 @@ class __$MedicalRecordCopyWithImpl<$Res>
 
 /// Create a copy of MedicalRecord
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? patientId = null,Object? recordType = null,Object? title = null,Object? occurredAt = null,Object? createdAt = null,Object? labValues = null,Object? authorStaffId = freezed,Object? body = freezed,Object? sourceFacility = freezed,Object? attachmentPath = freezed,Object? extractedText = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? patientId = null,Object? recordType = null,Object? title = null,Object? occurredAt = null,Object? createdAt = null,Object? labValues = null,Object? authorStaffId = freezed,Object? appointmentId = freezed,Object? body = freezed,Object? sourceFacility = freezed,Object? attachmentPath = freezed,Object? extractedText = freezed,}) {
   return _then(_MedicalRecord(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,patientId: null == patientId ? _self.patientId : patientId // ignore: cast_nullable_to_non_nullable
@@ -574,6 +576,7 @@ as String,occurredAt: null == occurredAt ? _self.occurredAt : occurredAt // igno
 as DateTime,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,labValues: null == labValues ? _self._labValues : labValues // ignore: cast_nullable_to_non_nullable
 as List<LabValue>,authorStaffId: freezed == authorStaffId ? _self.authorStaffId : authorStaffId // ignore: cast_nullable_to_non_nullable
+as String?,appointmentId: freezed == appointmentId ? _self.appointmentId : appointmentId // ignore: cast_nullable_to_non_nullable
 as String?,body: freezed == body ? _self.body : body // ignore: cast_nullable_to_non_nullable
 as String?,sourceFacility: freezed == sourceFacility ? _self.sourceFacility : sourceFacility // ignore: cast_nullable_to_non_nullable
 as String?,attachmentPath: freezed == attachmentPath ? _self.attachmentPath : attachmentPath // ignore: cast_nullable_to_non_nullable

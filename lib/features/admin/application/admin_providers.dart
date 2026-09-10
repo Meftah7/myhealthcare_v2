@@ -10,9 +10,12 @@ import '../../../core/utils/format.dart';
 import '../../../core/utils/ids.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../domain/repositories/appointment_repository.dart';
 import '../../../domain/repositories/auth_repository.dart';
 import '../../../domain/repositories/billing_repository.dart';
+import '../../../domain/repositories/consultation_repository.dart';
 import '../../../domain/repositories/notification_repository.dart';
+import '../../../domain/repositories/record_repository.dart';
 import '../../../domain/repositories/system_repository.dart';
 import '../../auth/application/session.dart';
 
@@ -26,6 +29,49 @@ final usersByRoleProvider = FutureProvider.family<List<User>, UserRole>((
 final departmentsProvider = FutureProvider<List<Department>>((ref) async {
   return _unwrap(await ref.watch(departmentRepositoryProvider).all());
 });
+
+/// Active staff in a department — the "choose a doctor" list for the admin's
+/// book-for-patient sheet. Nurses are excluded (they don't take appointments).
+final adminDepartmentDoctorsProvider =
+    FutureProvider.family<List<Staff>, String>((ref, departmentId) async {
+      final staff = _unwrap(
+        await ref.watch(userRepositoryProvider).staffInDepartment(departmentId),
+      );
+      return staff.where((s) => s.isDoctor && s.user.isActive).toList();
+    });
+
+/// Pending doctor→admin referral requests — the admin queue + a dashboard
+/// count.
+final pendingReferralRequestsProvider = FutureProvider<List<ReferralRequest>>((
+  ref,
+) async {
+  return _unwrap(await ref.watch(referralRequestRepositoryProvider).pending());
+});
+
+final pendingReferralRequestCountProvider = Provider<int>((ref) {
+  return ref.watch(pendingReferralRequestsProvider).valueOrNull?.length ?? 0;
+});
+
+/// requesting staff id → display name, for the referral-request queue rows.
+final referralRequesterNamesProvider = FutureProvider<Map<String, String>>((
+  ref,
+) async {
+  final staff = _unwrap(
+    await ref.watch(userRepositoryProvider).byRole(UserRole.staff),
+  );
+  return {for (final s in staff) s.id: clinicianName(s.fullName)};
+});
+
+/// Hospitals the admin can refer a patient out to. A short fixed list for the
+/// demo — the same facilities the seeded external records use.
+const kReferralHospitals = [
+  'Salmaniya Medical Complex',
+  'King Hamad University Hospital',
+  'BDF Hospital',
+  'Bahrain Specialist Hospital',
+  'Al Kindi Specialised Hospital',
+  'Ibn Al-Nafees Hospital',
+];
 
 final auditLogProvider = FutureProvider<List<AuditEntry>>((ref) async {
   return _unwrap(
@@ -217,6 +263,193 @@ class AdminActions {
     final r = await _ref
         .read(userRepositoryProvider)
         .resetPassword(id: id, newPassword: newPassword);
+    return r;
+  }
+
+  /// Book a visit on a patient's behalf. Goes straight in as `booked`; the
+  /// clinician accepts it from their queue like any other.
+  Future<Result<Appointment>> bookForPatient({
+    required String patientId,
+    required String staffId,
+    required DateTime start,
+    required Duration duration,
+    required VisitType visitType,
+    String? departmentId,
+    String? reason,
+  }) async {
+    final adminId = _ref.read(currentUserProvider)?.id;
+    final r = await _ref
+        .read(appointmentRepositoryProvider)
+        .book(
+          BookingRequest(
+            patientId: patientId,
+            staffId: staffId,
+            start: start,
+            end: start.add(duration),
+            visitType: visitType,
+            departmentId: departmentId,
+            reasonText: reason,
+          ),
+        );
+    if (r case Ok(:final value)) {
+      await _ref
+          .read(auditRepositoryProvider)
+          .record(
+            action: 'appointment.book.admin',
+            entityType: 'appointment',
+            entityId: value.id,
+            actorUserId: adminId,
+          );
+      await _ref
+          .read(notificationRepositoryProvider)
+          .send(
+            NewNotification(
+              recipientId: patientId,
+              category: NotificationCategory.appointment,
+              title: 'Appointment booked for you',
+              body:
+                  'The clinic booked you a visit on '
+                  '${fmtDateTime(value.slotStart)}'
+                  '${value.ticketTag == null ? '' : ' · ticket ${value.ticketTag}'}.',
+            ),
+          );
+      _ref.invalidate(allAppointmentsProvider);
+    }
+    return r;
+  }
+
+  /// Refer a patient — to another department inside the clinic, or out to
+  /// another hospital. Both land as a `referral` record on the patient's
+  /// history and notify the patient. A **department** referral also opens a
+  /// walk-in queue ticket in that department; an **external** referral's record
+  /// is downloadable by the patient as a referral letter (`sourceFacility` set,
+  /// `body` = the reason).
+  ///
+  /// [departmentId] must be set for a department referral (its walk-in ticket).
+  /// [sourceAppointmentId] links back to the visit a doctor requested it from.
+  Future<Result<MedicalRecord>> referPatient({
+    required String patientId,
+    required String destination,
+    required bool external,
+    required String reason,
+    String? departmentId,
+    String? sourceAppointmentId,
+  }) async {
+    final adminId = _ref.read(currentUserProvider)?.id;
+    final trimmedReason = reason.trim();
+    final r = await _ref
+        .read(recordRepositoryProvider)
+        .add(
+          NewRecord(
+            patientId: patientId,
+            recordType: RecordType.referral,
+            title: external
+                ? 'Referral — $destination'
+                : 'Department referral — $destination',
+            occurredAt: DateTime.now(),
+            authorStaffId: adminId,
+            body: trimmedReason,
+            sourceFacility: external ? destination : null,
+          ),
+        );
+    if (r case Ok(:final value)) {
+      await _ref
+          .read(auditRepositoryProvider)
+          .record(
+            action: external ? 'patient.refer.external' : 'patient.refer.dept',
+            entityType: 'medical_record',
+            entityId: value.id,
+            actorUserId: adminId,
+            detail: destination,
+          );
+
+      String notice;
+      if (external) {
+        notice =
+            'To $destination. Reason: $trimmedReason. A referral letter is in '
+            'your Records.';
+      } else {
+        // Department referral → a walk-in queue ticket.
+        final ticket = departmentId == null
+            ? null
+            : (await _ref
+                      .read(walkInTicketRepositoryProvider)
+                      .create(
+                        NewWalkInTicket(
+                          patientId: patientId,
+                          departmentId: departmentId,
+                          createdByStaffId: adminId ?? patientId,
+                          reason: trimmedReason,
+                          sourceAppointmentId: sourceAppointmentId,
+                        ),
+                      ))
+                  .valueOrNull;
+        notice = ticket == null
+            ? 'To the $destination department. Reason: $trimmedReason.'
+            : 'To the $destination department — walk-in ticket ${ticket.ticketTag}. '
+                  'Please proceed to the $destination desk.';
+      }
+
+      await _ref
+          .read(notificationRepositoryProvider)
+          .send(
+            NewNotification(
+              recipientId: patientId,
+              category: NotificationCategory.appointment,
+              title: 'You have been referred',
+              body: notice,
+            ),
+          );
+      _ref.invalidate(pendingReferralRequestsProvider);
+    }
+    return r;
+  }
+
+  /// The admin queue calls this: run the referral, then close the request.
+  Future<Result<MedicalRecord>> actionReferralRequest({
+    required ReferralRequest request,
+    required String destination,
+    required bool external,
+    String? departmentId,
+    String? decisionNote,
+  }) async {
+    final adminId = _ref.read(currentUserProvider)?.id ?? '';
+    final r = await referPatient(
+      patientId: request.patientId,
+      destination: destination,
+      external: external,
+      reason: request.reason,
+      departmentId: departmentId,
+      sourceAppointmentId: request.appointmentId,
+    );
+    if (r.isOk) {
+      await _ref
+          .read(referralRequestRepositoryProvider)
+          .decide(
+            id: request.id,
+            status: ReferralRequestStatus.actioned,
+            adminId: adminId,
+            note: decisionNote,
+          );
+      _ref.invalidate(pendingReferralRequestsProvider);
+    }
+    return r;
+  }
+
+  Future<Result<ReferralRequest>> rejectReferralRequest({
+    required String id,
+    String? note,
+  }) async {
+    final adminId = _ref.read(currentUserProvider)?.id ?? '';
+    final r = await _ref
+        .read(referralRequestRepositoryProvider)
+        .decide(
+          id: id,
+          status: ReferralRequestStatus.rejected,
+          adminId: adminId,
+          note: note,
+        );
+    if (r.isOk) _ref.invalidate(pendingReferralRequestsProvider);
     return r;
   }
 

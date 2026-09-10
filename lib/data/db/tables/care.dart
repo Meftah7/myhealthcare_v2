@@ -54,6 +54,82 @@ class CareMessages extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+/// A walk-in queue token for a department, created when the admin actions a
+/// department referral. No scheduled slot — the patient reports to the
+/// department desk with [ticketTag]; a doctor there turns it into a real
+/// [Appointments] row when they start the visit.
+@DataClassName('WalkInRow')
+class WalkInTickets extends Table {
+  TextColumn get id => text()();
+  TextColumn get patientId =>
+      text().references(Users, #id, onDelete: KeyAction.cascade)();
+  TextColumn get departmentId => text().references(Departments, #id)();
+
+  /// `[department letter]-[per-department count that day]`, e.g. `C-14`.
+  TextColumn get ticketTag => text()();
+
+  TextColumn get status =>
+      textEnum<WalkInStatus>().withDefault(const Constant('waiting'))();
+  TextColumn get reason => text().nullable()();
+
+  /// The visit the referral came from, if any.
+  TextColumn get sourceAppointmentId => text().nullable().references(
+    Appointments,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+
+  /// The admin who actioned the referral into this ticket.
+  TextColumn get createdByStaffId => text().references(Users, #id)();
+
+  /// The doctor who picked it up.
+  TextColumn get claimedByStaffId =>
+      text().nullable().references(Users, #id, onDelete: KeyAction.setNull)();
+
+  /// The [Appointments] row created when a doctor starts the visit.
+  TextColumn get resultAppointmentId => text().nullable().references(
+    Appointments,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get resolvedAt => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+/// A doctor's request, mid-consultation, for the admin to refer the patient
+/// out. The doctor supplies the clinical reason only; the admin decides
+/// department-vs-hospital and the target, then executes it.
+@DataClassName('ReferralRequestRow')
+class ReferralRequests extends Table {
+  TextColumn get id => text()();
+  TextColumn get patientId =>
+      text().references(Users, #id, onDelete: KeyAction.cascade)();
+  TextColumn get appointmentId => text().nullable().references(
+    Appointments,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+  TextColumn get requestedByStaffId => text().references(Users, #id)();
+  TextColumn get reason => text().withLength(min: 1, max: 2000)();
+
+  TextColumn get status => textEnum<ReferralRequestStatus>().withDefault(
+    const Constant('pending'),
+  )();
+
+  TextColumn get decidedByAdminId =>
+      text().nullable().references(Users, #id, onDelete: KeyAction.setNull)();
+  TextColumn get decisionNote => text().nullable()();
+  DateTimeColumn get decidedAt => dateTime().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 /// A request for a clinician to visit the patient at home. Triaged by the
 /// clinic, which schedules, declines or completes it.
 @DataClassName('HomeVisitRow')

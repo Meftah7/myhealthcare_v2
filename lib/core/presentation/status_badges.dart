@@ -117,6 +117,12 @@ class AppointmentStatusPill extends StatelessWidget {
         scheme.primaryContainer,
         scheme.onPrimaryContainer,
       ),
+      AppointmentStatus.inProgress => (
+        'In progress',
+        Icons.medical_services_outlined,
+        scheme.tertiaryContainer,
+        scheme.onTertiaryContainer,
+      ),
       AppointmentStatus.completed => (
         'Completed',
         Icons.check_circle_outline,

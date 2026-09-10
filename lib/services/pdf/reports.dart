@@ -143,10 +143,7 @@ Future<Uint8List> sickLeavePdf({
             pdfKeyValue('Reason', c.diagnosis),
             pdfKeyValue('From', _dayFmt.format(c.fromDate)),
             pdfKeyValue('To (inclusive)', _dayFmt.format(c.toDate)),
-            pdfKeyValue(
-              'Total',
-              '${c.days} day${c.days == 1 ? '' : 's'}',
-            ),
+            pdfKeyValue('Total', '${c.days} day${c.days == 1 ? '' : 's'}'),
             if (c.notes != null && c.notes!.isNotEmpty)
               pdfKeyValue('Notes', c.notes!),
           ],
@@ -159,6 +156,64 @@ Future<Uint8List> sickLeavePdf({
           children: [
             pdfKeyValue('Clinician', issuingClinician),
             pdfKeyValue('Date issued', _dayFmt.format(c.issuedAt)),
+            pw.SizedBox(height: 24),
+            pw.Container(width: 200, height: 0.7, color: pdfHairline),
+            pw.SizedBox(height: 3),
+            pw.Text(
+              'Signature / clinic stamp',
+              style: const pw.TextStyle(fontSize: 8, color: pdfMuted),
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
+}
+
+/// Clinic-issued referral letter — a patient carries this to the receiving
+/// hospital. Same letterhead / section style as the sick-leave certificate.
+Future<Uint8List> referralLetterPdf({
+  required PdfIdentity patient,
+  required String destination,
+  required String reason,
+  required String referringClinic,
+  DateTime? date,
+}) {
+  final issued = date ?? DateTime.now();
+  return ClinicPdf.build(
+    title: 'Referral letter',
+    subtitle: 'Issued ${_dayFmt.format(issued)}',
+    patient: patient,
+    body: [
+      pdfSection(
+        'Referral',
+        pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Text(
+              'The above-named patient is referred to the service below for '
+              'further assessment and management. Relevant history is held in '
+              'the patient record and can be shared on request.',
+              style: const pw.TextStyle(
+                fontSize: 10,
+                color: pdfInk,
+                lineSpacing: 3,
+              ),
+            ),
+            pw.SizedBox(height: 12),
+            pdfKeyValue('Referred to', destination),
+            pdfKeyValue('Reason for referral', reason),
+            pdfKeyValue('Date', _dayFmt.format(issued)),
+          ],
+        ),
+      ),
+      pdfSection(
+        'Referred by',
+        pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pdfKeyValue('Referring clinic', referringClinic),
+            pdfKeyValue('Date issued', _dayFmt.format(issued)),
             pw.SizedBox(height: 24),
             pw.Container(width: 200, height: 0.7, color: pdfHairline),
             pw.SizedBox(height: 3),

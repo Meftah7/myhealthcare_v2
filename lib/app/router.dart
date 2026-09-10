@@ -15,6 +15,7 @@ import '../features/admin/presentation/admin_feedback_screen.dart';
 import '../features/admin/presentation/admin_forecast_screen.dart';
 import '../features/admin/presentation/admin_profile_pages.dart';
 import '../features/admin/presentation/admin_profile_screen.dart';
+import '../features/admin/presentation/admin_referral_requests_screen.dart';
 import '../features/admin/presentation/admin_top_actions.dart';
 import '../features/admin/presentation/ai_settings_screen.dart';
 import '../features/admin/presentation/audit_log_screen.dart';
@@ -38,6 +39,7 @@ import '../features/care/presentation/home_visit_screen.dart';
 import '../features/care/presentation/messages_screen.dart';
 import '../features/care/presentation/sick_leave_screen.dart';
 import '../features/care/presentation/staff_inbox_screen.dart';
+import '../features/consultation/presentation/consultation_screen.dart';
 import '../features/notifications/presentation/notifications_screen.dart';
 import '../features/nutrition/presentation/nutrition_screen.dart';
 import '../features/patient/application/profile_screen.dart';
@@ -133,6 +135,10 @@ abstract final class AppRoutes {
   static const staffTasks = '/staff/tasks';
   static const staffSchedule = '/staff/schedule';
   static const staffScribe = '/staff/scribe';
+
+  /// The consultation page for one appointment — full-screen over the shell.
+  static String staffConsultation(String appointmentId) =>
+      '/staff/consultation/$appointmentId';
   static const staffNotifications = '/staff/dashboard/notifications';
   static const staffProfile = '/staff/profile';
   static const staffInbox = '/staff/dashboard/inbox';
@@ -165,6 +171,7 @@ abstract final class AppRoutes {
   static const adminAppointments = '/admin/appointments';
   static const adminFeedback = '/admin/feedback';
   static const adminHomeVisits = '/admin/dashboard/home-visits';
+  static const adminReferralRequests = '/admin/dashboard/referral-requests';
   static const adminNotifications = '/admin/dashboard/notifications';
 
   // Admin — Profile-section pages, each its own page under the Profile hub
@@ -231,6 +238,12 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
         path: AppRoutes.staffScribe,
         builder: (_, state) => ClinicalScribeScreen(
           patientId: state.uri.queryParameters['patient'] ?? '',
+        ),
+      ),
+      GoRoute(
+        path: '/staff/consultation/:appointmentId',
+        builder: (_, state) => ConsultationScreen(
+          appointmentId: state.pathParameters['appointmentId']!,
         ),
       ),
       // Operational pushes from the dashboard Quick actions — full-screen over
@@ -646,6 +659,10 @@ StatefulShellRoute _adminShell() {
               GoRoute(
                 path: 'home-visits',
                 builder: (_, _) => const AdminHomeVisitsScreen(),
+              ),
+              GoRoute(
+                path: 'referral-requests',
+                builder: (_, _) => const AdminReferralRequestsScreen(),
               ),
             ],
           ),

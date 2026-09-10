@@ -290,21 +290,22 @@ class HomeVisitRepositoryImpl implements HomeVisitRepository {
     String? decisionNote,
   }) {
     return Result.guardAsync(() async {
-      await (_db.update(_db.homeVisitRequests)..where((r) => r.id.equals(id)))
-          .write(
-            HomeVisitRequestsCompanion(
-              status: Value(status),
-              // Only touch the assignment when a value is supplied, so marking
-              // a scheduled visit "completed" doesn't wipe the clinician.
-              assignedStaffId: assignedStaffId == null
-                  ? const Value.absent()
-                  : Value(assignedStaffId),
-              decisionNote: decisionNote == null
-                  ? const Value.absent()
-                  : Value(decisionNote.trim()),
-              decidedAt: Value(DateTime.now()),
-            ),
-          );
+      await (_db.update(
+        _db.homeVisitRequests,
+      )..where((r) => r.id.equals(id))).write(
+        HomeVisitRequestsCompanion(
+          status: Value(status),
+          // Only touch the assignment when a value is supplied, so marking
+          // a scheduled visit "completed" doesn't wipe the clinician.
+          assignedStaffId: assignedStaffId == null
+              ? const Value.absent()
+              : Value(assignedStaffId),
+          decisionNote: decisionNote == null
+              ? const Value.absent()
+              : Value(decisionNote.trim()),
+          decidedAt: Value(DateTime.now()),
+        ),
+      );
       return _require(id);
     });
   }
@@ -316,21 +317,23 @@ class HomeVisitRepositoryImpl implements HomeVisitRepository {
   }) {
     return Result.guardAsync(() async {
       final row =
-          await (_db.select(_db.homeVisitRequests)..where(
-                (r) => r.id.equals(id) & r.patientId.equals(patientId),
-              ))
+          await (_db.select(_db.homeVisitRequests)
+                ..where((r) => r.id.equals(id) & r.patientId.equals(patientId)))
               .getSingleOrNull();
       if (row == null) throw const NotFoundFailure('Request not found.');
       if (!row.toEntity().isOpen) {
-        throw const ValidationFailure('This request can no longer be cancelled.');
+        throw const ValidationFailure(
+          'This request can no longer be cancelled.',
+        );
       }
-      await (_db.update(_db.homeVisitRequests)..where((r) => r.id.equals(id)))
-          .write(
-            HomeVisitRequestsCompanion(
-              status: const Value(HomeVisitStatus.cancelled),
-              decidedAt: Value(DateTime.now()),
-            ),
-          );
+      await (_db.update(
+        _db.homeVisitRequests,
+      )..where((r) => r.id.equals(id))).write(
+        HomeVisitRequestsCompanion(
+          status: const Value(HomeVisitStatus.cancelled),
+          decidedAt: Value(DateTime.now()),
+        ),
+      );
       return _require(id);
     });
   }

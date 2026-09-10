@@ -76,7 +76,14 @@ class _DocumentDownloadButtonState extends State<DocumentDownloadButton> {
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           : Icon(widget.icon, size: 18),
-      label: Text(widget.label),
+      // Wraps rather than clips so this reads the same as the plain
+      // OutlinedButton.icon shortcuts it sits beside, even in a half-width cell.
+      label: Text(
+        widget.label,
+        maxLines: 2,
+        textAlign: TextAlign.center,
+        overflow: TextOverflow.ellipsis,
+      ),
     );
   }
 }

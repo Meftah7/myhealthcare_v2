@@ -39,8 +39,7 @@ class DayForecast {
   final bool overflowRisk;
   final String note;
 
-  String get dayName =>
-      DateFormat('EEEE').format(DateTime(2024, 1, weekday));
+  String get dayName => DateFormat('EEEE').format(DateTime(2024, 1, weekday));
 }
 
 class CapacityForecast {
@@ -67,9 +66,8 @@ CapacityForecast forecastFromHistory(
   }
 
   // All bucket counts, for a relative Low / Moderate / High scale.
-  final allCounts = [
-    for (final byHour in grid.values) ...byHour.values,
-  ]..sort();
+  final allCounts = [for (final byHour in grid.values) ...byHour.values]
+    ..sort();
   int percentile(double p) {
     if (allCounts.isEmpty) return 0;
     final idx = ((allCounts.length - 1) * p).round();
@@ -95,18 +93,20 @@ CapacityForecast forecastFromHistory(
       );
       continue;
     }
-    final peakHour = byHour.entries.reduce((a, b) => a.value >= b.value ? a : b);
+    final peakHour = byHour.entries.reduce(
+      (a, b) => a.value >= b.value ? a : b,
+    );
     final level = peakHour.value >= p80 && p80 > 0
         ? DemandLevel.high
         : peakHour.value >= p50
         ? DemandLevel.moderate
         : DemandLevel.low;
-    final overflow = peakHour.value >= overflowPerHour && level == DemandLevel.high;
+    final overflow =
+        peakHour.value >= overflowPerHour && level == DemandLevel.high;
     days.add(
       DayForecast(
         weekday: wd,
-        peakWindow:
-            '${_hh(peakHour.key)}–${_hh((peakHour.key + 1) % 24)}',
+        peakWindow: '${_hh(peakHour.key)}–${_hh((peakHour.key + 1) % 24)}',
         peakCount: peakHour.value,
         level: level,
         overflowRisk: overflow,
@@ -214,8 +214,9 @@ Future<Map<int, String>> _narrate(
   );
 
   final candidates = res.data?['candidates'];
-  final first =
-      (candidates is List && candidates.isNotEmpty) ? candidates.first : null;
+  final first = (candidates is List && candidates.isNotEmpty)
+      ? candidates.first
+      : null;
   final content = first is Map ? first['content'] : null;
   final parts = content is Map ? content['parts'] : null;
   final part = (parts is List && parts.isNotEmpty) ? parts.first : null;

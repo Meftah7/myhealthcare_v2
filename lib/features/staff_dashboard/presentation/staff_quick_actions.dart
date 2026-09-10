@@ -192,7 +192,11 @@ class _QuickActionTile extends StatelessWidget {
               color: scheme.primaryContainer,
               borderRadius: Radii.chip,
             ),
-            child: Icon(action.icon, size: 18, color: scheme.onPrimaryContainer),
+            child: Icon(
+              action.icon,
+              size: 18,
+              color: scheme.onPrimaryContainer,
+            ),
           ),
           const SizedBox(width: Space.sm),
           Expanded(
@@ -247,7 +251,12 @@ class _PatientPickerSheetState extends ConsumerState<_PatientPickerSheet> {
     final viewInsets = MediaQuery.viewInsetsOf(context).bottom;
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(Space.lg, 0, Space.lg, Space.lg + viewInsets),
+      padding: EdgeInsets.fromLTRB(
+        Space.lg,
+        0,
+        Space.lg,
+        Space.lg + viewInsets,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -306,12 +315,8 @@ class _PatientPickerSheetState extends ConsumerState<_PatientPickerSheet> {
   }
 }
 
-String _initials(String name) => name
-    .split(' ')
-    .where((s) => s.isNotEmpty)
-    .take(2)
-    .map((s) => s[0])
-    .join();
+String _initials(String name) =>
+    name.split(' ').where((s) => s.isNotEmpty).take(2).map((s) => s[0]).join();
 
 // --- transfer sheet -----------------------------------------------------
 
@@ -366,7 +371,12 @@ class _TransferSheetState extends ConsumerState<_TransferSheet> {
     final viewInsets = MediaQuery.viewInsetsOf(context).bottom;
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(Space.lg, 0, Space.lg, Space.lg + viewInsets),
+      padding: EdgeInsets.fromLTRB(
+        Space.lg,
+        0,
+        Space.lg,
+        Space.lg + viewInsets,
+      ),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,

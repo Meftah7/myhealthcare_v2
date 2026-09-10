@@ -56,6 +56,17 @@ Useful ones for a demo:
 | Imaging / radiology results | ~⅓ of visits leave an imaging record. Patient → **Records → Imaging** → open a study → **Report PDF**. |
 | Message threads ("Ask your doctor") | `patient1`, `patient3`, `patient5`, `patient7`, `patient9` each have a thread with an **unread doctor reply**. Patient → **Ask your doctor**; the doctor sees it under **Dashboard → Messages**. |
 | Home-visit requests | `patient2` (requested — waiting), `patient5` (scheduled), `patient10` (completed). Admin triages at **Dashboard → Home visits**. |
+| Referral requests (doctor → admin) | Two pending, on `patient4` and `patient9`. Admin actions them at **Dashboard → Referrals**: "Another department" opens a walk-in ticket; "Another hospital" produces a referral letter in the patient's **Records**. |
+| Department walk-ins | One waiting Cardiology ticket (`patient8`). A Cardiology doctor (`staff7`) sees it under **Dashboard → Department walk-ins** and taps **Start** to open a consultation. |
+
+## The consultation flow
+
+From **Schedule**, a doctor taps an appointment block → a ticket sheet with
+**Call patient / Patient arrived / Patient not shown**. "Patient arrived" opens
+`/staff/consultation/<id>`: write a clinical note, add medications, or **Request
+a referral** (the admin decides where). **Complete consultation** saves the note
++ medications to the patient record. Everything typed is held in a draft, so
+leaving the page and returning resumes it.
 
 Staff can also issue a fresh sick note from a patient's chart (**Patients → open a
 patient → + → Issue sick leave**).

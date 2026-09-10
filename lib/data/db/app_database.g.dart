@@ -2482,6 +2482,17 @@ class $AppointmentsTable extends Appointments
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _calledInAtMeta = const VerificationMeta(
+    'calledInAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> calledInAt = GeneratedColumn<DateTime>(
+    'called_in_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _checkedInAtMeta = const VerificationMeta(
     'checkedInAt',
   );
@@ -2491,6 +2502,17 @@ class $AppointmentsTable extends Appointments
     aliasedName,
     true,
     type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _outcomeNoteMeta = const VerificationMeta(
+    'outcomeNote',
+  );
+  @override
+  late final GeneratedColumn<String> outcomeNote = GeneratedColumn<String>(
+    'outcome_note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
   static const VerificationMeta _ticketTagMeta = const VerificationMeta(
@@ -2541,7 +2563,9 @@ class $AppointmentsTable extends Appointments
     noShowRisk,
     riskBand,
     remindersSent,
+    calledInAt,
     checkedInAt,
+    outcomeNote,
     ticketTag,
     roomNumber,
     bookedForName,
@@ -2634,12 +2658,30 @@ class $AppointmentsTable extends Appointments
         ),
       );
     }
+    if (data.containsKey('called_in_at')) {
+      context.handle(
+        _calledInAtMeta,
+        calledInAt.isAcceptableOrUnknown(
+          data['called_in_at']!,
+          _calledInAtMeta,
+        ),
+      );
+    }
     if (data.containsKey('checked_in_at')) {
       context.handle(
         _checkedInAtMeta,
         checkedInAt.isAcceptableOrUnknown(
           data['checked_in_at']!,
           _checkedInAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('outcome_note')) {
+      context.handle(
+        _outcomeNoteMeta,
+        outcomeNote.isAcceptableOrUnknown(
+          data['outcome_note']!,
+          _outcomeNoteMeta,
         ),
       );
     }
@@ -2731,9 +2773,17 @@ class $AppointmentsTable extends Appointments
         DriftSqlType.int,
         data['${effectivePrefix}reminders_sent'],
       )!,
+      calledInAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}called_in_at'],
+      ),
       checkedInAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}checked_in_at'],
+      ),
+      outcomeNote: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}outcome_note'],
       ),
       ticketTag: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -2784,7 +2834,16 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
   final double? noShowRisk;
   final RiskBand? riskBand;
   final int remindersSent;
+
+  /// When the doctor pressed "Call patient" on the schedule ticket.
+  final DateTime? calledInAt;
+
+  /// When the doctor pressed "Patient arrived" — the visit moves to
+  /// `inProgress` and the consultation page opens.
   final DateTime? checkedInAt;
+
+  /// The doctor's closing summary, written at "Complete consultation".
+  final String? outcomeNote;
 
   /// `[Hour letter A-X]-[facility-wide ticket number for that hour today]`,
   /// assigned once at booking time (redesign v2 patient dashboard spec).
@@ -2811,7 +2870,9 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
     this.noShowRisk,
     this.riskBand,
     required this.remindersSent,
+    this.calledInAt,
     this.checkedInAt,
+    this.outcomeNote,
     this.ticketTag,
     this.roomNumber,
     this.bookedForName,
@@ -2850,8 +2911,14 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
       );
     }
     map['reminders_sent'] = Variable<int>(remindersSent);
+    if (!nullToAbsent || calledInAt != null) {
+      map['called_in_at'] = Variable<DateTime>(calledInAt);
+    }
     if (!nullToAbsent || checkedInAt != null) {
       map['checked_in_at'] = Variable<DateTime>(checkedInAt);
+    }
+    if (!nullToAbsent || outcomeNote != null) {
+      map['outcome_note'] = Variable<String>(outcomeNote);
     }
     if (!nullToAbsent || ticketTag != null) {
       map['ticket_tag'] = Variable<String>(ticketTag);
@@ -2888,9 +2955,15 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
           ? const Value.absent()
           : Value(riskBand),
       remindersSent: Value(remindersSent),
+      calledInAt: calledInAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(calledInAt),
       checkedInAt: checkedInAt == null && nullToAbsent
           ? const Value.absent()
           : Value(checkedInAt),
+      outcomeNote: outcomeNote == null && nullToAbsent
+          ? const Value.absent()
+          : Value(outcomeNote),
       ticketTag: ticketTag == null && nullToAbsent
           ? const Value.absent()
           : Value(ticketTag),
@@ -2928,7 +3001,9 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
         serializer.fromJson<String?>(json['riskBand']),
       ),
       remindersSent: serializer.fromJson<int>(json['remindersSent']),
+      calledInAt: serializer.fromJson<DateTime?>(json['calledInAt']),
       checkedInAt: serializer.fromJson<DateTime?>(json['checkedInAt']),
+      outcomeNote: serializer.fromJson<String?>(json['outcomeNote']),
       ticketTag: serializer.fromJson<String?>(json['ticketTag']),
       roomNumber: serializer.fromJson<String?>(json['roomNumber']),
       bookedForName: serializer.fromJson<String?>(json['bookedForName']),
@@ -2957,7 +3032,9 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
         $AppointmentsTable.$converterriskBandn.toJson(riskBand),
       ),
       'remindersSent': serializer.toJson<int>(remindersSent),
+      'calledInAt': serializer.toJson<DateTime?>(calledInAt),
       'checkedInAt': serializer.toJson<DateTime?>(checkedInAt),
+      'outcomeNote': serializer.toJson<String?>(outcomeNote),
       'ticketTag': serializer.toJson<String?>(ticketTag),
       'roomNumber': serializer.toJson<String?>(roomNumber),
       'bookedForName': serializer.toJson<String?>(bookedForName),
@@ -2978,7 +3055,9 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
     Value<double?> noShowRisk = const Value.absent(),
     Value<RiskBand?> riskBand = const Value.absent(),
     int? remindersSent,
+    Value<DateTime?> calledInAt = const Value.absent(),
     Value<DateTime?> checkedInAt = const Value.absent(),
+    Value<String?> outcomeNote = const Value.absent(),
     Value<String?> ticketTag = const Value.absent(),
     Value<String?> roomNumber = const Value.absent(),
     Value<String?> bookedForName = const Value.absent(),
@@ -2996,7 +3075,9 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
     noShowRisk: noShowRisk.present ? noShowRisk.value : this.noShowRisk,
     riskBand: riskBand.present ? riskBand.value : this.riskBand,
     remindersSent: remindersSent ?? this.remindersSent,
+    calledInAt: calledInAt.present ? calledInAt.value : this.calledInAt,
     checkedInAt: checkedInAt.present ? checkedInAt.value : this.checkedInAt,
+    outcomeNote: outcomeNote.present ? outcomeNote.value : this.outcomeNote,
     ticketTag: ticketTag.present ? ticketTag.value : this.ticketTag,
     roomNumber: roomNumber.present ? roomNumber.value : this.roomNumber,
     bookedForName: bookedForName.present
@@ -3026,9 +3107,15 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
       remindersSent: data.remindersSent.present
           ? data.remindersSent.value
           : this.remindersSent,
+      calledInAt: data.calledInAt.present
+          ? data.calledInAt.value
+          : this.calledInAt,
       checkedInAt: data.checkedInAt.present
           ? data.checkedInAt.value
           : this.checkedInAt,
+      outcomeNote: data.outcomeNote.present
+          ? data.outcomeNote.value
+          : this.outcomeNote,
       ticketTag: data.ticketTag.present ? data.ticketTag.value : this.ticketTag,
       roomNumber: data.roomNumber.present
           ? data.roomNumber.value
@@ -3055,7 +3142,9 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
           ..write('noShowRisk: $noShowRisk, ')
           ..write('riskBand: $riskBand, ')
           ..write('remindersSent: $remindersSent, ')
+          ..write('calledInAt: $calledInAt, ')
           ..write('checkedInAt: $checkedInAt, ')
+          ..write('outcomeNote: $outcomeNote, ')
           ..write('ticketTag: $ticketTag, ')
           ..write('roomNumber: $roomNumber, ')
           ..write('bookedForName: $bookedForName')
@@ -3078,7 +3167,9 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
     noShowRisk,
     riskBand,
     remindersSent,
+    calledInAt,
     checkedInAt,
+    outcomeNote,
     ticketTag,
     roomNumber,
     bookedForName,
@@ -3100,7 +3191,9 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
           other.noShowRisk == this.noShowRisk &&
           other.riskBand == this.riskBand &&
           other.remindersSent == this.remindersSent &&
+          other.calledInAt == this.calledInAt &&
           other.checkedInAt == this.checkedInAt &&
+          other.outcomeNote == this.outcomeNote &&
           other.ticketTag == this.ticketTag &&
           other.roomNumber == this.roomNumber &&
           other.bookedForName == this.bookedForName);
@@ -3120,7 +3213,9 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
   final Value<double?> noShowRisk;
   final Value<RiskBand?> riskBand;
   final Value<int> remindersSent;
+  final Value<DateTime?> calledInAt;
   final Value<DateTime?> checkedInAt;
+  final Value<String?> outcomeNote;
   final Value<String?> ticketTag;
   final Value<String?> roomNumber;
   final Value<String?> bookedForName;
@@ -3139,7 +3234,9 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
     this.noShowRisk = const Value.absent(),
     this.riskBand = const Value.absent(),
     this.remindersSent = const Value.absent(),
+    this.calledInAt = const Value.absent(),
     this.checkedInAt = const Value.absent(),
+    this.outcomeNote = const Value.absent(),
     this.ticketTag = const Value.absent(),
     this.roomNumber = const Value.absent(),
     this.bookedForName = const Value.absent(),
@@ -3159,7 +3256,9 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
     this.noShowRisk = const Value.absent(),
     this.riskBand = const Value.absent(),
     this.remindersSent = const Value.absent(),
+    this.calledInAt = const Value.absent(),
     this.checkedInAt = const Value.absent(),
+    this.outcomeNote = const Value.absent(),
     this.ticketTag = const Value.absent(),
     this.roomNumber = const Value.absent(),
     this.bookedForName = const Value.absent(),
@@ -3184,7 +3283,9 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
     Expression<double>? noShowRisk,
     Expression<String>? riskBand,
     Expression<int>? remindersSent,
+    Expression<DateTime>? calledInAt,
     Expression<DateTime>? checkedInAt,
+    Expression<String>? outcomeNote,
     Expression<String>? ticketTag,
     Expression<String>? roomNumber,
     Expression<String>? bookedForName,
@@ -3204,7 +3305,9 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
       if (noShowRisk != null) 'no_show_risk': noShowRisk,
       if (riskBand != null) 'risk_band': riskBand,
       if (remindersSent != null) 'reminders_sent': remindersSent,
+      if (calledInAt != null) 'called_in_at': calledInAt,
       if (checkedInAt != null) 'checked_in_at': checkedInAt,
+      if (outcomeNote != null) 'outcome_note': outcomeNote,
       if (ticketTag != null) 'ticket_tag': ticketTag,
       if (roomNumber != null) 'room_number': roomNumber,
       if (bookedForName != null) 'booked_for_name': bookedForName,
@@ -3226,7 +3329,9 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
     Value<double?>? noShowRisk,
     Value<RiskBand?>? riskBand,
     Value<int>? remindersSent,
+    Value<DateTime?>? calledInAt,
     Value<DateTime?>? checkedInAt,
+    Value<String?>? outcomeNote,
     Value<String?>? ticketTag,
     Value<String?>? roomNumber,
     Value<String?>? bookedForName,
@@ -3246,7 +3351,9 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
       noShowRisk: noShowRisk ?? this.noShowRisk,
       riskBand: riskBand ?? this.riskBand,
       remindersSent: remindersSent ?? this.remindersSent,
+      calledInAt: calledInAt ?? this.calledInAt,
       checkedInAt: checkedInAt ?? this.checkedInAt,
+      outcomeNote: outcomeNote ?? this.outcomeNote,
       ticketTag: ticketTag ?? this.ticketTag,
       roomNumber: roomNumber ?? this.roomNumber,
       bookedForName: bookedForName ?? this.bookedForName,
@@ -3302,8 +3409,14 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
     if (remindersSent.present) {
       map['reminders_sent'] = Variable<int>(remindersSent.value);
     }
+    if (calledInAt.present) {
+      map['called_in_at'] = Variable<DateTime>(calledInAt.value);
+    }
     if (checkedInAt.present) {
       map['checked_in_at'] = Variable<DateTime>(checkedInAt.value);
+    }
+    if (outcomeNote.present) {
+      map['outcome_note'] = Variable<String>(outcomeNote.value);
     }
     if (ticketTag.present) {
       map['ticket_tag'] = Variable<String>(ticketTag.value);
@@ -3336,7 +3449,9 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
           ..write('noShowRisk: $noShowRisk, ')
           ..write('riskBand: $riskBand, ')
           ..write('remindersSent: $remindersSent, ')
+          ..write('calledInAt: $calledInAt, ')
           ..write('checkedInAt: $checkedInAt, ')
+          ..write('outcomeNote: $outcomeNote, ')
           ..write('ticketTag: $ticketTag, ')
           ..write('roomNumber: $roomNumber, ')
           ..write('bookedForName: $bookedForName, ')
@@ -3880,6 +3995,20 @@ class $MedicalRecordsTable extends MedicalRecords
       'REFERENCES users (id)',
     ),
   );
+  static const VerificationMeta _appointmentIdMeta = const VerificationMeta(
+    'appointmentId',
+  );
+  @override
+  late final GeneratedColumn<String> appointmentId = GeneratedColumn<String>(
+    'appointment_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES appointments (id) ON DELETE SET NULL',
+    ),
+  );
   @override
   late final GeneratedColumnWithTypeConverter<RecordType, String> recordType =
       GeneratedColumn<String>(
@@ -3972,6 +4101,7 @@ class $MedicalRecordsTable extends MedicalRecords
     id,
     patientId,
     authorStaffId,
+    appointmentId,
     recordType,
     title,
     body,
@@ -4012,6 +4142,15 @@ class $MedicalRecordsTable extends MedicalRecords
         authorStaffId.isAcceptableOrUnknown(
           data['author_staff_id']!,
           _authorStaffIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('appointment_id')) {
+      context.handle(
+        _appointmentIdMeta,
+        appointmentId.isAcceptableOrUnknown(
+          data['appointment_id']!,
+          _appointmentIdMeta,
         ),
       );
     }
@@ -4091,6 +4230,10 @@ class $MedicalRecordsTable extends MedicalRecords
         DriftSqlType.string,
         data['${effectivePrefix}author_staff_id'],
       ),
+      appointmentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}appointment_id'],
+      ),
       recordType: $MedicalRecordsTable.$converterrecordType.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -4144,6 +4287,10 @@ class MedicalRecordRow extends DataClass
 
   /// Null for patient-imported records (P2-12).
   final String? authorStaffId;
+
+  /// The visit this record was produced in, if any (a consultation note, a
+  /// prescription record). Kept if the appointment is later removed.
+  final String? appointmentId;
   final RecordType recordType;
   final String title;
   final String? body;
@@ -4161,6 +4308,7 @@ class MedicalRecordRow extends DataClass
     required this.id,
     required this.patientId,
     this.authorStaffId,
+    this.appointmentId,
     required this.recordType,
     required this.title,
     this.body,
@@ -4177,6 +4325,9 @@ class MedicalRecordRow extends DataClass
     map['patient_id'] = Variable<String>(patientId);
     if (!nullToAbsent || authorStaffId != null) {
       map['author_staff_id'] = Variable<String>(authorStaffId);
+    }
+    if (!nullToAbsent || appointmentId != null) {
+      map['appointment_id'] = Variable<String>(appointmentId);
     }
     {
       map['record_type'] = Variable<String>(
@@ -4208,6 +4359,9 @@ class MedicalRecordRow extends DataClass
       authorStaffId: authorStaffId == null && nullToAbsent
           ? const Value.absent()
           : Value(authorStaffId),
+      appointmentId: appointmentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(appointmentId),
       recordType: Value(recordType),
       title: Value(title),
       body: body == null && nullToAbsent ? const Value.absent() : Value(body),
@@ -4234,6 +4388,7 @@ class MedicalRecordRow extends DataClass
       id: serializer.fromJson<String>(json['id']),
       patientId: serializer.fromJson<String>(json['patientId']),
       authorStaffId: serializer.fromJson<String?>(json['authorStaffId']),
+      appointmentId: serializer.fromJson<String?>(json['appointmentId']),
       recordType: $MedicalRecordsTable.$converterrecordType.fromJson(
         serializer.fromJson<String>(json['recordType']),
       ),
@@ -4253,6 +4408,7 @@ class MedicalRecordRow extends DataClass
       'id': serializer.toJson<String>(id),
       'patientId': serializer.toJson<String>(patientId),
       'authorStaffId': serializer.toJson<String?>(authorStaffId),
+      'appointmentId': serializer.toJson<String?>(appointmentId),
       'recordType': serializer.toJson<String>(
         $MedicalRecordsTable.$converterrecordType.toJson(recordType),
       ),
@@ -4270,6 +4426,7 @@ class MedicalRecordRow extends DataClass
     String? id,
     String? patientId,
     Value<String?> authorStaffId = const Value.absent(),
+    Value<String?> appointmentId = const Value.absent(),
     RecordType? recordType,
     String? title,
     Value<String?> body = const Value.absent(),
@@ -4284,6 +4441,9 @@ class MedicalRecordRow extends DataClass
     authorStaffId: authorStaffId.present
         ? authorStaffId.value
         : this.authorStaffId,
+    appointmentId: appointmentId.present
+        ? appointmentId.value
+        : this.appointmentId,
     recordType: recordType ?? this.recordType,
     title: title ?? this.title,
     body: body.present ? body.value : this.body,
@@ -4306,6 +4466,9 @@ class MedicalRecordRow extends DataClass
       authorStaffId: data.authorStaffId.present
           ? data.authorStaffId.value
           : this.authorStaffId,
+      appointmentId: data.appointmentId.present
+          ? data.appointmentId.value
+          : this.appointmentId,
       recordType: data.recordType.present
           ? data.recordType.value
           : this.recordType,
@@ -4333,6 +4496,7 @@ class MedicalRecordRow extends DataClass
           ..write('id: $id, ')
           ..write('patientId: $patientId, ')
           ..write('authorStaffId: $authorStaffId, ')
+          ..write('appointmentId: $appointmentId, ')
           ..write('recordType: $recordType, ')
           ..write('title: $title, ')
           ..write('body: $body, ')
@@ -4350,6 +4514,7 @@ class MedicalRecordRow extends DataClass
     id,
     patientId,
     authorStaffId,
+    appointmentId,
     recordType,
     title,
     body,
@@ -4366,6 +4531,7 @@ class MedicalRecordRow extends DataClass
           other.id == this.id &&
           other.patientId == this.patientId &&
           other.authorStaffId == this.authorStaffId &&
+          other.appointmentId == this.appointmentId &&
           other.recordType == this.recordType &&
           other.title == this.title &&
           other.body == this.body &&
@@ -4380,6 +4546,7 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
   final Value<String> id;
   final Value<String> patientId;
   final Value<String?> authorStaffId;
+  final Value<String?> appointmentId;
   final Value<RecordType> recordType;
   final Value<String> title;
   final Value<String?> body;
@@ -4393,6 +4560,7 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
     this.id = const Value.absent(),
     this.patientId = const Value.absent(),
     this.authorStaffId = const Value.absent(),
+    this.appointmentId = const Value.absent(),
     this.recordType = const Value.absent(),
     this.title = const Value.absent(),
     this.body = const Value.absent(),
@@ -4407,6 +4575,7 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
     required String id,
     required String patientId,
     this.authorStaffId = const Value.absent(),
+    this.appointmentId = const Value.absent(),
     required RecordType recordType,
     required String title,
     this.body = const Value.absent(),
@@ -4425,6 +4594,7 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
     Expression<String>? id,
     Expression<String>? patientId,
     Expression<String>? authorStaffId,
+    Expression<String>? appointmentId,
     Expression<String>? recordType,
     Expression<String>? title,
     Expression<String>? body,
@@ -4439,6 +4609,7 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
       if (id != null) 'id': id,
       if (patientId != null) 'patient_id': patientId,
       if (authorStaffId != null) 'author_staff_id': authorStaffId,
+      if (appointmentId != null) 'appointment_id': appointmentId,
       if (recordType != null) 'record_type': recordType,
       if (title != null) 'title': title,
       if (body != null) 'body': body,
@@ -4455,6 +4626,7 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
     Value<String>? id,
     Value<String>? patientId,
     Value<String?>? authorStaffId,
+    Value<String?>? appointmentId,
     Value<RecordType>? recordType,
     Value<String>? title,
     Value<String?>? body,
@@ -4469,6 +4641,7 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
       id: id ?? this.id,
       patientId: patientId ?? this.patientId,
       authorStaffId: authorStaffId ?? this.authorStaffId,
+      appointmentId: appointmentId ?? this.appointmentId,
       recordType: recordType ?? this.recordType,
       title: title ?? this.title,
       body: body ?? this.body,
@@ -4492,6 +4665,9 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
     }
     if (authorStaffId.present) {
       map['author_staff_id'] = Variable<String>(authorStaffId.value);
+    }
+    if (appointmentId.present) {
+      map['appointment_id'] = Variable<String>(appointmentId.value);
     }
     if (recordType.present) {
       map['record_type'] = Variable<String>(
@@ -4531,6 +4707,7 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
           ..write('id: $id, ')
           ..write('patientId: $patientId, ')
           ..write('authorStaffId: $authorStaffId, ')
+          ..write('appointmentId: $appointmentId, ')
           ..write('recordType: $recordType, ')
           ..write('title: $title, ')
           ..write('body: $body, ')
@@ -5833,6 +6010,20 @@ class $MedicationsTable extends Medications
       'REFERENCES users (id)',
     ),
   );
+  static const VerificationMeta _appointmentIdMeta = const VerificationMeta(
+    'appointmentId',
+  );
+  @override
+  late final GeneratedColumn<String> appointmentId = GeneratedColumn<String>(
+    'appointment_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES appointments (id) ON DELETE SET NULL',
+    ),
+  );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
@@ -5908,6 +6099,7 @@ class $MedicationsTable extends Medications
     id,
     patientId,
     prescriberId,
+    appointmentId,
     name,
     dose,
     frequency,
@@ -5946,6 +6138,15 @@ class $MedicationsTable extends Medications
         prescriberId.isAcceptableOrUnknown(
           data['prescriber_id']!,
           _prescriberIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('appointment_id')) {
+      context.handle(
+        _appointmentIdMeta,
+        appointmentId.isAcceptableOrUnknown(
+          data['appointment_id']!,
+          _appointmentIdMeta,
         ),
       );
     }
@@ -6010,6 +6211,10 @@ class $MedicationsTable extends Medications
         DriftSqlType.string,
         data['${effectivePrefix}prescriber_id'],
       ),
+      appointmentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}appointment_id'],
+      ),
       name: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}name'],
@@ -6047,6 +6252,9 @@ class MedicationRow extends DataClass implements Insertable<MedicationRow> {
   final String id;
   final String patientId;
   final String? prescriberId;
+
+  /// The visit it was prescribed in, if any.
+  final String? appointmentId;
   final String name;
   final String? dose;
   final String? frequency;
@@ -6057,6 +6265,7 @@ class MedicationRow extends DataClass implements Insertable<MedicationRow> {
     required this.id,
     required this.patientId,
     this.prescriberId,
+    this.appointmentId,
     required this.name,
     this.dose,
     this.frequency,
@@ -6071,6 +6280,9 @@ class MedicationRow extends DataClass implements Insertable<MedicationRow> {
     map['patient_id'] = Variable<String>(patientId);
     if (!nullToAbsent || prescriberId != null) {
       map['prescriber_id'] = Variable<String>(prescriberId);
+    }
+    if (!nullToAbsent || appointmentId != null) {
+      map['appointment_id'] = Variable<String>(appointmentId);
     }
     map['name'] = Variable<String>(name);
     if (!nullToAbsent || dose != null) {
@@ -6094,6 +6306,9 @@ class MedicationRow extends DataClass implements Insertable<MedicationRow> {
       prescriberId: prescriberId == null && nullToAbsent
           ? const Value.absent()
           : Value(prescriberId),
+      appointmentId: appointmentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(appointmentId),
       name: Value(name),
       dose: dose == null && nullToAbsent ? const Value.absent() : Value(dose),
       frequency: frequency == null && nullToAbsent
@@ -6116,6 +6331,7 @@ class MedicationRow extends DataClass implements Insertable<MedicationRow> {
       id: serializer.fromJson<String>(json['id']),
       patientId: serializer.fromJson<String>(json['patientId']),
       prescriberId: serializer.fromJson<String?>(json['prescriberId']),
+      appointmentId: serializer.fromJson<String?>(json['appointmentId']),
       name: serializer.fromJson<String>(json['name']),
       dose: serializer.fromJson<String?>(json['dose']),
       frequency: serializer.fromJson<String?>(json['frequency']),
@@ -6131,6 +6347,7 @@ class MedicationRow extends DataClass implements Insertable<MedicationRow> {
       'id': serializer.toJson<String>(id),
       'patientId': serializer.toJson<String>(patientId),
       'prescriberId': serializer.toJson<String?>(prescriberId),
+      'appointmentId': serializer.toJson<String?>(appointmentId),
       'name': serializer.toJson<String>(name),
       'dose': serializer.toJson<String?>(dose),
       'frequency': serializer.toJson<String?>(frequency),
@@ -6144,6 +6361,7 @@ class MedicationRow extends DataClass implements Insertable<MedicationRow> {
     String? id,
     String? patientId,
     Value<String?> prescriberId = const Value.absent(),
+    Value<String?> appointmentId = const Value.absent(),
     String? name,
     Value<String?> dose = const Value.absent(),
     Value<String?> frequency = const Value.absent(),
@@ -6154,6 +6372,9 @@ class MedicationRow extends DataClass implements Insertable<MedicationRow> {
     id: id ?? this.id,
     patientId: patientId ?? this.patientId,
     prescriberId: prescriberId.present ? prescriberId.value : this.prescriberId,
+    appointmentId: appointmentId.present
+        ? appointmentId.value
+        : this.appointmentId,
     name: name ?? this.name,
     dose: dose.present ? dose.value : this.dose,
     frequency: frequency.present ? frequency.value : this.frequency,
@@ -6168,6 +6389,9 @@ class MedicationRow extends DataClass implements Insertable<MedicationRow> {
       prescriberId: data.prescriberId.present
           ? data.prescriberId.value
           : this.prescriberId,
+      appointmentId: data.appointmentId.present
+          ? data.appointmentId.value
+          : this.appointmentId,
       name: data.name.present ? data.name.value : this.name,
       dose: data.dose.present ? data.dose.value : this.dose,
       frequency: data.frequency.present ? data.frequency.value : this.frequency,
@@ -6183,6 +6407,7 @@ class MedicationRow extends DataClass implements Insertable<MedicationRow> {
           ..write('id: $id, ')
           ..write('patientId: $patientId, ')
           ..write('prescriberId: $prescriberId, ')
+          ..write('appointmentId: $appointmentId, ')
           ..write('name: $name, ')
           ..write('dose: $dose, ')
           ..write('frequency: $frequency, ')
@@ -6198,6 +6423,7 @@ class MedicationRow extends DataClass implements Insertable<MedicationRow> {
     id,
     patientId,
     prescriberId,
+    appointmentId,
     name,
     dose,
     frequency,
@@ -6212,6 +6438,7 @@ class MedicationRow extends DataClass implements Insertable<MedicationRow> {
           other.id == this.id &&
           other.patientId == this.patientId &&
           other.prescriberId == this.prescriberId &&
+          other.appointmentId == this.appointmentId &&
           other.name == this.name &&
           other.dose == this.dose &&
           other.frequency == this.frequency &&
@@ -6224,6 +6451,7 @@ class MedicationsCompanion extends UpdateCompanion<MedicationRow> {
   final Value<String> id;
   final Value<String> patientId;
   final Value<String?> prescriberId;
+  final Value<String?> appointmentId;
   final Value<String> name;
   final Value<String?> dose;
   final Value<String?> frequency;
@@ -6235,6 +6463,7 @@ class MedicationsCompanion extends UpdateCompanion<MedicationRow> {
     this.id = const Value.absent(),
     this.patientId = const Value.absent(),
     this.prescriberId = const Value.absent(),
+    this.appointmentId = const Value.absent(),
     this.name = const Value.absent(),
     this.dose = const Value.absent(),
     this.frequency = const Value.absent(),
@@ -6247,6 +6476,7 @@ class MedicationsCompanion extends UpdateCompanion<MedicationRow> {
     required String id,
     required String patientId,
     this.prescriberId = const Value.absent(),
+    this.appointmentId = const Value.absent(),
     required String name,
     this.dose = const Value.absent(),
     this.frequency = const Value.absent(),
@@ -6262,6 +6492,7 @@ class MedicationsCompanion extends UpdateCompanion<MedicationRow> {
     Expression<String>? id,
     Expression<String>? patientId,
     Expression<String>? prescriberId,
+    Expression<String>? appointmentId,
     Expression<String>? name,
     Expression<String>? dose,
     Expression<String>? frequency,
@@ -6274,6 +6505,7 @@ class MedicationsCompanion extends UpdateCompanion<MedicationRow> {
       if (id != null) 'id': id,
       if (patientId != null) 'patient_id': patientId,
       if (prescriberId != null) 'prescriber_id': prescriberId,
+      if (appointmentId != null) 'appointment_id': appointmentId,
       if (name != null) 'name': name,
       if (dose != null) 'dose': dose,
       if (frequency != null) 'frequency': frequency,
@@ -6288,6 +6520,7 @@ class MedicationsCompanion extends UpdateCompanion<MedicationRow> {
     Value<String>? id,
     Value<String>? patientId,
     Value<String?>? prescriberId,
+    Value<String?>? appointmentId,
     Value<String>? name,
     Value<String?>? dose,
     Value<String?>? frequency,
@@ -6300,6 +6533,7 @@ class MedicationsCompanion extends UpdateCompanion<MedicationRow> {
       id: id ?? this.id,
       patientId: patientId ?? this.patientId,
       prescriberId: prescriberId ?? this.prescriberId,
+      appointmentId: appointmentId ?? this.appointmentId,
       name: name ?? this.name,
       dose: dose ?? this.dose,
       frequency: frequency ?? this.frequency,
@@ -6321,6 +6555,9 @@ class MedicationsCompanion extends UpdateCompanion<MedicationRow> {
     }
     if (prescriberId.present) {
       map['prescriber_id'] = Variable<String>(prescriberId.value);
+    }
+    if (appointmentId.present) {
+      map['appointment_id'] = Variable<String>(appointmentId.value);
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
@@ -6352,6 +6589,7 @@ class MedicationsCompanion extends UpdateCompanion<MedicationRow> {
           ..write('id: $id, ')
           ..write('patientId: $patientId, ')
           ..write('prescriberId: $prescriberId, ')
+          ..write('appointmentId: $appointmentId, ')
           ..write('name: $name, ')
           ..write('dose: $dose, ')
           ..write('frequency: $frequency, ')
@@ -11977,6 +12215,1449 @@ class HomeVisitRequestsCompanion extends UpdateCompanion<HomeVisitRow> {
   }
 }
 
+class $WalkInTicketsTable extends WalkInTickets
+    with TableInfo<$WalkInTicketsTable, WalkInRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $WalkInTicketsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _patientIdMeta = const VerificationMeta(
+    'patientId',
+  );
+  @override
+  late final GeneratedColumn<String> patientId = GeneratedColumn<String>(
+    'patient_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _departmentIdMeta = const VerificationMeta(
+    'departmentId',
+  );
+  @override
+  late final GeneratedColumn<String> departmentId = GeneratedColumn<String>(
+    'department_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES departments (id)',
+    ),
+  );
+  static const VerificationMeta _ticketTagMeta = const VerificationMeta(
+    'ticketTag',
+  );
+  @override
+  late final GeneratedColumn<String> ticketTag = GeneratedColumn<String>(
+    'ticket_tag',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<WalkInStatus, String> status =
+      GeneratedColumn<String>(
+        'status',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('waiting'),
+      ).withConverter<WalkInStatus>($WalkInTicketsTable.$converterstatus);
+  static const VerificationMeta _reasonMeta = const VerificationMeta('reason');
+  @override
+  late final GeneratedColumn<String> reason = GeneratedColumn<String>(
+    'reason',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sourceAppointmentIdMeta =
+      const VerificationMeta('sourceAppointmentId');
+  @override
+  late final GeneratedColumn<String> sourceAppointmentId =
+      GeneratedColumn<String>(
+        'source_appointment_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES appointments (id) ON DELETE SET NULL',
+        ),
+      );
+  static const VerificationMeta _createdByStaffIdMeta = const VerificationMeta(
+    'createdByStaffId',
+  );
+  @override
+  late final GeneratedColumn<String> createdByStaffId = GeneratedColumn<String>(
+    'created_by_staff_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _claimedByStaffIdMeta = const VerificationMeta(
+    'claimedByStaffId',
+  );
+  @override
+  late final GeneratedColumn<String> claimedByStaffId = GeneratedColumn<String>(
+    'claimed_by_staff_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE SET NULL',
+    ),
+  );
+  static const VerificationMeta _resultAppointmentIdMeta =
+      const VerificationMeta('resultAppointmentId');
+  @override
+  late final GeneratedColumn<String> resultAppointmentId =
+      GeneratedColumn<String>(
+        'result_appointment_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES appointments (id) ON DELETE SET NULL',
+        ),
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _resolvedAtMeta = const VerificationMeta(
+    'resolvedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> resolvedAt = GeneratedColumn<DateTime>(
+    'resolved_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    patientId,
+    departmentId,
+    ticketTag,
+    status,
+    reason,
+    sourceAppointmentId,
+    createdByStaffId,
+    claimedByStaffId,
+    resultAppointmentId,
+    createdAt,
+    resolvedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'walk_in_tickets';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<WalkInRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('patient_id')) {
+      context.handle(
+        _patientIdMeta,
+        patientId.isAcceptableOrUnknown(data['patient_id']!, _patientIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_patientIdMeta);
+    }
+    if (data.containsKey('department_id')) {
+      context.handle(
+        _departmentIdMeta,
+        departmentId.isAcceptableOrUnknown(
+          data['department_id']!,
+          _departmentIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_departmentIdMeta);
+    }
+    if (data.containsKey('ticket_tag')) {
+      context.handle(
+        _ticketTagMeta,
+        ticketTag.isAcceptableOrUnknown(data['ticket_tag']!, _ticketTagMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_ticketTagMeta);
+    }
+    if (data.containsKey('reason')) {
+      context.handle(
+        _reasonMeta,
+        reason.isAcceptableOrUnknown(data['reason']!, _reasonMeta),
+      );
+    }
+    if (data.containsKey('source_appointment_id')) {
+      context.handle(
+        _sourceAppointmentIdMeta,
+        sourceAppointmentId.isAcceptableOrUnknown(
+          data['source_appointment_id']!,
+          _sourceAppointmentIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_by_staff_id')) {
+      context.handle(
+        _createdByStaffIdMeta,
+        createdByStaffId.isAcceptableOrUnknown(
+          data['created_by_staff_id']!,
+          _createdByStaffIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_createdByStaffIdMeta);
+    }
+    if (data.containsKey('claimed_by_staff_id')) {
+      context.handle(
+        _claimedByStaffIdMeta,
+        claimedByStaffId.isAcceptableOrUnknown(
+          data['claimed_by_staff_id']!,
+          _claimedByStaffIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('result_appointment_id')) {
+      context.handle(
+        _resultAppointmentIdMeta,
+        resultAppointmentId.isAcceptableOrUnknown(
+          data['result_appointment_id']!,
+          _resultAppointmentIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('resolved_at')) {
+      context.handle(
+        _resolvedAtMeta,
+        resolvedAt.isAcceptableOrUnknown(data['resolved_at']!, _resolvedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  WalkInRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return WalkInRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      patientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}patient_id'],
+      )!,
+      departmentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}department_id'],
+      )!,
+      ticketTag: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}ticket_tag'],
+      )!,
+      status: $WalkInTicketsTable.$converterstatus.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}status'],
+        )!,
+      ),
+      reason: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reason'],
+      ),
+      sourceAppointmentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_appointment_id'],
+      ),
+      createdByStaffId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_by_staff_id'],
+      )!,
+      claimedByStaffId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}claimed_by_staff_id'],
+      ),
+      resultAppointmentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}result_appointment_id'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      resolvedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}resolved_at'],
+      ),
+    );
+  }
+
+  @override
+  $WalkInTicketsTable createAlias(String alias) {
+    return $WalkInTicketsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<WalkInStatus, String, String> $converterstatus =
+      const EnumNameConverter<WalkInStatus>(WalkInStatus.values);
+}
+
+class WalkInRow extends DataClass implements Insertable<WalkInRow> {
+  final String id;
+  final String patientId;
+  final String departmentId;
+
+  /// `[department letter]-[per-department count that day]`, e.g. `C-14`.
+  final String ticketTag;
+  final WalkInStatus status;
+  final String? reason;
+
+  /// The visit the referral came from, if any.
+  final String? sourceAppointmentId;
+
+  /// The admin who actioned the referral into this ticket.
+  final String createdByStaffId;
+
+  /// The doctor who picked it up.
+  final String? claimedByStaffId;
+
+  /// The [Appointments] row created when a doctor starts the visit.
+  final String? resultAppointmentId;
+  final DateTime createdAt;
+  final DateTime? resolvedAt;
+  const WalkInRow({
+    required this.id,
+    required this.patientId,
+    required this.departmentId,
+    required this.ticketTag,
+    required this.status,
+    this.reason,
+    this.sourceAppointmentId,
+    required this.createdByStaffId,
+    this.claimedByStaffId,
+    this.resultAppointmentId,
+    required this.createdAt,
+    this.resolvedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['patient_id'] = Variable<String>(patientId);
+    map['department_id'] = Variable<String>(departmentId);
+    map['ticket_tag'] = Variable<String>(ticketTag);
+    {
+      map['status'] = Variable<String>(
+        $WalkInTicketsTable.$converterstatus.toSql(status),
+      );
+    }
+    if (!nullToAbsent || reason != null) {
+      map['reason'] = Variable<String>(reason);
+    }
+    if (!nullToAbsent || sourceAppointmentId != null) {
+      map['source_appointment_id'] = Variable<String>(sourceAppointmentId);
+    }
+    map['created_by_staff_id'] = Variable<String>(createdByStaffId);
+    if (!nullToAbsent || claimedByStaffId != null) {
+      map['claimed_by_staff_id'] = Variable<String>(claimedByStaffId);
+    }
+    if (!nullToAbsent || resultAppointmentId != null) {
+      map['result_appointment_id'] = Variable<String>(resultAppointmentId);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || resolvedAt != null) {
+      map['resolved_at'] = Variable<DateTime>(resolvedAt);
+    }
+    return map;
+  }
+
+  WalkInTicketsCompanion toCompanion(bool nullToAbsent) {
+    return WalkInTicketsCompanion(
+      id: Value(id),
+      patientId: Value(patientId),
+      departmentId: Value(departmentId),
+      ticketTag: Value(ticketTag),
+      status: Value(status),
+      reason: reason == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reason),
+      sourceAppointmentId: sourceAppointmentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sourceAppointmentId),
+      createdByStaffId: Value(createdByStaffId),
+      claimedByStaffId: claimedByStaffId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(claimedByStaffId),
+      resultAppointmentId: resultAppointmentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(resultAppointmentId),
+      createdAt: Value(createdAt),
+      resolvedAt: resolvedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(resolvedAt),
+    );
+  }
+
+  factory WalkInRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return WalkInRow(
+      id: serializer.fromJson<String>(json['id']),
+      patientId: serializer.fromJson<String>(json['patientId']),
+      departmentId: serializer.fromJson<String>(json['departmentId']),
+      ticketTag: serializer.fromJson<String>(json['ticketTag']),
+      status: $WalkInTicketsTable.$converterstatus.fromJson(
+        serializer.fromJson<String>(json['status']),
+      ),
+      reason: serializer.fromJson<String?>(json['reason']),
+      sourceAppointmentId: serializer.fromJson<String?>(
+        json['sourceAppointmentId'],
+      ),
+      createdByStaffId: serializer.fromJson<String>(json['createdByStaffId']),
+      claimedByStaffId: serializer.fromJson<String?>(json['claimedByStaffId']),
+      resultAppointmentId: serializer.fromJson<String?>(
+        json['resultAppointmentId'],
+      ),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      resolvedAt: serializer.fromJson<DateTime?>(json['resolvedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'patientId': serializer.toJson<String>(patientId),
+      'departmentId': serializer.toJson<String>(departmentId),
+      'ticketTag': serializer.toJson<String>(ticketTag),
+      'status': serializer.toJson<String>(
+        $WalkInTicketsTable.$converterstatus.toJson(status),
+      ),
+      'reason': serializer.toJson<String?>(reason),
+      'sourceAppointmentId': serializer.toJson<String?>(sourceAppointmentId),
+      'createdByStaffId': serializer.toJson<String>(createdByStaffId),
+      'claimedByStaffId': serializer.toJson<String?>(claimedByStaffId),
+      'resultAppointmentId': serializer.toJson<String?>(resultAppointmentId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'resolvedAt': serializer.toJson<DateTime?>(resolvedAt),
+    };
+  }
+
+  WalkInRow copyWith({
+    String? id,
+    String? patientId,
+    String? departmentId,
+    String? ticketTag,
+    WalkInStatus? status,
+    Value<String?> reason = const Value.absent(),
+    Value<String?> sourceAppointmentId = const Value.absent(),
+    String? createdByStaffId,
+    Value<String?> claimedByStaffId = const Value.absent(),
+    Value<String?> resultAppointmentId = const Value.absent(),
+    DateTime? createdAt,
+    Value<DateTime?> resolvedAt = const Value.absent(),
+  }) => WalkInRow(
+    id: id ?? this.id,
+    patientId: patientId ?? this.patientId,
+    departmentId: departmentId ?? this.departmentId,
+    ticketTag: ticketTag ?? this.ticketTag,
+    status: status ?? this.status,
+    reason: reason.present ? reason.value : this.reason,
+    sourceAppointmentId: sourceAppointmentId.present
+        ? sourceAppointmentId.value
+        : this.sourceAppointmentId,
+    createdByStaffId: createdByStaffId ?? this.createdByStaffId,
+    claimedByStaffId: claimedByStaffId.present
+        ? claimedByStaffId.value
+        : this.claimedByStaffId,
+    resultAppointmentId: resultAppointmentId.present
+        ? resultAppointmentId.value
+        : this.resultAppointmentId,
+    createdAt: createdAt ?? this.createdAt,
+    resolvedAt: resolvedAt.present ? resolvedAt.value : this.resolvedAt,
+  );
+  WalkInRow copyWithCompanion(WalkInTicketsCompanion data) {
+    return WalkInRow(
+      id: data.id.present ? data.id.value : this.id,
+      patientId: data.patientId.present ? data.patientId.value : this.patientId,
+      departmentId: data.departmentId.present
+          ? data.departmentId.value
+          : this.departmentId,
+      ticketTag: data.ticketTag.present ? data.ticketTag.value : this.ticketTag,
+      status: data.status.present ? data.status.value : this.status,
+      reason: data.reason.present ? data.reason.value : this.reason,
+      sourceAppointmentId: data.sourceAppointmentId.present
+          ? data.sourceAppointmentId.value
+          : this.sourceAppointmentId,
+      createdByStaffId: data.createdByStaffId.present
+          ? data.createdByStaffId.value
+          : this.createdByStaffId,
+      claimedByStaffId: data.claimedByStaffId.present
+          ? data.claimedByStaffId.value
+          : this.claimedByStaffId,
+      resultAppointmentId: data.resultAppointmentId.present
+          ? data.resultAppointmentId.value
+          : this.resultAppointmentId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      resolvedAt: data.resolvedAt.present
+          ? data.resolvedAt.value
+          : this.resolvedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WalkInRow(')
+          ..write('id: $id, ')
+          ..write('patientId: $patientId, ')
+          ..write('departmentId: $departmentId, ')
+          ..write('ticketTag: $ticketTag, ')
+          ..write('status: $status, ')
+          ..write('reason: $reason, ')
+          ..write('sourceAppointmentId: $sourceAppointmentId, ')
+          ..write('createdByStaffId: $createdByStaffId, ')
+          ..write('claimedByStaffId: $claimedByStaffId, ')
+          ..write('resultAppointmentId: $resultAppointmentId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('resolvedAt: $resolvedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    patientId,
+    departmentId,
+    ticketTag,
+    status,
+    reason,
+    sourceAppointmentId,
+    createdByStaffId,
+    claimedByStaffId,
+    resultAppointmentId,
+    createdAt,
+    resolvedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is WalkInRow &&
+          other.id == this.id &&
+          other.patientId == this.patientId &&
+          other.departmentId == this.departmentId &&
+          other.ticketTag == this.ticketTag &&
+          other.status == this.status &&
+          other.reason == this.reason &&
+          other.sourceAppointmentId == this.sourceAppointmentId &&
+          other.createdByStaffId == this.createdByStaffId &&
+          other.claimedByStaffId == this.claimedByStaffId &&
+          other.resultAppointmentId == this.resultAppointmentId &&
+          other.createdAt == this.createdAt &&
+          other.resolvedAt == this.resolvedAt);
+}
+
+class WalkInTicketsCompanion extends UpdateCompanion<WalkInRow> {
+  final Value<String> id;
+  final Value<String> patientId;
+  final Value<String> departmentId;
+  final Value<String> ticketTag;
+  final Value<WalkInStatus> status;
+  final Value<String?> reason;
+  final Value<String?> sourceAppointmentId;
+  final Value<String> createdByStaffId;
+  final Value<String?> claimedByStaffId;
+  final Value<String?> resultAppointmentId;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> resolvedAt;
+  final Value<int> rowid;
+  const WalkInTicketsCompanion({
+    this.id = const Value.absent(),
+    this.patientId = const Value.absent(),
+    this.departmentId = const Value.absent(),
+    this.ticketTag = const Value.absent(),
+    this.status = const Value.absent(),
+    this.reason = const Value.absent(),
+    this.sourceAppointmentId = const Value.absent(),
+    this.createdByStaffId = const Value.absent(),
+    this.claimedByStaffId = const Value.absent(),
+    this.resultAppointmentId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.resolvedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  WalkInTicketsCompanion.insert({
+    required String id,
+    required String patientId,
+    required String departmentId,
+    required String ticketTag,
+    this.status = const Value.absent(),
+    this.reason = const Value.absent(),
+    this.sourceAppointmentId = const Value.absent(),
+    required String createdByStaffId,
+    this.claimedByStaffId = const Value.absent(),
+    this.resultAppointmentId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.resolvedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       patientId = Value(patientId),
+       departmentId = Value(departmentId),
+       ticketTag = Value(ticketTag),
+       createdByStaffId = Value(createdByStaffId);
+  static Insertable<WalkInRow> custom({
+    Expression<String>? id,
+    Expression<String>? patientId,
+    Expression<String>? departmentId,
+    Expression<String>? ticketTag,
+    Expression<String>? status,
+    Expression<String>? reason,
+    Expression<String>? sourceAppointmentId,
+    Expression<String>? createdByStaffId,
+    Expression<String>? claimedByStaffId,
+    Expression<String>? resultAppointmentId,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? resolvedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (patientId != null) 'patient_id': patientId,
+      if (departmentId != null) 'department_id': departmentId,
+      if (ticketTag != null) 'ticket_tag': ticketTag,
+      if (status != null) 'status': status,
+      if (reason != null) 'reason': reason,
+      if (sourceAppointmentId != null)
+        'source_appointment_id': sourceAppointmentId,
+      if (createdByStaffId != null) 'created_by_staff_id': createdByStaffId,
+      if (claimedByStaffId != null) 'claimed_by_staff_id': claimedByStaffId,
+      if (resultAppointmentId != null)
+        'result_appointment_id': resultAppointmentId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (resolvedAt != null) 'resolved_at': resolvedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  WalkInTicketsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? patientId,
+    Value<String>? departmentId,
+    Value<String>? ticketTag,
+    Value<WalkInStatus>? status,
+    Value<String?>? reason,
+    Value<String?>? sourceAppointmentId,
+    Value<String>? createdByStaffId,
+    Value<String?>? claimedByStaffId,
+    Value<String?>? resultAppointmentId,
+    Value<DateTime>? createdAt,
+    Value<DateTime?>? resolvedAt,
+    Value<int>? rowid,
+  }) {
+    return WalkInTicketsCompanion(
+      id: id ?? this.id,
+      patientId: patientId ?? this.patientId,
+      departmentId: departmentId ?? this.departmentId,
+      ticketTag: ticketTag ?? this.ticketTag,
+      status: status ?? this.status,
+      reason: reason ?? this.reason,
+      sourceAppointmentId: sourceAppointmentId ?? this.sourceAppointmentId,
+      createdByStaffId: createdByStaffId ?? this.createdByStaffId,
+      claimedByStaffId: claimedByStaffId ?? this.claimedByStaffId,
+      resultAppointmentId: resultAppointmentId ?? this.resultAppointmentId,
+      createdAt: createdAt ?? this.createdAt,
+      resolvedAt: resolvedAt ?? this.resolvedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (patientId.present) {
+      map['patient_id'] = Variable<String>(patientId.value);
+    }
+    if (departmentId.present) {
+      map['department_id'] = Variable<String>(departmentId.value);
+    }
+    if (ticketTag.present) {
+      map['ticket_tag'] = Variable<String>(ticketTag.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(
+        $WalkInTicketsTable.$converterstatus.toSql(status.value),
+      );
+    }
+    if (reason.present) {
+      map['reason'] = Variable<String>(reason.value);
+    }
+    if (sourceAppointmentId.present) {
+      map['source_appointment_id'] = Variable<String>(
+        sourceAppointmentId.value,
+      );
+    }
+    if (createdByStaffId.present) {
+      map['created_by_staff_id'] = Variable<String>(createdByStaffId.value);
+    }
+    if (claimedByStaffId.present) {
+      map['claimed_by_staff_id'] = Variable<String>(claimedByStaffId.value);
+    }
+    if (resultAppointmentId.present) {
+      map['result_appointment_id'] = Variable<String>(
+        resultAppointmentId.value,
+      );
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (resolvedAt.present) {
+      map['resolved_at'] = Variable<DateTime>(resolvedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WalkInTicketsCompanion(')
+          ..write('id: $id, ')
+          ..write('patientId: $patientId, ')
+          ..write('departmentId: $departmentId, ')
+          ..write('ticketTag: $ticketTag, ')
+          ..write('status: $status, ')
+          ..write('reason: $reason, ')
+          ..write('sourceAppointmentId: $sourceAppointmentId, ')
+          ..write('createdByStaffId: $createdByStaffId, ')
+          ..write('claimedByStaffId: $claimedByStaffId, ')
+          ..write('resultAppointmentId: $resultAppointmentId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('resolvedAt: $resolvedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ReferralRequestsTable extends ReferralRequests
+    with TableInfo<$ReferralRequestsTable, ReferralRequestRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ReferralRequestsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _patientIdMeta = const VerificationMeta(
+    'patientId',
+  );
+  @override
+  late final GeneratedColumn<String> patientId = GeneratedColumn<String>(
+    'patient_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _appointmentIdMeta = const VerificationMeta(
+    'appointmentId',
+  );
+  @override
+  late final GeneratedColumn<String> appointmentId = GeneratedColumn<String>(
+    'appointment_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES appointments (id) ON DELETE SET NULL',
+    ),
+  );
+  static const VerificationMeta _requestedByStaffIdMeta =
+      const VerificationMeta('requestedByStaffId');
+  @override
+  late final GeneratedColumn<String> requestedByStaffId =
+      GeneratedColumn<String>(
+        'requested_by_staff_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES users (id)',
+        ),
+      );
+  static const VerificationMeta _reasonMeta = const VerificationMeta('reason');
+  @override
+  late final GeneratedColumn<String> reason = GeneratedColumn<String>(
+    'reason',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 2000,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<ReferralRequestStatus, String>
+  status =
+      GeneratedColumn<String>(
+        'status',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('pending'),
+      ).withConverter<ReferralRequestStatus>(
+        $ReferralRequestsTable.$converterstatus,
+      );
+  static const VerificationMeta _decidedByAdminIdMeta = const VerificationMeta(
+    'decidedByAdminId',
+  );
+  @override
+  late final GeneratedColumn<String> decidedByAdminId = GeneratedColumn<String>(
+    'decided_by_admin_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE SET NULL',
+    ),
+  );
+  static const VerificationMeta _decisionNoteMeta = const VerificationMeta(
+    'decisionNote',
+  );
+  @override
+  late final GeneratedColumn<String> decisionNote = GeneratedColumn<String>(
+    'decision_note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _decidedAtMeta = const VerificationMeta(
+    'decidedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> decidedAt = GeneratedColumn<DateTime>(
+    'decided_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    patientId,
+    appointmentId,
+    requestedByStaffId,
+    reason,
+    status,
+    decidedByAdminId,
+    decisionNote,
+    decidedAt,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'referral_requests';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ReferralRequestRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('patient_id')) {
+      context.handle(
+        _patientIdMeta,
+        patientId.isAcceptableOrUnknown(data['patient_id']!, _patientIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_patientIdMeta);
+    }
+    if (data.containsKey('appointment_id')) {
+      context.handle(
+        _appointmentIdMeta,
+        appointmentId.isAcceptableOrUnknown(
+          data['appointment_id']!,
+          _appointmentIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('requested_by_staff_id')) {
+      context.handle(
+        _requestedByStaffIdMeta,
+        requestedByStaffId.isAcceptableOrUnknown(
+          data['requested_by_staff_id']!,
+          _requestedByStaffIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_requestedByStaffIdMeta);
+    }
+    if (data.containsKey('reason')) {
+      context.handle(
+        _reasonMeta,
+        reason.isAcceptableOrUnknown(data['reason']!, _reasonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_reasonMeta);
+    }
+    if (data.containsKey('decided_by_admin_id')) {
+      context.handle(
+        _decidedByAdminIdMeta,
+        decidedByAdminId.isAcceptableOrUnknown(
+          data['decided_by_admin_id']!,
+          _decidedByAdminIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('decision_note')) {
+      context.handle(
+        _decisionNoteMeta,
+        decisionNote.isAcceptableOrUnknown(
+          data['decision_note']!,
+          _decisionNoteMeta,
+        ),
+      );
+    }
+    if (data.containsKey('decided_at')) {
+      context.handle(
+        _decidedAtMeta,
+        decidedAt.isAcceptableOrUnknown(data['decided_at']!, _decidedAtMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ReferralRequestRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ReferralRequestRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      patientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}patient_id'],
+      )!,
+      appointmentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}appointment_id'],
+      ),
+      requestedByStaffId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}requested_by_staff_id'],
+      )!,
+      reason: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reason'],
+      )!,
+      status: $ReferralRequestsTable.$converterstatus.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}status'],
+        )!,
+      ),
+      decidedByAdminId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}decided_by_admin_id'],
+      ),
+      decisionNote: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}decision_note'],
+      ),
+      decidedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}decided_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ReferralRequestsTable createAlias(String alias) {
+    return $ReferralRequestsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<ReferralRequestStatus, String, String>
+  $converterstatus = const EnumNameConverter<ReferralRequestStatus>(
+    ReferralRequestStatus.values,
+  );
+}
+
+class ReferralRequestRow extends DataClass
+    implements Insertable<ReferralRequestRow> {
+  final String id;
+  final String patientId;
+  final String? appointmentId;
+  final String requestedByStaffId;
+  final String reason;
+  final ReferralRequestStatus status;
+  final String? decidedByAdminId;
+  final String? decisionNote;
+  final DateTime? decidedAt;
+  final DateTime createdAt;
+  const ReferralRequestRow({
+    required this.id,
+    required this.patientId,
+    this.appointmentId,
+    required this.requestedByStaffId,
+    required this.reason,
+    required this.status,
+    this.decidedByAdminId,
+    this.decisionNote,
+    this.decidedAt,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['patient_id'] = Variable<String>(patientId);
+    if (!nullToAbsent || appointmentId != null) {
+      map['appointment_id'] = Variable<String>(appointmentId);
+    }
+    map['requested_by_staff_id'] = Variable<String>(requestedByStaffId);
+    map['reason'] = Variable<String>(reason);
+    {
+      map['status'] = Variable<String>(
+        $ReferralRequestsTable.$converterstatus.toSql(status),
+      );
+    }
+    if (!nullToAbsent || decidedByAdminId != null) {
+      map['decided_by_admin_id'] = Variable<String>(decidedByAdminId);
+    }
+    if (!nullToAbsent || decisionNote != null) {
+      map['decision_note'] = Variable<String>(decisionNote);
+    }
+    if (!nullToAbsent || decidedAt != null) {
+      map['decided_at'] = Variable<DateTime>(decidedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  ReferralRequestsCompanion toCompanion(bool nullToAbsent) {
+    return ReferralRequestsCompanion(
+      id: Value(id),
+      patientId: Value(patientId),
+      appointmentId: appointmentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(appointmentId),
+      requestedByStaffId: Value(requestedByStaffId),
+      reason: Value(reason),
+      status: Value(status),
+      decidedByAdminId: decidedByAdminId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(decidedByAdminId),
+      decisionNote: decisionNote == null && nullToAbsent
+          ? const Value.absent()
+          : Value(decisionNote),
+      decidedAt: decidedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(decidedAt),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory ReferralRequestRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ReferralRequestRow(
+      id: serializer.fromJson<String>(json['id']),
+      patientId: serializer.fromJson<String>(json['patientId']),
+      appointmentId: serializer.fromJson<String?>(json['appointmentId']),
+      requestedByStaffId: serializer.fromJson<String>(
+        json['requestedByStaffId'],
+      ),
+      reason: serializer.fromJson<String>(json['reason']),
+      status: $ReferralRequestsTable.$converterstatus.fromJson(
+        serializer.fromJson<String>(json['status']),
+      ),
+      decidedByAdminId: serializer.fromJson<String?>(json['decidedByAdminId']),
+      decisionNote: serializer.fromJson<String?>(json['decisionNote']),
+      decidedAt: serializer.fromJson<DateTime?>(json['decidedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'patientId': serializer.toJson<String>(patientId),
+      'appointmentId': serializer.toJson<String?>(appointmentId),
+      'requestedByStaffId': serializer.toJson<String>(requestedByStaffId),
+      'reason': serializer.toJson<String>(reason),
+      'status': serializer.toJson<String>(
+        $ReferralRequestsTable.$converterstatus.toJson(status),
+      ),
+      'decidedByAdminId': serializer.toJson<String?>(decidedByAdminId),
+      'decisionNote': serializer.toJson<String?>(decisionNote),
+      'decidedAt': serializer.toJson<DateTime?>(decidedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  ReferralRequestRow copyWith({
+    String? id,
+    String? patientId,
+    Value<String?> appointmentId = const Value.absent(),
+    String? requestedByStaffId,
+    String? reason,
+    ReferralRequestStatus? status,
+    Value<String?> decidedByAdminId = const Value.absent(),
+    Value<String?> decisionNote = const Value.absent(),
+    Value<DateTime?> decidedAt = const Value.absent(),
+    DateTime? createdAt,
+  }) => ReferralRequestRow(
+    id: id ?? this.id,
+    patientId: patientId ?? this.patientId,
+    appointmentId: appointmentId.present
+        ? appointmentId.value
+        : this.appointmentId,
+    requestedByStaffId: requestedByStaffId ?? this.requestedByStaffId,
+    reason: reason ?? this.reason,
+    status: status ?? this.status,
+    decidedByAdminId: decidedByAdminId.present
+        ? decidedByAdminId.value
+        : this.decidedByAdminId,
+    decisionNote: decisionNote.present ? decisionNote.value : this.decisionNote,
+    decidedAt: decidedAt.present ? decidedAt.value : this.decidedAt,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  ReferralRequestRow copyWithCompanion(ReferralRequestsCompanion data) {
+    return ReferralRequestRow(
+      id: data.id.present ? data.id.value : this.id,
+      patientId: data.patientId.present ? data.patientId.value : this.patientId,
+      appointmentId: data.appointmentId.present
+          ? data.appointmentId.value
+          : this.appointmentId,
+      requestedByStaffId: data.requestedByStaffId.present
+          ? data.requestedByStaffId.value
+          : this.requestedByStaffId,
+      reason: data.reason.present ? data.reason.value : this.reason,
+      status: data.status.present ? data.status.value : this.status,
+      decidedByAdminId: data.decidedByAdminId.present
+          ? data.decidedByAdminId.value
+          : this.decidedByAdminId,
+      decisionNote: data.decisionNote.present
+          ? data.decisionNote.value
+          : this.decisionNote,
+      decidedAt: data.decidedAt.present ? data.decidedAt.value : this.decidedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReferralRequestRow(')
+          ..write('id: $id, ')
+          ..write('patientId: $patientId, ')
+          ..write('appointmentId: $appointmentId, ')
+          ..write('requestedByStaffId: $requestedByStaffId, ')
+          ..write('reason: $reason, ')
+          ..write('status: $status, ')
+          ..write('decidedByAdminId: $decidedByAdminId, ')
+          ..write('decisionNote: $decisionNote, ')
+          ..write('decidedAt: $decidedAt, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    patientId,
+    appointmentId,
+    requestedByStaffId,
+    reason,
+    status,
+    decidedByAdminId,
+    decisionNote,
+    decidedAt,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ReferralRequestRow &&
+          other.id == this.id &&
+          other.patientId == this.patientId &&
+          other.appointmentId == this.appointmentId &&
+          other.requestedByStaffId == this.requestedByStaffId &&
+          other.reason == this.reason &&
+          other.status == this.status &&
+          other.decidedByAdminId == this.decidedByAdminId &&
+          other.decisionNote == this.decisionNote &&
+          other.decidedAt == this.decidedAt &&
+          other.createdAt == this.createdAt);
+}
+
+class ReferralRequestsCompanion extends UpdateCompanion<ReferralRequestRow> {
+  final Value<String> id;
+  final Value<String> patientId;
+  final Value<String?> appointmentId;
+  final Value<String> requestedByStaffId;
+  final Value<String> reason;
+  final Value<ReferralRequestStatus> status;
+  final Value<String?> decidedByAdminId;
+  final Value<String?> decisionNote;
+  final Value<DateTime?> decidedAt;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const ReferralRequestsCompanion({
+    this.id = const Value.absent(),
+    this.patientId = const Value.absent(),
+    this.appointmentId = const Value.absent(),
+    this.requestedByStaffId = const Value.absent(),
+    this.reason = const Value.absent(),
+    this.status = const Value.absent(),
+    this.decidedByAdminId = const Value.absent(),
+    this.decisionNote = const Value.absent(),
+    this.decidedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ReferralRequestsCompanion.insert({
+    required String id,
+    required String patientId,
+    this.appointmentId = const Value.absent(),
+    required String requestedByStaffId,
+    required String reason,
+    this.status = const Value.absent(),
+    this.decidedByAdminId = const Value.absent(),
+    this.decisionNote = const Value.absent(),
+    this.decidedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       patientId = Value(patientId),
+       requestedByStaffId = Value(requestedByStaffId),
+       reason = Value(reason);
+  static Insertable<ReferralRequestRow> custom({
+    Expression<String>? id,
+    Expression<String>? patientId,
+    Expression<String>? appointmentId,
+    Expression<String>? requestedByStaffId,
+    Expression<String>? reason,
+    Expression<String>? status,
+    Expression<String>? decidedByAdminId,
+    Expression<String>? decisionNote,
+    Expression<DateTime>? decidedAt,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (patientId != null) 'patient_id': patientId,
+      if (appointmentId != null) 'appointment_id': appointmentId,
+      if (requestedByStaffId != null)
+        'requested_by_staff_id': requestedByStaffId,
+      if (reason != null) 'reason': reason,
+      if (status != null) 'status': status,
+      if (decidedByAdminId != null) 'decided_by_admin_id': decidedByAdminId,
+      if (decisionNote != null) 'decision_note': decisionNote,
+      if (decidedAt != null) 'decided_at': decidedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ReferralRequestsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? patientId,
+    Value<String?>? appointmentId,
+    Value<String>? requestedByStaffId,
+    Value<String>? reason,
+    Value<ReferralRequestStatus>? status,
+    Value<String?>? decidedByAdminId,
+    Value<String?>? decisionNote,
+    Value<DateTime?>? decidedAt,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return ReferralRequestsCompanion(
+      id: id ?? this.id,
+      patientId: patientId ?? this.patientId,
+      appointmentId: appointmentId ?? this.appointmentId,
+      requestedByStaffId: requestedByStaffId ?? this.requestedByStaffId,
+      reason: reason ?? this.reason,
+      status: status ?? this.status,
+      decidedByAdminId: decidedByAdminId ?? this.decidedByAdminId,
+      decisionNote: decisionNote ?? this.decisionNote,
+      decidedAt: decidedAt ?? this.decidedAt,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (patientId.present) {
+      map['patient_id'] = Variable<String>(patientId.value);
+    }
+    if (appointmentId.present) {
+      map['appointment_id'] = Variable<String>(appointmentId.value);
+    }
+    if (requestedByStaffId.present) {
+      map['requested_by_staff_id'] = Variable<String>(requestedByStaffId.value);
+    }
+    if (reason.present) {
+      map['reason'] = Variable<String>(reason.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(
+        $ReferralRequestsTable.$converterstatus.toSql(status.value),
+      );
+    }
+    if (decidedByAdminId.present) {
+      map['decided_by_admin_id'] = Variable<String>(decidedByAdminId.value);
+    }
+    if (decisionNote.present) {
+      map['decision_note'] = Variable<String>(decisionNote.value);
+    }
+    if (decidedAt.present) {
+      map['decided_at'] = Variable<DateTime>(decidedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReferralRequestsCompanion(')
+          ..write('id: $id, ')
+          ..write('patientId: $patientId, ')
+          ..write('appointmentId: $appointmentId, ')
+          ..write('requestedByStaffId: $requestedByStaffId, ')
+          ..write('reason: $reason, ')
+          ..write('status: $status, ')
+          ..write('decidedByAdminId: $decidedByAdminId, ')
+          ..write('decisionNote: $decisionNote, ')
+          ..write('decidedAt: $decidedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $AuditLogTable extends AuditLog
     with TableInfo<$AuditLogTable, AuditLogRow> {
   @override
@@ -13882,6 +15563,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CareMessagesTable careMessages = $CareMessagesTable(this);
   late final $HomeVisitRequestsTable homeVisitRequests =
       $HomeVisitRequestsTable(this);
+  late final $WalkInTicketsTable walkInTickets = $WalkInTicketsTable(this);
+  late final $ReferralRequestsTable referralRequests = $ReferralRequestsTable(
+    this,
+  );
   late final $AuditLogTable auditLog = $AuditLogTable(this);
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
   late final $FeedbacksTable feedbacks = $FeedbacksTable(this);
@@ -13911,6 +15596,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     sickLeaveCertificates,
     careMessages,
     homeVisitRequests,
+    walkInTickets,
+    referralRequests,
     auditLog,
     appSettings,
     feedbacks,
@@ -13962,6 +15649,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
+        'appointments',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('medical_records', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
         'medical_records',
         limitUpdateKind: UpdateKind.delete,
       ),
@@ -13980,6 +15674,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('medications', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'appointments',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('medications', kind: UpdateKind.update)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -14078,6 +15779,55 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('home_visit_requests', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('walk_in_tickets', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'appointments',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('walk_in_tickets', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('walk_in_tickets', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'appointments',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('walk_in_tickets', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('referral_requests', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'appointments',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('referral_requests', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('referral_requests', kind: UpdateKind.update)],
     ),
   ]);
 }

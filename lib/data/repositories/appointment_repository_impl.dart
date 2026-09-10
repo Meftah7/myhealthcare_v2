@@ -316,6 +316,82 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
   }
 
   @override
+  Future<Result<void>> markCalledIn(String id, DateTime at) {
+    return Result.guardAsync(() async {
+      await (_db.update(_db.appointments)..where((a) => a.id.equals(id))).write(
+        AppointmentsCompanion(calledInAt: Value(at)),
+      );
+    });
+  }
+
+  @override
+  Future<Result<void>> markArrived(String id, DateTime at) {
+    return Result.guardAsync(() async {
+      await (_db.update(_db.appointments)..where((a) => a.id.equals(id))).write(
+        AppointmentsCompanion(
+          checkedInAt: Value(at),
+          status: const Value(AppointmentStatus.inProgress),
+        ),
+      );
+    });
+  }
+
+  @override
+  Future<Result<void>> completeVisit({
+    required String id,
+    String? outcomeNote,
+  }) {
+    return Result.guardAsync(() async {
+      await (_db.update(_db.appointments)..where((a) => a.id.equals(id))).write(
+        AppointmentsCompanion(
+          status: const Value(AppointmentStatus.completed),
+          outcomeNote: outcomeNote == null
+              ? const Value.absent()
+              : Value(outcomeNote.trim()),
+        ),
+      );
+    });
+  }
+
+  @override
+  Future<Result<Appointment>> openWalkInVisit({
+    required String patientId,
+    required String staffId,
+    required String departmentId,
+    required String ticketTag,
+    String? reasonText,
+  }) {
+    return Result.guardAsync(() async {
+      final now = DateTime.now();
+      final id = newId('appt');
+      final roomNumber = await _assignRoomNumber(departmentId, staffId);
+      await _db
+          .into(_db.appointments)
+          .insert(
+            AppointmentsCompanion.insert(
+              id: id,
+              patientId: patientId,
+              staffId: staffId,
+              slotStart: now,
+              slotEnd: now.add(const Duration(minutes: 20)),
+              visitType: VisitType.urgentCare,
+              departmentId: Value(departmentId),
+              status: const Value(AppointmentStatus.inProgress),
+              checkedInAt: Value(now),
+              calledInAt: Value(now),
+              reasonText: Value(reasonText),
+              ticketTag: Value(ticketTag),
+              roomNumber: Value(roomNumber),
+            ),
+          );
+      final row = await (_db.select(
+        _db.appointments,
+      )..where((a) => a.id.equals(id))).getSingle();
+      return row.toEntity();
+    });
+  }
+
+  @override
   Future<Result<Appointment>> transfer({
     required String id,
     required String toStaffId,

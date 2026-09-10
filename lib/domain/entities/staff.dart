@@ -8,6 +8,13 @@ import 'user.dart';
 
 part 'staff.freezed.dart';
 
+/// The two staff kinds the app distinguishes, stored in [Staff.jobTitle].
+///
+/// Only `Nurse` carries behaviour (it routes to the nursing worklist); every
+/// other title — including the seeded `'Consultant'` — reads as a doctor.
+const kDoctorJobTitle = 'Doctor';
+const kNurseJobTitle = 'Nurse';
+
 @freezed
 abstract class Staff with _$Staff {
   const factory Staff({
@@ -23,4 +30,11 @@ abstract class Staff with _$Staff {
 
   String get id => user.id;
   String get fullName => user.fullName;
+
+  /// A nurse — works the nursing worklist rather than taking appointments.
+  bool get isNurse => jobTitle == kNurseJobTitle;
+
+  /// Every clinician who isn't a nurse (the seeded `'Consultant'` staff
+  /// included).
+  bool get isDoctor => !isNurse;
 }

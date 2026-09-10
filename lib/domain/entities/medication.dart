@@ -14,6 +14,7 @@ abstract class Medication with _$Medication {
     required DateTime startDate,
     required bool isActive,
     String? prescriberId,
+    String? appointmentId,
     String? dose,
     String? frequency,
     DateTime? endDate,

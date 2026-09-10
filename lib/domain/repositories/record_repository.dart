@@ -12,6 +12,7 @@ class NewRecord {
     required this.title,
     required this.occurredAt,
     this.authorStaffId,
+    this.appointmentId,
     this.body,
     this.sourceFacility,
     this.attachmentPath,
@@ -24,6 +25,7 @@ class NewRecord {
   final String title;
   final DateTime occurredAt;
   final String? authorStaffId;
+  final String? appointmentId;
   final String? body;
   final String? sourceFacility;
   final String? attachmentPath;
@@ -63,10 +65,7 @@ abstract interface class RecordRepository {
 
   /// Records a staff member authored, newest first — the staff "Records
   /// authored" view (ported from the FirstSemMyHealth doctor dashboard).
-  Future<Result<List<MedicalRecord>>> authoredBy(
-    String staffId, {
-    int limit,
-  });
+  Future<Result<List<MedicalRecord>>> authoredBy(String staffId, {int limit});
 
   /// Adds a record and any attached lab values in one transaction. Computes
   /// each lab value's [AbnormalFlag] from its reference range.

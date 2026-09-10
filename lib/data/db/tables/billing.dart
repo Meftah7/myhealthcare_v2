@@ -34,8 +34,11 @@ class Invoices extends Table {
 
   /// The visit this bill covers, if it came from one. Kept when the
   /// appointment is deleted so the financial record survives.
-  TextColumn get appointmentId =>
-      text().nullable().references(Appointments, #id, onDelete: KeyAction.setNull)();
+  TextColumn get appointmentId => text().nullable().references(
+    Appointments,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
 
   RealColumn get subtotal => real().withDefault(const Constant(0))();
 

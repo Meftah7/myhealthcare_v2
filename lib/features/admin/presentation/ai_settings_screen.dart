@@ -22,9 +22,7 @@ class AiSettingsScreen extends ConsumerWidget {
     final hasKey = ref.watch(aiKeyPresentProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('AI settings'),
-      ),
+      appBar: AppBar(title: const Text('AI settings')),
       body: settings.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(

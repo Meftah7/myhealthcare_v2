@@ -18,6 +18,7 @@ import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
+import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
@@ -64,6 +65,7 @@ class StaffDashboardScreen extends ConsumerWidget {
             const StaffQuickActions(),
           ],
           secondary: [
+            const _DepartmentWalkIns(),
             SectionHeader(
               'Today’s queue',
               overline: true,
@@ -88,6 +90,130 @@ class StaffDashboardScreen extends ConsumerWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+/// Patients referred into this doctor's department with a walk-in ticket —
+/// no scheduled slot, waiting at the desk. "Start" turns the ticket into an
+/// in-progress visit and opens the consultation. Hidden when there are none.
+class _DepartmentWalkIns extends ConsumerWidget {
+  const _DepartmentWalkIns();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final walkIns = ref.watch(departmentWalkInsProvider);
+    final names = ref.watch(patientNameLookupProvider).valueOrNull ?? const {};
+    final list = walkIns.valueOrNull ?? const [];
+    if (list.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SectionHeader('Department walk-ins (${list.length})', overline: true),
+        ListCard(
+          children: [
+            for (final t in list)
+              _WalkInRow(ticket: t, patientName: names[t.patientId]),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _WalkInRow extends ConsumerStatefulWidget {
+  const _WalkInRow({required this.ticket, this.patientName});
+
+  final WalkInTicket ticket;
+  final String? patientName;
+
+  @override
+  ConsumerState<_WalkInRow> createState() => _WalkInRowState();
+}
+
+class _WalkInRowState extends ConsumerState<_WalkInRow> {
+  bool _busy = false;
+
+  Future<void> _start() async {
+    setState(() => _busy = true);
+    final messenger = ScaffoldMessenger.of(context);
+    final result = await ref.read(staffOpsProvider).startWalkIn(widget.ticket);
+    if (!mounted) return;
+    setState(() => _busy = false);
+    switch (result) {
+      case Ok(:final value):
+        unawaited(context.push(AppRoutes.staffConsultation(value)));
+      case Err(:final failure):
+        messenger.showSnackBar(SnackBar(content: Text(failure.message)));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final t = widget.ticket;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        Space.md,
+        Space.sm,
+        Space.xs,
+        Space.sm,
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 52,
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(vertical: Space.xs),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.tertiaryContainer,
+              borderRadius: Radii.chip,
+            ),
+            child: Text(
+              t.ticketTag,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.onTertiaryContainer,
+                fontFeatures: kTabularFigures,
+              ),
+            ),
+          ),
+          const SizedBox(width: Space.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  widget.patientName ?? 'Patient',
+                  style: theme.textTheme.titleSmall,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (t.reason != null)
+                  Text(
+                    t.reason!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: Space.xs),
+          FilledButton.tonal(
+            onPressed: _busy ? null : _start,
+            child: _busy
+                ? const SizedBox.square(
+                    dimension: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text('Start'),
+          ),
+        ],
+      ),
     );
   }
 }

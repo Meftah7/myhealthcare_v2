@@ -92,6 +92,27 @@ abstract interface class AppointmentRepository {
 
   Future<Result<void>> markCheckedIn(String id, DateTime at);
 
+  /// "Call patient" — stamps `calledInAt`; the status is unchanged.
+  Future<Result<void>> markCalledIn(String id, DateTime at);
+
+  /// "Patient arrived" — stamps `checkedInAt` and moves the visit to
+  /// [AppointmentStatus.inProgress].
+  Future<Result<void>> markArrived(String id, DateTime at);
+
+  /// "Complete consultation" — [AppointmentStatus.completed] plus the doctor's
+  /// closing summary.
+  Future<Result<void>> completeVisit({required String id, String? outcomeNote});
+
+  /// Creates an in-progress visit for a walk-in ticket — no slot picking, the
+  /// patient is already here. Returns the new appointment.
+  Future<Result<Appointment>> openWalkInVisit({
+    required String patientId,
+    required String staffId,
+    required String departmentId,
+    required String ticketTag,
+    String? reasonText,
+  });
+
   /// Reassign an appointment to another staff member. The visit goes back to
   /// [AppointmentStatus.booked] so the receiving clinician re-accepts it, and
   /// the room number is recomputed for the new staff member's department

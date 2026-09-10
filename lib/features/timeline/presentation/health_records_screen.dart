@@ -119,6 +119,35 @@ class _DocumentsStrip extends ConsumerWidget {
         ref.watch(patientProfileProvider).valueOrNull?.allergies ??
         const <String>[];
 
+    // Four shortcuts to the record documents, all the same shape and size:
+    // imaging and sick leave were already a matched pair — the vital-signs
+    // report and allergies now join them on the same 2×2 grid instead of
+    // trailing off in a smaller, differently-styled row.
+    Widget shortcut(IconData icon, String label, VoidCallback onTap) =>
+        OutlinedButton.icon(
+          onPressed: onTap,
+          icon: Icon(icon, size: 18),
+          label: Text(
+            label,
+            maxLines: 2,
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+          ),
+        );
+
+    // IntrinsicHeight so both cells in a row match the taller button — the
+    // "Vital signs report" label wraps to two lines where the others don't.
+    Widget shortcutRow(Widget a, Widget b) => IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(child: a),
+          const SizedBox(width: Space.sm),
+          Expanded(child: b),
+        ],
+      ),
+    );
+
     return Column(
       children: [
         if (allergies.isNotEmpty) ...[
@@ -155,46 +184,32 @@ class _DocumentsStrip extends ConsumerWidget {
           ),
           const SizedBox(height: Space.sm),
         ],
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () => context.push(AppRoutes.patientImaging),
-                icon: const Icon(Icons.image_outlined, size: 18),
-                label: const Text('Imaging'),
-              ),
-            ),
-            const SizedBox(width: Space.sm),
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () => context.push(AppRoutes.patientSickLeave),
-                icon: const Icon(Icons.event_busy_outlined, size: 18),
-                label: const Text('Sick leave'),
-              ),
-            ),
-          ],
+        shortcutRow(
+          shortcut(
+            Icons.image_outlined,
+            'Imaging',
+            () => context.push(AppRoutes.patientImaging),
+          ),
+          shortcut(
+            Icons.event_busy_outlined,
+            'Sick leave',
+            () => context.push(AppRoutes.patientSickLeave),
+          ),
         ),
         const SizedBox(height: Space.sm),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: DocumentDownloadButton(
+        shortcutRow(
+          DocumentDownloadButton(
             label: 'Vital signs report',
             filename: 'vital-signs-report.pdf',
             icon: Icons.monitor_heart_outlined,
             build: () => buildVitalsReport(ref),
           ),
-        ),
-        if (allergies.isEmpty) ...[
-          const SizedBox(height: Space.xs),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton.icon(
-              onPressed: () => context.push(AppRoutes.patientAllergies),
-              icon: const Icon(Icons.medical_information_outlined, size: 16),
-              label: const Text('Allergies'),
-            ),
+          shortcut(
+            Icons.medical_information_outlined,
+            'Allergies',
+            () => context.push(AppRoutes.patientAllergies),
           ),
-        ],
+        ),
       ],
     );
   }

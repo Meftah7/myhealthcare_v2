@@ -55,8 +55,7 @@ class Feedbacks extends Table {
   TextColumn get status =>
       textEnum<FeedbackStatus>().withDefault(const Constant('open'))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  TextColumn get handledByAdminId =>
-      text().nullable().references(Users, #id)();
+  TextColumn get handledByAdminId => text().nullable().references(Users, #id)();
   DateTimeColumn get handledAt => dateTime().nullable()();
 
   @override
@@ -69,7 +68,8 @@ class AiUsageLog extends Table {
   TextColumn get id => text()();
   TextColumn get userId => text().nullable().references(Users, #id)();
   TextColumn get feature => textEnum<AiFeature>()();
-  BoolColumn get usedLiveModel => boolean().withDefault(const Constant(false))();
+  BoolColumn get usedLiveModel =>
+      boolean().withDefault(const Constant(false))();
   TextColumn get summary => text().nullable()();
   DateTimeColumn get at => dateTime().withDefault(currentDateAndTime)();
 

@@ -90,7 +90,8 @@ class AdminProfileScreen extends ConsumerWidget {
                     const _AdminProfileRow(
                       icon: Icons.history_toggle_off_outlined,
                       title: 'AI activity',
-                      subtitle: 'Which surface answered, live model or fallback',
+                      subtitle:
+                          'Which surface answered, live model or fallback',
                       route: AppRoutes.adminProfileAiLog,
                     ),
                     const SizedBox(height: Space.xs),

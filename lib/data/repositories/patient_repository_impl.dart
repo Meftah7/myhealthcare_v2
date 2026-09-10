@@ -122,7 +122,8 @@ class PatientRepositoryImpl implements PatientRepository {
     return Result.guardAsync(() async {
       final current = await _familyMembersOf(patientId);
       final next = [
-        for (final m in current) if (m.id == member.id) member else m,
+        for (final m in current)
+          if (m.id == member.id) member else m,
       ];
       await _writeFamilyMembers(patientId, next);
     });
@@ -150,11 +151,9 @@ class PatientRepositoryImpl implements PatientRepository {
     String patientId,
     List<FamilyMember> members,
   ) {
-    return (_db.update(
-      _db.patientProfiles,
-    )..where((p) => p.userId.equals(patientId))).write(
-      PatientProfilesCompanion(familyMembers: Value(members)),
-    );
+    return (_db.update(_db.patientProfiles)
+          ..where((p) => p.userId.equals(patientId)))
+        .write(PatientProfilesCompanion(familyMembers: Value(members)));
   }
 }
 

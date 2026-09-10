@@ -61,10 +61,44 @@ extension AppointmentRowX on AppointmentRow {
     reasonText: reasonText,
     noShowRisk: noShowRisk,
     riskBand: riskBand,
+    calledInAt: calledInAt,
     checkedInAt: checkedInAt,
+    outcomeNote: outcomeNote,
     ticketTag: ticketTag,
     roomNumber: roomNumber,
     bookedForName: bookedForName,
+  );
+}
+
+extension WalkInRowX on WalkInRow {
+  WalkInTicket toEntity() => WalkInTicket(
+    id: id,
+    patientId: patientId,
+    departmentId: departmentId,
+    ticketTag: ticketTag,
+    status: status,
+    reason: reason,
+    sourceAppointmentId: sourceAppointmentId,
+    createdByStaffId: createdByStaffId,
+    claimedByStaffId: claimedByStaffId,
+    resultAppointmentId: resultAppointmentId,
+    createdAt: createdAt,
+    resolvedAt: resolvedAt,
+  );
+}
+
+extension ReferralRequestRowX on ReferralRequestRow {
+  ReferralRequest toEntity() => ReferralRequest(
+    id: id,
+    patientId: patientId,
+    appointmentId: appointmentId,
+    requestedByStaffId: requestedByStaffId,
+    reason: reason,
+    status: status,
+    decidedByAdminId: decidedByAdminId,
+    decisionNote: decisionNote,
+    decidedAt: decidedAt,
+    createdAt: createdAt,
   );
 }
 
@@ -136,6 +170,7 @@ MedicalRecord recordFrom(MedicalRecordRow row, List<LabValueRow> labs) =>
       createdAt: row.createdAt,
       labValues: labs.map((l) => l.toEntity()).toList(),
       authorStaffId: row.authorStaffId,
+      appointmentId: row.appointmentId,
       body: row.body,
       sourceFacility: row.sourceFacility,
       attachmentPath: row.attachmentPath,
@@ -167,6 +202,7 @@ extension MedicationRowX on MedicationRow {
     startDate: startDate,
     isActive: isActive,
     prescriberId: prescriberId,
+    appointmentId: appointmentId,
     dose: dose,
     frequency: frequency,
     endDate: endDate,
@@ -229,17 +265,17 @@ extension AppSettingsRowX on AppSettingsRow {
 
 UserFeedback feedbackFrom(FeedbackRow row, {String? name, String? email}) =>
     UserFeedback(
-  id: row.id,
-  category: row.category,
-  message: row.message,
-  status: row.status,
-  createdAt: row.createdAt,
-  reporterId: row.reporterId,
-  reporterName: name,
-  reporterEmail: email,
-  handledByAdminId: row.handledByAdminId,
-  handledAt: row.handledAt,
-);
+      id: row.id,
+      category: row.category,
+      message: row.message,
+      status: row.status,
+      createdAt: row.createdAt,
+      reporterId: row.reporterId,
+      reporterName: name,
+      reporterEmail: email,
+      handledByAdminId: row.handledByAdminId,
+      handledAt: row.handledAt,
+    );
 
 extension AiUsageRowX on AiUsageRow {
   AiUsageEntry toEntity() => AiUsageEntry(

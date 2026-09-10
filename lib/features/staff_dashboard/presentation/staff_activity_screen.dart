@@ -32,9 +32,7 @@ class _StaffActivityScreenState extends ConsumerState<StaffActivityScreen> {
     final names = ref.watch(patientNameLookupProvider).valueOrNull ?? const {};
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My activity'),
-      ),
+      appBar: AppBar(title: const Text('My activity')),
       body: Column(
         children: [
           Padding(

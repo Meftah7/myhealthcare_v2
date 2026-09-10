@@ -5,6 +5,7 @@ library;
 import 'package:drift/drift.dart';
 
 import '../../../domain/enums.dart';
+import 'appointments.dart';
 import 'users.dart';
 
 @DataClassName('MedicalRecordRow')
@@ -15,6 +16,14 @@ class MedicalRecords extends Table {
 
   /// Null for patient-imported records (P2-12).
   TextColumn get authorStaffId => text().nullable().references(Users, #id)();
+
+  /// The visit this record was produced in, if any (a consultation note, a
+  /// prescription record). Kept if the appointment is later removed.
+  TextColumn get appointmentId => text().nullable().references(
+    Appointments,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
 
   TextColumn get recordType => textEnum<RecordType>()();
   TextColumn get title => text().withLength(min: 1, max: 200)();
@@ -83,6 +92,13 @@ class Medications extends Table {
   TextColumn get patientId =>
       text().references(Users, #id, onDelete: KeyAction.cascade)();
   TextColumn get prescriberId => text().nullable().references(Users, #id)();
+
+  /// The visit it was prescribed in, if any.
+  TextColumn get appointmentId => text().nullable().references(
+    Appointments,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
   TextColumn get name => text().withLength(min: 1, max: 200)();
   TextColumn get dose => text().nullable()();
   TextColumn get frequency => text().nullable()();

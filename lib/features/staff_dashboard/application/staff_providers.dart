@@ -72,14 +72,15 @@ final staffTodayProvider = FutureProvider<List<Appointment>>((ref) async {
 /// doctor "Today's Patients" list.
 final staffQueueProvider = FutureProvider<List<Appointment>>((ref) async {
   final today = await ref.watch(staffTodayProvider.future);
-  final open = today
-      .where(
-        (a) =>
-            a.status == AppointmentStatus.booked ||
-            a.status == AppointmentStatus.confirmed,
-      )
-      .toList()
-    ..sort((a, b) => a.slotStart.compareTo(b.slotStart));
+  final open =
+      today
+          .where(
+            (a) =>
+                a.status == AppointmentStatus.booked ||
+                a.status == AppointmentStatus.confirmed,
+          )
+          .toList()
+        ..sort((a, b) => a.slotStart.compareTo(b.slotStart));
   return open;
 });
 
@@ -110,7 +111,9 @@ final staffPrescriptionsIssuedProvider = FutureProvider<List<Medication>>((
   ref,
 ) async {
   final id = _staffId(ref);
-  return _unwrap(await ref.watch(medicationRepositoryProvider).prescribedBy(id));
+  return _unwrap(
+    await ref.watch(medicationRepositoryProvider).prescribedBy(id),
+  );
 });
 
 /// The whole patient panel (small single-clinic demo) (P5-06).
@@ -140,6 +143,21 @@ final patientPickerResultsProvider =
 
 final unacknowledgedFlagsProvider = FutureProvider<List<RiskFlag>>((ref) async {
   return _unwrap(await ref.watch(riskRepositoryProvider).unacknowledged());
+});
+
+/// Open walk-in tickets for the signed-in doctor's department — patients sent
+/// here by a department referral, waiting to be seen.
+final departmentWalkInsProvider = FutureProvider<List<WalkInTicket>>((
+  ref,
+) async {
+  final profile = await ref.watch(staffProfileProvider.future);
+  final deptId = profile.departmentId;
+  if (deptId == null) return const [];
+  return _unwrap(
+    await ref
+        .watch(walkInTicketRepositoryProvider)
+        .forDepartment(deptId, openOnly: true),
+  );
 });
 
 final staffTasksProvider = FutureProvider<List<StaffTask>>((ref) async {
@@ -275,10 +293,7 @@ class StaffOps {
   }
 
   /// Mark the visit cancelled / no-show.
-  Future<void> cancelAppointment(
-    String id, {
-    bool noShow = false,
-  }) async {
+  Future<void> cancelAppointment(String id, {bool noShow = false}) async {
     await _ref
         .read(appointmentRepositoryProvider)
         .updateStatus(
@@ -311,6 +326,43 @@ class StaffOps {
       _refreshQueue();
     }
     return result;
+  }
+
+  /// Start a walk-in visit: materialise an in-progress [Appointment] for the
+  /// ticket, mark the ticket claimed, and return the new appointment id so the
+  /// caller can open the consultation page.
+  Future<Result<String>> startWalkIn(WalkInTicket ticket) async {
+    final me = _ref.read(currentUserProvider)!.id;
+    return Result.guardAsync(() async {
+      final visit = _unwrap(
+        await _ref
+            .read(appointmentRepositoryProvider)
+            .openWalkInVisit(
+              patientId: ticket.patientId,
+              staffId: me,
+              departmentId: ticket.departmentId,
+              ticketTag: ticket.ticketTag,
+              reasonText: ticket.reason,
+            ),
+      );
+      _unwrap(
+        await _ref
+            .read(walkInTicketRepositoryProvider)
+            .claim(id: ticket.id, doctorId: me, resultAppointmentId: visit.id),
+      );
+      await _ref
+          .read(auditRepositoryProvider)
+          .record(
+            action: 'walkin.start',
+            entityType: 'appointment',
+            entityId: visit.id,
+            actorUserId: me,
+            detail: ticket.id,
+          );
+      _ref.invalidate(departmentWalkInsProvider);
+      _refreshQueue();
+      return visit.id;
+    });
   }
 }
 
@@ -424,6 +476,9 @@ final panelStatsProvider = FutureProvider<PanelStats>((ref) async {
         past++;
       case AppointmentStatus.cancelled:
         cancelled++;
+      case AppointmentStatus.inProgress:
+        // A live visit — counts as an appointment that happened.
+        past++;
       case AppointmentStatus.booked || AppointmentStatus.confirmed:
         if (a.slotStart.isAfter(now)) upcoming++;
     }

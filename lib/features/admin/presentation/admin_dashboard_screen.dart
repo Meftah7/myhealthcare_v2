@@ -89,13 +89,14 @@ class _NeedsYouHero extends ConsumerWidget {
     final unpaid = ref.watch(unpaidInvoiceCountProvider).valueOrNull ?? 0;
     final feedback = ref.watch(openFeedbackCountProvider).valueOrNull ?? 0;
     final homeVisits = ref.watch(openHomeVisitCountProvider);
-    final total = unpaid + feedback + homeVisits;
+    final referrals = ref.watch(pendingReferralRequestCountProvider);
+    final total = unpaid + feedback + homeVisits + referrals;
 
     if (total == 0) {
       return GradientHeroCard(
         icon: Icons.check_circle_outline,
         title: 'All clear',
-        subtitle: 'No invoices, reports or visit requests waiting',
+        subtitle: 'No invoices, reports, visit or referral requests waiting',
         onTap: () => context.push(AppRoutes.adminProfileAnalytics),
       );
     }
@@ -105,10 +106,15 @@ class _NeedsYouHero extends ConsumerWidget {
       if (feedback > 0) '$feedback open report${feedback == 1 ? '' : 's'}',
       if (homeVisits > 0)
         '$homeVisits visit request${homeVisits == 1 ? '' : 's'}',
+      if (referrals > 0)
+        '$referrals referral request${referrals == 1 ? '' : 's'}',
     ];
 
     // Deep-link to the busiest queue.
-    final route = unpaid >= feedback && unpaid >= homeVisits
+    final route =
+        referrals >= unpaid && referrals >= feedback && referrals >= homeVisits
+        ? AppRoutes.adminReferralRequests
+        : unpaid >= feedback && unpaid >= homeVisits
         ? AppRoutes.adminBilling
         : feedback >= homeVisits
         ? AppRoutes.adminFeedback

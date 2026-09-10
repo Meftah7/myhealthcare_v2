@@ -353,16 +353,25 @@ Records as pushed routes, reached from Quick actions — they keep the nav bar.
 ### 6.2 Staff — `Dashboard · Patients · Tasks · Schedule · Profile`
 
 Each is a distinct clinical workflow, so each keeps its tab. Dashboard is the
-shift overview (next patient, shift figures, quick actions, today's queue,
-open flags, top tasks). **Patients is list-detail**: the panel on the left, the
-selected chart beside it from `expanded` up.
+shift overview (next patient, shift figures, quick actions, department walk-ins,
+today's queue, open flags, top tasks). **Patients is list-detail**: the panel on
+the left, the selected chart beside it from `expanded` up.
+
+**Consultation** — from **Schedule**, tapping an appointment opens a ticket
+sheet (Call / Arrived / Not shown). "Arrived" pushes
+`/staff/consultation/:appointmentId` (full-screen over the shell, like the
+booking wizard): a clinical note, medications, and a "request a referral"
+action, committed on **Complete**. The in-progress note + meds live in an
+in-memory draft (`consultationDraftProvider`) so navigating away and back
+resumes them. `AppointmentStatus` gains `inProgress` for a live visit.
 
 ### 6.3 Admin — `Dashboard · Users · Departments · Billing · Profile`
 
 | Tab | Contains |
 |---|---|
-| **Dashboard** | What needs you (the one gradient surface), system counts, quick actions, appointment health, recent activity. |
-| **Users** | Patients / Staff / Admins directory with search; role-aware "Add". |
+| **Dashboard** | What needs you (the one gradient surface — includes referral requests), system counts, quick actions, appointment health, recent activity. |
+| **Users** | Patients / Staff / Admins directory with search; role-aware "Add". A user row expands to account actions; for a patient: deactivate/reactivate, reset password, book an appointment, refer (another department → walk-in ticket, or another hospital → referral letter). |
+| **Referrals** | `Dashboard → Referrals` — the queue of doctor→admin referral requests; the admin picks department-vs-hospital and executes. |
 | **Departments** | Create / rename / delete. |
 | **Billing** | Invoices and payment state across the clinic. |
 | **Profile** | Account, audit log, analytics, forecast, AI settings + log, preferences, sign out. |

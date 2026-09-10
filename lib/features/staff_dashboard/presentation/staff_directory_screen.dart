@@ -23,9 +23,7 @@ class StaffDirectoryScreen extends ConsumerWidget {
     final gutter = WindowSize.of(context).gutter;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Staff directory'),
-      ),
+      appBar: AppBar(title: const Text('Staff directory')),
       body: directory.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
@@ -106,7 +104,10 @@ class _StaffCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(clinicianName(staff.fullName), style: theme.textTheme.titleSmall),
+                Text(
+                  clinicianName(staff.fullName),
+                  style: theme.textTheme.titleSmall,
+                ),
                 Text(
                   [
                     if (staff.specialty != null) staff.specialty,

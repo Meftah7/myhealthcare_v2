@@ -49,7 +49,16 @@ class Appointments extends Table {
   TextColumn get riskBand => textEnum<RiskBand>().nullable()();
 
   IntColumn get remindersSent => integer().withDefault(const Constant(0))();
+
+  /// When the doctor pressed "Call patient" on the schedule ticket.
+  DateTimeColumn get calledInAt => dateTime().nullable()();
+
+  /// When the doctor pressed "Patient arrived" — the visit moves to
+  /// `inProgress` and the consultation page opens.
   DateTimeColumn get checkedInAt => dateTime().nullable()();
+
+  /// The doctor's closing summary, written at "Complete consultation".
+  TextColumn get outcomeNote => text().nullable()();
 
   /// `[Hour letter A-X]-[facility-wide ticket number for that hour today]`,
   /// assigned once at booking time (redesign v2 patient dashboard spec).

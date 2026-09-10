@@ -79,10 +79,7 @@ class AdminForecastScreen extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Expanded(
-                                  child: _DayCard(
-                                    day: f.days[r],
-                                    theme: theme,
-                                  ),
+                                  child: _DayCard(day: f.days[r], theme: theme),
                                 ),
                                 const SizedBox(width: Space.sm),
                                 Expanded(
@@ -181,9 +178,7 @@ class _Pill extends StatelessWidget {
       decoration: BoxDecoration(color: bg, borderRadius: Radii.chip),
       child: Text(
         label,
-        style: Theme.of(
-          context,
-        ).textTheme.labelSmall?.copyWith(color: fg),
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(color: fg),
       ),
     );
   }

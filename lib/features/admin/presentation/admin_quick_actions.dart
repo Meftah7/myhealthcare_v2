@@ -35,6 +35,7 @@ class AdminQuickActions extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final feedback = ref.watch(openFeedbackCountProvider).valueOrNull ?? 0;
     final homeVisits = ref.watch(openHomeVisitCountProvider);
+    final referrals = ref.watch(pendingReferralRequestCountProvider);
 
     final actions = <_QuickAction>[
       _QuickAction(
@@ -66,6 +67,11 @@ class AdminQuickActions extends ConsumerWidget {
         icon: Icons.add_home_outlined,
         label: homeVisits == 0 ? 'Home visits' : 'Home visits ($homeVisits)',
         onTap: () => unawaited(context.push(AppRoutes.adminHomeVisits)),
+      ),
+      _QuickAction(
+        icon: Icons.forward_to_inbox_outlined,
+        label: referrals == 0 ? 'Referrals' : 'Referrals ($referrals)',
+        onTap: () => unawaited(context.push(AppRoutes.adminReferralRequests)),
       ),
       _QuickAction(
         icon: Icons.apartment_outlined,
@@ -140,15 +146,14 @@ class AdminQuickActions extends ConsumerWidget {
     final ok = await confirm(
       context,
       title: 'Re-seed demo data?',
-      message: 'This wipes every account, appointment and record and rebuilds '
+      message:
+          'This wipes every account, appointment and record and rebuilds '
           'the demo dataset. You will be signed out.',
       confirmLabel: 'Re-seed',
       destructive: true,
     );
     if (!ok) return;
-    messenger.showSnackBar(
-      const SnackBar(content: Text('Re-seeding…')),
-    );
+    messenger.showSnackBar(const SnackBar(content: Text('Re-seeding…')));
     final r = await ref.read(seederProvider).reset();
     messenger
       ..removeCurrentSnackBar()
@@ -198,7 +203,11 @@ class _QuickActionTile extends StatelessWidget {
               color: scheme.primaryContainer,
               borderRadius: Radii.chip,
             ),
-            child: Icon(action.icon, size: 18, color: scheme.onPrimaryContainer),
+            child: Icon(
+              action.icon,
+              size: 18,
+              color: scheme.onPrimaryContainer,
+            ),
           ),
           const SizedBox(width: Space.sm),
           Expanded(
@@ -266,8 +275,9 @@ class _BroadcastSheetState extends ConsumerState<_BroadcastSheet> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(switch (result) {
-          Ok(:final value) => 'Sent to $value '
-              '${value == 1 ? 'person' : 'people'}.',
+          Ok(:final value) =>
+            'Sent to $value '
+                '${value == 1 ? 'person' : 'people'}.',
           Err(:final failure) => failure.message,
         }),
       ),

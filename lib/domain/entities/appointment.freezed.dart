@@ -14,7 +14,10 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Appointment {
 
- String get id; String get patientId; String get staffId; DateTime get slotStart; DateTime get slotEnd; VisitType get visitType; AppointmentStatus get status; DateTime get bookedAt; int get remindersSent; String? get departmentId; String? get reasonText; double? get noShowRisk; RiskBand? get riskBand; DateTime? get checkedInAt;/// `[Hour letter A-X]-[facility-wide ticket number for that hour today]`,
+ String get id; String get patientId; String get staffId; DateTime get slotStart; DateTime get slotEnd; VisitType get visitType; AppointmentStatus get status; DateTime get bookedAt; int get remindersSent; String? get departmentId; String? get reasonText; double? get noShowRisk; RiskBand? get riskBand;/// When the doctor pressed "Call patient" on the schedule ticket.
+ DateTime? get calledInAt;/// When the doctor pressed "Patient arrived" — the visit is `inProgress`.
+ DateTime? get checkedInAt;/// The doctor's closing summary, written at "Complete consultation".
+ String? get outcomeNote;/// `[Hour letter A-X]-[facility-wide ticket number for that hour today]`,
 /// assigned once at booking time from [slotStart] (redesign v2 patient
 /// dashboard spec).
  String? get ticketTag;/// `[Department letter]-[doctor's sequence within that department]`,
@@ -32,16 +35,16 @@ $AppointmentCopyWith<Appointment> get copyWith => _$AppointmentCopyWithImpl<Appo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Appointment&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.staffId, staffId) || other.staffId == staffId)&&(identical(other.slotStart, slotStart) || other.slotStart == slotStart)&&(identical(other.slotEnd, slotEnd) || other.slotEnd == slotEnd)&&(identical(other.visitType, visitType) || other.visitType == visitType)&&(identical(other.status, status) || other.status == status)&&(identical(other.bookedAt, bookedAt) || other.bookedAt == bookedAt)&&(identical(other.remindersSent, remindersSent) || other.remindersSent == remindersSent)&&(identical(other.departmentId, departmentId) || other.departmentId == departmentId)&&(identical(other.reasonText, reasonText) || other.reasonText == reasonText)&&(identical(other.noShowRisk, noShowRisk) || other.noShowRisk == noShowRisk)&&(identical(other.riskBand, riskBand) || other.riskBand == riskBand)&&(identical(other.checkedInAt, checkedInAt) || other.checkedInAt == checkedInAt)&&(identical(other.ticketTag, ticketTag) || other.ticketTag == ticketTag)&&(identical(other.roomNumber, roomNumber) || other.roomNumber == roomNumber)&&(identical(other.bookedForName, bookedForName) || other.bookedForName == bookedForName));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Appointment&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.staffId, staffId) || other.staffId == staffId)&&(identical(other.slotStart, slotStart) || other.slotStart == slotStart)&&(identical(other.slotEnd, slotEnd) || other.slotEnd == slotEnd)&&(identical(other.visitType, visitType) || other.visitType == visitType)&&(identical(other.status, status) || other.status == status)&&(identical(other.bookedAt, bookedAt) || other.bookedAt == bookedAt)&&(identical(other.remindersSent, remindersSent) || other.remindersSent == remindersSent)&&(identical(other.departmentId, departmentId) || other.departmentId == departmentId)&&(identical(other.reasonText, reasonText) || other.reasonText == reasonText)&&(identical(other.noShowRisk, noShowRisk) || other.noShowRisk == noShowRisk)&&(identical(other.riskBand, riskBand) || other.riskBand == riskBand)&&(identical(other.calledInAt, calledInAt) || other.calledInAt == calledInAt)&&(identical(other.checkedInAt, checkedInAt) || other.checkedInAt == checkedInAt)&&(identical(other.outcomeNote, outcomeNote) || other.outcomeNote == outcomeNote)&&(identical(other.ticketTag, ticketTag) || other.ticketTag == ticketTag)&&(identical(other.roomNumber, roomNumber) || other.roomNumber == roomNumber)&&(identical(other.bookedForName, bookedForName) || other.bookedForName == bookedForName));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,patientId,staffId,slotStart,slotEnd,visitType,status,bookedAt,remindersSent,departmentId,reasonText,noShowRisk,riskBand,checkedInAt,ticketTag,roomNumber,bookedForName);
+int get hashCode => Object.hashAll([runtimeType,id,patientId,staffId,slotStart,slotEnd,visitType,status,bookedAt,remindersSent,departmentId,reasonText,noShowRisk,riskBand,calledInAt,checkedInAt,outcomeNote,ticketTag,roomNumber,bookedForName]);
 
 @override
 String toString() {
-  return 'Appointment(id: $id, patientId: $patientId, staffId: $staffId, slotStart: $slotStart, slotEnd: $slotEnd, visitType: $visitType, status: $status, bookedAt: $bookedAt, remindersSent: $remindersSent, departmentId: $departmentId, reasonText: $reasonText, noShowRisk: $noShowRisk, riskBand: $riskBand, checkedInAt: $checkedInAt, ticketTag: $ticketTag, roomNumber: $roomNumber, bookedForName: $bookedForName)';
+  return 'Appointment(id: $id, patientId: $patientId, staffId: $staffId, slotStart: $slotStart, slotEnd: $slotEnd, visitType: $visitType, status: $status, bookedAt: $bookedAt, remindersSent: $remindersSent, departmentId: $departmentId, reasonText: $reasonText, noShowRisk: $noShowRisk, riskBand: $riskBand, calledInAt: $calledInAt, checkedInAt: $checkedInAt, outcomeNote: $outcomeNote, ticketTag: $ticketTag, roomNumber: $roomNumber, bookedForName: $bookedForName)';
 }
 
 
@@ -52,7 +55,7 @@ abstract mixin class $AppointmentCopyWith<$Res>  {
   factory $AppointmentCopyWith(Appointment value, $Res Function(Appointment) _then) = _$AppointmentCopyWithImpl;
 @useResult
 $Res call({
- String id, String patientId, String staffId, DateTime slotStart, DateTime slotEnd, VisitType visitType, AppointmentStatus status, DateTime bookedAt, int remindersSent, String? departmentId, String? reasonText, double? noShowRisk, RiskBand? riskBand, DateTime? checkedInAt, String? ticketTag, String? roomNumber, String? bookedForName
+ String id, String patientId, String staffId, DateTime slotStart, DateTime slotEnd, VisitType visitType, AppointmentStatus status, DateTime bookedAt, int remindersSent, String? departmentId, String? reasonText, double? noShowRisk, RiskBand? riskBand, DateTime? calledInAt, DateTime? checkedInAt, String? outcomeNote, String? ticketTag, String? roomNumber, String? bookedForName
 });
 
 
@@ -69,7 +72,7 @@ class _$AppointmentCopyWithImpl<$Res>
 
 /// Create a copy of Appointment
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? patientId = null,Object? staffId = null,Object? slotStart = null,Object? slotEnd = null,Object? visitType = null,Object? status = null,Object? bookedAt = null,Object? remindersSent = null,Object? departmentId = freezed,Object? reasonText = freezed,Object? noShowRisk = freezed,Object? riskBand = freezed,Object? checkedInAt = freezed,Object? ticketTag = freezed,Object? roomNumber = freezed,Object? bookedForName = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? patientId = null,Object? staffId = null,Object? slotStart = null,Object? slotEnd = null,Object? visitType = null,Object? status = null,Object? bookedAt = null,Object? remindersSent = null,Object? departmentId = freezed,Object? reasonText = freezed,Object? noShowRisk = freezed,Object? riskBand = freezed,Object? calledInAt = freezed,Object? checkedInAt = freezed,Object? outcomeNote = freezed,Object? ticketTag = freezed,Object? roomNumber = freezed,Object? bookedForName = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,patientId: null == patientId ? _self.patientId : patientId // ignore: cast_nullable_to_non_nullable
@@ -84,8 +87,10 @@ as int,departmentId: freezed == departmentId ? _self.departmentId : departmentId
 as String?,reasonText: freezed == reasonText ? _self.reasonText : reasonText // ignore: cast_nullable_to_non_nullable
 as String?,noShowRisk: freezed == noShowRisk ? _self.noShowRisk : noShowRisk // ignore: cast_nullable_to_non_nullable
 as double?,riskBand: freezed == riskBand ? _self.riskBand : riskBand // ignore: cast_nullable_to_non_nullable
-as RiskBand?,checkedInAt: freezed == checkedInAt ? _self.checkedInAt : checkedInAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,ticketTag: freezed == ticketTag ? _self.ticketTag : ticketTag // ignore: cast_nullable_to_non_nullable
+as RiskBand?,calledInAt: freezed == calledInAt ? _self.calledInAt : calledInAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,checkedInAt: freezed == checkedInAt ? _self.checkedInAt : checkedInAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,outcomeNote: freezed == outcomeNote ? _self.outcomeNote : outcomeNote // ignore: cast_nullable_to_non_nullable
+as String?,ticketTag: freezed == ticketTag ? _self.ticketTag : ticketTag // ignore: cast_nullable_to_non_nullable
 as String?,roomNumber: freezed == roomNumber ? _self.roomNumber : roomNumber // ignore: cast_nullable_to_non_nullable
 as String?,bookedForName: freezed == bookedForName ? _self.bookedForName : bookedForName // ignore: cast_nullable_to_non_nullable
 as String?,
@@ -173,10 +178,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String patientId,  String staffId,  DateTime slotStart,  DateTime slotEnd,  VisitType visitType,  AppointmentStatus status,  DateTime bookedAt,  int remindersSent,  String? departmentId,  String? reasonText,  double? noShowRisk,  RiskBand? riskBand,  DateTime? checkedInAt,  String? ticketTag,  String? roomNumber,  String? bookedForName)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String patientId,  String staffId,  DateTime slotStart,  DateTime slotEnd,  VisitType visitType,  AppointmentStatus status,  DateTime bookedAt,  int remindersSent,  String? departmentId,  String? reasonText,  double? noShowRisk,  RiskBand? riskBand,  DateTime? calledInAt,  DateTime? checkedInAt,  String? outcomeNote,  String? ticketTag,  String? roomNumber,  String? bookedForName)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Appointment() when $default != null:
-return $default(_that.id,_that.patientId,_that.staffId,_that.slotStart,_that.slotEnd,_that.visitType,_that.status,_that.bookedAt,_that.remindersSent,_that.departmentId,_that.reasonText,_that.noShowRisk,_that.riskBand,_that.checkedInAt,_that.ticketTag,_that.roomNumber,_that.bookedForName);case _:
+return $default(_that.id,_that.patientId,_that.staffId,_that.slotStart,_that.slotEnd,_that.visitType,_that.status,_that.bookedAt,_that.remindersSent,_that.departmentId,_that.reasonText,_that.noShowRisk,_that.riskBand,_that.calledInAt,_that.checkedInAt,_that.outcomeNote,_that.ticketTag,_that.roomNumber,_that.bookedForName);case _:
   return orElse();
 
 }
@@ -194,10 +199,10 @@ return $default(_that.id,_that.patientId,_that.staffId,_that.slotStart,_that.slo
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String patientId,  String staffId,  DateTime slotStart,  DateTime slotEnd,  VisitType visitType,  AppointmentStatus status,  DateTime bookedAt,  int remindersSent,  String? departmentId,  String? reasonText,  double? noShowRisk,  RiskBand? riskBand,  DateTime? checkedInAt,  String? ticketTag,  String? roomNumber,  String? bookedForName)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String patientId,  String staffId,  DateTime slotStart,  DateTime slotEnd,  VisitType visitType,  AppointmentStatus status,  DateTime bookedAt,  int remindersSent,  String? departmentId,  String? reasonText,  double? noShowRisk,  RiskBand? riskBand,  DateTime? calledInAt,  DateTime? checkedInAt,  String? outcomeNote,  String? ticketTag,  String? roomNumber,  String? bookedForName)  $default,) {final _that = this;
 switch (_that) {
 case _Appointment():
-return $default(_that.id,_that.patientId,_that.staffId,_that.slotStart,_that.slotEnd,_that.visitType,_that.status,_that.bookedAt,_that.remindersSent,_that.departmentId,_that.reasonText,_that.noShowRisk,_that.riskBand,_that.checkedInAt,_that.ticketTag,_that.roomNumber,_that.bookedForName);case _:
+return $default(_that.id,_that.patientId,_that.staffId,_that.slotStart,_that.slotEnd,_that.visitType,_that.status,_that.bookedAt,_that.remindersSent,_that.departmentId,_that.reasonText,_that.noShowRisk,_that.riskBand,_that.calledInAt,_that.checkedInAt,_that.outcomeNote,_that.ticketTag,_that.roomNumber,_that.bookedForName);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -214,10 +219,10 @@ return $default(_that.id,_that.patientId,_that.staffId,_that.slotStart,_that.slo
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String patientId,  String staffId,  DateTime slotStart,  DateTime slotEnd,  VisitType visitType,  AppointmentStatus status,  DateTime bookedAt,  int remindersSent,  String? departmentId,  String? reasonText,  double? noShowRisk,  RiskBand? riskBand,  DateTime? checkedInAt,  String? ticketTag,  String? roomNumber,  String? bookedForName)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String patientId,  String staffId,  DateTime slotStart,  DateTime slotEnd,  VisitType visitType,  AppointmentStatus status,  DateTime bookedAt,  int remindersSent,  String? departmentId,  String? reasonText,  double? noShowRisk,  RiskBand? riskBand,  DateTime? calledInAt,  DateTime? checkedInAt,  String? outcomeNote,  String? ticketTag,  String? roomNumber,  String? bookedForName)?  $default,) {final _that = this;
 switch (_that) {
 case _Appointment() when $default != null:
-return $default(_that.id,_that.patientId,_that.staffId,_that.slotStart,_that.slotEnd,_that.visitType,_that.status,_that.bookedAt,_that.remindersSent,_that.departmentId,_that.reasonText,_that.noShowRisk,_that.riskBand,_that.checkedInAt,_that.ticketTag,_that.roomNumber,_that.bookedForName);case _:
+return $default(_that.id,_that.patientId,_that.staffId,_that.slotStart,_that.slotEnd,_that.visitType,_that.status,_that.bookedAt,_that.remindersSent,_that.departmentId,_that.reasonText,_that.noShowRisk,_that.riskBand,_that.calledInAt,_that.checkedInAt,_that.outcomeNote,_that.ticketTag,_that.roomNumber,_that.bookedForName);case _:
   return null;
 
 }
@@ -229,7 +234,7 @@ return $default(_that.id,_that.patientId,_that.staffId,_that.slotStart,_that.slo
 
 
 class _Appointment extends Appointment {
-  const _Appointment({required this.id, required this.patientId, required this.staffId, required this.slotStart, required this.slotEnd, required this.visitType, required this.status, required this.bookedAt, required this.remindersSent, this.departmentId, this.reasonText, this.noShowRisk, this.riskBand, this.checkedInAt, this.ticketTag, this.roomNumber, this.bookedForName}): super._();
+  const _Appointment({required this.id, required this.patientId, required this.staffId, required this.slotStart, required this.slotEnd, required this.visitType, required this.status, required this.bookedAt, required this.remindersSent, this.departmentId, this.reasonText, this.noShowRisk, this.riskBand, this.calledInAt, this.checkedInAt, this.outcomeNote, this.ticketTag, this.roomNumber, this.bookedForName}): super._();
   
 
 @override final  String id;
@@ -245,7 +250,12 @@ class _Appointment extends Appointment {
 @override final  String? reasonText;
 @override final  double? noShowRisk;
 @override final  RiskBand? riskBand;
+/// When the doctor pressed "Call patient" on the schedule ticket.
+@override final  DateTime? calledInAt;
+/// When the doctor pressed "Patient arrived" — the visit is `inProgress`.
 @override final  DateTime? checkedInAt;
+/// The doctor's closing summary, written at "Complete consultation".
+@override final  String? outcomeNote;
 /// `[Hour letter A-X]-[facility-wide ticket number for that hour today]`,
 /// assigned once at booking time from [slotStart] (redesign v2 patient
 /// dashboard spec).
@@ -267,16 +277,16 @@ _$AppointmentCopyWith<_Appointment> get copyWith => __$AppointmentCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Appointment&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.staffId, staffId) || other.staffId == staffId)&&(identical(other.slotStart, slotStart) || other.slotStart == slotStart)&&(identical(other.slotEnd, slotEnd) || other.slotEnd == slotEnd)&&(identical(other.visitType, visitType) || other.visitType == visitType)&&(identical(other.status, status) || other.status == status)&&(identical(other.bookedAt, bookedAt) || other.bookedAt == bookedAt)&&(identical(other.remindersSent, remindersSent) || other.remindersSent == remindersSent)&&(identical(other.departmentId, departmentId) || other.departmentId == departmentId)&&(identical(other.reasonText, reasonText) || other.reasonText == reasonText)&&(identical(other.noShowRisk, noShowRisk) || other.noShowRisk == noShowRisk)&&(identical(other.riskBand, riskBand) || other.riskBand == riskBand)&&(identical(other.checkedInAt, checkedInAt) || other.checkedInAt == checkedInAt)&&(identical(other.ticketTag, ticketTag) || other.ticketTag == ticketTag)&&(identical(other.roomNumber, roomNumber) || other.roomNumber == roomNumber)&&(identical(other.bookedForName, bookedForName) || other.bookedForName == bookedForName));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Appointment&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.staffId, staffId) || other.staffId == staffId)&&(identical(other.slotStart, slotStart) || other.slotStart == slotStart)&&(identical(other.slotEnd, slotEnd) || other.slotEnd == slotEnd)&&(identical(other.visitType, visitType) || other.visitType == visitType)&&(identical(other.status, status) || other.status == status)&&(identical(other.bookedAt, bookedAt) || other.bookedAt == bookedAt)&&(identical(other.remindersSent, remindersSent) || other.remindersSent == remindersSent)&&(identical(other.departmentId, departmentId) || other.departmentId == departmentId)&&(identical(other.reasonText, reasonText) || other.reasonText == reasonText)&&(identical(other.noShowRisk, noShowRisk) || other.noShowRisk == noShowRisk)&&(identical(other.riskBand, riskBand) || other.riskBand == riskBand)&&(identical(other.calledInAt, calledInAt) || other.calledInAt == calledInAt)&&(identical(other.checkedInAt, checkedInAt) || other.checkedInAt == checkedInAt)&&(identical(other.outcomeNote, outcomeNote) || other.outcomeNote == outcomeNote)&&(identical(other.ticketTag, ticketTag) || other.ticketTag == ticketTag)&&(identical(other.roomNumber, roomNumber) || other.roomNumber == roomNumber)&&(identical(other.bookedForName, bookedForName) || other.bookedForName == bookedForName));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,patientId,staffId,slotStart,slotEnd,visitType,status,bookedAt,remindersSent,departmentId,reasonText,noShowRisk,riskBand,checkedInAt,ticketTag,roomNumber,bookedForName);
+int get hashCode => Object.hashAll([runtimeType,id,patientId,staffId,slotStart,slotEnd,visitType,status,bookedAt,remindersSent,departmentId,reasonText,noShowRisk,riskBand,calledInAt,checkedInAt,outcomeNote,ticketTag,roomNumber,bookedForName]);
 
 @override
 String toString() {
-  return 'Appointment(id: $id, patientId: $patientId, staffId: $staffId, slotStart: $slotStart, slotEnd: $slotEnd, visitType: $visitType, status: $status, bookedAt: $bookedAt, remindersSent: $remindersSent, departmentId: $departmentId, reasonText: $reasonText, noShowRisk: $noShowRisk, riskBand: $riskBand, checkedInAt: $checkedInAt, ticketTag: $ticketTag, roomNumber: $roomNumber, bookedForName: $bookedForName)';
+  return 'Appointment(id: $id, patientId: $patientId, staffId: $staffId, slotStart: $slotStart, slotEnd: $slotEnd, visitType: $visitType, status: $status, bookedAt: $bookedAt, remindersSent: $remindersSent, departmentId: $departmentId, reasonText: $reasonText, noShowRisk: $noShowRisk, riskBand: $riskBand, calledInAt: $calledInAt, checkedInAt: $checkedInAt, outcomeNote: $outcomeNote, ticketTag: $ticketTag, roomNumber: $roomNumber, bookedForName: $bookedForName)';
 }
 
 
@@ -287,7 +297,7 @@ abstract mixin class _$AppointmentCopyWith<$Res> implements $AppointmentCopyWith
   factory _$AppointmentCopyWith(_Appointment value, $Res Function(_Appointment) _then) = __$AppointmentCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String patientId, String staffId, DateTime slotStart, DateTime slotEnd, VisitType visitType, AppointmentStatus status, DateTime bookedAt, int remindersSent, String? departmentId, String? reasonText, double? noShowRisk, RiskBand? riskBand, DateTime? checkedInAt, String? ticketTag, String? roomNumber, String? bookedForName
+ String id, String patientId, String staffId, DateTime slotStart, DateTime slotEnd, VisitType visitType, AppointmentStatus status, DateTime bookedAt, int remindersSent, String? departmentId, String? reasonText, double? noShowRisk, RiskBand? riskBand, DateTime? calledInAt, DateTime? checkedInAt, String? outcomeNote, String? ticketTag, String? roomNumber, String? bookedForName
 });
 
 
@@ -304,7 +314,7 @@ class __$AppointmentCopyWithImpl<$Res>
 
 /// Create a copy of Appointment
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? patientId = null,Object? staffId = null,Object? slotStart = null,Object? slotEnd = null,Object? visitType = null,Object? status = null,Object? bookedAt = null,Object? remindersSent = null,Object? departmentId = freezed,Object? reasonText = freezed,Object? noShowRisk = freezed,Object? riskBand = freezed,Object? checkedInAt = freezed,Object? ticketTag = freezed,Object? roomNumber = freezed,Object? bookedForName = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? patientId = null,Object? staffId = null,Object? slotStart = null,Object? slotEnd = null,Object? visitType = null,Object? status = null,Object? bookedAt = null,Object? remindersSent = null,Object? departmentId = freezed,Object? reasonText = freezed,Object? noShowRisk = freezed,Object? riskBand = freezed,Object? calledInAt = freezed,Object? checkedInAt = freezed,Object? outcomeNote = freezed,Object? ticketTag = freezed,Object? roomNumber = freezed,Object? bookedForName = freezed,}) {
   return _then(_Appointment(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,patientId: null == patientId ? _self.patientId : patientId // ignore: cast_nullable_to_non_nullable
@@ -319,8 +329,10 @@ as int,departmentId: freezed == departmentId ? _self.departmentId : departmentId
 as String?,reasonText: freezed == reasonText ? _self.reasonText : reasonText // ignore: cast_nullable_to_non_nullable
 as String?,noShowRisk: freezed == noShowRisk ? _self.noShowRisk : noShowRisk // ignore: cast_nullable_to_non_nullable
 as double?,riskBand: freezed == riskBand ? _self.riskBand : riskBand // ignore: cast_nullable_to_non_nullable
-as RiskBand?,checkedInAt: freezed == checkedInAt ? _self.checkedInAt : checkedInAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,ticketTag: freezed == ticketTag ? _self.ticketTag : ticketTag // ignore: cast_nullable_to_non_nullable
+as RiskBand?,calledInAt: freezed == calledInAt ? _self.calledInAt : calledInAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,checkedInAt: freezed == checkedInAt ? _self.checkedInAt : checkedInAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,outcomeNote: freezed == outcomeNote ? _self.outcomeNote : outcomeNote // ignore: cast_nullable_to_non_nullable
+as String?,ticketTag: freezed == ticketTag ? _self.ticketTag : ticketTag // ignore: cast_nullable_to_non_nullable
 as String?,roomNumber: freezed == roomNumber ? _self.roomNumber : roomNumber // ignore: cast_nullable_to_non_nullable
 as String?,bookedForName: freezed == bookedForName ? _self.bookedForName : bookedForName // ignore: cast_nullable_to_non_nullable
 as String?,

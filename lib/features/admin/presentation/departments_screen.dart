@@ -79,7 +79,9 @@ class DepartmentsScreen extends ConsumerWidget {
                         children: [
                           Icon(
                             Icons.apartment_outlined,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                           ),
                           const SizedBox(width: Space.sm),
                           Expanded(
@@ -88,15 +90,12 @@ class DepartmentsScreen extends ConsumerWidget {
                               children: [
                                 Text(
                                   d.name,
-                                  style:
-                                      Theme.of(context).textTheme.titleSmall,
+                                  style: Theme.of(context).textTheme.titleSmall,
                                 ),
                                 if (d.description != null)
                                   Text(
                                     d.description!,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
+                                    style: Theme.of(context).textTheme.bodySmall
                                         ?.copyWith(
                                           color: Theme.of(
                                             context,

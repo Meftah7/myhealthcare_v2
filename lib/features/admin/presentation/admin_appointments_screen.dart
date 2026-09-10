@@ -17,6 +17,7 @@ import 'admin_top_actions.dart';
 String _statusLabel(AppointmentStatus s) => switch (s) {
   AppointmentStatus.booked => 'Booked',
   AppointmentStatus.confirmed => 'Confirmed',
+  AppointmentStatus.inProgress => 'In progress',
   AppointmentStatus.completed => 'Completed',
   AppointmentStatus.cancelled => 'Cancelled',
   AppointmentStatus.noShow => 'No-show',
@@ -56,7 +57,8 @@ class _AdminAppointmentsScreenState
               children: [
                 for (final (label, value) in <(String, AppointmentStatus?)>[
                   ('All', null),
-                  for (final s in AppointmentStatus.values) (_statusLabel(s), s),
+                  for (final s in AppointmentStatus.values)
+                    (_statusLabel(s), s),
                 ])
                   Padding(
                     padding: const EdgeInsets.only(right: Space.xs),
@@ -80,8 +82,8 @@ class _AdminAppointmentsScreenState
         data: (all) {
           final list =
               (_filter == null
-                  ? all
-                  : all.where((a) => a.status == _filter).toList())
+                    ? all
+                    : all.where((a) => a.status == _filter).toList())
                 ..sort((a, b) => b.slotStart.compareTo(a.slotStart));
           if (list.isEmpty) {
             return const EmptyState(

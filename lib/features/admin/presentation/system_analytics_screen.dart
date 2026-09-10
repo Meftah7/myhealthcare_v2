@@ -20,9 +20,7 @@ class SystemAnalyticsScreen extends ConsumerWidget {
     final stats = ref.watch(systemStatsProvider);
     final panel = ref.watch(panelStatsProvider);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('System analytics'),
-      ),
+      appBar: AppBar(title: const Text('System analytics')),
       body: RefreshIndicator(
         onRefresh: () async {
           ref
@@ -68,7 +66,10 @@ class SystemAnalyticsScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: Space.md),
-                const SectionHeader('Appointments · last 90 days', overline: true),
+                const SectionHeader(
+                  'Appointments · last 90 days',
+                  overline: true,
+                ),
                 panel.when(
                   loading: () => const LoadingSkeleton(height: 120),
                   error: (e, _) => const InlineBanner.error(
@@ -89,10 +90,7 @@ class SystemAnalyticsScreen extends ConsumerWidget {
                         const Divider(height: Space.md),
                         _Row('Completed', '${p.completed}'),
                         const Divider(height: Space.md),
-                        _Row(
-                          'Upcoming',
-                          '${p.upcoming}',
-                        ),
+                        _Row('Upcoming', '${p.upcoming}'),
                       ],
                     ),
                   ),
