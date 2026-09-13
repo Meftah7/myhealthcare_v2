@@ -17,6 +17,7 @@ library;
 
 import 'package:flutter/widgets.dart';
 
+import '../../domain/entities/family_member.dart';
 import '../../domain/enums.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -297,4 +298,18 @@ String invoiceStatusLabel(
     return AppLocalizations.of(context)!.invoiceStatusOverdue;
   }
   return status.label(context);
+}
+
+extension FamilyRelationshipLabel on FamilyRelationship {
+  String label(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    return switch (this) {
+      FamilyRelationship.spouse => t.familyRelationshipSpouse,
+      FamilyRelationship.child => t.familyRelationshipChild,
+      FamilyRelationship.parent => t.familyRelationshipParent,
+      FamilyRelationship.sibling => t.familyRelationshipSibling,
+      FamilyRelationship.guardian => t.familyRelationshipGuardian,
+      FamilyRelationship.other => t.familyRelationshipOther,
+    };
+  }
 }

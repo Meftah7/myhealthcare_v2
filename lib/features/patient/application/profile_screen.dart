@@ -16,6 +16,7 @@ import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
 import '../../feedback/presentation/feedback_sheet.dart';
 import '../presentation/patient_top_actions.dart';
@@ -24,46 +25,48 @@ import 'patient_data_providers.dart';
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
-  static const _sections = [
+  List<(IconData, String, String, String)> _sections(AppLocalizations t) => [
     (
       Icons.badge_outlined,
-      'Personal info',
-      'Name, contact, date of birth',
+      t.personalInfoTitle,
+      t.personalInfoSubtitle,
       AppRoutes.patientProfilePersonal,
     ),
     (
       Icons.favorite_outline,
-      'Health details',
-      'Blood type, allergies, conditions',
+      t.healthDetailsTitle,
+      t.healthDetailsSubtitle,
       AppRoutes.patientProfileHealth,
     ),
     (
       Icons.account_balance_wallet_outlined,
-      'Wallet',
-      'Saved cards and payment history',
+      t.walletTitle,
+      t.walletSubtitle,
       AppRoutes.patientProfileWallet,
     ),
     (
       Icons.tune,
-      'Preferences',
-      'Theme, text size, language, alerts',
+      t.preferences,
+      t.preferencesSubtitle,
       AppRoutes.patientProfilePreferences,
     ),
     (
       Icons.family_restroom_outlined,
-      'Family network',
-      'People linked to your account',
+      t.familyNetworkTitle,
+      t.familyNetworkSubtitle,
       AppRoutes.patientProfileFamily,
     ),
   ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final profile = ref.watch(patientProfileProvider);
+    final sections = _sections(t);
 
     return AppScaffold(
-      title: 'Profile',
+      title: t.profile,
       actions: const [PatientTopActions()],
       onRefresh: () async => ref.invalidate(patientProfileProvider),
       children: profile.when(
@@ -71,7 +74,7 @@ class ProfileScreen extends ConsumerWidget {
         error: (e, _) => [
           const SizedBox(height: Space.xl),
           ErrorStateView(
-            message: 'Could not load your profile.',
+            message: t.couldNotLoadYourProfile,
             onRetry: () => ref.invalidate(patientProfileProvider),
           ),
         ],
@@ -79,7 +82,7 @@ class ProfileScreen extends ConsumerWidget {
           ProfileHeader(name: p.user.fullName, email: p.user.email),
           const SizedBox(height: Space.md),
 
-          for (final (i, (icon, title, subtitle, route)) in _sections.indexed)
+          for (final (i, (icon, title, subtitle, route)) in sections.indexed)
             Padding(
               padding: EdgeInsets.only(top: i == 0 ? 0 : Space.xs),
               child: NavRow(
@@ -94,16 +97,16 @@ class ProfileScreen extends ConsumerWidget {
           OutlinedButton.icon(
             onPressed: () => unawaited(showFeedbackSheet(context, ref)),
             icon: const Icon(Icons.forum_outlined),
-            label: const Text('Send feedback'),
+            label: Text(t.sendFeedbackTitle),
           ),
           const SizedBox(height: Space.sm),
           OutlinedButton.icon(
             onPressed: () async {
               final ok = await confirm(
                 context,
-                title: 'Sign out?',
-                message: 'You can sign back in any time.',
-                confirmLabel: 'Sign out',
+                title: t.signOutConfirmTitle,
+                message: t.signOutConfirmBody,
+                confirmLabel: t.signOut,
                 destructive: true,
               );
               if (ok) {
@@ -117,7 +120,7 @@ class ProfileScreen extends ConsumerWidget {
               ),
             ),
             icon: const Icon(Icons.logout),
-            label: const Text('Sign out'),
+            label: Text(t.signOut),
           ),
         ],
       ),

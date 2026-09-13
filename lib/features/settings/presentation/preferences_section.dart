@@ -15,6 +15,20 @@ import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../l10n/app_localizations.dart';
 
+/// Translated label for a [TextScaleLevel] — a device-local UI preference,
+/// not a domain enum, so its label lives here rather than in
+/// `enum_labels.dart` (mirrors `_statusLabel` in `admin_status_menu.dart`).
+String _textScaleLabel(BuildContext context, TextScaleLevel level) {
+  final t = AppLocalizations.of(context)!;
+  return switch (level) {
+    TextScaleLevel.xSmall => t.textScaleSmaller,
+    TextScaleLevel.small => t.textScaleSmall,
+    TextScaleLevel.medium => t.textScaleDefault,
+    TextScaleLevel.large => t.textScaleLarge,
+    TextScaleLevel.xLarge => t.textScaleLarger,
+  };
+}
+
 class PreferencesSection extends ConsumerWidget {
   const PreferencesSection({this.bare = false, super.key});
 
@@ -55,7 +69,7 @@ class PreferencesSection extends ConsumerWidget {
     final textSizeBlock = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const _BlockLabel(icon: Icons.format_size_outlined, label: 'Text size'),
+        _BlockLabel(icon: Icons.format_size_outlined, label: t.textSizeLabel),
         const SizedBox(height: Space.xs),
         Row(
           children: [
@@ -65,7 +79,7 @@ class PreferencesSection extends ConsumerWidget {
                 value: textSize.index.toDouble(),
                 max: (TextScaleLevel.values.length - 1).toDouble(),
                 divisions: TextScaleLevel.values.length - 1,
-                label: textSize.label,
+                label: _textScaleLabel(context, textSize),
                 onChanged: (v) => ref
                     .read(textScaleProvider.notifier)
                     .set(TextScaleLevel.values[v.round()]),
@@ -77,7 +91,7 @@ class PreferencesSection extends ConsumerWidget {
         Align(
           alignment: AlignmentDirectional.centerStart,
           child: Text(
-            '${textSize.label} — applies to text across the whole app',
+            t.textSizeCaption(_textScaleLabel(context, textSize)),
             style: theme.textTheme.bodySmall?.copyWith(
               color: scheme.onSurfaceVariant,
             ),
@@ -120,34 +134,33 @@ class PreferencesSection extends ConsumerWidget {
     final notificationsBlock = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const _BlockLabel(
+        _BlockLabel(
           icon: Icons.notifications_outlined,
-          label: 'Notification channels',
+          label: t.notificationChannelsLabel,
         ),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
-          title: const Text('SMS'),
+          title: Text(t.smsLabel),
           value: notify.sms,
           onChanged: ref.read(notificationPrefsProvider.notifier).setSms,
         ),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
-          title: const Text('Email'),
+          title: Text(t.emailLabel),
           value: notify.email,
           onChanged: ref.read(notificationPrefsProvider.notifier).setEmail,
         ),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
-          title: const Text('Sounds'),
-          subtitle: const Text('A short cue when a message arrives, and when '
-              'a working status changes'),
+          title: Text(t.soundsLabel),
+          subtitle: Text(t.soundsSubtitle),
           value: soundsOn,
           onChanged: (v) => ref
               .read(soundsEnabledProvider.notifier)
               .set(enabled: v),
         ),
         Text(
-          'Where appointment reminders and care alerts reach you.',
+          t.notificationChannelsCaption,
           style: theme.textTheme.bodySmall?.copyWith(
             color: scheme.onSurfaceVariant,
           ),

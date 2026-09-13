@@ -127,12 +127,3 @@ class FamilyMember {
     Object.hash(phone, email),
   );
 }
-
-String familyRelationshipLabel(FamilyRelationship r) => switch (r) {
-  FamilyRelationship.spouse => 'Spouse',
-  FamilyRelationship.child => 'Child',
-  FamilyRelationship.parent => 'Parent',
-  FamilyRelationship.sibling => 'Sibling',
-  FamilyRelationship.guardian => 'Guardian',
-  FamilyRelationship.other => 'Other',
-};

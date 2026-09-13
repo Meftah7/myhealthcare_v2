@@ -12,10 +12,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
+import '../../../core/i18n/enum_labels.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/date_input.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/patient_data_providers.dart';
 
 class PersonalInfoSection extends ConsumerStatefulWidget {
@@ -100,7 +102,9 @@ class _PersonalInfoSectionState extends ConsumerState<PersonalInfoSection> {
   String? get _cprError {
     final text = _cpr.text;
     if (text.isEmpty) return null;
-    if (text.length != 9) return '${text.length}/9 digits';
+    if (text.length != 9) {
+      return AppLocalizations.of(context)!.cprDigitsHelper(text.length);
+    }
     return null;
   }
 
@@ -150,7 +154,9 @@ class _PersonalInfoSectionState extends ConsumerState<PersonalInfoSection> {
       case Ok():
         ref.invalidate(patientProfileProvider);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile updated.')),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.profileUpdatedSnackbar),
+          ),
         );
       case Err(:final failure):
         ScaffoldMessenger.of(
@@ -161,6 +167,7 @@ class _PersonalInfoSectionState extends ConsumerState<PersonalInfoSection> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final canSave = _isDirty && _isValid && !_busy;
 
     return Column(
@@ -171,14 +178,14 @@ class _PersonalInfoSectionState extends ConsumerState<PersonalInfoSection> {
             Expanded(
               child: TextField(
                 controller: _firstName,
-                decoration: const InputDecoration(labelText: 'First name'),
+                decoration: InputDecoration(labelText: t.firstNameLabel),
               ),
             ),
             const SizedBox(width: Space.sm),
             Expanded(
               child: TextField(
                 controller: _lastName,
-                decoration: const InputDecoration(labelText: 'Last name'),
+                decoration: InputDecoration(labelText: t.lastNameLabel),
               ),
             ),
           ],
@@ -192,8 +199,8 @@ class _PersonalInfoSectionState extends ConsumerState<PersonalInfoSection> {
             LengthLimitingTextInputFormatter(9),
           ],
           decoration: InputDecoration(
-            labelText: 'CPR',
-            helperText: '${_cpr.text.length}/9 digits',
+            labelText: t.cprLabel,
+            helperText: t.cprDigitsHelper(_cpr.text.length),
             errorText: _cprError,
           ),
         ),
@@ -203,17 +210,17 @@ class _PersonalInfoSectionState extends ConsumerState<PersonalInfoSection> {
           keyboardType: TextInputType.number,
           inputFormatters: [DateSlashFormatter()],
           decoration: InputDecoration(
-            labelText: 'Date of birth (DD/MM/YYYY)',
+            labelText: t.dateOfBirthDdmmyyyyLabel,
             errorText: _dobError,
           ),
         ),
         const SizedBox(height: Space.sm),
         DropdownButtonFormField<Gender>(
           initialValue: _gender,
-          decoration: const InputDecoration(labelText: 'Gender'),
+          decoration: InputDecoration(labelText: t.genderFieldLabel),
           items: [
             for (final g in Gender.values)
-              DropdownMenuItem(value: g, child: Text(_genderLabel(g))),
+              DropdownMenuItem(value: g, child: Text(g.label(context))),
           ],
           onChanged: (v) => setState(() => _gender = v),
         ),
@@ -221,13 +228,13 @@ class _PersonalInfoSectionState extends ConsumerState<PersonalInfoSection> {
         TextField(
           controller: _phone,
           keyboardType: TextInputType.phone,
-          decoration: const InputDecoration(labelText: 'Phone'),
+          decoration: InputDecoration(labelText: t.phoneLabel),
         ),
         const SizedBox(height: Space.sm),
         TextField(
           controller: _email,
           keyboardType: TextInputType.emailAddress,
-          decoration: const InputDecoration(labelText: 'Email'),
+          decoration: InputDecoration(labelText: t.emailLabel),
         ),
         const SizedBox(height: Space.md),
         Row(
@@ -235,7 +242,7 @@ class _PersonalInfoSectionState extends ConsumerState<PersonalInfoSection> {
             Expanded(
               child: OutlinedButton(
                 onPressed: _isDirty && !_busy ? _cancel : null,
-                child: const Text('Cancel'),
+                child: Text(t.cancel),
               ),
             ),
             const SizedBox(width: Space.sm),
@@ -248,7 +255,7 @@ class _PersonalInfoSectionState extends ConsumerState<PersonalInfoSection> {
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Save'),
+                    : Text(t.saveButton),
               ),
             ),
           ],
@@ -256,11 +263,4 @@ class _PersonalInfoSectionState extends ConsumerState<PersonalInfoSection> {
       ],
     );
   }
-
-  static String _genderLabel(Gender g) => switch (g) {
-    Gender.female => 'Female',
-    Gender.male => 'Male',
-    Gender.other => 'Other',
-    Gender.undisclosed => 'Prefer not to say',
-  };
 }

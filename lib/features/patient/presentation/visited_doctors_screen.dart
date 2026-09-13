@@ -11,6 +11,7 @@ import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../booking/presentation/booking_screen.dart';
 import '../application/visited_doctors_provider.dart';
 import 'patient_top_actions.dart';
@@ -20,24 +21,25 @@ class VisitedDoctorsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final doctors = ref.watch(visitedDoctorsProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Visited doctors'),
+        title: Text(t.visitedDoctorsTitle),
         actions: const [PatientTopActions()],
       ),
       body: doctors.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
-          message: 'Could not load your care team.',
+          message: t.couldNotLoadYourCareTeam,
           onRetry: () => ref.invalidate(visitedDoctorsProvider),
         ),
         data: (list) {
           if (list.isEmpty) {
-            return const EmptyState(
+            return EmptyState(
               icon: Icons.groups_outlined,
-              message: 'No past visits yet.\nDoctors you see will appear here.',
+              message: t.noPastVisitsYetMessage,
             );
           }
           return Center(
@@ -71,10 +73,10 @@ class _DoctorCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final visits =
-        '${doctor.visitCount} visit${doctor.visitCount == 1 ? '' : 's'}';
+    final visits = t.visitCountLabel(doctor.visitCount);
 
     return AppCard(
       child: Column(
@@ -99,7 +101,7 @@ class _DoctorCard extends StatelessWidget {
                   children: [
                     Text(doctor.name, style: theme.textTheme.titleMedium),
                     Text(
-                      doctor.departmentName ?? 'General',
+                      doctor.departmentName ?? t.generalDepartmentFallback,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: scheme.onSurfaceVariant,
                       ),
@@ -117,12 +119,12 @@ class _DoctorCard extends StatelessWidget {
               _Fact(icon: Icons.history, label: visits),
               _Fact(
                 icon: Icons.event_available_outlined,
-                label: 'Last ${fmtShortDate(doctor.lastVisit)}',
+                label: t.lastVisitLabel(fmtShortDate(doctor.lastVisit)),
               ),
               if (doctor.nextVisit != null)
                 _Fact(
                   icon: Icons.upcoming_outlined,
-                  label: 'Next ${fmtShortDate(doctor.nextVisit!)}',
+                  label: t.nextVisitLabel(fmtShortDate(doctor.nextVisit!)),
                 ),
             ],
           ),
@@ -135,7 +137,7 @@ class _DoctorCard extends StatelessWidget {
                 extra: BookingMode.schedule,
               ),
               icon: const Icon(Icons.event_outlined, size: 18),
-              label: const Text('Book again'),
+              label: Text(t.bookAgainAction),
             ),
           ),
         ],
@@ -145,7 +147,7 @@ class _DoctorCard extends StatelessWidget {
 
   static String _initials(String name) {
     final parts = name
-        .replaceFirst(RegExp('^Dr '), '')
+        .replaceFirst(RegExp('^(Dr |د\\. )'), '')
         .split(RegExp(r'\s+'))
         .where((p) => p.isNotEmpty)
         .toList();

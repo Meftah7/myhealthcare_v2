@@ -3122,4 +3122,248 @@ class AppLocalizationsAr extends AppLocalizations {
   String patientReferredToSnackbar(String name, String destination) {
     return 'تم تحويل $name إلى $destination';
   }
+
+  @override
+  String get textSizeLabel => 'حجم الخط';
+
+  @override
+  String textSizeCaption(String level) {
+    return '$level — يُطبَّق على النص في التطبيق بأكمله';
+  }
+
+  @override
+  String get textScaleSmaller => 'أصغر';
+
+  @override
+  String get textScaleSmall => 'صغير';
+
+  @override
+  String get textScaleDefault => 'افتراضي';
+
+  @override
+  String get textScaleLarge => 'كبير';
+
+  @override
+  String get textScaleLarger => 'أكبر';
+
+  @override
+  String get notificationChannelsLabel => 'قنوات الإشعارات';
+
+  @override
+  String get smsLabel => 'رسائل نصية';
+
+  @override
+  String get soundsLabel => 'الأصوات';
+
+  @override
+  String get soundsSubtitle =>
+      'نغمة قصيرة عند وصول رسالة، أو عند تغيّر حالة العمل';
+
+  @override
+  String get notificationChannelsCaption =>
+      'أين تصلك تذكيرات المواعيد وتنبيهات الرعاية.';
+
+  @override
+  String get personalInfoTitle => 'المعلومات الشخصية';
+
+  @override
+  String get personalInfoSubtitle => 'الاسم، وسيلة التواصل، تاريخ الميلاد';
+
+  @override
+  String get healthDetailsTitle => 'التفاصيل الصحية';
+
+  @override
+  String get healthDetailsSubtitle => 'فصيلة الدم، الحساسية، الأمراض المزمنة';
+
+  @override
+  String get walletTitle => 'المحفظة';
+
+  @override
+  String get walletSubtitle => 'البطاقات المحفوظة وسجل الدفعات';
+
+  @override
+  String get familyNetworkTitle => 'الشبكة العائلية';
+
+  @override
+  String get familyNetworkSubtitle => 'الأشخاص المرتبطون بحسابك';
+
+  @override
+  String get profileUpdatedSnackbar => 'تم تحديث الملف الشخصي.';
+
+  @override
+  String get firstNameLabel => 'الاسم الأول';
+
+  @override
+  String get lastNameLabel => 'اسم العائلة';
+
+  @override
+  String get cprLabel => 'الرقم الشخصي';
+
+  @override
+  String cprDigitsHelper(int count) {
+    return '$count/9 أرقام';
+  }
+
+  @override
+  String get dateOfBirthDdmmyyyyLabel => 'تاريخ الميلاد (يوم/شهر/سنة)';
+
+  @override
+  String get genderFieldLabel => 'الجنس';
+
+  @override
+  String get healthDetailsUpdatedSnackbar => 'تم تحديث التفاصيل الصحية.';
+
+  @override
+  String get bloodTypeLabel => 'فصيلة الدم';
+
+  @override
+  String get unknownOption => 'غير معروفة';
+
+  @override
+  String get separateWithCommasHelper => 'افصل بينها بفواصل';
+
+  @override
+  String get chronicConditionsLabel => 'الأمراض المزمنة';
+
+  @override
+  String get emergencyContactLabel => 'جهة اتصال للطوارئ';
+
+  @override
+  String get emergencyContactHint => 'الاسم · الهاتف';
+
+  @override
+  String get sharedWithCliniciansNote =>
+      'تتم مشاركتها مع الأطباء الذين يعالجونك.';
+
+  @override
+  String get couldNotLoadYourAllergies => 'تعذّر تحميل حساسيتك.';
+
+  @override
+  String get shownToCliniciansNote =>
+      'تُعرض على كل طبيب يعالجك وتُطبع في تقاريرك. احرص على دقتها.';
+
+  @override
+  String get addYourAllergiesAction => 'إضافة حساسيتك';
+
+  @override
+  String get updateAllergiesAction => 'تحديث الحساسية';
+
+  @override
+  String get knownAllergiesLabel => 'الحساسية المعروفة';
+
+  @override
+  String get noAllergiesRecordedTitle => 'لا توجد حساسية مسجلة';
+
+  @override
+  String get noAllergiesRecordedSubtitle =>
+      'إذا كانت لديك أي حساسية من دواء أو طعام أو غيره، أضفها ليتمكن فريق رعايتك من الاطلاع عليها.';
+
+  @override
+  String get couldNotLoadFamilyMembers => 'تعذّر تحميل أفراد العائلة.';
+
+  @override
+  String get noFamilyMembersLinkedYet => 'لا يوجد أفراد عائلة مرتبطون بعد.';
+
+  @override
+  String get addFamilyMemberAction => 'إضافة فرد من العائلة';
+
+  @override
+  String removeConfirmTitle(String name) {
+    return 'إزالة $name؟';
+  }
+
+  @override
+  String get unlinksFromFamilyNetworkNote =>
+      'سيؤدي هذا إلى إلغاء ارتباطه بشبكتك العائلية.';
+
+  @override
+  String get editFamilyMemberTitle => 'تعديل فرد العائلة';
+
+  @override
+  String get relationshipLabel => 'صلة القرابة';
+
+  @override
+  String get firstNameRequiredLabel => 'الاسم الأول *';
+
+  @override
+  String get lastNameRequiredLabel => 'اسم العائلة *';
+
+  @override
+  String get cprOptionalLabel => 'الرقم الشخصي (اختياري)';
+
+  @override
+  String get dobDdmmyyyyOptionalLabel => 'تاريخ الميلاد (يوم/شهر/سنة، اختياري)';
+
+  @override
+  String get genderOptionalLabel => 'الجنس (اختياري)';
+
+  @override
+  String get bloodTypeOptionalLabel => 'فصيلة الدم (اختياري)';
+
+  @override
+  String get saveChangesAction => 'حفظ التغييرات';
+
+  @override
+  String cprValueLabel(String value) {
+    return 'الرقم الشخصي $value';
+  }
+
+  @override
+  String get familyRelationshipSpouse => 'زوج/زوجة';
+
+  @override
+  String get familyRelationshipChild => 'ابن/ابنة';
+
+  @override
+  String get familyRelationshipParent => 'أحد الوالدين';
+
+  @override
+  String get familyRelationshipSibling => 'أخ/أخت';
+
+  @override
+  String get familyRelationshipGuardian => 'وصي';
+
+  @override
+  String get familyRelationshipOther => 'أخرى';
+
+  @override
+  String get visitedDoctorsTitle => 'الأطباء الذين تمت زيارتهم';
+
+  @override
+  String get couldNotLoadYourCareTeam => 'تعذّر تحميل فريق رعايتك.';
+
+  @override
+  String get noPastVisitsYetMessage =>
+      'لا توجد زيارات سابقة بعد.\nسيظهر هنا الأطباء الذين تزورهم.';
+
+  @override
+  String visitCountLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count زيارة',
+      many: '$count زيارة',
+      few: '$count زيارات',
+      two: 'زيارتان',
+      one: 'زيارة واحدة',
+      zero: 'لا زيارات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String lastVisitLabel(String date) {
+    return 'آخر زيارة $date';
+  }
+
+  @override
+  String nextVisitLabel(String date) {
+    return 'الزيارة القادمة $date';
+  }
+
+  @override
+  String get generalDepartmentFallback => 'عام';
+
+  @override
+  String get bookAgainAction => 'الحجز مجدداً';
 }

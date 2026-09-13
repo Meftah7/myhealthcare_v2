@@ -3065,4 +3065,244 @@ class AppLocalizationsEn extends AppLocalizations {
   String patientReferredToSnackbar(String name, String destination) {
     return '$name referred to $destination';
   }
+
+  @override
+  String get textSizeLabel => 'Text size';
+
+  @override
+  String textSizeCaption(String level) {
+    return '$level — applies to text across the whole app';
+  }
+
+  @override
+  String get textScaleSmaller => 'Smaller';
+
+  @override
+  String get textScaleSmall => 'Small';
+
+  @override
+  String get textScaleDefault => 'Default';
+
+  @override
+  String get textScaleLarge => 'Large';
+
+  @override
+  String get textScaleLarger => 'Larger';
+
+  @override
+  String get notificationChannelsLabel => 'Notification channels';
+
+  @override
+  String get smsLabel => 'SMS';
+
+  @override
+  String get soundsLabel => 'Sounds';
+
+  @override
+  String get soundsSubtitle =>
+      'A short cue when a message arrives, and when a working status changes';
+
+  @override
+  String get notificationChannelsCaption =>
+      'Where appointment reminders and care alerts reach you.';
+
+  @override
+  String get personalInfoTitle => 'Personal info';
+
+  @override
+  String get personalInfoSubtitle => 'Name, contact, date of birth';
+
+  @override
+  String get healthDetailsTitle => 'Health details';
+
+  @override
+  String get healthDetailsSubtitle => 'Blood type, allergies, conditions';
+
+  @override
+  String get walletTitle => 'Wallet';
+
+  @override
+  String get walletSubtitle => 'Saved cards and payment history';
+
+  @override
+  String get familyNetworkTitle => 'Family network';
+
+  @override
+  String get familyNetworkSubtitle => 'People linked to your account';
+
+  @override
+  String get profileUpdatedSnackbar => 'Profile updated.';
+
+  @override
+  String get firstNameLabel => 'First name';
+
+  @override
+  String get lastNameLabel => 'Last name';
+
+  @override
+  String get cprLabel => 'CPR';
+
+  @override
+  String cprDigitsHelper(int count) {
+    return '$count/9 digits';
+  }
+
+  @override
+  String get dateOfBirthDdmmyyyyLabel => 'Date of birth (DD/MM/YYYY)';
+
+  @override
+  String get genderFieldLabel => 'Gender';
+
+  @override
+  String get healthDetailsUpdatedSnackbar => 'Health details updated.';
+
+  @override
+  String get bloodTypeLabel => 'Blood type';
+
+  @override
+  String get unknownOption => 'Unknown';
+
+  @override
+  String get separateWithCommasHelper => 'Separate with commas';
+
+  @override
+  String get chronicConditionsLabel => 'Chronic conditions';
+
+  @override
+  String get emergencyContactLabel => 'Emergency contact';
+
+  @override
+  String get emergencyContactHint => 'Name · phone';
+
+  @override
+  String get sharedWithCliniciansNote =>
+      'Shared with the clinicians who treat you.';
+
+  @override
+  String get couldNotLoadYourAllergies => 'Could not load your allergies.';
+
+  @override
+  String get shownToCliniciansNote =>
+      'Shown to every clinician who treats you and printed on your reports. Keep it accurate.';
+
+  @override
+  String get addYourAllergiesAction => 'Add your allergies';
+
+  @override
+  String get updateAllergiesAction => 'Update allergies';
+
+  @override
+  String get knownAllergiesLabel => 'Known allergies';
+
+  @override
+  String get noAllergiesRecordedTitle => 'No allergies recorded';
+
+  @override
+  String get noAllergiesRecordedSubtitle =>
+      'If you have any drug, food or other allergies, add them so your care team can see them.';
+
+  @override
+  String get couldNotLoadFamilyMembers => 'Could not load family members.';
+
+  @override
+  String get noFamilyMembersLinkedYet => 'No family members linked yet.';
+
+  @override
+  String get addFamilyMemberAction => 'Add family member';
+
+  @override
+  String removeConfirmTitle(String name) {
+    return 'Remove $name?';
+  }
+
+  @override
+  String get unlinksFromFamilyNetworkNote =>
+      'This unlinks them from your family network.';
+
+  @override
+  String get editFamilyMemberTitle => 'Edit family member';
+
+  @override
+  String get relationshipLabel => 'Relationship';
+
+  @override
+  String get firstNameRequiredLabel => 'First name *';
+
+  @override
+  String get lastNameRequiredLabel => 'Last name *';
+
+  @override
+  String get cprOptionalLabel => 'CPR (optional)';
+
+  @override
+  String get dobDdmmyyyyOptionalLabel => 'Date of birth (DD/MM/YYYY, optional)';
+
+  @override
+  String get genderOptionalLabel => 'Gender (optional)';
+
+  @override
+  String get bloodTypeOptionalLabel => 'Blood type (optional)';
+
+  @override
+  String get saveChangesAction => 'Save changes';
+
+  @override
+  String cprValueLabel(String value) {
+    return 'CPR $value';
+  }
+
+  @override
+  String get familyRelationshipSpouse => 'Spouse';
+
+  @override
+  String get familyRelationshipChild => 'Child';
+
+  @override
+  String get familyRelationshipParent => 'Parent';
+
+  @override
+  String get familyRelationshipSibling => 'Sibling';
+
+  @override
+  String get familyRelationshipGuardian => 'Guardian';
+
+  @override
+  String get familyRelationshipOther => 'Other';
+
+  @override
+  String get visitedDoctorsTitle => 'Visited doctors';
+
+  @override
+  String get couldNotLoadYourCareTeam => 'Could not load your care team.';
+
+  @override
+  String get noPastVisitsYetMessage =>
+      'No past visits yet.\nDoctors you see will appear here.';
+
+  @override
+  String visitCountLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count visits',
+      one: '$count visit',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String lastVisitLabel(String date) {
+    return 'Last $date';
+  }
+
+  @override
+  String nextVisitLabel(String date) {
+    return 'Next $date';
+  }
+
+  @override
+  String get generalDepartmentFallback => 'General';
+
+  @override
+  String get bookAgainAction => 'Book again';
 }

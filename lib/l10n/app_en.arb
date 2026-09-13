@@ -1516,5 +1516,118 @@
       "name": { "type": "String" },
       "destination": { "type": "String" }
     }
-  }
+  },
+
+  "textSizeLabel": "Text size",
+  "textSizeCaption": "{level} — applies to text across the whole app",
+  "@textSizeCaption": {
+    "placeholders": {
+      "level": { "type": "String" }
+    }
+  },
+  "textScaleSmaller": "Smaller",
+  "textScaleSmall": "Small",
+  "textScaleDefault": "Default",
+  "textScaleLarge": "Large",
+  "textScaleLarger": "Larger",
+  "notificationChannelsLabel": "Notification channels",
+  "smsLabel": "SMS",
+  "soundsLabel": "Sounds",
+  "soundsSubtitle": "A short cue when a message arrives, and when a working status changes",
+  "notificationChannelsCaption": "Where appointment reminders and care alerts reach you.",
+
+  "personalInfoTitle": "Personal info",
+  "personalInfoSubtitle": "Name, contact, date of birth",
+  "healthDetailsTitle": "Health details",
+  "healthDetailsSubtitle": "Blood type, allergies, conditions",
+  "walletTitle": "Wallet",
+  "walletSubtitle": "Saved cards and payment history",
+  "familyNetworkTitle": "Family network",
+  "familyNetworkSubtitle": "People linked to your account",
+
+  "profileUpdatedSnackbar": "Profile updated.",
+  "firstNameLabel": "First name",
+  "lastNameLabel": "Last name",
+  "cprLabel": "CPR",
+  "cprDigitsHelper": "{count}/9 digits",
+  "@cprDigitsHelper": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "dateOfBirthDdmmyyyyLabel": "Date of birth (DD/MM/YYYY)",
+  "genderFieldLabel": "Gender",
+
+  "healthDetailsUpdatedSnackbar": "Health details updated.",
+  "bloodTypeLabel": "Blood type",
+  "unknownOption": "Unknown",
+  "separateWithCommasHelper": "Separate with commas",
+  "chronicConditionsLabel": "Chronic conditions",
+  "emergencyContactLabel": "Emergency contact",
+  "emergencyContactHint": "Name · phone",
+  "sharedWithCliniciansNote": "Shared with the clinicians who treat you.",
+
+  "couldNotLoadYourAllergies": "Could not load your allergies.",
+  "shownToCliniciansNote": "Shown to every clinician who treats you and printed on your reports. Keep it accurate.",
+  "addYourAllergiesAction": "Add your allergies",
+  "updateAllergiesAction": "Update allergies",
+  "knownAllergiesLabel": "Known allergies",
+  "noAllergiesRecordedTitle": "No allergies recorded",
+  "noAllergiesRecordedSubtitle": "If you have any drug, food or other allergies, add them so your care team can see them.",
+
+  "couldNotLoadFamilyMembers": "Could not load family members.",
+  "noFamilyMembersLinkedYet": "No family members linked yet.",
+  "addFamilyMemberAction": "Add family member",
+  "removeConfirmTitle": "Remove {name}?",
+  "@removeConfirmTitle": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "unlinksFromFamilyNetworkNote": "This unlinks them from your family network.",
+  "editFamilyMemberTitle": "Edit family member",
+  "relationshipLabel": "Relationship",
+  "firstNameRequiredLabel": "First name *",
+  "lastNameRequiredLabel": "Last name *",
+  "cprOptionalLabel": "CPR (optional)",
+  "dobDdmmyyyyOptionalLabel": "Date of birth (DD/MM/YYYY, optional)",
+  "genderOptionalLabel": "Gender (optional)",
+  "bloodTypeOptionalLabel": "Blood type (optional)",
+  "saveChangesAction": "Save changes",
+  "cprValueLabel": "CPR {value}",
+  "@cprValueLabel": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "familyRelationshipSpouse": "Spouse",
+  "familyRelationshipChild": "Child",
+  "familyRelationshipParent": "Parent",
+  "familyRelationshipSibling": "Sibling",
+  "familyRelationshipGuardian": "Guardian",
+  "familyRelationshipOther": "Other",
+
+  "visitedDoctorsTitle": "Visited doctors",
+  "couldNotLoadYourCareTeam": "Could not load your care team.",
+  "noPastVisitsYetMessage": "No past visits yet.\nDoctors you see will appear here.",
+  "visitCountLabel": "{count, plural, one{{count} visit} other{{count} visits}}",
+  "@visitCountLabel": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "lastVisitLabel": "Last {date}",
+  "@lastVisitLabel": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "nextVisitLabel": "Next {date}",
+  "@nextVisitLabel": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "generalDepartmentFallback": "General",
+  "bookAgainAction": "Book again"
 }

@@ -1516,5 +1516,118 @@
       "name": { "type": "String" },
       "destination": { "type": "String" }
     }
-  }
+  },
+
+  "textSizeLabel": "حجم الخط",
+  "textSizeCaption": "{level} — يُطبَّق على النص في التطبيق بأكمله",
+  "@textSizeCaption": {
+    "placeholders": {
+      "level": { "type": "String" }
+    }
+  },
+  "textScaleSmaller": "أصغر",
+  "textScaleSmall": "صغير",
+  "textScaleDefault": "افتراضي",
+  "textScaleLarge": "كبير",
+  "textScaleLarger": "أكبر",
+  "notificationChannelsLabel": "قنوات الإشعارات",
+  "smsLabel": "رسائل نصية",
+  "soundsLabel": "الأصوات",
+  "soundsSubtitle": "نغمة قصيرة عند وصول رسالة، أو عند تغيّر حالة العمل",
+  "notificationChannelsCaption": "أين تصلك تذكيرات المواعيد وتنبيهات الرعاية.",
+
+  "personalInfoTitle": "المعلومات الشخصية",
+  "personalInfoSubtitle": "الاسم، وسيلة التواصل، تاريخ الميلاد",
+  "healthDetailsTitle": "التفاصيل الصحية",
+  "healthDetailsSubtitle": "فصيلة الدم، الحساسية، الأمراض المزمنة",
+  "walletTitle": "المحفظة",
+  "walletSubtitle": "البطاقات المحفوظة وسجل الدفعات",
+  "familyNetworkTitle": "الشبكة العائلية",
+  "familyNetworkSubtitle": "الأشخاص المرتبطون بحسابك",
+
+  "profileUpdatedSnackbar": "تم تحديث الملف الشخصي.",
+  "firstNameLabel": "الاسم الأول",
+  "lastNameLabel": "اسم العائلة",
+  "cprLabel": "الرقم الشخصي",
+  "cprDigitsHelper": "{count}/9 أرقام",
+  "@cprDigitsHelper": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "dateOfBirthDdmmyyyyLabel": "تاريخ الميلاد (يوم/شهر/سنة)",
+  "genderFieldLabel": "الجنس",
+
+  "healthDetailsUpdatedSnackbar": "تم تحديث التفاصيل الصحية.",
+  "bloodTypeLabel": "فصيلة الدم",
+  "unknownOption": "غير معروفة",
+  "separateWithCommasHelper": "افصل بينها بفواصل",
+  "chronicConditionsLabel": "الأمراض المزمنة",
+  "emergencyContactLabel": "جهة اتصال للطوارئ",
+  "emergencyContactHint": "الاسم · الهاتف",
+  "sharedWithCliniciansNote": "تتم مشاركتها مع الأطباء الذين يعالجونك.",
+
+  "couldNotLoadYourAllergies": "تعذّر تحميل حساسيتك.",
+  "shownToCliniciansNote": "تُعرض على كل طبيب يعالجك وتُطبع في تقاريرك. احرص على دقتها.",
+  "addYourAllergiesAction": "إضافة حساسيتك",
+  "updateAllergiesAction": "تحديث الحساسية",
+  "knownAllergiesLabel": "الحساسية المعروفة",
+  "noAllergiesRecordedTitle": "لا توجد حساسية مسجلة",
+  "noAllergiesRecordedSubtitle": "إذا كانت لديك أي حساسية من دواء أو طعام أو غيره، أضفها ليتمكن فريق رعايتك من الاطلاع عليها.",
+
+  "couldNotLoadFamilyMembers": "تعذّر تحميل أفراد العائلة.",
+  "noFamilyMembersLinkedYet": "لا يوجد أفراد عائلة مرتبطون بعد.",
+  "addFamilyMemberAction": "إضافة فرد من العائلة",
+  "removeConfirmTitle": "إزالة {name}؟",
+  "@removeConfirmTitle": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "unlinksFromFamilyNetworkNote": "سيؤدي هذا إلى إلغاء ارتباطه بشبكتك العائلية.",
+  "editFamilyMemberTitle": "تعديل فرد العائلة",
+  "relationshipLabel": "صلة القرابة",
+  "firstNameRequiredLabel": "الاسم الأول *",
+  "lastNameRequiredLabel": "اسم العائلة *",
+  "cprOptionalLabel": "الرقم الشخصي (اختياري)",
+  "dobDdmmyyyyOptionalLabel": "تاريخ الميلاد (يوم/شهر/سنة، اختياري)",
+  "genderOptionalLabel": "الجنس (اختياري)",
+  "bloodTypeOptionalLabel": "فصيلة الدم (اختياري)",
+  "saveChangesAction": "حفظ التغييرات",
+  "cprValueLabel": "الرقم الشخصي {value}",
+  "@cprValueLabel": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "familyRelationshipSpouse": "زوج/زوجة",
+  "familyRelationshipChild": "ابن/ابنة",
+  "familyRelationshipParent": "أحد الوالدين",
+  "familyRelationshipSibling": "أخ/أخت",
+  "familyRelationshipGuardian": "وصي",
+  "familyRelationshipOther": "أخرى",
+
+  "visitedDoctorsTitle": "الأطباء الذين تمت زيارتهم",
+  "couldNotLoadYourCareTeam": "تعذّر تحميل فريق رعايتك.",
+  "noPastVisitsYetMessage": "لا توجد زيارات سابقة بعد.\nسيظهر هنا الأطباء الذين تزورهم.",
+  "visitCountLabel": "{count, plural, zero{لا زيارات} one{زيارة واحدة} two{زيارتان} few{{count} زيارات} many{{count} زيارة} other{{count} زيارة}}",
+  "@visitCountLabel": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "lastVisitLabel": "آخر زيارة {date}",
+  "@lastVisitLabel": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "nextVisitLabel": "الزيارة القادمة {date}",
+  "@nextVisitLabel": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "generalDepartmentFallback": "عام",
+  "bookAgainAction": "الحجز مجدداً"
 }

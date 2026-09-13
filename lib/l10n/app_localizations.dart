@@ -5503,6 +5503,432 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name} referred to {destination}'**
   String patientReferredToSnackbar(String name, String destination);
+
+  /// No description provided for @textSizeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Text size'**
+  String get textSizeLabel;
+
+  /// No description provided for @textSizeCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'{level} — applies to text across the whole app'**
+  String textSizeCaption(String level);
+
+  /// No description provided for @textScaleSmaller.
+  ///
+  /// In en, this message translates to:
+  /// **'Smaller'**
+  String get textScaleSmaller;
+
+  /// No description provided for @textScaleSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'Small'**
+  String get textScaleSmall;
+
+  /// No description provided for @textScaleDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get textScaleDefault;
+
+  /// No description provided for @textScaleLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Large'**
+  String get textScaleLarge;
+
+  /// No description provided for @textScaleLarger.
+  ///
+  /// In en, this message translates to:
+  /// **'Larger'**
+  String get textScaleLarger;
+
+  /// No description provided for @notificationChannelsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification channels'**
+  String get notificationChannelsLabel;
+
+  /// No description provided for @smsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'SMS'**
+  String get smsLabel;
+
+  /// No description provided for @soundsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sounds'**
+  String get soundsLabel;
+
+  /// No description provided for @soundsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A short cue when a message arrives, and when a working status changes'**
+  String get soundsSubtitle;
+
+  /// No description provided for @notificationChannelsCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Where appointment reminders and care alerts reach you.'**
+  String get notificationChannelsCaption;
+
+  /// No description provided for @personalInfoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal info'**
+  String get personalInfoTitle;
+
+  /// No description provided for @personalInfoSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Name, contact, date of birth'**
+  String get personalInfoSubtitle;
+
+  /// No description provided for @healthDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Health details'**
+  String get healthDetailsTitle;
+
+  /// No description provided for @healthDetailsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood type, allergies, conditions'**
+  String get healthDetailsSubtitle;
+
+  /// No description provided for @walletTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet'**
+  String get walletTitle;
+
+  /// No description provided for @walletSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved cards and payment history'**
+  String get walletSubtitle;
+
+  /// No description provided for @familyNetworkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Family network'**
+  String get familyNetworkTitle;
+
+  /// No description provided for @familyNetworkSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'People linked to your account'**
+  String get familyNetworkSubtitle;
+
+  /// No description provided for @profileUpdatedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile updated.'**
+  String get profileUpdatedSnackbar;
+
+  /// No description provided for @firstNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'First name'**
+  String get firstNameLabel;
+
+  /// No description provided for @lastNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Last name'**
+  String get lastNameLabel;
+
+  /// No description provided for @cprLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'CPR'**
+  String get cprLabel;
+
+  /// No description provided for @cprDigitsHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}/9 digits'**
+  String cprDigitsHelper(int count);
+
+  /// No description provided for @dateOfBirthDdmmyyyyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of birth (DD/MM/YYYY)'**
+  String get dateOfBirthDdmmyyyyLabel;
+
+  /// No description provided for @genderFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Gender'**
+  String get genderFieldLabel;
+
+  /// No description provided for @healthDetailsUpdatedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Health details updated.'**
+  String get healthDetailsUpdatedSnackbar;
+
+  /// No description provided for @bloodTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood type'**
+  String get bloodTypeLabel;
+
+  /// No description provided for @unknownOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get unknownOption;
+
+  /// No description provided for @separateWithCommasHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Separate with commas'**
+  String get separateWithCommasHelper;
+
+  /// No description provided for @chronicConditionsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Chronic conditions'**
+  String get chronicConditionsLabel;
+
+  /// No description provided for @emergencyContactLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency contact'**
+  String get emergencyContactLabel;
+
+  /// No description provided for @emergencyContactHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Name · phone'**
+  String get emergencyContactHint;
+
+  /// No description provided for @sharedWithCliniciansNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared with the clinicians who treat you.'**
+  String get sharedWithCliniciansNote;
+
+  /// No description provided for @couldNotLoadYourAllergies.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your allergies.'**
+  String get couldNotLoadYourAllergies;
+
+  /// No description provided for @shownToCliniciansNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown to every clinician who treats you and printed on your reports. Keep it accurate.'**
+  String get shownToCliniciansNote;
+
+  /// No description provided for @addYourAllergiesAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your allergies'**
+  String get addYourAllergiesAction;
+
+  /// No description provided for @updateAllergiesAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Update allergies'**
+  String get updateAllergiesAction;
+
+  /// No description provided for @knownAllergiesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Known allergies'**
+  String get knownAllergiesLabel;
+
+  /// No description provided for @noAllergiesRecordedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No allergies recorded'**
+  String get noAllergiesRecordedTitle;
+
+  /// No description provided for @noAllergiesRecordedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'If you have any drug, food or other allergies, add them so your care team can see them.'**
+  String get noAllergiesRecordedSubtitle;
+
+  /// No description provided for @couldNotLoadFamilyMembers.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load family members.'**
+  String get couldNotLoadFamilyMembers;
+
+  /// No description provided for @noFamilyMembersLinkedYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No family members linked yet.'**
+  String get noFamilyMembersLinkedYet;
+
+  /// No description provided for @addFamilyMemberAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add family member'**
+  String get addFamilyMemberAction;
+
+  /// No description provided for @removeConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name}?'**
+  String removeConfirmTitle(String name);
+
+  /// No description provided for @unlinksFromFamilyNetworkNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This unlinks them from your family network.'**
+  String get unlinksFromFamilyNetworkNote;
+
+  /// No description provided for @editFamilyMemberTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit family member'**
+  String get editFamilyMemberTitle;
+
+  /// No description provided for @relationshipLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Relationship'**
+  String get relationshipLabel;
+
+  /// No description provided for @firstNameRequiredLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'First name *'**
+  String get firstNameRequiredLabel;
+
+  /// No description provided for @lastNameRequiredLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Last name *'**
+  String get lastNameRequiredLabel;
+
+  /// No description provided for @cprOptionalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'CPR (optional)'**
+  String get cprOptionalLabel;
+
+  /// No description provided for @dobDdmmyyyyOptionalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of birth (DD/MM/YYYY, optional)'**
+  String get dobDdmmyyyyOptionalLabel;
+
+  /// No description provided for @genderOptionalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Gender (optional)'**
+  String get genderOptionalLabel;
+
+  /// No description provided for @bloodTypeOptionalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood type (optional)'**
+  String get bloodTypeOptionalLabel;
+
+  /// No description provided for @saveChangesAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get saveChangesAction;
+
+  /// No description provided for @cprValueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'CPR {value}'**
+  String cprValueLabel(String value);
+
+  /// No description provided for @familyRelationshipSpouse.
+  ///
+  /// In en, this message translates to:
+  /// **'Spouse'**
+  String get familyRelationshipSpouse;
+
+  /// No description provided for @familyRelationshipChild.
+  ///
+  /// In en, this message translates to:
+  /// **'Child'**
+  String get familyRelationshipChild;
+
+  /// No description provided for @familyRelationshipParent.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent'**
+  String get familyRelationshipParent;
+
+  /// No description provided for @familyRelationshipSibling.
+  ///
+  /// In en, this message translates to:
+  /// **'Sibling'**
+  String get familyRelationshipSibling;
+
+  /// No description provided for @familyRelationshipGuardian.
+  ///
+  /// In en, this message translates to:
+  /// **'Guardian'**
+  String get familyRelationshipGuardian;
+
+  /// No description provided for @familyRelationshipOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get familyRelationshipOther;
+
+  /// No description provided for @visitedDoctorsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Visited doctors'**
+  String get visitedDoctorsTitle;
+
+  /// No description provided for @couldNotLoadYourCareTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your care team.'**
+  String get couldNotLoadYourCareTeam;
+
+  /// No description provided for @noPastVisitsYetMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No past visits yet.\nDoctors you see will appear here.'**
+  String get noPastVisitsYetMessage;
+
+  /// No description provided for @visitCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} visit} other{{count} visits}}'**
+  String visitCountLabel(int count);
+
+  /// No description provided for @lastVisitLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Last {date}'**
+  String lastVisitLabel(String date);
+
+  /// No description provided for @nextVisitLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Next {date}'**
+  String nextVisitLabel(String date);
+
+  /// No description provided for @generalDepartmentFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get generalDepartmentFallback;
+
+  /// No description provided for @bookAgainAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Book again'**
+  String get bookAgainAction;
 }
 
 class _AppLocalizationsDelegate
