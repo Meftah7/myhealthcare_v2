@@ -11,6 +11,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/states.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
 import '../../patient/presentation/patient_top_actions.dart';
 import '../application/care_providers.dart';
@@ -22,13 +23,14 @@ class MessagesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final threads = ref.watch(patientThreadsProvider);
     final doctors =
         ref.watch(messageableDoctorsProvider).valueOrNull ?? const [];
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ask your doctor'),
+        title: Text(t.quickActionAskDoctor),
         actions: const [PatientTopActions()],
       ),
       floatingActionButton: doctors.isEmpty
@@ -36,14 +38,14 @@ class MessagesScreen extends ConsumerWidget {
           : FloatingActionButton.extended(
               onPressed: () => _startThread(context, doctors),
               icon: const Icon(Icons.edit_outlined),
-              label: const Text('New message'),
+              label: Text(t.newMessageButton),
             ),
       body: RefreshIndicator(
         onRefresh: () async => ref.invalidate(patientThreadsProvider),
         child: threads.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
-          message: 'Could not load your messages.',
+          message: t.couldNotLoadMessages,
           onRetry: () => ref.invalidate(patientThreadsProvider),
         ),
         data: (list) {
@@ -54,9 +56,8 @@ class MessagesScreen extends ConsumerWidget {
                 EmptyState(
                   icon: Icons.chat_bubble_outline,
                   message: doctors.isEmpty
-                      ? 'Once you have seen a doctor you can message them here.'
-                      : 'No conversations yet.\nTap "New message" to ask a '
-                            'non-urgent question.',
+                      ? t.onceSeenDoctorMessage
+                      : t.noConversationsYetMessage,
                 ),
               ],
             );
@@ -138,7 +139,7 @@ class PatientMessageThreadPage extends ConsumerWidget {
     final name =
         title ??
         doctors.where((d) => d.id == staffId).map((d) => d.name).firstOrNull ??
-        'Your doctor';
+        AppLocalizations.of(context)!.yourDoctorFallback;
 
     if (user == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -169,7 +170,7 @@ class StaffMessageThreadPage extends ConsumerWidget {
             .where((t) => t.patientId == patientId)
             .map((t) => t.counterpartName)
             .firstOrNull ??
-        'Patient';
+        AppLocalizations.of(context)!.rolePatient;
 
     if (user == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));

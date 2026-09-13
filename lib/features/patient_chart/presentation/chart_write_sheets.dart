@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/result.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/chart_providers.dart';
 
 Future<void> showChartNoteSheet(BuildContext context, String patientId) {
@@ -53,6 +54,7 @@ class _SheetScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(Space.lg),
@@ -72,7 +74,7 @@ class _SheetScaffold extends StatelessWidget {
                       width: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Save'),
+                  : Text(t.saveButton),
             ),
           ],
         ),
@@ -104,9 +106,10 @@ class _NoteSheet extends ConsumerStatefulWidget {
 }
 
 class _NoteSheetState extends ConsumerState<_NoteSheet> {
-  final _title = TextEditingController(text: 'Clinical note');
+  final _title = TextEditingController();
   final _body = TextEditingController();
   bool _busy = false;
+  bool _titleSeeded = false;
 
   @override
   void dispose() {
@@ -116,6 +119,7 @@ class _NoteSheetState extends ConsumerState<_NoteSheet> {
   }
 
   Future<void> _submit() async {
+    final t = AppLocalizations.of(context)!;
     setState(() => _busy = true);
     final result = await ref
         .read(chartActionsProvider(widget.patientId))
@@ -126,29 +130,34 @@ class _NoteSheetState extends ConsumerState<_NoteSheet> {
         );
     if (!mounted) return;
     setState(() => _busy = false);
-    _report(context, result, 'Note added.');
+    _report(context, result, t.noteAdded);
     if (result.isOk) Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    if (!_titleSeeded) {
+      _title.text = t.clinicalNoteFallbackTitle;
+      _titleSeeded = true;
+    }
     return _SheetScaffold(
-      title: 'Add clinical note',
+      title: t.addClinicalNoteAction,
       submitting: _busy,
       canSubmit: _body.text.trim().isNotEmpty,
       onSubmit: _submit,
       children: [
         TextField(
           controller: _title,
-          decoration: const InputDecoration(labelText: 'Title'),
+          decoration: InputDecoration(labelText: t.titleLabel),
         ),
         const SizedBox(height: Space.sm),
         TextField(
           controller: _body,
           minLines: 3,
           maxLines: 8,
-          decoration: const InputDecoration(
-            labelText: 'Note',
+          decoration: InputDecoration(
+            labelText: t.noteFieldLabel,
             alignLabelWithHint: true,
           ),
           onChanged: (_) => setState(() {}),
@@ -183,6 +192,7 @@ class _PrescribeSheetState extends ConsumerState<_PrescribeSheet> {
   }
 
   Future<void> _submit() async {
+    final t = AppLocalizations.of(context)!;
     setState(() => _busy = true);
     final result = await ref
         .read(chartActionsProvider(widget.patientId))
@@ -193,32 +203,33 @@ class _PrescribeSheetState extends ConsumerState<_PrescribeSheet> {
         );
     if (!mounted) return;
     setState(() => _busy = false);
-    _report(context, result, 'Medication prescribed.');
+    _report(context, result, t.medicationPrescribed);
     if (result.isOk) Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return _SheetScaffold(
-      title: 'Prescribe medication',
+      title: t.prescribeMedicationAction,
       submitting: _busy,
       canSubmit: _name.text.trim().isNotEmpty,
       onSubmit: _submit,
       children: [
         TextField(
           controller: _name,
-          decoration: const InputDecoration(labelText: 'Medication name'),
+          decoration: InputDecoration(labelText: t.medicationNameLabel),
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: Space.sm),
         TextField(
           controller: _dose,
-          decoration: const InputDecoration(labelText: 'Dose (optional)'),
+          decoration: InputDecoration(labelText: t.doseOptionalLabel),
         ),
         const SizedBox(height: Space.sm),
         TextField(
           controller: _freq,
-          decoration: const InputDecoration(labelText: 'Frequency (optional)'),
+          decoration: InputDecoration(labelText: t.frequencyOptionalLabel),
         ),
       ],
     );
@@ -236,13 +247,14 @@ class _LabSheet extends ConsumerStatefulWidget {
 }
 
 class _LabSheetState extends ConsumerState<_LabSheet> {
-  final _panel = TextEditingController(text: 'Lab result');
+  final _panel = TextEditingController();
   final _analyte = TextEditingController();
   final _value = TextEditingController();
   final _unit = TextEditingController();
   final _low = TextEditingController();
   final _high = TextEditingController();
   bool _busy = false;
+  bool _panelSeeded = false;
 
   @override
   void dispose() {
@@ -257,6 +269,7 @@ class _LabSheetState extends ConsumerState<_LabSheet> {
       double.tryParse(_value.text.trim()) != null;
 
   Future<void> _submit() async {
+    final t = AppLocalizations.of(context)!;
     setState(() => _busy = true);
     final result = await ref
         .read(chartActionsProvider(widget.patientId))
@@ -271,26 +284,31 @@ class _LabSheetState extends ConsumerState<_LabSheet> {
         );
     if (!mounted) return;
     setState(() => _busy = false);
-    _report(context, result, 'Lab result recorded.');
+    _report(context, result, t.labResultRecorded);
     if (result.isOk) Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    if (!_panelSeeded) {
+      _panel.text = t.labResultFallbackTitle;
+      _panelSeeded = true;
+    }
     return _SheetScaffold(
-      title: 'Enter lab result',
+      title: t.enterLabResultAction,
       submitting: _busy,
       canSubmit: _valid,
       onSubmit: _submit,
       children: [
         TextField(
           controller: _panel,
-          decoration: const InputDecoration(labelText: 'Panel / title'),
+          decoration: InputDecoration(labelText: t.panelTitleLabel),
         ),
         const SizedBox(height: Space.sm),
         TextField(
           controller: _analyte,
-          decoration: const InputDecoration(labelText: 'Analyte'),
+          decoration: InputDecoration(labelText: t.analyteLabel),
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: Space.sm),
@@ -302,7 +320,7 @@ class _LabSheetState extends ConsumerState<_LabSheet> {
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
-                decoration: const InputDecoration(labelText: 'Value'),
+                decoration: InputDecoration(labelText: t.valueLabel),
                 onChanged: (_) => setState(() {}),
               ),
             ),
@@ -310,7 +328,7 @@ class _LabSheetState extends ConsumerState<_LabSheet> {
             Expanded(
               child: TextField(
                 controller: _unit,
-                decoration: const InputDecoration(labelText: 'Unit'),
+                decoration: InputDecoration(labelText: t.unitLabel),
               ),
             ),
           ],
@@ -324,7 +342,7 @@ class _LabSheetState extends ConsumerState<_LabSheet> {
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
-                decoration: const InputDecoration(labelText: 'Ref low'),
+                decoration: InputDecoration(labelText: t.refLowLabel),
               ),
             ),
             const SizedBox(width: Space.sm),
@@ -334,7 +352,7 @@ class _LabSheetState extends ConsumerState<_LabSheet> {
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
-                decoration: const InputDecoration(labelText: 'Ref high'),
+                decoration: InputDecoration(labelText: t.refHighLabel),
               ),
             ),
           ],
@@ -391,6 +409,7 @@ class _SickLeaveSheetState extends ConsumerState<_SickLeaveSheet> {
   }
 
   Future<void> _submit() async {
+    final t = AppLocalizations.of(context)!;
     setState(() => _busy = true);
     final result = await ref
         .read(chartActionsProvider(widget.patientId))
@@ -402,24 +421,25 @@ class _SickLeaveSheetState extends ConsumerState<_SickLeaveSheet> {
         );
     if (!mounted) return;
     setState(() => _busy = false);
-    _report(context, result, 'Certificate issued.');
+    _report(context, result, t.certificateIssued);
     if (result.isOk) Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final df = MaterialLocalizations.of(context);
     return _SheetScaffold(
-      title: 'Issue sick leave',
+      title: t.issueSickLeaveAction,
       submitting: _busy,
       canSubmit: _diagnosis.text.trim().isNotEmpty && _days >= 1,
       onSubmit: _submit,
       children: [
         TextField(
           controller: _diagnosis,
-          decoration: const InputDecoration(
-            labelText: 'Reason / diagnosis',
-            hintText: 'e.g. Acute viral illness',
+          decoration: InputDecoration(
+            labelText: t.reasonDiagnosisLabel,
+            hintText: t.acuteViralIllnessHint,
           ),
           onChanged: (_) => setState(() {}),
         ),
@@ -429,21 +449,21 @@ class _SickLeaveSheetState extends ConsumerState<_SickLeaveSheet> {
             Expanded(
               child: OutlinedButton(
                 onPressed: () => _pick(isFrom: true),
-                child: Text('From: ${df.formatMediumDate(_from)}'),
+                child: Text(t.fromDateLabel(df.formatMediumDate(_from))),
               ),
             ),
             const SizedBox(width: Space.sm),
             Expanded(
               child: OutlinedButton(
                 onPressed: () => _pick(isFrom: false),
-                child: Text('To: ${df.formatMediumDate(_to)}'),
+                child: Text(t.toDateLabel(df.formatMediumDate(_to))),
               ),
             ),
           ],
         ),
         const SizedBox(height: Space.xs),
         Text(
-          '$_days day${_days == 1 ? '' : 's'}',
+          t.daysCountPlain(_days),
           style: Theme.of(context).textTheme.bodySmall,
         ),
         const SizedBox(height: Space.sm),
@@ -451,8 +471,8 @@ class _SickLeaveSheetState extends ConsumerState<_SickLeaveSheet> {
           controller: _notes,
           minLines: 2,
           maxLines: 4,
-          decoration: const InputDecoration(
-            labelText: 'Notes (optional)',
+          decoration: InputDecoration(
+            labelText: t.notesOptionalLabel,
             alignLabelWithHint: true,
           ),
         ),

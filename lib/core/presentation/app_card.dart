@@ -8,6 +8,7 @@ library;
 import 'package:flutter/material.dart';
 
 import '../../app/theme/theme.dart';
+import '../../l10n/app_localizations.dart';
 
 /// One size for every "this row opens something" chevron. Picked once here
 /// because the app previously drew them at 17, 18 and 24 on rows that sit a few
@@ -462,7 +463,7 @@ class ListCard extends StatelessWidget {
             const SizedBox(width: Space.sm),
             Expanded(
               child: Text(
-                emptyText ?? 'Nothing here.',
+                emptyText ?? AppLocalizations.of(context)!.nothingHere,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: scheme.onSurfaceVariant,
                 ),

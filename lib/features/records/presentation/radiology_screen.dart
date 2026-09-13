@@ -12,6 +12,7 @@ import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../patient/application/patient_data_providers.dart';
 import '../../patient/application/patient_documents.dart';
 import '../../patient/presentation/document_download_button.dart';
@@ -27,20 +28,19 @@ class RadiologyScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final imaging = ref.watch(patientImagingProvider);
+    final t = AppLocalizations.of(context)!;
 
     final list = imaging.when(
       loading: () => const SkeletonList(),
       error: (e, _) => ErrorStateView(
-        message: 'Could not load your imaging results.',
+        message: t.couldNotLoadImaging,
         onRetry: () => ref.invalidate(patientImagingProvider),
       ),
       data: (records) {
         if (records.isEmpty) {
-          return const EmptyState(
+          return EmptyState(
             icon: Icons.image_outlined,
-            message:
-                'No imaging results yet.\nX-rays, scans and ultrasounds '
-                'show up here after a study.',
+            message: t.noImagingResultsYet,
           );
         }
         return Center(
@@ -66,7 +66,7 @@ class RadiologyScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Imaging'),
+        title: Text(t.imagingTitle),
         actions: const [PatientTopActions()],
       ),
       body: list,
@@ -133,9 +133,9 @@ class _ImagingCard extends ConsumerWidget {
           ],
           const SizedBox(height: Space.xs),
           Align(
-            alignment: Alignment.centerLeft,
+            alignment: AlignmentDirectional.centerStart,
             child: DocumentDownloadButton(
-              label: 'Report PDF',
+              label: AppLocalizations.of(context)!.reportPdfLabel,
               filename: 'radiology-${_slug(record.title)}.pdf',
               build: () => buildRadiologyReport(ref, record),
             ),

@@ -4,15 +4,8 @@ library;
 import 'package:flutter/material.dart';
 
 import '../../../app/theme/theme.dart';
+import '../../../core/i18n/enum_labels.dart';
 import '../../../domain/enums.dart';
-
-String homeVisitStatusLabel(HomeVisitStatus s) => switch (s) {
-  HomeVisitStatus.requested => 'Requested',
-  HomeVisitStatus.scheduled => 'Scheduled',
-  HomeVisitStatus.completed => 'Completed',
-  HomeVisitStatus.declined => 'Declined',
-  HomeVisitStatus.cancelled => 'Cancelled',
-};
 
 class HomeVisitStatusChip extends StatelessWidget {
   const HomeVisitStatusChip({required this.status, super.key});
@@ -37,7 +30,7 @@ class HomeVisitStatusChip extends StatelessWidget {
         borderRadius: Radii.pill,
       ),
       child: Text(
-        homeVisitStatusLabel(status),
+        status.label(context),
         style: theme.textTheme.labelSmall?.copyWith(
           color: style.onContainer,
           fontWeight: FontWeight.w700,

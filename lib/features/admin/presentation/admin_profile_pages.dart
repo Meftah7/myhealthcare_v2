@@ -7,10 +7,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
-import '../../../core/i18n/app_strings.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
 import '../../settings/presentation/preferences_section.dart';
 
@@ -50,7 +50,7 @@ class AdminAccountPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final t = AppStrings.of(context);
+    final t = AppLocalizations.of(context)!;
     final user = ref.watch(currentUserProvider);
 
     return AdminSectionScaffold(
@@ -61,14 +61,14 @@ class AdminAccountPage extends ConsumerWidget {
               padding: EdgeInsets.zero,
               child: Column(
                 children: [
-                  _row('Name', user.fullName),
+                  _row(t.nameLabel, user.fullName),
                   const Divider(height: 1, indent: Space.md),
-                  _row('Email', user.email),
+                  _row(t.emailLabel, user.email),
                   const Divider(height: 1, indent: Space.md),
-                  _row('Role', t.roleAdmin),
+                  _row(t.roleLabel, t.roleAdmin),
                   if (user.phone != null) ...[
                     const Divider(height: 1, indent: Space.md),
-                    _row('Phone', user.phone!),
+                    _row(t.phoneLabel, user.phone!),
                   ],
                   const Divider(height: 1, indent: Space.md),
                   _row(t.memberSince, fmtDate(user.createdAt)),
@@ -88,7 +88,7 @@ class AdminPreferencesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => AdminSectionScaffold(
-    title: AppStrings.of(context).preferences,
+    title: AppLocalizations.of(context)!.preferences,
     child: const PreferencesSection(bare: true),
   );
 }

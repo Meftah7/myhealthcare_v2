@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme/theme.dart';
 import '../../domain/enums.dart';
+import '../../l10n/app_localizations.dart';
+import '../i18n/enum_labels.dart';
 
 /// The one status badge in the app: a filled container carrying an icon **and**
 /// a word (DESIGN.md §1 rule 3 — status is never colour alone, because ~8% of
@@ -80,10 +82,11 @@ class RiskBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ramp = Theme.of(context).clinicalStatus;
+    final t = AppLocalizations.of(context)!;
     final (style, label) = switch (band) {
-      RiskBand.low => (ramp.riskLow, 'Low risk'),
-      RiskBand.medium => (ramp.riskMedium, 'Medium risk'),
-      RiskBand.high => (ramp.riskHigh, 'High risk'),
+      RiskBand.low => (ramp.riskLow, t.riskBadgeLow),
+      RiskBand.medium => (ramp.riskMedium, t.riskBadgeMedium),
+      RiskBand.high => (ramp.riskHigh, t.riskBadgeHigh),
     };
     return StatusPill.clinical(style, label: label);
   }
@@ -104,46 +107,40 @@ class AppointmentStatusPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final (label, icon, bg, fg) = switch (status) {
+    final (icon, bg, fg) = switch (status) {
       AppointmentStatus.booked => (
-        'Booked',
         Icons.event_outlined,
         scheme.primaryContainer,
         scheme.onPrimaryContainer,
       ),
       AppointmentStatus.confirmed => (
-        'Confirmed',
         Icons.event_available_outlined,
         scheme.primaryContainer,
         scheme.onPrimaryContainer,
       ),
       AppointmentStatus.inProgress => (
-        'In progress',
         Icons.medical_services_outlined,
         scheme.tertiaryContainer,
         scheme.onTertiaryContainer,
       ),
       AppointmentStatus.completed => (
-        'Completed',
         Icons.check_circle_outline,
         scheme.surfaceContainerHighest,
         scheme.onSurfaceVariant,
       ),
       AppointmentStatus.cancelled => (
-        'Cancelled',
         Icons.cancel_outlined,
         scheme.surfaceContainerHighest,
         scheme.onSurfaceVariant,
       ),
       AppointmentStatus.noShow => (
-        'No-show',
         Icons.person_off_outlined,
         scheme.errorContainer,
         scheme.onErrorContainer,
       ),
     };
     return StatusPill(
-      label: label,
+      label: status.label(context),
       icon: icon,
       container: bg,
       onContainer: fg,
@@ -161,10 +158,11 @@ class SeverityChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ramp = Theme.of(context).clinicalStatus;
+    final t = AppLocalizations.of(context)!;
     final (style, label) = switch (severity) {
-      Severity.info => (ramp.severityInfo, 'Info'),
-      Severity.warning => (ramp.severityWarning, 'Review'),
-      Severity.urgent => (ramp.severityUrgent, 'Urgent'),
+      Severity.info => (ramp.severityInfo, t.severityChipInfo),
+      Severity.warning => (ramp.severityWarning, t.severityChipReview),
+      Severity.urgent => (ramp.severityUrgent, t.severityChipUrgent),
     };
     return StatusPill.clinical(style, label: label);
   }
@@ -192,16 +190,12 @@ class AbnormalValueIndicator extends StatelessWidget {
       AbnormalFlag.high => ramp.labHigh,
       AbnormalFlag.critical => ramp.labCritical,
     };
-    final semantic = switch (flag) {
-      AbnormalFlag.normal => 'Normal',
-      AbnormalFlag.low => 'Low',
-      AbnormalFlag.high => 'High',
-      AbnormalFlag.critical => 'Critical',
-    };
+    final semantic = flag.label(context);
+    final t = AppLocalizations.of(context)!;
     return Semantics(
       label:
           '$semantic: $valueText'
-          '${referenceText == null ? '' : ', reference $referenceText'}',
+          '${referenceText == null ? '' : t.labReferenceSuffix(referenceText!)}',
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -243,8 +237,7 @@ class AiDisclaimerBanner extends StatelessWidget {
           const SizedBox(width: Space.xs),
           Expanded(
             child: Text(
-              'AI-generated — informational only, not medical advice. '
-              'Verify with your clinician.',
+              AppLocalizations.of(context)!.aiDisclaimer,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onTertiaryContainer,
               ),

@@ -74,7 +74,7 @@ class FamilyNetworkSection extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Align(
-            alignment: Alignment.centerLeft,
+            alignment: AlignmentDirectional.centerStart,
             child: OutlinedButton.icon(
               onPressed: () => _openForm(context, ref),
               icon: const Icon(Icons.add, size: 18),

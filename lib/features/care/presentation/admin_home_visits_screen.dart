@@ -11,6 +11,7 @@ import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../admin/presentation/admin_top_actions.dart';
 import '../application/care_providers.dart';
 import 'home_visit_status.dart';
@@ -29,13 +30,14 @@ class _AdminHomeVisitsScreenState
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final queue = ref.watch(homeVisitQueueProvider(_filter));
     final patients =
         ref.watch(patientDirectoryProvider).valueOrNull ?? const {};
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home visits'),
+        title: Text(t.homeVisitsTitle),
         actions: const [AdminTopActions()],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(52),
@@ -51,11 +53,11 @@ class _AdminHomeVisitsScreenState
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 children: [
-                  _chip('Requested', HomeVisitStatus.requested),
-                  _chip('Scheduled', HomeVisitStatus.scheduled),
-                  _chip('Completed', HomeVisitStatus.completed),
-                  _chip('Declined', HomeVisitStatus.declined),
-                  _chip('All', null),
+                  _chip(t.homeVisitStatusRequested, HomeVisitStatus.requested),
+                  _chip(t.homeVisitStatusScheduled, HomeVisitStatus.scheduled),
+                  _chip(t.homeVisitStatusCompleted, HomeVisitStatus.completed),
+                  _chip(t.homeVisitStatusDeclined, HomeVisitStatus.declined),
+                  _chip(t.allCategoriesChip, null),
                 ],
               ),
             ),
@@ -65,14 +67,14 @@ class _AdminHomeVisitsScreenState
       body: queue.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
-          message: 'Could not load the queue.',
+          message: t.couldNotLoadQueue,
           onRetry: () => ref.invalidate(homeVisitQueueProvider(_filter)),
         ),
         data: (list) {
           if (list.isEmpty) {
-            return const EmptyState(
+            return EmptyState(
               icon: Icons.home_outlined,
-              message: 'Nothing here.',
+              message: t.nothingHere,
             );
           }
           return Center(
@@ -91,7 +93,7 @@ class _AdminHomeVisitsScreenState
                 separatorBuilder: (_, _) => const SizedBox(height: Space.sm),
                 itemBuilder: (context, i) => _QueueCard(
                   request: list[i],
-                  patientName: patients[list[i].patientId] ?? 'Patient',
+                  patientName: patients[list[i].patientId] ?? t.rolePatient,
                 ),
               ),
             ),
@@ -102,7 +104,7 @@ class _AdminHomeVisitsScreenState
   }
 
   Widget _chip(String label, HomeVisitStatus? value) => Padding(
-    padding: const EdgeInsets.only(right: Space.xs),
+    padding: const EdgeInsetsDirectional.only(end: Space.xs),
     child: FilterChip(
       label: Text(label),
       selected: _filter == value,
@@ -121,6 +123,7 @@ class _QueueCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final t = AppLocalizations.of(context)!;
 
     return AppCard(
       child: Column(
@@ -136,8 +139,10 @@ class _QueueCard extends ConsumerWidget {
           ),
           const SizedBox(height: Space.xxs),
           Text(
-            'Preferred ${fmtDate(request.preferredDate)}  ·  requested '
-            '${fmtDate(request.createdAt)}',
+            t.preferredAndRequestedOn(
+              fmtDate(request.preferredDate),
+              fmtDate(request.createdAt),
+            ),
             style: theme.textTheme.bodySmall?.copyWith(
               color: scheme.onSurfaceVariant,
             ),
@@ -155,7 +160,7 @@ class _QueueCard extends ConsumerWidget {
               request.decisionNote!.isNotEmpty) ...[
             const SizedBox(height: Space.xs),
             Text(
-              'Note: ${request.decisionNote}',
+              t.noteLabel(request.decisionNote!),
               style: theme.textTheme.bodySmall,
             ),
           ],
@@ -170,7 +175,7 @@ class _QueueCard extends ConsumerWidget {
                       ref,
                       HomeVisitStatus.scheduled,
                     ),
-                    child: const Text('Schedule'),
+                    child: Text(t.scheduleButton),
                   ),
                 ),
                 const SizedBox(width: Space.sm),
@@ -181,7 +186,7 @@ class _QueueCard extends ConsumerWidget {
                       ref,
                       HomeVisitStatus.declined,
                     ),
-                    child: const Text('Decline'),
+                    child: Text(t.declineButton),
                   ),
                 ),
               ],
@@ -189,14 +194,14 @@ class _QueueCard extends ConsumerWidget {
           ] else if (request.status == HomeVisitStatus.scheduled) ...[
             const SizedBox(height: Space.sm),
             Align(
-              alignment: Alignment.centerLeft,
+              alignment: AlignmentDirectional.centerStart,
               child: OutlinedButton(
                 onPressed: () => _decide(
                   context,
                   ref,
                   HomeVisitStatus.completed,
                 ),
-                child: const Text('Mark completed'),
+                child: Text(t.markCompletedButton),
               ),
             ),
           ],
@@ -229,13 +234,14 @@ class _QueueCard extends ConsumerWidget {
 
   Future<String?> _askNote(BuildContext context, HomeVisitStatus status) {
     final controller = TextEditingController();
+    final t = AppLocalizations.of(context)!;
     return showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(
           status == HomeVisitStatus.scheduled
-              ? 'Schedule this visit'
-              : 'Decline this request',
+              ? t.scheduleThisVisitTitle
+              : t.declineThisRequestTitle,
         ),
         content: TextField(
           controller: controller,
@@ -244,19 +250,19 @@ class _QueueCard extends ConsumerWidget {
           autofocus: true,
           decoration: InputDecoration(
             hintText: status == HomeVisitStatus.scheduled
-                ? 'e.g. Nurse will visit Tue 10:00'
-                : 'Reason the request was declined',
+                ? t.scheduleHint
+                : t.declineHint,
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(t.cancel),
           ),
           FilledButton(
             onPressed: () =>
                 Navigator.of(context).pop(controller.text.trim()),
-            child: const Text('Confirm'),
+            child: Text(t.confirm),
           ),
         ],
       ),

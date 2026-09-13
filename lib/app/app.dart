@@ -11,6 +11,7 @@ import '../core/presentation/appointment_confirmation_overlay.dart';
 import '../features/auth/presentation/session_activity_monitor.dart';
 import '../features/auth/presentation/splash_overlay.dart';
 import '../features/notifications/presentation/notification_sound_cue.dart';
+import '../l10n/app_localizations.dart';
 import 'router.dart';
 import 'settings/ui_prefs.dart';
 import 'theme/theme.dart';
@@ -29,6 +30,7 @@ class MyHealthCareApp extends ConsumerWidget {
       locale: ref.watch(localeProvider),
       supportedLocales: supportedLocales,
       localizationsDelegates: const [
+        AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,

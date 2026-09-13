@@ -10,6 +10,7 @@ import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/capacity_forecast.dart';
 
 class AdminForecastScreen extends ConsumerWidget {
@@ -17,6 +18,7 @@ class AdminForecastScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final forecast = ref.watch(capacityForecastProvider);
     final gutter = WindowSize.of(context).gutter;
@@ -24,10 +26,10 @@ class AdminForecastScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Capacity forecast'),
+        title: Text(t.capacityForecastTitle),
         actions: [
           IconButton(
-            tooltip: 'Recompute',
+            tooltip: t.recomputeTooltip,
             icon: const Icon(Icons.refresh),
             onPressed: () => ref.invalidate(capacityForecastProvider),
           ),
@@ -36,7 +38,7 @@ class AdminForecastScreen extends ConsumerWidget {
       body: forecast.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
-          message: 'Could not compute the forecast.',
+          message: t.couldNotComputeForecast,
           onRetry: () => ref.invalidate(capacityForecastProvider),
         ),
         data: (f) => Column(
@@ -57,9 +59,7 @@ class AdminForecastScreen extends ConsumerWidget {
                     ),
                     children: [
                       Text(
-                        'Busiest window per weekday, from appointment history. '
-                        'A flag means peak demand has been running at or above '
-                        'a single clinician’s hourly capacity.',
+                        t.forecastExplainerNote,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -113,12 +113,13 @@ class _DayCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final scheme = theme.colorScheme;
     final ramp = theme.clinicalStatus;
     final (levelLabel, levelStyle) = switch (day.level) {
-      DemandLevel.high => ('High demand', ramp.riskHigh),
-      DemandLevel.moderate => ('Moderate', ramp.riskMedium),
-      DemandLevel.low => ('Light', ramp.riskLow),
+      DemandLevel.high => (t.demandLevelHigh, ramp.riskHigh),
+      DemandLevel.moderate => (t.demandLevelModerate, ramp.riskMedium),
+      DemandLevel.low => (t.demandLevelLow, ramp.riskLow),
     };
 
     return AppCard(
@@ -133,7 +134,7 @@ class _DayCard extends StatelessWidget {
               ),
               if (day.overflowRisk)
                 _Pill(
-                  label: 'Overflow risk',
+                  label: t.overflowRiskLabel,
                   bg: ramp.riskHigh.container,
                   fg: ramp.riskHigh.onContainer,
                 )
@@ -148,8 +149,8 @@ class _DayCard extends StatelessWidget {
           const SizedBox(height: Space.xxs),
           Text(
             day.peakWindow == '—'
-                ? 'No history yet'
-                : 'Peak ${day.peakWindow} · up to ${day.peakCount}/hr',
+                ? t.noHistoryYet
+                : t.peakWindowSummary(day.peakWindow, day.peakCount),
             style: theme.textTheme.bodySmall?.copyWith(
               color: scheme.onSurfaceVariant,
             ),

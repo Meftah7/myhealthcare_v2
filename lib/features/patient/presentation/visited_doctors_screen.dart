@@ -128,7 +128,7 @@ class _DoctorCard extends StatelessWidget {
           ),
           const SizedBox(height: Space.sm),
           Align(
-            alignment: Alignment.centerLeft,
+            alignment: AlignmentDirectional.centerStart,
             child: OutlinedButton.icon(
               onPressed: () => context.push(
                 '${AppRoutes.patientBook}?staff=${doctor.staffId}',

@@ -12,8 +12,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
-import '../../../core/i18n/app_strings.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../l10n/app_localizations.dart';
 
 class PreferencesSection extends ConsumerWidget {
   const PreferencesSection({this.bare = false, super.key});
@@ -24,7 +24,7 @@ class PreferencesSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final t = AppStrings.of(context);
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final mode = ref.watch(themeModeProvider);

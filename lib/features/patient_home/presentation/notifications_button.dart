@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../core/presentation/circle_icon_button.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../notifications/application/notification_providers.dart';
 
 class NotificationsButton extends ConsumerWidget {
@@ -24,6 +25,7 @@ class NotificationsButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final unread = ref.watch(unreadNotificationCountProvider);
     final scheme = Theme.of(context).colorScheme;
+    final t = AppLocalizations.of(context)!;
 
     return Stack(
       clipBehavior: Clip.none,
@@ -33,15 +35,16 @@ class NotificationsButton extends ConsumerWidget {
               ? Icons.notifications
               : Icons.notifications_outlined,
           tooltip: unread > 0
-              ? 'Notifications ($unread unread)'
-              : 'Notifications',
+              ? t.notificationsTooltipUnread(unread)
+              : t.notificationsTooltip,
           onPressed: () => context.go(route),
         ),
         if (unread > 0)
-          // Sits on the circle's top-right edge — the button draws a 40dp
+          // Sits on the circle's top-end edge — the button draws a 40dp
           // circle centred in a 48dp tap target, so the rim is 4dp in.
-          Positioned(
-            right: 3,
+          Positioned.directional(
+            textDirection: Directionality.of(context),
+            end: 3,
             top: 3,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 4),

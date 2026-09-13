@@ -5,6 +5,7 @@ library;
 import 'package:flutter/material.dart';
 
 import '../../app/theme/theme.dart';
+import '../../l10n/app_localizations.dart';
 
 /// Icon + one line + an optional single action.
 class EmptyState extends StatelessWidget {
@@ -46,7 +47,9 @@ class ErrorStateView extends StatelessWidget {
       icon: Icons.cloud_off_rounded,
       title: message,
       tone: _StateTone.error,
-      actionLabel: onRetry == null ? null : 'Try again',
+      actionLabel: onRetry == null
+          ? null
+          : AppLocalizations.of(context)!.tryAgain,
       actionIcon: Icons.refresh,
       onAction: onRetry,
     );
@@ -84,51 +87,57 @@ class _CenteredState extends StatelessWidget {
             : scheme.surfaceContainerHighest)
         .withValues(alpha: tone == _StateTone.error ? 0.5 : 1);
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(Space.xl),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 340),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  color: bg,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: fg.withValues(alpha: 0.14),
-                    width: 6,
+    // A scrollable, not a bare Center — this is dropped into all sorts of
+    // constrained-height spots (a squeezed Expanded, a small dialog), and a
+    // longer translated message must never hard-overflow just because there
+    // wasn't quite enough room; scrolling is the fallback, not an error.
+    return SingleChildScrollView(
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(Space.xl),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 340),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    color: bg,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: fg.withValues(alpha: 0.14),
+                      width: 6,
+                    ),
+                  ),
+                  child: Icon(icon, size: 28, color: fg),
+                ),
+                const SizedBox(height: Space.md),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                    height: 1.45,
                   ),
                 ),
-                child: Icon(icon, size: 28, color: fg),
-              ),
-              const SizedBox(height: Space.md),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                  height: 1.45,
-                ),
-              ),
-              if (actionLabel != null && onAction != null) ...[
-                const SizedBox(height: Space.lg),
-                if (actionIcon != null)
-                  OutlinedButton.icon(
-                    onPressed: onAction,
-                    icon: Icon(actionIcon),
-                    label: Text(actionLabel!),
-                  )
-                else
-                  FilledButton.tonal(
-                    onPressed: onAction,
-                    child: Text(actionLabel!),
-                  ),
+                if (actionLabel != null && onAction != null) ...[
+                  const SizedBox(height: Space.lg),
+                  if (actionIcon != null)
+                    OutlinedButton.icon(
+                      onPressed: onAction,
+                      icon: Icon(actionIcon),
+                      label: Text(actionLabel!),
+                    )
+                  else
+                    FilledButton.tonal(
+                      onPressed: onAction,
+                      child: Text(actionLabel!),
+                    ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -205,33 +214,34 @@ class SkeletonList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Padding(
+    // A ListView, not a Column — a placeholder must never hard-overflow the
+    // space it's loading into, whatever squeezes that space (a longer
+    // translated header above it, a short window, a big text-scale setting).
+    return ListView(
       padding: const EdgeInsets.fromLTRB(Space.md, Space.sm, Space.md, Space.sm),
-      child: Column(
-        children: [
-          for (var i = 0; i < lines; i++)
-            Container(
-              margin: const EdgeInsets.only(bottom: Space.sm),
-              padding: const EdgeInsets.all(Space.md),
-              decoration: BoxDecoration(
-                color: scheme.surfaceContainerLowest,
-                borderRadius: Radii.card,
-                border: Border.all(color: scheme.outlineVariant),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const LoadingSkeleton(width: 160),
-                  const SizedBox(height: Space.sm),
-                  LoadingSkeleton(
-                    height: 12,
-                    width: MediaQuery.sizeOf(context).width * 0.5,
-                  ),
-                ],
-              ),
+      children: [
+        for (var i = 0; i < lines; i++)
+          Container(
+            margin: const EdgeInsets.only(bottom: Space.sm),
+            padding: const EdgeInsets.all(Space.md),
+            decoration: BoxDecoration(
+              color: scheme.surfaceContainerLowest,
+              borderRadius: Radii.card,
+              border: Border.all(color: scheme.outlineVariant),
             ),
-        ],
-      ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const LoadingSkeleton(width: 160),
+                const SizedBox(height: Space.sm),
+                LoadingSkeleton(
+                  height: 12,
+                  width: MediaQuery.sizeOf(context).width * 0.5,
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }

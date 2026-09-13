@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/confirm_dialog.dart';
@@ -20,6 +21,7 @@ import '../../../core/presentation/status_badges.dart';
 import '../../../core/result.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/consultation_providers.dart';
 
 class ConsultationScreen extends ConsumerStatefulWidget {
@@ -71,6 +73,7 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final appt = ref.watch(consultationAppointmentProvider(_id));
     final patient = ref.watch(consultationPatientProvider(_id));
 
@@ -92,14 +95,14 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
               AppointmentStatusPill(a.status, dense: true),
             ],
           ),
-          orElse: () => const Text('Consultation'),
+          orElse: () => Text(t.consultationFallbackTitle),
         ),
-        orElse: () => const Text('Consultation'),
+        orElse: () => Text(t.consultationFallbackTitle),
       ),
       body: appt.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
-          message: 'Could not load this appointment.',
+          message: t.couldNotLoadThisAppointment,
           onRetry: () => ref.invalidate(consultationAppointmentProvider(_id)),
         ),
         data: (a) => Center(
@@ -116,7 +119,7 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
                 patient.when(
                   loading: () => const LoadingSkeleton(height: 96),
                   error: (e, _) =>
-                      const InlineBanner.error('Could not load the patient.'),
+                      InlineBanner.error(t.couldNotLoadThePatient),
                   data: (p) => _PatientHeader(patient: p, appointment: a),
                 ),
                 const SizedBox(height: Space.md),
@@ -135,37 +138,38 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
   }
 
   List<Widget> _workingBody(Appointment a) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final draft = ref.watch(consultationDraftProvider(_id));
     final referral = ref.watch(consultationReferralProvider(_id));
 
     return [
-      const SectionHeader('Clinical note', overline: true, first: true),
+      SectionHeader(t.clinicalNoteHeader, overline: true, first: true),
       TextField(
         controller: _note,
         minLines: 4,
         maxLines: 12,
-        decoration: const InputDecoration(
-          hintText: 'History, examination, assessment, plan…',
+        decoration: InputDecoration(
+          hintText: t.historyExamHint,
           alignLabelWithHint: true,
         ),
       ),
       const SizedBox(height: Space.xs),
       Align(
-        alignment: Alignment.centerLeft,
+        alignment: AlignmentDirectional.centerStart,
         child: TextButton.icon(
           onPressed: () => context.push(
             '${AppRoutes.staffScribe}?patient=${a.patientId}&appointment=$_id',
           ),
           icon: const Icon(Icons.auto_awesome, size: 18),
-          label: const Text('Open AI Scribe'),
+          label: Text(t.openAiScribeAction),
         ),
       ),
 
-      const SectionHeader('Medications', overline: true),
+      SectionHeader(t.quickActionMedications, overline: true),
       if (draft.meds.isEmpty)
         Text(
-          'No medications added.',
+          t.noMedicationsAdded,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -183,7 +187,7 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
                     [?draft.meds[i].dose, ?draft.meds[i].frequency].join(' · '),
                   ),
                   trailing: IconButton(
-                    tooltip: 'Remove',
+                    tooltip: t.removeTooltip,
                     icon: const Icon(Icons.close),
                     onPressed: () => _update(
                       draft.copyWith(meds: [...draft.meds]..removeAt(i)),
@@ -196,19 +200,19 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
         ),
       const SizedBox(height: Space.xs),
       Align(
-        alignment: Alignment.centerLeft,
+        alignment: AlignmentDirectional.centerStart,
         child: OutlinedButton.icon(
           onPressed: _addMedication,
           icon: const Icon(Icons.add, size: 18),
-          label: const Text('Add medication'),
+          label: Text(t.addMedicationAction),
         ),
       ),
 
-      const SectionHeader('Referral', overline: true),
+      SectionHeader(t.referralHeader, overline: true),
       referral.maybeWhen(
         data: (req) => req != null || draft.referralRequested
             ? StatusPill(
-                label: 'Referral requested — awaiting admin',
+                label: t.referralRequestedAwaitingAdmin,
                 icon: Icons.hourglass_top_outlined,
                 container: theme.colorScheme.tertiaryContainer,
                 onContainer: theme.colorScheme.onTertiaryContainer,
@@ -216,7 +220,7 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
             : OutlinedButton.icon(
                 onPressed: _requestReferral,
                 icon: const Icon(Icons.forward_to_inbox_outlined, size: 18),
-                label: const Text('Request a referral'),
+                label: Text(t.requestAReferralAction),
               ),
         orElse: () => const LoadingSkeleton(height: 40),
       ),
@@ -224,9 +228,9 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
       const SizedBox(height: Space.lg),
       TextField(
         controller: _outcome,
-        decoration: const InputDecoration(
-          labelText: 'Visit summary (optional)',
-          hintText: 'One line — the outcome of this visit',
+        decoration: InputDecoration(
+          labelText: t.visitSummaryOptionalLabel,
+          hintText: t.visitSummaryHint,
         ),
       ),
       const SizedBox(height: Space.md),
@@ -237,13 +241,13 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
                 dimension: 18,
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
-            : const Text('Complete consultation'),
+            : Text(t.completeConsultationAction),
       ),
       if (draft.isEmpty)
         Padding(
           padding: const EdgeInsets.only(top: Space.xs),
           child: Text(
-            'Add a note, a medication or a referral request first.',
+            t.addNoteMedOrReferralFirst,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -268,6 +272,7 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
   }
 
   Future<void> _requestReferral() async {
+    final t = AppLocalizations.of(context)!;
     final reason = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
@@ -279,23 +284,23 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
       ),
     );
     if (reason == null || reason.trim().isEmpty) return;
+    if (!mounted) return;
     await _run(() async {
       final r = await ref
           .read(consultationControllerProvider(_id))
           .requestReferral(reason.trim());
       if (r.isOk) _update(_draft.copyWith(referralRequested: true));
       return r;
-    }, ok: 'Referral requested.');
+    }, ok: t.referralRequestedSnackbar);
   }
 
   Future<void> _complete() async {
+    final t = AppLocalizations.of(context)!;
     final ok = await confirm(
       context,
-      title: 'Complete consultation?',
-      message:
-          'The note and any medications will be saved to the patient '
-          'record and the visit will be closed.',
-      confirmLabel: 'Complete',
+      title: t.completeConsultationTitle,
+      message: t.completeConsultationBody,
+      confirmLabel: t.completeAction,
     );
     if (!ok) return;
     await _run(
@@ -310,7 +315,7 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
             );
         return r;
       },
-      ok: 'Consultation completed.',
+      ok: t.consultationCompletedSnackbar,
       popOnOk: true,
     );
   }
@@ -345,16 +350,18 @@ class _PatientHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final u = patient.user;
     final facts = [
-      if (u.ageYears != null) '${u.ageYears} yrs',
-      ?u.gender?.name,
+      if (u.ageYears != null) t.ageYearsAbbrev(u.ageYears!),
+      u.gender?.label(context),
       if (patient.bloodType != null) patient.bloodType!,
-      if (appointment.ticketTag != null) 'Ticket ${appointment.ticketTag}',
-      if (appointment.roomNumber != null) 'Room ${appointment.roomNumber}',
-    ].join(' · ');
+      if (appointment.ticketTag != null) t.ticketLabel(appointment.ticketTag!),
+      if (appointment.roomNumber != null)
+        t.roomNumber('${appointment.roomNumber}'),
+    ].whereType<String>().join(' · ');
 
     return AppCard(
       child: Column(
@@ -432,7 +439,10 @@ class _PreVisitActions extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final ramp = theme.clinicalStatus;
     final controller = ref.read(consultationControllerProvider(appointment.id));
 
     return AppCard(
@@ -443,56 +453,74 @@ class _PreVisitActions extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: Space.sm),
               child: Text(
-                'Patient has been called in.',
+                t.patientCalledInNote,
                 style: theme.textTheme.bodyMedium,
               ),
             )
           else
             Padding(
               padding: const EdgeInsets.only(bottom: Space.sm),
+              // Violet, tonal — same weight and colour as "Call patient" on
+              // the schedule card; "Patient arrived" below is the stronger
+              // solid action.
               child: FilledButton.tonalIcon(
                 onPressed: busy
                     ? null
-                    : () => run(controller.callPatient, ok: 'Patient called.'),
+                    : () => run(
+                        controller.callPatient,
+                        ok: t.patientCalledSnackbar,
+                      ),
                 icon: const Icon(Icons.campaign_outlined),
-                label: const Text('Call patient'),
+                label: Text(t.callPatientAction),
+                style: FilledButton.styleFrom(
+                  backgroundColor: scheme.primaryContainer,
+                  foregroundColor: scheme.onPrimaryContainer,
+                ),
               ),
             ),
+          // Solid green — matches the "Arrived" action on the schedule card.
           FilledButton.icon(
             onPressed: busy
                 ? null
-                : () =>
-                      run(controller.markArrived, ok: 'Consultation started.'),
+                : () => run(
+                    controller.markArrived,
+                    ok: t.consultationStartedSnackbar,
+                  ),
             icon: const Icon(Icons.login),
-            label: const Text('Patient arrived'),
+            label: Text(t.patientArrivedAction),
+            style: FilledButton.styleFrom(
+              backgroundColor: ramp.riskLow.onContainer,
+              foregroundColor: ramp.riskLow.container,
+            ),
           ),
           const SizedBox(height: Space.sm),
+          // Outlined red — matches "Not arrived" on the schedule card.
           OutlinedButton.icon(
             onPressed: busy
                 ? null
                 : () async {
                     final ok = await confirm(
                       context,
-                      title: 'Mark as no-show?',
-                      message: 'This records that the patient did not attend.',
-                      confirmLabel: 'Mark no-show',
+                      title: t.markAsNoShowTitle,
+                      message: t.recordsPatientDidNotAttend,
+                      confirmLabel: t.markNoShowAction,
                       destructive: true,
                     );
                     if (!ok) return;
                     await run(
                       controller.markNoShow,
-                      ok: 'Marked as no-show.',
+                      ok: t.markedAsNoShowSnackbar,
                       popOnOk: true,
                     );
                   },
             style: OutlinedButton.styleFrom(
-              foregroundColor: theme.colorScheme.error,
+              foregroundColor: ramp.riskHigh.onContainer,
               side: BorderSide(
-                color: theme.colorScheme.error.withValues(alpha: 0.4),
+                color: ramp.riskHigh.onContainer.withValues(alpha: 0.5),
               ),
             ),
             icon: const Icon(Icons.person_off_outlined),
-            label: const Text('Patient not shown'),
+            label: Text(t.patientNotShownAction),
           ),
         ],
       ),
@@ -507,6 +535,7 @@ class _CompletedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     return AppCard(
       child: Column(
@@ -520,7 +549,7 @@ class _CompletedCard extends StatelessWidget {
               ),
               const SizedBox(width: Space.xs),
               Text(
-                'Consultation completed',
+                t.consultationCompletedHeader,
                 style: theme.textTheme.titleMedium,
               ),
             ],
@@ -559,6 +588,7 @@ class _AddMedicationSheetState extends State<_AddMedicationSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(Space.lg),
@@ -567,26 +597,26 @@ class _AddMedicationSheetState extends State<_AddMedicationSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Add medication',
+              t.addMedicationAction,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: Space.md),
             TextField(
               controller: _name,
               autofocus: true,
-              decoration: const InputDecoration(labelText: 'Medication name'),
+              decoration: InputDecoration(labelText: t.medicationNameLabel),
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: Space.sm),
             TextField(
               controller: _dose,
-              decoration: const InputDecoration(labelText: 'Dose (optional)'),
+              decoration: InputDecoration(labelText: t.doseOptionalLabel),
             ),
             const SizedBox(height: Space.sm),
             TextField(
               controller: _freq,
-              decoration: const InputDecoration(
-                labelText: 'Frequency (optional)',
+              decoration: InputDecoration(
+                labelText: t.frequencyOptionalLabel,
               ),
             ),
             const SizedBox(height: Space.lg),
@@ -604,7 +634,7 @@ class _AddMedicationSheetState extends State<_AddMedicationSheet> {
                             : _freq.text.trim(),
                       ),
                     ),
-              child: const Text('Add'),
+              child: Text(t.addButton),
             ),
           ],
         ),
@@ -631,6 +661,7 @@ class _ReferralReasonSheetState extends State<_ReferralReasonSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(Space.lg),
@@ -639,13 +670,12 @@ class _ReferralReasonSheetState extends State<_ReferralReasonSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Request a referral',
+              t.requestAReferralAction,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: Space.xs),
             Text(
-              'The admin will decide whether this is a department or an '
-              'external referral, and where.',
+              t.adminWillDecideReferralNote,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -656,8 +686,8 @@ class _ReferralReasonSheetState extends State<_ReferralReasonSheet> {
               autofocus: true,
               minLines: 3,
               maxLines: 6,
-              decoration: const InputDecoration(
-                labelText: 'Clinical reason for referral',
+              decoration: InputDecoration(
+                labelText: t.clinicalReasonForReferralLabel,
                 alignLabelWithHint: true,
               ),
               onChanged: (_) => setState(() {}),
@@ -667,7 +697,7 @@ class _ReferralReasonSheetState extends State<_ReferralReasonSheet> {
               onPressed: _reason.text.trim().isEmpty
                   ? null
                   : () => Navigator.of(context).pop(_reason.text.trim()),
-              child: const Text('Send request'),
+              child: Text(t.sendRequestButton),
             ),
           ],
         ),

@@ -1,0 +1,1520 @@
+{
+  "@@locale": "ar",
+
+  "profile": "الملف الشخصي",
+  "signOut": "تسجيل الخروج",
+  "signOutConfirmTitle": "تسجيل الخروج؟",
+  "signOutConfirmBody": "ستحتاج إلى تسجيل الدخول مرة أخرى للمتابعة.",
+
+  "account": "الحساب",
+  "roleStaff": "طاقم طبي",
+  "rolePatient": "مري/ة",
+  "roleAdmin": "مسؤول",
+
+  "specialty": "التخصص",
+  "jobTitle": "المسمى الوظيفي",
+  "licenseNo": "رقم الترخيص",
+  "department": "القسم",
+  "memberSince": "عضو منذ",
+  "managedByAdmin": "تتم إدارة هذه التفاصيل بواسطة المسؤول.",
+  "none": "لا يوجد",
+
+  "preferences": "التفضيلات",
+  "theme": "المظهر",
+  "themeSystem": "النظام",
+  "themeLight": "فاتح",
+  "themeDark": "داكن",
+  "language": "اللغة",
+  "languageSystem": "لغة النظام",
+  "languageEnglish": "English",
+  "languageArabic": "العربية",
+  "translationNote": "ترجمة الواجهة بالكامل قيد التطوير؛ حالياً تدعم شاشة الملف الشخصي العربية والإنجليزية.",
+
+  "signInTitle": "تسجيل الدخول",
+  "signInSubtitle": "سجلاتك الطبية ومواعيدك وفريق الرعاية — في مكان واحد هادئ.",
+  "sessionEndedNotice": "انتهت جلستك بعد 24 دقيقة من عدم النشاط. يرجى تسجيل الدخول مرة أخرى.",
+  "email": "البريد الإلكتروني",
+  "emailOrNationalIdHelper": "يمكنك أيضاً تسجيل الدخول باستخدام رقم الهوية الوطنية",
+  "emailOrNationalIdRequired": "أدخل بريدك الإلكتروني أو رقم الهوية الوطنية",
+  "password": "كلمة المرور",
+  "showPassword": "إظهار كلمة المرور",
+  "hidePassword": "إخفاء كلمة المرور",
+  "passwordRequired": "أدخل كلمة المرور",
+  "forgotPassword": "نسيت كلمة المرور؟",
+  "createPatientAccount": "إنشاء حساب مريض",
+  "demoAccounts": "حسابات تجريبية",
+  "demoPatient": "مريض",
+  "demoStaff": "طاقم",
+  "demoAdmin": "مسؤول",
+  "demoPasswordNote": "كلمة المرور لجميع الحسابات: {password}",
+  "@demoPasswordNote": {
+    "placeholders": {
+      "password": {
+        "type": "String"
+      }
+    }
+  },
+
+  "createAccount": "إنشاء حساب",
+  "accountSection": "الحساب",
+  "detailsSection": "التفاصيل",
+  "medicalSectionOptional": "معلومات طبية (اختياري)",
+  "fullName": "الاسم الكامل",
+  "validEmailRequired": "أدخل بريداً إلكترونياً صحيحاً",
+  "passwordMinLength": "6 أحرف على الأقل",
+  "phoneOptional": "رقم الهاتف (اختياري)",
+  "dateOfBirth": "تاريخ الميلاد",
+  "gender": "الجنس",
+  "genderMale": "ذكر",
+  "genderFemale": "أنثى",
+  "nationalIdOptional": "رقم الهوية الوطنية (اختياري)",
+  "bloodType": "فصيلة الدم",
+  "chronicConditions": "الأمراض المزمنة",
+  "commaSeparatedHelper": "مفصولة بفواصل",
+  "allergies": "الحساسية",
+  "emergencyContact": "جهة اتصال للطوارئ",
+  "requiredField": "مطلوب",
+
+  "presenceOnDuty": "في الخدمة",
+  "presenceInConsultation": "في استشارة",
+  "presenceOnBreak": "في استراحة",
+  "presenceOffShift": "خارج الدوام",
+
+  "genderOther": "آخر",
+  "genderUndisclosed": "يفضل عدم الإفصاح",
+
+  "appointmentStatusBooked": "محجوز",
+  "appointmentStatusConfirmed": "مؤكد",
+  "appointmentStatusInProgress": "جارٍ",
+  "appointmentStatusCompleted": "مكتمل",
+  "appointmentStatusCancelled": "ملغى",
+  "appointmentStatusNoShow": "لم يحضر",
+
+  "walkInStatusWaiting": "بالانتظار",
+  "walkInStatusCalled": "تم النداء",
+  "walkInStatusInProgress": "جارٍ",
+  "walkInStatusDone": "تم",
+  "walkInStatusCancelled": "ملغى",
+
+  "referralRequestStatusPending": "قيد الانتظار",
+  "referralRequestStatusActioned": "تم اتخاذ إجراء",
+  "referralRequestStatusRejected": "مرفوض",
+
+  "riskBandLow": "منخفض",
+  "riskBandMedium": "متوسط",
+  "riskBandHigh": "مرتفع",
+
+  "recordTypeVisitNote": "ملاحظة زيارة",
+  "recordTypeLabResult": "نتيجة مخبرية",
+  "recordTypeImaging": "تصوير",
+  "recordTypePrescription": "وصفة طبية",
+  "recordTypeVaccination": "تطعيم",
+  "recordTypeDischarge": "خروج",
+  "recordTypeReferral": "تحويل",
+
+  "abnormalFlagNormal": "طبيعي",
+  "abnormalFlagLow": "منخفض",
+  "abnormalFlagHigh": "مرتفع",
+  "abnormalFlagCritical": "حرج",
+
+  "taskKindFollowUpDue": "متابعة مستحقة",
+  "taskKindUnreviewedAbnormalLab": "نتيجة مخبرية غير طبيعية لم تُراجع",
+  "taskKindUnsignedNote": "ملاحظة غير موقعة",
+  "taskKindMedicationReview": "مراجعة الأدوية",
+  "taskKindReferralAction": "إجراء تحويل",
+  "taskKindOther": "أخرى",
+
+  "taskStatusOpen": "مفتوح",
+  "taskStatusInProgress": "جارٍ",
+  "taskStatusDone": "تم",
+  "taskStatusDismissed": "مرفوض",
+
+  "riskFlagKindAbnormalVitals": "علامات حيوية غير طبيعية",
+  "riskFlagKindAbnormalLab": "نتيجة مخبرية غير طبيعية",
+  "riskFlagKindMedicationGap": "نقص في الالتزام الدوائي",
+  "riskFlagKindOverdueFollowUp": "متابعة متأخرة",
+  "riskFlagKindOther": "أخرى",
+
+  "severityInfo": "معلومة",
+  "severityWarning": "تحذير",
+  "severityUrgent": "عاجل",
+
+  "flagSourceRule": "قائم على قاعدة",
+  "flagSourceAi": "ذكاء اصطناعي",
+
+  "reminderKindStandard": "عادي",
+  "reminderKindEscalated": "مصعّد",
+  "reminderKindConfirmRequest": "طلب تأكيد",
+
+  "reminderChannelPush": "إشعار فوري",
+  "reminderChannelInApp": "داخل التطبيق",
+  "reminderChannelSms": "رسالة نصية",
+  "reminderChannelEmail": "بريد إلكتروني",
+
+  "invoiceStatusPending": "قيد الانتظار",
+  "invoiceStatusPaid": "مدفوع",
+  "invoiceStatusCancelled": "ملغى",
+  "invoiceStatusOverdue": "متأخر",
+
+  "homeVisitStatusRequested": "مطلوب",
+  "homeVisitStatusScheduled": "مجدول",
+  "homeVisitStatusCompleted": "مكتمل",
+  "homeVisitStatusDeclined": "مرفوض",
+  "homeVisitStatusCancelled": "ملغى",
+
+  "notificationCategoryAppointment": "موعد",
+  "notificationCategoryBilling": "فوترة",
+  "notificationCategoryLabResult": "نتيجة مخبرية",
+  "notificationCategoryPrescription": "وصفة طبية",
+  "notificationCategoryMessage": "رسالة",
+  "notificationCategorySystem": "النظام",
+
+  "feedbackCategoryBug": "خطأ تقني",
+  "feedbackCategoryFeatureRequest": "طلب ميزة",
+  "feedbackCategoryGeneralFeedback": "ملاحظات عامة",
+  "feedbackCategoryComplaint": "شكوى",
+
+  "feedbackStatusOpen": "مفتوح",
+  "feedbackStatusResolved": "تم الحل",
+
+  "aiFeatureCareNavigator": "Care Navigator",
+  "aiFeatureClinicalScribe": "Clinical Scribe",
+  "aiFeaturePatientSummary": "ملخص المريض",
+
+  "nothingHere": "لا يوجد شيء هنا.",
+  "selectItemPlaceholder": "اختر عنصراً لعرض تفاصيله.",
+  "confirm": "تأكيد",
+  "cancel": "إلغاء",
+  "tryAgain": "إعادة المحاولة",
+  "riskBadgeLow": "خطر منخفض",
+  "riskBadgeMedium": "خطر متوسط",
+  "riskBadgeHigh": "خطر مرتفع",
+  "severityChipInfo": "معلومة",
+  "severityChipReview": "مراجعة",
+  "severityChipUrgent": "عاجل",
+  "aiDisclaimer": "محتوى مُولّد بالذكاء الاصطناعي — للعلم فقط وليس استشارة طبية. يرجى التأكد مع طبيبك المعالج.",
+  "labReferenceSuffix": "، المرجع {reference}",
+  "@labReferenceSuffix": {
+    "placeholders": {
+      "reference": {
+        "type": "String"
+      }
+    }
+  },
+
+  "notificationsTooltip": "الإشعارات",
+  "notificationsTooltipUnread": "الإشعارات ({count} غير مقروءة)",
+  "@notificationsTooltipUnread": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "greetingFallbackName": "عزيزي",
+  "sectionYourHealth": "صحتك",
+  "sectionUpcomingAppointments": "المواعيد القادمة",
+  "sectionQuickActions": "إجراءات سريعة",
+  "quickAppointmentTitle": "موعد سريع",
+  "quickAppointmentSubtitle": "عاجل أو عادي — احصل على موعد أسرع",
+  "quickAppointmentSheetQuestion": "ما مدى إلحاح هذه الزيارة؟",
+  "urgencyUrgentTitle": "عاجل",
+  "urgencyUrgentSubtitle": "وجّهني تلقائياً لأقرب طبيب متاح",
+  "urgencyNormalTitle": "عادي",
+  "urgencyNormalSubtitle": "اختيار القسم والطبيب والوقت بنفسي",
+  "onSchedule": "تم تسجيلك في الجدول",
+  "metricTicket": "التذكرة",
+  "metricMedicine": "الدواء",
+  "metricLastVisit": "آخر زيارة",
+  "allergiesInline": "الحساسية: {list}",
+  "@allergiesInline": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
+  "quickActionVitals": "العلامات الحيوية",
+  "quickActionMedications": "الأدوية",
+  "quickActionAskDoctor": "اسأل طبيبك",
+  "quickActionVisitedDoctors": "الأطباء الذين زرتهم",
+  "quickActionSickLeave": "إجازة مرضية",
+  "quickActionHomeCare": "رعاية منزلية",
+  "quickActionBilling": "الفواتير",
+  "couldNotLoadAppointments": "تعذّر تحميل المواعيد.",
+  "noUpcomingAppointments": "لا توجد مواعيد قادمة",
+  "tapToBookVisit": "اضغط لحجز زيارة",
+  "carouselPosition": "{index} من {count}",
+  "@carouselPosition": {
+    "placeholders": {
+      "index": { "type": "int" },
+      "count": { "type": "int" }
+    }
+  },
+  "previousAppointment": "الموعد السابق",
+  "nextAppointment": "الموعد التالي",
+  "ticketOverline": "التذكرة",
+  "roomNumber": "غرفة {room}",
+  "@roomNumber": {
+    "placeholders": {
+      "room": {
+        "type": "String"
+      }
+    }
+  },
+  "bookedForName": "لـ {name}",
+  "@bookedForName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "appointmentsTitle": "مواعيدي",
+  "upcomingCount": "القادمة ({count})",
+  "@upcomingCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "nothingBookedNote": "لا توجد حجوزات. استخدم \"احجز الآن\" أو \"جدولة\" أعلاه.",
+  "historyCount": "السجل ({count})",
+  "@historyCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "noPastVisitsNote": "لا توجد زيارات سابقة بعد.",
+  "bookNowTitle": "احجز الآن",
+  "bookNowSubtitle": "أقرب موعد متاح",
+  "scheduleTitle": "جدولة",
+  "scheduleSubtitle": "اختر تاريخاً",
+  "ticketLabel": "التذكرة {tag}",
+  "@ticketLabel": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      }
+    }
+  },
+  "reschedule": "إعادة الجدولة",
+  "cancelAppointmentTitle": "إلغاء الموعد؟",
+  "cancelAppointmentMessage": "سيؤدي هذا إلى إتاحة الموعد لشخص آخر.",
+  "cancelItLabel": "إلغاؤه",
+  "clinicDaysHelp": "أيام العيادة: الأحد–الخميس",
+  "clinicHoursHelp": "ساعات العيادة: 08:00–20:00",
+  "pickTimeInRange": "اختر وقتاً بين 08:00 و20:00.",
+  "bookedOn": "تم الحجز {date}",
+  "@bookedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+
+  "scheduleAVisitTitle": "جدولة زيارة",
+  "couldNotLoadDepartments": "تعذّر تحميل الأقسام.",
+  "stepDepartment": "القسم",
+  "stepDoctor": "الطبيب",
+  "stepReasonForVisit": "سبب الزيارة",
+  "stepReasonShort": "السبب",
+  "stepDateTime": "التاريخ والوقت",
+  "whoIsThisFor": "لمن هذا الموعد؟",
+  "myself": "لنفسي",
+  "bookedForNotice": "سيتم حجز هذه الزيارة لـ {name}.",
+  "@bookedForNotice": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "stepProgress": "الخطوة {step} من {total} · {label}",
+  "@stepProgress": {
+    "placeholders": {
+      "step": { "type": "int" },
+      "total": { "type": "int" },
+      "label": { "type": "String" }
+    }
+  },
+  "couldNotLoadDoctors": "تعذّر تحميل الأطباء",
+  "noDoctorsListed": "لا يوجد أطباء مدرجون لهذا القسم بعد.",
+  "findingSoonestOpening": "جارٍ البحث عن أقرب موعد متاح…",
+  "soonestOpeningAt": "أقرب موعد متاح: {relDay}، {date}",
+  "@soonestOpeningAt": {
+    "placeholders": {
+      "relDay": { "type": "String" },
+      "date": { "type": "String" }
+    }
+  },
+  "couldNotLoadTimes": "تعذّر تحميل الأوقات.",
+  "noOpenTimesThatDay": "لا توجد أوقات متاحة في ذلك اليوم. جرّب تاريخاً آخر.",
+  "recommendedSection": "موصى به",
+  "allOpenTimesSection": "جميع الأوقات المتاحة",
+  "appointmentBooked": "تم حجز الموعد",
+  "reviewAndConfirm": "المراجعة والتأكيد",
+  "rowLabelFor": "لمن",
+  "rowLabelWhen": "الموعد",
+  "confirmBookingButton": "تأكيد الحجز",
+  "backButton": "رجوع",
+
+  "couldNotLoadMedications": "تعذّر تحميل الأدوية.",
+  "noMedicationsOnRecord": "لا توجد أدوية مسجلة.",
+  "currentSectionLabel": "الحالية",
+  "pastSectionLabel": "السابقة",
+  "medDoseFrom": "من {date}",
+  "@medDoseFrom": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "medDoseTo": "إلى {date}",
+  "@medDoseTo": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+
+  "imagingTitle": "الأشعة",
+  "couldNotLoadImaging": "تعذّر تحميل نتائج الأشعة.",
+  "noImagingResultsYet": "لا توجد نتائج أشعة بعد.\nستظهر هنا الأشعة السينية والمسوحات والموجات فوق الصوتية بعد إجراء الفحص.",
+  "reportPdfLabel": "تقرير PDF",
+
+  "recordTitle": "السجل",
+  "couldNotLoadRecord": "تعذّر تحميل هذا السجل.",
+  "fromYourVisitOn": "من زيارتك في {date}",
+  "@fromYourVisitOn": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "referralLetterLabel": "خطاب التحويل",
+  "resultsSection": "النتائج",
+  "extractedTextSection": "النص المستخرج",
+  "labColumnAnalyte": "التحليل",
+  "labColumnValue": "القيمة",
+  "labColumnReference": "المرجع",
+
+  "recordsTitle": "السجلات",
+  "timelineSegment": "الجدول الزمني",
+  "billsSegment": "الفواتير",
+  "vitalSignsReportLabel": "تقرير العلامات الحيوية",
+  "allergiesLabel": "الحساسية",
+
+  "couldNotLoadRecords": "تعذّر تحميل سجلاتك.",
+  "nothingMatchesFilters": "لا يوجد ما يطابق هذه الفلاتر بعد.",
+  "searchRecordsHint": "ابحث في السجلات",
+  "filterVisits": "الزيارات",
+  "filterLabs": "التحاليل",
+  "filterPrescriptions": "الوصفات الطبية",
+  "filterVaccinations": "التطعيمات",
+  "filterReferrals": "التحويلات",
+  "flaggedByAi": "مُعلَّم بواسطة الذكاء الاصطناعي",
+  "vitalsRecordedTitle": "تم تسجيل العلامات الحيوية",
+
+  "vitalsTitle": "العلامات الحيوية",
+  "couldNotLoadVitals": "تعذّر تحميل العلامات الحيوية.",
+  "noVitalsRecordedYet": "لا توجد علامات حيوية مسجلة بعد.\nاحجز زيارة للحصول على أول قراءة.",
+  "chartBloodPressure": "ضغط الدم",
+  "chartWeight": "الوزن",
+  "chartGlucose": "الجلوكوز",
+  "seriesSystolic": "الانقباضي",
+  "seriesDiastolic": "الانبساطي",
+  "recentReadingsSection": "القراءات الأخيرة",
+  "couldNotCreateDocument": "تعذّر إنشاء المستند.",
+
+  "couldNotLoadInvoices": "تعذّر تحميل فواتيرك.",
+  "noInvoicesYet": "لا توجد فواتير بعد.\nستظهر هنا فواتير زياراتك.",
+  "openSectionLabel": "مفتوحة",
+  "historyLabel": "السجل",
+  "outstandingBalance": "الرصيد المستحق",
+  "allSettled": "تمت التسوية بالكامل",
+  "openInvoicesCount": "{count, plural, zero{لا توجد فواتير مفتوحة} one{فاتورة واحدة مفتوحة} two{فاتورتان مفتوحتان} few{{count} فواتير مفتوحة} many{{count} فاتورة مفتوحة} other{{count} فاتورة مفتوحة}}",
+  "@openInvoicesCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "overdueAmount": "{amount} متأخرة",
+  "@overdueAmount": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "issuedOn": "صدرت في {date}",
+  "@issuedOn": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "subtotalLabel": "المجموع الفرعي",
+  "taxLabel": "الضريبة ({rate}%)",
+  "@taxLabel": {
+    "placeholders": {
+      "rate": { "type": "String" }
+    }
+  },
+  "totalLabel": "الإجمالي",
+  "wasDueOn": "كان مستحقاً في {date}",
+  "@wasDueOn": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "dueOn": "مستحق في {date}",
+  "@dueOn": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "paidOn": "دُفع في {date}",
+  "@paidOn": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "payAmountButton": "ادفع {amount}",
+  "@payAmountButton": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+
+  "payInvoiceTitle": "دفع الفاتورة",
+  "amountDue": "{amount} مستحقة",
+  "@amountDue": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "payWithLabel": "الدفع باستخدام",
+  "demoPaymentNote": "دفع تجريبي — يتم التحقق من بيانات البطاقة على هذا الجهاز فقط ولا تُخزَّن أو تُرسل إلى أي مكان.",
+  "nameOnCardLabel": "الاسم على البطاقة",
+  "enterNameOnCard": "أدخل الاسم الموجود على البطاقة",
+  "cardNumberLabel": "رقم البطاقة",
+  "enterFullCardNumber": "أدخل رقم البطاقة كاملاً",
+  "cardNumberInvalid": "رقم البطاقة هذا غير صحيح",
+  "expiryLabel": "تاريخ الانتهاء",
+  "monthRange": "يجب أن يكون الشهر بين 01 و12",
+  "cardExpired": "انتهت صلاحية البطاقة",
+  "digitsRange": "3–4 أرقام",
+  "enterSecurityCode": "أدخل رمز الأمان المكوّن من 3–4 أرقام.",
+  "paymentReceived": "تم استلام الدفعة",
+  "cardExpiredOn": "انتهت الصلاحية في {expiry}",
+  "@cardExpiredOn": {
+    "placeholders": {
+      "expiry": { "type": "String" }
+    }
+  },
+  "cardExpiresOn": "تنتهي الصلاحية في {expiry}",
+  "@cardExpiresOn": {
+    "placeholders": {
+      "expiry": { "type": "String" }
+    }
+  },
+  "payWithDifferentCard": "الدفع باستخدام بطاقة أخرى",
+  "securityCodeHelper": "الأرقام الثلاثة أو الأربعة الموجودة خلف البطاقة",
+
+  "savedCardsLabel": "البطاقات المحفوظة",
+  "addCardButton": "إضافة بطاقة",
+  "couldNotLoadCards": "تعذّر تحميل البطاقات.",
+  "noCardsSavedYet": "لا توجد بطاقات محفوظة بعد.",
+  "transactionHistoryLabel": "سجل المعاملات",
+  "noPaymentsYet": "لا توجد مدفوعات بعد.",
+  "defaultChip": "افتراضية",
+  "setDefaultButton": "تعيين كافتراضية",
+  "removeCardTooltip": "إزالة البطاقة",
+  "removeCardTitle": "إزالة البطاقة؟",
+  "removeCardMessage": "سيتم إزالة {brand} ····{last4}.",
+  "@removeCardMessage": {
+    "placeholders": {
+      "brand": { "type": "String" },
+      "last4": { "type": "String" }
+    }
+  },
+  "removeButton": "إزالة",
+  "addACardTitle": "إضافة بطاقة",
+  "saveCardButton": "حفظ البطاقة",
+  "cardSavedNote": "يتم حفظ آخر 4 أرقام وتاريخ الانتهاء فقط — أبداً الرقم الكامل أو رمز الأمان.",
+  "expiredSuffix": "منتهية",
+
+  "markAllReadButton": "تحديد الكل كمقروء",
+  "couldNotLoadNotifications": "تعذّر تحميل إشعاراتك.",
+  "allCaughtUpMessage": "أنت على اطلاع بكل شيء.\nلا جديد هنا.",
+  "last24HoursSection": "آخر 24 ساعة",
+  "earlierSection": "سابقاً",
+  "openButton": "فتح",
+
+  "onlineStatus": "متصل",
+  "askAboutAppHint": "اسأل عن التطبيق…",
+  "openCareNavigator": "فتح Care Navigator",
+  "hideCareNavigator": "إخفاء Care Navigator",
+  "showCareNavigator": "إظهار Care Navigator",
+
+  "taskBoardTitle": "لوحة المهام",
+  "couldNotLoadTasks": "تعذّر تحميل المهام.",
+  "noOpenTasksMessage": "لا توجد مهام مفتوحة. شغّل فحصاً شاملاً من لوحة التحكم.",
+  "priorityBlendNote": "تمزج الأولوية درجة القاعدة {pct}% مع درجة الذكاء الاصطناعي.",
+  "@priorityBlendNote": {
+    "placeholders": {
+      "pct": { "type": "int" }
+    }
+  },
+  "tasksReprioritised": "تمت إعادة ترتيب أولويات المهام.",
+  "prioritiseButton": "ترتيب الأولوية",
+  "startAction": "بدء",
+  "completeAction": "إكمال",
+  "dismissAction": "تجاهل",
+  "ruleScoreTag": "القاعدة {score}",
+  "@ruleScoreTag": {
+    "placeholders": {
+      "score": { "type": "String" }
+    }
+  },
+  "aiScoreTag": "الذكاء الاصطناعي {score}",
+  "@aiScoreTag": {
+    "placeholders": {
+      "score": { "type": "String" }
+    }
+  },
+  "dueTag": "الاستحقاق {relDay}",
+  "@dueTag": {
+    "placeholders": {
+      "relDay": { "type": "String" }
+    }
+  },
+  "taskKindFollowUpShort": "متابعة",
+  "taskKindAbnormalLabShort": "نتيجة مخبرية غير طبيعية",
+  "taskKindReferralShort": "تحويل",
+
+  "homeHealthCareTitle": "الرعاية المنزلية",
+  "requestAVisitButton": "طلب زيارة",
+  "couldNotLoadHomeVisitRequests": "تعذّر تحميل طلباتك.",
+  "noHomeVisitRequestsMessage": "لا توجد طلبات زيارة منزلية.\nاطلب من طبيب زيارتك في المنزل عندما يصعب الوصول إلى العيادة.",
+  "preferredOn": "المفضل {date}",
+  "@preferredOn": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "clinicNote": "العيادة: {note}",
+  "@clinicNote": {
+    "placeholders": {
+      "note": { "type": "String" }
+    }
+  },
+  "cancelRequestButton": "إلغاء الطلب",
+  "requestAHomeVisitTitle": "طلب زيارة منزلية",
+  "homeAddressLabel": "عنوان المنزل",
+  "homeAddressHint": "المبنى، الشارع، المجمع، المنطقة",
+  "whyHomeVisitNeededLabel": "لماذا تحتاج زيارة منزلية؟",
+  "departmentOptionalLabel": "القسم (اختياري)",
+  "notSureOption": "غير متأكد",
+  "preferredDateLabel": "التاريخ المفضل: {date}",
+  "@preferredDateLabel": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "sendRequestButton": "إرسال الطلب",
+  "requestSentToClinic": "تم إرسال الطلب إلى العيادة.",
+  "clinicWillConfirmNote": "ستقوم العيادة بتأكيد موعد أو التواصل معك.",
+
+  "homeVisitsTitle": "الزيارات المنزلية",
+  "couldNotLoadQueue": "تعذّر تحميل قائمة الانتظار.",
+  "preferredAndRequestedOn": "المفضل {preferred}  ·  طُلب في {requested}",
+  "@preferredAndRequestedOn": {
+    "placeholders": {
+      "preferred": { "type": "String" },
+      "requested": { "type": "String" }
+    }
+  },
+  "noteLabel": "ملاحظة: {note}",
+  "@noteLabel": {
+    "placeholders": {
+      "note": { "type": "String" }
+    }
+  },
+  "scheduleButton": "جدولة",
+  "declineButton": "رفض",
+  "markCompletedButton": "تحديد كمكتمل",
+  "scheduleThisVisitTitle": "جدولة هذه الزيارة",
+  "declineThisRequestTitle": "رفض هذا الطلب",
+  "scheduleHint": "مثال: ستزور الممرضة يوم الثلاثاء 10:00",
+  "declineHint": "سبب رفض الطلب",
+
+  "couldNotLoadCertificates": "تعذّر تحميل شهاداتك.",
+  "noSickLeaveCertificatesMessage": "لا توجد شهادات إجازة مرضية.\nيمكن لطبيبك إصدار واحدة بعد الزيارة.",
+  "activeChip": "سارية",
+  "dateRangeDays": "{from} – {to}  ·  {days, plural, zero{لا أيام} one{يوم واحد} two{يومان} few{{days} أيام} many{{days} يوماً} other{{days} يوم}}",
+  "@dateRangeDays": {
+    "placeholders": {
+      "from": { "type": "String" },
+      "to": { "type": "String" },
+      "days": { "type": "int" }
+    }
+  },
+  "certificatePdfLabel": "شهادة PDF",
+
+  "newMessageButton": "رسالة جديدة",
+  "couldNotLoadMessages": "تعذّر تحميل رسائلك.",
+  "onceSeenDoctorMessage": "بمجرد زيارتك لطبيب يمكنك مراسلته هنا.",
+  "noConversationsYetMessage": "لا توجد محادثات بعد.\nاضغط على \"رسالة جديدة\" لطرح سؤال غير عاجل.",
+  "yourDoctorFallback": "طبيبك",
+
+  "openPatientChartTooltip": "فتح ملف المريض",
+  "couldNotLoadConversation": "تعذّر تحميل هذه المحادثة.",
+  "noMessagesYet": "لا توجد رسائل بعد.",
+  "sendNonUrgentQuestionMessage": "أرسل لطبيبك سؤالاً غير عاجل.\nفي حالات الطوارئ، اتصل بعيادتك.",
+  "writeMessageHint": "اكتب رسالة",
+  "youPrefix": "أنت: ",
+  "messagesTitle": "الرسائل",
+  "couldNotLoadInbox": "تعذّر تحميل بريدك الوارد.",
+  "noPatientMessages": "لا توجد رسائل من المرضى.",
+
+  "somethingIsBrokenOption": "هناك خلل ما",
+  "sendFeedbackTitle": "إرسال ملاحظات",
+  "feedbackIntroText": "أخبر الفريق بما يعمل بشكل جيد، وما لا يعمل، أو ما تتمنى أن يقدمه التطبيق.",
+  "aboutLabel": "حول",
+  "yourMessageLabel": "رسالتك",
+  "sendButton": "إرسال",
+  "feedbackThanksMessage": "شكراً — تم إرسال ملاحظاتك إلى الفريق.",
+
+  "nutritionTitle": "التغذية",
+  "calculatorSegment": "الحاسبة",
+  "mealPlanSegment": "خطة الوجبات",
+  "foodsSegment": "الأطعمة",
+  "aboutYouSection": "عنك",
+  "ageLabel": "العمر",
+  "sexLabel": "الجنس",
+  "weightKgLabel": "الوزن (كجم)",
+  "heightCmLabel": "الطول (سم)",
+  "activityLabel": "النشاط",
+  "activitySedentary": "خامل الحركة",
+  "activityLightlyActive": "نشاط خفيف (1–3 أيام/أسبوع)",
+  "activityModeratelyActive": "نشاط متوسط (3–5 أيام/أسبوع)",
+  "activityVeryActive": "نشاط عالٍ (6–7 أيام/أسبوع)",
+  "activityExtraActive": "نشاط مرتفع جداً (عمل بدني)",
+  "goalLabel": "الهدف",
+  "goalMaintain": "الحفاظ على الوزن",
+  "goalLose": "إنقاص الوزن",
+  "goalGain": "زيادة الوزن",
+  "weeklyRateLabel": "المعدل الأسبوعي",
+  "weeklyRate025": "0.25 كجم / أسبوع",
+  "weeklyRate05": "0.5 كجم / أسبوع",
+  "weeklyRate10": "1.0 كجم / أسبوع",
+  "calculateTargetsButton": "احسب الأهداف",
+  "preferencesSection": "التفضيلات",
+  "macroSplitNote": "توزيع الماكرو المستخدم لأهدافك ولخطة وجباتك.",
+  "presetBalanced": "متوازن",
+  "presetLowFat": "قليل الدهون",
+  "presetLowCarb": "قليل الكربوهيدرات",
+  "presetHighCarb": "عالي الكربوهيدرات",
+  "presetHighProtein": "عالي البروتين",
+  "dailyTargetsSection": "الأهداف اليومية",
+  "macroCalories": "السعرات الحرارية",
+  "macroProtein": "البروتين",
+  "macroCarbs": "الكربوهيدرات",
+  "macroFat": "الدهون",
+  "macroSugar": "السكر",
+  "macroSatFat": "الدهون المشبعة",
+  "unitKcalPerDay": "سعرة / يوم",
+  "unitPerDay": "في اليوم",
+  "unitDailyCap": "الحد الأقصى اليومي",
+  "bmrTdeeNote": "معدل الأيض الأساسي {bmr} سعرة · إجمالي الطاقة اليومي {tdee} سعرة. إرشادي فقط — يمكن لطبيبك تخصيصه لحالتك.",
+  "@bmrTdeeNote": {
+    "placeholders": {
+      "bmr": { "type": "int" },
+      "tdee": { "type": "int" }
+    }
+  },
+  "searchFoodsHint": "ابحث عن الأطعمة",
+  "allCategoriesChip": "الكل",
+  "itemsCount": "{count, plural, zero{لا توجد عناصر} one{عنصر واحد} two{عنصران} few{{count} عناصر} many{{count} عنصراً} other{{count} عنصر}}",
+  "@itemsCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "noFoodsMatch": "لا توجد أطعمة تطابق هذا البحث.",
+  "servingLabel": "الحصة {value}",
+  "@servingLabel": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "also": "أيضاً",
+  "containsAllergens": "يحتوي على: {list}",
+  "@containsAllergens": {
+    "placeholders": {
+      "list": { "type": "String" }
+    }
+  },
+  "includeDessertTitle": "إضافة حلوى",
+  "includeDessertSubtitle": "يقسّم اليوم إلى أربع وجبات بدلاً من ثلاث",
+  "buildMyDayButton": "إنشاء خطة يومي",
+  "runCalculatorFirstNote": "شغّل الحاسبة أولاً — بعدها سيتم توزيع هدف السعرات والماكرو على الوجبات هنا.",
+  "yourDayTitle": "يومك",
+  "mealBreakfast": "الفطور",
+  "mealLunch": "الغداء",
+  "mealDinner": "العشاء",
+  "mealDessert": "الحلوى",
+
+  "switchToLightMode": "التبديل إلى الوضع الفاتح",
+  "switchToDarkMode": "التبديل إلى الوضع الداكن",
+  "profileTooltip": "الملف الشخصي",
+  "setYourAvailabilityTooltip": "تحديد حالة توفرك",
+  "couldNotUpdatePresence": "تعذّر تحديث حالة تواجدك.",
+
+  "panelAnalyticsTitle": "تحليلات اللوحة",
+  "couldNotComputeAnalytics": "تعذّر حساب التحليلات.",
+  "lastNDays": "{days, plural, zero{آخر يوم} one{آخر يوم واحد} two{آخر يومين} few{آخر {days} أيام} many{آخر {days} يوماً} other{آخر {days} يوم}}",
+  "@lastNDays": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "noShowRateLabel": "معدل عدم الحضور",
+  "noShowRateCaption": "{kept} من أصل {total} مواعيد تم الالتزام بها",
+  "@noShowRateCaption": {
+    "placeholders": {
+      "kept": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "cancellationRateLabel": "معدل الإلغاء",
+  "cancelledCaption": "{count, plural, zero{لا إلغاءات} one{إلغاء واحد} two{إلغاءان} few{{count} إلغاءات} many{{count} إلغاءً} other{{count} إلغاء}}",
+  "@cancelledCaption": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "completedLabel": "مكتملة",
+  "perDayCaption": "{value} يومياً",
+  "@perDayCaption": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "upcomingLabel": "قادمة",
+  "bookedOrConfirmedCaption": "محجوزة أو مؤكدة",
+
+  "staffDirectoryTitle": "دليل الطاقم الطبي",
+  "couldNotLoadStaffDirectory": "تعذّر تحميل دليل الطاقم الطبي.",
+  "noStaffOnRecord": "لا يوجد طاقم مسجَّل.",
+  "cliniciansCount": "{count, plural, zero{لا يوجد أطباء} one{طبيب واحد} two{طبيبان} few{{count} أطباء} many{{count} طبيباً} other{{count} طبيب}}",
+  "@cliniciansCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "myActivityTitle": "نشاطي",
+  "recordsTab": "السجلات",
+  "prescriptionsTab": "الوصفات الطبية",
+  "couldNotLoadYourRecords": "تعذّر تحميل سجلاتك.",
+  "noRecordsAuthoredYet": "لم تقم بإنشاء أي سجلات بعد.",
+  "couldNotLoadYourPrescriptions": "تعذّر تحميل وصفاتك الطبية.",
+  "noPrescriptionsIssuedYet": "لم تُصدر أي وصفات طبية بعد.",
+  "currentMedicationChip": "قيد الاستخدام",
+
+  "yourShiftHeader": "مناوبتك",
+  "quickActionsHeader": "إجراءات سريعة",
+  "todaysQueueHeader": "قائمة انتظار اليوم",
+  "scheduleAction": "الجدول",
+  "riskFlagsHeader": "إشارات الخطر",
+  "patientsAction": "المرضى",
+  "tasksHeader": "المهام",
+  "taskBoardAction": "لوحة المهام",
+  "departmentWalkInsHeader": "مراجعو القسم دون موعد ({count})",
+  "@departmentWalkInsHeader": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "yourQueueIsClear": "قائمة انتظارك فارغة",
+  "nobodyWaitingOpenWeek": "لا أحد ينتظر — افتح أسبوعك للتخطيط مسبقاً",
+  "nextPatientLabel": "التالي · {who}",
+  "@nextPatientLabel": {
+    "placeholders": {
+      "who": { "type": "String" }
+    }
+  },
+  "todayLabel": "اليوم",
+  "inQueueLabel": "في الانتظار",
+  "openFlagsLabel": "إشارات مفتوحة",
+  "couldNotLoadYourQueue": "تعذّر تحميل قائمة انتظارك.",
+  "nobodyWaitingQueueClear": "لا أحد ينتظر — قائمة انتظارك فارغة.",
+  "moreActionsTooltip": "إجراءات إضافية",
+  "openChartAction": "فتح الملف الطبي",
+  "addNoteAction": "إضافة ملاحظة",
+  "transferVisitAction": "نقل الزيارة",
+  "cancelVisitAction": "إلغاء الزيارة",
+  "markNoShowAction": "تسجيل كعدم حضور",
+  "cancelThisVisitTitle": "إلغاء هذه الزيارة؟",
+  "patientWillNeedToRebook": "سيحتاج المريض إلى إعادة الحجز.",
+  "markAsNoShowTitle": "تسجيل كعدم حضور؟",
+  "recordsPatientDidNotAttend": "يسجّل هذا أن المريض لم يحضر.",
+  "checkedInLabel": "تم تسجيل الوصول",
+  "couldNotLoadRiskFlags": "تعذّر تحميل إشارات الخطر.",
+  "noOpenRiskFlagsRunScan": "لا توجد إشارات خطر مفتوحة. شغّل فحص اللوحة للتحديث.",
+  "acknowledgeTooltip": "تأكيد الاطلاع",
+  "moreOnPatientsTab": "+{count} أخرى في تبويب المرضى",
+  "@moreOnPatientsTab": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "noOpenTasksRunScan": "لا توجد مهام مفتوحة. شغّل فحص اللوحة من الإجراءات السريعة.",
+  "markDoneTooltip": "تسجيل كمنجزة",
+
+  "newNoteAction": "ملاحظة جديدة",
+  "addClinicalNoteForTitle": "إضافة ملاحظة سريرية لـ…",
+  "prescribeAction": "وصف دواء",
+  "prescribeForTitle": "وصف دواء لـ…",
+  "labResultAction": "نتيجة مختبر",
+  "enterLabResultForTitle": "إدخال نتيجة مختبر لـ…",
+  "aiScribeAction": "الكاتب الذكي",
+  "scribeVisitNoteForTitle": "تدوين ملاحظة الزيارة لـ…",
+  "patientSummaryAction": "ملخص المريض",
+  "summariseTitle": "تلخيص…",
+  "patientLookupAction": "البحث عن مريض",
+  "messagesActionWithCount": "الرسائل ({n})",
+  "@messagesActionWithCount": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
+  "panelScanAction": "فحص اللوحة",
+  "scanningPanelForRisks": "جارٍ فحص اللوحة بحثاً عن المخاطر…",
+  "panelScanCompleteFlags": "{count, plural, zero{اكتمل فحص اللوحة — لا إشارات مفتوحة.} one{اكتمل فحص اللوحة — إشارة واحدة مفتوحة.} two{اكتمل فحص اللوحة — إشارتان مفتوحتان.} few{اكتمل فحص اللوحة — {count} إشارات مفتوحة.} many{اكتمل فحص اللوحة — {count} إشارة مفتوحة.} other{اكتمل فحص اللوحة — {count} إشارة مفتوحة.}}",
+  "@panelScanCompleteFlags": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "searchByNameOrNationalId": "ابحث بالاسم أو الرقم الوطني",
+  "couldNotLoadPatients": "تعذّر تحميل المرضى.",
+  "noPatientsMatchSearch": "لا يوجد مرضى مطابقون لهذا البحث.",
+  "idLabel": "الرقم التعريفي {id}",
+  "@idLabel": {
+    "placeholders": {
+      "id": { "type": "String" }
+    }
+  },
+  "transferAVisitTitle": "نقل زيارة",
+  "reassignVisitNote": "أعد تعيين زيارة من اليوم إلى طبيب آخر. تعود الحالة إلى \"محجوزة\" ليتمكن من قبولها مجدداً.",
+  "nothingInQueueToTransfer": "لا توجد زيارة في قائمة انتظارك لنقلها.",
+  "visitLabel": "الزيارة",
+  "couldNotLoadDirectory": "تعذّر تحميل الدليل.",
+  "transferToLabel": "النقل إلى",
+  "visitTransferred": "تم نقل الزيارة.",
+
+  "compressTheDay": "تصغير عرض اليوم",
+  "expandTheDay": "توسيع عرض اليوم",
+  "previousDayTooltip": "اليوم السابق",
+  "nextDayTooltip": "اليوم التالي",
+  "previousTooltip": "السابق",
+  "nextLabel": "التالي",
+  "couldNotLoadYourCalendar": "تعذّر تحميل جدولك.",
+  "nothingBookedThisDay": "لا يوجد شيء محجوز في هذا اليوم.",
+
+  "todaysQueueCaps": "قائمة انتظار اليوم",
+  "waitingCount": "{count, plural, zero{لا أحد ينتظر} one{شخص واحد ينتظر} two{شخصان ينتظران} few{{count} ينتظرون} many{{count} ينتظرون} other{{count} ينتظرون}}",
+  "@waitingCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "tapPatientOrPressNext": "اضغط على مريض، أو اضغط \"التالي\" للبدء.",
+  "lastPatientInQueue": "آخر مريض في قائمة الانتظار",
+  "nowLabel": "الآن: {name}",
+  "@nowLabel": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "noMorePatients": "لا مزيد من المرضى",
+  "reasonLabel": "السبب: {reason}",
+  "@reasonLabel": {
+    "placeholders": {
+      "reason": { "type": "String" }
+    }
+  },
+  "ageYearsAbbrev": "{age, plural, zero{بدون عمر} one{سنة واحدة} two{سنتان} few{{age} سنوات} many{{age} سنة} other{{age} سنة}}",
+  "@ageYearsAbbrev": {
+    "placeholders": {
+      "age": { "type": "int" }
+    }
+  },
+  "allergiesInlineLabel": "الحساسية: {list}",
+  "@allergiesInlineLabel": {
+    "placeholders": {
+      "list": { "type": "String" }
+    }
+  },
+
+  "couldNotLoadYourProfile": "تعذّر تحميل ملفك الشخصي.",
+  "accountSubtitle": "التخصص والقسم والترخيص",
+  "myActivitySubtitle": "الملاحظات والوصفات التي قمت بإنشائها",
+  "staffDirectorySubtitle": "الأطباء والتخصصات وحالة التواجد المباشرة",
+  "panelAnalyticsSubtitle": "معدل عدم الحضور، الإلغاءات، الاستخدام",
+  "preferencesSubtitle": "المظهر، حجم الخط، اللغة، التنبيهات",
+
+  "resetPasswordTitle": "إعادة تعيين كلمة المرور",
+  "enterEmailOrNationalId": "أدخل بريدك الإلكتروني أو رقمك الوطني.",
+  "forgotPasswordQuestion": "نسيت كلمة المرور؟",
+  "forgotPasswordBody": "أدخل البريد الإلكتروني أو الرقم الوطني المسجّل في حسابك وسننقلك لتعيين كلمة مرور جديدة.",
+  "emailOrNationalIdLabel": "البريد الإلكتروني أو الرقم الوطني",
+  "continueButton": "متابعة",
+  "backToSignIn": "العودة لتسجيل الدخول",
+  "verifyItsYouTitle": "تحقق من هويتك",
+  "codeNotRightError": "هذا الرمز غير صحيح. حاول مرة أخرى.",
+  "enterSixDigitCode": "أدخل الرمز المكوّن من 6 أرقام",
+  "almostThereName": "أوشكت على الانتهاء يا {name}",
+  "@almostThereName": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "sixDigitCodeSentNote": "أرسلنا رمز تحقق مكوّناً من 6 أرقام إلى جهازك.",
+  "verifyButton": "تحقق",
+  "codeResentLabel": "تم إعادة إرسال الرمز",
+  "resendCodeLabel": "إعادة إرسال الرمز",
+  "demoCodeNote": "نسخة تجريبية — رمز التحقق هو {code}.",
+  "@demoCodeNote": {
+    "placeholders": {
+      "code": { "type": "String" }
+    }
+  },
+  "setNewPasswordTitle": "تعيين كلمة مرور جديدة",
+  "startFromForgotPasswordNote": "ابدأ من شاشة \"نسيت كلمة المرور\" حتى نعرف الحساب المطلوب إعادة تعيينه.",
+  "newPasswordTitle": "كلمة مرور جديدة",
+  "newPasswordLabel": "كلمة مرور جديدة (8 أحرف على الأقل)",
+  "atLeast8Characters": "8 أحرف على الأقل",
+  "confirmNewPasswordLabel": "تأكيد كلمة المرور الجديدة",
+  "passwordsDoNotMatch": "كلمتا المرور غير متطابقتين",
+  "updatePasswordButton": "تحديث كلمة المرور",
+  "passwordUpdatedSnackbar": "تم تحديث كلمة المرور — سجّل الدخول بكلمة المرور الجديدة.",
+
+  "aiHealthSummaryTitle": "ملخص الذكاء الاصطناعي الصحي",
+  "regenerateTooltip": "إعادة الإنشاء",
+  "regeneratedAt": "أُعيد الإنشاء في {when}",
+  "@regeneratedAt": {
+    "placeholders": {
+      "when": { "type": "String" }
+    }
+  },
+  "couldNotGenerateSummary": "تعذّر إنشاء الملخص.\n{error}",
+  "@couldNotGenerateSummary": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "thingsToCheckHeader": "أمور يجب مراجعتها",
+  "trendsHeader": "الاتجاهات",
+  "keyEventsHeader": "الأحداث الرئيسية",
+  "generatedMeta": "أُنشئ في {when}  ·  {model}  ·  {version}",
+  "@generatedMeta": {
+    "placeholders": {
+      "when": { "type": "String" },
+      "model": { "type": "String" },
+      "version": { "type": "String" }
+    }
+  },
+
+  "aiClinicalScribeTitle": "الكاتب السريري الذكي",
+  "visitNoteTitle": "ملاحظة الزيارة",
+  "visitNoteWithPatient": "ملاحظة الزيارة · {name}",
+  "@visitNoteWithPatient": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "dictationLabel": "الإملاء",
+  "dictationHint": "اكتب أو الصق ملاحظات الزيارة بلغة عادية — سيقوم الكاتب الذكي بتنظيمها.",
+  "structuringEllipsis": "جارٍ التنظيم…",
+  "structureWithAi": "تنظيم بالذكاء الاصطناعي",
+  "structuredNoteHeader": "الملاحظة المنظَّمة",
+  "chiefComplaintLabel": "الشكوى الرئيسية",
+  "hpiLabel": "تاريخ المرض الحالي",
+  "assessmentLabel": "التقييم",
+  "planLabel": "الخطة",
+  "suggestedIcdNote": "رموز ICD-10 المقترحة — تأكد منها قبل الترميز",
+  "saveAsVisitNote": "حفظ كملاحظة زيارة",
+  "savedToPatientRecord": "تم الحفظ في سجل المريض.",
+  "clinicalNoteFallbackTitle": "ملاحظة سريرية",
+
+  "patientChartFallbackTitle": "الملف الطبي للمريض",
+  "aiSummaryTooltip": "ملخص الذكاء الاصطناعي",
+  "couldNotLoadThisPatient": "تعذّر تحميل بيانات هذا المريض.",
+  "recentVitalsHeader": "العلامات الحيوية الأخيرة",
+  "couldNotLoadMedicationsChart": "تعذّر تحميل الأدوية",
+  "noActiveMedications": "لا توجد أدوية فعّالة",
+  "noVitalsOnRecord": "لا توجد علامات حيوية مسجلة",
+  "couldNotLoadTimelineChart": "تعذّر تحميل الجدول الزمني",
+  "noRecordsYet": "لا توجد سجلات بعد",
+  "addClinicalNoteAction": "إضافة ملاحظة سريرية",
+  "aiScribeANoteAction": "تدوين ملاحظة بالذكاء الاصطناعي",
+  "prescribeMedicationAction": "وصف دواء",
+  "enterLabResultAction": "إدخال نتيجة مختبر",
+  "labResultFallbackTitle": "نتيجة مختبر",
+  "issueSickLeaveAction": "إصدار إجازة مرضية",
+
+  "titleLabel": "العنوان",
+  "noteFieldLabel": "الملاحظة",
+  "noteAdded": "تمت إضافة الملاحظة.",
+  "medicationNameLabel": "اسم الدواء",
+  "doseOptionalLabel": "الجرعة (اختياري)",
+  "frequencyOptionalLabel": "التكرار (اختياري)",
+  "medicationPrescribed": "تم وصف الدواء.",
+  "panelTitleLabel": "اللوحة / العنوان",
+  "analyteLabel": "المحلَّل",
+  "valueLabel": "القيمة",
+  "unitLabel": "الوحدة",
+  "refLowLabel": "الحد المرجعي الأدنى",
+  "refHighLabel": "الحد المرجعي الأعلى",
+  "labResultRecorded": "تم تسجيل نتيجة المختبر.",
+  "reasonDiagnosisLabel": "السبب / التشخيص",
+  "acuteViralIllnessHint": "مثال: مرض فيروسي حاد",
+  "fromDateLabel": "من: {date}",
+  "@fromDateLabel": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "toDateLabel": "إلى: {date}",
+  "@toDateLabel": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "notesOptionalLabel": "ملاحظات (اختياري)",
+  "certificateIssued": "تم إصدار الشهادة.",
+  "daysCountPlain": "{days, plural, zero{لا أيام} one{يوم واحد} two{يومان} few{{days} أيام} many{{days} يوماً} other{{days} يوم}}",
+  "@daysCountPlain": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "saveButton": "حفظ",
+  "addButton": "إضافة",
+
+  "consultationFallbackTitle": "الاستشارة",
+  "couldNotLoadThisAppointment": "تعذّر تحميل هذا الموعد.",
+  "couldNotLoadThePatient": "تعذّر تحميل بيانات المريض.",
+  "clinicalNoteHeader": "الملاحظة السريرية",
+  "historyExamHint": "التاريخ المرضي، الفحص، التقييم، الخطة…",
+  "openAiScribeAction": "فتح الكاتب الذكي",
+  "noMedicationsAdded": "لم تتم إضافة أي أدوية.",
+  "removeTooltip": "إزالة",
+  "addMedicationAction": "إضافة دواء",
+  "referralHeader": "التحويل",
+  "referralRequestedAwaitingAdmin": "تم طلب التحويل — بانتظار موافقة الإدارة",
+  "requestAReferralAction": "طلب تحويل",
+  "visitSummaryOptionalLabel": "ملخص الزيارة (اختياري)",
+  "visitSummaryHint": "سطر واحد — نتيجة هذه الزيارة",
+  "completeConsultationAction": "إنهاء الاستشارة",
+  "addNoteMedOrReferralFirst": "أضف ملاحظة أو دواءً أو طلب تحويل أولاً.",
+  "referralRequestedSnackbar": "تم طلب التحويل.",
+  "completeConsultationTitle": "إنهاء الاستشارة؟",
+  "completeConsultationBody": "سيتم حفظ الملاحظة وأي أدوية في سجل المريض وإغلاق الزيارة.",
+  "consultationCompletedSnackbar": "تم إنهاء الاستشارة.",
+  "patientCalledInNote": "تم استدعاء المريض.",
+  "callPatientAction": "استدعاء المريض",
+  "patientCalledSnackbar": "تم استدعاء المريض.",
+  "patientArrivedAction": "وصل المريض",
+  "consultationStartedSnackbar": "بدأت الاستشارة.",
+  "markedAsNoShowSnackbar": "تم التسجيل كعدم حضور.",
+  "patientNotShownAction": "لم يحضر المريض",
+  "consultationCompletedHeader": "اكتملت الاستشارة",
+  "adminWillDecideReferralNote": "ستقرر الإدارة ما إذا كان هذا تحويلاً داخل القسم أو تحويلاً خارجياً، وإلى أين.",
+  "clinicalReasonForReferralLabel": "السبب السريري للتحويل",
+
+  "adminStatusAvailable": "متاح",
+  "adminStatusMeeting": "في اجتماع",
+  "adminStatusAway": "غائب",
+  "adminStatusOff": "غير متصل",
+
+  "accountSubtitleAdmin": "الاسم والبريد الإلكتروني وتاريخ الانضمام",
+  "auditLogTitle": "سجل التدقيق",
+  "auditLogSubtitle": "كل ما تغيّر، الأحدث أولاً",
+  "systemAnalyticsTitle": "تحليلات النظام",
+  "systemAnalyticsSubtitle": "الأرقام الرئيسية، عدم الحضور والاستخدام",
+  "capacityForecastTitle": "توقعات السعة",
+  "capacityForecastSubtitle": "أكثر الساعات ازدحاماً وأين يتجاوز الطلب العرض",
+  "aiSettingsTitle": "إعدادات الذكاء الاصطناعي",
+  "aiSettingsSubtitle": "الميزات، الوضع التجريبي، مفتاح API",
+  "aiActivityTitle": "نشاط الذكاء الاصطناعي",
+  "aiActivitySubtitle": "أي واجهة أجابت، النموذج المباشر أم البديل",
+  "preferencesSubtitleAdmin": "المظهر، حجم الخط، اللغة، التنبيهات، الأصوات",
+
+  "nameLabel": "الاسم",
+  "emailLabel": "البريد الإلكتروني",
+  "roleLabel": "الدور",
+  "phoneLabel": "الهاتف",
+
+  "feedbackTitle": "الملاحظات",
+  "allFilterChip": "الكل",
+  "couldNotLoadFeedback": "تعذّر تحميل الملاحظات.",
+  "noFeedbackInView": "لا توجد ملاحظات في هذا العرض.",
+  "anonymousFallback": "مجهول",
+  "reopenAction": "إعادة الفتح",
+  "markResolvedAction": "تحديد كمُعالَجة",
+
+  "couldNotLoadAuditLog": "تعذّر تحميل سجل التدقيق.",
+  "noAuditEntriesYet": "لا توجد إدخالات تدقيق بعد.",
+  "byActorLabel": "بواسطة {actor}",
+  "@byActorLabel": {
+    "placeholders": {
+      "actor": { "type": "String" }
+    }
+  },
+
+  "couldNotLoadAiLog": "تعذّر تحميل سجل الذكاء الاصطناعي.",
+  "noAiActivityRecordedYet": "لا يوجد نشاط للذكاء الاصطناعي مسجَّل بعد.",
+  "aiCallsSummary": "{total} استدعاء · {live} عبر النموذج المباشر · {offline} دون اتصال",
+  "@aiCallsSummary": {
+    "placeholders": {
+      "total": { "type": "int" },
+      "live": { "type": "int" },
+      "offline": { "type": "int" }
+    }
+  },
+  "liveModelLabel": "النموذج المباشر",
+  "offlineLabel": "دون اتصال",
+
+  "directoryHeader": "الدليل",
+  "couldNotLoadSystemStats": "تعذّر تحميل إحصاءات النظام.",
+  "staffCountLabel": "الطاقم الطبي",
+  "adminsLabel": "المسؤولون",
+  "departmentsLabel": "الأقسام",
+  "openRiskFlagsLabel": "إشارات الخطر المفتوحة",
+  "appointmentsLast90DaysHeader": "المواعيد · آخر 90 يوماً",
+  "couldNotLoadAppointmentStats": "تعذّر تحميل إحصاءات المواعيد.",
+  "noShowRiskModelNote": "تأتي توقعات مخاطر عدم الحضور من نموذج الانحدار اللوجستي غير المتصل (RQ2).",
+
+  "allAppointmentsTitle": "المواعيد",
+  "couldNotLoadAppointmentsAdmin": "تعذّر تحميل المواعيد.",
+  "noAppointmentsInView": "لا توجد مواعيد في هذا العرض.",
+  "unassignedLabel": "غير مُعيَّن",
+
+  "recomputeTooltip": "إعادة الحساب",
+  "couldNotComputeForecast": "تعذّر حساب التوقعات.",
+  "forecastExplainerNote": "أكثر الفترات ازدحاماً لكل يوم من أيام الأسبوع، استناداً إلى سجل المواعيد. الإشارة تعني أن الطلب بلغ ذروته عند سعة طبيب واحد بالساعة أو تجاوزها.",
+  "demandLevelHigh": "طلب مرتفع",
+  "demandLevelModerate": "متوسط",
+  "demandLevelLow": "خفيف",
+  "overflowRiskLabel": "خطر تجاوز السعة",
+  "noHistoryYet": "لا يوجد سجل بعد",
+  "peakWindowSummary": "الذروة {window} · حتى {count}/ساعة",
+  "@peakWindowSummary": {
+    "placeholders": {
+      "window": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  },
+
+  "billingTitle": "الفوترة",
+  "couldNotLoadInvoicesAdmin": "تعذّر تحميل الفواتير.",
+  "noInvoicesInView": "لا توجد فواتير في هذا العرض.",
+  "markPaidAction": "تحديد كمدفوعة",
+  "cancelThisInvoiceTitle": "إلغاء هذه الفاتورة؟",
+  "patientWillNoLongerOweIt": "لن يعد المريض مديناً بها.",
+  "cancelInvoiceAction": "إلغاء الفاتورة",
+  "invoiceMarkedStatus": "تم تحديد الفاتورة كـ {status}.",
+  "@invoiceMarkedStatus": {
+    "placeholders": {
+      "status": { "type": "String" }
+    }
+  },
+
+  "newDepartmentAction": "قسم جديد",
+  "noDepartmentsYet": "لا توجد أقسام بعد.",
+  "editAction": "تعديل",
+  "deleteAction": "حذف",
+  "deleteConfirmTitle": "حذف {name}؟",
+  "@deleteConfirmTitle": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "cannotBeUndoneNote": "لا يمكن التراجع عن هذا الإجراء.",
+  "itemDeletedSnackbar": "تم حذف {name}",
+  "@itemDeletedSnackbar": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "editDepartmentTitle": "تعديل القسم",
+  "descriptionOptionalLabel": "الوصف (اختياري)",
+
+  "couldNotLoadSettings": "تعذّر تحميل الإعدادات.",
+  "aiFeaturesEnabledTitle": "تفعيل ميزات الذكاء الاصطناعي",
+  "aiFeaturesEnabledSubtitle": "أوقف التفعيل لإخفاء جميع واجهات الذكاء الاصطناعي تماماً.",
+  "forceMockModeTitle": "فرض الوضع التجريبي",
+  "forceMockModeSubtitle": "استخدام المساعد الحتمي غير المتصل حتى عند تعيين مفتاح. يُنصح به للعروض التوضيحية.",
+  "llmProviderHeader": "مزوّد النموذج اللغوي (Google Gemini، الفئة المجانية)",
+  "demoDataHeader": "البيانات التجريبية",
+  "reseedDemoDataTitle": "إعادة توليد البيانات التجريبية",
+  "reseedDemoDataSubtitle": "محو وإعادة توليد مجموعة البيانات الاصطناعية.",
+  "reseedConfirmTitle": "إعادة التوليد؟",
+  "reseedConfirmBody": "سيؤدي هذا إلى حذف جميع البيانات الحالية وإعادة توليد مجموعة البيانات التجريبية.",
+  "reseedAction": "إعادة التوليد",
+  "reseededSnackbar": "تمت إعادة التوليد: {patients} مريض، {appointments} موعد.",
+  "@reseededSnackbar": {
+    "placeholders": {
+      "patients": { "type": "int" },
+      "appointments": { "type": "int" }
+    }
+  },
+  "modelFieldLabel": "النموذج",
+  "modelFieldHelper": "مثال: gemini-2.0-flash، gemini-2.5-flash",
+  "apiKeySetTitle": "تم تعيين مفتاح API",
+  "apiKeyStoredNote": "مخزَّن في مخزن النظام الآمن.",
+  "replaceAction": "استبدال",
+  "apiKeyFieldLabel": "مفتاح API",
+  "apiKeyHelper": "aistudio.google.com/apikey — لا يُسجَّل أو يُحفظ أبداً",
+  "noApiKeySet": "لا يوجد مفتاح API معيَّن.",
+  "connectionOkMessage": "الاتصال ناجح — استجاب النموذج.",
+  "connectionFailedMessage": "فشل: {error}",
+  "@connectionFailedMessage": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "testConnectionAction": "اختبار الاتصال",
+
+  "systemHealthHeader": "سلامة النظام",
+  "analyticsAction": "التحليلات",
+  "recentActivityHeader": "النشاط الأخير",
+  "allClearTitle": "لا يوجد ما يستدعي الانتباه",
+  "noQueuesWaitingSubtitle": "لا توجد فواتير أو تقارير أو طلبات زيارة أو تحويل بانتظارك",
+  "unpaidInvoiceCount": "{count, plural, zero{لا فواتير غير مدفوعة} one{فاتورة واحدة غير مدفوعة} two{فاتورتان غير مدفوعتين} few{{count} فواتير غير مدفوعة} many{{count} فاتورة غير مدفوعة} other{{count} فاتورة غير مدفوعة}}",
+  "@unpaidInvoiceCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "openReportCount": "{count, plural, zero{لا تقارير مفتوحة} one{تقرير واحد مفتوح} two{تقريران مفتوحان} few{{count} تقارير مفتوحة} many{{count} تقريراً مفتوحاً} other{{count} تقرير مفتوح}}",
+  "@openReportCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "visitRequestCount": "{count, plural, zero{لا طلبات زيارة} one{طلب زيارة واحد} two{طلبا زيارة} few{{count} طلبات زيارة} many{{count} طلب زيارة} other{{count} طلب زيارة}}",
+  "@visitRequestCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "referralRequestCount": "{count, plural, zero{لا طلبات تحويل} one{طلب تحويل واحد} two{طلبا تحويل} few{{count} طلبات تحويل} many{{count} طلب تحويل} other{{count} طلب تحويل}}",
+  "@referralRequestCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "thingsNeedYouTitle": "{count, plural, zero{لا شيء يحتاج انتباهك} one{أمر واحد يحتاج انتباهك} two{أمران يحتاجان انتباهك} few{{count} أمور تحتاج انتباهك} many{{count} أمراً يحتاج انتباهك} other{{count} أمر يحتاج انتباهك}}",
+  "@thingsNeedYouTitle": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "viewDetailedAnalytics": "عرض التحليلات التفصيلية",
+
+  "referralRequestsTitle": "طلبات التحويل",
+  "noReferralRequestsWaiting": "لا توجد طلبات تحويل بانتظارك.",
+  "aClinicianFallback": "أحد الأطباء",
+  "requestedByOn": "طلبه {name} · {date}",
+  "@requestedByOn": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "date": { "type": "String" }
+    }
+  },
+  "actionButton": "تنفيذ",
+  "rejectAction": "رفض",
+  "patientReferredSnackbar": "تم تحويل {name}.",
+  "@patientReferredSnackbar": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "rejectThisRequestTitle": "رفض هذا الطلب",
+  "whyNoReferralNeededHint": "لماذا لا حاجة للتحويل؟",
+  "actionReferralTitle": "تنفيذ التحويل",
+  "anotherDepartmentSegment": "قسم آخر",
+  "anotherHospitalSegment": "مستشفى آخر",
+  "hospitalLabel": "المستشفى",
+  "departmentLabel": "القسم",
+  "noteForRecordOptionalLabel": "ملاحظة للسجل (اختياري)",
+  "referPatientAction": "تحويل المريض",
+
+  "addUserAction": "إضافة مستخدم",
+  "broadcastAction": "بث إشعار",
+  "createInvoiceAction": "إنشاء فاتورة",
+  "feedbackActionWithCount": "الملاحظات ({count})",
+  "@feedbackActionWithCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "homeVisitsAction": "الزيارات المنزلية",
+  "homeVisitsActionWithCount": "الزيارات المنزلية ({count})",
+  "@homeVisitsActionWithCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "referralsAction": "التحويلات",
+  "referralsActionWithCount": "التحويلات ({count})",
+  "@referralsActionWithCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "reseedDataAction": "إعادة توليد البيانات",
+  "addAPersonTitle": "إضافة…",
+  "reseedDemoDataConfirmTitle": "إعادة توليد البيانات التجريبية؟",
+  "reseedWipeWarningBody": "سيؤدي هذا إلى حذف كل حساب وموعد وسجل وإعادة بناء مجموعة البيانات التجريبية. سيتم تسجيل خروجك.",
+  "reseedingEllipsis": "جارٍ إعادة التوليد…",
+  "reseededFullSnackbar": "تمت إعادة التوليد: {patients} مريض، {staff} من الطاقم الطبي، {appointments} موعد.",
+  "@reseededFullSnackbar": {
+    "placeholders": {
+      "patients": { "type": "int" },
+      "staff": { "type": "int" },
+      "appointments": { "type": "int" }
+    }
+  },
+  "sentToCount": "{count, plural, zero{لم يُرسل لأحد} one{أُرسل إلى شخص واحد.} two{أُرسل إلى شخصين.} few{أُرسل إلى {count} أشخاص.} many{أُرسل إلى {count} شخصاً.} other{أُرسل إلى {count} شخص.}}",
+  "@sentToCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "broadcastNotificationTitle": "بث إشعار",
+  "sendToLabel": "الإرسال إلى",
+  "allPatientsOption": "جميع المرضى",
+  "allStaffOption": "جميع الطاقم الطبي",
+  "everyoneOption": "الجميع",
+  "categoryLabel": "الفئة",
+  "messageLabel": "الرسالة",
+  "createAnInvoiceTitle": "إنشاء فاتورة",
+  "amountBdBeforeTaxLabel": "المبلغ (بالدينار البحريني، قبل الضريبة)",
+  "whatIsThisForOptionalLabel": "ما سبب هذه الفاتورة؟ (اختياري)",
+  "taxTotalDueNote": "+ ضريبة 10% = الإجمالي {total} د.ب · الاستحقاق {date}",
+  "@taxTotalDueNote": {
+    "placeholders": {
+      "total": { "type": "String" },
+      "date": { "type": "String" }
+    }
+  },
+  "raiseInvoiceAction": "إصدار الفاتورة",
+  "invoiceRaisedSnackbar": "تم إصدار الفاتورة — {amount} د.ب.",
+  "@invoiceRaisedSnackbar": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+
+  "userManagementTitle": "إدارة المستخدمين",
+  "searchByNameOrEmailHint": "ابحث بالاسم أو البريد الإلكتروني",
+  "addPatientAction": "إضافة مريض",
+  "addStaffAction": "إضافة طاقم طبي",
+  "addAdminAction": "إضافة مسؤول",
+  "couldNotLoadUsers": "تعذّر تحميل المستخدمين.",
+  "noUsersInGroup": "لا يوجد مستخدمون في هذه المجموعة.",
+  "noUsersMatchQuery": "لا يوجد مستخدمون مطابقون لـ ”{query}“.",
+  "@noUsersMatchQuery": {
+    "placeholders": {
+      "query": { "type": "String" }
+    }
+  },
+  "emailDeactivatedLabel": "{email} · معطَّل",
+  "@emailDeactivatedLabel": {
+    "placeholders": {
+      "email": { "type": "String" }
+    }
+  },
+  "deactivateAction": "تعطيل",
+  "reactivateAction": "إعادة التفعيل",
+  "resetPasswordAction": "إعادة تعيين كلمة المرور",
+  "bookAppointmentAction": "حجز موعد",
+  "referAction": "تحويل",
+  "userDeactivatedSnackbar": "تم تعطيل {name}",
+  "@userDeactivatedSnackbar": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "userReactivatedSnackbar": "تمت إعادة تفعيل {name}",
+  "@userReactivatedSnackbar": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "passwordResetForSnackbar": "تمت إعادة تعيين كلمة المرور لـ {name}",
+  "@passwordResetForSnackbar": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "nationalIdLabel": "الرقم الوطني",
+  "statusLabel": "الحالة",
+  "accountActiveLabel": "نشط",
+  "accountDeactivatedLabel": "معطَّل",
+  "joinedLabel": "تاريخ الانضمام",
+  "newTemporaryPasswordTitle": "كلمة مرور مؤقتة جديدة",
+  "resetAction": "إعادة تعيين",
+  "addAnAdministratorTitle": "إضافة مسؤول",
+  "addAPatientTitle": "إضافة مريض",
+  "fullNameLabel": "الاسم الكامل",
+  "temporaryPasswordLabel": "كلمة مرور مؤقتة (8 أحرف على الأقل)",
+  "createAction": "إنشاء",
+  "createdSnackbar": "تم إنشاء {name}",
+  "@createdSnackbar": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "addStaffMemberTitle": "إضافة عضو طاقم طبي",
+  "doctorOption": "طبيب",
+  "nurseOption": "ممرض/ة",
+  "specialtyUnitOptionalLabel": "التخصص / الوحدة (اختياري)",
+  "specialtyOptionalLabel": "التخصص (اختياري)",
+  "noneOption": "لا شيء",
+  "bookAnAppointmentTitle": "حجز موعد",
+  "forPatientLabel": "للمريض {name}",
+  "@forPatientLabel": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "clinicDaysHelpText": "أيام العيادة: الأحد–الخميس",
+  "clinicHoursHelpText": "ساعات العيادة: 08:00–20:00",
+  "chooseDepartmentFirstHelper": "اختر القسم أولاً",
+  "noDoctorsInDepartmentHelper": "لا يوجد أطباء في هذا القسم",
+  "doctorLabel": "الطبيب",
+  "dateLabel": "التاريخ",
+  "timeLabel": "الوقت",
+  "pickTimeBetweenNote": "اختر وقتاً بين 08:00 و20:00.",
+  "visitTypeFieldLabel": "نوع الزيارة",
+  "reasonOptionalLabel": "السبب (اختياري)",
+  "appointmentBookedForSnackbar": "تم حجز موعد لـ {name}",
+  "@appointmentBookedForSnackbar": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "reasonForReferralLabel": "سبب التحويل",
+  "patientReferredToSnackbar": "تم تحويل {name} إلى {destination}",
+  "@patientReferredToSnackbar": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "destination": { "type": "String" }
+    }
+  }
+}

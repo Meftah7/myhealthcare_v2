@@ -7,21 +7,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
+import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/enums.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/admin_providers.dart';
 import 'admin_top_actions.dart';
-
-String _statusLabel(AppointmentStatus s) => switch (s) {
-  AppointmentStatus.booked => 'Booked',
-  AppointmentStatus.confirmed => 'Confirmed',
-  AppointmentStatus.inProgress => 'In progress',
-  AppointmentStatus.completed => 'Completed',
-  AppointmentStatus.cancelled => 'Cancelled',
-  AppointmentStatus.noShow => 'No-show',
-};
 
 class AdminAppointmentsScreen extends ConsumerStatefulWidget {
   const AdminAppointmentsScreen({super.key});
@@ -37,6 +30,7 @@ class _AdminAppointmentsScreenState
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final appts = ref.watch(allAppointmentsProvider);
     final patients =
@@ -46,7 +40,7 @@ class _AdminAppointmentsScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Appointments'),
+        title: Text(t.allAppointmentsTitle),
         actions: const [AdminTopActions()],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(52),
@@ -56,12 +50,12 @@ class _AdminAppointmentsScreenState
             child: Row(
               children: [
                 for (final (label, value) in <(String, AppointmentStatus?)>[
-                  ('All', null),
+                  (t.allFilterChip, null),
                   for (final s in AppointmentStatus.values)
-                    (_statusLabel(s), s),
+                    (s.label(context), s),
                 ])
                   Padding(
-                    padding: const EdgeInsets.only(right: Space.xs),
+                    padding: const EdgeInsetsDirectional.only(end: Space.xs),
                     child: FilterChip(
                       label: Text(label),
                       selected: _filter == value,
@@ -76,7 +70,7 @@ class _AdminAppointmentsScreenState
       body: appts.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
-          message: 'Could not load appointments.',
+          message: t.couldNotLoadAppointmentsAdmin,
           onRetry: () => ref.invalidate(allAppointmentsProvider),
         ),
         data: (all) {
@@ -86,9 +80,9 @@ class _AdminAppointmentsScreenState
                     : all.where((a) => a.status == _filter).toList())
                 ..sort((a, b) => b.slotStart.compareTo(a.slotStart));
           if (list.isEmpty) {
-            return const EmptyState(
+            return EmptyState(
               icon: Icons.calendar_month_outlined,
-              message: 'No appointments in this view.',
+              message: t.noAppointmentsInView,
             );
           }
           return Center(
@@ -116,12 +110,12 @@ class _AdminAppointmentsScreenState
                           children: [
                             Expanded(
                               child: Text(
-                                patients[a.patientId] ?? 'Patient',
+                                patients[a.patientId] ?? t.rolePatient,
                                 style: theme.textTheme.titleSmall,
                               ),
                             ),
                             Text(
-                              _statusLabel(a.status),
+                              a.status.label(context),
                               style: theme.textTheme.labelMedium?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),
@@ -132,10 +126,11 @@ class _AdminAppointmentsScreenState
                         Text(
                           [
                             fmtDateTime(a.slotStart),
-                            staff[a.staffId] ?? 'Unassigned',
+                            staff[a.staffId] ?? t.unassignedLabel,
                             visitTypeLabel(a.visitType),
                             if (a.ticketTag != null) a.ticketTag!,
-                            if (a.roomNumber != null) 'Room ${a.roomNumber}',
+                            if (a.roomNumber != null)
+                              t.roomNumber('${a.roomNumber}'),
                           ].join(' · '),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,

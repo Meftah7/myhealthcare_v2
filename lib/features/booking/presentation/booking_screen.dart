@@ -8,6 +8,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
@@ -20,6 +21,7 @@ import '../../../core/utils/clinic_hours.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../patient/application/patient_data_providers.dart';
 import '../../patient/presentation/patient_top_actions.dart';
 import '../application/appointment_confirmation.dart';
@@ -77,6 +79,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final draft = ref.watch(bookingDraftProvider);
     final departments = ref.watch(departmentsProvider);
     final notifier = ref.read(bookingDraftProvider.notifier);
@@ -84,13 +87,13 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(mode == BookingMode.now ? 'Book now' : 'Schedule a visit'),
+        title: Text(mode == BookingMode.now ? t.bookNowTitle : t.scheduleAVisitTitle),
         actions: const [PatientTopActions()],
       ),
       body: departments.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
-          message: 'Could not load departments.',
+          message: t.couldNotLoadDepartments,
           onRetry: () => ref.invalidate(departmentsProvider),
         ),
         data: (depts) => Center(
@@ -110,7 +113,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
 
                 _StepCard(
                   index: 1,
-                  title: 'Department',
+                  title: t.stepDepartment,
                   done: draft.departmentId != null,
                   child: _ChoiceWrap(
                     options: [for (final d in depts) (d.id, d.name)],
@@ -127,7 +130,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   const SizedBox(height: Space.sm),
                   _StepCard(
                     index: 2,
-                    title: 'Doctor',
+                    title: t.stepDoctor,
                     done: draft.staffId != null,
                     child: _DoctorPicker(
                       departmentId: draft.departmentId!,
@@ -140,7 +143,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   const SizedBox(height: Space.sm),
                   _StepCard(
                     index: 3,
-                    title: 'Reason for visit',
+                    title: t.stepReasonForVisit,
                     done: true,
                     child: _ChoiceWrap(
                       options: [
@@ -159,7 +162,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   const SizedBox(height: Space.sm),
                   _StepCard(
                     index: 4,
-                    title: 'Date & time',
+                    title: t.stepDateTime,
                     done: draft.date != null,
                     child: mode == BookingMode.now
                         ? _NowDateLine(date: draft.date)
@@ -200,6 +203,7 @@ class _BookingForSelector extends ConsumerWidget {
     if (members.isEmpty) return const SizedBox.shrink();
 
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context)!;
     final draft = ref.watch(bookingDraftProvider);
     final notifier = ref.read(bookingDraftProvider.notifier);
     final selected = draft.bookedForName;
@@ -219,7 +223,7 @@ class _BookingForSelector extends ConsumerWidget {
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
                 const SizedBox(width: Space.sm),
-                Text('Who is this for?', style: theme.textTheme.titleMedium),
+                Text(t.whoIsThisFor, style: theme.textTheme.titleMedium),
               ],
             ),
             const SizedBox(height: Space.sm),
@@ -228,7 +232,7 @@ class _BookingForSelector extends ConsumerWidget {
               runSpacing: Space.xs,
               children: [
                 ChoiceChip(
-                  label: const Text('Myself'),
+                  label: Text(t.myself),
                   selected: selected == null,
                   onSelected: (_) =>
                       notifier.state = draft.copyWith(bookedForName: null),
@@ -245,7 +249,7 @@ class _BookingForSelector extends ConsumerWidget {
             if (selected != null) ...[
               const SizedBox(height: Space.xs),
               Text(
-                'This visit will be booked for $selected.',
+                t.bookedForNotice(selected),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -267,19 +271,19 @@ class _StepBar extends StatelessWidget {
 
   final int current; // 0..3
 
-  static const _labels = ['Department', 'Doctor', 'Reason', 'Date & time'];
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final clamped = current.clamp(0, _labels.length - 1);
+    final t = AppLocalizations.of(context)!;
+    final labels = [t.stepDepartment, t.stepDoctor, t.stepReasonShort, t.stepDateTime];
+    final clamped = current.clamp(0, labels.length - 1);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            for (var i = 0; i < _labels.length; i++) ...[
+            for (var i = 0; i < labels.length; i++) ...[
               if (i > 0) const SizedBox(width: Space.xxs),
               Expanded(
                 child: Container(
@@ -297,7 +301,7 @@ class _StepBar extends StatelessWidget {
         ),
         const SizedBox(height: Space.xs),
         Text(
-          'Step ${clamped + 1} of ${_labels.length} · ${_labels[clamped]}',
+          t.stepProgress(clamped + 1, labels.length, labels[clamped]),
           style: theme.textTheme.labelLarge?.copyWith(
             color: scheme.onSurfaceVariant,
           ),
@@ -399,14 +403,15 @@ class _DoctorPicker extends ConsumerWidget {
     final staff = ref.watch(departmentStaffProvider(departmentId));
     final draft = ref.watch(bookingDraftProvider);
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context)!;
 
     return staff.when(
       loading: () => const LoadingSkeleton(height: 64),
-      error: (e, _) => const Text('Could not load doctors'),
+      error: (e, _) => Text(t.couldNotLoadDoctors),
       data: (list) {
         if (list.isEmpty) {
           return Text(
-            'No doctors listed for this department yet.',
+            t.noDoctorsListed,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -547,6 +552,7 @@ class _NowDateLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context)!;
     return Row(
       children: [
         Icon(
@@ -558,8 +564,8 @@ class _NowDateLine extends StatelessWidget {
         Expanded(
           child: Text(
             date == null
-                ? 'Finding the soonest opening…'
-                : 'Soonest opening: ${fmtRelativeDay(date!)}, ${fmtDate(date!)}',
+                ? t.findingSoonestOpening
+                : t.soonestOpeningAt(fmtRelativeDay(date!), fmtDate(date!)),
             style: theme.textTheme.bodyMedium,
           ),
         ),
@@ -650,13 +656,11 @@ class _DateStrip extends StatelessWidget {
     );
   }
 
-  static const _wd = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  static const _mo = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-  ];
-  static String _weekday(DateTime d) => _wd[d.weekday - 1];
-  static String _month(DateTime d) => _mo[d.month - 1];
+  // Locale-aware short forms (was a hardcoded English lookup table) — `intl`
+  // picks these up from `Intl.defaultLocale`, which `LocaleController` keeps
+  // in sync with the app's language.
+  static String _weekday(DateTime d) => DateFormat.E().format(d);
+  static String _month(DateTime d) => DateFormat.MMM().format(d);
 }
 
 // ---------------------------------------------------------------------------
@@ -672,18 +676,19 @@ class _SlotList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final slots = ref.watch(rankedSlotsProvider);
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context)!;
 
     return slots.when(
       loading: () => const LoadingSkeleton(height: 140),
       error: (e, _) => ErrorStateView(
-        message: 'Could not load times.',
+        message: t.couldNotLoadTimes,
         onRetry: () => ref.invalidate(rankedSlotsProvider),
       ),
       data: (list) {
         if (list.isEmpty) {
-          return const EmptyState(
+          return EmptyState(
             icon: Icons.event_busy_outlined,
-            message: 'No open times that day. Try another date.',
+            message: t.noOpenTimesThatDay,
           );
         }
         final best = list.first;
@@ -693,7 +698,7 @@ class _SlotList extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SectionHeader('Recommended', overline: true),
+            SectionHeader(t.recommendedSection, overline: true),
             AppCard(
               color: theme.colorScheme.secondaryContainer,
               padding: const EdgeInsets.all(Space.md),
@@ -729,7 +734,7 @@ class _SlotList extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: Space.md),
-            const SectionHeader('All open times', overline: true),
+            SectionHeader(t.allOpenTimesSection, overline: true),
             const SizedBox(height: Space.xs),
             Wrap(
               spacing: Space.xs,
@@ -793,7 +798,7 @@ class _SlotList extends ConsumerWidget {
             const BookingRequestDraft();
         ref
             .read(appointmentConfirmationProvider.notifier)
-            .show('Appointment booked');
+            .show(AppLocalizations.of(context)!.appointmentBooked);
         if (!context.mounted) return;
         context.go(AppRoutes.patientHome);
       case Err(:final failure):
@@ -845,6 +850,7 @@ class _ReviewSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context)!;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(
@@ -857,29 +863,29 @@ class _ReviewSheet extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Review & confirm', style: theme.textTheme.titleLarge),
+            Text(t.reviewAndConfirm, style: theme.textTheme.titleLarge),
             const SizedBox(height: Space.md),
-            if (bookedFor != null) _Row(label: 'For', value: bookedFor!),
-            _Row(label: 'When', value:
+            if (bookedFor != null) _Row(label: t.rowLabelFor, value: bookedFor!),
+            _Row(label: t.rowLabelWhen, value:
                 '${fmtRelativeDay(slot.slot.start)}, '
                 '${fmtDate(slot.slot.start)} · ${fmtTime(slot.slot.start)}'),
-            if (department != null) _Row(label: 'Department', value: department!),
-            if (doctor != null) _Row(label: 'Doctor', value: doctor!),
-            _Row(label: 'Reason', value: visitTypeLabel(visitType)),
+            if (department != null) _Row(label: t.stepDepartment, value: department!),
+            if (doctor != null) _Row(label: t.stepDoctor, value: doctor!),
+            _Row(label: t.stepReasonShort, value: visitTypeLabel(visitType)),
             const SizedBox(height: Space.sm),
             Align(
-              alignment: Alignment.centerLeft,
+              alignment: AlignmentDirectional.centerStart,
               child: RiskBadge(slot.band),
             ),
             const SizedBox(height: Space.lg),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Confirm booking'),
+              child: Text(t.confirmBookingButton),
             ),
             const SizedBox(height: Space.xs),
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Back'),
+              child: Text(t.backButton),
             ),
           ],
         ),

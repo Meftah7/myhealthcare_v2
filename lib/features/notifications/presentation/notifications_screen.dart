@@ -15,6 +15,7 @@ import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../patient/presentation/patient_top_actions.dart';
 import '../application/notification_providers.dart';
 
@@ -29,19 +30,20 @@ class NotificationsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final feed = ref.watch(myNotificationsProvider);
     final unread = ref.watch(unreadNotificationCountProvider);
     final gutter = WindowSize.of(context).gutter;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notifications'),
+        title: Text(t.notificationsTooltip),
         actions: [
           if (unread > 0)
             TextButton(
               onPressed: () =>
                   ref.read(notificationControllerProvider).markAllRead(),
-              child: const Text('Mark all read'),
+              child: Text(t.markAllReadButton),
             ),
           topActions,
         ],
@@ -52,18 +54,18 @@ class NotificationsScreen extends ConsumerWidget {
           child: feed.when(
             loading: () => const SkeletonList(),
             error: (e, _) => ErrorStateView(
-              message: 'Could not load your notifications.',
+              message: t.couldNotLoadNotifications,
               onRetry: () => ref.invalidate(myNotificationsProvider),
             ),
             data: (list) {
               if (list.isEmpty) {
                 return ListView(
                   padding: EdgeInsets.all(gutter),
-                  children: const [
-                    SizedBox(height: Space.xxl),
+                  children: [
+                    const SizedBox(height: Space.xxl),
                     EmptyState(
                       icon: Icons.notifications_none_outlined,
-                      message: "You're all caught up.\nNothing new here.",
+                      message: t.allCaughtUpMessage,
                     ),
                   ],
                 );
@@ -86,12 +88,12 @@ class NotificationsScreen extends ConsumerWidget {
                 ),
                 children: [
                   if (recent.isNotEmpty) ...[
-                    const SectionHeader('Last 24 hours', overline: true),
+                    SectionHeader(t.last24HoursSection, overline: true),
                     for (final n in recent) _NotificationTile(n),
                     const SizedBox(height: Space.md),
                   ],
                   if (earlier.isNotEmpty) ...[
-                    const SectionHeader('Earlier', overline: true),
+                    SectionHeader(t.earlierSection, overline: true),
                     for (final n in earlier) _NotificationTile(n),
                   ],
                 ],
@@ -207,7 +209,7 @@ class _NotificationTile extends ConsumerWidget {
             ),
             if (unread)
               Container(
-                margin: const EdgeInsets.only(left: Space.xs, top: 4),
+                margin: const EdgeInsetsDirectional.only(start: Space.xs, top: 4),
                 width: 8,
                 height: 8,
                 decoration: BoxDecoration(
@@ -298,7 +300,7 @@ class _NotificationDetailSheet extends StatelessWidget {
                     context.go(notification.deepLink!);
                   },
                   icon: const Icon(Icons.arrow_forward),
-                  label: const Text('Open'),
+                  label: Text(AppLocalizations.of(context)!.openButton),
                 ),
               ),
             ],

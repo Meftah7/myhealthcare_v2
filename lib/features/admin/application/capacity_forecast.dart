@@ -19,6 +19,8 @@ import '../../../domain/enums.dart';
 import 'admin_providers.dart';
 import 'settings_providers.dart';
 
+bool get _ar => Intl.getCurrentLocale().startsWith('ar');
+
 enum DemandLevel { low, moderate, high }
 
 class DayForecast {
@@ -88,7 +90,7 @@ CapacityForecast forecastFromHistory(
           peakCount: 0,
           level: DemandLevel.low,
           overflowRisk: false,
-          note: 'No history for this day yet.',
+          note: _ar ? 'لا يوجد سجل لهذا اليوم بعد.' : 'No history for this day yet.',
         ),
       );
       continue;
@@ -111,11 +113,15 @@ CapacityForecast forecastFromHistory(
         level: level,
         overflowRisk: overflow,
         note: overflow
-            ? 'Peak demand has run at or above capacity here — consider an '
-                  'extra clinician on this shift.'
+            ? (_ar
+                  ? 'بلغ الطلب هنا مستوى السعة القصوى أو تجاوزها — يُنصح بإضافة طبيب إضافي في هذه المناوبة.'
+                  : 'Peak demand has run at or above capacity here — consider an '
+                        'extra clinician on this shift.')
             : level == DemandLevel.high
-            ? 'Consistently one of the busier windows; watch the waitlist.'
-            : 'Coverage looks adequate.',
+            ? (_ar
+                  ? 'من الفترات الأكثر ازدحاماً باستمرار؛ راقب قائمة الانتظار.'
+                  : 'Consistently one of the busier windows; watch the waitlist.')
+            : (_ar ? 'التغطية تبدو كافية.' : 'Coverage looks adequate.'),
       ),
     );
   }
@@ -194,7 +200,8 @@ Future<Map<int, String>> _narrate(
                 'given the busiest hour and how it compares to the clinic norm. '
                 'Return ONLY a JSON object mapping the weekday number (1-7) to a '
                 'one-sentence staffing note. Be concrete and calm; do not invent '
-                'numbers.',
+                'numbers.'
+                '${_ar ? ' Write every note in Modern Standard Arabic.' : ''}',
           },
         ],
       },

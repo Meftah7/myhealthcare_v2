@@ -16,6 +16,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
+import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
@@ -23,6 +24,7 @@ import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/enums.dart';
 import '../../../domain/repositories/notification_repository.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../care/application/care_providers.dart';
 import '../application/admin_providers.dart';
 import 'departments_screen.dart';
@@ -33,6 +35,7 @@ class AdminQuickActions extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final feedback = ref.watch(openFeedbackCountProvider).valueOrNull ?? 0;
     final homeVisits = ref.watch(openHomeVisitCountProvider);
     final referrals = ref.watch(pendingReferralRequestCountProvider);
@@ -40,47 +43,53 @@ class AdminQuickActions extends ConsumerWidget {
     final actions = <_QuickAction>[
       _QuickAction(
         icon: Icons.person_add_alt,
-        label: 'Add user',
+        label: t.addUserAction,
         onTap: () => unawaited(_addUser(context, ref)),
       ),
       _QuickAction(
         icon: Icons.campaign_outlined,
-        label: 'Broadcast',
+        label: t.broadcastAction,
         onTap: () => unawaited(showBroadcastSheet(context, ref)),
       ),
       _QuickAction(
         icon: Icons.request_quote_outlined,
-        label: 'Create invoice',
+        label: t.createInvoiceAction,
         onTap: () => unawaited(showCreateInvoiceSheet(context, ref)),
       ),
       _QuickAction(
         icon: Icons.calendar_month_outlined,
-        label: 'Appointments',
+        label: t.allAppointmentsTitle,
         onTap: () => unawaited(context.push(AppRoutes.adminAppointments)),
       ),
       _QuickAction(
         icon: Icons.forum_outlined,
-        label: feedback == 0 ? 'Feedback' : 'Feedback ($feedback)',
+        label: feedback == 0
+            ? t.feedbackTitle
+            : t.feedbackActionWithCount(feedback),
         onTap: () => unawaited(context.push(AppRoutes.adminFeedback)),
       ),
       _QuickAction(
         icon: Icons.add_home_outlined,
-        label: homeVisits == 0 ? 'Home visits' : 'Home visits ($homeVisits)',
+        label: homeVisits == 0
+            ? t.homeVisitsAction
+            : t.homeVisitsActionWithCount(homeVisits),
         onTap: () => unawaited(context.push(AppRoutes.adminHomeVisits)),
       ),
       _QuickAction(
         icon: Icons.forward_to_inbox_outlined,
-        label: referrals == 0 ? 'Referrals' : 'Referrals ($referrals)',
+        label: referrals == 0
+            ? t.referralsAction
+            : t.referralsActionWithCount(referrals),
         onTap: () => unawaited(context.push(AppRoutes.adminReferralRequests)),
       ),
       _QuickAction(
         icon: Icons.apartment_outlined,
-        label: 'New department',
+        label: t.newDepartmentAction,
         onTap: () => unawaited(showNewDepartmentDialog(context, ref)),
       ),
       _QuickAction(
         icon: Icons.dataset_outlined,
-        label: 'Re-seed data',
+        label: t.reseedDataAction,
         onTap: () => unawaited(_reseed(context, ref)),
       ),
     ];
@@ -99,6 +108,7 @@ class AdminQuickActions extends ConsumerWidget {
   }
 
   Future<void> _addUser(BuildContext context, WidgetRef ref) async {
+    final t = AppLocalizations.of(context)!;
     final role = await showModalBottomSheet<UserRole>(
       context: context,
       showDragHandle: true,
@@ -114,17 +124,17 @@ class AdminQuickActions extends ConsumerWidget {
                 Space.sm,
               ),
               child: Align(
-                alignment: Alignment.centerLeft,
+                alignment: AlignmentDirectional.centerStart,
                 child: Text(
-                  'Add a…',
+                  t.addAPersonTitle,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
             ),
-            for (final (role, label, icon) in const [
-              (UserRole.patient, 'Patient', Icons.person_outline),
-              (UserRole.staff, 'Staff member', Icons.badge_outlined),
-              (UserRole.admin, 'Administrator', Icons.shield_outlined),
+            for (final (role, label, icon) in [
+              (UserRole.patient, t.rolePatient, Icons.person_outline),
+              (UserRole.staff, t.roleStaff, Icons.badge_outlined),
+              (UserRole.admin, t.roleAdmin, Icons.shield_outlined),
             ])
               ListTile(
                 leading: Icon(icon),
@@ -142,26 +152,24 @@ class AdminQuickActions extends ConsumerWidget {
   }
 
   Future<void> _reseed(BuildContext context, WidgetRef ref) async {
+    final t = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
     final ok = await confirm(
       context,
-      title: 'Re-seed demo data?',
-      message:
-          'This wipes every account, appointment and record and rebuilds '
-          'the demo dataset. You will be signed out.',
-      confirmLabel: 'Re-seed',
+      title: t.reseedDemoDataConfirmTitle,
+      message: t.reseedWipeWarningBody,
+      confirmLabel: t.reseedAction,
       destructive: true,
     );
     if (!ok) return;
-    messenger.showSnackBar(const SnackBar(content: Text('Re-seeding…')));
+    messenger.showSnackBar(SnackBar(content: Text(t.reseedingEllipsis)));
     final r = await ref.read(seederProvider).reset();
     messenger
       ..removeCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
           content: Text(
-            'Re-seeded: ${r.patients} patients, ${r.staff} staff, '
-            '${r.appointments} appointments.',
+            t.reseededFullSnackbar(r.patients, r.staff, r.appointments),
           ),
         ),
       );
@@ -261,6 +269,7 @@ class _BroadcastSheetState extends ConsumerState<_BroadcastSheet> {
       _title.text.trim().isNotEmpty && _body.text.trim().isNotEmpty;
 
   Future<void> _send() async {
+    final t = AppLocalizations.of(context)!;
     setState(() => _busy = true);
     final result = await ref
         .read(adminActionsProvider)
@@ -275,9 +284,7 @@ class _BroadcastSheetState extends ConsumerState<_BroadcastSheet> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(switch (result) {
-          Ok(:final value) =>
-            'Sent to $value '
-                '${value == 1 ? 'person' : 'people'}.',
+          Ok(:final value) => t.sentToCount(value),
           Err(:final failure) => failure.message,
         }),
       ),
@@ -287,6 +294,7 @@ class _BroadcastSheetState extends ConsumerState<_BroadcastSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final insets = MediaQuery.viewInsetsOf(context).bottom;
     return Padding(
@@ -296,23 +304,23 @@ class _BroadcastSheetState extends ConsumerState<_BroadcastSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Broadcast a notification', style: theme.textTheme.titleLarge),
+            Text(t.broadcastNotificationTitle, style: theme.textTheme.titleLarge),
             const SizedBox(height: Space.md),
             DropdownButtonFormField<NotificationAudience>(
               initialValue: _audience,
-              decoration: const InputDecoration(labelText: 'Send to'),
-              items: const [
+              decoration: InputDecoration(labelText: t.sendToLabel),
+              items: [
                 DropdownMenuItem(
                   value: NotificationAudience.allPatients,
-                  child: Text('All patients'),
+                  child: Text(t.allPatientsOption),
                 ),
                 DropdownMenuItem(
                   value: NotificationAudience.allStaff,
-                  child: Text('All staff'),
+                  child: Text(t.allStaffOption),
                 ),
                 DropdownMenuItem(
                   value: NotificationAudience.everyone,
-                  child: Text('Everyone'),
+                  child: Text(t.everyoneOption),
                 ),
               ],
               onChanged: (v) => setState(() => _audience = v!),
@@ -320,17 +328,17 @@ class _BroadcastSheetState extends ConsumerState<_BroadcastSheet> {
             const SizedBox(height: Space.sm),
             DropdownButtonFormField<NotificationCategory>(
               initialValue: _category,
-              decoration: const InputDecoration(labelText: 'Category'),
+              decoration: InputDecoration(labelText: t.categoryLabel),
               items: [
                 for (final c in NotificationCategory.values)
-                  DropdownMenuItem(value: c, child: Text(_categoryLabel(c))),
+                  DropdownMenuItem(value: c, child: Text(c.label(context))),
               ],
               onChanged: (v) => setState(() => _category = v!),
             ),
             const SizedBox(height: Space.sm),
             TextField(
               controller: _title,
-              decoration: const InputDecoration(labelText: 'Title'),
+              decoration: InputDecoration(labelText: t.titleLabel),
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: Space.sm),
@@ -338,8 +346,8 @@ class _BroadcastSheetState extends ConsumerState<_BroadcastSheet> {
               controller: _body,
               minLines: 3,
               maxLines: 6,
-              decoration: const InputDecoration(
-                labelText: 'Message',
+              decoration: InputDecoration(
+                labelText: t.messageLabel,
                 alignLabelWithHint: true,
               ),
               onChanged: (_) => setState(() {}),
@@ -354,7 +362,7 @@ class _BroadcastSheetState extends ConsumerState<_BroadcastSheet> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.send_outlined),
-              label: const Text('Send'),
+              label: Text(t.sendButton),
             ),
           ],
         ),
@@ -362,15 +370,6 @@ class _BroadcastSheetState extends ConsumerState<_BroadcastSheet> {
     );
   }
 }
-
-String _categoryLabel(NotificationCategory c) => switch (c) {
-  NotificationCategory.appointment => 'Appointment',
-  NotificationCategory.billing => 'Billing',
-  NotificationCategory.labResult => 'Lab result',
-  NotificationCategory.prescription => 'Prescription',
-  NotificationCategory.message => 'Message',
-  NotificationCategory.system => 'System',
-};
 
 // --- create invoice ---------------------------------------------------
 
@@ -408,6 +407,7 @@ class _CreateInvoiceSheetState extends ConsumerState<_CreateInvoiceSheet> {
   bool get _valid => _patientId != null && (_subtotal ?? -1) >= 0;
 
   Future<void> _submit() async {
+    final t = AppLocalizations.of(context)!;
     setState(() => _busy = true);
     final result = await ref
         .read(adminActionsProvider)
@@ -421,8 +421,9 @@ class _CreateInvoiceSheetState extends ConsumerState<_CreateInvoiceSheet> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(switch (result) {
-          Ok(:final value) =>
-            'Invoice raised — BD ${value.totalAmount.toStringAsFixed(2)}.',
+          Ok(:final value) => t.invoiceRaisedSnackbar(
+            value.totalAmount.toStringAsFixed(2),
+          ),
           Err(:final failure) => failure.message,
         }),
       ),
@@ -432,6 +433,7 @@ class _CreateInvoiceSheetState extends ConsumerState<_CreateInvoiceSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final names = ref.watch(adminPatientNamesProvider);
     final insets = MediaQuery.viewInsetsOf(context).bottom;
@@ -444,12 +446,11 @@ class _CreateInvoiceSheetState extends ConsumerState<_CreateInvoiceSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Create an invoice', style: theme.textTheme.titleLarge),
+            Text(t.createAnInvoiceTitle, style: theme.textTheme.titleLarge),
             const SizedBox(height: Space.md),
             names.when(
               loading: () => const LoadingSkeleton(height: 56),
-              error: (e, _) =>
-                  const InlineBanner.error('Could not load patients.'),
+              error: (e, _) => InlineBanner.error(t.couldNotLoadPatients),
               data: (map) {
                 final entries = map.entries.toList()
                   ..sort((a, b) => a.value.compareTo(b.value));
@@ -457,7 +458,7 @@ class _CreateInvoiceSheetState extends ConsumerState<_CreateInvoiceSheet> {
                   expandedInsets: EdgeInsets.zero,
                   enableFilter: true,
                   requestFocusOnTap: true,
-                  label: const Text('Patient'),
+                  label: Text(t.rolePatient),
                   onSelected: (v) => setState(() => _patientId = v),
                   dropdownMenuEntries: [
                     for (final e in entries)
@@ -472,8 +473,8 @@ class _CreateInvoiceSheetState extends ConsumerState<_CreateInvoiceSheet> {
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
-              decoration: const InputDecoration(
-                labelText: 'Amount (BD, before tax)',
+              decoration: InputDecoration(
+                labelText: t.amountBdBeforeTaxLabel,
                 prefixText: 'BD ',
               ),
               onChanged: (_) => setState(() {}),
@@ -481,15 +482,17 @@ class _CreateInvoiceSheetState extends ConsumerState<_CreateInvoiceSheet> {
             const SizedBox(height: Space.sm),
             TextField(
               controller: _notes,
-              decoration: const InputDecoration(
-                labelText: 'What is this for? (optional)',
+              decoration: InputDecoration(
+                labelText: t.whatIsThisForOptionalLabel,
               ),
             ),
             if (subtotal != null && subtotal >= 0) ...[
               const SizedBox(height: Space.sm),
               Text(
-                '+ 10% tax = BD ${(subtotal * 1.10).toStringAsFixed(2)} total · '
-                'due ${fmtDate(DateTime.now().add(const Duration(days: 30)))}',
+                t.taxTotalDueNote(
+                  (subtotal * 1.10).toStringAsFixed(2),
+                  fmtDate(DateTime.now().add(const Duration(days: 30))),
+                ),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -504,7 +507,7 @@ class _CreateInvoiceSheetState extends ConsumerState<_CreateInvoiceSheet> {
                       width: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Raise invoice'),
+                  : Text(t.raiseInvoiceAction),
             ),
           ],
         ),
