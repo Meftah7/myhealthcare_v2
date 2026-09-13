@@ -3366,4 +3366,45 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get bookAgainAction => 'الحجز مجدداً';
+
+  @override
+  String get navHome => 'الرئيسية';
+
+  @override
+  String get navNutrition => 'التغذية';
+
+  @override
+  String get navAppointments => 'المواعيد';
+
+  @override
+  String get navRecords => 'السجلات';
+
+  @override
+  String get navDashboard => 'لوحة التحكم';
+
+  @override
+  String get navPatients => 'المرضى';
+
+  @override
+  String get navTasks => 'المهام';
+
+  @override
+  String get navSchedule => 'الجدول';
+
+  @override
+  String get navUsers => 'المستخدمون';
+
+  @override
+  String get navDepartments => 'الأقسام';
+
+  @override
+  String get navBilling => 'الفواتير';
+
+  @override
+  String get pickPatientPlaceholder => 'اختر مريضاً لفتح ملفه الطبي.';
+
+  @override
+  String idValueLabel(String value) {
+    return 'هوية $value';
+  }
 }

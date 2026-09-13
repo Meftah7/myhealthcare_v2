@@ -25,6 +25,23 @@ class FamilyMember {
     this.email,
   });
 
+  factory FamilyMember.fromJson(Map<String, dynamic> json) => FamilyMember(
+    id: json['id'] as String,
+    relationship: FamilyRelationship.values.byName(
+      json['relationship'] as String,
+    ),
+    firstName: json['firstName'] as String,
+    lastName: json['lastName'] as String,
+    cpr: json['cpr'] as String?,
+    dob: json['dob'] == null ? null : DateTime.parse(json['dob'] as String),
+    gender: json['gender'] == null
+        ? null
+        : Gender.values.byName(json['gender'] as String),
+    bloodType: json['bloodType'] as String?,
+    phone: json['phone'] as String?,
+    email: json['email'] as String?,
+  );
+
   final String id;
   final FamilyRelationship relationship;
   final String firstName;
@@ -68,23 +85,6 @@ class FamilyMember {
         : bloodType as String?,
     phone: identical(phone, _unset) ? this.phone : phone as String?,
     email: identical(email, _unset) ? this.email : email as String?,
-  );
-
-  factory FamilyMember.fromJson(Map<String, dynamic> json) => FamilyMember(
-    id: json['id'] as String,
-    relationship: FamilyRelationship.values.byName(
-      json['relationship'] as String,
-    ),
-    firstName: json['firstName'] as String,
-    lastName: json['lastName'] as String,
-    cpr: json['cpr'] as String?,
-    dob: json['dob'] == null ? null : DateTime.parse(json['dob'] as String),
-    gender: json['gender'] == null
-        ? null
-        : Gender.values.byName(json['gender'] as String),
-    bloodType: json['bloodType'] as String?,
-    phone: json['phone'] as String?,
-    email: json['email'] as String?,
   );
 
   Map<String, dynamic> toJson() => {

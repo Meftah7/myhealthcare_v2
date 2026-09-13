@@ -3305,4 +3305,45 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bookAgainAction => 'Book again';
+
+  @override
+  String get navHome => 'Home';
+
+  @override
+  String get navNutrition => 'Nutrition';
+
+  @override
+  String get navAppointments => 'Appointments';
+
+  @override
+  String get navRecords => 'Records';
+
+  @override
+  String get navDashboard => 'Dashboard';
+
+  @override
+  String get navPatients => 'Patients';
+
+  @override
+  String get navTasks => 'Tasks';
+
+  @override
+  String get navSchedule => 'Schedule';
+
+  @override
+  String get navUsers => 'Users';
+
+  @override
+  String get navDepartments => 'Departments';
+
+  @override
+  String get navBilling => 'Billing';
+
+  @override
+  String get pickPatientPlaceholder => 'Pick a patient to open their chart.';
+
+  @override
+  String idValueLabel(String value) {
+    return 'ID $value';
+  }
 }

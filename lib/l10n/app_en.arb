@@ -1629,5 +1629,24 @@
     }
   },
   "generalDepartmentFallback": "General",
-  "bookAgainAction": "Book again"
+  "bookAgainAction": "Book again",
+  "navHome": "Home",
+  "navNutrition": "Nutrition",
+  "navAppointments": "Appointments",
+  "navRecords": "Records",
+  "navDashboard": "Dashboard",
+  "navPatients": "Patients",
+  "navTasks": "Tasks",
+  "navSchedule": "Schedule",
+  "navUsers": "Users",
+  "navDepartments": "Departments",
+  "navBilling": "Billing",
+  "pickPatientPlaceholder": "Pick a patient to open their chart.",
+  "noPatientsMatchSearch": "No patients match that search.",
+  "idValueLabel": "ID {value}",
+  "@idValueLabel": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  }
 }

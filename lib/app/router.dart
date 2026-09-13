@@ -63,6 +63,7 @@ import '../features/staff_dashboard/presentation/staff_top_actions.dart';
 import '../features/tasks/presentation/task_board_screen.dart';
 import '../features/timeline/presentation/health_records_screen.dart';
 import '../features/vitals/presentation/vitals_screen.dart';
+import '../l10n/app_localizations.dart';
 import 'shell/app_shell.dart';
 
 /// The app's [GoRouter], rebuilt-aware of the session and the one-time
@@ -319,37 +320,40 @@ StatefulShellRoute _patientShell() {
   return StatefulShellRoute.indexedStack(
     // Bottom nav order: Home, Nutrition, Appointment, Records, Profile.
     // The bar stays visible on every patient screen (Vitals nests under Home).
-    builder: (context, state, navigationShell) => AppShell(
-      navigationShell: navigationShell,
-      overlay: const CareNavigatorOverlay(),
-      destinations: const [
-        AppDestination(
-          icon: Icons.home_outlined,
-          selectedIcon: Icons.home,
-          label: 'Home',
-        ),
-        AppDestination(
-          icon: Icons.restaurant_outlined,
-          selectedIcon: Icons.restaurant,
-          label: 'Nutrition',
-        ),
-        AppDestination(
-          icon: Icons.event_note_outlined,
-          selectedIcon: Icons.event_note,
-          label: 'Appointments',
-        ),
-        AppDestination(
-          icon: Icons.folder_shared_outlined,
-          selectedIcon: Icons.folder_shared,
-          label: 'Records',
-        ),
-        AppDestination(
-          icon: Icons.account_circle_outlined,
-          selectedIcon: Icons.account_circle,
-          label: 'Profile',
-        ),
-      ],
-    ),
+    builder: (context, state, navigationShell) {
+      final t = AppLocalizations.of(context)!;
+      return AppShell(
+        navigationShell: navigationShell,
+        overlay: const CareNavigatorOverlay(),
+        destinations: [
+          AppDestination(
+            icon: Icons.home_outlined,
+            selectedIcon: Icons.home,
+            label: t.navHome,
+          ),
+          AppDestination(
+            icon: Icons.restaurant_outlined,
+            selectedIcon: Icons.restaurant,
+            label: t.navNutrition,
+          ),
+          AppDestination(
+            icon: Icons.event_note_outlined,
+            selectedIcon: Icons.event_note,
+            label: t.navAppointments,
+          ),
+          AppDestination(
+            icon: Icons.folder_shared_outlined,
+            selectedIcon: Icons.folder_shared,
+            label: t.navRecords,
+          ),
+          AppDestination(
+            icon: Icons.account_circle_outlined,
+            selectedIcon: Icons.account_circle,
+            label: t.profile,
+          ),
+        ],
+      );
+    },
     branches: [
       StatefulShellBranch(
         routes: [
@@ -476,36 +480,39 @@ StatefulShellRoute _patientShell() {
 
 StatefulShellRoute _staffShell() {
   return StatefulShellRoute.indexedStack(
-    builder: (context, state, navigationShell) => AppShell(
-      navigationShell: navigationShell,
-      destinations: const [
-        AppDestination(
-          icon: Icons.dashboard_outlined,
-          selectedIcon: Icons.dashboard,
-          label: 'Dashboard',
-        ),
-        AppDestination(
-          icon: Icons.people_outline,
-          selectedIcon: Icons.people,
-          label: 'Patients',
-        ),
-        AppDestination(
-          icon: Icons.checklist_outlined,
-          selectedIcon: Icons.checklist,
-          label: 'Tasks',
-        ),
-        AppDestination(
-          icon: Icons.calendar_month_outlined,
-          selectedIcon: Icons.calendar_month,
-          label: 'Schedule',
-        ),
-        AppDestination(
-          icon: Icons.account_circle_outlined,
-          selectedIcon: Icons.account_circle,
-          label: 'Profile',
-        ),
-      ],
-    ),
+    builder: (context, state, navigationShell) {
+      final t = AppLocalizations.of(context)!;
+      return AppShell(
+        navigationShell: navigationShell,
+        destinations: [
+          AppDestination(
+            icon: Icons.dashboard_outlined,
+            selectedIcon: Icons.dashboard,
+            label: t.navDashboard,
+          ),
+          AppDestination(
+            icon: Icons.people_outline,
+            selectedIcon: Icons.people,
+            label: t.navPatients,
+          ),
+          AppDestination(
+            icon: Icons.checklist_outlined,
+            selectedIcon: Icons.checklist,
+            label: t.navTasks,
+          ),
+          AppDestination(
+            icon: Icons.calendar_month_outlined,
+            selectedIcon: Icons.calendar_month,
+            label: t.navSchedule,
+          ),
+          AppDestination(
+            icon: Icons.account_circle_outlined,
+            selectedIcon: Icons.account_circle,
+            label: t.profile,
+          ),
+        ],
+      );
+    },
     branches: [
       StatefulShellBranch(
         routes: [
@@ -614,36 +621,39 @@ StatefulShellRoute _staffShell() {
 
 StatefulShellRoute _adminShell() {
   return StatefulShellRoute.indexedStack(
-    builder: (context, state, navigationShell) => AppShell(
-      navigationShell: navigationShell,
-      destinations: const [
-        AppDestination(
-          icon: Icons.dashboard_outlined,
-          selectedIcon: Icons.dashboard,
-          label: 'Dashboard',
-        ),
-        AppDestination(
-          icon: Icons.manage_accounts_outlined,
-          selectedIcon: Icons.manage_accounts,
-          label: 'Users',
-        ),
-        AppDestination(
-          icon: Icons.apartment_outlined,
-          selectedIcon: Icons.apartment,
-          label: 'Departments',
-        ),
-        AppDestination(
-          icon: Icons.receipt_long_outlined,
-          selectedIcon: Icons.receipt_long,
-          label: 'Billing',
-        ),
-        AppDestination(
-          icon: Icons.account_circle_outlined,
-          selectedIcon: Icons.account_circle,
-          label: 'Profile',
-        ),
-      ],
-    ),
+    builder: (context, state, navigationShell) {
+      final t = AppLocalizations.of(context)!;
+      return AppShell(
+        navigationShell: navigationShell,
+        destinations: [
+          AppDestination(
+            icon: Icons.dashboard_outlined,
+            selectedIcon: Icons.dashboard,
+            label: t.navDashboard,
+          ),
+          AppDestination(
+            icon: Icons.manage_accounts_outlined,
+            selectedIcon: Icons.manage_accounts,
+            label: t.navUsers,
+          ),
+          AppDestination(
+            icon: Icons.apartment_outlined,
+            selectedIcon: Icons.apartment,
+            label: t.navDepartments,
+          ),
+          AppDestination(
+            icon: Icons.receipt_long_outlined,
+            selectedIcon: Icons.receipt_long,
+            label: t.navBilling,
+          ),
+          AppDestination(
+            icon: Icons.account_circle_outlined,
+            selectedIcon: Icons.account_circle,
+            label: t.profile,
+          ),
+        ],
+      );
+    },
     branches: [
       StatefulShellBranch(
         routes: [

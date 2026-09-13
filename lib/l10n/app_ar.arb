@@ -1629,5 +1629,24 @@
     }
   },
   "generalDepartmentFallback": "عام",
-  "bookAgainAction": "الحجز مجدداً"
+  "bookAgainAction": "الحجز مجدداً",
+  "navHome": "الرئيسية",
+  "navNutrition": "التغذية",
+  "navAppointments": "المواعيد",
+  "navRecords": "السجلات",
+  "navDashboard": "لوحة التحكم",
+  "navPatients": "المرضى",
+  "navTasks": "المهام",
+  "navSchedule": "الجدول",
+  "navUsers": "المستخدمون",
+  "navDepartments": "الأقسام",
+  "navBilling": "الفواتير",
+  "pickPatientPlaceholder": "اختر مريضاً لفتح ملفه الطبي.",
+  "noPatientsMatchSearch": "لا يوجد مرضى مطابقون لهذا البحث.",
+  "idValueLabel": "هوية {value}",
+  "@idValueLabel": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  }
 }

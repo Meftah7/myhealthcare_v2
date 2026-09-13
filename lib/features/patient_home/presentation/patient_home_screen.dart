@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/responsive.dart';
@@ -35,7 +36,9 @@ class PatientHomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
     final t = AppLocalizations.of(context)!;
-    final firstName = (user?.fullName ?? t.greetingFallbackName).split(' ').first;
+    final firstName = (user?.fullName ?? t.greetingFallbackName)
+        .split(' ')
+        .first;
 
     return AppScaffold(
       titleWidget: const AppBrandLockup(),
@@ -295,9 +298,9 @@ class _AllergyAlert extends ConsumerWidget {
             const SizedBox(width: Space.sm),
             Expanded(
               child: Text(
-                AppLocalizations.of(context)!.allergiesInline(
-                  allergies.join(', '),
-                ),
+                AppLocalizations.of(
+                  context,
+                )!.allergiesInline(allergies.join(', ')),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodyMedium?.copyWith(
@@ -327,7 +330,12 @@ class _QuickActions extends StatelessWidget {
     // (icon, label, route, push) — `push` keeps the nav bar and adds a back
     // button for section screens that aren't a nav destination of their own.
     final items = [
-      (Icons.favorite_outline, t.quickActionVitals, AppRoutes.patientVitals, false),
+      (
+        Icons.favorite_outline,
+        t.quickActionVitals,
+        AppRoutes.patientVitals,
+        false,
+      ),
       (
         Icons.medication_outlined,
         t.quickActionMedications,
@@ -352,8 +360,18 @@ class _QuickActions extends StatelessWidget {
         AppRoutes.patientSickLeave,
         true,
       ),
-      (Icons.add_home_outlined, t.quickActionHomeCare, AppRoutes.patientHomeVisit, true),
-      (Icons.receipt_long_outlined, t.quickActionBilling, AppRoutes.patientBilling, false),
+      (
+        Icons.add_home_outlined,
+        t.quickActionHomeCare,
+        AppRoutes.patientHomeVisit,
+        true,
+      ),
+      (
+        Icons.receipt_long_outlined,
+        t.quickActionBilling,
+        AppRoutes.patientBilling,
+        false,
+      ),
     ];
 
     return TileGrid(
@@ -515,7 +533,11 @@ class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
             ),
             const SizedBox(height: Space.xs),
             SizedBox(
-              height: _BigTicketCard.heightFor(context, active),
+              height: _BigTicketCard.heightFor(
+                context,
+                active,
+                doctorName: (a) => doctors[a.staffId]?.name,
+              ),
               // The auto-advancing pager animates on its own; keep its repaints
               // off the rest of Home.
               child: RepaintBoundary(
@@ -589,23 +611,94 @@ class _BigTicketCard extends StatelessWidget {
   /// The tallest card in [appts], measured at the current text scale.
   ///
   /// A `PageView` needs one height for every page, and the old fixed 208dp
-  /// clipped as soon as the OS text size went up. This asks the text scaler how
-  /// tall the detail lines actually are and sizes to the longest card.
-  static double heightFor(BuildContext context, List<Appointment> appts) {
+  /// clipped as soon as the OS text size went up. This sizes to the tallest
+  /// card instead.
+  ///
+  /// The line heights are **measured from the actual strings the card will
+  /// render** — same style, same [TextScaler], same font resolution as the
+  /// real render — not assumed from nominal font sizes. The bundled
+  /// Lexend/Inter carry no Arabic glyphs, so Arabic falls back to platform
+  /// fonts with different line metrics; measuring the real text keeps the
+  /// height exact in every locale, on every platform, at every text scale.
+  static double heightFor(
+    BuildContext context,
+    List<Appointment> appts, {
+    String? Function(Appointment appt)? doctorName,
+  }) {
     final scaler = MediaQuery.textScalerOf(context);
-    // bodyMedium is 14/20; the rows are separated by Space.xs.
-    final lineHeight = scaler.scale(20);
-    final maxRows = appts.fold<int>(
-      4,
-      (best, a) => math.max(best, a.bookedForName == null ? 4 : 5),
+    final theme = Theme.of(context);
+    final t = AppLocalizations.of(context)!;
+    final direction = Directionality.of(context);
+
+    // Height of [text] on one line, laid out exactly as the card will lay it
+    // out (this is the same style resolution RenderParagraph performs).
+    double textHeight(String text, TextStyle? style) {
+      final painter = TextPainter(
+        text: TextSpan(text: text, style: style),
+        textDirection: direction,
+        textScaler: scaler,
+        maxLines: 1,
+      )..layout();
+      final height = painter.height;
+      painter.dispose();
+      return height;
+    }
+
+    final bodyStyle = theme.textTheme.bodyMedium?.copyWith(
+      fontWeight: FontWeight.w500,
     );
-    final detail = maxRows * lineHeight + (maxRows - 1) * Space.xs;
 
-    // The ticket column: overline + the big number + the status pill.
-    final ticket =
-        scaler.scale(16) + 2 + scaler.scale(32) + Space.xs + scaler.scale(24);
+    // A detail row never renders shorter than its 16dp leading icon.
+    double rowHeight(String text) =>
+        math.max(16.0, textHeight(text, bodyStyle));
 
-    return Space.lg * 2 + math.max(detail, ticket);
+    double detailFor(Appointment a) {
+      final doctor = doctorName?.call(a) ?? visitTypeLabel(a.visitType);
+      final rows = [
+        fmtRelativeDay(a.slotStart),
+        fmtTime(a.slotStart),
+        t.roomNumber(a.roomNumber ?? t.none),
+        doctor,
+        if (a.bookedForName != null) t.bookedForName(a.bookedForName!),
+      ];
+      var height = 0.0;
+      for (final (i, row) in rows.indexed) {
+        if (i > 0) height += Space.xs;
+        height += rowHeight(row);
+      }
+      return height;
+    }
+
+    // The ticket column: overline + the big number + the status pill (whose
+    // own vertical padding is Space.xxs on each side, and whose 15dp icon
+    // can outgrow its label).
+    double ticketFor(Appointment a) {
+      final pillLabel = math.max(
+        15.0,
+        textHeight(a.status.label(context), theme.textTheme.labelMedium),
+      );
+      return textHeight(
+            t.ticketOverline,
+            theme.textTheme.labelSmall?.copyWith(letterSpacing: 1),
+          ) +
+          2 +
+          textHeight(
+            a.ticketTag ?? '—',
+            theme.textTheme.displaySmall?.copyWith(
+              fontFeatures: kTabularFigures,
+              height: 1,
+            ),
+          ) +
+          Space.xs +
+          pillLabel +
+          Space.xxs * 2;
+    }
+
+    var height = 0.0;
+    for (final a in appts) {
+      height = math.max(height, math.max(detailFor(a), ticketFor(a)));
+    }
+    return Space.lg * 2 + height;
   }
 
   @override
@@ -632,6 +725,8 @@ class _BigTicketCard extends StatelessWidget {
             children: [
               Text(
                 t.ticketOverline,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: scheme.onPrimaryContainer.withValues(alpha: 0.7),
                   letterSpacing: 1,

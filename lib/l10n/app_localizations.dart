@@ -5929,6 +5929,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Book again'**
   String get bookAgainAction;
+
+  /// No description provided for @navHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get navHome;
+
+  /// No description provided for @navNutrition.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition'**
+  String get navNutrition;
+
+  /// No description provided for @navAppointments.
+  ///
+  /// In en, this message translates to:
+  /// **'Appointments'**
+  String get navAppointments;
+
+  /// No description provided for @navRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Records'**
+  String get navRecords;
+
+  /// No description provided for @navDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard'**
+  String get navDashboard;
+
+  /// No description provided for @navPatients.
+  ///
+  /// In en, this message translates to:
+  /// **'Patients'**
+  String get navPatients;
+
+  /// No description provided for @navTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasks'**
+  String get navTasks;
+
+  /// No description provided for @navSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get navSchedule;
+
+  /// No description provided for @navUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Users'**
+  String get navUsers;
+
+  /// No description provided for @navDepartments.
+  ///
+  /// In en, this message translates to:
+  /// **'Departments'**
+  String get navDepartments;
+
+  /// No description provided for @navBilling.
+  ///
+  /// In en, this message translates to:
+  /// **'Billing'**
+  String get navBilling;
+
+  /// No description provided for @pickPatientPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a patient to open their chart.'**
+  String get pickPatientPlaceholder;
+
+  /// No description provided for @idValueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'ID {value}'**
+  String idValueLabel(String value);
 }
 
 class _AppLocalizationsDelegate
