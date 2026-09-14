@@ -9,6 +9,7 @@ import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../patient/application/patient_data_providers.dart';
 
 class MedicationsScreen extends ConsumerWidget {
@@ -20,27 +21,30 @@ class MedicationsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final body = _body(ref);
+    final body = _body(context, ref);
     if (embedded) return body;
     return Scaffold(
-      appBar: AppBar(title: const Text('Medications')),
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context)!.quickActionMedications),
+      ),
       body: body,
     );
   }
 
-  Widget _body(WidgetRef ref) {
+  Widget _body(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final meds = ref.watch(patientMedicationsProvider);
     return meds.when(
       loading: () => const SkeletonList(),
       error: (e, _) => ErrorStateView(
-        message: 'Could not load medications.',
+        message: t.couldNotLoadMedications,
         onRetry: () => ref.invalidate(patientMedicationsProvider),
       ),
       data: (list) {
           if (list.isEmpty) {
-            return const EmptyState(
+            return EmptyState(
               icon: Icons.medication_outlined,
-              message: 'No medications on record.',
+              message: t.noMedicationsOnRecord,
             );
           }
           final active = list.where((m) => m.isCurrent).toList();
@@ -59,12 +63,12 @@ class MedicationsScreen extends ConsumerWidget {
                 ),
                 children: [
                   if (active.isNotEmpty) ...[
-                    const SectionHeader('Current', overline: true),
+                    SectionHeader(t.currentSectionLabel, overline: true),
                     _group(active),
                   ],
                   if (past.isNotEmpty) ...[
                     const SizedBox(height: Space.md),
-                    const SectionHeader('Past', overline: true),
+                    SectionHeader(t.pastSectionLabel, overline: true),
                     _group(past),
                   ],
                 ],
@@ -94,11 +98,12 @@ class _MedTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context)!;
     final sub = [
       if (m.dose != null) m.dose!,
       if (m.frequency != null) m.frequency!,
-      'from ${fmtDate(m.startDate)}',
-      if (m.endDate != null) 'to ${fmtDate(m.endDate!)}',
+      t.medDoseFrom(fmtDate(m.startDate)),
+      if (m.endDate != null) t.medDoseTo(fmtDate(m.endDate!)),
     ].join(' · ');
     return ListTile(
       leading: Icon(

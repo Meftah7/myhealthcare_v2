@@ -16,6 +16,7 @@ import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
 import '../../../domain/repositories/billing_repository.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/billing_providers.dart';
 import 'billing_screen.dart' show money;
 
@@ -25,6 +26,7 @@ class WalletSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context)!;
     final invoices = ref.watch(patientInvoicesProvider);
     final cards = ref.watch(walletCardsProvider);
 
@@ -34,21 +36,21 @@ class WalletSection extends ConsumerWidget {
         // --- Saved cards ---
         Row(
           children: [
-            const Expanded(child: _Label('Saved cards')),
+            Expanded(child: _Label(t.savedCardsLabel)),
             TextButton.icon(
               onPressed: () => _addCard(context, ref),
               icon: const Icon(Icons.add, size: 18),
-              label: const Text('Add card'),
+              label: Text(t.addCardButton),
             ),
           ],
         ),
         cards.when(
           loading: () => const LoadingSkeleton(height: 48),
-          error: (e, _) => const InlineBanner.error('Could not load cards.'),
+          error: (e, _) => InlineBanner.error(t.couldNotLoadCards),
           data: (list) {
             if (list.isEmpty) {
               return Text(
-                'No cards saved yet.',
+                t.noCardsSavedYet,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -63,7 +65,7 @@ class WalletSection extends ConsumerWidget {
         const SizedBox(height: Space.md),
 
         // --- History ---
-        const _Label('Transaction history'),
+        _Label(t.transactionHistoryLabel),
         invoices.when(
           loading: () => const LoadingSkeleton(height: 48),
           error: (e, _) => const SizedBox.shrink(),
@@ -77,7 +79,7 @@ class WalletSection extends ConsumerWidget {
                   });
             if (paid.isEmpty) {
               return Text(
-                'No payments yet.',
+                t.noPaymentsYet,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -162,6 +164,7 @@ class _CardTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: Space.xxs),
       child: Row(
@@ -177,8 +180,8 @@ class _CardTile extends ConsumerWidget {
                   style: theme.textTheme.bodyMedium,
                 ),
                 Text(
-                  'Expires ${card.expiry}'
-                  '${card.isExpired ? ' · expired' : ''}',
+                  '${t.cardExpiresOn(card.expiry)}'
+                  '${card.isExpired ? ' · ${t.expiredSuffix}' : ''}',
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: card.isExpired
                         ? theme.clinicalStatus.riskHigh.onContainer
@@ -199,7 +202,7 @@ class _CardTile extends ConsumerWidget {
                 borderRadius: Radii.chip,
               ),
               child: Text(
-                'Default',
+                t.defaultChip,
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: theme.colorScheme.onSecondaryContainer,
                 ),
@@ -209,17 +212,17 @@ class _CardTile extends ConsumerWidget {
             TextButton(
               onPressed: () =>
                   ref.read(billingControllerProvider).setDefaultCard(card.id),
-              child: const Text('Set default'),
+              child: Text(t.setDefaultButton),
             ),
           IconButton(
             icon: const Icon(Icons.delete_outline),
-            tooltip: 'Remove card',
+            tooltip: t.removeCardTooltip,
             onPressed: () async {
               final ok = await confirm(
                 context,
-                title: 'Remove card?',
-                message: '${card.brand} ····${card.last4} will be removed.',
-                confirmLabel: 'Remove',
+                title: t.removeCardTitle,
+                message: t.removeCardMessage(card.brand, card.last4),
+                confirmLabel: t.removeButton,
                 destructive: true,
               );
               if (ok) {
@@ -261,16 +264,17 @@ class _AddCardSheetState extends ConsumerState<_AddCardSheet> {
   CardBrand get _brand => cardBrandOf(_number.text);
 
   String? _validateExpiry(String? v) {
+    final t = AppLocalizations.of(context)!;
     final parsed = parseExpiry(v ?? '');
     if (parsed == null) {
       final d = (v ?? '').replaceAll(RegExp(r'\D'), '');
       if (d.length >= 2) {
         final mm = int.tryParse(d.substring(0, 2)) ?? 0;
-        if (mm < 1 || mm > 12) return 'Month must be 01–12';
+        if (mm < 1 || mm > 12) return t.monthRange;
       }
       return 'MM/YY';
     }
-    if (!expiryInFuture(parsed.month, parsed.year)) return 'Card has expired';
+    if (!expiryInFuture(parsed.month, parsed.year)) return t.cardExpired;
     return null;
   }
 
@@ -308,6 +312,7 @@ class _AddCardSheetState extends ConsumerState<_AddCardSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context)!;
     final insets = MediaQuery.viewInsetsOf(context).bottom;
     return Padding(
       padding: EdgeInsets.fromLTRB(Space.lg, 0, Space.lg, Space.lg + insets),
@@ -319,16 +324,16 @@ class _AddCardSheetState extends ConsumerState<_AddCardSheet> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('Add a card', style: theme.textTheme.titleLarge),
+                Text(t.addACardTitle, style: theme.textTheme.titleLarge),
                 const SizedBox(height: Space.lg),
                 TextFormField(
                   controller: _holder,
                   textCapitalization: TextCapitalization.words,
                   autocorrect: false,
                   autofillHints: const [AutofillHints.creditCardName],
-                  decoration: const InputDecoration(labelText: 'Name on card'),
+                  decoration: InputDecoration(labelText: t.nameOnCardLabel),
                   validator: (v) => (v == null || v.trim().isEmpty)
-                      ? 'Enter the name on the card'
+                      ? t.enterNameOnCard
                       : null,
                 ),
                 const SizedBox(height: Space.sm),
@@ -341,17 +346,17 @@ class _AddCardSheetState extends ConsumerState<_AddCardSheet> {
                   inputFormatters: const [CardNumberInputFormatter()],
                   onChanged: (_) => setState(() {}),
                   decoration: InputDecoration(
-                    labelText: 'Card number',
+                    labelText: t.cardNumberLabel,
                     hintText: '4242 4242 4242 4242',
                     suffixIcon: Padding(
-                      padding: const EdgeInsets.only(right: 4),
+                      padding: const EdgeInsetsDirectional.only(end: 4),
                       child: CardBrandBadge(_brand),
                     ),
                   ),
                   validator: (v) {
                     final d = (v ?? '').replaceAll(RegExp(r'\D'), '');
-                    if (d.length < 12) return 'Enter a full card number';
-                    if (!luhnValid(d)) return 'That card number is not valid';
+                    if (d.length < 12) return t.enterFullCardNumber;
+                    if (!luhnValid(d)) return t.cardNumberInvalid;
                     return null;
                   },
                 ),
@@ -368,8 +373,8 @@ class _AddCardSheetState extends ConsumerState<_AddCardSheet> {
                           AutofillHints.creditCardExpirationDate,
                         ],
                         inputFormatters: const [ExpiryInputFormatter()],
-                        decoration: const InputDecoration(
-                          labelText: 'Expiry',
+                        decoration: InputDecoration(
+                          labelText: t.expiryLabel,
                           hintText: 'MM/YY',
                         ),
                         validator: _validateExpiry,
@@ -395,7 +400,7 @@ class _AddCardSheetState extends ConsumerState<_AddCardSheet> {
                         ),
                         validator: (v) => RegExp(r'^\d{3,4}$').hasMatch(v ?? '')
                             ? null
-                            : '3–4 digits',
+                            : t.digitsRange,
                       ),
                     ),
                   ],
@@ -411,8 +416,7 @@ class _AddCardSheetState extends ConsumerState<_AddCardSheet> {
                 ],
                 const SizedBox(height: Space.sm),
                 Text(
-                  'Only the last 4 digits and expiry are saved — never the full '
-                  'number or CVC.',
+                  t.cardSavedNote,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -426,7 +430,7 @@ class _AddCardSheetState extends ConsumerState<_AddCardSheet> {
                           width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Save card'),
+                      : Text(t.saveCardButton),
                 ),
               ],
             ),

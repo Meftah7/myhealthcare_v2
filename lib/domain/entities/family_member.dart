@@ -25,6 +25,23 @@ class FamilyMember {
     this.email,
   });
 
+  factory FamilyMember.fromJson(Map<String, dynamic> json) => FamilyMember(
+    id: json['id'] as String,
+    relationship: FamilyRelationship.values.byName(
+      json['relationship'] as String,
+    ),
+    firstName: json['firstName'] as String,
+    lastName: json['lastName'] as String,
+    cpr: json['cpr'] as String?,
+    dob: json['dob'] == null ? null : DateTime.parse(json['dob'] as String),
+    gender: json['gender'] == null
+        ? null
+        : Gender.values.byName(json['gender'] as String),
+    bloodType: json['bloodType'] as String?,
+    phone: json['phone'] as String?,
+    email: json['email'] as String?,
+  );
+
   final String id;
   final FamilyRelationship relationship;
   final String firstName;
@@ -70,23 +87,6 @@ class FamilyMember {
     email: identical(email, _unset) ? this.email : email as String?,
   );
 
-  factory FamilyMember.fromJson(Map<String, dynamic> json) => FamilyMember(
-    id: json['id'] as String,
-    relationship: FamilyRelationship.values.byName(
-      json['relationship'] as String,
-    ),
-    firstName: json['firstName'] as String,
-    lastName: json['lastName'] as String,
-    cpr: json['cpr'] as String?,
-    dob: json['dob'] == null ? null : DateTime.parse(json['dob'] as String),
-    gender: json['gender'] == null
-        ? null
-        : Gender.values.byName(json['gender'] as String),
-    bloodType: json['bloodType'] as String?,
-    phone: json['phone'] as String?,
-    email: json['email'] as String?,
-  );
-
   Map<String, dynamic> toJson() => {
     'id': id,
     'relationship': relationship.name,
@@ -127,12 +127,3 @@ class FamilyMember {
     Object.hash(phone, email),
   );
 }
-
-String familyRelationshipLabel(FamilyRelationship r) => switch (r) {
-  FamilyRelationship.spouse => 'Spouse',
-  FamilyRelationship.child => 'Child',
-  FamilyRelationship.parent => 'Parent',
-  FamilyRelationship.sibling => 'Sibling',
-  FamilyRelationship.guardian => 'Guardian',
-  FamilyRelationship.other => 'Other',
-};

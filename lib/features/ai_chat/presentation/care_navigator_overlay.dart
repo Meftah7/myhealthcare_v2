@@ -19,6 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
 import '../application/care_navigator.dart';
 import 'care_navigator_panel.dart';
@@ -34,6 +35,13 @@ class CareNavigatorOverlay extends ConsumerWidget {
     final view = ref.watch(careNavigatorViewProvider);
     void setView(CareNavView v) =>
         ref.read(careNavigatorViewProvider.notifier).state = v;
+    // ScaleTransition.alignment only takes a resolved Alignment, not
+    // AlignmentGeometry, so the RTL-aware bottom-end origin is resolved once
+    // here rather than in the transitionBuilder closure below (which has no
+    // BuildContext of its own).
+    final panelScaleOrigin = AlignmentDirectional.bottomEnd.resolve(
+      Directionality.of(context),
+    );
 
     return Positioned.fill(
       child: Stack(
@@ -66,7 +74,7 @@ class CareNavigatorOverlay extends ConsumerWidget {
                   opacity: anim,
                   child: ScaleTransition(
                     scale: Tween<double>(begin: 0.9, end: 1).animate(anim),
-                    alignment: Alignment.bottomRight,
+                    alignment: panelScaleOrigin,
                     child: child,
                   ),
                 ),
@@ -105,7 +113,7 @@ class _PanelHost extends StatelessWidget {
     final compact = size.width < 520;
     return SafeArea(
       child: Align(
-        alignment: compact ? Alignment.bottomCenter : Alignment.bottomRight,
+        alignment: compact ? Alignment.bottomCenter : AlignmentDirectional.bottomEnd,
         child: Padding(
           padding: EdgeInsets.all(compact ? 8 : 20),
           child: ConstrainedBox(
@@ -238,7 +246,7 @@ class _DraggableFabState extends ConsumerState<_DraggableFab>
                         ),
                       Semantics(
                         button: true,
-                        label: 'Open Care Navigator',
+                        label: AppLocalizations.of(context)!.openCareNavigator,
                         child: GestureDetector(
                           onTap: widget.onOpen,
                           child: DecoratedBox(
@@ -267,15 +275,16 @@ class _DraggableFabState extends ConsumerState<_DraggableFab>
                 ),
               ),
 
-              // The dismiss "×" — a 22dp badge on the button's top-right
-              // corner. Its 48dp tap target fills the box's top-right and does
+              // The dismiss "×" — a 22dp badge on the button's top-end
+              // corner. Its 48dp tap target fills the box's top-end and does
               // not reach the button's centre, so it never eats an "open" tap.
-              Positioned(
-                right: 0,
+              Positioned.directional(
+                textDirection: Directionality.of(context),
+                end: 0,
                 top: 0,
                 child: Semantics(
                   button: true,
-                  label: 'Hide Care Navigator',
+                  label: AppLocalizations.of(context)!.hideCareNavigator,
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: widget.onDismiss,
@@ -360,7 +369,7 @@ class _EdgeTabState extends ConsumerState<_EdgeTab> {
       right: onRight ? 0 : null,
       child: Semantics(
         button: true,
-        label: 'Show Care Navigator',
+        label: AppLocalizations.of(context)!.showCareNavigator,
         child: GestureDetector(
           onTap: widget.onOpen,
           onVerticalDragStart: (_) => setState(() => _dragging = true),

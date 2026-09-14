@@ -12,10 +12,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
-import '../../../core/i18n/app_strings.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
 
 class AdminProfileScreen extends ConsumerWidget {
@@ -23,7 +23,7 @@ class AdminProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final t = AppStrings.of(context);
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final user = ref.watch(currentUserProvider);
     final gutter = WindowSize.of(context).gutter;
@@ -55,50 +55,49 @@ class AdminProfileScreen extends ConsumerWidget {
                     _AdminProfileRow(
                       icon: Icons.badge_outlined,
                       title: t.account,
-                      subtitle: 'Name, email, member since',
+                      subtitle: t.accountSubtitleAdmin,
                       route: AppRoutes.adminProfileAccount,
                     ),
                     const SizedBox(height: Space.xs),
-                    const _AdminProfileRow(
+                    _AdminProfileRow(
                       icon: Icons.fact_check_outlined,
-                      title: 'Audit log',
-                      subtitle: 'Everything that has changed, newest first',
+                      title: t.auditLogTitle,
+                      subtitle: t.auditLogSubtitle,
                       route: AppRoutes.adminProfileAudit,
                     ),
                     const SizedBox(height: Space.xs),
-                    const _AdminProfileRow(
+                    _AdminProfileRow(
                       icon: Icons.insights_outlined,
-                      title: 'System analytics',
-                      subtitle: 'Headline counts, no-show and utilisation',
+                      title: t.systemAnalyticsTitle,
+                      subtitle: t.systemAnalyticsSubtitle,
                       route: AppRoutes.adminProfileAnalytics,
                     ),
                     const SizedBox(height: Space.xs),
-                    const _AdminProfileRow(
+                    _AdminProfileRow(
                       icon: Icons.query_stats_outlined,
-                      title: 'Capacity forecast',
-                      subtitle: 'Busiest hours and where demand outruns supply',
+                      title: t.capacityForecastTitle,
+                      subtitle: t.capacityForecastSubtitle,
                       route: AppRoutes.adminProfileForecast,
                     ),
                     const SizedBox(height: Space.xs),
-                    const _AdminProfileRow(
+                    _AdminProfileRow(
                       icon: Icons.auto_awesome_outlined,
-                      title: 'AI settings',
-                      subtitle: 'Features, mock mode, API key',
+                      title: t.aiSettingsTitle,
+                      subtitle: t.aiSettingsSubtitle,
                       route: AppRoutes.adminProfileAiSettings,
                     ),
                     const SizedBox(height: Space.xs),
-                    const _AdminProfileRow(
+                    _AdminProfileRow(
                       icon: Icons.history_toggle_off_outlined,
-                      title: 'AI activity',
-                      subtitle:
-                          'Which surface answered, live model or fallback',
+                      title: t.aiActivityTitle,
+                      subtitle: t.aiActivitySubtitle,
                       route: AppRoutes.adminProfileAiLog,
                     ),
                     const SizedBox(height: Space.xs),
                     _AdminProfileRow(
                       icon: Icons.tune,
                       title: t.preferences,
-                      subtitle: 'Theme, text size, language, alerts, sounds',
+                      subtitle: t.preferencesSubtitleAdmin,
                       route: AppRoutes.adminProfilePreferences,
                     ),
 

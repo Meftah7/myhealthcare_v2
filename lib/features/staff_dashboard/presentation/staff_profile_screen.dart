@@ -12,11 +12,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
-import '../../../core/i18n/app_strings.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
 import '../../feedback/presentation/feedback_sheet.dart';
 import '../application/staff_providers.dart';
@@ -26,7 +26,7 @@ class StaffProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final t = AppStrings.of(context);
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final profile = ref.watch(staffProfileProvider);
     final gutter = WindowSize.of(context).gutter;
@@ -36,7 +36,7 @@ class StaffProfileScreen extends ConsumerWidget {
       body: profile.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
-          message: 'Could not load your profile.',
+          message: t.couldNotLoadYourProfile,
           onRetry: () => ref.invalidate(staffProfileProvider),
         ),
         data: (s) {
@@ -64,35 +64,35 @@ class StaffProfileScreen extends ConsumerWidget {
                   _StaffProfileRow(
                     icon: Icons.badge_outlined,
                     title: t.account,
-                    subtitle: 'Specialty, department, licence',
+                    subtitle: t.accountSubtitle,
                     route: AppRoutes.staffProfileAccount,
                   ),
                   const SizedBox(height: Space.xs),
-                  const _StaffProfileRow(
+                  _StaffProfileRow(
                     icon: Icons.history_outlined,
-                    title: 'My activity',
-                    subtitle: 'Notes and prescriptions you have authored',
+                    title: t.myActivityTitle,
+                    subtitle: t.myActivitySubtitle,
                     route: AppRoutes.staffProfileActivity,
                   ),
                   const SizedBox(height: Space.xs),
-                  const _StaffProfileRow(
+                  _StaffProfileRow(
                     icon: Icons.badge_outlined,
-                    title: 'Staff directory',
-                    subtitle: 'Clinicians, specialties and live presence',
+                    title: t.staffDirectoryTitle,
+                    subtitle: t.staffDirectorySubtitle,
                     route: AppRoutes.staffProfileDirectory,
                   ),
                   const SizedBox(height: Space.xs),
-                  const _StaffProfileRow(
+                  _StaffProfileRow(
                     icon: Icons.insights_outlined,
-                    title: 'Panel analytics',
-                    subtitle: 'No-show rate, cancellations, utilisation',
+                    title: t.panelAnalyticsTitle,
+                    subtitle: t.panelAnalyticsSubtitle,
                     route: AppRoutes.staffProfileAnalytics,
                   ),
                   const SizedBox(height: Space.xs),
                   _StaffProfileRow(
                     icon: Icons.tune,
                     title: t.preferences,
-                    subtitle: 'Theme, text size, language, alerts',
+                    subtitle: t.preferencesSubtitle,
                     route: AppRoutes.staffProfilePreferences,
                   ),
 
@@ -100,7 +100,7 @@ class StaffProfileScreen extends ConsumerWidget {
                   OutlinedButton.icon(
                     onPressed: () => unawaited(showFeedbackSheet(context, ref)),
                     icon: const Icon(Icons.forum_outlined),
-                    label: const Text('Send feedback'),
+                    label: Text(t.sendFeedbackTitle),
                   ),
                   const SizedBox(height: Space.sm),
                   OutlinedButton.icon(

@@ -10,6 +10,7 @@ import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
 import '../../../core/result.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/patient_data_providers.dart';
 
 const _bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
@@ -103,7 +104,11 @@ class _HealthDetailsSectionState extends ConsumerState<HealthDetailsSection> {
       case Ok():
         ref.invalidate(patientProfileProvider);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Health details updated.')),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.healthDetailsUpdatedSnackbar,
+            ),
+          ),
         );
       case Err(:final failure):
         ScaffoldMessenger.of(
@@ -114,15 +119,16 @@ class _HealthDetailsSectionState extends ConsumerState<HealthDetailsSection> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         DropdownButtonFormField<String?>(
           initialValue: _bloodType,
-          decoration: const InputDecoration(labelText: 'Blood type'),
+          decoration: InputDecoration(labelText: t.bloodTypeLabel),
           items: [
-            const DropdownMenuItem(child: Text('Unknown')),
+            DropdownMenuItem(child: Text(t.unknownOption)),
             for (final b in _bloodTypes)
               DropdownMenuItem(value: b, child: Text(b)),
           ],
@@ -133,9 +139,9 @@ class _HealthDetailsSectionState extends ConsumerState<HealthDetailsSection> {
           controller: _allergies,
           minLines: 1,
           maxLines: 3,
-          decoration: const InputDecoration(
-            labelText: 'Allergies',
-            helperText: 'Separate with commas',
+          decoration: InputDecoration(
+            labelText: t.allergiesLabel,
+            helperText: t.separateWithCommasHelper,
           ),
         ),
         const SizedBox(height: Space.sm),
@@ -143,18 +149,18 @@ class _HealthDetailsSectionState extends ConsumerState<HealthDetailsSection> {
           controller: _conditions,
           minLines: 1,
           maxLines: 3,
-          decoration: const InputDecoration(
-            labelText: 'Chronic conditions',
-            helperText: 'Separate with commas',
+          decoration: InputDecoration(
+            labelText: t.chronicConditionsLabel,
+            helperText: t.separateWithCommasHelper,
           ),
         ),
         const SizedBox(height: Space.sm),
         TextField(
           controller: _emergency,
           keyboardType: TextInputType.phone,
-          decoration: const InputDecoration(
-            labelText: 'Emergency contact',
-            hintText: 'Name · phone',
+          decoration: InputDecoration(
+            labelText: t.emergencyContactLabel,
+            hintText: t.emergencyContactHint,
           ),
         ),
         const SizedBox(height: Space.md),
@@ -163,7 +169,7 @@ class _HealthDetailsSectionState extends ConsumerState<HealthDetailsSection> {
             Expanded(
               child: OutlinedButton(
                 onPressed: _isDirty && !_busy ? _cancel : null,
-                child: const Text('Cancel'),
+                child: Text(t.cancel),
               ),
             ),
             const SizedBox(width: Space.sm),
@@ -176,7 +182,7 @@ class _HealthDetailsSectionState extends ConsumerState<HealthDetailsSection> {
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Save'),
+                    : Text(t.saveButton),
               ),
             ),
           ],
@@ -184,7 +190,7 @@ class _HealthDetailsSectionState extends ConsumerState<HealthDetailsSection> {
         Padding(
           padding: const EdgeInsets.only(top: Space.xs),
           child: Text(
-            'Shared with the clinicians who treat you.',
+            t.sharedWithCliniciansNote,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),

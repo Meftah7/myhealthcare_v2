@@ -18,6 +18,7 @@ import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../care/application/care_providers.dart';
 import '../../patient_chart/presentation/chart_write_sheets.dart';
 import '../application/staff_providers.dart';
@@ -27,78 +28,79 @@ class StaffQuickActions extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final actions = <_QuickAction>[
       _QuickAction(
         icon: Icons.note_add_outlined,
-        label: 'New note',
+        label: t.newNoteAction,
         onTap: () => _pickPatientThen(
           context,
           ref,
-          title: 'Add a clinical note for…',
+          title: t.addClinicalNoteForTitle,
           then: showChartNoteSheet,
         ),
       ),
       _QuickAction(
         icon: Icons.medication_outlined,
-        label: 'Prescribe',
+        label: t.prescribeAction,
         onTap: () => _pickPatientThen(
           context,
           ref,
-          title: 'Prescribe for…',
+          title: t.prescribeForTitle,
           then: showPrescribeSheet,
         ),
       ),
       _QuickAction(
         icon: Icons.science_outlined,
-        label: 'Lab result',
+        label: t.labResultAction,
         onTap: () => _pickPatientThen(
           context,
           ref,
-          title: 'Enter a lab result for…',
+          title: t.enterLabResultForTitle,
           then: showLabResultSheet,
         ),
       ),
       _QuickAction(
         icon: Icons.swap_horiz,
-        label: 'Transfer visit',
+        label: t.transferVisitAction,
         onTap: () => unawaited(showTransferSheet(context, ref)),
       ),
       _QuickAction(
         icon: Icons.auto_awesome,
-        label: 'AI Scribe',
+        label: t.aiScribeAction,
         onTap: () => _pickPatientThenGo(
           context,
           ref,
-          title: 'Scribe a visit note for…',
+          title: t.scribeVisitNoteForTitle,
           route: (id) => '${AppRoutes.staffScribe}?patient=$id',
         ),
       ),
       _QuickAction(
         icon: Icons.summarize_outlined,
-        label: 'Patient summary',
+        label: t.patientSummaryAction,
         onTap: () => _pickPatientThenGo(
           context,
           ref,
-          title: 'Summarise…',
+          title: t.summariseTitle,
           route: AppRoutes.staffPatientSummary,
         ),
       ),
       _QuickAction(
         icon: Icons.person_search_outlined,
-        label: 'Patient lookup',
+        label: t.patientLookupAction,
         onTap: () => context.go(AppRoutes.staffPatients),
       ),
       _QuickAction(
         icon: Icons.forum_outlined,
         label: switch (ref.watch(staffUnreadCountProvider)) {
-          0 => 'Messages',
-          final n => 'Messages ($n)',
+          0 => t.messagesTitle,
+          final n => t.messagesActionWithCount(n),
         },
         onTap: () => unawaited(context.push(AppRoutes.staffInbox)),
       ),
       _QuickAction(
         icon: Icons.radar,
-        label: 'Panel scan',
+        label: t.panelScanAction,
         onTap: () => unawaited(_runPanelScan(context, ref)),
       ),
     ];
@@ -117,16 +119,15 @@ class StaffQuickActions extends ConsumerWidget {
   }
 
   Future<void> _runPanelScan(BuildContext context, WidgetRef ref) async {
+    final t = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context)
       ..removeCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(content: Text('Scanning the panel for risks…')),
-      );
+      ..showSnackBar(SnackBar(content: Text(t.scanningPanelForRisks)));
     final count = await ref.read(staffOpsProvider).refreshPanel();
     messenger
       ..removeCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text('Panel scan complete — $count open flag(s).')),
+        SnackBar(content: Text(t.panelScanCompleteFlags(count))),
       );
   }
 
@@ -246,6 +247,7 @@ class _PatientPickerSheetState extends ConsumerState<_PatientPickerSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final results = ref.watch(patientPickerResultsProvider(_query));
     final viewInsets = MediaQuery.viewInsetsOf(context).bottom;
@@ -264,9 +266,9 @@ class _PatientPickerSheetState extends ConsumerState<_PatientPickerSheet> {
           const SizedBox(height: Space.md),
           TextField(
             autofocus: true,
-            decoration: const InputDecoration(
-              hintText: 'Search by name or national ID',
-              prefixIcon: Icon(Icons.search),
+            decoration: InputDecoration(
+              hintText: t.searchByNameOrNationalId,
+              prefixIcon: const Icon(Icons.search),
             ),
             onChanged: (v) => setState(() => _query = v),
           ),
@@ -274,13 +276,12 @@ class _PatientPickerSheetState extends ConsumerState<_PatientPickerSheet> {
           Expanded(
             child: results.when(
               loading: () => const LoadingSkeleton(height: 120),
-              error: (e, _) =>
-                  const InlineBanner.error('Could not load patients.'),
+              error: (e, _) => InlineBanner.error(t.couldNotLoadPatients),
               data: (patients) {
                 if (patients.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.all(Space.lg),
-                    child: Text('No patients match that search.'),
+                  return Padding(
+                    padding: const EdgeInsets.all(Space.lg),
+                    child: Text(t.noPatientsMatchSearch),
                   );
                 }
                 return ListView.builder(
@@ -301,7 +302,7 @@ class _PatientPickerSheetState extends ConsumerState<_PatientPickerSheet> {
                       title: Text(p.fullName),
                       subtitle: p.user.nationalId == null
                           ? null
-                          : Text('ID ${p.user.nationalId}'),
+                          : Text(t.idLabel(p.user.nationalId!)),
                       onTap: () => Navigator.of(context).pop(p.id),
                     );
                   },
@@ -342,6 +343,7 @@ class _TransferSheetState extends ConsumerState<_TransferSheet> {
   bool _busy = false;
 
   Future<void> _submit() async {
+    final t = AppLocalizations.of(context)!;
     final appt = _appointment;
     final target = _targetStaffId;
     if (appt == null || target == null) return;
@@ -354,7 +356,7 @@ class _TransferSheetState extends ConsumerState<_TransferSheet> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(switch (result) {
-          Ok() => 'Visit transferred.',
+          Ok() => t.visitTransferred,
           Err(:final failure) => failure.message,
         }),
       ),
@@ -364,6 +366,7 @@ class _TransferSheetState extends ConsumerState<_TransferSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final queue = ref.watch(staffQueueProvider);
     final directory = ref.watch(staffDirectoryProvider);
@@ -382,11 +385,10 @@ class _TransferSheetState extends ConsumerState<_TransferSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Transfer a visit', style: theme.textTheme.titleLarge),
+            Text(t.transferAVisitTitle, style: theme.textTheme.titleLarge),
             const SizedBox(height: Space.xs),
             Text(
-              'Reassign a visit from today to another clinician. It returns to '
-              '"booked" so they can re-accept it.',
+              t.reassignVisitNote,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -394,18 +396,15 @@ class _TransferSheetState extends ConsumerState<_TransferSheet> {
             const SizedBox(height: Space.md),
             queue.when(
               loading: () => const LoadingSkeleton(height: 56),
-              error: (e, _) =>
-                  const InlineBanner.error('Could not load your queue.'),
+              error: (e, _) => InlineBanner.error(t.couldNotLoadYourQueue),
               data: (appts) {
                 if (appts.isEmpty) {
-                  return const InlineBanner.info(
-                    'Nothing in your queue to transfer.',
-                  );
+                  return InlineBanner.info(t.nothingInQueueToTransfer);
                 }
                 return DropdownButtonFormField<Appointment>(
                   initialValue: _appointment,
                   isExpanded: true,
-                  decoration: const InputDecoration(labelText: 'Visit'),
+                  decoration: InputDecoration(labelText: t.visitLabel),
                   items: [
                     for (final a in appts)
                       DropdownMenuItem(
@@ -424,14 +423,13 @@ class _TransferSheetState extends ConsumerState<_TransferSheet> {
             const SizedBox(height: Space.sm),
             directory.when(
               loading: () => const LoadingSkeleton(height: 56),
-              error: (e, _) =>
-                  const InlineBanner.error('Could not load the directory.'),
+              error: (e, _) => InlineBanner.error(t.couldNotLoadDirectory),
               data: (staff) {
                 final others = staff.where((s) => s.id != me).toList();
                 return DropdownButtonFormField<String>(
                   initialValue: _targetStaffId,
                   isExpanded: true,
-                  decoration: const InputDecoration(labelText: 'Transfer to'),
+                  decoration: InputDecoration(labelText: t.transferToLabel),
                   items: [
                     for (final s in others)
                       DropdownMenuItem(
@@ -459,7 +457,7 @@ class _TransferSheetState extends ConsumerState<_TransferSheet> {
                       width: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Transfer visit'),
+                  : Text(t.transferVisitAction),
             ),
           ],
         ),

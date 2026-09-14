@@ -114,6 +114,9 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  # Generates AppLocalizations from lib/l10n/*.arb per l10n.yaml (P8-07 i18n).
+  generate: true
+
   # Bundled so the app runs fully offline (DESIGN.md §3.1). Variable fonts —
   # Flutter maps FontWeight to the `wght` axis.
   fonts:

@@ -13,6 +13,7 @@ import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../patient/application/patient_data_providers.dart';
 import '../../patient/application/patient_documents.dart';
 import '../../patient/presentation/document_download_button.dart';
@@ -24,11 +25,12 @@ class VitalsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final vitals = ref.watch(patientVitalsProvider);
+    final t = AppLocalizations.of(context)!;
     return AppScaffold(
-      title: 'Vitals',
+      title: t.vitalsTitle,
       actions: [
         DocumentDownloadButton(
-          label: 'Vital signs report',
+          label: t.vitalSignsReportLabel,
           filename: 'vital-signs-report.pdf',
           dense: true,
           build: () => buildVitalsReport(ref),
@@ -41,19 +43,17 @@ class VitalsScreen extends ConsumerWidget {
         error: (e, _) => [
           const SizedBox(height: Space.xl),
           ErrorStateView(
-            message: 'Could not load vitals.',
+            message: t.couldNotLoadVitals,
             onRetry: () => ref.invalidate(patientVitalsProvider),
           ),
         ],
         data: (list) {
           if (list.isEmpty) {
-            return const [
-              SizedBox(height: Space.xl),
+            return [
+              const SizedBox(height: Space.xl),
               EmptyState(
                 icon: Icons.monitor_heart_outlined,
-                message:
-                    'No vitals recorded yet.\nBook a visit to get your first '
-                    'reading.',
+                message: t.noVitalsRecordedYet,
               ),
             ];
           }
@@ -64,15 +64,15 @@ class VitalsScreen extends ConsumerWidget {
             CardColumns(
               children: [
                 _VitalsChart(
-                  title: 'Blood pressure',
+                  title: t.chartBloodPressure,
                   unit: 'mmHg',
                   series: [
-                    _Series('Systolic', [
+                    _Series(t.seriesSystolic, [
                       for (final v in sorted)
                         if (v.systolic != null)
                           _P(v.recordedAt, v.systolic!.toDouble()),
                     ]),
-                    _Series('Diastolic', [
+                    _Series(t.seriesDiastolic, [
                       for (final v in sorted)
                         if (v.diastolic != null)
                           _P(v.recordedAt, v.diastolic!.toDouble()),
@@ -80,20 +80,20 @@ class VitalsScreen extends ConsumerWidget {
                   ],
                 ),
                 _VitalsChart(
-                  title: 'Weight',
+                  title: t.chartWeight,
                   unit: 'kg',
                   series: [
-                    _Series('Weight', [
+                    _Series(t.chartWeight, [
                       for (final v in sorted)
                         if (v.weightKg != null) _P(v.recordedAt, v.weightKg!),
                     ]),
                   ],
                 ),
                 _VitalsChart(
-                  title: 'Glucose',
+                  title: t.chartGlucose,
                   unit: 'mmol/L',
                   series: [
-                    _Series('Glucose', [
+                    _Series(t.chartGlucose, [
                       for (final v in sorted)
                         if (v.glucose != null) _P(v.recordedAt, v.glucose!),
                     ]),
@@ -101,7 +101,7 @@ class VitalsScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            const SectionHeader('Recent readings', overline: true),
+            SectionHeader(t.recentReadingsSection, overline: true),
             AppCard(
               padding: EdgeInsets.zero,
               child: Column(
@@ -268,12 +268,16 @@ class _ReadingTile extends StatelessWidget {
   final Vitals v;
   @override
   Widget build(BuildContext context) {
+    // BP/HR/SpO₂ are kept as the international clinical abbreviations rather
+    // than translated — the same shorthand clinicians and patients already
+    // use in Arabic-language charts.
+    final t = AppLocalizations.of(context)!;
     final parts = <String>[
       if (v.hasBloodPressure) 'BP ${v.systolic}/${v.diastolic}',
       if (v.heartRate != null) 'HR ${v.heartRate}',
       if (v.spo2 != null) 'SpO₂ ${v.spo2}%',
       if (v.weightKg != null) '${v.weightKg} kg',
-      if (v.glucose != null) 'Glucose ${v.glucose}',
+      if (v.glucose != null) '${t.chartGlucose} ${v.glucose}',
       if (v.tempC != null) '${v.tempC} °C',
     ];
     return ListTile(

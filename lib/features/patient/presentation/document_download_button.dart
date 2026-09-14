@@ -8,6 +8,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../../../services/pdf/clinic_pdf.dart';
 
 class DocumentDownloadButton extends StatefulWidget {
@@ -44,7 +45,11 @@ class _DocumentDownloadButtonState extends State<DocumentDownloadButton> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not create the document.')),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.couldNotCreateDocument,
+            ),
+          ),
         );
       }
     } finally {

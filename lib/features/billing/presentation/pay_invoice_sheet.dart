@@ -31,6 +31,7 @@ import '../../../core/result.dart';
 import '../../../core/utils/card_input.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/repositories/billing_repository.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../booking/application/appointment_confirmation.dart';
 import '../application/billing_providers.dart';
 import 'billing_screen.dart';
@@ -86,6 +87,7 @@ class _PayInvoiceSheetState extends ConsumerState<_PayInvoiceSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context)!;
     final insets = MediaQuery.viewInsetsOf(context).bottom;
     final cardsAsync = ref.watch(walletCardsProvider);
     final cards = cardsAsync.valueOrNull ?? const <PaymentMethod>[];
@@ -115,10 +117,10 @@ class _PayInvoiceSheetState extends ConsumerState<_PayInvoiceSheet> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Pay invoice', style: theme.textTheme.titleLarge),
+                Text(t.payInvoiceTitle, style: theme.textTheme.titleLarge),
                 const SizedBox(height: Space.xxs),
                 Text(
-                  '${money(widget.invoice.totalAmount)} due',
+                  t.amountDue(money(widget.invoice.totalAmount)),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -129,7 +131,7 @@ class _PayInvoiceSheetState extends ConsumerState<_PayInvoiceSheet> {
                   const LoadingSkeleton(height: 56)
                 else if (cards.isNotEmpty) ...[
                   Text(
-                    'Pay with',
+                    t.payWithLabel,
                     style: theme.textTheme.labelLarge?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -191,8 +193,7 @@ class _PayInvoiceSheetState extends ConsumerState<_PayInvoiceSheet> {
                     const SizedBox(width: Space.xs),
                     Expanded(
                       child: Text(
-                        'Demo payment — card details are checked on this device '
-                        'and never stored or sent anywhere.',
+                        t.demoPaymentNote,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -212,7 +213,7 @@ class _PayInvoiceSheetState extends ConsumerState<_PayInvoiceSheet> {
                             width: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : Text('Pay ${money(widget.invoice.totalAmount)}'),
+                        : Text(t.payAmountButton(money(widget.invoice.totalAmount))),
                   ),
                 ),
               ],
@@ -235,6 +236,7 @@ class _PayInvoiceSheetState extends ConsumerState<_PayInvoiceSheet> {
   }
 
   Widget _fullCardForm(ThemeData theme) {
+    final t = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -243,9 +245,9 @@ class _PayInvoiceSheetState extends ConsumerState<_PayInvoiceSheet> {
           textCapitalization: TextCapitalization.words,
           autocorrect: false,
           autofillHints: const [AutofillHints.creditCardName],
-          decoration: const InputDecoration(labelText: 'Name on card'),
+          decoration: InputDecoration(labelText: t.nameOnCardLabel),
           validator: (v) => (v == null || v.trim().isEmpty)
-              ? 'Enter the name on the card'
+              ? t.enterNameOnCard
               : null,
         ),
         const SizedBox(height: Space.sm),
@@ -258,17 +260,17 @@ class _PayInvoiceSheetState extends ConsumerState<_PayInvoiceSheet> {
           inputFormatters: const [CardNumberInputFormatter()],
           onChanged: (_) => setState(() {}),
           decoration: InputDecoration(
-            labelText: 'Card number',
+            labelText: t.cardNumberLabel,
             hintText: '4242 4242 4242 4242',
             suffixIcon: Padding(
-              padding: const EdgeInsets.only(right: 4),
+              padding: const EdgeInsetsDirectional.only(end: 4),
               child: CardBrandBadge(_brand),
             ),
           ),
           validator: (v) {
             final d = (v ?? '').replaceAll(RegExp(r'\D'), '');
-            if (d.length < 12) return 'Enter a full card number';
-            if (!luhnValid(d)) return 'That card number is not valid';
+            if (d.length < 12) return t.enterFullCardNumber;
+            if (!luhnValid(d)) return t.cardNumberInvalid;
             return null;
           },
         ),
@@ -283,8 +285,8 @@ class _PayInvoiceSheetState extends ConsumerState<_PayInvoiceSheet> {
                 enableSuggestions: false,
                 autofillHints: const [AutofillHints.creditCardExpirationDate],
                 inputFormatters: const [ExpiryInputFormatter()],
-                decoration: const InputDecoration(
-                  labelText: 'Expiry',
+                decoration: InputDecoration(
+                  labelText: t.expiryLabel,
                   hintText: 'MM/YY',
                 ),
                 validator: _validateExpiry,
@@ -308,7 +310,7 @@ class _PayInvoiceSheetState extends ConsumerState<_PayInvoiceSheet> {
                 ),
                 validator: (v) => RegExp(r'^\d{3,4}$').hasMatch(v ?? '')
                     ? null
-                    : '3–4 digits',
+                    : t.digitsRange,
               ),
             ),
           ],
@@ -318,26 +320,28 @@ class _PayInvoiceSheetState extends ConsumerState<_PayInvoiceSheet> {
   }
 
   String? _validateExpiry(String? v) {
+    final t = AppLocalizations.of(context)!;
     final parsed = parseExpiry(v ?? '');
     if (parsed == null) {
       final d = (v ?? '').replaceAll(RegExp(r'\D'), '');
       if (d.length >= 2) {
         final mm = int.tryParse(d.substring(0, 2)) ?? 0;
-        if (mm < 1 || mm > 12) return 'Month must be 01–12';
+        if (mm < 1 || mm > 12) return t.monthRange;
       }
       return 'MM/YY';
     }
-    if (!expiryInFuture(parsed.month, parsed.year)) return 'Card has expired';
+    if (!expiryInFuture(parsed.month, parsed.year)) return t.cardExpired;
     return null;
   }
 
   Future<void> _submit() async {
     setState(() => _error = null);
+    final t = AppLocalizations.of(context)!;
 
     Result<Invoice> result;
     if (_usingSavedCard) {
       if (!RegExp(r'^\d{3,4}$').hasMatch(_cvc.text)) {
-        setState(() => _error = 'Enter the 3–4 digit security code.');
+        setState(() => _error = t.enterSecurityCode);
         return;
       }
       setState(() => _submitting = true);
@@ -373,7 +377,7 @@ class _PayInvoiceSheetState extends ConsumerState<_PayInvoiceSheet> {
       case Ok():
         ref
             .read(appointmentConfirmationProvider.notifier)
-            .show('Payment received');
+            .show(t.paymentReceived);
         Navigator.of(context).pop();
       case Err(:final failure):
         setState(() {
@@ -439,8 +443,8 @@ class _SavedCardRow extends StatelessWidget {
                       ),
                       Text(
                         card.isExpired
-                            ? 'Expired ${card.expiry}'
-                            : 'Expires ${card.expiry}',
+                            ? AppLocalizations.of(context)!.cardExpiredOn(card.expiry)
+                            : AppLocalizations.of(context)!.cardExpiresOn(card.expiry),
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: card.isExpired
                               ? theme.clinicalStatus.riskHigh.onContainer
@@ -499,7 +503,7 @@ class _NewCardRow extends StatelessWidget {
               const SizedBox(width: Space.sm),
               Expanded(
                 child: Text(
-                  'Pay with a different card',
+                  AppLocalizations.of(context)!.payWithDifferentCard,
                   style: theme.textTheme.bodyMedium,
                 ),
               ),
@@ -538,7 +542,7 @@ class _CvcOnlyField extends StatelessWidget {
       ],
       decoration: InputDecoration(
         labelText: brand == CardBrand.amex ? 'CID' : 'CVC',
-        helperText: 'The 3–4 digits on the back of the card',
+        helperText: AppLocalizations.of(context)!.securityCodeHelper,
       ),
     );
   }

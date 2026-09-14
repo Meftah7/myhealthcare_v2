@@ -13,7 +13,7 @@ Future<void> main() async {
   final container = ProviderContainer(
     overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
   );
-
+//hello im under the water
   // Render immediately — the opening splash is up within one frame. The
   // synthetic dataset is populated / migrated in the background via
   // [appBootstrapProvider]; the router keeps everyone on the splash until it

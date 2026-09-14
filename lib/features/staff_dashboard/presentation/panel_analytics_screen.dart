@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/staff_providers.dart';
 
 class PanelAnalyticsScreen extends ConsumerWidget {
@@ -16,13 +17,14 @@ class PanelAnalyticsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final stats = ref.watch(panelStatsProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Panel analytics')),
+      appBar: AppBar(title: Text(t.panelAnalyticsTitle)),
       body: stats.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
-          message: 'Could not compute analytics.',
+          message: t.couldNotComputeAnalytics,
           onRetry: () => ref.invalidate(panelStatsProvider),
         ),
         data: (s) => Center(
@@ -36,7 +38,7 @@ class PanelAnalyticsScreen extends ConsumerWidget {
                 Space.xxl,
               ),
               children: [
-                SectionHeader('Last ${s.windowDays} days', overline: true),
+                SectionHeader(t.lastNDays(s.windowDays), overline: true),
                 GridView.count(
                   crossAxisCount: 2,
                   shrinkWrap: true,
@@ -47,25 +49,29 @@ class PanelAnalyticsScreen extends ConsumerWidget {
                   children: [
                     MetricTile(
                       value: '${(s.noShowRate * 100).toStringAsFixed(1)}%',
-                      label: 'No-show rate',
-                      caption:
-                          '${s.noShow} of ${s.completed + s.noShow} kept slots',
+                      label: t.noShowRateLabel,
+                      caption: t.noShowRateCaption(
+                        s.noShow,
+                        s.completed + s.noShow,
+                      ),
                     ),
                     MetricTile(
                       value:
                           '${(s.cancellationRate * 100).toStringAsFixed(1)}%',
-                      label: 'Cancellation rate',
-                      caption: '${s.cancelled} cancelled',
+                      label: t.cancellationRateLabel,
+                      caption: t.cancelledCaption(s.cancelled),
                     ),
                     MetricTile(
                       value: '${s.completed}',
-                      label: 'Completed',
-                      caption: '${s.keptPerDay.toStringAsFixed(1)} per day',
+                      label: t.completedLabel,
+                      caption: t.perDayCaption(
+                        s.keptPerDay.toStringAsFixed(1),
+                      ),
                     ),
                     MetricTile(
                       value: '${s.upcoming}',
-                      label: 'Upcoming',
-                      caption: 'booked or confirmed',
+                      label: t.upcomingLabel,
+                      caption: t.bookedOrConfirmedCaption,
                     ),
                   ],
                 ),

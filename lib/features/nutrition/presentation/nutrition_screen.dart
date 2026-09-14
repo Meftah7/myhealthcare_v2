@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../patient/presentation/patient_top_actions.dart';
 import '../application/macro_calculator.dart';
 import '../application/nutrition_providers.dart';
@@ -35,10 +36,11 @@ class _NutritionScreenState extends State<NutritionScreen> {
   @override
   Widget build(BuildContext context) {
     final gutter = WindowSize.of(context).gutter;
+    final t = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Nutrition'),
+        title: Text(t.nutritionTitle),
         actions: const [PatientTopActions()],
       ),
       body: Column(
@@ -53,21 +55,21 @@ class _NutritionScreenState extends State<NutritionScreen> {
                 child: SizedBox(
                   width: double.infinity,
                   child: SegmentedButton<_View>(
-                    segments: const [
+                    segments: [
                       ButtonSegment(
                         value: _View.calculator,
-                        icon: Icon(Icons.calculate_outlined),
-                        label: Text('Calculator'),
+                        icon: const Icon(Icons.calculate_outlined),
+                        label: Text(t.calculatorSegment),
                       ),
                       ButtonSegment(
                         value: _View.meals,
-                        icon: Icon(Icons.restaurant_menu),
-                        label: Text('Meal plan'),
+                        icon: const Icon(Icons.restaurant_menu),
+                        label: Text(t.mealPlanSegment),
                       ),
                       ButtonSegment(
                         value: _View.foods,
-                        icon: Icon(Icons.search),
-                        label: Text('Foods'),
+                        icon: const Icon(Icons.search),
+                        label: Text(t.foodsSegment),
                       ),
                     ],
                     selected: {_view},
@@ -164,13 +166,14 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context)!;
     final result = ref.watch(macroTargetsProvider);
     final cols = WindowSize.of(context).isCompact ? 2 : 3;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(Space.md, 0, Space.md, Space.xxl),
       children: [
-        const SectionHeader('About you', overline: true),
+        SectionHeader(t.aboutYouSection, overline: true),
         AppCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -184,19 +187,22 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
                       inputFormatters: [
                         FilteringTextInputFormatter.digitsOnly,
                       ],
-                      decoration: const InputDecoration(labelText: 'Age'),
+                      decoration: InputDecoration(labelText: t.ageLabel),
                     ),
                   ),
                   const SizedBox(width: Space.sm),
                   Expanded(
                     child: DropdownButtonFormField<Sex>(
                       initialValue: _i.sex,
-                      decoration: const InputDecoration(labelText: 'Sex'),
-                      items: const [
-                        DropdownMenuItem(value: Sex.male, child: Text('Male')),
+                      decoration: InputDecoration(labelText: t.sexLabel),
+                      items: [
+                        DropdownMenuItem(
+                          value: Sex.male,
+                          child: Text(t.genderMale),
+                        ),
                         DropdownMenuItem(
                           value: Sex.female,
-                          child: Text('Female'),
+                          child: Text(t.genderFemale),
                         ),
                       ],
                       onChanged: (v) =>
@@ -214,8 +220,8 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
-                      decoration: const InputDecoration(
-                        labelText: 'Weight (kg)',
+                      decoration: InputDecoration(
+                        labelText: t.weightKgLabel,
                       ),
                     ),
                   ),
@@ -226,8 +232,8 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
-                      decoration: const InputDecoration(
-                        labelText: 'Height (cm)',
+                      decoration: InputDecoration(
+                        labelText: t.heightCmLabel,
                       ),
                     ),
                   ),
@@ -237,24 +243,24 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
               DropdownButtonFormField<double>(
                 initialValue: _i.activityFactor,
                 isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Activity'),
-                items: const [
-                  DropdownMenuItem(value: 1.2, child: Text('Sedentary')),
+                decoration: InputDecoration(labelText: t.activityLabel),
+                items: [
+                  DropdownMenuItem(value: 1.2, child: Text(t.activitySedentary)),
                   DropdownMenuItem(
                     value: 1.375,
-                    child: Text('Lightly active (1–3 days/wk)'),
+                    child: Text(t.activityLightlyActive),
                   ),
                   DropdownMenuItem(
                     value: 1.55,
-                    child: Text('Moderately active (3–5 days/wk)'),
+                    child: Text(t.activityModeratelyActive),
                   ),
                   DropdownMenuItem(
                     value: 1.725,
-                    child: Text('Very active (6–7 days/wk)'),
+                    child: Text(t.activityVeryActive),
                   ),
                   DropdownMenuItem(
                     value: 1.9,
-                    child: Text('Extra active (physical job)'),
+                    child: Text(t.activityExtraActive),
                   ),
                 ],
                 onChanged: (v) => v == null
@@ -264,19 +270,19 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
               const SizedBox(height: Space.sm),
               DropdownButtonFormField<FitnessGoal>(
                 initialValue: _i.goal,
-                decoration: const InputDecoration(labelText: 'Goal'),
-                items: const [
+                decoration: InputDecoration(labelText: t.goalLabel),
+                items: [
                   DropdownMenuItem(
                     value: FitnessGoal.maintain,
-                    child: Text('Maintain weight'),
+                    child: Text(t.goalMaintain),
                   ),
                   DropdownMenuItem(
                     value: FitnessGoal.lose,
-                    child: Text('Lose weight'),
+                    child: Text(t.goalLose),
                   ),
                   DropdownMenuItem(
                     value: FitnessGoal.gain,
-                    child: Text('Gain weight'),
+                    child: Text(t.goalGain),
                   ),
                 ],
                 onChanged: (v) =>
@@ -286,11 +292,11 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
                 const SizedBox(height: Space.sm),
                 DropdownButtonFormField<double>(
                   initialValue: _i.weeklyRateKg,
-                  decoration: const InputDecoration(labelText: 'Weekly rate'),
-                  items: const [
-                    DropdownMenuItem(value: 0.25, child: Text('0.25 kg / week')),
-                    DropdownMenuItem(value: 0.5, child: Text('0.5 kg / week')),
-                    DropdownMenuItem(value: 1.0, child: Text('1.0 kg / week')),
+                  decoration: InputDecoration(labelText: t.weeklyRateLabel),
+                  items: [
+                    DropdownMenuItem(value: 0.25, child: Text(t.weeklyRate025)),
+                    DropdownMenuItem(value: 0.5, child: Text(t.weeklyRate05)),
+                    DropdownMenuItem(value: 1.0, child: Text(t.weeklyRate10)),
                   ],
                   onChanged: (v) => v == null
                       ? null
@@ -301,7 +307,7 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
               FilledButton.icon(
                 onPressed: _calculate,
                 icon: const Icon(Icons.calculate_outlined),
-                label: const Text('Calculate targets'),
+                label: Text(t.calculateTargetsButton),
               ),
             ],
           ),
@@ -309,9 +315,9 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
 
         if (result != null) ...[
           const SizedBox(height: Space.lg),
-          const SectionHeader('Preferences', overline: true),
+          SectionHeader(t.preferencesSection, overline: true),
           Text(
-            'The macro split used for your targets and your meal plan.',
+            t.macroSplitNote,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -324,9 +330,9 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
               children: [
                 for (final p in MacroPreset.values)
                   Padding(
-                    padding: const EdgeInsets.only(right: Space.xs),
+                    padding: const EdgeInsetsDirectional.only(end: Space.xs),
                     child: ChoiceChip(
-                      label: Text(_presetLabel(p)),
+                      label: Text(_presetLabel(t, p)),
                       selected: _i.preset == p,
                       onSelected: (_) => _update(_i.copyWith(preset: p)),
                     ),
@@ -335,7 +341,7 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
             ),
           ),
           const SizedBox(height: Space.md),
-          const SectionHeader('Daily targets', overline: true),
+          SectionHeader(t.dailyTargetsSection, overline: true),
           GridView.count(
             crossAxisCount: cols,
             shrinkWrap: true,
@@ -344,17 +350,17 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
             mainAxisSpacing: Space.sm,
             childAspectRatio: 1.5,
             children: [
-              _MacroCard('Calories', '${result.targetCalories}', 'kcal / day',
+              _MacroCard(t.macroCalories, '${result.targetCalories}', t.unitKcalPerDay,
                   accent: theme.colorScheme.primary),
-              _MacroCard('Protein', '${result.protein} g', 'per day',
+              _MacroCard(t.macroProtein, '${result.protein} g', t.unitPerDay,
                   accent: theme.colorScheme.primary),
-              _MacroCard('Carbs', '${result.carbs} g', 'per day',
+              _MacroCard(t.macroCarbs, '${result.carbs} g', t.unitPerDay,
                   accent: theme.colorScheme.tertiary),
-              _MacroCard('Fat', '${result.fat} g', 'per day',
+              _MacroCard(t.macroFat, '${result.fat} g', t.unitPerDay,
                   accent: theme.clinicalStatus.riskLow.onContainer),
-              _MacroCard('Sugar', '≤ ${result.maxSugar} g', 'daily cap',
+              _MacroCard(t.macroSugar, '≤ ${result.maxSugar} g', t.unitDailyCap,
                   accent: theme.clinicalStatus.riskMedium.onContainer),
-              _MacroCard('Sat. fat', '≤ ${result.maxSatFat} g', 'daily cap',
+              _MacroCard(t.macroSatFat, '≤ ${result.maxSatFat} g', t.unitDailyCap,
                   accent: theme.clinicalStatus.riskHigh.onContainer),
             ],
           ),
@@ -371,8 +377,7 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
                 const SizedBox(width: Space.sm),
                 Expanded(
                   child: Text(
-                    'BMR ${result.bmr} kcal · TDEE ${result.tdee} kcal. '
-                    'A guide only — your clinician can tailor this to your care.',
+                    t.bmrTdeeNote(result.bmr, result.tdee),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -386,12 +391,12 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
     );
   }
 
-  static String _presetLabel(MacroPreset p) => switch (p) {
-    MacroPreset.balanced => 'Balanced',
-    MacroPreset.lowFat => 'Low fat',
-    MacroPreset.lowCarb => 'Low carb',
-    MacroPreset.highCarb => 'High carb',
-    MacroPreset.highProtein => 'High protein',
+  static String _presetLabel(AppLocalizations t, MacroPreset p) => switch (p) {
+    MacroPreset.balanced => t.presetBalanced,
+    MacroPreset.lowFat => t.presetLowFat,
+    MacroPreset.lowCarb => t.presetLowCarb,
+    MacroPreset.highCarb => t.presetHighCarb,
+    MacroPreset.highProtein => t.presetHighProtein,
   };
 }
 
@@ -414,6 +419,8 @@ class _MacroCard extends StatelessWidget {
         children: [
           Text(
             title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: theme.textTheme.labelMedium?.copyWith(
               color: accent,
               fontWeight: FontWeight.w700,
@@ -422,11 +429,13 @@ class _MacroCard extends StatelessWidget {
           const SizedBox(height: Space.xxs),
           FittedBox(
             fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
+            alignment: AlignmentDirectional.centerStart,
             child: Text(value, style: theme.textTheme.titleLarge),
           ),
           Text(
             unit,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -447,6 +456,7 @@ class _FoodsView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context)!;
     final categories = ref.watch(foodCategoriesProvider);
     final selectedCat = ref.watch(foodCategoryFilterProvider);
     final foods = ref.watch(filteredFoodsProvider);
@@ -456,7 +466,7 @@ class _FoodsView extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(Space.md, 0, Space.md, Space.xs),
           child: SearchBar(
-            hintText: 'Search foods',
+            hintText: t.searchFoodsHint,
             leading: const Icon(Icons.search),
             onChanged: (v) =>
                 ref.read(foodSearchQueryProvider.notifier).state = v,
@@ -470,9 +480,9 @@ class _FoodsView extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: Space.md),
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(right: Space.xs),
+                  padding: const EdgeInsetsDirectional.only(end: Space.xs),
                   child: ChoiceChip(
-                    label: const Text('All'),
+                    label: Text(t.allCategoriesChip),
                     selected: selectedCat == null,
                     onSelected: (_) => ref
                         .read(foodCategoryFilterProvider.notifier)
@@ -481,7 +491,7 @@ class _FoodsView extends ConsumerWidget {
                 ),
                 for (final c in categories)
                   Padding(
-                    padding: const EdgeInsets.only(right: Space.xs),
+                    padding: const EdgeInsetsDirectional.only(end: Space.xs),
                     child: ChoiceChip(
                       label: Text(c),
                       selected: selectedCat == c,
@@ -496,9 +506,9 @@ class _FoodsView extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(Space.md, Space.xs, Space.md, 0),
           child: Align(
-            alignment: Alignment.centerLeft,
+            alignment: AlignmentDirectional.centerStart,
             child: Text(
-              '${foods.length} ${foods.length == 1 ? 'item' : 'items'}',
+              t.itemsCount(foods.length),
               style: theme.textTheme.labelSmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -507,9 +517,9 @@ class _FoodsView extends ConsumerWidget {
         ),
         Expanded(
           child: foods.isEmpty
-              ? const EmptyState(
+              ? EmptyState(
                   icon: Icons.no_meals_outlined,
-                  message: 'No foods match that search.',
+                  message: t.noFoodsMatch,
                 )
               : ListView.builder(
                   padding: const EdgeInsets.fromLTRB(
@@ -538,6 +548,7 @@ class _FoodCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final t = AppLocalizations.of(context)!;
 
     return AppCard(
       padding: const EdgeInsets.all(Space.md),
@@ -570,7 +581,7 @@ class _FoodCard extends StatelessWidget {
             ],
           ),
           Text(
-            'Serving ${food.serving}',
+            t.servingLabel(food.serving),
             style: theme.textTheme.bodySmall?.copyWith(
               color: scheme.onSurfaceVariant,
             ),
@@ -579,12 +590,12 @@ class _FoodCard extends StatelessWidget {
           // Six figures: calories + the five macros, three to a row.
           _PillGrid(
             pills: [
-              _Pill('Calories', '${food.calories}', accent: scheme.primary),
-              _Pill('Protein', _g(food.protein), accent: scheme.primary),
-              _Pill('Carbs', _g(food.carbs), accent: scheme.primary),
-              _Pill('Fat', _g(food.fat), accent: scheme.primary),
-              _Pill('Sugar', _g(food.sugar), accent: scheme.primary),
-              _Pill('Sat. fat', _g(food.satFat), accent: scheme.primary),
+              _Pill(t.macroCalories, '${food.calories}', accent: scheme.primary),
+              _Pill(t.macroProtein, _g(food.protein), accent: scheme.primary),
+              _Pill(t.macroCarbs, _g(food.carbs), accent: scheme.primary),
+              _Pill(t.macroFat, _g(food.fat), accent: scheme.primary),
+              _Pill(t.macroSugar, _g(food.sugar), accent: scheme.primary),
+              _Pill(t.macroSatFat, _g(food.satFat), accent: scheme.primary),
             ],
           ),
           if (food.micros.isNotEmpty) ...[
@@ -594,7 +605,7 @@ class _FoodCard extends StatelessWidget {
               TextSpan(
                 children: [
                   TextSpan(
-                    text: 'Also  ',
+                    text: '${t.also}  ',
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: scheme.onSurfaceVariant,
                       fontWeight: FontWeight.w700,
@@ -615,7 +626,7 @@ class _FoodCard extends StatelessWidget {
           if (food.allergens.isNotEmpty) ...[
             const SizedBox(height: Space.xs),
             Text(
-              'Contains: ${food.allergens.join(', ')}',
+              t.containsAllergens(food.allergens.join(', ')),
               style: theme.textTheme.labelSmall?.copyWith(
                 color: theme.clinicalStatus.riskHigh.onContainer,
               ),
@@ -722,22 +733,22 @@ class _MealPlanViewState extends ConsumerState<_MealPlanView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context)!;
     final plan = ref.watch(mealPlanProvider);
     final targets = ref.watch(macroTargetsProvider);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(Space.md, 0, Space.md, Space.xxl),
       children: [
-        const SectionHeader('Preferences', overline: true),
+        SectionHeader(t.preferencesSection, overline: true),
         AppCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Include a dessert'),
-                subtitle: const Text('Splits the day into four meals instead '
-                    'of three'),
+                title: Text(t.includeDessertTitle),
+                subtitle: Text(t.includeDessertSubtitle),
                 value: _includeSweet,
                 onChanged: (v) => setState(() => _includeSweet = v),
               ),
@@ -745,7 +756,7 @@ class _MealPlanViewState extends ConsumerState<_MealPlanView> {
               FilledButton.icon(
                 onPressed: _generate,
                 icon: const Icon(Icons.restaurant_menu),
-                label: const Text('Build my day'),
+                label: Text(t.buildMyDayButton),
               ),
             ],
           ),
@@ -765,8 +776,7 @@ class _MealPlanViewState extends ConsumerState<_MealPlanView> {
                 const SizedBox(width: Space.sm),
                 Expanded(
                   child: Text(
-                    'Run the Calculator first — then your calorie and macro '
-                    'goal is split across the meals here.',
+                    t.runCalculatorFirstNote,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -797,13 +807,16 @@ class _DailySplitCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final t = AppLocalizations.of(context)!;
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Your day', style: theme.textTheme.titleSmall),
+          Text(t.yourDayTitle, style: theme.textTheme.titleSmall),
           const SizedBox(height: Space.xxs),
           Text(
+            // P/C/F/kcal kept as the universal Latin macro shorthand used by
+            // nutrition apps generally, rather than invented Arabic initials.
             '${targets.targetCalories} kcal · P ${targets.protein} g · '
             'C ${targets.carbs} g · F ${targets.fat} g',
             style: theme.textTheme.bodySmall?.copyWith(
@@ -821,7 +834,7 @@ class _DailySplitCard extends StatelessWidget {
                   SizedBox(
                     width: 78,
                     child: Text(
-                      _mealLabel(m.type),
+                      _mealLabel(t, m.type),
                       style: theme.textTheme.labelMedium,
                     ),
                   ),
@@ -844,9 +857,9 @@ class _DailySplitCard extends StatelessWidget {
   }
 }
 
-String _mealLabel(MealType t) => switch (t) {
-  MealType.breakfast => 'Breakfast',
-  MealType.lunch => 'Lunch',
-  MealType.dinner => 'Dinner',
-  MealType.sweet => 'Dessert',
+String _mealLabel(AppLocalizations t, MealType type) => switch (type) {
+  MealType.breakfast => t.mealBreakfast,
+  MealType.lunch => t.mealLunch,
+  MealType.dinner => t.mealDinner,
+  MealType.sweet => t.mealDessert,
 };

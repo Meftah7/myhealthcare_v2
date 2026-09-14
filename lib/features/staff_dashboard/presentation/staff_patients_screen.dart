@@ -17,6 +17,7 @@ import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/two_pane.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../patient_chart/presentation/patient_chart_screen.dart';
 import '../application/staff_providers.dart';
 import 'staff_top_actions.dart';
@@ -30,19 +31,20 @@ class StaffPatientsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final results = ref.watch(patientSearchResultsProvider);
     final selectedId = ref.watch(selectedPatientIdProvider);
     final split = TwoPane.isSplit(context);
 
     return AppScaffold(
-      title: 'Patients',
+      title: t.navPatients,
       actions: const [StaffTopActions()],
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(60),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(Space.md, 0, Space.md, Space.xs),
           child: SearchBar(
-            hintText: 'Search by name or national ID',
+            hintText: t.searchByNameOrNationalId,
             leading: const Icon(Icons.search),
             onChanged: (v) =>
                 ref.read(patientSearchQueryProvider.notifier).state = v,
@@ -53,7 +55,7 @@ class StaffPatientsScreen extends ConsumerWidget {
       centerBody: !split,
       body: TwoPane(
         placeholderIcon: Icons.folder_shared_outlined,
-        placeholderMessage: 'Pick a patient to open their chart.',
+        placeholderMessage: t.pickPatientPlaceholder,
         detail: selectedId == null
             ? null
             : PatientChartScreen(
@@ -64,14 +66,14 @@ class StaffPatientsScreen extends ConsumerWidget {
         list: results.when(
           loading: () => const SkeletonList(),
           error: (e, _) => ErrorStateView(
-            message: 'Could not load patients.',
+            message: t.couldNotLoadPatients,
             onRetry: () => ref.invalidate(patientSearchResultsProvider),
           ),
           data: (patients) {
             if (patients.isEmpty) {
-              return const EmptyState(
+              return EmptyState(
                 icon: Icons.person_search_outlined,
-                message: 'No patients match that search.',
+                message: t.noPatientsMatchSearch,
               );
             }
             return ListView.builder(
@@ -123,6 +125,7 @@ class _PatientRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final t = AppLocalizations.of(context)!;
     final initials = patient.fullName
         .split(' ')
         .where((s) => s.isNotEmpty)
@@ -131,7 +134,8 @@ class _PatientRow extends StatelessWidget {
         .join();
 
     final meta = [
-      if (patient.user.nationalId != null) 'ID ${patient.user.nationalId}',
+      if (patient.user.nationalId != null)
+        t.idValueLabel(patient.user.nationalId!),
       if (patient.chronicConditions.isNotEmpty)
         patient.chronicConditions.join(', '),
     ].join(' · ');

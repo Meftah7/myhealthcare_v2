@@ -15,12 +15,13 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/staff_providers.dart';
 import 'schedule_appointment_card.dart';
 import 'schedule_queue_strip.dart';
@@ -79,14 +80,15 @@ class _UpButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final rtl = Directionality.of(context) == TextDirection.rtl;
     return Align(
       alignment: AlignmentDirectional.centerStart,
       child: TextButton.icon(
         onPressed: onTap,
-        icon: const Icon(Icons.chevron_left, size: 20),
+        icon: Icon(rtl ? Icons.chevron_right : Icons.chevron_left, size: 20),
         label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
         style: TextButton.styleFrom(
-          padding: const EdgeInsets.only(right: Space.xs),
+          padding: const EdgeInsetsDirectional.only(end: Space.xs),
           visualDensity: VisualDensity.compact,
         ),
       ),
@@ -290,6 +292,7 @@ class _MonthView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final focused = ref.watch(scheduleFocusedDayProvider);
@@ -306,7 +309,7 @@ class _MonthView extends ConsumerWidget {
     return month.when(
       loading: () => const SkeletonList(),
       error: (e, _) => ErrorStateView(
-        message: 'Could not load your calendar.',
+        message: t.couldNotLoadYourCalendar,
         onRetry: () => ref.invalidate(staffMonthProvider),
       ),
       data: (appts) {
@@ -598,6 +601,7 @@ class _DayViewState extends ConsumerState<_DayView> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final focused = ref.watch(scheduleFocusedDayProvider);
@@ -698,7 +702,7 @@ class _DayViewState extends ConsumerState<_DayView> {
               Padding(
                 padding: const EdgeInsets.only(bottom: Space.sm),
                 child: Text(
-                  'Nothing booked on this day.',
+                  t.nothingBookedThisDay,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: scheme.onSurfaceVariant,
                   ),
@@ -729,6 +733,7 @@ class _ZoomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(Space.md, Space.xs, Space.xs, 0),
@@ -736,13 +741,13 @@ class _ZoomBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           IconButton(
-            tooltip: 'Compress the day',
+            tooltip: t.compressTheDay,
             visualDensity: VisualDensity.compact,
             onPressed: onOut,
             icon: Icon(Icons.remove, color: scheme.onSurfaceVariant),
           ),
           IconButton(
-            tooltip: 'Expand the day',
+            tooltip: t.expandTheDay,
             visualDensity: VisualDensity.compact,
             onPressed: onIn,
             icon: Icon(Icons.add, color: scheme.onSurfaceVariant),
@@ -802,9 +807,9 @@ class _NowLine extends StatelessWidget {
         SizedBox(
           width: _timeGutter,
           child: Align(
-            alignment: Alignment.centerRight,
+            alignment: AlignmentDirectional.centerEnd,
             child: Padding(
-              padding: const EdgeInsets.only(right: Space.xxs),
+              padding: const EdgeInsetsDirectional.only(end: Space.xxs),
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: Space.xs,
@@ -852,8 +857,10 @@ class _WeekStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final rtl = Directionality.of(context) == TextDirection.rtl;
     final weekStart = focused.subtract(Duration(days: focused.weekday - 1));
 
     return Padding(
@@ -866,8 +873,8 @@ class _WeekStrip extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            tooltip: 'Previous day',
-            icon: const Icon(Icons.chevron_left),
+            tooltip: t.previousDayTooltip,
+            icon: Icon(rtl ? Icons.chevron_right : Icons.chevron_left),
             onPressed: onPrevious,
           ),
           for (var i = 0; i < 7; i++)
@@ -875,8 +882,8 @@ class _WeekStrip extends StatelessWidget {
               child: _WeekStripDay(date: weekStart.add(Duration(days: i))),
             ),
           IconButton(
-            tooltip: 'Next day',
-            icon: const Icon(Icons.chevron_right),
+            tooltip: t.nextDayTooltip,
+            icon: Icon(rtl ? Icons.chevron_left : Icons.chevron_right),
             onPressed: onNext,
           ),
         ],
@@ -979,14 +986,16 @@ class _StepperBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final rtl = Directionality.of(context) == TextDirection.rtl;
     return Padding(
       padding: const EdgeInsets.fromLTRB(Space.xs, 0, Space.xs, Space.xs),
       child: Row(
         children: [
           IconButton(
-            tooltip: 'Previous',
-            icon: const Icon(Icons.chevron_left),
+            tooltip: t.previousTooltip,
+            icon: Icon(rtl ? Icons.chevron_right : Icons.chevron_left),
             onPressed: onPrevious,
           ),
           Expanded(
@@ -997,15 +1006,15 @@ class _StepperBar extends StatelessWidget {
             ),
           ),
           IconButton(
-            tooltip: 'Next',
-            icon: const Icon(Icons.chevron_right),
+            tooltip: t.nextLabel,
+            icon: Icon(rtl ? Icons.chevron_left : Icons.chevron_right),
             onPressed: onNext,
           ),
           SizedBox(
             width: 64,
             child: isToday
                 ? const SizedBox.shrink()
-                : TextButton(onPressed: onToday, child: const Text('Today')),
+                : TextButton(onPressed: onToday, child: Text(t.todayLabel)),
           ),
         ],
       ),

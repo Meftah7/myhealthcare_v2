@@ -349,7 +349,7 @@ class _ScheduleAppointmentCardState
                       runSpacing: Space.xs,
                       children: [
                         for (final action in _actionsFor(state))
-                          _CardButton(action: action, palette: pal),
+                          _CardButton(action: action),
                       ],
                     ),
                   ),
@@ -401,6 +401,12 @@ class _ScheduleAppointmentCardState
 
   List<_CardActionSpec> _actionsFor(ScheduleCardState state) {
     final act = !_busy;
+    final chart = _CardActionSpec(
+      Icons.assignment_outlined,
+      'Open chart',
+      _openChart,
+      _ActionKind.chart,
+    );
     switch (state) {
       case ScheduleCardState.booked:
       case ScheduleCardState.called:
@@ -409,19 +415,21 @@ class _ScheduleAppointmentCardState
             Icons.campaign_rounded,
             'Call patient',
             act ? _call : null,
+            _ActionKind.call,
           ),
           _CardActionSpec(
             Icons.check_rounded,
             'Arrived',
             act ? _markArrived : null,
-            primary: true,
+            _ActionKind.arrived,
           ),
           _CardActionSpec(
             Icons.close_rounded,
             'Not arrived',
             act ? _markNotArrived : null,
+            _ActionKind.notArrived,
           ),
-          _CardActionSpec(Icons.assignment_outlined, 'Open chart', _openChart),
+          chart,
         ];
       case ScheduleCardState.arrived:
         return [
@@ -429,9 +437,9 @@ class _ScheduleAppointmentCardState
             Icons.done_all_rounded,
             'Complete visit',
             _completeVisit,
-            primary: true,
+            _ActionKind.completeVisit,
           ),
-          _CardActionSpec(Icons.assignment_outlined, 'Open chart', _openChart),
+          chart,
         ];
       case ScheduleCardState.notArrived:
         return [
@@ -439,14 +447,12 @@ class _ScheduleAppointmentCardState
             Icons.check_rounded,
             'Arrived',
             act ? _undoNotArrived : null,
-            primary: true,
+            _ActionKind.arrived,
           ),
-          _CardActionSpec(Icons.assignment_outlined, 'Open chart', _openChart),
+          chart,
         ];
       case ScheduleCardState.done:
-        return [
-          _CardActionSpec(Icons.assignment_outlined, 'Open chart', _openChart),
-        ];
+        return [chart];
     }
   }
 }
@@ -607,59 +613,116 @@ class _StateBadge extends StatelessWidget {
 // Labelled action button
 // ---------------------------------------------------------------------------
 
+/// What an action *does*, not what state the card is in — this is what picks
+/// its colour, so the same action reads the same way wherever it appears
+/// (also used by the consultation page's pre-visit actions).
+enum _ActionKind { call, arrived, notArrived, chart, completeVisit }
+
 class _CardActionSpec {
-  const _CardActionSpec(this.icon, this.label, this.onTap, {this.primary = false});
+  const _CardActionSpec(this.icon, this.label, this.onTap, this.kind);
 
   final IconData icon;
   final String label;
   final VoidCallback? onTap;
-  final bool primary;
+  final _ActionKind kind;
 }
 
 class _CardButton extends StatelessWidget {
-  const _CardButton({required this.action, required this.palette});
+  const _CardButton({required this.action});
 
   final _CardActionSpec action;
-  final _CardPalette palette;
+
+  static const _density = VisualDensity.compact;
+  static const _padding = EdgeInsets.symmetric(
+    horizontal: Space.sm,
+    vertical: Space.xs,
+  );
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final ramp = theme.clinicalStatus;
     final label = Text(action.label);
     final icon = Icon(action.icon, size: 18);
+    final textStyle = theme.textTheme.labelMedium;
 
-    if (action.primary) {
-      return FilledButton.icon(
-        onPressed: action.onTap,
-        icon: icon,
-        label: label,
-        style: FilledButton.styleFrom(
-          backgroundColor: palette.fg,
-          foregroundColor: palette.bg,
-          visualDensity: VisualDensity.compact,
-          textStyle: theme.textTheme.labelMedium,
-          padding: const EdgeInsets.symmetric(
-            horizontal: Space.sm,
-            vertical: Space.xs,
+    switch (action.kind) {
+      case _ActionKind.call:
+        // Violet, tonal — a lighter touch than the solid "Complete visit".
+        return FilledButton.tonalIcon(
+          onPressed: action.onTap,
+          icon: icon,
+          label: label,
+          style: FilledButton.styleFrom(
+            backgroundColor: scheme.primaryContainer,
+            foregroundColor: scheme.onPrimaryContainer,
+            visualDensity: _density,
+            textStyle: textStyle,
+            padding: _padding,
           ),
-        ),
-      );
+        );
+      case _ActionKind.arrived:
+        // Solid green — the forward action in the booked/called row, and the
+        // undo action from "Not arrived".
+        return FilledButton.icon(
+          onPressed: action.onTap,
+          icon: icon,
+          label: label,
+          style: FilledButton.styleFrom(
+            backgroundColor: ramp.riskLow.onContainer,
+            foregroundColor: ramp.riskLow.container,
+            visualDensity: _density,
+            textStyle: textStyle,
+            padding: _padding,
+          ),
+        );
+      case _ActionKind.notArrived:
+        // Outlined red — a secondary, cautionary action.
+        return OutlinedButton.icon(
+          onPressed: action.onTap,
+          icon: icon,
+          label: label,
+          style: OutlinedButton.styleFrom(
+            foregroundColor: ramp.riskHigh.onContainer,
+            side: BorderSide(
+              color: ramp.riskHigh.onContainer.withValues(alpha: 0.5),
+            ),
+            visualDensity: _density,
+            textStyle: textStyle,
+            padding: _padding,
+          ),
+        );
+      case _ActionKind.chart:
+        // Outlined neutral — always available, never the emphasis.
+        return OutlinedButton.icon(
+          onPressed: action.onTap,
+          icon: icon,
+          label: label,
+          style: OutlinedButton.styleFrom(
+            foregroundColor: scheme.onSurfaceVariant,
+            side: BorderSide(color: scheme.outlineVariant),
+            visualDensity: _density,
+            textStyle: textStyle,
+            padding: _padding,
+          ),
+        );
+      case _ActionKind.completeVisit:
+        // Solid violet — the most prominent action once the patient has
+        // arrived.
+        return FilledButton.icon(
+          onPressed: action.onTap,
+          icon: icon,
+          label: label,
+          style: FilledButton.styleFrom(
+            backgroundColor: scheme.primary,
+            foregroundColor: scheme.onPrimary,
+            visualDensity: _density,
+            textStyle: textStyle,
+            padding: _padding,
+          ),
+        );
     }
-    return OutlinedButton.icon(
-      onPressed: action.onTap,
-      icon: icon,
-      label: label,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: palette.fg,
-        side: BorderSide(color: palette.fg.withValues(alpha: 0.4)),
-        visualDensity: VisualDensity.compact,
-        textStyle: theme.textTheme.labelMedium,
-        padding: const EdgeInsets.symmetric(
-          horizontal: Space.sm,
-          vertical: Space.xs,
-        ),
-      ),
-    );
   }
 }
 

@@ -13,6 +13,7 @@ import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/result.dart';
+import '../../../l10n/app_localizations.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -34,9 +35,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   }
 
   Future<void> _continue() async {
+    final t = AppLocalizations.of(context)!;
     final id = _identifier.text.trim();
     if (id.isEmpty) {
-      setState(() => _error = 'Enter your email or national ID.');
+      setState(() => _error = t.enterEmailOrNationalId);
       return;
     }
     setState(() {
@@ -58,9 +60,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Reset your password')),
+      appBar: AppBar(title: Text(t.resetPasswordTitle)),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(Space.lg),
@@ -70,13 +73,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Forgot your password?',
+                  t.forgotPasswordQuestion,
                   style: theme.textTheme.headlineSmall,
                 ),
                 const SizedBox(height: Space.xxs),
                 Text(
-                  'Enter the email or national ID on your account and we’ll '
-                  'take you to set a new password.',
+                  t.forgotPasswordBody,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -89,9 +91,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   autocorrect: false,
                   textInputAction: TextInputAction.go,
                   onSubmitted: (_) => _continue(),
-                  decoration: const InputDecoration(
-                    labelText: 'Email or national ID',
-                    prefixIcon: Icon(Icons.person_search_outlined),
+                  decoration: InputDecoration(
+                    labelText: t.emailOrNationalIdLabel,
+                    prefixIcon: const Icon(Icons.person_search_outlined),
                   ),
                 ),
                 if (_error != null) ...[
@@ -106,12 +108,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                           dimension: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Continue'),
+                      : Text(t.continueButton),
                 ),
                 const SizedBox(height: Space.xs),
                 TextButton(
                   onPressed: () => context.go(AppRoutes.login),
-                  child: const Text('Back to sign in'),
+                  child: Text(t.backToSignIn),
                 ),
               ],
             ),

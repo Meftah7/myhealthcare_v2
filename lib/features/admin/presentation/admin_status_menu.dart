@@ -11,6 +11,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/audio/app_sounds.dart';
+import '../../../l10n/app_localizations.dart';
+
+/// Translated label for an [AdminStatus] — a device-local UI preference, not
+/// a domain enum, so its label lives here rather than in `enum_labels.dart`.
+String _statusLabel(BuildContext context, AdminStatus status) {
+  final t = AppLocalizations.of(context)!;
+  return switch (status) {
+    AdminStatus.available => t.adminStatusAvailable,
+    AdminStatus.meeting => t.adminStatusMeeting,
+    AdminStatus.away => t.adminStatusAway,
+    AdminStatus.off => t.adminStatusOff,
+  };
+}
 
 /// Dot colour + icon for an [AdminStatus].
 ({Color color, IconData icon}) _meta(BuildContext context, AdminStatus status) {
@@ -41,12 +54,13 @@ class AdminStatusMenu extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final current = ref.watch(adminStatusProvider);
     final meta = _meta(context, current);
 
     return PopupMenuButton<AdminStatus>(
-      tooltip: 'Set your status',
+      tooltip: t.setYourAvailabilityTooltip,
       position: PopupMenuPosition.under,
       onSelected: (status) {
         unawaited(ref.read(adminStatusProvider.notifier).set(status));
@@ -66,7 +80,7 @@ class AdminStatusMenu extends ConsumerWidget {
                   color: _meta(context, status).color,
                 ),
                 const SizedBox(width: Space.sm),
-                Expanded(child: Text(status.label)),
+                Expanded(child: Text(_statusLabel(context, status))),
                 if (status == current)
                   Icon(
                     Icons.check,
@@ -99,7 +113,7 @@ class AdminStatusMenu extends ConsumerWidget {
                 const SizedBox(width: Space.xs),
                 Flexible(
                   child: Text(
-                    current.label,
+                    _statusLabel(context, current),
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.labelMedium,
                   ),

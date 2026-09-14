@@ -8,10 +8,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
-import '../../../core/i18n/app_strings.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../settings/presentation/preferences_section.dart';
 import '../application/staff_providers.dart';
 
@@ -51,7 +51,7 @@ class StaffAccountPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final t = AppStrings.of(context);
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final profile = ref.watch(staffProfileProvider);
 
@@ -122,7 +122,7 @@ class StaffPreferencesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => StaffSectionScaffold(
-    title: AppStrings.of(context).preferences,
+    title: AppLocalizations.of(context)!.preferences,
     child: const PreferencesSection(bare: true),
   );
 }

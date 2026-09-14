@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/states.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../billing/presentation/wallet_section.dart';
 import '../../settings/presentation/preferences_section.dart';
 import '../application/patient_data_providers.dart';
@@ -51,13 +52,14 @@ class _PatientSectionPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final profile = ref.watch(patientProfileProvider);
     return _SectionScaffold(
       title: title,
       child: profile.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
-          message: 'Could not load your profile.',
+          message: t.couldNotLoadYourProfile,
           onRetry: () => ref.invalidate(patientProfileProvider),
         ),
         data: builder,
@@ -71,7 +73,7 @@ class PersonalInfoPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => _PatientSectionPage(
-    title: 'Personal info',
+    title: AppLocalizations.of(context)!.personalInfoTitle,
     builder: (p) => PersonalInfoSection(patient: p),
   );
 }
@@ -81,7 +83,7 @@ class HealthDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => _PatientSectionPage(
-    title: 'Health details',
+    title: AppLocalizations.of(context)!.healthDetailsTitle,
     builder: (p) => HealthDetailsSection(patient: p),
   );
 }
@@ -91,7 +93,7 @@ class FamilyNetworkPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => _PatientSectionPage(
-    title: 'Family network',
+    title: AppLocalizations.of(context)!.familyNetworkTitle,
     builder: (p) => FamilyNetworkSection(patient: p, embedded: true),
   );
 }
@@ -100,16 +102,18 @@ class WalletPage extends StatelessWidget {
   const WalletPage({super.key});
 
   @override
-  Widget build(BuildContext context) =>
-      const _SectionScaffold(title: 'Wallet', child: WalletSection());
+  Widget build(BuildContext context) => _SectionScaffold(
+    title: AppLocalizations.of(context)!.walletTitle,
+    child: const WalletSection(),
+  );
 }
 
 class PreferencesPage extends StatelessWidget {
   const PreferencesPage({super.key});
 
   @override
-  Widget build(BuildContext context) => const _SectionScaffold(
-    title: 'Preferences',
-    child: PreferencesSection(bare: true),
+  Widget build(BuildContext context) => _SectionScaffold(
+    title: AppLocalizations.of(context)!.preferences,
+    child: const PreferencesSection(bare: true),
   );
 }

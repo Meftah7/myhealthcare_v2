@@ -5,11 +5,14 @@ library;
 import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../domain/entities/entities.dart';
 import '../../../services/pdf/clinic_pdf.dart';
 import '../../../services/pdf/reports.dart';
 import 'patient_data_providers.dart';
+
+bool get _ar => Intl.getCurrentLocale().startsWith('ar');
 
 /// The signed-in patient's identity, shaped for [ClinicPdf].
 final pdfIdentityProvider = FutureProvider<PdfIdentity>((ref) async {
@@ -56,9 +59,10 @@ Future<Uint8List> buildReferralLetter(
   final clinician = doctors[record.authorStaffId]?.name;
   return referralLetterPdf(
     patient: identity,
-    destination: record.sourceFacility ?? 'External service',
+    destination:
+        record.sourceFacility ?? (_ar ? 'جهة خارجية' : 'External service'),
     reason: (record.body ?? '').trim().isEmpty
-        ? 'See patient record.'
+        ? (_ar ? 'راجع سجل المريض.' : 'See patient record.')
         : record.body!.trim(),
     referringClinic: clinician ?? 'MyHealth Care',
     date: record.occurredAt,
@@ -76,6 +80,7 @@ Future<Uint8List> buildSickLeave(
     patient: identity,
     certificate: certificate,
     issuingClinician:
-        doctors[certificate.issuedByStaffId]?.name ?? 'Attending clinician',
+        doctors[certificate.issuedByStaffId]?.name ??
+        (_ar ? 'الطبيب المعالج' : 'Attending clinician'),
   );
 }

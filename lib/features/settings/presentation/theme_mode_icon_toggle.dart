@@ -8,12 +8,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/settings/ui_prefs.dart';
 import '../../../core/presentation/circle_icon_button.dart';
+import '../../../l10n/app_localizations.dart';
 
 class ThemeModeIconToggle extends ConsumerWidget {
   const ThemeModeIconToggle({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final mode = ref.watch(themeModeProvider);
     final platformIsDark =
         MediaQuery.platformBrightnessOf(context) == Brightness.dark;
@@ -22,7 +24,7 @@ class ThemeModeIconToggle extends ConsumerWidget {
 
     return CircleIconButton(
       icon: isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-      tooltip: isDark ? 'Switch to light mode' : 'Switch to dark mode',
+      tooltip: isDark ? t.switchToLightMode : t.switchToDarkMode,
       onPressed: () => ref
           .read(themeModeProvider.notifier)
           .set(isDark ? ThemeMode.light : ThemeMode.dark),

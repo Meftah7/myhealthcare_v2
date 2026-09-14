@@ -14,6 +14,7 @@ library;
 import 'package:flutter/material.dart';
 
 import '../../app/theme/theme.dart';
+import '../../l10n/app_localizations.dart';
 import 'states.dart';
 
 class TwoPane extends StatelessWidget {
@@ -22,7 +23,7 @@ class TwoPane extends StatelessWidget {
     required this.detail,
     this.listWidth = 380,
     this.placeholderIcon = Icons.article_outlined,
-    this.placeholderMessage = 'Select an item to see its details.',
+    this.placeholderMessage,
     super.key,
   });
 
@@ -38,7 +39,11 @@ class TwoPane extends StatelessWidget {
   final double listWidth;
 
   final IconData placeholderIcon;
-  final String placeholderMessage;
+
+  /// Defaults to a localized "Select an item to see its details." — a
+  /// `String?` rather than a `const` default string so it can come from
+  /// [AppLocalizations], which needs a `BuildContext`.
+  final String? placeholderMessage;
 
   /// True when this window is showing both panes — callers use it to decide
   /// between setting selection state and pushing a route.
@@ -60,7 +65,9 @@ class TwoPane extends StatelessWidget {
                 EmptyState(
                   key: const ValueKey('two-pane-placeholder'),
                   icon: placeholderIcon,
-                  message: placeholderMessage,
+                  message:
+                      placeholderMessage ??
+                      AppLocalizations.of(context)!.selectItemPlaceholder,
                 ),
           ),
         ),

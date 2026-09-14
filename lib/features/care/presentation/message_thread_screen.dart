@@ -13,6 +13,7 @@ import '../../../app/theme/theme.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/care_providers.dart';
 
 class MessageThreadScreen extends ConsumerStatefulWidget {
@@ -104,6 +105,7 @@ class _MessageThreadScreenState extends ConsumerState<MessageThreadScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final messages = ref.watch(_threadProvider);
 
     return Scaffold(
@@ -112,7 +114,7 @@ class _MessageThreadScreenState extends ConsumerState<MessageThreadScreen> {
         actions: [
           if (widget.viewerIsStaff)
             IconButton(
-              tooltip: 'Open patient chart',
+              tooltip: t.openPatientChartTooltip,
               icon: const Icon(Icons.folder_shared_outlined),
               onPressed: () => context.go(
                 AppRoutes.staffPatientChart(widget.patientId),
@@ -126,7 +128,7 @@ class _MessageThreadScreenState extends ConsumerState<MessageThreadScreen> {
             child: messages.when(
               loading: () => const SkeletonList(),
               error: (e, _) => ErrorStateView(
-                message: 'Could not load this conversation.',
+                message: t.couldNotLoadConversation,
                 onRetry: () => ref.invalidate(_threadProvider),
               ),
               data: (list) {
@@ -134,9 +136,8 @@ class _MessageThreadScreenState extends ConsumerState<MessageThreadScreen> {
                   return EmptyState(
                     icon: Icons.chat_bubble_outline,
                     message: widget.viewerIsStaff
-                        ? 'No messages yet.'
-                        : 'Send your doctor a non-urgent question.\nFor '
-                              'emergencies, call your clinic.',
+                        ? t.noMessagesYet
+                        : t.sendNonUrgentQuestionMessage,
                   );
                 }
                 return Center(
@@ -180,8 +181,8 @@ class _MessageThreadScreenState extends ConsumerState<MessageThreadScreen> {
                       minLines: 1,
                       maxLines: 4,
                       textInputAction: TextInputAction.newline,
-                      decoration: const InputDecoration(
-                        hintText: 'Write a message',
+                      decoration: InputDecoration(
+                        hintText: t.writeMessageHint,
                         isDense: true,
                       ),
                     ),
@@ -218,7 +219,7 @@ class _Bubble extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     return Align(
-      alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
+      alignment: mine ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
       child: Container(
         margin: const EdgeInsets.only(bottom: Space.xs),
         padding: const EdgeInsets.symmetric(

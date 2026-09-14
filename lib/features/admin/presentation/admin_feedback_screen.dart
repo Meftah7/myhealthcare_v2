@@ -7,11 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
+import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../feedback/presentation/feedback_sheet.dart';
 import '../application/admin_providers.dart';
 import 'admin_top_actions.dart';
@@ -29,13 +31,14 @@ class _AdminFeedbackScreenState extends ConsumerState<AdminFeedbackScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final feedback = ref.watch(feedbackProvider(_filter));
     final gutter = WindowSize.of(context).gutter;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Feedback'),
+        title: Text(t.feedbackTitle),
         actions: const [AdminTopActions()],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(52),
@@ -44,13 +47,16 @@ class _AdminFeedbackScreenState extends ConsumerState<AdminFeedbackScreen> {
             padding: const EdgeInsets.fromLTRB(Space.md, 0, Space.md, Space.xs),
             child: Row(
               children: [
-                for (final (label, value) in const [
-                  ('Open', FeedbackStatus.open),
-                  ('Resolved', FeedbackStatus.resolved),
-                  ('All', null),
+                for (final (label, value) in [
+                  (FeedbackStatus.open.label(context), FeedbackStatus.open),
+                  (
+                    FeedbackStatus.resolved.label(context),
+                    FeedbackStatus.resolved,
+                  ),
+                  (t.allFilterChip, null),
                 ])
                   Padding(
-                    padding: const EdgeInsets.only(right: Space.xs),
+                    padding: const EdgeInsetsDirectional.only(end: Space.xs),
                     child: FilterChip(
                       label: Text(label),
                       selected: _filter == value,
@@ -65,14 +71,14 @@ class _AdminFeedbackScreenState extends ConsumerState<AdminFeedbackScreen> {
       body: feedback.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
-          message: 'Could not load feedback.',
+          message: t.couldNotLoadFeedback,
           onRetry: () => ref.invalidate(feedbackProvider(_filter)),
         ),
         data: (list) {
           if (list.isEmpty) {
-            return const EmptyState(
+            return EmptyState(
               icon: Icons.forum_outlined,
-              message: 'No feedback in this view.',
+              message: t.noFeedbackInView,
             );
           }
           return Center(
@@ -108,6 +114,7 @@ class _FeedbackCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final scheme = theme.colorScheme;
     final resolved = feedback.status == FeedbackStatus.resolved;
     return AppCard(
@@ -119,7 +126,7 @@ class _FeedbackCard extends ConsumerWidget {
             children: [
               Expanded(
                 child: Text(
-                  feedbackCategoryLabel(feedback.category),
+                  feedbackCategoryLabel(context, feedback.category),
                   style: theme.textTheme.titleSmall,
                 ),
               ),
@@ -134,7 +141,7 @@ class _FeedbackCard extends ConsumerWidget {
                     borderRadius: Radii.chip,
                   ),
                   child: Text(
-                    'Resolved',
+                    t.feedbackStatusResolved,
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: theme.clinicalStatus.riskLow.onContainer,
                     ),
@@ -145,7 +152,9 @@ class _FeedbackCard extends ConsumerWidget {
           const SizedBox(height: Space.xxs),
           Text(
             [
-              feedback.reporterName ?? feedback.reporterEmail ?? 'Anonymous',
+              feedback.reporterName ??
+                  feedback.reporterEmail ??
+                  t.anonymousFallback,
               fmtDate(feedback.createdAt),
             ].join(' · '),
             style: theme.textTheme.bodySmall?.copyWith(
@@ -156,7 +165,7 @@ class _FeedbackCard extends ConsumerWidget {
           Text(feedback.message, style: theme.textTheme.bodyMedium),
           const SizedBox(height: Space.sm),
           Align(
-            alignment: Alignment.centerLeft,
+            alignment: AlignmentDirectional.centerStart,
             child: resolved
                 ? TextButton(
                     onPressed: () => ref
@@ -165,7 +174,7 @@ class _FeedbackCard extends ConsumerWidget {
                           id: feedback.id,
                           status: FeedbackStatus.open,
                         ),
-                    child: const Text('Re-open'),
+                    child: Text(t.reopenAction),
                   )
                 : FilledButton.tonal(
                     onPressed: () => ref
@@ -174,7 +183,7 @@ class _FeedbackCard extends ConsumerWidget {
                           id: feedback.id,
                           status: FeedbackStatus.resolved,
                         ),
-                    child: const Text('Mark resolved'),
+                    child: Text(t.markResolvedAction),
                   ),
           ),
         ],

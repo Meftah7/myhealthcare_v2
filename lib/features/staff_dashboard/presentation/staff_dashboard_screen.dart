@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/confirm_dialog.dart';
@@ -22,6 +23,7 @@ import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
 import '../../patient_chart/presentation/chart_write_sheets.dart';
 import '../application/staff_providers.dart';
@@ -33,13 +35,16 @@ class StaffDashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final user = ref.watch(currentUserProvider);
-    final firstName = (user?.fullName ?? 'there').split(' ').first;
+    final firstName = (user?.fullName ?? t.greetingFallbackName).split(
+      ' ',
+    ).first;
 
     return AppScaffold(
       // The brand lockup, not the word "Dashboard": the greeting below already
       // says where you are, and two headings competing is one too many.
-      titleWidget: const AppBrandLockup(subtitle: 'Staff'),
+      titleWidget: AppBrandLockup(subtitle: t.roleStaff),
       actions: const [StaffTopActions()],
       onRefresh: () async {
         ref
@@ -59,31 +64,31 @@ class StaffDashboardScreen extends ConsumerWidget {
 
         SectionColumns(
           primary: [
-            const SectionHeader('Your shift', overline: true),
+            SectionHeader(t.yourShiftHeader, overline: true),
             _ShiftSnapshot(),
-            const SectionHeader('Quick actions', overline: true),
+            SectionHeader(t.quickActionsHeader, overline: true),
             const StaffQuickActions(),
           ],
           secondary: [
             const _DepartmentWalkIns(),
             SectionHeader(
-              'Today’s queue',
+              t.todaysQueueHeader,
               overline: true,
-              action: 'Schedule',
+              action: t.scheduleAction,
               onAction: () => context.go(AppRoutes.staffSchedule),
             ),
             _QueueCard(),
             SectionHeader(
-              'Risk flags',
+              t.riskFlagsHeader,
               overline: true,
-              action: 'Patients',
+              action: t.patientsAction,
               onAction: () => context.go(AppRoutes.staffPatients),
             ),
             _RiskFlags(),
             SectionHeader(
-              'Tasks',
+              t.tasksHeader,
               overline: true,
-              action: 'Task board',
+              action: t.taskBoardAction,
               onAction: () => context.go(AppRoutes.staffTasks),
             ),
             _TaskPreview(),
@@ -102,6 +107,7 @@ class _DepartmentWalkIns extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final walkIns = ref.watch(departmentWalkInsProvider);
     final names = ref.watch(patientNameLookupProvider).valueOrNull ?? const {};
     final list = walkIns.valueOrNull ?? const [];
@@ -110,7 +116,10 @@ class _DepartmentWalkIns extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SectionHeader('Department walk-ins (${list.length})', overline: true),
+        SectionHeader(
+          t.departmentWalkInsHeader(list.length),
+          overline: true,
+        ),
         ListCard(
           children: [
             for (final t in list)
@@ -151,8 +160,9 @@ class _WalkInRowState extends ConsumerState<_WalkInRow> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final t = widget.ticket;
+    final ticket = widget.ticket;
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         Space.md,
@@ -171,7 +181,7 @@ class _WalkInRowState extends ConsumerState<_WalkInRow> {
               borderRadius: Radii.chip,
             ),
             child: Text(
-              t.ticketTag,
+              ticket.ticketTag,
               style: theme.textTheme.labelMedium?.copyWith(
                 color: theme.colorScheme.onTertiaryContainer,
                 fontFeatures: kTabularFigures,
@@ -185,14 +195,14 @@ class _WalkInRowState extends ConsumerState<_WalkInRow> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  widget.patientName ?? 'Patient',
+                  widget.patientName ?? t.rolePatient,
                   style: theme.textTheme.titleSmall,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (t.reason != null)
+                if (ticket.reason != null)
                   Text(
-                    t.reason!,
+                    ticket.reason!,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodySmall?.copyWith(
@@ -210,7 +220,7 @@ class _WalkInRowState extends ConsumerState<_WalkInRow> {
                     dimension: 16,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Text('Start'),
+                : Text(t.startAction),
           ),
         ],
       ),
@@ -225,6 +235,7 @@ class _NextPatientHero extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final queue = ref.watch(staffQueueProvider).valueOrNull;
     final names = ref.watch(patientNameLookupProvider).valueOrNull ?? const {};
     final next = (queue == null || queue.isEmpty) ? null : queue.first;
@@ -232,8 +243,8 @@ class _NextPatientHero extends ConsumerWidget {
     if (next == null) {
       return GradientHeroCard(
         icon: Icons.event_available_outlined,
-        title: 'Your queue is clear',
-        subtitle: 'Nobody waiting — open your week to plan ahead',
+        title: t.yourQueueIsClear,
+        subtitle: t.nobodyWaitingOpenWeek,
         onTap: () => context.go(AppRoutes.staffSchedule),
       );
     }
@@ -241,11 +252,11 @@ class _NextPatientHero extends ConsumerWidget {
     final who = names[next.patientId] ?? visitTypeLabel(next.visitType);
     return GradientHeroCard(
       icon: Icons.play_circle_outline,
-      title: 'Next · $who',
+      title: t.nextPatientLabel(who),
       subtitle: [
         fmtTime(next.slotStart),
         visitTypeLabel(next.visitType),
-        if (next.roomNumber != null) 'Room ${next.roomNumber}',
+        if (next.roomNumber != null) t.roomNumber('${next.roomNumber}'),
       ].join(' · '),
       onTap: () => context.go(AppRoutes.staffPatientChart(next.patientId)),
     );
@@ -257,6 +268,7 @@ class _NextPatientHero extends ConsumerWidget {
 class _ShiftSnapshot extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final today = ref.watch(staffTodayProvider).valueOrNull;
     final queue = ref.watch(staffQueueProvider).valueOrNull;
     final flags = ref.watch(unacknowledgedFlagsProvider).valueOrNull;
@@ -265,18 +277,18 @@ class _ShiftSnapshot extends ConsumerWidget {
       children: [
         MetricTile(
           value: '${today?.length ?? 0}',
-          label: 'Today',
+          label: t.todayLabel,
           icon: Icons.calendar_today_outlined,
           onTap: () => context.go(AppRoutes.staffSchedule),
         ),
         MetricTile(
           value: '${queue?.length ?? 0}',
-          label: 'In queue',
+          label: t.inQueueLabel,
           icon: Icons.groups_outlined,
         ),
         MetricTile(
           value: '${flags?.length ?? 0}',
-          label: 'Open flags',
+          label: t.openFlagsLabel,
           icon: Icons.flag_outlined,
           onTap: () => context.go(AppRoutes.staffPatients),
         ),
@@ -292,6 +304,7 @@ class _ShiftSnapshot extends ConsumerWidget {
 class _QueueCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final queue = ref.watch(staffQueueProvider);
     final names = ref.watch(patientNameLookupProvider).valueOrNull ?? const {};
 
@@ -299,14 +312,14 @@ class _QueueCard extends ConsumerWidget {
       child: queue.when(
         loading: () =>
             const LoadingSkeleton(key: ValueKey('q-load'), height: 88),
-        error: (e, _) => const InlineBanner.error(
-          'Could not load your queue.',
-          key: ValueKey('q-err'),
+        error: (e, _) => InlineBanner.error(
+          t.couldNotLoadYourQueue,
+          key: const ValueKey('q-err'),
         ),
         data: (appts) => ListCard(
           key: const ValueKey('q-data'),
           emptyIcon: Icons.event_available_outlined,
-          emptyText: 'Nobody waiting — your queue is clear.',
+          emptyText: t.nobodyWaitingQueueClear,
           children: [
             for (final a in appts)
               _QueueRow(appointment: a, patientName: names[a.patientId]),
@@ -325,6 +338,7 @@ class _QueueRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final a = appointment;
@@ -332,7 +346,7 @@ class _QueueRow extends ConsumerWidget {
     final checkedIn = a.checkedInAt != null;
 
     final menu = PopupMenuButton<String>(
-      tooltip: 'More actions',
+      tooltip: t.moreActionsTooltip,
       onSelected: (v) => unawaited(switch (v) {
         'chart' => Future.sync(
           () => context.go(AppRoutes.staffPatientChart(a.patientId)),
@@ -341,27 +355,27 @@ class _QueueRow extends ConsumerWidget {
         'transfer' => showTransferSheet(context, ref),
         'cancel' => _confirmThen(
           context,
-          title: 'Cancel this visit?',
-          message: 'The patient will need to rebook.',
-          confirmLabel: 'Cancel visit',
+          title: t.cancelThisVisitTitle,
+          message: t.patientWillNeedToRebook,
+          confirmLabel: t.cancelVisitAction,
           action: () => ops.cancelAppointment(a.id),
         ),
         'noshow' => _confirmThen(
           context,
-          title: 'Mark as no-show?',
-          message: 'This records that the patient did not attend.',
-          confirmLabel: 'Mark no-show',
+          title: t.markAsNoShowTitle,
+          message: t.recordsPatientDidNotAttend,
+          confirmLabel: t.markNoShowAction,
           action: () => ops.cancelAppointment(a.id, noShow: true),
         ),
         _ => Future<void>.value(),
       }),
-      itemBuilder: (context) => const [
-        PopupMenuItem(value: 'chart', child: Text('Open chart')),
-        PopupMenuItem(value: 'note', child: Text('Add note')),
-        PopupMenuItem(value: 'transfer', child: Text('Transfer visit')),
-        PopupMenuDivider(),
-        PopupMenuItem(value: 'cancel', child: Text('Cancel visit')),
-        PopupMenuItem(value: 'noshow', child: Text('Mark no-show')),
+      itemBuilder: (context) => [
+        PopupMenuItem(value: 'chart', child: Text(t.openChartAction)),
+        PopupMenuItem(value: 'note', child: Text(t.addNoteAction)),
+        PopupMenuItem(value: 'transfer', child: Text(t.transferVisitAction)),
+        const PopupMenuDivider(),
+        PopupMenuItem(value: 'cancel', child: Text(t.cancelVisitAction)),
+        PopupMenuItem(value: 'noshow', child: Text(t.markNoShowAction)),
       ],
     );
 
@@ -421,8 +435,8 @@ class _QueueRow extends ConsumerWidget {
               Text(
                 [
                   visitTypeLabel(a.visitType),
-                  if (a.roomNumber != null) 'Room ${a.roomNumber}',
-                  if (checkedIn) 'checked in',
+                  if (a.roomNumber != null) t.roomNumber('${a.roomNumber}'),
+                  if (checkedIn) t.checkedInLabel,
                 ].join(' · '),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -459,15 +473,16 @@ class _QueueRow extends ConsumerWidget {
 class _RiskFlags extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final flags = ref.watch(unacknowledgedFlagsProvider);
     return AppReveal(
       child: flags.when(
         loading: () =>
             const LoadingSkeleton(key: ValueKey('f-load'), height: 72),
-        error: (e, _) => const InlineBanner.error(
-          'Could not load risk flags.',
-          key: ValueKey('f-err'),
+        error: (e, _) => InlineBanner.error(
+          t.couldNotLoadRiskFlags,
+          key: const ValueKey('f-err'),
         ),
         data: (list) {
           final sorted = [...list]
@@ -475,7 +490,7 @@ class _RiskFlags extends ConsumerWidget {
           return ListCard(
             key: const ValueKey('f-data'),
             emptyIcon: Icons.verified_outlined,
-            emptyText: 'No open risk flags. Run a panel scan to refresh.',
+            emptyText: t.noOpenRiskFlagsRunScan,
             children: [
               for (final f in sorted.take(6))
                 ListTile(
@@ -485,9 +500,9 @@ class _RiskFlags extends ConsumerWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  subtitle: Text(_kindLabel(f.kind)),
+                  subtitle: Text(f.kind.label(context)),
                   trailing: IconButton(
-                    tooltip: 'Acknowledge',
+                    tooltip: t.acknowledgeTooltip,
                     icon: const Icon(Icons.done),
                     onPressed: () =>
                         ref.read(staffOpsProvider).acknowledgeFlag(f.id),
@@ -499,7 +514,7 @@ class _RiskFlags extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.all(Space.md),
                   child: Text(
-                    '+${sorted.length - 6} more on the Patients tab',
+                    t.moreOnPatientsTab(sorted.length - 6),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -516,30 +531,31 @@ class _RiskFlags extends ConsumerWidget {
 class _TaskPreview extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final tasks = ref.watch(staffTasksProvider);
     return AppReveal(
       child: tasks.when(
         loading: () =>
             const LoadingSkeleton(key: ValueKey('t-load'), height: 72),
-        error: (e, _) => const InlineBanner.error(
-          'Could not load tasks.',
-          key: ValueKey('t-err'),
+        error: (e, _) => InlineBanner.error(
+          t.couldNotLoadTasks,
+          key: const ValueKey('t-err'),
         ),
         data: (list) => ListCard(
           key: const ValueKey('t-data'),
           emptyIcon: Icons.checklist_outlined,
-          emptyText: 'No open tasks. Run a panel scan from Quick actions.',
+          emptyText: t.noOpenTasksRunScan,
           children: [
-            for (final t in list.take(5))
+            for (final task in list.take(5))
               ListTile(
                 leading: const Icon(Icons.radio_button_unchecked, size: 20),
-                title: Text(t.title),
-                subtitle: t.dueAt == null
+                title: Text(task.title),
+                subtitle: task.dueAt == null
                     ? null
                     : Text(
-                        'Due ${fmtRelativeDay(t.dueAt!)}',
-                        style: t.isOverdue
+                        t.dueTag(fmtRelativeDay(task.dueAt!)),
+                        style: task.isOverdue
                             ? theme.textTheme.bodySmall?.copyWith(
                                 color: theme.colorScheme.error,
                                 fontWeight: FontWeight.w600,
@@ -547,11 +563,11 @@ class _TaskPreview extends ConsumerWidget {
                             : theme.textTheme.bodySmall,
                       ),
                 trailing: IconButton(
-                  tooltip: 'Mark done',
+                  tooltip: t.markDoneTooltip,
                   icon: const Icon(Icons.check),
                   onPressed: () => ref
                       .read(staffOpsProvider)
-                      .setTaskStatus(t.id, TaskStatus.done),
+                      .setTaskStatus(task.id, TaskStatus.done),
                 ),
               ),
           ],
@@ -577,11 +593,3 @@ Future<void> _confirmThen(
   );
   if (ok) await action();
 }
-
-String _kindLabel(RiskFlagKind k) => switch (k) {
-  RiskFlagKind.abnormalVitals => 'Abnormal vitals',
-  RiskFlagKind.abnormalLab => 'Abnormal lab',
-  RiskFlagKind.medicationGap => 'Medication gap',
-  RiskFlagKind.overdueFollowUp => 'Overdue follow-up',
-  RiskFlagKind.other => 'Other',
-};

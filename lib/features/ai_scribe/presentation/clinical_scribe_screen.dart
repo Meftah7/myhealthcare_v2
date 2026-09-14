@@ -10,6 +10,7 @@ import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/status_badges.dart';
 import '../../../core/result.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../patient_chart/application/chart_providers.dart';
 import '../../staff_dashboard/presentation/staff_top_actions.dart';
 import '../application/clinical_scribe.dart';
@@ -71,6 +72,7 @@ class _ClinicalScribeScreenState extends ConsumerState<ClinicalScribeScreen> {
   }
 
   Future<void> _save() async {
+    final t = AppLocalizations.of(context)!;
     final draft = ScribeDraft(
       chiefComplaint: _chief.text,
       hpi: _hpi.text,
@@ -79,7 +81,7 @@ class _ClinicalScribeScreenState extends ConsumerState<ClinicalScribeScreen> {
       icdCodes: _icdCodes,
     );
     final title = _chief.text.trim().isEmpty
-        ? 'Clinical note'
+        ? t.clinicalNoteFallbackTitle
         : _chief.text.trim();
 
     setState(() => _saving = true);
@@ -95,7 +97,7 @@ class _ClinicalScribeScreenState extends ConsumerState<ClinicalScribeScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(switch (result) {
-          Ok() => 'Saved to the patient record.',
+          Ok() => t.savedToPatientRecord,
           Err(:final failure) => failure.message,
         }),
       ),
@@ -105,13 +107,14 @@ class _ClinicalScribeScreenState extends ConsumerState<ClinicalScribeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final patient = ref.watch(chartPatientProvider(widget.patientId));
     final gutter = WindowSize.of(context).gutter;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('AI Clinical Scribe'),
+        title: Text(t.aiClinicalScribeTitle),
         actions: const [StaffTopActions()],
       ),
       body: Column(
@@ -133,8 +136,10 @@ class _ClinicalScribeScreenState extends ConsumerState<ClinicalScribeScreen> {
                   children: [
                     Text(
                       patient.valueOrNull == null
-                          ? 'Visit note'
-                          : 'Visit note · ${patient.valueOrNull!.fullName}',
+                          ? t.visitNoteTitle
+                          : t.visitNoteWithPatient(
+                              patient.valueOrNull!.fullName,
+                            ),
                       style: theme.textTheme.titleMedium,
                     ),
                     const SizedBox(height: Space.md),
@@ -148,12 +153,10 @@ class _ClinicalScribeScreenState extends ConsumerState<ClinicalScribeScreen> {
                             controller: _dictation,
                             minLines: 4,
                             maxLines: 10,
-                            decoration: const InputDecoration(
-                              labelText: 'Dictation',
+                            decoration: InputDecoration(
+                              labelText: t.dictationLabel,
                               alignLabelWithHint: true,
-                              hintText:
-                                  'Type or paste your visit notes in plain '
-                                  'language — the scribe will structure them.',
+                              hintText: t.dictationHint,
                             ),
                           ),
                           const SizedBox(height: Space.md),
@@ -170,8 +173,8 @@ class _ClinicalScribeScreenState extends ConsumerState<ClinicalScribeScreen> {
                                 : const Icon(Icons.auto_awesome),
                             label: Text(
                               _structuring
-                                  ? 'Structuring…'
-                                  : 'Structure with AI',
+                                  ? t.structuringEllipsis
+                                  : t.structureWithAi,
                             ),
                           ),
                         ],
@@ -180,15 +183,15 @@ class _ClinicalScribeScreenState extends ConsumerState<ClinicalScribeScreen> {
 
                     if (_hasDraft) ...[
                       const SizedBox(height: Space.md),
-                      const SectionHeader('Structured note', overline: true),
-                      _field('Chief complaint', _chief, lines: 1),
-                      _field('History of present illness', _hpi, lines: 4),
-                      _field('Assessment', _assessment, lines: 3),
-                      _field('Plan', _plan, lines: 3),
+                      SectionHeader(t.structuredNoteHeader, overline: true),
+                      _field(t.chiefComplaintLabel, _chief, lines: 1),
+                      _field(t.hpiLabel, _hpi, lines: 4),
+                      _field(t.assessmentLabel, _assessment, lines: 3),
+                      _field(t.planLabel, _plan, lines: 3),
                       if (_icdCodes.isNotEmpty) ...[
                         const SizedBox(height: Space.sm),
                         Text(
-                          'Suggested ICD-10 — confirm before coding',
+                          t.suggestedIcdNote,
                           style: theme.textTheme.labelMedium?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -219,7 +222,7 @@ class _ClinicalScribeScreenState extends ConsumerState<ClinicalScribeScreen> {
                                 ),
                               )
                             : const Icon(Icons.save_outlined),
-                        label: const Text('Save as visit note'),
+                        label: Text(t.saveAsVisitNote),
                       ),
                     ],
                   ],

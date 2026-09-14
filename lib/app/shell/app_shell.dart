@@ -180,7 +180,7 @@ class _Rail extends StatelessWidget {
                           child: AppBrandLockup(),
                         ),
                       )
-                    : Image.asset('assets/images/logo.png', height: 28),
+                    : const AppLogo(height: 28),
               ),
               destinations: [
                 for (final d in destinations)

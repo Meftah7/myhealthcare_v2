@@ -9,6 +9,7 @@ import '../../../core/di.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../services/ai/ai_models.dart';
 import '../../../services/ai/gemini_ai_service.dart';
 import '../application/settings_providers.dart';
@@ -18,15 +19,16 @@ class AiSettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final settings = ref.watch(appSettingsProvider);
     final hasKey = ref.watch(aiKeyPresentProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('AI settings')),
+      appBar: AppBar(title: Text(t.aiSettingsTitle)),
       body: settings.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
-          message: 'Could not load settings.',
+          message: t.couldNotLoadSettings,
           onRetry: () => ref.invalidate(appSettingsProvider),
         ),
         data: (s) {
@@ -35,19 +37,14 @@ class AiSettingsScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(Space.lg),
             children: [
               SwitchListTile(
-                title: const Text('AI features enabled'),
-                subtitle: const Text(
-                  'Turn off to hide all AI surfaces entirely.',
-                ),
+                title: Text(t.aiFeaturesEnabledTitle),
+                subtitle: Text(t.aiFeaturesEnabledSubtitle),
                 value: s.aiEnabled,
                 onChanged: (v) => controller.update(s.copyWith(aiEnabled: v)),
               ),
               SwitchListTile(
-                title: const Text('Force mock mode'),
-                subtitle: const Text(
-                  'Use the offline deterministic assistant even when a key '
-                  'is set. Recommended for demos.',
-                ),
+                title: Text(t.forceMockModeTitle),
+                subtitle: Text(t.forceMockModeSubtitle),
                 value: s.mockMode,
                 onChanged: s.aiEnabled
                     ? (v) => controller.update(s.copyWith(mockMode: v))
@@ -55,7 +52,7 @@ class AiSettingsScreen extends ConsumerWidget {
               ),
               const Divider(height: Space.xl),
 
-              const SectionHeader('LLM provider (Google Gemini, free tier)'),
+              SectionHeader(t.llmProviderHeader),
               _ModelField(
                 initial: s.modelId,
                 onSubmit: (m) => controller.update(s.copyWith(modelId: m)),
@@ -70,21 +67,17 @@ class AiSettingsScreen extends ConsumerWidget {
               _TestConnectionButton(model: s.modelId),
 
               const Divider(height: Space.xl),
-              const SectionHeader('Demo data'),
+              SectionHeader(t.demoDataHeader),
               ListTile(
                 leading: const Icon(Icons.restart_alt),
-                title: const Text('Re-seed demo data'),
-                subtitle: const Text(
-                  'Wipe and regenerate the synthetic dataset.',
-                ),
+                title: Text(t.reseedDemoDataTitle),
+                subtitle: Text(t.reseedDemoDataSubtitle),
                 onTap: () async {
                   final ok = await confirm(
                     context,
-                    title: 'Re-seed?',
-                    message:
-                        'This deletes all current data and regenerates the '
-                        'demo dataset.',
-                    confirmLabel: 'Re-seed',
+                    title: t.reseedConfirmTitle,
+                    message: t.reseedConfirmBody,
+                    confirmLabel: t.reseedAction,
                     destructive: true,
                   );
                   if (!ok || !context.mounted) return;
@@ -93,8 +86,7 @@ class AiSettingsScreen extends ConsumerWidget {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          'Re-seeded: ${r.patients} patients, '
-                          '${r.appointments} appointments.',
+                          t.reseededSnackbar(r.patients, r.appointments),
                         ),
                       ),
                     );
@@ -129,11 +121,12 @@ class _ModelFieldState extends State<_ModelField> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return TextField(
       controller: _c,
-      decoration: const InputDecoration(
-        labelText: 'Model',
-        helperText: 'e.g. gemini-2.0-flash, gemini-2.5-flash',
+      decoration: InputDecoration(
+        labelText: t.modelFieldLabel,
+        helperText: t.modelFieldHelper,
       ),
       onSubmitted: widget.onSubmit,
     );
@@ -173,18 +166,19 @@ class _ApiKeyFieldState extends ConsumerState<_ApiKeyField> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     if (widget.present && !_editing) {
       return ListTile(
         contentPadding: EdgeInsets.zero,
         leading: const Icon(Icons.key),
-        title: const Text('API key set'),
-        subtitle: const Text('Stored in the OS secure store.'),
+        title: Text(t.apiKeySetTitle),
+        subtitle: Text(t.apiKeyStoredNote),
         trailing: Wrap(
           spacing: Space.xs,
           children: [
             TextButton(
               onPressed: () => setState(() => _editing = true),
-              child: const Text('Replace'),
+              child: Text(t.replaceAction),
             ),
             TextButton(
               onPressed: _busy
@@ -193,7 +187,7 @@ class _ApiKeyFieldState extends ConsumerState<_ApiKeyField> {
                       await ref.read(settingsControllerProvider).setApiKey('');
                       if (mounted) setState(() {});
                     },
-              child: const Text('Remove'),
+              child: Text(t.removeButton),
             ),
           ],
         ),
@@ -205,17 +199,16 @@ class _ApiKeyFieldState extends ConsumerState<_ApiKeyField> {
           child: TextField(
             controller: _c,
             obscureText: true,
-            decoration: const InputDecoration(
-              labelText: 'API key',
-              helperText:
-                  'aistudio.google.com/apikey — never logged or committed',
+            decoration: InputDecoration(
+              labelText: t.apiKeyFieldLabel,
+              helperText: t.apiKeyHelper,
             ),
           ),
         ),
         const SizedBox(width: Space.xs),
         FilledButton(
           onPressed: _busy ? null : _save,
-          child: const Text('Save'),
+          child: Text(t.saveButton),
         ),
       ],
     );
@@ -235,11 +228,12 @@ class _TestConnectionButtonState extends ConsumerState<_TestConnectionButton> {
   bool _busy = false;
 
   Future<void> _test() async {
+    final t = AppLocalizations.of(context)!;
     setState(() => _busy = true);
     final key = await ref.read(aiKeyStoreProvider).read();
     String message;
     if (key == null) {
-      message = 'No API key set.';
+      message = t.noApiKeySet;
     } else {
       final svc = GeminiAiService(apiKey: key, model: widget.model);
       final r = await svc.summarizeRecords(
@@ -253,8 +247,8 @@ class _TestConnectionButtonState extends ConsumerState<_TestConnectionButton> {
         ),
       );
       message = r.isOk
-          ? 'Connection OK — the model responded.'
-          : 'Failed: ${r.failureOrNull?.message}';
+          ? t.connectionOkMessage
+          : t.connectionFailedMessage('${r.failureOrNull?.message}');
     }
     if (mounted) {
       setState(() => _busy = false);
@@ -266,6 +260,7 @@ class _TestConnectionButtonState extends ConsumerState<_TestConnectionButton> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return OutlinedButton.icon(
       onPressed: _busy ? null : _test,
       icon: _busy
@@ -274,7 +269,7 @@ class _TestConnectionButtonState extends ConsumerState<_TestConnectionButton> {
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           : const Icon(Icons.wifi_tethering),
-      label: const Text('Test connection'),
+      label: Text(t.testConnectionAction),
     );
   }
 }

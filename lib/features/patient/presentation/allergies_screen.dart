@@ -13,6 +13,7 @@ import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../patient/application/patient_data_providers.dart';
 
 class AllergiesScreen extends ConsumerWidget {
@@ -20,15 +21,16 @@ class AllergiesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final profile = ref.watch(patientProfileProvider);
     final gutter = WindowSize.of(context).gutter;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Allergies')),
+      appBar: AppBar(title: Text(t.allergiesLabel)),
       body: profile.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
-          message: 'Could not load your allergies.',
+          message: t.couldNotLoadYourAllergies,
           onRetry: () => ref.invalidate(patientProfileProvider),
         ),
         data: (p) {
@@ -52,8 +54,7 @@ class AllergiesScreen extends ConsumerWidget {
                     _AllergyAlertCard(allergies: allergies),
                   const SizedBox(height: Space.md),
                   Text(
-                    'Shown to every clinician who treats you and printed on '
-                    'your reports. Keep it accurate.',
+                    t.shownToCliniciansNote,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -65,8 +66,8 @@ class AllergiesScreen extends ConsumerWidget {
                     icon: const Icon(Icons.edit_outlined, size: 18),
                     label: Text(
                       allergies.isEmpty
-                          ? 'Add your allergies'
-                          : 'Update allergies',
+                          ? t.addYourAllergiesAction
+                          : t.updateAllergiesAction,
                     ),
                   ),
                 ],
@@ -86,6 +87,7 @@ class _AllergyAlertCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     return AppCard(
@@ -100,7 +102,7 @@ class _AllergyAlertCard extends StatelessWidget {
               Icon(Icons.warning_amber_rounded, color: scheme.onErrorContainer),
               const SizedBox(width: Space.xs),
               Text(
-                'Known allergies',
+                t.knownAllergiesLabel,
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: scheme.onErrorContainer,
                 ),
@@ -139,6 +141,7 @@ class _NoAllergiesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     return AppCard(
       child: Row(
@@ -153,12 +156,11 @@ class _NoAllergiesCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'No allergies recorded',
+                  t.noAllergiesRecordedTitle,
                   style: theme.textTheme.titleMedium,
                 ),
                 Text(
-                  'If you have any drug, food or other allergies, add them so '
-                  'your care team can see them.',
+                  t.noAllergiesRecordedSubtitle,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),

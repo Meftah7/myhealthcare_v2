@@ -8,6 +8,7 @@ import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../l10n/app_localizations.dart';
 
 class ThreadTile extends StatelessWidget {
   const ThreadTile({
@@ -29,7 +30,9 @@ class ThreadTile extends StatelessWidget {
         ? thread.unreadForStaff
         : thread.unreadForPatient;
     final last = thread.lastMessage;
-    final prefix = last.fromStaff == viewerIsStaff ? 'You: ' : '';
+    final prefix = last.fromStaff == viewerIsStaff
+        ? AppLocalizations.of(context)!.youPrefix
+        : '';
 
     return AppCard(
       onTap: onTap,
@@ -112,8 +115,11 @@ class ThreadTile extends StatelessWidget {
   }
 
   static String _initials(String name) {
+    // Strips either honorific `clinicianName()` can produce (format.dart) —
+    // "Dr " in English, "د. " in Arabic — so the avatar still initials the
+    // actual name underneath rather than the honorific.
     final parts = name
-        .replaceFirst(RegExp('^Dr '), '')
+        .replaceFirst(RegExp('^(Dr |د\\. )'), '')
         .split(RegExp(r'\s+'))
         .where((p) => p.isNotEmpty)
         .toList();

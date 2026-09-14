@@ -4,6 +4,9 @@
 /// pre-filled with the demo code, so a UI sign-in in a test just has to press
 /// "Verify". Call this right after tapping "Sign in" — it settles, presses
 /// Verify if the screen appeared, and settles again.
+///
+/// Locates the button by the screen's shield icon rather than the button's
+/// text so this helper works regardless of the active locale.
 library;
 
 import 'package:flutter/material.dart';
@@ -17,8 +20,7 @@ Future<void> _settle(WidgetTester tester) async {
 
 Future<void> passMfa(WidgetTester tester) async {
   await _settle(tester);
-  final verify = find.widgetWithText(FilledButton, 'Verify');
-  if (verify.evaluate().isEmpty) return;
-  await tester.tap(verify);
+  if (find.byIcon(Icons.shield_outlined).evaluate().isEmpty) return;
+  await tester.tap(find.byType(FilledButton).first);
   await _settle(tester);
 }

@@ -13,6 +13,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
+import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
@@ -21,6 +22,7 @@ import '../../../core/utils/date_input.dart';
 import '../../../core/utils/ids.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/patient_data_providers.dart';
 
 class FamilyNetworkSection extends ConsumerWidget {
@@ -38,17 +40,17 @@ class FamilyNetworkSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final members = ref.watch(patientFamilyMembersProvider);
 
     final list = members.when(
       loading: () => const LoadingSkeleton(height: 72),
-      error: (e, _) =>
-          const InlineBanner.error('Could not load family members.'),
+      error: (e, _) => InlineBanner.error(t.couldNotLoadFamilyMembers),
       data: (items) {
         if (items.isEmpty) {
-          return const EmptyState(
+          return EmptyState(
             icon: Icons.family_restroom_outlined,
-            message: 'No family members linked yet.',
+            message: t.noFamilyMembersLinkedYet,
           );
         }
         final tiles = Column(
@@ -74,11 +76,11 @@ class FamilyNetworkSection extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Align(
-            alignment: Alignment.centerLeft,
+            alignment: AlignmentDirectional.centerStart,
             child: OutlinedButton.icon(
               onPressed: () => _openForm(context, ref),
               icon: const Icon(Icons.add, size: 18),
-              label: const Text('Add family member'),
+              label: Text(t.addFamilyMemberAction),
             ),
           ),
           const SizedBox(height: Space.sm),
@@ -91,9 +93,9 @@ class FamilyNetworkSection extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SectionHeader(
-          'Family network',
+          t.familyNetworkTitle,
           overline: true,
-          action: 'Add',
+          action: t.addButton,
           onAction: () => _openForm(context, ref),
         ),
         list,
@@ -123,11 +125,12 @@ class FamilyNetworkSection extends ConsumerWidget {
     WidgetRef ref,
     FamilyMember member,
   ) async {
+    final t = AppLocalizations.of(context)!;
     final ok = await confirm(
       context,
-      title: 'Remove ${member.fullName}?',
-      message: 'This unlinks them from your family network.',
-      confirmLabel: 'Remove',
+      title: t.removeConfirmTitle(member.fullName),
+      message: t.unlinksFromFamilyNetworkNote,
+      confirmLabel: t.removeButton,
       destructive: true,
     );
     if (!ok) return;
@@ -156,12 +159,13 @@ class _FamilyMemberTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final details = <String>[
-      _genderLabel(member.gender),
+      if (member.gender != null) member.gender!.label(context),
       if (member.dob != null) formatTypedDob(member.dob!),
-      if (member.cpr != null) 'CPR ${member.cpr}',
+      if (member.cpr != null) t.cprValueLabel(member.cpr!),
     ].where((s) => s.isNotEmpty).join('  ·  ');
 
     return ListTile(
@@ -183,7 +187,7 @@ class _FamilyMemberTile extends StatelessWidget {
               borderRadius: Radii.pill,
             ),
             child: Text(
-              familyRelationshipLabel(member.relationship),
+              member.relationship.label(context),
               style: theme.textTheme.labelSmall?.copyWith(
                 color: scheme.onTertiaryContainer,
               ),
@@ -197,26 +201,18 @@ class _FamilyMemberTile extends StatelessWidget {
         children: [
           IconButton(
             icon: const Icon(Icons.edit_outlined),
-            tooltip: 'Edit',
+            tooltip: t.editAction,
             onPressed: onEdit,
           ),
           IconButton(
             icon: const Icon(Icons.delete_outline),
-            tooltip: 'Remove',
+            tooltip: t.removeTooltip,
             onPressed: onRemove,
           ),
         ],
       ),
     );
   }
-
-  static String _genderLabel(Gender? g) => switch (g) {
-    null => '',
-    Gender.female => 'Female',
-    Gender.male => 'Male',
-    Gender.other => 'Other',
-    Gender.undisclosed => 'Prefer not to say',
-  };
 }
 
 class _FamilyMemberForm extends ConsumerStatefulWidget {
@@ -304,7 +300,9 @@ class _FamilyMemberFormState extends ConsumerState<_FamilyMemberForm> {
   String? get _cprError {
     final text = _cpr.text;
     if (text.isEmpty) return null;
-    return text.length == 9 ? null : '${text.length}/9 digits';
+    return text.length == 9
+        ? null
+        : AppLocalizations.of(context)!.cprDigitsHelper(text.length);
   }
 
   String? get _dobError => validateTypedDob(_dob.text);
@@ -348,6 +346,7 @@ class _FamilyMemberFormState extends ConsumerState<_FamilyMemberForm> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.all(Space.lg),
       child: SingleChildScrollView(
@@ -356,16 +355,16 @@ class _FamilyMemberFormState extends ConsumerState<_FamilyMemberForm> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              _isEdit ? 'Edit family member' : 'Add family member',
+              _isEdit ? t.editFamilyMemberTitle : t.addFamilyMemberAction,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: Space.md),
             DropdownButtonFormField<FamilyRelationship>(
               initialValue: _relationship,
-              decoration: const InputDecoration(labelText: 'Relationship'),
+              decoration: InputDecoration(labelText: t.relationshipLabel),
               items: [
                 for (final r in FamilyRelationship.values)
-                  DropdownMenuItem(value: r, child: Text(familyRelationshipLabel(r))),
+                  DropdownMenuItem(value: r, child: Text(r.label(context))),
               ],
               onChanged: _onRelationshipChanged,
             ),
@@ -375,7 +374,9 @@ class _FamilyMemberFormState extends ConsumerState<_FamilyMemberForm> {
                 Expanded(
                   child: TextField(
                     controller: _firstName,
-                    decoration: const InputDecoration(labelText: 'First name *'),
+                    decoration: InputDecoration(
+                      labelText: t.firstNameRequiredLabel,
+                    ),
                     onChanged: (_) => setState(() {}),
                   ),
                 ),
@@ -383,7 +384,9 @@ class _FamilyMemberFormState extends ConsumerState<_FamilyMemberForm> {
                 Expanded(
                   child: TextField(
                     controller: _lastName,
-                    decoration: const InputDecoration(labelText: 'Last name *'),
+                    decoration: InputDecoration(
+                      labelText: t.lastNameRequiredLabel,
+                    ),
                     onChanged: (_) => setState(() {}),
                   ),
                 ),
@@ -398,7 +401,7 @@ class _FamilyMemberFormState extends ConsumerState<_FamilyMemberForm> {
                 LengthLimitingTextInputFormatter(9),
               ],
               decoration: InputDecoration(
-                labelText: 'CPR (optional)',
+                labelText: t.cprOptionalLabel,
                 errorText: _cprError,
               ),
               onChanged: (_) => setState(() {}),
@@ -409,7 +412,7 @@ class _FamilyMemberFormState extends ConsumerState<_FamilyMemberForm> {
               keyboardType: TextInputType.number,
               inputFormatters: [DateSlashFormatter()],
               decoration: InputDecoration(
-                labelText: 'Date of birth (DD/MM/YYYY, optional)',
+                labelText: t.dobDdmmyyyyOptionalLabel,
                 errorText: _dobError,
               ),
               onChanged: (_) => setState(() {}),
@@ -417,30 +420,36 @@ class _FamilyMemberFormState extends ConsumerState<_FamilyMemberForm> {
             const SizedBox(height: Space.sm),
             DropdownButtonFormField<Gender?>(
               initialValue: _gender,
-              decoration: const InputDecoration(labelText: 'Gender (optional)'),
-              items: const [
-                DropdownMenuItem(child: Text('—')),
-                DropdownMenuItem(value: Gender.male, child: Text('Male')),
-                DropdownMenuItem(value: Gender.female, child: Text('Female')),
+              decoration: InputDecoration(labelText: t.genderOptionalLabel),
+              items: [
+                const DropdownMenuItem(child: Text('—')),
+                DropdownMenuItem(
+                  value: Gender.male,
+                  child: Text(Gender.male.label(context)),
+                ),
+                DropdownMenuItem(
+                  value: Gender.female,
+                  child: Text(Gender.female.label(context)),
+                ),
               ],
               onChanged: (v) => setState(() => _gender = v),
             ),
             const SizedBox(height: Space.sm),
             TextField(
               controller: _bloodType,
-              decoration: const InputDecoration(labelText: 'Blood type (optional)'),
+              decoration: InputDecoration(labelText: t.bloodTypeOptionalLabel),
             ),
             const SizedBox(height: Space.sm),
             TextField(
               controller: _phone,
               keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(labelText: 'Phone'),
+              decoration: InputDecoration(labelText: t.phoneLabel),
             ),
             const SizedBox(height: Space.sm),
             TextField(
               controller: _email,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(labelText: 'Email'),
+              decoration: InputDecoration(labelText: t.emailLabel),
             ),
             const SizedBox(height: Space.lg),
             FilledButton(
@@ -451,7 +460,7 @@ class _FamilyMemberFormState extends ConsumerState<_FamilyMemberForm> {
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : Text(_isEdit ? 'Save changes' : 'Add family member'),
+                  : Text(_isEdit ? t.saveChangesAction : t.addFamilyMemberAction),
             ),
           ],
         ),

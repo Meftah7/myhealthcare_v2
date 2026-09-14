@@ -14,6 +14,7 @@ import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../ai_summary/application/ai_summary_provider.dart';
 import '../../patient/application/patient_data_providers.dart';
 
@@ -61,6 +62,7 @@ class TimelineScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final records = ref.watch(patientTimelineProvider);
     final vitals = ref.watch(patientVitalsProvider);
     final types = ref.watch(_typeFilterProvider);
@@ -70,7 +72,7 @@ class TimelineScreen extends ConsumerWidget {
     final feed = records.when(
       loading: () => SkeletonList(lines: embedded ? 3 : 5),
       error: (e, _) => ErrorStateView(
-        message: 'Could not load your records.',
+        message: t.couldNotLoadRecords,
         onRetry: () => ref.invalidate(patientTimelineProvider),
       ),
       data: (recs) {
@@ -83,9 +85,9 @@ class TimelineScreen extends ConsumerWidget {
         ]..sort((a, b) => b.at.compareTo(a.at));
 
         if (entries.isEmpty) {
-          return const EmptyState(
+          return EmptyState(
             icon: Icons.timeline_outlined,
-            message: 'Nothing matches these filters yet.',
+            message: t.nothingMatchesFilters,
           );
         }
         return _GroupedList(entries: entries);
@@ -103,7 +105,7 @@ class TimelineScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Records'),
+        title: Text(t.recordsTitle),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(112),
           child: _Filters(),
@@ -130,12 +132,13 @@ class _Filters extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final types = ref.watch(_typeFilterProvider);
+    final t = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.fromLTRB(Space.md, 0, Space.md, Space.xs),
       child: Column(
         children: [
           SearchBar(
-            hintText: 'Search records',
+            hintText: t.searchRecordsHint,
             leading: const Icon(Icons.search),
             onChanged: (v) => ref.read(_queryProvider.notifier).state = v,
           ),
@@ -145,15 +148,15 @@ class _Filters extends ConsumerWidget {
             child: ListView(
               scrollDirection: Axis.horizontal,
               children: [
-                for (final t in RecordType.values)
+                for (final rt in RecordType.values)
                   Padding(
-                    padding: const EdgeInsets.only(right: Space.xs),
+                    padding: const EdgeInsetsDirectional.only(end: Space.xs),
                     child: FilterChip(
-                      label: Text(_label(t)),
-                      selected: types.contains(t),
+                      label: Text(_label(t, rt)),
+                      selected: types.contains(rt),
                       onSelected: (on) {
                         final next = {...types};
-                        on ? next.add(t) : next.remove(t);
+                        on ? next.add(rt) : next.remove(rt);
                         ref.read(_typeFilterProvider.notifier).state = next;
                       },
                     ),
@@ -166,14 +169,14 @@ class _Filters extends ConsumerWidget {
     );
   }
 
-  static String _label(RecordType t) => switch (t) {
-    RecordType.visitNote => 'Visits',
-    RecordType.labResult => 'Labs',
-    RecordType.imaging => 'Imaging',
-    RecordType.prescription => 'Prescriptions',
-    RecordType.vaccination => 'Vaccinations',
-    RecordType.discharge => 'Discharge',
-    RecordType.referral => 'Referrals',
+  static String _label(AppLocalizations t, RecordType rt) => switch (rt) {
+    RecordType.visitNote => t.filterVisits,
+    RecordType.labResult => t.filterLabs,
+    RecordType.imaging => t.imagingTitle,
+    RecordType.prescription => t.filterPrescriptions,
+    RecordType.vaccination => t.filterVaccinations,
+    RecordType.discharge => t.recordTypeDischarge,
+    RecordType.referral => t.filterReferrals,
   };
 }
 
@@ -251,14 +254,16 @@ class _RecordTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context)!;
     return ListTile(
       leading: Stack(
         clipBehavior: Clip.none,
         children: [
           Icon(_icon),
           if (isKeyEvent)
-            Positioned(
-              right: -4,
+            Positioned.directional(
+              textDirection: Directionality.of(context),
+              end: -4,
               top: -4,
               child: Icon(
                 Icons.star,
@@ -272,7 +277,7 @@ class _RecordTile extends StatelessWidget {
       subtitle: Text(
         '${fmtDate(record.occurredAt)}'
         '${record.sourceFacility == null ? '' : ' · ${record.sourceFacility}'}'
-        '${isKeyEvent ? ' · flagged by AI' : ''}',
+        '${isKeyEvent ? ' · ${t.flaggedByAi}' : ''}',
         style: theme.textTheme.bodySmall,
       ),
       trailing: record.hasAbnormalLabs
@@ -299,7 +304,7 @@ class _VitalsTile extends StatelessWidget {
     ];
     return ListTile(
       leading: const Icon(Icons.monitor_heart_outlined),
-      title: const Text('Vitals recorded'),
+      title: Text(AppLocalizations.of(context)!.vitalsRecordedTitle),
       subtitle: Text(
         '${fmtDate(vitals.recordedAt)} · ${parts.join('  ')}',
         style: theme.textTheme.bodySmall,

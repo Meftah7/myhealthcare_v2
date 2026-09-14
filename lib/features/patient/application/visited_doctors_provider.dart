@@ -4,10 +4,13 @@
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
 import 'patient_data_providers.dart';
+
+bool get _ar => Intl.getCurrentLocale().startsWith('ar');
 
 class VisitedDoctor {
   const VisitedDoctor({
@@ -63,7 +66,7 @@ final visitedDoctorsProvider = FutureProvider<List<VisitedDoctor>>((ref) async {
     out.add(
       VisitedDoctor(
         staffId: entry.key,
-        name: dir?.name ?? 'Your doctor',
+        name: dir?.name ?? (_ar ? 'طبيبك' : 'Your doctor'),
         departmentName: deptId == null ? null : departments[deptId],
         visitCount: visits.length,
         lastVisit: visits.first.slotStart,
