@@ -64,3 +64,6 @@ tools/ml/venv/
 tools/ml/dataset.csv
 tools/ml/_split.npz
 tools/ml/__pycache__/
+
+# Editor settings (local only)
+.vscode/
