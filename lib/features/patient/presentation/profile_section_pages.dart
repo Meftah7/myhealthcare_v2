@@ -114,6 +114,6 @@ class PreferencesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) => _SectionScaffold(
     title: AppLocalizations.of(context)!.preferences,
-    child: const PreferencesSection(bare: true),
+    child: const PreferencesSection(showHeader: false),
   );
 }

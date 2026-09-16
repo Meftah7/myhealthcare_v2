@@ -11,171 +11,161 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
+import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
+import '../../settings/presentation/preferences_section.dart';
 
 class AdminProfileScreen extends ConsumerWidget {
   const AdminProfileScreen({super.key});
+
+  List<(IconData, String, String)> _sections(AppLocalizations t) => [
+    (Icons.badge_outlined, t.account, AppRoutes.adminProfileAccount),
+    (Icons.fact_check_outlined, t.auditLogTitle, AppRoutes.adminProfileAudit),
+    (
+      Icons.insights_outlined,
+      t.systemAnalyticsTitle,
+      AppRoutes.adminProfileAnalytics,
+    ),
+    (
+      Icons.query_stats_outlined,
+      t.capacityForecastTitle,
+      AppRoutes.adminProfileForecast,
+    ),
+    (
+      Icons.auto_awesome_outlined,
+      t.aiSettingsTitle,
+      AppRoutes.adminProfileAiSettings,
+    ),
+    (
+      Icons.history_toggle_off_outlined,
+      t.aiActivityTitle,
+      AppRoutes.adminProfileAiLog,
+    ),
+  ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final user = ref.watch(currentUserProvider);
-    final gutter = WindowSize.of(context).gutter;
+    final locale = ref.watch(localeProvider);
+    final sections = _sections(t);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(t.profile)),
-      body: user == null
-          ? const SkeletonList()
-          : Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxWidth: Space.maxContentWidth,
-                ),
-                child: ListView(
-                  padding: EdgeInsets.fromLTRB(
-                    gutter,
-                    Space.md,
-                    gutter,
-                    Space.xxl,
-                  ),
-                  children: [
-                    ProfileHeader(
-                      name: user.fullName,
-                      email: user.email,
-                      role: t.roleAdmin,
-                    ),
-                    const SizedBox(height: Space.md),
-
-                    _AdminProfileRow(
-                      icon: Icons.badge_outlined,
-                      title: t.account,
-                      subtitle: t.accountSubtitleAdmin,
-                      route: AppRoutes.adminProfileAccount,
-                    ),
-                    const SizedBox(height: Space.xs),
-                    _AdminProfileRow(
-                      icon: Icons.fact_check_outlined,
-                      title: t.auditLogTitle,
-                      subtitle: t.auditLogSubtitle,
-                      route: AppRoutes.adminProfileAudit,
-                    ),
-                    const SizedBox(height: Space.xs),
-                    _AdminProfileRow(
-                      icon: Icons.insights_outlined,
-                      title: t.systemAnalyticsTitle,
-                      subtitle: t.systemAnalyticsSubtitle,
-                      route: AppRoutes.adminProfileAnalytics,
-                    ),
-                    const SizedBox(height: Space.xs),
-                    _AdminProfileRow(
-                      icon: Icons.query_stats_outlined,
-                      title: t.capacityForecastTitle,
-                      subtitle: t.capacityForecastSubtitle,
-                      route: AppRoutes.adminProfileForecast,
-                    ),
-                    const SizedBox(height: Space.xs),
-                    _AdminProfileRow(
-                      icon: Icons.auto_awesome_outlined,
-                      title: t.aiSettingsTitle,
-                      subtitle: t.aiSettingsSubtitle,
-                      route: AppRoutes.adminProfileAiSettings,
-                    ),
-                    const SizedBox(height: Space.xs),
-                    _AdminProfileRow(
-                      icon: Icons.history_toggle_off_outlined,
-                      title: t.aiActivityTitle,
-                      subtitle: t.aiActivitySubtitle,
-                      route: AppRoutes.adminProfileAiLog,
-                    ),
-                    const SizedBox(height: Space.xs),
-                    _AdminProfileRow(
-                      icon: Icons.tune,
-                      title: t.preferences,
-                      subtitle: t.preferencesSubtitleAdmin,
-                      route: AppRoutes.adminProfilePreferences,
-                    ),
-
-                    const SizedBox(height: Space.lg),
-                    OutlinedButton.icon(
-                      onPressed: () async {
-                        final ok = await confirm(
-                          context,
-                          title: t.signOutConfirmTitle,
-                          message: t.signOutConfirmBody,
-                          confirmLabel: t.signOut,
-                          destructive: true,
-                        );
-                        if (ok) {
-                          unawaited(
-                            ref.read(sessionProvider.notifier).logout(),
-                          );
-                        }
-                      },
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: theme.colorScheme.error,
-                        side: BorderSide(
-                          color: theme.colorScheme.error.withValues(alpha: 0.4),
-                        ),
+    return AppScaffold(
+      title: t.profile,
+      children: user == null
+          ? const [SkeletonList()]
+          : [
+              ProfileHeader(
+                name: user.fullName,
+                email: user.email,
+                phone: user.phone,
+                role: t.roleAdmin,
+                avatarSize: 72,
+                elevated: true,
+              ),
+              SectionHeader(t.accountSection, overline: true),
+              ListCard(
+                elevated: true,
+                children: [
+                  for (final (icon, title, route) in sections)
+                    ListTile(
+                      dense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: Space.md,
+                        vertical: Space.xxs,
                       ),
-                      icon: const Icon(Icons.logout),
-                      label: Text(t.signOut),
+                      leading: Icon(
+                        icon,
+                        size: 20,
+                        color: theme.colorScheme.primary,
+                      ),
+                      title: Text(title, style: theme.textTheme.titleSmall),
+                      trailing: Icon(
+                        Icons.chevron_right,
+                        size: kTrailingChevronSize,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      onTap: () => unawaited(context.push(route)),
+                    ),
+                ],
+              ),
+
+              SectionHeader(t.settingsSection, overline: true),
+              AppCard(
+                padding: const EdgeInsets.all(Space.md),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    PillLabel(t.language),
+                    const SizedBox(height: Space.sm),
+                    PillSegmented<String>(
+                      segments: [
+                        ('en', t.languageEnglish),
+                        ('ar', t.languageArabic),
+                      ],
+                      selected: locale?.languageCode == 'ar' ? 'ar' : 'en',
+                      onChanged: (v) =>
+                          ref.read(localeProvider.notifier).set(Locale(v)),
                     ),
                   ],
                 ),
               ),
-            ),
-    );
-  }
-}
+              const SizedBox(height: Space.sm),
+              const PreferencesSection(
+                showHeader: false,
+                blocks: {PrefsBlock.theme},
+              ),
+              const SizedBox(height: Space.md),
 
-/// One tappable row — opens the section as its own page.
-class _AdminProfileRow extends StatelessWidget {
-  const _AdminProfileRow({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.route,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final String route;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return AppCard(
-      padding: const EdgeInsets.all(Space.md),
-      onTap: () => context.push(route),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: scheme.onSurfaceVariant),
-          const SizedBox(width: Space.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: theme.textTheme.titleSmall),
-                Text(
-                  subtitle,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
+              // Preferences (text size, notifications) stays its own page.
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => unawaited(
+                    context.push(AppRoutes.adminProfilePreferences),
                   ),
+                  icon: const Icon(Icons.tune),
+                  label: Text(t.preferences),
                 ),
-              ],
-            ),
-          ),
-          Icon(Icons.chevron_right, color: scheme.onSurfaceVariant),
-        ],
-      ),
+              ),
+
+              const SizedBox(height: Space.lg),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () async {
+                    final ok = await confirm(
+                      context,
+                      title: t.signOutConfirmTitle,
+                      message: t.signOutConfirmBody,
+                      confirmLabel: t.signOut,
+                      destructive: true,
+                    );
+                    if (ok) {
+                      unawaited(ref.read(sessionProvider.notifier).logout());
+                    }
+                  },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.light.error,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: Space.md),
+                    shape: const StadiumBorder(),
+                    textStyle: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  icon: const Icon(Icons.logout),
+                  label: Text(t.signOut),
+                ),
+              ),
+            ],
     );
   }
 }

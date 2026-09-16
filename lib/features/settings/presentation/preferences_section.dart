@@ -29,12 +29,31 @@ String _textScaleLabel(BuildContext context, TextScaleLevel level) {
   };
 }
 
-class PreferencesSection extends ConsumerWidget {
-  const PreferencesSection({this.bare = false, super.key});
+/// One togglable block inside [PreferencesSection]. Lets a caller — the
+/// compact Profile page vs. the full Preferences page — show only the blocks
+/// it needs from the one implementation, instead of two copies drifting apart.
+enum PrefsBlock { theme, textSize, language, notifications }
 
-  /// When true, drop the section header and outer cards — the caller already
-  /// provides the surrounding surface.
-  final bool bare;
+class PreferencesSection extends ConsumerWidget {
+  const PreferencesSection({
+    this.showHeader = true,
+    this.blocks = const {
+      PrefsBlock.theme,
+      PrefsBlock.textSize,
+      PrefsBlock.language,
+      PrefsBlock.notifications,
+    },
+    super.key,
+  });
+
+  /// Drops the "Preferences" [SectionHeader] — for a caller (a profile hub,
+  /// or a dedicated Preferences page with its own AppBar title) that already
+  /// has a heading above these cards.
+  final bool showHeader;
+
+  /// Which blocks to render, in their fixed order (theme, text size,
+  /// language, notifications). Defaults to all four.
+  final Set<PrefsBlock> blocks;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -50,18 +69,16 @@ class PreferencesSection extends ConsumerWidget {
     final themeBlock = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _BlockLabel(icon: Icons.brightness_6_outlined, label: t.theme),
+        PillLabel(t.theme),
         const SizedBox(height: Space.sm),
-        SegmentedButton<ThemeMode>(
+        PillSegmented<ThemeMode>(
           segments: [
-            ButtonSegment(value: ThemeMode.system, label: Text(t.themeSystem)),
-            ButtonSegment(value: ThemeMode.light, label: Text(t.themeLight)),
-            ButtonSegment(value: ThemeMode.dark, label: Text(t.themeDark)),
+            (ThemeMode.light, t.themeLight),
+            (ThemeMode.dark, t.themeDark),
+            (ThemeMode.system, t.themeSystem),
           ],
-          selected: {mode},
-          showSelectedIcon: false,
-          onSelectionChanged: (s) =>
-              ref.read(themeModeProvider.notifier).set(s.first),
+          selected: mode,
+          onChanged: (v) => ref.read(themeModeProvider.notifier).set(v),
         ),
       ],
     );
@@ -103,23 +120,18 @@ class PreferencesSection extends ConsumerWidget {
     final languageBlock = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _BlockLabel(icon: Icons.translate_outlined, label: t.language),
-        _LanguageOption(
-          label: t.languageSystem,
-          selected: locale == null,
-          onTap: () => ref.read(localeProvider.notifier).set(null),
-        ),
-        _LanguageOption(
-          label: t.languageEnglish,
-          selected: locale?.languageCode == 'en',
-          onTap: () =>
-              ref.read(localeProvider.notifier).set(const Locale('en')),
-        ),
-        _LanguageOption(
-          label: t.languageArabic,
-          selected: locale?.languageCode == 'ar',
-          onTap: () =>
-              ref.read(localeProvider.notifier).set(const Locale('ar')),
+        PillLabel(t.language),
+        const SizedBox(height: Space.sm),
+        PillSegmented<String>(
+          segments: [
+            ('system', t.languageSystem),
+            ('en', t.languageEnglish),
+            ('ar', t.languageArabic),
+          ],
+          selected: locale == null ? 'system' : locale.languageCode,
+          onChanged: (v) => ref
+              .read(localeProvider.notifier)
+              .set(v == 'system' ? null : Locale(v)),
         ),
         const SizedBox(height: Space.xs),
         Text(
@@ -168,44 +180,25 @@ class PreferencesSection extends ConsumerWidget {
       ],
     );
 
-    if (bare) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          themeBlock,
-          const _BlockDivider(),
-          textSizeBlock,
-          const _BlockDivider(),
-          languageBlock,
-          const _BlockDivider(),
-          notificationsBlock,
-        ],
-      );
-    }
+    final byBlock = {
+      PrefsBlock.theme: themeBlock,
+      PrefsBlock.textSize: textSizeBlock,
+      PrefsBlock.language: languageBlock,
+      PrefsBlock.notifications: notificationsBlock,
+    };
+    final shown = [
+      for (final b in PrefsBlock.values)
+        if (blocks.contains(b)) byBlock[b]!,
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SectionHeader(t.preferences, overline: true),
-        AppCard(
-          padding: const EdgeInsets.all(Space.md),
-          child: themeBlock,
-        ),
-        const SizedBox(height: Space.sm),
-        AppCard(
-          padding: const EdgeInsets.all(Space.md),
-          child: textSizeBlock,
-        ),
-        const SizedBox(height: Space.sm),
-        AppCard(
-          padding: const EdgeInsets.all(Space.md),
-          child: languageBlock,
-        ),
-        const SizedBox(height: Space.sm),
-        AppCard(
-          padding: const EdgeInsets.all(Space.md),
-          child: notificationsBlock,
-        ),
+        if (showHeader) SectionHeader(t.preferences, overline: true),
+        for (final (i, block) in shown.indexed) ...[
+          if (i > 0) const SizedBox(height: Space.sm),
+          AppCard(padding: const EdgeInsets.all(Space.md), child: block),
+        ],
       ],
     );
   }
@@ -230,16 +223,6 @@ class _BlockLabel extends StatelessWidget {
   }
 }
 
-class _BlockDivider extends StatelessWidget {
-  const _BlockDivider();
-
-  @override
-  Widget build(BuildContext context) => const Padding(
-    padding: EdgeInsets.symmetric(vertical: Space.md),
-    child: Divider(height: 1),
-  );
-}
-
 /// A capital "A" at a fixed point size that ignores the app text-scale setting,
 /// so the slider's end markers stay put while the sample text between them
 /// changes.
@@ -260,30 +243,6 @@ class _FixedA extends StatelessWidget {
           fontWeight: FontWeight.w600,
         ),
       ),
-    );
-  }
-}
-
-class _LanguageOption extends StatelessWidget {
-  const _LanguageOption({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      title: Text(label),
-      trailing: selected
-          ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
-          : null,
-      onTap: onTap,
     );
   }
 }

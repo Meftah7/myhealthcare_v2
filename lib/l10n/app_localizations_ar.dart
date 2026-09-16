@@ -145,7 +145,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get createAccount => 'إنشاء حساب';
 
   @override
+  String get editProfile => 'تعديل الملف الشخصي';
+
+  @override
   String get accountSection => 'الحساب';
+
+  @override
+  String get settingsSection => 'الإعدادات';
 
   @override
   String get detailsSection => 'التفاصيل';

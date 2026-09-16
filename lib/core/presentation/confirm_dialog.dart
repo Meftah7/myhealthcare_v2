@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../../app/theme/theme.dart';
 import '../../l10n/app_localizations.dart';
 
 /// Shows a yes/no dialog; returns true only if the user confirms.
@@ -17,7 +18,6 @@ Future<bool> confirm(
   final result = await showDialog<bool>(
     context: context,
     builder: (context) {
-      final scheme = Theme.of(context).colorScheme;
       final t = AppLocalizations.of(context)!;
       return AlertDialog(
         title: Text(title),
@@ -31,8 +31,12 @@ Future<bool> confirm(
             onPressed: () => Navigator.of(context).pop(true),
             style: destructive
                 ? FilledButton.styleFrom(
-                    backgroundColor: scheme.error,
-                    foregroundColor: scheme.onError,
+                    // Fixed to the light scheme's red in both modes — dark
+                    // mode's `error` role is a pale pink meant for
+                    // text-on-surface, not a button fill (see profile
+                    // screens' Sign out button, which hits the same issue).
+                    backgroundColor: AppColors.light.error,
+                    foregroundColor: Colors.white,
                   )
                 : null,
             child: Text(confirmLabel ?? t.confirm),

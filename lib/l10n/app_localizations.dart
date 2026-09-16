@@ -356,11 +356,23 @@ abstract class AppLocalizations {
   /// **'Create account'**
   String get createAccount;
 
+  /// No description provided for @editProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit profile'**
+  String get editProfile;
+
   /// No description provided for @accountSection.
   ///
   /// In en, this message translates to:
   /// **'Account'**
   String get accountSection;
+
+  /// No description provided for @settingsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsSection;
 
   /// No description provided for @detailsSection.
   ///

@@ -11,171 +11,183 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
+import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
 import '../../feedback/presentation/feedback_sheet.dart';
+import '../../settings/presentation/preferences_section.dart';
 import '../application/staff_providers.dart';
 
 class StaffProfileScreen extends ConsumerWidget {
   const StaffProfileScreen({super.key});
+
+  List<(IconData, String, String)> _sections(AppLocalizations t) => [
+    (Icons.badge_outlined, t.account, AppRoutes.staffProfileAccount),
+    (Icons.history_outlined, t.myActivityTitle, AppRoutes.staffProfileActivity),
+    (
+      Icons.groups_outlined,
+      t.staffDirectoryTitle,
+      AppRoutes.staffProfileDirectory,
+    ),
+    (
+      Icons.insights_outlined,
+      t.panelAnalyticsTitle,
+      AppRoutes.staffProfileAnalytics,
+    ),
+  ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final profile = ref.watch(staffProfileProvider);
-    final gutter = WindowSize.of(context).gutter;
+    final locale = ref.watch(localeProvider);
+    final sections = _sections(t);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(t.profile)),
-      body: profile.when(
-        loading: () => const SkeletonList(),
-        error: (e, _) => ErrorStateView(
-          message: t.couldNotLoadYourProfile,
-          onRetry: () => ref.invalidate(staffProfileProvider),
-        ),
+    return AppScaffold(
+      title: t.profile,
+      onRefresh: () async => ref.invalidate(staffProfileProvider),
+      children: profile.when(
+        loading: () => const [SkeletonList()],
+        error: (e, _) => [
+          const SizedBox(height: Space.xl),
+          ErrorStateView(
+            message: t.couldNotLoadYourProfile,
+            onRetry: () => ref.invalidate(staffProfileProvider),
+          ),
+        ],
         data: (s) {
           final u = s.user;
-          return Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: Space.maxContentWidth,
-              ),
-              child: ListView(
-                padding: EdgeInsets.fromLTRB(
-                  gutter,
-                  Space.md,
-                  gutter,
-                  Space.xxl,
-                ),
-                children: [
-                  ProfileHeader(
-                    name: clinicianName(u.fullName),
-                    email: u.email,
-                    role: t.roleStaff,
-                  ),
-                  const SizedBox(height: Space.md),
-
-                  _StaffProfileRow(
-                    icon: Icons.badge_outlined,
-                    title: t.account,
-                    subtitle: t.accountSubtitle,
-                    route: AppRoutes.staffProfileAccount,
-                  ),
-                  const SizedBox(height: Space.xs),
-                  _StaffProfileRow(
-                    icon: Icons.history_outlined,
-                    title: t.myActivityTitle,
-                    subtitle: t.myActivitySubtitle,
-                    route: AppRoutes.staffProfileActivity,
-                  ),
-                  const SizedBox(height: Space.xs),
-                  _StaffProfileRow(
-                    icon: Icons.badge_outlined,
-                    title: t.staffDirectoryTitle,
-                    subtitle: t.staffDirectorySubtitle,
-                    route: AppRoutes.staffProfileDirectory,
-                  ),
-                  const SizedBox(height: Space.xs),
-                  _StaffProfileRow(
-                    icon: Icons.insights_outlined,
-                    title: t.panelAnalyticsTitle,
-                    subtitle: t.panelAnalyticsSubtitle,
-                    route: AppRoutes.staffProfileAnalytics,
-                  ),
-                  const SizedBox(height: Space.xs),
-                  _StaffProfileRow(
-                    icon: Icons.tune,
-                    title: t.preferences,
-                    subtitle: t.preferencesSubtitle,
-                    route: AppRoutes.staffProfilePreferences,
-                  ),
-
-                  const SizedBox(height: Space.lg),
-                  OutlinedButton.icon(
-                    onPressed: () => unawaited(showFeedbackSheet(context, ref)),
-                    icon: const Icon(Icons.forum_outlined),
-                    label: Text(t.sendFeedbackTitle),
-                  ),
-                  const SizedBox(height: Space.sm),
-                  OutlinedButton.icon(
-                    onPressed: () async {
-                      final ok = await confirm(
-                        context,
-                        title: t.signOutConfirmTitle,
-                        message: t.signOutConfirmBody,
-                        confirmLabel: t.signOut,
-                        destructive: true,
-                      );
-                      if (ok) {
-                        unawaited(ref.read(sessionProvider.notifier).logout());
-                      }
-                    },
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: theme.colorScheme.error,
-                      side: BorderSide(
-                        color: theme.colorScheme.error.withValues(alpha: 0.4),
-                      ),
+          return [
+            ProfileHeader(
+              name: clinicianName(u.fullName),
+              email: u.email,
+              role: t.roleStaff,
+              avatarSize: 72,
+              elevated: true,
+            ),
+            SectionHeader(t.accountSection, overline: true),
+            ListCard(
+              elevated: true,
+              children: [
+                for (final (icon, title, route) in sections)
+                  ListTile(
+                    dense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: Space.md,
+                      vertical: Space.xxs,
                     ),
-                    icon: const Icon(Icons.logout),
-                    label: Text(t.signOut),
+                    leading: Icon(
+                      icon,
+                      size: 20,
+                      color: theme.colorScheme.primary,
+                    ),
+                    title: Text(title, style: theme.textTheme.titleSmall),
+                    trailing: Icon(
+                      Icons.chevron_right,
+                      size: kTrailingChevronSize,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    onTap: () => unawaited(context.push(route)),
+                  ),
+              ],
+            ),
+
+            SectionHeader(t.settingsSection, overline: true),
+            AppCard(
+              padding: const EdgeInsets.all(Space.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  PillLabel(t.language),
+                  const SizedBox(height: Space.sm),
+                  PillSegmented<String>(
+                    segments: [
+                      ('en', t.languageEnglish),
+                      ('ar', t.languageArabic),
+                    ],
+                    selected: locale?.languageCode == 'ar' ? 'ar' : 'en',
+                    onChanged: (v) =>
+                        ref.read(localeProvider.notifier).set(Locale(v)),
                   ),
                 ],
               ),
             ),
-          );
-        },
-      ),
-    );
-  }
-}
+            const SizedBox(height: Space.sm),
+            const PreferencesSection(
+              showHeader: false,
+              blocks: {PrefsBlock.theme},
+            ),
+            const SizedBox(height: Space.md),
 
-/// One tappable row — opens the section as its own page.
-class _StaffProfileRow extends StatelessWidget {
-  const _StaffProfileRow({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.route,
-  });
+            // Preferences (text size, notifications) stays its own page,
+            // linked from here — it isn't part of the compact Settings block.
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => unawaited(
+                  context.push(AppRoutes.staffProfilePreferences),
+                ),
+                icon: const Icon(Icons.tune),
+                label: Text(t.preferences),
+              ),
+            ),
 
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final String route;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return AppCard(
-      padding: const EdgeInsets.all(Space.md),
-      onTap: () => context.push(route),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: scheme.onSurfaceVariant),
-          const SizedBox(width: Space.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: theme.textTheme.titleSmall),
-                Text(
-                  subtitle,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
+            const SizedBox(height: Space.lg),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () => unawaited(showFeedbackSheet(context, ref)),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.brandViolet,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: Space.md),
+                  shape: const StadiumBorder(),
+                  textStyle: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-              ],
+                icon: const Icon(Icons.forum_outlined),
+                label: Text(t.sendFeedbackTitle),
+              ),
             ),
-          ),
-          Icon(Icons.chevron_right, color: scheme.onSurfaceVariant),
-        ],
+            const SizedBox(height: Space.sm),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () async {
+                  final ok = await confirm(
+                    context,
+                    title: t.signOutConfirmTitle,
+                    message: t.signOutConfirmBody,
+                    confirmLabel: t.signOut,
+                    destructive: true,
+                  );
+                  if (ok) {
+                    unawaited(ref.read(sessionProvider.notifier).logout());
+                  }
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.light.error,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: Space.md),
+                  shape: const StadiumBorder(),
+                  textStyle: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                icon: const Icon(Icons.logout),
+                label: Text(t.signOut),
+              ),
+            ),
+          ];
+        },
       ),
     );
   }

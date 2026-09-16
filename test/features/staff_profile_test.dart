@@ -63,19 +63,6 @@ void main() {
     await _settle(tester);
     expect(find.widgetWithText(AppBar, 'Profile'), findsOneWidget);
 
-    // Account details is its own page.
-    await tester.tap(find.text('Account'));
-    await _settle(tester);
-    expect(find.text('Specialty'), findsOneWidget);
-    expect(find.text('Department'), findsOneWidget);
-    expect(find.byType(BackButton), findsOneWidget);
-    await tester.tap(find.byType(BackButton));
-    await _settle(tester);
-
-    // Preferences is its own page.
-    await tester.tap(find.text('Preferences'));
-    await _settle(tester);
-
     Future<void> reveal(Finder f) async {
       // The page's scroll view, not the navigation rail's — from `medium` up
       // the rail is scrollable too, so an unscoped finder is ambiguous.
@@ -87,6 +74,21 @@ void main() {
       await tester.ensureVisible(f);
       await _settle(tester);
     }
+
+    // Account details is its own page.
+    await tester.tap(find.text('Account'));
+    await _settle(tester);
+    expect(find.text('Specialty'), findsOneWidget);
+    expect(find.text('Department'), findsOneWidget);
+    expect(find.byType(BackButton), findsOneWidget);
+    await tester.tap(find.byType(BackButton));
+    await _settle(tester);
+
+    // Preferences is its own page — the compact profile hub also has quick
+    // theme/language pills, so the link to the full page sits below the fold.
+    await reveal(find.text('Preferences'));
+    await tester.tap(find.text('Preferences'));
+    await _settle(tester);
 
     // Switch to dark mode.
     await reveal(find.text('Dark'));

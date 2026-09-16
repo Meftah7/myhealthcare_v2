@@ -56,7 +56,9 @@
   },
 
   "createAccount": "إنشاء حساب",
+  "editProfile": "تعديل الملف الشخصي",
   "accountSection": "الحساب",
+  "settingsSection": "الإعدادات",
   "detailsSection": "التفاصيل",
   "medicalSectionOptional": "معلومات طبية (اختياري)",
   "fullName": "الاسم الكامل",
