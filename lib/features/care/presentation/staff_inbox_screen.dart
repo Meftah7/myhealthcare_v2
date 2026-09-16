@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/states.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../staff_dashboard/presentation/staff_top_actions.dart';
 import '../application/care_providers.dart';
 import 'thread_list.dart';
@@ -17,11 +18,12 @@ class StaffInboxScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final threads = ref.watch(staffThreadsProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Messages'),
+        title: Text(t.messagesTitle),
         actions: const [StaffTopActions()],
       ),
       body: RefreshIndicator(
@@ -29,17 +31,17 @@ class StaffInboxScreen extends ConsumerWidget {
         child: threads.when(
           loading: () => const SkeletonList(),
           error: (e, _) => ErrorStateView(
-            message: 'Could not load your inbox.',
+            message: t.couldNotLoadInbox,
             onRetry: () => ref.invalidate(staffThreadsProvider),
           ),
           data: (list) {
             if (list.isEmpty) {
               return ListView(
-                children: const [
-                  SizedBox(height: 120),
+                children: [
+                  const SizedBox(height: 120),
                   EmptyState(
                     icon: Icons.inbox_outlined,
-                    message: 'No patient messages.',
+                    message: t.noPatientMessages,
                   ),
                 ],
               );

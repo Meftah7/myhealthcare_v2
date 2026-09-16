@@ -1,0 +1,1652 @@
+{
+  "@@locale": "en",
+
+  "profile": "Profile",
+  "signOut": "Sign out",
+  "signOutConfirmTitle": "Sign out?",
+  "signOutConfirmBody": "You will need to sign in again to continue.",
+
+  "account": "Account",
+  "roleStaff": "Medical staff",
+  "rolePatient": "Patient",
+  "roleAdmin": "Administrator",
+
+  "specialty": "Specialty",
+  "jobTitle": "Job title",
+  "licenseNo": "License no.",
+  "department": "Department",
+  "memberSince": "Member since",
+  "managedByAdmin": "These details are managed by your administrator.",
+  "none": "—",
+
+  "preferences": "Preferences",
+  "theme": "Theme",
+  "themeSystem": "System",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "language": "Language",
+  "languageSystem": "System default",
+  "languageEnglish": "English",
+  "languageArabic": "العربية",
+  "translationNote": "Full UI translation is in progress — for now the profile screen supports English and Arabic.",
+
+  "signInTitle": "Sign in",
+  "signInSubtitle": "Your records, appointments and care team — in one calm place.",
+  "sessionEndedNotice": "Your session ended after 24 minutes of inactivity. Please sign in again.",
+  "email": "Email",
+  "emailOrNationalIdHelper": "You can also sign in with your national ID",
+  "emailOrNationalIdRequired": "Enter your email or national ID",
+  "password": "Password",
+  "showPassword": "Show password",
+  "hidePassword": "Hide password",
+  "passwordRequired": "Enter your password",
+  "forgotPassword": "Forgot password?",
+  "createPatientAccount": "Create a patient account",
+  "demoAccounts": "Demo accounts",
+  "demoPatient": "Patient",
+  "demoStaff": "Staff",
+  "demoAdmin": "Admin",
+  "demoPasswordNote": "Password for all accounts: {password}",
+  "@demoPasswordNote": {
+    "placeholders": {
+      "password": {
+        "type": "String"
+      }
+    }
+  },
+
+  "createAccount": "Create account",
+  "accountSection": "Account",
+  "detailsSection": "Details",
+  "medicalSectionOptional": "Medical (optional)",
+  "fullName": "Full name",
+  "validEmailRequired": "Enter a valid email",
+  "passwordMinLength": "At least 6 characters",
+  "phoneOptional": "Phone (optional)",
+  "dateOfBirth": "Date of birth",
+  "gender": "Gender",
+  "genderMale": "Male",
+  "genderFemale": "Female",
+  "nationalIdOptional": "National ID (optional)",
+  "bloodType": "Blood type",
+  "chronicConditions": "Chronic conditions",
+  "commaSeparatedHelper": "Comma-separated",
+  "allergies": "Allergies",
+  "emergencyContact": "Emergency contact",
+  "requiredField": "Required",
+
+  "presenceOnDuty": "On duty",
+  "presenceInConsultation": "In consultation",
+  "presenceOnBreak": "On break",
+  "presenceOffShift": "Off shift",
+
+  "genderOther": "Other",
+  "genderUndisclosed": "Prefer not to say",
+
+  "appointmentStatusBooked": "Booked",
+  "appointmentStatusConfirmed": "Confirmed",
+  "appointmentStatusInProgress": "In progress",
+  "appointmentStatusCompleted": "Completed",
+  "appointmentStatusCancelled": "Cancelled",
+  "appointmentStatusNoShow": "No-show",
+
+  "walkInStatusWaiting": "Waiting",
+  "walkInStatusCalled": "Called",
+  "walkInStatusInProgress": "In progress",
+  "walkInStatusDone": "Done",
+  "walkInStatusCancelled": "Cancelled",
+
+  "referralRequestStatusPending": "Pending",
+  "referralRequestStatusActioned": "Actioned",
+  "referralRequestStatusRejected": "Rejected",
+
+  "riskBandLow": "Low",
+  "riskBandMedium": "Medium",
+  "riskBandHigh": "High",
+
+  "recordTypeVisitNote": "Visit note",
+  "recordTypeLabResult": "Lab result",
+  "recordTypeImaging": "Imaging",
+  "recordTypePrescription": "Prescription",
+  "recordTypeVaccination": "Vaccination",
+  "recordTypeDischarge": "Discharge",
+  "recordTypeReferral": "Referral",
+
+  "abnormalFlagNormal": "Normal",
+  "abnormalFlagLow": "Low",
+  "abnormalFlagHigh": "High",
+  "abnormalFlagCritical": "Critical",
+
+  "taskKindFollowUpDue": "Follow-up due",
+  "taskKindUnreviewedAbnormalLab": "Unreviewed abnormal lab",
+  "taskKindUnsignedNote": "Unsigned note",
+  "taskKindMedicationReview": "Medication review",
+  "taskKindReferralAction": "Referral action",
+  "taskKindOther": "Other",
+
+  "taskStatusOpen": "Open",
+  "taskStatusInProgress": "In progress",
+  "taskStatusDone": "Done",
+  "taskStatusDismissed": "Dismissed",
+
+  "riskFlagKindAbnormalVitals": "Abnormal vitals",
+  "riskFlagKindAbnormalLab": "Abnormal lab",
+  "riskFlagKindMedicationGap": "Medication gap",
+  "riskFlagKindOverdueFollowUp": "Overdue follow-up",
+  "riskFlagKindOther": "Other",
+
+  "severityInfo": "Info",
+  "severityWarning": "Warning",
+  "severityUrgent": "Urgent",
+
+  "flagSourceRule": "Rule-based",
+  "flagSourceAi": "AI",
+
+  "reminderKindStandard": "Standard",
+  "reminderKindEscalated": "Escalated",
+  "reminderKindConfirmRequest": "Confirmation request",
+
+  "reminderChannelPush": "Push",
+  "reminderChannelInApp": "In-app",
+  "reminderChannelSms": "SMS",
+  "reminderChannelEmail": "Email",
+
+  "invoiceStatusPending": "Pending",
+  "invoiceStatusPaid": "Paid",
+  "invoiceStatusCancelled": "Cancelled",
+  "invoiceStatusOverdue": "Overdue",
+
+  "homeVisitStatusRequested": "Requested",
+  "homeVisitStatusScheduled": "Scheduled",
+  "homeVisitStatusCompleted": "Completed",
+  "homeVisitStatusDeclined": "Declined",
+  "homeVisitStatusCancelled": "Cancelled",
+
+  "notificationCategoryAppointment": "Appointment",
+  "notificationCategoryBilling": "Billing",
+  "notificationCategoryLabResult": "Lab result",
+  "notificationCategoryPrescription": "Prescription",
+  "notificationCategoryMessage": "Message",
+  "notificationCategorySystem": "System",
+
+  "feedbackCategoryBug": "Bug",
+  "feedbackCategoryFeatureRequest": "Feature request",
+  "feedbackCategoryGeneralFeedback": "General feedback",
+  "feedbackCategoryComplaint": "Complaint",
+
+  "feedbackStatusOpen": "Open",
+  "feedbackStatusResolved": "Resolved",
+
+  "aiFeatureCareNavigator": "Care Navigator",
+  "aiFeatureClinicalScribe": "Clinical Scribe",
+  "aiFeaturePatientSummary": "Patient Summary",
+
+  "nothingHere": "Nothing here.",
+  "selectItemPlaceholder": "Select an item to see its details.",
+  "confirm": "Confirm",
+  "cancel": "Cancel",
+  "tryAgain": "Try again",
+  "riskBadgeLow": "Low risk",
+  "riskBadgeMedium": "Medium risk",
+  "riskBadgeHigh": "High risk",
+  "severityChipInfo": "Info",
+  "severityChipReview": "Review",
+  "severityChipUrgent": "Urgent",
+  "aiDisclaimer": "AI-generated — informational only, not medical advice. Verify with your clinician.",
+  "labReferenceSuffix": ", reference {reference}",
+  "@labReferenceSuffix": {
+    "placeholders": {
+      "reference": {
+        "type": "String"
+      }
+    }
+  },
+
+  "notificationsTooltip": "Notifications",
+  "notificationsTooltipUnread": "Notifications ({count} unread)",
+  "@notificationsTooltipUnread": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "greetingFallbackName": "there",
+  "sectionYourHealth": "Your health",
+  "sectionUpcomingAppointments": "Upcoming appointments",
+  "sectionQuickActions": "Quick actions",
+  "quickAppointmentTitle": "Quick appointment",
+  "quickAppointmentSubtitle": "Urgent or normal — get seen sooner",
+  "quickAppointmentSheetQuestion": "How urgent is this visit?",
+  "urgencyUrgentTitle": "Urgent",
+  "urgencyUrgentSubtitle": "Auto-route me to the soonest available doctor",
+  "urgencyNormalTitle": "Normal",
+  "urgencyNormalSubtitle": "Choose a department, doctor and time myself",
+  "onSchedule": "You're on the schedule",
+  "metricTicket": "Ticket",
+  "metricMedicine": "Medicine",
+  "metricLastVisit": "Last visit",
+  "allergiesInline": "Allergies: {list}",
+  "@allergiesInline": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
+  "quickActionVitals": "Vitals",
+  "quickActionMedications": "Medications",
+  "quickActionAskDoctor": "Ask your doctor",
+  "quickActionVisitedDoctors": "Visited doctors",
+  "quickActionSickLeave": "Sick leave",
+  "quickActionHomeCare": "Home care",
+  "quickActionBilling": "Billing",
+  "couldNotLoadAppointments": "Could not load appointments.",
+  "noUpcomingAppointments": "No upcoming appointments",
+  "tapToBookVisit": "Tap to book a visit",
+  "carouselPosition": "{index} of {count}",
+  "@carouselPosition": {
+    "placeholders": {
+      "index": { "type": "int" },
+      "count": { "type": "int" }
+    }
+  },
+  "previousAppointment": "Previous appointment",
+  "nextAppointment": "Next appointment",
+  "ticketOverline": "TICKET",
+  "roomNumber": "Room {room}",
+  "@roomNumber": {
+    "placeholders": {
+      "room": {
+        "type": "String"
+      }
+    }
+  },
+  "bookedForName": "For {name}",
+  "@bookedForName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "appointmentsTitle": "My appointments",
+  "upcomingCount": "Upcoming ({count})",
+  "@upcomingCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "nothingBookedNote": "Nothing booked. Use Book now or Schedule above.",
+  "historyCount": "History ({count})",
+  "@historyCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "noPastVisitsNote": "No past visits yet.",
+  "bookNowTitle": "Book now",
+  "bookNowSubtitle": "Soonest opening",
+  "scheduleTitle": "Schedule",
+  "scheduleSubtitle": "Pick a date",
+  "ticketLabel": "Ticket {tag}",
+  "@ticketLabel": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      }
+    }
+  },
+  "reschedule": "Reschedule",
+  "cancelAppointmentTitle": "Cancel appointment?",
+  "cancelAppointmentMessage": "This frees the slot for someone else.",
+  "cancelItLabel": "Cancel it",
+  "clinicDaysHelp": "Clinic days: Sunday–Thursday",
+  "clinicHoursHelp": "Clinic hours: 08:00–20:00",
+  "pickTimeInRange": "Pick a time between 08:00 and 20:00.",
+  "bookedOn": "Booked {date}",
+  "@bookedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+
+  "scheduleAVisitTitle": "Schedule a visit",
+  "couldNotLoadDepartments": "Could not load departments.",
+  "stepDepartment": "Department",
+  "stepDoctor": "Doctor",
+  "stepReasonForVisit": "Reason for visit",
+  "stepReasonShort": "Reason",
+  "stepDateTime": "Date & time",
+  "whoIsThisFor": "Who is this for?",
+  "myself": "Myself",
+  "bookedForNotice": "This visit will be booked for {name}.",
+  "@bookedForNotice": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "stepProgress": "Step {step} of {total} · {label}",
+  "@stepProgress": {
+    "placeholders": {
+      "step": { "type": "int" },
+      "total": { "type": "int" },
+      "label": { "type": "String" }
+    }
+  },
+  "couldNotLoadDoctors": "Could not load doctors",
+  "noDoctorsListed": "No doctors listed for this department yet.",
+  "findingSoonestOpening": "Finding the soonest opening…",
+  "soonestOpeningAt": "Soonest opening: {relDay}, {date}",
+  "@soonestOpeningAt": {
+    "placeholders": {
+      "relDay": { "type": "String" },
+      "date": { "type": "String" }
+    }
+  },
+  "couldNotLoadTimes": "Could not load times.",
+  "noOpenTimesThatDay": "No open times that day. Try another date.",
+  "recommendedSection": "Recommended",
+  "allOpenTimesSection": "All open times",
+  "appointmentBooked": "Appointment booked",
+  "reviewAndConfirm": "Review & confirm",
+  "rowLabelFor": "For",
+  "rowLabelWhen": "When",
+  "confirmBookingButton": "Confirm booking",
+  "backButton": "Back",
+
+  "couldNotLoadMedications": "Could not load medications.",
+  "noMedicationsOnRecord": "No medications on record.",
+  "currentSectionLabel": "Current",
+  "pastSectionLabel": "Past",
+  "medDoseFrom": "from {date}",
+  "@medDoseFrom": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "medDoseTo": "to {date}",
+  "@medDoseTo": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+
+  "imagingTitle": "Imaging",
+  "couldNotLoadImaging": "Could not load your imaging results.",
+  "noImagingResultsYet": "No imaging results yet.\nX-rays, scans and ultrasounds show up here after a study.",
+  "reportPdfLabel": "Report PDF",
+
+  "recordTitle": "Record",
+  "couldNotLoadRecord": "Could not load this record.",
+  "fromYourVisitOn": "From your visit on {date}",
+  "@fromYourVisitOn": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "referralLetterLabel": "Referral letter",
+  "resultsSection": "Results",
+  "extractedTextSection": "Extracted text",
+  "labColumnAnalyte": "Analyte",
+  "labColumnValue": "Value",
+  "labColumnReference": "Reference",
+
+  "recordsTitle": "Records",
+  "timelineSegment": "Timeline",
+  "billsSegment": "Bills",
+  "vitalSignsReportLabel": "Vital signs report",
+  "allergiesLabel": "Allergies",
+
+  "couldNotLoadRecords": "Could not load your records.",
+  "nothingMatchesFilters": "Nothing matches these filters yet.",
+  "searchRecordsHint": "Search records",
+  "filterVisits": "Visits",
+  "filterLabs": "Labs",
+  "filterPrescriptions": "Prescriptions",
+  "filterVaccinations": "Vaccinations",
+  "filterReferrals": "Referrals",
+  "flaggedByAi": "flagged by AI",
+  "vitalsRecordedTitle": "Vitals recorded",
+
+  "vitalsTitle": "Vitals",
+  "couldNotLoadVitals": "Could not load vitals.",
+  "noVitalsRecordedYet": "No vitals recorded yet.\nBook a visit to get your first reading.",
+  "chartBloodPressure": "Blood pressure",
+  "chartWeight": "Weight",
+  "chartGlucose": "Glucose",
+  "seriesSystolic": "Systolic",
+  "seriesDiastolic": "Diastolic",
+  "recentReadingsSection": "Recent readings",
+  "couldNotCreateDocument": "Could not create the document.",
+
+  "couldNotLoadInvoices": "Could not load your invoices.",
+  "noInvoicesYet": "No invoices yet.\nBills for your visits will appear here.",
+  "openSectionLabel": "Open",
+  "historyLabel": "History",
+  "outstandingBalance": "Outstanding balance",
+  "allSettled": "All settled",
+  "openInvoicesCount": "{count, plural, one{{count} open invoice} other{{count} open invoices}}",
+  "@openInvoicesCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "overdueAmount": "{amount} overdue",
+  "@overdueAmount": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "issuedOn": "Issued {date}",
+  "@issuedOn": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "subtotalLabel": "Subtotal",
+  "taxLabel": "Tax ({rate}%)",
+  "@taxLabel": {
+    "placeholders": {
+      "rate": { "type": "String" }
+    }
+  },
+  "totalLabel": "Total",
+  "wasDueOn": "Was due {date}",
+  "@wasDueOn": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "dueOn": "Due {date}",
+  "@dueOn": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "paidOn": "Paid {date}",
+  "@paidOn": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "payAmountButton": "Pay {amount}",
+  "@payAmountButton": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+
+  "payInvoiceTitle": "Pay invoice",
+  "amountDue": "{amount} due",
+  "@amountDue": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "payWithLabel": "Pay with",
+  "demoPaymentNote": "Demo payment — card details are checked on this device and never stored or sent anywhere.",
+  "nameOnCardLabel": "Name on card",
+  "enterNameOnCard": "Enter the name on the card",
+  "cardNumberLabel": "Card number",
+  "enterFullCardNumber": "Enter a full card number",
+  "cardNumberInvalid": "That card number is not valid",
+  "expiryLabel": "Expiry",
+  "monthRange": "Month must be 01–12",
+  "cardExpired": "Card has expired",
+  "digitsRange": "3–4 digits",
+  "enterSecurityCode": "Enter the 3–4 digit security code.",
+  "paymentReceived": "Payment received",
+  "cardExpiredOn": "Expired {expiry}",
+  "@cardExpiredOn": {
+    "placeholders": {
+      "expiry": { "type": "String" }
+    }
+  },
+  "cardExpiresOn": "Expires {expiry}",
+  "@cardExpiresOn": {
+    "placeholders": {
+      "expiry": { "type": "String" }
+    }
+  },
+  "payWithDifferentCard": "Pay with a different card",
+  "securityCodeHelper": "The 3–4 digits on the back of the card",
+
+  "savedCardsLabel": "Saved cards",
+  "addCardButton": "Add card",
+  "couldNotLoadCards": "Could not load cards.",
+  "noCardsSavedYet": "No cards saved yet.",
+  "transactionHistoryLabel": "Transaction history",
+  "noPaymentsYet": "No payments yet.",
+  "defaultChip": "Default",
+  "setDefaultButton": "Set default",
+  "removeCardTooltip": "Remove card",
+  "removeCardTitle": "Remove card?",
+  "removeCardMessage": "{brand} ····{last4} will be removed.",
+  "@removeCardMessage": {
+    "placeholders": {
+      "brand": { "type": "String" },
+      "last4": { "type": "String" }
+    }
+  },
+  "removeButton": "Remove",
+  "addACardTitle": "Add a card",
+  "saveCardButton": "Save card",
+  "cardSavedNote": "Only the last 4 digits and expiry are saved — never the full number or CVC.",
+  "expiredSuffix": "expired",
+
+  "markAllReadButton": "Mark all read",
+  "couldNotLoadNotifications": "Could not load your notifications.",
+  "allCaughtUpMessage": "You're all caught up.\nNothing new here.",
+  "last24HoursSection": "Last 24 hours",
+  "earlierSection": "Earlier",
+  "openButton": "Open",
+
+  "onlineStatus": "Online",
+  "askAboutAppHint": "Ask about the app…",
+  "openCareNavigator": "Open Care Navigator",
+  "hideCareNavigator": "Hide Care Navigator",
+  "showCareNavigator": "Show Care Navigator",
+
+  "taskBoardTitle": "Task board",
+  "couldNotLoadTasks": "Could not load tasks.",
+  "noOpenTasksMessage": "No open tasks. Run a panel scan from the dashboard.",
+  "priorityBlendNote": "Priority blends the rule score {pct}% with the AI score.",
+  "@priorityBlendNote": {
+    "placeholders": {
+      "pct": { "type": "int" }
+    }
+  },
+  "tasksReprioritised": "Tasks re-prioritised.",
+  "prioritiseButton": "Prioritise",
+  "startAction": "Start",
+  "completeAction": "Complete",
+  "dismissAction": "Dismiss",
+  "ruleScoreTag": "rule {score}",
+  "@ruleScoreTag": {
+    "placeholders": {
+      "score": { "type": "String" }
+    }
+  },
+  "aiScoreTag": "AI {score}",
+  "@aiScoreTag": {
+    "placeholders": {
+      "score": { "type": "String" }
+    }
+  },
+  "dueTag": "due {relDay}",
+  "@dueTag": {
+    "placeholders": {
+      "relDay": { "type": "String" }
+    }
+  },
+  "taskKindFollowUpShort": "Follow-up",
+  "taskKindAbnormalLabShort": "Abnormal lab",
+  "taskKindReferralShort": "Referral",
+
+  "homeHealthCareTitle": "Home health care",
+  "requestAVisitButton": "Request a visit",
+  "couldNotLoadHomeVisitRequests": "Could not load your requests.",
+  "noHomeVisitRequestsMessage": "No home-visit requests.\nAsk for a clinician to visit you at home when getting to the clinic is hard.",
+  "preferredOn": "Preferred {date}",
+  "@preferredOn": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "clinicNote": "Clinic: {note}",
+  "@clinicNote": {
+    "placeholders": {
+      "note": { "type": "String" }
+    }
+  },
+  "cancelRequestButton": "Cancel request",
+  "requestAHomeVisitTitle": "Request a home visit",
+  "homeAddressLabel": "Home address",
+  "homeAddressHint": "Building, road, block, area",
+  "whyHomeVisitNeededLabel": "Why is a home visit needed?",
+  "departmentOptionalLabel": "Department (optional)",
+  "notSureOption": "Not sure",
+  "preferredDateLabel": "Preferred date: {date}",
+  "@preferredDateLabel": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "sendRequestButton": "Send request",
+  "requestSentToClinic": "Request sent to the clinic.",
+  "clinicWillConfirmNote": "The clinic will confirm a time or follow up with you.",
+
+  "homeVisitsTitle": "Home visits",
+  "couldNotLoadQueue": "Could not load the queue.",
+  "preferredAndRequestedOn": "Preferred {preferred}  ·  requested {requested}",
+  "@preferredAndRequestedOn": {
+    "placeholders": {
+      "preferred": { "type": "String" },
+      "requested": { "type": "String" }
+    }
+  },
+  "noteLabel": "Note: {note}",
+  "@noteLabel": {
+    "placeholders": {
+      "note": { "type": "String" }
+    }
+  },
+  "scheduleButton": "Schedule",
+  "declineButton": "Decline",
+  "markCompletedButton": "Mark completed",
+  "scheduleThisVisitTitle": "Schedule this visit",
+  "declineThisRequestTitle": "Decline this request",
+  "scheduleHint": "e.g. Nurse will visit Tue 10:00",
+  "declineHint": "Reason the request was declined",
+
+  "couldNotLoadCertificates": "Could not load your certificates.",
+  "noSickLeaveCertificatesMessage": "No sick-leave certificates.\nYour doctor can issue one after a visit.",
+  "activeChip": "Active",
+  "dateRangeDays": "{from} – {to}  ·  {days, plural, one{{days} day} other{{days} days}}",
+  "@dateRangeDays": {
+    "placeholders": {
+      "from": { "type": "String" },
+      "to": { "type": "String" },
+      "days": { "type": "int" }
+    }
+  },
+  "certificatePdfLabel": "Certificate PDF",
+
+  "newMessageButton": "New message",
+  "couldNotLoadMessages": "Could not load your messages.",
+  "onceSeenDoctorMessage": "Once you have seen a doctor you can message them here.",
+  "noConversationsYetMessage": "No conversations yet.\nTap \"New message\" to ask a non-urgent question.",
+  "yourDoctorFallback": "Your doctor",
+
+  "openPatientChartTooltip": "Open patient chart",
+  "couldNotLoadConversation": "Could not load this conversation.",
+  "noMessagesYet": "No messages yet.",
+  "sendNonUrgentQuestionMessage": "Send your doctor a non-urgent question.\nFor emergencies, call your clinic.",
+  "writeMessageHint": "Write a message",
+  "youPrefix": "You: ",
+  "messagesTitle": "Messages",
+  "couldNotLoadInbox": "Could not load your inbox.",
+  "noPatientMessages": "No patient messages.",
+
+  "somethingIsBrokenOption": "Something is broken",
+  "sendFeedbackTitle": "Send feedback",
+  "feedbackIntroText": "Tell the team what is working, what is not, or what you wish the app did.",
+  "aboutLabel": "About",
+  "yourMessageLabel": "Your message",
+  "sendButton": "Send",
+  "feedbackThanksMessage": "Thanks — your feedback was sent to the team.",
+
+  "nutritionTitle": "Nutrition",
+  "calculatorSegment": "Calculator",
+  "mealPlanSegment": "Meal plan",
+  "foodsSegment": "Foods",
+  "aboutYouSection": "About you",
+  "ageLabel": "Age",
+  "sexLabel": "Sex",
+  "weightKgLabel": "Weight (kg)",
+  "heightCmLabel": "Height (cm)",
+  "activityLabel": "Activity",
+  "activitySedentary": "Sedentary",
+  "activityLightlyActive": "Lightly active (1–3 days/wk)",
+  "activityModeratelyActive": "Moderately active (3–5 days/wk)",
+  "activityVeryActive": "Very active (6–7 days/wk)",
+  "activityExtraActive": "Extra active (physical job)",
+  "goalLabel": "Goal",
+  "goalMaintain": "Maintain weight",
+  "goalLose": "Lose weight",
+  "goalGain": "Gain weight",
+  "weeklyRateLabel": "Weekly rate",
+  "weeklyRate025": "0.25 kg / week",
+  "weeklyRate05": "0.5 kg / week",
+  "weeklyRate10": "1.0 kg / week",
+  "calculateTargetsButton": "Calculate targets",
+  "preferencesSection": "Preferences",
+  "macroSplitNote": "The macro split used for your targets and your meal plan.",
+  "presetBalanced": "Balanced",
+  "presetLowFat": "Low fat",
+  "presetLowCarb": "Low carb",
+  "presetHighCarb": "High carb",
+  "presetHighProtein": "High protein",
+  "dailyTargetsSection": "Daily targets",
+  "macroCalories": "Calories",
+  "macroProtein": "Protein",
+  "macroCarbs": "Carbs",
+  "macroFat": "Fat",
+  "macroSugar": "Sugar",
+  "macroSatFat": "Sat. fat",
+  "unitKcalPerDay": "kcal / day",
+  "unitPerDay": "per day",
+  "unitDailyCap": "daily cap",
+  "bmrTdeeNote": "BMR {bmr} kcal · TDEE {tdee} kcal. A guide only — your clinician can tailor this to your care.",
+  "@bmrTdeeNote": {
+    "placeholders": {
+      "bmr": { "type": "int" },
+      "tdee": { "type": "int" }
+    }
+  },
+  "searchFoodsHint": "Search foods",
+  "allCategoriesChip": "All",
+  "itemsCount": "{count, plural, one{{count} item} other{{count} items}}",
+  "@itemsCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "noFoodsMatch": "No foods match that search.",
+  "servingLabel": "Serving {value}",
+  "@servingLabel": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "also": "Also",
+  "containsAllergens": "Contains: {list}",
+  "@containsAllergens": {
+    "placeholders": {
+      "list": { "type": "String" }
+    }
+  },
+  "includeDessertTitle": "Include a dessert",
+  "includeDessertSubtitle": "Splits the day into four meals instead of three",
+  "buildMyDayButton": "Build my day",
+  "runCalculatorFirstNote": "Run the Calculator first — then your calorie and macro goal is split across the meals here.",
+  "yourDayTitle": "Your day",
+  "mealBreakfast": "Breakfast",
+  "mealLunch": "Lunch",
+  "mealDinner": "Dinner",
+  "mealDessert": "Dessert",
+
+  "switchToLightMode": "Switch to light mode",
+  "switchToDarkMode": "Switch to dark mode",
+  "profileTooltip": "Profile",
+  "setYourAvailabilityTooltip": "Set your availability",
+  "couldNotUpdatePresence": "Could not update your presence.",
+
+  "panelAnalyticsTitle": "Panel analytics",
+  "couldNotComputeAnalytics": "Could not compute analytics.",
+  "lastNDays": "{days, plural, one{Last {days} day} other{Last {days} days}}",
+  "@lastNDays": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "noShowRateLabel": "No-show rate",
+  "noShowRateCaption": "{kept} of {total} kept slots",
+  "@noShowRateCaption": {
+    "placeholders": {
+      "kept": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "cancellationRateLabel": "Cancellation rate",
+  "cancelledCaption": "{count, plural, one{{count} cancelled} other{{count} cancelled}}",
+  "@cancelledCaption": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "completedLabel": "Completed",
+  "perDayCaption": "{value} per day",
+  "@perDayCaption": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "upcomingLabel": "Upcoming",
+  "bookedOrConfirmedCaption": "booked or confirmed",
+
+  "staffDirectoryTitle": "Staff directory",
+  "couldNotLoadStaffDirectory": "Could not load the staff directory.",
+  "noStaffOnRecord": "No staff on record.",
+  "cliniciansCount": "{count, plural, one{{count} clinician} other{{count} clinicians}}",
+  "@cliniciansCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "myActivityTitle": "My activity",
+  "recordsTab": "Records",
+  "prescriptionsTab": "Prescriptions",
+  "couldNotLoadYourRecords": "Could not load your records.",
+  "noRecordsAuthoredYet": "You have not authored any records yet.",
+  "couldNotLoadYourPrescriptions": "Could not load your prescriptions.",
+  "noPrescriptionsIssuedYet": "You have not issued any prescriptions yet.",
+  "currentMedicationChip": "Active",
+
+  "yourShiftHeader": "Your shift",
+  "quickActionsHeader": "Quick actions",
+  "todaysQueueHeader": "Today’s queue",
+  "scheduleAction": "Schedule",
+  "riskFlagsHeader": "Risk flags",
+  "patientsAction": "Patients",
+  "tasksHeader": "Tasks",
+  "taskBoardAction": "Task board",
+  "departmentWalkInsHeader": "Department walk-ins ({count})",
+  "@departmentWalkInsHeader": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "yourQueueIsClear": "Your queue is clear",
+  "nobodyWaitingOpenWeek": "Nobody waiting — open your week to plan ahead",
+  "nextPatientLabel": "Next · {who}",
+  "@nextPatientLabel": {
+    "placeholders": {
+      "who": { "type": "String" }
+    }
+  },
+  "todayLabel": "Today",
+  "inQueueLabel": "In queue",
+  "openFlagsLabel": "Open flags",
+  "couldNotLoadYourQueue": "Could not load your queue.",
+  "nobodyWaitingQueueClear": "Nobody waiting — your queue is clear.",
+  "moreActionsTooltip": "More actions",
+  "openChartAction": "Open chart",
+  "addNoteAction": "Add note",
+  "transferVisitAction": "Transfer visit",
+  "cancelVisitAction": "Cancel visit",
+  "markNoShowAction": "Mark no-show",
+  "cancelThisVisitTitle": "Cancel this visit?",
+  "patientWillNeedToRebook": "The patient will need to rebook.",
+  "markAsNoShowTitle": "Mark as no-show?",
+  "recordsPatientDidNotAttend": "This records that the patient did not attend.",
+  "checkedInLabel": "checked in",
+  "couldNotLoadRiskFlags": "Could not load risk flags.",
+  "noOpenRiskFlagsRunScan": "No open risk flags. Run a panel scan to refresh.",
+  "acknowledgeTooltip": "Acknowledge",
+  "moreOnPatientsTab": "+{count} more on the Patients tab",
+  "@moreOnPatientsTab": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "noOpenTasksRunScan": "No open tasks. Run a panel scan from Quick actions.",
+  "markDoneTooltip": "Mark done",
+
+  "newNoteAction": "New note",
+  "addClinicalNoteForTitle": "Add a clinical note for…",
+  "prescribeAction": "Prescribe",
+  "prescribeForTitle": "Prescribe for…",
+  "labResultAction": "Lab result",
+  "enterLabResultForTitle": "Enter a lab result for…",
+  "aiScribeAction": "AI Scribe",
+  "scribeVisitNoteForTitle": "Scribe a visit note for…",
+  "patientSummaryAction": "Patient summary",
+  "summariseTitle": "Summarise…",
+  "patientLookupAction": "Patient lookup",
+  "messagesActionWithCount": "Messages ({n})",
+  "@messagesActionWithCount": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
+  "panelScanAction": "Panel scan",
+  "scanningPanelForRisks": "Scanning the panel for risks…",
+  "panelScanCompleteFlags": "{count, plural, one{Panel scan complete — {count} open flag.} other{Panel scan complete — {count} open flags.}}",
+  "@panelScanCompleteFlags": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "searchByNameOrNationalId": "Search by name or national ID",
+  "couldNotLoadPatients": "Could not load patients.",
+  "noPatientsMatchSearch": "No patients match that search.",
+  "idLabel": "ID {id}",
+  "@idLabel": {
+    "placeholders": {
+      "id": { "type": "String" }
+    }
+  },
+  "transferAVisitTitle": "Transfer a visit",
+  "reassignVisitNote": "Reassign a visit from today to another clinician. It returns to \"booked\" so they can re-accept it.",
+  "nothingInQueueToTransfer": "Nothing in your queue to transfer.",
+  "visitLabel": "Visit",
+  "couldNotLoadDirectory": "Could not load the directory.",
+  "transferToLabel": "Transfer to",
+  "visitTransferred": "Visit transferred.",
+
+  "compressTheDay": "Compress the day",
+  "expandTheDay": "Expand the day",
+  "previousDayTooltip": "Previous day",
+  "nextDayTooltip": "Next day",
+  "previousTooltip": "Previous",
+  "nextLabel": "Next",
+  "couldNotLoadYourCalendar": "Could not load your calendar.",
+  "nothingBookedThisDay": "Nothing booked on this day.",
+
+  "todaysQueueCaps": "TODAY'S QUEUE",
+  "waitingCount": "{count, plural, one{{count} waiting} other{{count} waiting}}",
+  "@waitingCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "tapPatientOrPressNext": "Tap a patient, or press Next to begin.",
+  "lastPatientInQueue": "Last patient in the queue",
+  "nowLabel": "Now: {name}",
+  "@nowLabel": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "noMorePatients": "No more patients",
+  "reasonLabel": "Reason: {reason}",
+  "@reasonLabel": {
+    "placeholders": {
+      "reason": { "type": "String" }
+    }
+  },
+  "ageYearsAbbrev": "{age, plural, one{{age} yr} other{{age} yrs}}",
+  "@ageYearsAbbrev": {
+    "placeholders": {
+      "age": { "type": "int" }
+    }
+  },
+  "allergiesInlineLabel": "Allergies: {list}",
+  "@allergiesInlineLabel": {
+    "placeholders": {
+      "list": { "type": "String" }
+    }
+  },
+
+  "couldNotLoadYourProfile": "Could not load your profile.",
+  "accountSubtitle": "Specialty, department, licence",
+  "myActivitySubtitle": "Notes and prescriptions you have authored",
+  "staffDirectorySubtitle": "Clinicians, specialties and live presence",
+  "panelAnalyticsSubtitle": "No-show rate, cancellations, utilisation",
+  "preferencesSubtitle": "Theme, text size, language, alerts",
+
+  "resetPasswordTitle": "Reset your password",
+  "enterEmailOrNationalId": "Enter your email or national ID.",
+  "forgotPasswordQuestion": "Forgot your password?",
+  "forgotPasswordBody": "Enter the email or national ID on your account and we’ll take you to set a new password.",
+  "emailOrNationalIdLabel": "Email or national ID",
+  "continueButton": "Continue",
+  "backToSignIn": "Back to sign in",
+  "verifyItsYouTitle": "Verify it’s you",
+  "codeNotRightError": "That code is not right. Try again.",
+  "enterSixDigitCode": "Enter your 6-digit code",
+  "almostThereName": "Almost there, {name}",
+  "@almostThereName": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "sixDigitCodeSentNote": "We sent a 6-digit verification code to your device.",
+  "verifyButton": "Verify",
+  "codeResentLabel": "Code re-sent",
+  "resendCodeLabel": "Resend code",
+  "demoCodeNote": "Demo build — the verification code is {code}.",
+  "@demoCodeNote": {
+    "placeholders": {
+      "code": { "type": "String" }
+    }
+  },
+  "setNewPasswordTitle": "Set a new password",
+  "startFromForgotPasswordNote": "Start from the \"Forgot password\" screen so we know which account to reset.",
+  "newPasswordTitle": "New password",
+  "newPasswordLabel": "New password (8+ characters)",
+  "atLeast8Characters": "At least 8 characters",
+  "confirmNewPasswordLabel": "Confirm new password",
+  "passwordsDoNotMatch": "Passwords do not match",
+  "updatePasswordButton": "Update password",
+  "passwordUpdatedSnackbar": "Password updated — sign in with your new password.",
+
+  "aiHealthSummaryTitle": "AI health summary",
+  "regenerateTooltip": "Regenerate",
+  "regeneratedAt": "Regenerated {when}",
+  "@regeneratedAt": {
+    "placeholders": {
+      "when": { "type": "String" }
+    }
+  },
+  "couldNotGenerateSummary": "Could not generate a summary.\n{error}",
+  "@couldNotGenerateSummary": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "thingsToCheckHeader": "Things to check",
+  "trendsHeader": "Trends",
+  "keyEventsHeader": "Key events",
+  "generatedMeta": "Generated {when}  ·  {model}  ·  {version}",
+  "@generatedMeta": {
+    "placeholders": {
+      "when": { "type": "String" },
+      "model": { "type": "String" },
+      "version": { "type": "String" }
+    }
+  },
+
+  "aiClinicalScribeTitle": "AI Clinical Scribe",
+  "visitNoteTitle": "Visit note",
+  "visitNoteWithPatient": "Visit note · {name}",
+  "@visitNoteWithPatient": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "dictationLabel": "Dictation",
+  "dictationHint": "Type or paste your visit notes in plain language — the scribe will structure them.",
+  "structuringEllipsis": "Structuring…",
+  "structureWithAi": "Structure with AI",
+  "structuredNoteHeader": "Structured note",
+  "chiefComplaintLabel": "Chief complaint",
+  "hpiLabel": "History of present illness",
+  "assessmentLabel": "Assessment",
+  "planLabel": "Plan",
+  "suggestedIcdNote": "Suggested ICD-10 — confirm before coding",
+  "saveAsVisitNote": "Save as visit note",
+  "savedToPatientRecord": "Saved to the patient record.",
+  "clinicalNoteFallbackTitle": "Clinical note",
+
+  "patientChartFallbackTitle": "Patient chart",
+  "aiSummaryTooltip": "AI summary",
+  "couldNotLoadThisPatient": "Could not load this patient.",
+  "recentVitalsHeader": "Recent vitals",
+  "couldNotLoadMedicationsChart": "Could not load medications",
+  "noActiveMedications": "No active medications",
+  "noVitalsOnRecord": "No vitals on record",
+  "couldNotLoadTimelineChart": "Could not load timeline",
+  "noRecordsYet": "No records yet",
+  "addClinicalNoteAction": "Add clinical note",
+  "aiScribeANoteAction": "AI Scribe a note",
+  "prescribeMedicationAction": "Prescribe medication",
+  "enterLabResultAction": "Enter lab result",
+  "labResultFallbackTitle": "Lab result",
+  "issueSickLeaveAction": "Issue sick leave",
+
+  "titleLabel": "Title",
+  "noteFieldLabel": "Note",
+  "noteAdded": "Note added.",
+  "medicationNameLabel": "Medication name",
+  "doseOptionalLabel": "Dose (optional)",
+  "frequencyOptionalLabel": "Frequency (optional)",
+  "medicationPrescribed": "Medication prescribed.",
+  "panelTitleLabel": "Panel / title",
+  "analyteLabel": "Analyte",
+  "valueLabel": "Value",
+  "unitLabel": "Unit",
+  "refLowLabel": "Ref low",
+  "refHighLabel": "Ref high",
+  "labResultRecorded": "Lab result recorded.",
+  "reasonDiagnosisLabel": "Reason / diagnosis",
+  "acuteViralIllnessHint": "e.g. Acute viral illness",
+  "fromDateLabel": "From: {date}",
+  "@fromDateLabel": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "toDateLabel": "To: {date}",
+  "@toDateLabel": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "notesOptionalLabel": "Notes (optional)",
+  "certificateIssued": "Certificate issued.",
+  "daysCountPlain": "{days, plural, one{{days} day} other{{days} days}}",
+  "@daysCountPlain": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "saveButton": "Save",
+  "addButton": "Add",
+
+  "consultationFallbackTitle": "Consultation",
+  "couldNotLoadThisAppointment": "Could not load this appointment.",
+  "couldNotLoadThePatient": "Could not load the patient.",
+  "clinicalNoteHeader": "Clinical note",
+  "historyExamHint": "History, examination, assessment, plan…",
+  "openAiScribeAction": "Open AI Scribe",
+  "noMedicationsAdded": "No medications added.",
+  "removeTooltip": "Remove",
+  "addMedicationAction": "Add medication",
+  "referralHeader": "Referral",
+  "referralRequestedAwaitingAdmin": "Referral requested — awaiting admin",
+  "requestAReferralAction": "Request a referral",
+  "visitSummaryOptionalLabel": "Visit summary (optional)",
+  "visitSummaryHint": "One line — the outcome of this visit",
+  "completeConsultationAction": "Complete consultation",
+  "addNoteMedOrReferralFirst": "Add a note, a medication or a referral request first.",
+  "referralRequestedSnackbar": "Referral requested.",
+  "completeConsultationTitle": "Complete consultation?",
+  "completeConsultationBody": "The note and any medications will be saved to the patient record and the visit will be closed.",
+  "consultationCompletedSnackbar": "Consultation completed.",
+  "patientCalledInNote": "Patient has been called in.",
+  "callPatientAction": "Call patient",
+  "patientCalledSnackbar": "Patient called.",
+  "patientArrivedAction": "Patient arrived",
+  "consultationStartedSnackbar": "Consultation started.",
+  "markedAsNoShowSnackbar": "Marked as no-show.",
+  "patientNotShownAction": "Patient not shown",
+  "consultationCompletedHeader": "Consultation completed",
+  "adminWillDecideReferralNote": "The admin will decide whether this is a department or an external referral, and where.",
+  "clinicalReasonForReferralLabel": "Clinical reason for referral",
+
+  "adminStatusAvailable": "Available",
+  "adminStatusMeeting": "In a meeting",
+  "adminStatusAway": "Away",
+  "adminStatusOff": "Off",
+
+  "accountSubtitleAdmin": "Name, email, member since",
+  "auditLogTitle": "Audit log",
+  "auditLogSubtitle": "Everything that has changed, newest first",
+  "systemAnalyticsTitle": "System analytics",
+  "systemAnalyticsSubtitle": "Headline counts, no-show and utilisation",
+  "capacityForecastTitle": "Capacity forecast",
+  "capacityForecastSubtitle": "Busiest hours and where demand outruns supply",
+  "aiSettingsTitle": "AI settings",
+  "aiSettingsSubtitle": "Features, mock mode, API key",
+  "aiActivityTitle": "AI activity",
+  "aiActivitySubtitle": "Which surface answered, live model or fallback",
+  "preferencesSubtitleAdmin": "Theme, text size, language, alerts, sounds",
+
+  "nameLabel": "Name",
+  "emailLabel": "Email",
+  "roleLabel": "Role",
+  "phoneLabel": "Phone",
+
+  "feedbackTitle": "Feedback",
+  "allFilterChip": "All",
+  "couldNotLoadFeedback": "Could not load feedback.",
+  "noFeedbackInView": "No feedback in this view.",
+  "anonymousFallback": "Anonymous",
+  "reopenAction": "Re-open",
+  "markResolvedAction": "Mark resolved",
+
+  "couldNotLoadAuditLog": "Could not load the audit log.",
+  "noAuditEntriesYet": "No audit entries yet.",
+  "byActorLabel": "by {actor}",
+  "@byActorLabel": {
+    "placeholders": {
+      "actor": { "type": "String" }
+    }
+  },
+
+  "couldNotLoadAiLog": "Could not load the AI log.",
+  "noAiActivityRecordedYet": "No AI activity recorded yet.",
+  "aiCallsSummary": "{total} calls · {live} via the live model · {offline} offline",
+  "@aiCallsSummary": {
+    "placeholders": {
+      "total": { "type": "int" },
+      "live": { "type": "int" },
+      "offline": { "type": "int" }
+    }
+  },
+  "liveModelLabel": "live model",
+  "offlineLabel": "offline",
+
+  "directoryHeader": "Directory",
+  "couldNotLoadSystemStats": "Could not load system stats.",
+  "staffCountLabel": "Staff",
+  "adminsLabel": "Admins",
+  "departmentsLabel": "Departments",
+  "openRiskFlagsLabel": "Open risk flags",
+  "appointmentsLast90DaysHeader": "Appointments · last 90 days",
+  "couldNotLoadAppointmentStats": "Could not load appointment stats.",
+  "noShowRiskModelNote": "No-show risk predictions come from the offline logistic-regression model (RQ2).",
+
+  "allAppointmentsTitle": "Appointments",
+  "couldNotLoadAppointmentsAdmin": "Could not load appointments.",
+  "noAppointmentsInView": "No appointments in this view.",
+  "unassignedLabel": "Unassigned",
+
+  "recomputeTooltip": "Recompute",
+  "couldNotComputeForecast": "Could not compute the forecast.",
+  "forecastExplainerNote": "Busiest window per weekday, from appointment history. A flag means peak demand has been running at or above a single clinician’s hourly capacity.",
+  "demandLevelHigh": "High demand",
+  "demandLevelModerate": "Moderate",
+  "demandLevelLow": "Light",
+  "overflowRiskLabel": "Overflow risk",
+  "noHistoryYet": "No history yet",
+  "peakWindowSummary": "Peak {window} · up to {count}/hr",
+  "@peakWindowSummary": {
+    "placeholders": {
+      "window": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  },
+
+  "billingTitle": "Billing",
+  "couldNotLoadInvoicesAdmin": "Could not load invoices.",
+  "noInvoicesInView": "No invoices in this view.",
+  "markPaidAction": "Mark paid",
+  "cancelThisInvoiceTitle": "Cancel this invoice?",
+  "patientWillNoLongerOweIt": "The patient will no longer owe it.",
+  "cancelInvoiceAction": "Cancel invoice",
+  "invoiceMarkedStatus": "Invoice marked {status}.",
+  "@invoiceMarkedStatus": {
+    "placeholders": {
+      "status": { "type": "String" }
+    }
+  },
+
+  "newDepartmentAction": "New department",
+  "noDepartmentsYet": "No departments yet.",
+  "editAction": "Edit",
+  "deleteAction": "Delete",
+  "deleteConfirmTitle": "Delete {name}?",
+  "@deleteConfirmTitle": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "cannotBeUndoneNote": "This cannot be undone.",
+  "itemDeletedSnackbar": "{name} deleted",
+  "@itemDeletedSnackbar": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "editDepartmentTitle": "Edit department",
+  "descriptionOptionalLabel": "Description (optional)",
+
+  "couldNotLoadSettings": "Could not load settings.",
+  "aiFeaturesEnabledTitle": "AI features enabled",
+  "aiFeaturesEnabledSubtitle": "Turn off to hide all AI surfaces entirely.",
+  "forceMockModeTitle": "Force mock mode",
+  "forceMockModeSubtitle": "Use the offline deterministic assistant even when a key is set. Recommended for demos.",
+  "llmProviderHeader": "LLM provider (Google Gemini, free tier)",
+  "demoDataHeader": "Demo data",
+  "reseedDemoDataTitle": "Re-seed demo data",
+  "reseedDemoDataSubtitle": "Wipe and regenerate the synthetic dataset.",
+  "reseedConfirmTitle": "Re-seed?",
+  "reseedConfirmBody": "This deletes all current data and regenerates the demo dataset.",
+  "reseedAction": "Re-seed",
+  "reseededSnackbar": "Re-seeded: {patients} patients, {appointments} appointments.",
+  "@reseededSnackbar": {
+    "placeholders": {
+      "patients": { "type": "int" },
+      "appointments": { "type": "int" }
+    }
+  },
+  "modelFieldLabel": "Model",
+  "modelFieldHelper": "e.g. gemini-2.0-flash, gemini-2.5-flash",
+  "apiKeySetTitle": "API key set",
+  "apiKeyStoredNote": "Stored in the OS secure store.",
+  "replaceAction": "Replace",
+  "apiKeyFieldLabel": "API key",
+  "apiKeyHelper": "aistudio.google.com/apikey — never logged or committed",
+  "noApiKeySet": "No API key set.",
+  "connectionOkMessage": "Connection OK — the model responded.",
+  "connectionFailedMessage": "Failed: {error}",
+  "@connectionFailedMessage": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "testConnectionAction": "Test connection",
+
+  "systemHealthHeader": "System health",
+  "analyticsAction": "Analytics",
+  "recentActivityHeader": "Recent activity",
+  "allClearTitle": "All clear",
+  "noQueuesWaitingSubtitle": "No invoices, reports, visit or referral requests waiting",
+  "unpaidInvoiceCount": "{count, plural, one{{count} unpaid invoice} other{{count} unpaid invoices}}",
+  "@unpaidInvoiceCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "openReportCount": "{count, plural, one{{count} open report} other{{count} open reports}}",
+  "@openReportCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "visitRequestCount": "{count, plural, one{{count} visit request} other{{count} visit requests}}",
+  "@visitRequestCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "referralRequestCount": "{count, plural, one{{count} referral request} other{{count} referral requests}}",
+  "@referralRequestCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "thingsNeedYouTitle": "{count, plural, one{{count} thing needs you} other{{count} things need you}}",
+  "@thingsNeedYouTitle": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "viewDetailedAnalytics": "View detailed analytics",
+
+  "referralRequestsTitle": "Referral requests",
+  "noReferralRequestsWaiting": "No referral requests waiting.",
+  "aClinicianFallback": "A clinician",
+  "requestedByOn": "Requested by {name} · {date}",
+  "@requestedByOn": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "date": { "type": "String" }
+    }
+  },
+  "actionButton": "Action",
+  "rejectAction": "Reject",
+  "patientReferredSnackbar": "{name} referred.",
+  "@patientReferredSnackbar": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "rejectThisRequestTitle": "Reject this request",
+  "whyNoReferralNeededHint": "Why is no referral needed?",
+  "actionReferralTitle": "Action referral",
+  "anotherDepartmentSegment": "Another department",
+  "anotherHospitalSegment": "Another hospital",
+  "hospitalLabel": "Hospital",
+  "departmentLabel": "Department",
+  "noteForRecordOptionalLabel": "Note for the record (optional)",
+  "referPatientAction": "Refer patient",
+
+  "addUserAction": "Add user",
+  "broadcastAction": "Broadcast",
+  "createInvoiceAction": "Create invoice",
+  "feedbackActionWithCount": "Feedback ({count})",
+  "@feedbackActionWithCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "homeVisitsAction": "Home visits",
+  "homeVisitsActionWithCount": "Home visits ({count})",
+  "@homeVisitsActionWithCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "referralsAction": "Referrals",
+  "referralsActionWithCount": "Referrals ({count})",
+  "@referralsActionWithCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "reseedDataAction": "Re-seed data",
+  "addAPersonTitle": "Add a…",
+  "reseedDemoDataConfirmTitle": "Re-seed demo data?",
+  "reseedWipeWarningBody": "This wipes every account, appointment and record and rebuilds the demo dataset. You will be signed out.",
+  "reseedingEllipsis": "Re-seeding…",
+  "reseededFullSnackbar": "Re-seeded: {patients} patients, {staff} staff, {appointments} appointments.",
+  "@reseededFullSnackbar": {
+    "placeholders": {
+      "patients": { "type": "int" },
+      "staff": { "type": "int" },
+      "appointments": { "type": "int" }
+    }
+  },
+  "sentToCount": "{count, plural, one{Sent to {count} person.} other{Sent to {count} people.}}",
+  "@sentToCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "broadcastNotificationTitle": "Broadcast a notification",
+  "sendToLabel": "Send to",
+  "allPatientsOption": "All patients",
+  "allStaffOption": "All staff",
+  "everyoneOption": "Everyone",
+  "categoryLabel": "Category",
+  "messageLabel": "Message",
+  "createAnInvoiceTitle": "Create an invoice",
+  "amountBdBeforeTaxLabel": "Amount (BD, before tax)",
+  "whatIsThisForOptionalLabel": "What is this for? (optional)",
+  "taxTotalDueNote": "+ 10% tax = BD {total} total · due {date}",
+  "@taxTotalDueNote": {
+    "placeholders": {
+      "total": { "type": "String" },
+      "date": { "type": "String" }
+    }
+  },
+  "raiseInvoiceAction": "Raise invoice",
+  "invoiceRaisedSnackbar": "Invoice raised — BD {amount}.",
+  "@invoiceRaisedSnackbar": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+
+  "userManagementTitle": "User management",
+  "searchByNameOrEmailHint": "Search by name or email",
+  "addPatientAction": "Add patient",
+  "addStaffAction": "Add staff",
+  "addAdminAction": "Add admin",
+  "couldNotLoadUsers": "Could not load users.",
+  "noUsersInGroup": "No users in this group.",
+  "noUsersMatchQuery": "No users match “{query}”.",
+  "@noUsersMatchQuery": {
+    "placeholders": {
+      "query": { "type": "String" }
+    }
+  },
+  "emailDeactivatedLabel": "{email} · deactivated",
+  "@emailDeactivatedLabel": {
+    "placeholders": {
+      "email": { "type": "String" }
+    }
+  },
+  "deactivateAction": "Deactivate",
+  "reactivateAction": "Reactivate",
+  "resetPasswordAction": "Reset password",
+  "bookAppointmentAction": "Book appointment",
+  "referAction": "Refer",
+  "userDeactivatedSnackbar": "{name} deactivated",
+  "@userDeactivatedSnackbar": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "userReactivatedSnackbar": "{name} reactivated",
+  "@userReactivatedSnackbar": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "passwordResetForSnackbar": "Password reset for {name}",
+  "@passwordResetForSnackbar": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "nationalIdLabel": "National ID",
+  "statusLabel": "Status",
+  "accountActiveLabel": "Active",
+  "accountDeactivatedLabel": "Deactivated",
+  "joinedLabel": "Joined",
+  "newTemporaryPasswordTitle": "New temporary password",
+  "resetAction": "Reset",
+  "addAnAdministratorTitle": "Add an administrator",
+  "addAPatientTitle": "Add a patient",
+  "fullNameLabel": "Full name",
+  "temporaryPasswordLabel": "Temporary password (8+ chars)",
+  "createAction": "Create",
+  "createdSnackbar": "{name} created",
+  "@createdSnackbar": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "addStaffMemberTitle": "Add staff member",
+  "doctorOption": "Doctor",
+  "nurseOption": "Nurse",
+  "specialtyUnitOptionalLabel": "Specialty / unit (optional)",
+  "specialtyOptionalLabel": "Specialty (optional)",
+  "noneOption": "None",
+  "bookAnAppointmentTitle": "Book an appointment",
+  "forPatientLabel": "For {name}",
+  "@forPatientLabel": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "clinicDaysHelpText": "Clinic days: Sunday–Thursday",
+  "clinicHoursHelpText": "Clinic hours: 08:00–20:00",
+  "chooseDepartmentFirstHelper": "Choose a department first",
+  "noDoctorsInDepartmentHelper": "No doctors in this department",
+  "doctorLabel": "Doctor",
+  "dateLabel": "Date",
+  "timeLabel": "Time",
+  "pickTimeBetweenNote": "Pick a time between 08:00 and 20:00.",
+  "visitTypeFieldLabel": "Visit type",
+  "reasonOptionalLabel": "Reason (optional)",
+  "appointmentBookedForSnackbar": "Appointment booked for {name}",
+  "@appointmentBookedForSnackbar": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "reasonForReferralLabel": "Reason for referral",
+  "patientReferredToSnackbar": "{name} referred to {destination}",
+  "@patientReferredToSnackbar": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "destination": { "type": "String" }
+    }
+  },
+
+  "textSizeLabel": "Text size",
+  "textSizeCaption": "{level} — applies to text across the whole app",
+  "@textSizeCaption": {
+    "placeholders": {
+      "level": { "type": "String" }
+    }
+  },
+  "textScaleSmaller": "Smaller",
+  "textScaleSmall": "Small",
+  "textScaleDefault": "Default",
+  "textScaleLarge": "Large",
+  "textScaleLarger": "Larger",
+  "notificationChannelsLabel": "Notification channels",
+  "smsLabel": "SMS",
+  "soundsLabel": "Sounds",
+  "soundsSubtitle": "A short cue when a message arrives, and when a working status changes",
+  "notificationChannelsCaption": "Where appointment reminders and care alerts reach you.",
+
+  "personalInfoTitle": "Personal info",
+  "personalInfoSubtitle": "Name, contact, date of birth",
+  "healthDetailsTitle": "Health details",
+  "healthDetailsSubtitle": "Blood type, allergies, conditions",
+  "walletTitle": "Wallet",
+  "walletSubtitle": "Saved cards and payment history",
+  "familyNetworkTitle": "Family network",
+  "familyNetworkSubtitle": "People linked to your account",
+
+  "profileUpdatedSnackbar": "Profile updated.",
+  "firstNameLabel": "First name",
+  "lastNameLabel": "Last name",
+  "cprLabel": "CPR",
+  "cprDigitsHelper": "{count}/9 digits",
+  "@cprDigitsHelper": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "dateOfBirthDdmmyyyyLabel": "Date of birth (DD/MM/YYYY)",
+  "genderFieldLabel": "Gender",
+
+  "healthDetailsUpdatedSnackbar": "Health details updated.",
+  "bloodTypeLabel": "Blood type",
+  "unknownOption": "Unknown",
+  "separateWithCommasHelper": "Separate with commas",
+  "chronicConditionsLabel": "Chronic conditions",
+  "emergencyContactLabel": "Emergency contact",
+  "emergencyContactHint": "Name · phone",
+  "sharedWithCliniciansNote": "Shared with the clinicians who treat you.",
+
+  "couldNotLoadYourAllergies": "Could not load your allergies.",
+  "shownToCliniciansNote": "Shown to every clinician who treats you and printed on your reports. Keep it accurate.",
+  "addYourAllergiesAction": "Add your allergies",
+  "updateAllergiesAction": "Update allergies",
+  "knownAllergiesLabel": "Known allergies",
+  "noAllergiesRecordedTitle": "No allergies recorded",
+  "noAllergiesRecordedSubtitle": "If you have any drug, food or other allergies, add them so your care team can see them.",
+
+  "couldNotLoadFamilyMembers": "Could not load family members.",
+  "noFamilyMembersLinkedYet": "No family members linked yet.",
+  "addFamilyMemberAction": "Add family member",
+  "removeConfirmTitle": "Remove {name}?",
+  "@removeConfirmTitle": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "unlinksFromFamilyNetworkNote": "This unlinks them from your family network.",
+  "editFamilyMemberTitle": "Edit family member",
+  "relationshipLabel": "Relationship",
+  "firstNameRequiredLabel": "First name *",
+  "lastNameRequiredLabel": "Last name *",
+  "cprOptionalLabel": "CPR (optional)",
+  "dobDdmmyyyyOptionalLabel": "Date of birth (DD/MM/YYYY, optional)",
+  "genderOptionalLabel": "Gender (optional)",
+  "bloodTypeOptionalLabel": "Blood type (optional)",
+  "saveChangesAction": "Save changes",
+  "cprValueLabel": "CPR {value}",
+  "@cprValueLabel": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "familyRelationshipSpouse": "Spouse",
+  "familyRelationshipChild": "Child",
+  "familyRelationshipParent": "Parent",
+  "familyRelationshipSibling": "Sibling",
+  "familyRelationshipGuardian": "Guardian",
+  "familyRelationshipOther": "Other",
+
+  "visitedDoctorsTitle": "Visited doctors",
+  "couldNotLoadYourCareTeam": "Could not load your care team.",
+  "noPastVisitsYetMessage": "No past visits yet.\nDoctors you see will appear here.",
+  "visitCountLabel": "{count, plural, one{{count} visit} other{{count} visits}}",
+  "@visitCountLabel": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "lastVisitLabel": "Last {date}",
+  "@lastVisitLabel": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "nextVisitLabel": "Next {date}",
+  "@nextVisitLabel": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "generalDepartmentFallback": "General",
+  "bookAgainAction": "Book again",
+  "navHome": "Home",
+  "navNutrition": "Nutrition",
+  "navAppointments": "Appointments",
+  "navRecords": "Records",
+  "navDashboard": "Dashboard",
+  "navPatients": "Patients",
+  "navTasks": "Tasks",
+  "navSchedule": "Schedule",
+  "navUsers": "Users",
+  "navDepartments": "Departments",
+  "navBilling": "Billing",
+  "pickPatientPlaceholder": "Pick a patient to open their chart.",
+  "noPatientsMatchSearch": "No patients match that search.",
+  "idValueLabel": "ID {value}",
+  "@idValueLabel": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  }
+}

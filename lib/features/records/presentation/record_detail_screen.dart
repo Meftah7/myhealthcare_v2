@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
+import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
@@ -13,6 +14,7 @@ import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../patient/application/patient_documents.dart';
 import '../../patient/presentation/document_download_button.dart';
 import '../../patient/presentation/patient_top_actions.dart';
@@ -36,17 +38,18 @@ class RecordDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context)!;
     final record = ref.watch(recordDetailProvider(recordId));
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Record'),
+        title: Text(t.recordTitle),
         actions: const [PatientTopActions()],
       ),
       body: record.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
-          message: 'Could not load this record.',
+          message: t.couldNotLoadRecord,
           onRetry: () => ref.invalidate(recordDetailProvider(recordId)),
         ),
         data: (r) => Center(
@@ -63,7 +66,7 @@ class RecordDetailScreen extends ConsumerWidget {
                 Text(r.title, style: theme.textTheme.headlineSmall),
                 const SizedBox(height: Space.xs),
                 Text(
-                  '${r.recordType.name} · ${fmtDate(r.occurredAt)}'
+                  '${r.recordType.label(context)} · ${fmtDate(r.occurredAt)}'
                   '${r.sourceFacility == null ? '' : ' · ${r.sourceFacility}'}',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
@@ -72,7 +75,7 @@ class RecordDetailScreen extends ConsumerWidget {
                 if (r.appointmentId != null) ...[
                   const SizedBox(height: Space.xs),
                   Text(
-                    'From your visit on ${fmtDate(r.occurredAt)}',
+                    t.fromYourVisitOn(fmtDate(r.occurredAt)),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.primary,
                     ),
@@ -88,9 +91,9 @@ class RecordDetailScreen extends ConsumerWidget {
                     r.sourceFacility != null) ...[
                   const SizedBox(height: Space.md),
                   Align(
-                    alignment: Alignment.centerLeft,
+                    alignment: AlignmentDirectional.centerStart,
                     child: DocumentDownloadButton(
-                      label: 'Referral letter',
+                      label: t.referralLetterLabel,
                       filename: 'referral-letter.pdf',
                       icon: Icons.forward_to_inbox_outlined,
                       build: () => buildReferralLetter(ref, r),
@@ -99,12 +102,12 @@ class RecordDetailScreen extends ConsumerWidget {
                 ],
                 if (r.labValues.isNotEmpty) ...[
                   const SizedBox(height: Space.md),
-                  const SectionHeader('Results', overline: true),
+                  SectionHeader(t.resultsSection, overline: true),
                   AppCard(child: _LabTable(labs: r.labValues)),
                 ],
                 if (r.extractedText != null) ...[
                   const SizedBox(height: Space.md),
-                  const SectionHeader('Extracted text', overline: true),
+                  SectionHeader(t.extractedTextSection, overline: true),
                   AppCard(
                     color: theme.colorScheme.surfaceContainerHighest,
                     child: Text(
@@ -131,13 +134,14 @@ class _LabTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: DataTable(
-        columns: const [
-          DataColumn(label: Text('Analyte')),
-          DataColumn(label: Text('Value')),
-          DataColumn(label: Text('Reference')),
+        columns: [
+          DataColumn(label: Text(t.labColumnAnalyte)),
+          DataColumn(label: Text(t.labColumnValue)),
+          DataColumn(label: Text(t.labColumnReference)),
         ],
         rows: [
           for (final v in labs)
@@ -158,7 +162,7 @@ class _LabTable extends StatelessWidget {
                   Text(
                     v.refLow != null && v.refHigh != null
                         ? '${v.refLow}–${v.refHigh}'
-                        : '—',
+                        : t.none,
                   ),
                 ),
               ],

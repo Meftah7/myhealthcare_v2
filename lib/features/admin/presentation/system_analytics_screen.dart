@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../staff_dashboard/application/staff_providers.dart';
 import '../application/admin_providers.dart';
 
@@ -16,11 +17,12 @@ class SystemAnalyticsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final stats = ref.watch(systemStatsProvider);
     final panel = ref.watch(panelStatsProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('System analytics')),
+      appBar: AppBar(title: Text(t.systemAnalyticsTitle)),
       body: RefreshIndicator(
         onRefresh: () async {
           ref
@@ -38,11 +40,11 @@ class SystemAnalyticsScreen extends ConsumerWidget {
                 Space.xxl,
               ),
               children: [
-                const SectionHeader('Directory', overline: true),
+                SectionHeader(t.directoryHeader, overline: true),
                 stats.when(
                   loading: () => const LoadingSkeleton(height: 160),
                   error: (e, _) =>
-                      const InlineBanner.error('Could not load system stats.'),
+                      InlineBanner.error(t.couldNotLoadSystemStats),
                   data: (s) => GridView.count(
                     crossAxisCount: 3,
                     shrinkWrap: true,
@@ -51,54 +53,55 @@ class SystemAnalyticsScreen extends ConsumerWidget {
                     crossAxisSpacing: Space.sm,
                     childAspectRatio: 1.5,
                     children: [
-                      MetricTile(value: '${s.patients}', label: 'Patients'),
-                      MetricTile(value: '${s.staff}', label: 'Staff'),
-                      MetricTile(value: '${s.admins}', label: 'Admins'),
+                      MetricTile(
+                        value: '${s.patients}',
+                        label: t.patientsAction,
+                      ),
+                      MetricTile(value: '${s.staff}', label: t.staffCountLabel),
+                      MetricTile(value: '${s.admins}', label: t.adminsLabel),
                       MetricTile(
                         value: '${s.departments}',
-                        label: 'Departments',
+                        label: t.departmentsLabel,
                       ),
                       MetricTile(
                         value: '${s.openFlags}',
-                        label: 'Open risk flags',
+                        label: t.openRiskFlagsLabel,
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: Space.md),
-                const SectionHeader(
-                  'Appointments · last 90 days',
+                SectionHeader(
+                  t.appointmentsLast90DaysHeader,
                   overline: true,
                 ),
                 panel.when(
                   loading: () => const LoadingSkeleton(height: 120),
-                  error: (e, _) => const InlineBanner.error(
-                    'Could not load appointment stats.',
-                  ),
+                  error: (e, _) =>
+                      InlineBanner.error(t.couldNotLoadAppointmentStats),
                   data: (p) => AppCard(
                     child: Column(
                       children: [
                         _Row(
-                          'No-show rate',
+                          t.noShowRateLabel,
                           '${(p.noShowRate * 100).toStringAsFixed(1)}%',
                         ),
                         const Divider(height: Space.md),
                         _Row(
-                          'Cancellation rate',
+                          t.cancellationRateLabel,
                           '${(p.cancellationRate * 100).toStringAsFixed(1)}%',
                         ),
                         const Divider(height: Space.md),
-                        _Row('Completed', '${p.completed}'),
+                        _Row(t.completedLabel, '${p.completed}'),
                         const Divider(height: Space.md),
-                        _Row('Upcoming', '${p.upcoming}'),
+                        _Row(t.upcomingLabel, '${p.upcoming}'),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(height: Space.sm),
                 Text(
-                  'No-show risk predictions come from the offline logistic-'
-                  'regression model (RQ2).',
+                  t.noShowRiskModelNote,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),

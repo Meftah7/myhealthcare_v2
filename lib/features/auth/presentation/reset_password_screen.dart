@@ -11,6 +11,7 @@ import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/result.dart';
+import '../../../l10n/app_localizations.dart';
 
 class ResetPasswordScreen extends ConsumerStatefulWidget {
   const ResetPasswordScreen({required this.userId, super.key});
@@ -39,6 +40,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
+    final t = AppLocalizations.of(context)!;
     setState(() {
       _busy = true;
       _error = null;
@@ -51,9 +53,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     switch (result) {
       case Ok():
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Password updated — sign in with your new password.'),
-          ),
+          SnackBar(content: Text(t.passwordUpdatedSnackbar)),
         );
         context.go(AppRoutes.login);
       case Err(:final failure):
@@ -63,28 +63,26 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final invalidUser = widget.userId.isEmpty;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Set a new password')),
+      appBar: AppBar(title: Text(t.setNewPasswordTitle)),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(Space.lg),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420),
             child: invalidUser
-                ? const InlineBanner.error(
-                    'Start from the "Forgot password" screen so we know which '
-                    'account to reset.',
-                  )
+                ? InlineBanner.error(t.startFromForgotPasswordNote)
                 : Form(
                     key: _formKey,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          'New password',
+                          t.newPasswordTitle,
                           style: theme.textTheme.headlineSmall,
                         ),
                         const SizedBox(height: Space.lg),
@@ -94,7 +92,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                           autocorrect: false,
                           enableSuggestions: false,
                           decoration: InputDecoration(
-                            labelText: 'New password (8+ characters)',
+                            labelText: t.newPasswordLabel,
                             prefixIcon: const Icon(Icons.lock_outline),
                             suffixIcon: IconButton(
                               onPressed: () =>
@@ -107,7 +105,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                             ),
                           ),
                           validator: (v) => (v == null || v.length < 8)
-                              ? 'At least 8 characters'
+                              ? t.atLeast8Characters
                               : null,
                         ),
                         const SizedBox(height: Space.md),
@@ -118,12 +116,12 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                           enableSuggestions: false,
                           textInputAction: TextInputAction.done,
                           onFieldSubmitted: (_) => _submit(),
-                          decoration: const InputDecoration(
-                            labelText: 'Confirm new password',
-                            prefixIcon: Icon(Icons.lock_outline),
+                          decoration: InputDecoration(
+                            labelText: t.confirmNewPasswordLabel,
+                            prefixIcon: const Icon(Icons.lock_outline),
                           ),
                           validator: (v) => v != _password.text
-                              ? 'Passwords do not match'
+                              ? t.passwordsDoNotMatch
                               : null,
                         ),
                         if (_error != null) ...[
@@ -140,7 +138,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                                     strokeWidth: 2,
                                   ),
                                 )
-                              : const Text('Update password'),
+                              : Text(t.updatePasswordButton),
                         ),
                       ],
                     ),

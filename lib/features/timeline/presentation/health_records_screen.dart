@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../billing/presentation/billing_screen.dart';
 import '../../patient/application/patient_data_providers.dart';
 import '../../patient/application/patient_documents.dart';
@@ -37,10 +38,11 @@ class _HealthRecordsScreenState extends State<HealthRecordsScreen> {
   @override
   Widget build(BuildContext context) {
     final gutter = WindowSize.of(context).gutter;
+    final t = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Records'),
+        title: Text(t.recordsTitle),
         actions: const [PatientTopActions()],
       ),
       body: Column(
@@ -64,21 +66,21 @@ class _HealthRecordsScreenState extends State<HealthRecordsScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: SegmentedButton<_RecordsView>(
-                        segments: const [
+                        segments: [
                           ButtonSegment(
                             value: _RecordsView.timeline,
-                            icon: Icon(Icons.timeline_outlined),
-                            label: Text('Timeline'),
+                            icon: const Icon(Icons.timeline_outlined),
+                            label: Text(t.timelineSegment),
                           ),
                           ButtonSegment(
                             value: _RecordsView.medications,
-                            icon: Icon(Icons.medication_outlined),
-                            label: Text('Medications'),
+                            icon: const Icon(Icons.medication_outlined),
+                            label: Text(t.quickActionMedications),
                           ),
                           ButtonSegment(
                             value: _RecordsView.bills,
-                            icon: Icon(Icons.receipt_long_outlined),
-                            label: Text('Bills'),
+                            icon: const Icon(Icons.receipt_long_outlined),
+                            label: Text(t.billsSegment),
                           ),
                         ],
                         selected: {_view},
@@ -115,6 +117,7 @@ class _DocumentsStrip extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final t = AppLocalizations.of(context)!;
     final allergies =
         ref.watch(patientProfileProvider).valueOrNull?.allergies ??
         const <String>[];
@@ -169,7 +172,7 @@ class _DocumentsStrip extends ConsumerWidget {
                 const SizedBox(width: Space.sm),
                 Expanded(
                   child: Text(
-                    'Allergies: ${allergies.join(', ')}',
+                    t.allergiesInline(allergies.join(', ')),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodyMedium?.copyWith(
@@ -187,26 +190,26 @@ class _DocumentsStrip extends ConsumerWidget {
         shortcutRow(
           shortcut(
             Icons.image_outlined,
-            'Imaging',
+            t.imagingTitle,
             () => context.push(AppRoutes.patientImaging),
           ),
           shortcut(
             Icons.event_busy_outlined,
-            'Sick leave',
+            t.quickActionSickLeave,
             () => context.push(AppRoutes.patientSickLeave),
           ),
         ),
         const SizedBox(height: Space.sm),
         shortcutRow(
           DocumentDownloadButton(
-            label: 'Vital signs report',
+            label: t.vitalSignsReportLabel,
             filename: 'vital-signs-report.pdf',
             icon: Icons.monitor_heart_outlined,
             build: () => buildVitalsReport(ref),
           ),
           shortcut(
             Icons.medical_information_outlined,
-            'Allergies',
+            t.allergiesLabel,
             () => context.push(AppRoutes.patientAllergies),
           ),
         ),

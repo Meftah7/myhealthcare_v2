@@ -3,26 +3,29 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
+
 /// Shows a yes/no dialog; returns true only if the user confirms.
 Future<bool> confirm(
   BuildContext context, {
   required String title,
   required String message,
-  String confirmLabel = 'Confirm',
-  String cancelLabel = 'Cancel',
+  String? confirmLabel,
+  String? cancelLabel,
   bool destructive = false,
 }) async {
   final result = await showDialog<bool>(
     context: context,
     builder: (context) {
       final scheme = Theme.of(context).colorScheme;
+      final t = AppLocalizations.of(context)!;
       return AlertDialog(
         title: Text(title),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: Text(cancelLabel),
+            child: Text(cancelLabel ?? t.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
@@ -32,7 +35,7 @@ Future<bool> confirm(
                     foregroundColor: scheme.onError,
                   )
                 : null,
-            child: Text(confirmLabel),
+            child: Text(confirmLabel ?? t.confirm),
           ),
         ],
       );

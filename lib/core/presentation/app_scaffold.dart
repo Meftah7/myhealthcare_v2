@@ -241,6 +241,28 @@ class _AppScaffoldState extends State<AppScaffold> {
   }
 }
 
+/// The product mark, resolved to the light- or dark-background artwork for
+/// the current theme so it stays crisp against either — every place the bare
+/// logo appears ([AppBrandLockup], the shell rail's collapsed state, the
+/// splash mark, the sign-in mark) goes through this rather than picking an
+/// asset path itself.
+class AppLogo extends StatelessWidget {
+  const AppLogo({this.height, this.semanticLabel, super.key});
+
+  final double? height;
+  final String? semanticLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return Image.asset(
+      dark ? 'assets/images/logo_dark.png' : 'assets/images/logo_light.png',
+      height: height,
+      semanticLabel: semanticLabel,
+    );
+  }
+}
+
 /// The product mark — logo plus wordmark — for the role home screens' app bar.
 ///
 /// Shared so the patient, staff and admin dashboards open with the same
@@ -258,7 +280,7 @@ class AppBrandLockup extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Image.asset('assets/images/logo.png', height: 26),
+        const AppLogo(height: 26),
         const SizedBox(width: Space.xs),
         // Flexible so the wordmark ellipsises on a narrow phone rather than
         // colliding with the top-bar action buttons.

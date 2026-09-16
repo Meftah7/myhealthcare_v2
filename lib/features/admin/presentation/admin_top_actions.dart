@@ -11,6 +11,7 @@ import '../../../app/router.dart';
 import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/circle_icon_button.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../patient_home/presentation/notifications_button.dart';
 import 'admin_status_menu.dart';
 
@@ -20,6 +21,7 @@ class AdminTopActions extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final mode = ref.watch(themeModeProvider);
     final platformIsDark =
         MediaQuery.platformBrightnessOf(context) == Brightness.dark;
@@ -33,14 +35,14 @@ class AdminTopActions extends ConsumerWidget {
         const NotificationsButton(route: AppRoutes.adminNotifications),
         CircleIconButton(
           icon: isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-          tooltip: isDark ? 'Switch to light mode' : 'Switch to dark mode',
+          tooltip: isDark ? t.switchToLightMode : t.switchToDarkMode,
           onPressed: () => ref
               .read(themeModeProvider.notifier)
               .set(isDark ? ThemeMode.light : ThemeMode.dark),
         ),
         CircleIconButton(
           icon: Icons.account_circle_outlined,
-          tooltip: 'Profile',
+          tooltip: t.profileTooltip,
           onPressed: () => context.go(AppRoutes.adminProfile),
         ),
         const SizedBox(width: Space.xs),

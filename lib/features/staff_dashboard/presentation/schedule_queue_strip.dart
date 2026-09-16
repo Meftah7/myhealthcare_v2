@@ -1,13 +1,14 @@
 /// "Today's queue" on the schedule day view: a tracking list of the patients
-/// still waiting, soonest first. Tap a patient for a short summary (with a way
-/// into their chart); press "Next" to step to the following patient — which
-/// scrolls their card into view on the timeline and glows it briefly.
+/// still waiting, soonest first. Tapping any chip makes that patient current —
+/// it scrolls and glows their card on the timeline, exactly like "Next" — so
+/// the doctor can move freely in either direction, not just forward. "Next" is
+/// the fast-forward convenience for the common case of working the list in
+/// order. The currently selected patient's summary sits inline under the
+/// strip, always visible while they're selected.
 ///
-/// "Next" never navigates away. There are no accept / decline actions here —
-/// that is the timeline card's job.
+/// Nothing here navigates away — that is the timeline card's job. There are
+/// no accept / decline actions here either — that is also the card's job.
 library;
-
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,8 +16,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/i18n/enum_labels.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../patient_chart/application/chart_providers.dart';
 import '../application/staff_providers.dart';
 
@@ -25,6 +28,7 @@ class ScheduleQueueStrip extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final queueAsync = ref.watch(staffQueueProvider);
@@ -35,17 +39,20 @@ class ScheduleQueueStrip extends ConsumerWidget {
     if (queue == null || queue.isEmpty) return const SizedBox.shrink();
 
     final idx = queue.indexWhere((a) => a.id == currentId);
+    final selected = idx >= 0 ? queue[idx] : null;
     final atEnd = idx >= 0 && idx == queue.length - 1;
 
     String nameOf(Appointment a) =>
         names[a.patientId] ?? visitTypeLabel(a.visitType);
 
+    void select(Appointment a) =>
+        ref.read(scheduleQueueCurrentIdProvider.notifier).state = a.id;
+
     void advance() {
       final next = idx < 0
           ? queue.first
           : (idx + 1 < queue.length ? queue[idx + 1] : null);
-      if (next == null) return;
-      ref.read(scheduleQueueCurrentIdProvider.notifier).state = next.id;
+      if (next != null) select(next);
     }
 
     return Container(
@@ -64,7 +71,7 @@ class ScheduleQueueStrip extends ConsumerWidget {
             child: Row(
               children: [
                 Text(
-                  "TODAY'S QUEUE",
+                  t.todaysQueueCaps,
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: scheme.onSurfaceVariant,
                     letterSpacing: 0.8,
@@ -72,7 +79,7 @@ class ScheduleQueueStrip extends ConsumerWidget {
                 ),
                 const Spacer(),
                 Text(
-                  '${queue.length} waiting',
+                  t.waitingCount(queue.length),
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: scheme.onSurfaceVariant,
                   ),
@@ -93,7 +100,7 @@ class ScheduleQueueStrip extends ConsumerWidget {
                   label: nameOf(a),
                   time: fmtTime(a.slotStart),
                   selected: a.id == currentId,
-                  onTap: () => _showSummary(context, a, nameOf(a)),
+                  onTap: () => select(a),
                 );
               },
             ),
@@ -104,10 +111,10 @@ class ScheduleQueueStrip extends ConsumerWidget {
               Expanded(
                 child: Text(
                   idx < 0
-                      ? 'Start with ${nameOf(queue.first)}'
+                      ? t.tapPatientOrPressNext
                       : atEnd
-                      ? 'Last patient in the queue'
-                      : 'Now: ${nameOf(queue[idx])}',
+                      ? t.lastPatientInQueue
+                      : t.nowLabel(nameOf(queue[idx])),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodySmall?.copyWith(
@@ -121,21 +128,20 @@ class ScheduleQueueStrip extends ConsumerWidget {
                   : FilledButton.tonalIcon(
                       onPressed: advance,
                       icon: const Icon(Icons.skip_next_rounded, size: 18),
-                      label: const Text('Next'),
+                      label: Text(t.nextLabel),
                     ),
             ],
           ),
+          AppReveal(
+            child: selected == null
+                ? const SizedBox.shrink(key: ValueKey('queue-summary-none'))
+                : _InlineSummary(
+                    key: ValueKey('queue-summary-${selected.id}'),
+                    appointment: selected,
+                    name: nameOf(selected),
+                  ),
+          ),
         ],
-      ),
-    );
-  }
-
-  void _showSummary(BuildContext context, Appointment a, String name) {
-    unawaited(
-      showModalBottomSheet<void>(
-        context: context,
-        showDragHandle: true,
-        builder: (_) => _QueueSummarySheet(appointment: a, name: name),
       ),
     );
   }
@@ -146,6 +152,7 @@ class _NoMore extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -157,7 +164,7 @@ class _NoMore extends StatelessWidget {
         ),
         const SizedBox(width: Space.xxs),
         Text(
-          'No more patients',
+          t.noMorePatients,
           style: theme.textTheme.labelMedium?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -223,64 +230,94 @@ class _QueueChip extends StatelessWidget {
   }
 }
 
-class _QueueSummarySheet extends ConsumerWidget {
-  const _QueueSummarySheet({required this.appointment, required this.name});
+/// The selected queue patient's summary — room, reason, key facts, and a way
+/// into their chart. Sits inline under the strip so it's always visible while
+/// they're selected, rather than a tap-away sheet.
+class _InlineSummary extends ConsumerWidget {
+  const _InlineSummary({
+    required this.appointment,
+    required this.name,
+    super.key,
+  });
 
   final Appointment appointment;
   final String name;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final patient = ref.watch(chartPatientProvider(appointment.patientId));
 
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(Space.lg, 0, Space.lg, Space.lg),
+    return Padding(
+      padding: const EdgeInsets.only(top: Space.xs),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(Space.sm),
+        decoration: BoxDecoration(
+          color: scheme.surfaceContainerHighest,
+          borderRadius: Radii.cardSmall,
+        ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(name, style: theme.textTheme.titleLarge),
-            const SizedBox(height: Space.xxs),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(name, style: theme.textTheme.titleSmall),
+                ),
+                Text(
+                  fmtTime(appointment.slotStart),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                    fontFeatures: kTabularFigures,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 2),
             Text(
               [
-                fmtTime(appointment.slotStart),
                 visitTypeLabel(appointment.visitType),
                 if (appointment.roomNumber != null)
-                  'Room ${appointment.roomNumber}',
+                  t.roomNumber('${appointment.roomNumber}'),
                 if (appointment.ticketTag != null)
-                  'Ticket ${appointment.ticketTag}',
-              ].join('  ·  '),
-              style: theme.textTheme.bodyMedium?.copyWith(
+                  t.ticketLabel(appointment.ticketTag!),
+              ].join(' · '),
+              style: theme.textTheme.bodySmall?.copyWith(
                 color: scheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: Space.sm),
+            const SizedBox(height: Space.xs),
             patient.when(
               loading: () => const LinearProgressIndicator(minHeight: 2),
-              error: (_, _) => Text(
-                'Could not load the patient.',
-                style: theme.textTheme.bodySmall,
-              ),
+              error: (_, _) => const SizedBox.shrink(),
               data: (p) => _PatientFacts(patient: p),
             ),
             if (appointment.reasonText != null) ...[
-              const SizedBox(height: Space.xs),
+              const SizedBox(height: Space.xxs),
               Text(
-                'Reason: ${appointment.reasonText}',
+                t.reasonLabel(appointment.reasonText!),
                 style: theme.textTheme.bodySmall,
               ),
             ],
-            const SizedBox(height: Space.md),
-            FilledButton.icon(
-              onPressed: () {
-                Navigator.of(context).pop();
-                context.go(AppRoutes.staffPatientChart(appointment.patientId));
-              },
-              icon: const Icon(Icons.assignment_outlined),
-              label: const Text('Open chart'),
+            const SizedBox(height: Space.xs),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: OutlinedButton.icon(
+                onPressed: () => context.go(
+                  AppRoutes.staffPatientChart(appointment.patientId),
+                ),
+                icon: const Icon(Icons.assignment_outlined, size: 18),
+                label: Text(t.openChartAction),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: scheme.onSurfaceVariant,
+                  side: BorderSide(color: scheme.outlineVariant),
+                  visualDensity: VisualDensity.compact,
+                ),
+              ),
             ),
           ],
         ),
@@ -296,11 +333,12 @@ class _PatientFacts extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final u = patient.user;
     final facts = [
-      if (u.ageYears != null) '${u.ageYears} yrs',
-      ?u.gender?.name,
+      if (u.ageYears != null) t.ageYearsAbbrev(u.ageYears!),
+      ?u.gender?.label(context),
       if (patient.bloodType != null) patient.bloodType!,
     ].join(' · ');
 
@@ -318,7 +356,7 @@ class _PatientFacts extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: Space.xxs),
             child: Text(
-              'Allergies: ${patient.allergies.join(', ')}',
+              t.allergiesInlineLabel(patient.allergies.join(', ')),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.error,
                 fontWeight: FontWeight.w600,

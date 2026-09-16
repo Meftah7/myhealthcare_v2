@@ -9,6 +9,7 @@ library;
 import 'package:flutter/material.dart';
 
 import '../../../app/theme/theme.dart';
+import '../../../core/presentation/app_scaffold.dart';
 
 /// How long the opening screen holds before it dissolves. Long enough to read
 /// as a deliberate welcome rather than a flash of branding.
@@ -148,8 +149,7 @@ class _SplashOverlayState extends State<SplashOverlay>
                                 boxShadow: Shadows.glow(AppColors.brandViolet),
                               ),
                               padding: const EdgeInsets.all(18),
-                              child: Image.asset(
-                                'assets/images/logo.png',
+                              child: const AppLogo(
                                 semanticLabel: 'MyHealth Care',
                               ),
                             ),

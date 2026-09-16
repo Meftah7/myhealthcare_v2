@@ -296,7 +296,9 @@ class ClinicPdf {
   static Future<pw.ImageProvider?> _logo() async {
     if (_cachedLogo != null) return _cachedLogo;
     try {
-      final data = await rootBundle.load('assets/images/logo.png');
+      // A PDF page is always white paper, regardless of the app's theme —
+      // always the light-background mark.
+      final data = await rootBundle.load('assets/images/logo_light.png');
       return _cachedLogo = pw.MemoryImage(data.buffer.asUint8List());
     } catch (_) {
       // A missing asset must never sink a report — just drop the mark.

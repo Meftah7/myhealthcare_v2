@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/session.dart';
 
 class MfaScreen extends ConsumerStatefulWidget {
@@ -33,27 +34,29 @@ class _MfaScreenState extends ConsumerState<MfaScreen> {
   }
 
   void _verify() {
+    final t = AppLocalizations.of(context)!;
     if (_code.text.trim() == kDemoMfaCode) {
       ref.read(sessionProvider.notifier).passMfa();
       // The router redirect takes the user to their dashboard.
       return;
     }
-    setState(() => _error = 'That code is not right. Try again.');
+    setState(() => _error = t.codeNotRightError);
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final name = ref.watch(currentUserProvider)?.fullName.split(' ').first;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Verify it’s you'),
+        title: Text(t.verifyItsYouTitle),
         automaticallyImplyLeading: false,
         actions: [
           TextButton(
             onPressed: () => ref.read(sessionProvider.notifier).logout(),
-            child: const Text('Cancel'),
+            child: Text(t.cancel),
           ),
         ],
       ),
@@ -72,15 +75,13 @@ class _MfaScreenState extends ConsumerState<MfaScreen> {
                 ),
                 const SizedBox(height: Space.md),
                 Text(
-                  name == null
-                      ? 'Enter your 6-digit code'
-                      : 'Almost there, $name',
+                  name == null ? t.enterSixDigitCode : t.almostThereName(name),
                   textAlign: TextAlign.center,
                   style: theme.textTheme.headlineSmall,
                 ),
                 const SizedBox(height: Space.xxs),
                 Text(
-                  'We sent a 6-digit verification code to your device.',
+                  t.sixDigitCodeSentNote,
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
@@ -117,12 +118,12 @@ class _MfaScreenState extends ConsumerState<MfaScreen> {
                 const SizedBox(height: Space.md),
                 FilledButton(
                   onPressed: _verify,
-                  child: const Text('Verify'),
+                  child: Text(t.verifyButton),
                 ),
                 const SizedBox(height: Space.xs),
                 TextButton(
                   onPressed: () => setState(() => _resent = true),
-                  child: Text(_resent ? 'Code re-sent' : 'Resend code'),
+                  child: Text(_resent ? t.codeResentLabel : t.resendCodeLabel),
                 ),
                 const SizedBox(height: Space.md),
                 Container(
@@ -132,7 +133,7 @@ class _MfaScreenState extends ConsumerState<MfaScreen> {
                     borderRadius: Radii.cardSmall,
                   ),
                   child: Text(
-                    'Demo build — the verification code is $kDemoMfaCode.',
+                    t.demoCodeNote(kDemoMfaCode),
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,

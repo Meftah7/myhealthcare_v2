@@ -7,17 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
+import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/enums.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/admin_providers.dart';
-
-String aiFeatureLabel(AiFeature f) => switch (f) {
-  AiFeature.careNavigator => 'Care Navigator',
-  AiFeature.clinicalScribe => 'Clinical Scribe',
-  AiFeature.patientSummary => 'Patient summary',
-};
 
 IconData _aiFeatureIcon(AiFeature f) => switch (f) {
   AiFeature.careNavigator => Icons.smart_toy_outlined,
@@ -37,13 +33,14 @@ class _AdminAiLogScreenState extends ConsumerState<AdminAiLogScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final entries = ref.watch(aiUsageProvider(_filter));
     final gutter = WindowSize.of(context).gutter;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('AI activity'),
+        title: Text(t.aiActivityTitle),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(52),
           child: SingleChildScrollView(
@@ -52,18 +49,18 @@ class _AdminAiLogScreenState extends ConsumerState<AdminAiLogScreen> {
             child: Row(
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(right: Space.xs),
+                  padding: const EdgeInsetsDirectional.only(end: Space.xs),
                   child: FilterChip(
-                    label: const Text('All'),
+                    label: Text(t.allFilterChip),
                     selected: _filter == null,
                     onSelected: (_) => setState(() => _filter = null),
                   ),
                 ),
                 for (final f in AiFeature.values)
                   Padding(
-                    padding: const EdgeInsets.only(right: Space.xs),
+                    padding: const EdgeInsetsDirectional.only(end: Space.xs),
                     child: FilterChip(
-                      label: Text(aiFeatureLabel(f)),
+                      label: Text(f.label(context)),
                       selected: _filter == f,
                       onSelected: (_) => setState(() => _filter = f),
                     ),
@@ -76,14 +73,14 @@ class _AdminAiLogScreenState extends ConsumerState<AdminAiLogScreen> {
       body: entries.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
-          message: 'Could not load the AI log.',
+          message: t.couldNotLoadAiLog,
           onRetry: () => ref.invalidate(aiUsageProvider(_filter)),
         ),
         data: (list) {
           if (list.isEmpty) {
-            return const EmptyState(
+            return EmptyState(
               icon: Icons.auto_awesome_outlined,
-              message: 'No AI activity recorded yet.',
+              message: t.noAiActivityRecordedYet,
             );
           }
           final live = list.where((e) => e.usedLiveModel).length;
@@ -101,8 +98,7 @@ class _AdminAiLogScreenState extends ConsumerState<AdminAiLogScreen> {
                 ),
                 children: [
                   Text(
-                    '${list.length} calls · $live via the live model · '
-                    '${list.length - live} offline',
+                    t.aiCallsSummary(list.length, live, list.length - live),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -116,12 +112,12 @@ class _AdminAiLogScreenState extends ConsumerState<AdminAiLogScreen> {
                           if (i > 0) const Divider(height: 1, indent: Space.md),
                           ListTile(
                             leading: Icon(_aiFeatureIcon(list[i].feature)),
-                            title: Text(aiFeatureLabel(list[i].feature)),
+                            title: Text(list[i].feature.label(context)),
                             subtitle: Text(
                               [
                                 list[i].usedLiveModel
-                                    ? 'live model'
-                                    : 'offline',
+                                    ? t.liveModelLabel
+                                    : t.offlineLabel,
                                 if (list[i].summary != null) list[i].summary!,
                               ].join(' · '),
                               maxLines: 2,

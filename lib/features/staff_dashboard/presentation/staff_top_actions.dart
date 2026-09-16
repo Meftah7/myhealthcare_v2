@@ -13,8 +13,10 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/circle_icon_button.dart';
 import '../../../domain/enums.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../patient_home/presentation/notifications_button.dart';
 import '../application/staff_providers.dart';
 
@@ -27,6 +29,7 @@ class StaffTopActions extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final mode = ref.watch(themeModeProvider);
     final platformIsDark =
         MediaQuery.platformBrightnessOf(context) == Brightness.dark;
@@ -40,14 +43,14 @@ class StaffTopActions extends ConsumerWidget {
         const NotificationsButton(route: AppRoutes.staffNotifications),
         CircleIconButton(
           icon: isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-          tooltip: isDark ? 'Switch to light mode' : 'Switch to dark mode',
+          tooltip: isDark ? t.switchToLightMode : t.switchToDarkMode,
           onPressed: () => ref
               .read(themeModeProvider.notifier)
               .set(isDark ? ThemeMode.light : ThemeMode.dark),
         ),
         CircleIconButton(
           icon: Icons.account_circle_outlined,
-          tooltip: 'Profile',
+          tooltip: t.profileTooltip,
           onPressed: () => context.go(AppRoutes.staffProfile),
         ),
         const SizedBox(width: Space.xs),
@@ -67,22 +70,22 @@ class StaffTopActions extends ConsumerWidget {
     PresenceStatus.onDuty => (
       color: ramp.riskLow.onContainer,
       icon: Icons.check_circle,
-      label: 'On duty',
+      label: status.label(context),
     ),
     PresenceStatus.inConsultation => (
       color: ramp.riskHigh.onContainer,
       icon: Icons.do_not_disturb_on,
-      label: 'In consultation',
+      label: status.label(context),
     ),
     PresenceStatus.onBreak => (
       color: ramp.riskMedium.onContainer,
       icon: Icons.coffee,
-      label: 'On break',
+      label: status.label(context),
     ),
     PresenceStatus.offShift => (
       color: scheme.onSurfaceVariant,
       icon: Icons.nightlight_round,
-      label: 'Off shift',
+      label: status.label(context),
     ),
   };
 }
@@ -94,19 +97,20 @@ class PresenceMenu extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final profile = ref.watch(staffProfileProvider);
     final current = profile.valueOrNull?.presence ?? PresenceStatus.offShift;
     final meta = presenceMeta(context, current);
 
     return PopupMenuButton<PresenceStatus>(
-      tooltip: 'Set your availability',
+      tooltip: t.setYourAvailabilityTooltip,
       position: PopupMenuPosition.under,
       onSelected: (status) async {
         final result = await ref.read(staffOpsProvider).setPresence(status);
         if (context.mounted && result.isErr) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not update your presence.')),
+            SnackBar(content: Text(t.couldNotUpdatePresence)),
           );
         }
       },

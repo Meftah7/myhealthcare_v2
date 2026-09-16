@@ -14,6 +14,7 @@ import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
 import '../../care/application/care_providers.dart';
 import '../../staff_dashboard/application/staff_providers.dart';
@@ -26,11 +27,14 @@ class AdminDashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final user = ref.watch(currentUserProvider);
-    final firstName = (user?.fullName ?? 'there').split(' ').first;
+    final firstName = (user?.fullName ?? t.greetingFallbackName).split(
+      ' ',
+    ).first;
 
     return AppScaffold(
-      titleWidget: const AppBrandLockup(subtitle: 'Admin'),
+      titleWidget: AppBrandLockup(subtitle: t.roleAdmin),
       actions: const [AdminTopActions()],
       onRefresh: () async {
         ref
@@ -52,23 +56,23 @@ class AdminDashboardScreen extends ConsumerWidget {
 
         SectionColumns(
           primary: [
-            const SectionHeader('System health', overline: true),
+            SectionHeader(t.systemHealthHeader, overline: true),
             _SystemHealth(),
-            const SectionHeader('Quick actions', overline: true),
+            SectionHeader(t.quickActionsHeader, overline: true),
             const AdminQuickActions(),
           ],
           secondary: [
             SectionHeader(
-              'Appointments · last 90 days',
+              t.appointmentsLast90DaysHeader,
               overline: true,
-              action: 'Analytics',
+              action: t.analyticsAction,
               onAction: () => context.push(AppRoutes.adminProfileAnalytics),
             ),
             _PanelCard(),
             SectionHeader(
-              'Recent activity',
+              t.recentActivityHeader,
               overline: true,
-              action: 'Audit log',
+              action: t.auditLogTitle,
               onAction: () => context.push(AppRoutes.adminProfileAudit),
             ),
             _ActivityCard(),
@@ -86,6 +90,7 @@ class _NeedsYouHero extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final unpaid = ref.watch(unpaidInvoiceCountProvider).valueOrNull ?? 0;
     final feedback = ref.watch(openFeedbackCountProvider).valueOrNull ?? 0;
     final homeVisits = ref.watch(openHomeVisitCountProvider);
@@ -95,19 +100,17 @@ class _NeedsYouHero extends ConsumerWidget {
     if (total == 0) {
       return GradientHeroCard(
         icon: Icons.check_circle_outline,
-        title: 'All clear',
-        subtitle: 'No invoices, reports, visit or referral requests waiting',
+        title: t.allClearTitle,
+        subtitle: t.noQueuesWaitingSubtitle,
         onTap: () => context.push(AppRoutes.adminProfileAnalytics),
       );
     }
 
     final parts = <String>[
-      if (unpaid > 0) '$unpaid unpaid invoice${unpaid == 1 ? '' : 's'}',
-      if (feedback > 0) '$feedback open report${feedback == 1 ? '' : 's'}',
-      if (homeVisits > 0)
-        '$homeVisits visit request${homeVisits == 1 ? '' : 's'}',
-      if (referrals > 0)
-        '$referrals referral request${referrals == 1 ? '' : 's'}',
+      if (unpaid > 0) t.unpaidInvoiceCount(unpaid),
+      if (feedback > 0) t.openReportCount(feedback),
+      if (homeVisits > 0) t.visitRequestCount(homeVisits),
+      if (referrals > 0) t.referralRequestCount(referrals),
     ];
 
     // Deep-link to the busiest queue.
@@ -122,7 +125,7 @@ class _NeedsYouHero extends ConsumerWidget {
 
     return GradientHeroCard(
       icon: Icons.priority_high,
-      title: '$total ${total == 1 ? 'thing needs' : 'things need'} you',
+      title: t.thingsNeedYouTitle(total),
       subtitle: parts.join(' · '),
       onTap: () => route == AppRoutes.adminBilling
           ? context.go(route)
@@ -136,34 +139,35 @@ class _NeedsYouHero extends ConsumerWidget {
 class _SystemHealth extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final stats = ref.watch(systemStatsProvider);
 
     return AppReveal(
       child: stats.when(
         loading: () =>
             const LoadingSkeleton(key: ValueKey('s-load'), height: 96),
-        error: (e, _) => const InlineBanner.error(
-          'Could not load system stats.',
-          key: ValueKey('s-err'),
+        error: (e, _) => InlineBanner.error(
+          t.couldNotLoadSystemStats,
+          key: const ValueKey('s-err'),
         ),
         data: (s) => MetricRow(
           key: const ValueKey('s-data'),
           children: [
             MetricTile(
               value: '${s.patients}',
-              label: 'Patients',
+              label: t.patientsAction,
               icon: Icons.people_outline,
               onTap: () => context.go(AppRoutes.adminUsers),
             ),
             MetricTile(
               value: '${s.staff}',
-              label: 'Staff',
+              label: t.staffCountLabel,
               icon: Icons.badge_outlined,
               onTap: () => context.go(AppRoutes.adminUsers),
             ),
             MetricTile(
               value: '${s.departments}',
-              label: 'Departments',
+              label: t.departmentsLabel,
               icon: Icons.apartment_outlined,
               onTap: () => context.go(AppRoutes.adminDepartments),
             ),
@@ -177,28 +181,32 @@ class _SystemHealth extends ConsumerWidget {
 class _PanelCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final rtl = Directionality.of(context) == TextDirection.rtl;
     final panel = ref.watch(panelStatsProvider);
     return panel.when(
       loading: () => const LoadingSkeleton(height: 120),
-      error: (e, _) =>
-          const InlineBanner.error('Could not load appointment stats.'),
+      error: (e, _) => InlineBanner.error(t.couldNotLoadAppointmentStats),
       data: (p) => AppCard(
         onTap: () => context.push(AppRoutes.adminProfileAnalytics),
         child: Column(
           children: [
-            _Kv('No-show rate', '${(p.noShowRate * 100).toStringAsFixed(1)}%'),
             _Kv(
-              'Cancellation rate',
+              t.noShowRateLabel,
+              '${(p.noShowRate * 100).toStringAsFixed(1)}%',
+            ),
+            _Kv(
+              t.cancellationRateLabel,
               '${(p.cancellationRate * 100).toStringAsFixed(1)}%',
             ),
-            _Kv('Completed', '${p.completed}'),
-            _Kv('Upcoming', '${p.upcoming}', last: true),
+            _Kv(t.completedLabel, '${p.completed}'),
+            _Kv(t.upcomingLabel, '${p.upcoming}', last: true),
             const SizedBox(height: Space.xs),
             Align(
-              alignment: Alignment.centerLeft,
+              alignment: AlignmentDirectional.centerStart,
               child: Text(
-                'View detailed analytics  ›',
+                '${t.viewDetailedAnalytics}  ${rtl ? '‹' : '›'}',
                 style: theme.textTheme.labelMedium?.copyWith(
                   color: theme.colorScheme.primary,
                 ),
@@ -214,17 +222,17 @@ class _PanelCard extends ConsumerWidget {
 class _ActivityCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final audit = ref.watch(auditLogProvider);
     return audit.when(
       loading: () => const LoadingSkeleton(height: 90),
-      error: (e, _) =>
-          const InlineBanner.error('Could not load the audit log.'),
+      error: (e, _) => InlineBanner.error(t.couldNotLoadAuditLog),
       data: (list) {
         if (list.isEmpty) {
-          return const AppCard(
-            padding: EdgeInsets.all(Space.md),
-            child: Text('No audit entries yet.'),
+          return AppCard(
+            padding: const EdgeInsets.all(Space.md),
+            child: Text(t.noAuditEntriesYet),
           );
         }
         final rows = list.take(6).toList();

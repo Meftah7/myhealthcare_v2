@@ -5,8 +5,11 @@
 /// demo data and wiped on re-seed).
 library;
 
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart' as intl;
 
 import '../../core/di.dart';
 
@@ -49,18 +52,33 @@ class LocaleController extends Notifier<Locale?> {
   @override
   Locale? build() {
     final raw = ref.read(sharedPreferencesProvider).getString(_localeKey);
-    if (raw == null || raw.isEmpty) return null;
-    return Locale(raw);
+    final locale = (raw == null || raw.isEmpty) ? null : Locale(raw);
+    _syncIntlDefaultLocale(locale);
+    return locale;
   }
 
   Future<void> set(Locale? locale) async {
     state = locale;
+    _syncIntlDefaultLocale(locale);
     final prefs = ref.read(sharedPreferencesProvider);
     if (locale == null) {
       await prefs.remove(_localeKey);
     } else {
       await prefs.setString(_localeKey, locale.languageCode);
     }
+  }
+
+  /// Keeps `Intl.defaultLocale` — which plain (non-widget) helpers like
+  /// `core/utils/format.dart` read via `Intl.getCurrentLocale()` — matched to
+  /// the app's language preference, including the "system" case (`null`),
+  /// since those helpers have no `BuildContext` to resolve it from.
+  void _syncIntlDefaultLocale(Locale? locale) {
+    final languageCode =
+        locale?.languageCode ??
+        (PlatformDispatcher.instance.locale.languageCode == 'ar'
+            ? 'ar'
+            : 'en');
+    intl.Intl.defaultLocale = languageCode;
   }
 }
 

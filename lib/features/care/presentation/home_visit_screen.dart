@@ -12,6 +12,7 @@ import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../patient/application/patient_data_providers.dart';
 import '../../patient/presentation/patient_top_actions.dart';
 import '../application/care_providers.dart';
@@ -22,30 +23,30 @@ class HomeVisitScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final requests = ref.watch(patientHomeVisitsProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home health care'),
+        title: Text(t.homeHealthCareTitle),
         actions: const [PatientTopActions()],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openForm(context, ref),
         icon: const Icon(Icons.add_home_outlined),
-        label: const Text('Request a visit'),
+        label: Text(t.requestAVisitButton),
       ),
       body: requests.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
-          message: 'Could not load your requests.',
+          message: t.couldNotLoadHomeVisitRequests,
           onRetry: () => ref.invalidate(patientHomeVisitsProvider),
         ),
         data: (list) {
           if (list.isEmpty) {
-            return const EmptyState(
+            return EmptyState(
               icon: Icons.home_outlined,
-              message: 'No home-visit requests.\nAsk for a clinician to visit '
-                  'you at home when getting to the clinic is hard.',
+              message: t.noHomeVisitRequestsMessage,
             );
           }
           return Center(
@@ -95,6 +96,7 @@ class _RequestCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final t = AppLocalizations.of(context)!;
 
     return AppCard(
       child: Column(
@@ -104,7 +106,7 @@ class _RequestCard extends ConsumerWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Preferred ${fmtDate(request.preferredDate)}',
+                  t.preferredOn(fmtDate(request.preferredDate)),
                   style: theme.textTheme.titleMedium,
                 ),
               ),
@@ -146,7 +148,7 @@ class _RequestCard extends ConsumerWidget {
                 borderRadius: Radii.cardSmall,
               ),
               child: Text(
-                'Clinic: ${request.decisionNote}',
+                t.clinicNote(request.decisionNote!),
                 style: theme.textTheme.bodySmall,
               ),
             ),
@@ -155,10 +157,10 @@ class _RequestCard extends ConsumerWidget {
               request.status == HomeVisitStatus.requested) ...[
             const SizedBox(height: Space.xs),
             Align(
-              alignment: Alignment.centerLeft,
+              alignment: AlignmentDirectional.centerStart,
               child: TextButton(
                 onPressed: () => _cancel(context, ref),
-                child: const Text('Cancel request'),
+                child: Text(t.cancelRequestButton),
               ),
             ),
           ],
@@ -214,6 +216,7 @@ class _RequestFormState extends ConsumerState<_RequestForm> {
 
   Future<void> _submit() async {
     setState(() => _busy = true);
+    final t = AppLocalizations.of(context)!;
     final result = await ref
         .read(homeVisitActionsProvider)
         .request(
@@ -227,7 +230,7 @@ class _RequestFormState extends ConsumerState<_RequestForm> {
     if (result.isOk) {
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Request sent to the clinic.')),
+        SnackBar(content: Text(t.requestSentToClinic)),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -238,6 +241,7 @@ class _RequestFormState extends ConsumerState<_RequestForm> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final departments =
         ref.watch(departmentDirectoryProvider).valueOrNull ?? const {};
     final df = MaterialLocalizations.of(context);
@@ -252,7 +256,7 @@ class _RequestFormState extends ConsumerState<_RequestForm> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Request a home visit',
+              t.requestAHomeVisitTitle,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: Space.md),
@@ -260,9 +264,9 @@ class _RequestFormState extends ConsumerState<_RequestForm> {
               controller: _address,
               minLines: 1,
               maxLines: 2,
-              decoration: const InputDecoration(
-                labelText: 'Home address',
-                hintText: 'Building, road, block, area',
+              decoration: InputDecoration(
+                labelText: t.homeAddressLabel,
+                hintText: t.homeAddressHint,
               ),
               onChanged: (_) => setState(() {}),
             ),
@@ -271,8 +275,8 @@ class _RequestFormState extends ConsumerState<_RequestForm> {
               controller: _reason,
               minLines: 2,
               maxLines: 4,
-              decoration: const InputDecoration(
-                labelText: 'Why is a home visit needed?',
+              decoration: InputDecoration(
+                labelText: t.whyHomeVisitNeededLabel,
                 alignLabelWithHint: true,
               ),
               onChanged: (_) => setState(() {}),
@@ -282,11 +286,11 @@ class _RequestFormState extends ConsumerState<_RequestForm> {
               DropdownButtonFormField<String?>(
                 initialValue: _departmentId,
                 isExpanded: true,
-                decoration: const InputDecoration(
-                  labelText: 'Department (optional)',
+                decoration: InputDecoration(
+                  labelText: t.departmentOptionalLabel,
                 ),
                 items: [
-                  const DropdownMenuItem(child: Text('Not sure')),
+                  DropdownMenuItem(child: Text(t.notSureOption)),
                   for (final entry in departments.entries)
                     DropdownMenuItem(
                       value: entry.key,
@@ -302,7 +306,7 @@ class _RequestFormState extends ConsumerState<_RequestForm> {
             OutlinedButton.icon(
               onPressed: _pickDate,
               icon: const Icon(Icons.event_outlined, size: 18),
-              label: Text('Preferred date: ${df.formatMediumDate(_date)}'),
+              label: Text(t.preferredDateLabel(df.formatMediumDate(_date))),
             ),
             const SizedBox(height: Space.lg),
             FilledButton(
@@ -313,11 +317,11 @@ class _RequestFormState extends ConsumerState<_RequestForm> {
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Send request'),
+                  : Text(t.sendRequestButton),
             ),
             const SizedBox(height: Space.xs),
             Text(
-              'The clinic will confirm a time or follow up with you.',
+              t.clinicWillConfirmNote,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),

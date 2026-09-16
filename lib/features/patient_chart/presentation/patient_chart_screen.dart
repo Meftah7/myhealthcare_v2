@@ -10,12 +10,14 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/chart_providers.dart';
 import 'chart_write_sheets.dart';
 
@@ -36,14 +38,15 @@ class PatientChartScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final patient = ref.watch(chartPatientProvider(patientId));
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: !embedded,
-        title: Text(patient.valueOrNull?.fullName ?? 'Patient chart'),
+        title: Text(patient.valueOrNull?.fullName ?? t.patientChartFallbackTitle),
         actions: [
           IconButton(
-            tooltip: 'AI summary',
+            tooltip: t.aiSummaryTooltip,
             icon: const Icon(Icons.summarize_outlined),
             onPressed: () =>
                 context.push(AppRoutes.staffPatientSummary(patientId)),
@@ -56,7 +59,7 @@ class PatientChartScreen extends ConsumerWidget {
       body: patient.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
-          message: 'Could not load this patient.',
+          message: t.couldNotLoadThisPatient,
           onRetry: () => ref.invalidate(chartPatientProvider(patientId)),
         ),
         data: (p) => Center(
@@ -72,11 +75,11 @@ class PatientChartScreen extends ConsumerWidget {
               children: [
                 _Header(patient: p),
                 _FlagsCard(patientId: patientId),
-                const SectionHeader('Medications', overline: true),
+                SectionHeader(t.quickActionMedications, overline: true),
                 _MedicationsCard(patientId: patientId),
-                const SectionHeader('Recent vitals', overline: true),
+                SectionHeader(t.recentVitalsHeader, overline: true),
                 _VitalsCard(patientId: patientId),
-                const SectionHeader('Timeline', overline: true),
+                SectionHeader(t.timelineSegment, overline: true),
                 _TimelineCard(patientId: patientId),
               ],
             ),
@@ -93,6 +96,7 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final u = patient.user;
     final age = u.ageYears;
@@ -104,9 +108,9 @@ class _Header extends StatelessWidget {
           const SizedBox(height: Space.xxs),
           Text(
             [
-              if (age != null) '$age yrs',
-              u.gender?.name,
-              if (u.nationalId != null) 'ID ${u.nationalId}',
+              if (age != null) t.ageYearsAbbrev(age),
+              u.gender?.label(context),
+              if (u.nationalId != null) t.idLabel(u.nationalId!),
               if (patient.bloodType != null) patient.bloodType,
             ].whereType<String>().join(' · '),
             style: theme.textTheme.bodyMedium?.copyWith(
@@ -136,7 +140,7 @@ class _Header extends StatelessWidget {
                 const SizedBox(width: Space.xxs),
                 Expanded(
                   child: Text(
-                    'Allergies: ${patient.allergies.join(', ')}',
+                    t.allergiesInlineLabel(patient.allergies.join(', ')),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.error,
                     ),
@@ -157,6 +161,7 @@ class _FlagsCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final flags = ref.watch(chartFlagsProvider(patientId));
     return flags.when(
       loading: () => const LoadingSkeleton(height: 40),
@@ -174,7 +179,7 @@ class _FlagsCard extends ConsumerWidget {
                   leading: SeverityChip(f.severity),
                   title: Text(f.rationale),
                   trailing: IconButton(
-                    tooltip: 'Acknowledge',
+                    tooltip: t.acknowledgeTooltip,
                     icon: const Icon(Icons.done),
                     onPressed: () => ref
                         .read(chartActionsProvider(patientId))
@@ -195,15 +200,16 @@ class _MedicationsCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final meds = ref.watch(chartMedicationsProvider(patientId));
     return meds.when(
       loading: () => const LoadingSkeleton(height: 40),
-      error: (e, _) => _note('Could not load medications'),
+      error: (e, _) => _note(t.couldNotLoadMedicationsChart),
       data: (list) {
         final current = list.where((m) => m.isCurrent).toList();
         if (current.isEmpty) {
-          return _note('No active medications');
+          return _note(t.noActiveMedications);
         }
         return AppCard(
           padding: EdgeInsets.zero,
@@ -232,14 +238,15 @@ class _VitalsCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final vitals = ref.watch(chartVitalsProvider(patientId));
     return vitals.when(
       loading: () => const LoadingSkeleton(height: 40),
-      error: (e, _) => _note('Could not load vitals'),
+      error: (e, _) => _note(t.couldNotLoadVitals),
       data: (list) {
         if (list.isEmpty) {
-          return _note('No vitals on record');
+          return _note(t.noVitalsOnRecord);
         }
         final recent = [...list]
           ..sort((a, b) => b.recordedAt.compareTo(a.recordedAt));
@@ -277,14 +284,15 @@ class _TimelineCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final records = ref.watch(chartTimelineProvider(patientId));
     return records.when(
       loading: () => const LoadingSkeleton(height: 40),
-      error: (e, _) => _note('Could not load timeline'),
+      error: (e, _) => _note(t.couldNotLoadTimelineChart),
       data: (list) {
         if (list.isEmpty) {
-          return _note('No records yet');
+          return _note(t.noRecordsYet);
         }
         return AppCard(
           padding: EdgeInsets.zero,
@@ -295,7 +303,7 @@ class _TimelineCard extends ConsumerWidget {
                   leading: Icon(_recordIcon(r.recordType)),
                   title: Text(r.title),
                   subtitle: Text(
-                    '${fmtDate(r.occurredAt)} · ${r.recordType.name}',
+                    '${fmtDate(r.occurredAt)} · ${r.recordType.label(context)}',
                     style: theme.textTheme.bodySmall,
                   ),
                   trailing: r.hasAbnormalLabs
@@ -342,6 +350,7 @@ class _ChartFab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return PopupMenuButton<String>(
       onSelected: (v) => unawaited(switch (v) {
         'note' => showChartNoteSheet(context, patientId),
@@ -353,12 +362,12 @@ class _ChartFab extends StatelessWidget {
         ),
         _ => Future<void>.value(),
       }),
-      itemBuilder: (context) => const [
-        PopupMenuItem(value: 'note', child: Text('Add clinical note')),
-        PopupMenuItem(value: 'scribe', child: Text('AI Scribe a note')),
-        PopupMenuItem(value: 'rx', child: Text('Prescribe medication')),
-        PopupMenuItem(value: 'lab', child: Text('Enter lab result')),
-        PopupMenuItem(value: 'sick', child: Text('Issue sick leave')),
+      itemBuilder: (context) => [
+        PopupMenuItem(value: 'note', child: Text(t.addClinicalNoteAction)),
+        PopupMenuItem(value: 'scribe', child: Text(t.aiScribeANoteAction)),
+        PopupMenuItem(value: 'rx', child: Text(t.prescribeMedicationAction)),
+        PopupMenuItem(value: 'lab', child: Text(t.enterLabResultAction)),
+        PopupMenuItem(value: 'sick', child: Text(t.issueSickLeaveAction)),
       ],
       child: const FloatingActionButton(
         onPressed: null,

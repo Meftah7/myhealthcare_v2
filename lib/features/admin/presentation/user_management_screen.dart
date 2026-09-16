@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
+import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
@@ -14,6 +15,7 @@ import '../../../core/utils/clinic_hours.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/admin_providers.dart';
 import 'admin_top_actions.dart';
 
@@ -50,14 +52,18 @@ class _State extends ConsumerState<UserManagementScreen>
 
   UserRole get _role => _roles[_tabs.index];
 
-  ({String label, IconData icon}) get _addLabel => switch (_role) {
-    UserRole.patient => (label: 'Add patient', icon: Icons.person_add_alt),
-    UserRole.staff => (label: 'Add staff', icon: Icons.badge_outlined),
-    UserRole.admin => (
-      label: 'Add admin',
-      icon: Icons.admin_panel_settings_outlined,
-    ),
-  };
+  ({String label, IconData icon}) _addLabel(AppLocalizations t) =>
+      switch (_role) {
+        UserRole.patient => (
+          label: t.addPatientAction,
+          icon: Icons.person_add_alt,
+        ),
+        UserRole.staff => (label: t.addStaffAction, icon: Icons.badge_outlined),
+        UserRole.admin => (
+          label: t.addAdminAction,
+          icon: Icons.admin_panel_settings_outlined,
+        ),
+      };
 
   Future<void> _onAddPressed() {
     return switch (_role) {
@@ -69,10 +75,11 @@ class _State extends ConsumerState<UserManagementScreen>
 
   @override
   Widget build(BuildContext context) {
-    final add = _addLabel;
+    final t = AppLocalizations.of(context)!;
+    final add = _addLabel(t);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('User management'),
+        title: Text(t.userManagementTitle),
         actions: const [AdminTopActions()],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(104),
@@ -87,7 +94,7 @@ class _State extends ConsumerState<UserManagementScreen>
                 ),
                 child: SearchBar(
                   controller: _search,
-                  hintText: 'Search by name or email',
+                  hintText: t.searchByNameOrEmailHint,
                   leading: const Icon(Icons.search),
                   trailing: [
                     if (_query.isNotEmpty)
@@ -104,10 +111,10 @@ class _State extends ConsumerState<UserManagementScreen>
               ),
               TabBar(
                 controller: _tabs,
-                tabs: const [
-                  Tab(text: 'Patients'),
-                  Tab(text: 'Staff'),
-                  Tab(text: 'Admins'),
+                tabs: [
+                  Tab(text: t.patientsAction),
+                  Tab(text: t.staffCountLabel),
+                  Tab(text: t.adminsLabel),
                 ],
               ),
             ],
@@ -134,11 +141,12 @@ class _UserList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final users = ref.watch(usersByRoleProvider(role));
     return users.when(
       loading: () => const SkeletonList(),
       error: (e, _) => ErrorStateView(
-        message: 'Could not load users.',
+        message: t.couldNotLoadUsers,
         onRetry: () => ref.invalidate(usersByRoleProvider(role)),
       ),
       data: (all) {
@@ -156,8 +164,8 @@ class _UserList extends ConsumerWidget {
           return EmptyState(
             icon: Icons.people_outline,
             message: q.isEmpty
-                ? 'No users in this group.'
-                : 'No users match “$query”.',
+                ? t.noUsersInGroup
+                : t.noUsersMatchQuery(query),
           );
         }
         return ListView.builder(
@@ -185,6 +193,7 @@ class _UserCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final isPatient = user.role == UserRole.patient;
@@ -207,7 +216,7 @@ class _UserCard extends ConsumerWidget {
               Space.md,
               Space.md,
             ),
-            expandedAlignment: Alignment.topLeft,
+            expandedAlignment: AlignmentDirectional.topStart,
             expandedCrossAxisAlignment: CrossAxisAlignment.start,
             leading: CircleAvatar(
               backgroundColor: user.isActive
@@ -222,7 +231,9 @@ class _UserCard extends ConsumerWidget {
             ),
             title: Text(user.fullName),
             subtitle: Text(
-              user.isActive ? user.email : '${user.email} · deactivated',
+              user.isActive
+                  ? user.email
+                  : t.emailDeactivatedLabel(user.email),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -241,7 +252,9 @@ class _UserCard extends ConsumerWidget {
                           : Icons.person_outline,
                       size: 18,
                     ),
-                    label: Text(user.isActive ? 'Deactivate' : 'Reactivate'),
+                    label: Text(
+                      user.isActive ? t.deactivateAction : t.reactivateAction,
+                    ),
                     style: user.isActive
                         ? OutlinedButton.styleFrom(
                             foregroundColor: scheme.error,
@@ -254,7 +267,7 @@ class _UserCard extends ConsumerWidget {
                   OutlinedButton.icon(
                     onPressed: () => _resetPassword(context, ref),
                     icon: const Icon(Icons.password_outlined, size: 18),
-                    label: const Text('Reset password'),
+                    label: Text(t.resetPasswordAction),
                   ),
                   if (isPatient) ...[
                     OutlinedButton.icon(
@@ -263,7 +276,7 @@ class _UserCard extends ConsumerWidget {
                         Icons.event_available_outlined,
                         size: 18,
                       ),
-                      label: const Text('Book appointment'),
+                      label: Text(t.bookAppointmentAction),
                     ),
                     OutlinedButton.icon(
                       onPressed: () => _refer(context),
@@ -271,7 +284,7 @@ class _UserCard extends ConsumerWidget {
                         Icons.forward_to_inbox_outlined,
                         size: 18,
                       ),
-                      label: const Text('Refer'),
+                      label: Text(t.referAction),
                     ),
                   ],
                 ],
@@ -284,6 +297,7 @@ class _UserCard extends ConsumerWidget {
   }
 
   Future<void> _toggleActive(BuildContext context, WidgetRef ref) async {
+    final t = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
     await ref
         .read(adminActionsProvider)
@@ -292,14 +306,15 @@ class _UserCard extends ConsumerWidget {
       SnackBar(
         content: Text(
           user.isActive
-              ? '${user.fullName} deactivated'
-              : '${user.fullName} reactivated',
+              ? t.userDeactivatedSnackbar(user.fullName)
+              : t.userReactivatedSnackbar(user.fullName),
         ),
       ),
     );
   }
 
   Future<void> _resetPassword(BuildContext context, WidgetRef ref) async {
+    final t = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
     final pw = await _promptPassword(context);
     if (pw == null) return;
@@ -309,7 +324,7 @@ class _UserCard extends ConsumerWidget {
     messenger.showSnackBar(
       SnackBar(
         content: Text(switch (r) {
-          Ok() => 'Password reset for ${user.fullName}',
+          Ok() => t.passwordResetForSnackbar(user.fullName),
           Err(:final failure) => failure.message,
         }),
       ),
@@ -342,6 +357,7 @@ class _DetailRows extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     Widget row(String label, String value) => Padding(
       padding: const EdgeInsets.symmetric(vertical: Space.xxs),
@@ -365,39 +381,44 @@ class _DetailRows extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        row('Email', user.email),
-        if (user.phone != null) row('Phone', user.phone!),
-        if (user.nationalId != null) row('National ID', user.nationalId!),
-        row('Role', user.role.name),
-        row('Status', user.isActive ? 'Active' : 'Deactivated'),
-        row('Joined', fmtDate(user.createdAt)),
+        row(t.emailLabel, user.email),
+        if (user.phone != null) row(t.phoneLabel, user.phone!),
+        if (user.nationalId != null)
+          row(t.nationalIdLabel, user.nationalId!),
+        row(t.roleLabel, user.role.label(context)),
+        row(
+          t.statusLabel,
+          user.isActive ? t.accountActiveLabel : t.accountDeactivatedLabel,
+        ),
+        row(t.joinedLabel, fmtDate(user.createdAt)),
       ],
     );
   }
 }
 
 Future<String?> _promptPassword(BuildContext context) {
+  final t = AppLocalizations.of(context)!;
   final controller = TextEditingController();
   return showDialog<String>(
     context: context,
     builder: (context) => AlertDialog(
-      title: const Text('New temporary password'),
+      title: Text(t.newTemporaryPasswordTitle),
       content: TextField(
         controller: controller,
         autofocus: true,
-        decoration: const InputDecoration(hintText: 'At least 8 characters'),
+        decoration: InputDecoration(hintText: t.atLeast8Characters),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(t.cancel),
         ),
         FilledButton(
           onPressed: () {
             final v = controller.text.trim();
             Navigator.pop(context, v.length >= 8 ? v : null);
           },
-          child: const Text('Reset'),
+          child: Text(t.resetAction),
         ),
       ],
     ),
@@ -454,9 +475,8 @@ class _CreatePersonSheetState extends ConsumerState<_CreatePersonSheet> {
       _email.text.contains('@') &&
       _password.text.trim().length >= 8;
 
-  String get _noun => widget.role == UserRole.admin ? 'admin' : 'patient';
-
   Future<void> _submit() async {
+    final t = AppLocalizations.of(context)!;
     setState(() => _busy = true);
     final actions = ref.read(adminActionsProvider);
     final name = _name.text.trim();
@@ -468,7 +488,7 @@ class _CreatePersonSheetState extends ConsumerState<_CreatePersonSheet> {
         email: email,
         temporaryPassword: pw,
       )) {
-        Ok(:final value) => (true, '${value.fullName} created'),
+        Ok(:final value) => (true, t.createdSnackbar(value.fullName)),
         Err(:final failure) => (false, failure.message),
       },
       _ => switch (await actions.createPatient(
@@ -476,7 +496,7 @@ class _CreatePersonSheetState extends ConsumerState<_CreatePersonSheet> {
         email: email,
         temporaryPassword: pw,
       )) {
-        Ok(:final value) => (true, '${value.user.fullName} created'),
+        Ok(:final value) => (true, t.createdSnackbar(value.user.fullName)),
         Err(:final failure) => (false, failure.message),
       },
     };
@@ -490,6 +510,7 @@ class _CreatePersonSheetState extends ConsumerState<_CreatePersonSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(Space.lg),
@@ -498,27 +519,29 @@ class _CreatePersonSheetState extends ConsumerState<_CreatePersonSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Add ${_noun == 'admin' ? 'an administrator' : 'a patient'}',
+              widget.role == UserRole.admin
+                  ? t.addAnAdministratorTitle
+                  : t.addAPatientTitle,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: Space.md),
             TextField(
               controller: _name,
-              decoration: const InputDecoration(labelText: 'Full name'),
+              decoration: InputDecoration(labelText: t.fullNameLabel),
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: Space.sm),
             TextField(
               controller: _email,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(labelText: 'Email'),
+              decoration: InputDecoration(labelText: t.emailLabel),
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: Space.sm),
             TextField(
               controller: _password,
-              decoration: const InputDecoration(
-                labelText: 'Temporary password (8+ chars)',
+              decoration: InputDecoration(
+                labelText: t.temporaryPasswordLabel,
               ),
               onChanged: (_) => setState(() {}),
             ),
@@ -531,7 +554,7 @@ class _CreatePersonSheetState extends ConsumerState<_CreatePersonSheet> {
                       width: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Create'),
+                  : Text(t.createAction),
             ),
           ],
         ),
@@ -585,6 +608,7 @@ class _CreateStaffSheetState extends ConsumerState<_CreateStaffSheet> {
       _password.text.trim().length >= 8;
 
   Future<void> _submit() async {
+    final t = AppLocalizations.of(context)!;
     setState(() => _busy = true);
     final r = await ref
         .read(adminActionsProvider)
@@ -603,7 +627,7 @@ class _CreateStaffSheetState extends ConsumerState<_CreateStaffSheet> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(switch (r) {
-          Ok(:final value) => '${value.fullName} created',
+          Ok(:final value) => t.createdSnackbar(value.fullName),
           Err(:final failure) => failure.message,
         }),
       ),
@@ -613,6 +637,7 @@ class _CreateStaffSheetState extends ConsumerState<_CreateStaffSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final departments = ref.watch(departmentsProvider);
     return SafeArea(
       child: Padding(
@@ -622,27 +647,27 @@ class _CreateStaffSheetState extends ConsumerState<_CreateStaffSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Add staff member',
+              t.addStaffMemberTitle,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: Space.md),
             TextField(
               controller: _name,
-              decoration: const InputDecoration(labelText: 'Full name'),
+              decoration: InputDecoration(labelText: t.fullNameLabel),
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: Space.sm),
             TextField(
               controller: _email,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(labelText: 'Email'),
+              decoration: InputDecoration(labelText: t.emailLabel),
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: Space.sm),
             TextField(
               controller: _password,
-              decoration: const InputDecoration(
-                labelText: 'Temporary password (8+ chars)',
+              decoration: InputDecoration(
+                labelText: t.temporaryPasswordLabel,
               ),
               onChanged: (_) => setState(() {}),
             ),
@@ -651,10 +676,16 @@ class _CreateStaffSheetState extends ConsumerState<_CreateStaffSheet> {
             // appointments, so it changes what the rest of the form means.
             DropdownButtonFormField<String>(
               initialValue: _jobTitle,
-              decoration: const InputDecoration(labelText: 'Role'),
-              items: const [
-                DropdownMenuItem(value: kDoctorJobTitle, child: Text('Doctor')),
-                DropdownMenuItem(value: kNurseJobTitle, child: Text('Nurse')),
+              decoration: InputDecoration(labelText: t.roleLabel),
+              items: [
+                DropdownMenuItem(
+                  value: kDoctorJobTitle,
+                  child: Text(t.doctorOption),
+                ),
+                DropdownMenuItem(
+                  value: kNurseJobTitle,
+                  child: Text(t.nurseOption),
+                ),
               ],
               onChanged: (v) =>
                   setState(() => _jobTitle = v ?? kDoctorJobTitle),
@@ -664,19 +695,19 @@ class _CreateStaffSheetState extends ConsumerState<_CreateStaffSheet> {
               controller: _specialty,
               decoration: InputDecoration(
                 labelText: _isNurse
-                    ? 'Specialty / unit (optional)'
-                    : 'Specialty (optional)',
+                    ? t.specialtyUnitOptionalLabel
+                    : t.specialtyOptionalLabel,
               ),
             ),
             const SizedBox(height: Space.sm),
             departments.maybeWhen(
               data: (list) => DropdownButtonFormField<String>(
                 initialValue: _departmentId,
-                decoration: const InputDecoration(
-                  labelText: 'Department (optional)',
+                decoration: InputDecoration(
+                  labelText: t.departmentOptionalLabel,
                 ),
                 items: [
-                  const DropdownMenuItem(child: Text('None')),
+                  DropdownMenuItem(child: Text(t.noneOption)),
                   for (final d in list)
                     DropdownMenuItem(value: d.id, child: Text(d.name)),
                 ],
@@ -693,7 +724,7 @@ class _CreateStaffSheetState extends ConsumerState<_CreateStaffSheet> {
                       width: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Create'),
+                  : Text(t.createAction),
             ),
           ],
         ),
@@ -741,6 +772,7 @@ class _BookForPatientSheetState extends ConsumerState<_BookForPatientSheet> {
   }
 
   Future<void> _pickDate() async {
+    final t = AppLocalizations.of(context)!;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final picked = await showDatePicker(
@@ -749,21 +781,23 @@ class _BookForPatientSheetState extends ConsumerState<_BookForPatientSheet> {
       firstDate: today,
       lastDate: today.add(const Duration(days: 60)),
       selectableDayPredicate: isClinicDay,
-      helpText: 'Clinic days: Sunday–Thursday',
+      helpText: t.clinicDaysHelpText,
     );
     if (picked != null) setState(() => _date = picked);
   }
 
   Future<void> _pickTime() async {
+    final t = AppLocalizations.of(context)!;
     final picked = await showTimePicker(
       context: context,
       initialTime: const TimeOfDay(hour: clinicOpenHour, minute: 0),
-      helpText: 'Clinic hours: 08:00–20:00',
+      helpText: t.clinicHoursHelpText,
     );
     if (picked != null) setState(() => _time = picked);
   }
 
   Future<void> _submit() async {
+    final t = AppLocalizations.of(context)!;
     setState(() => _busy = true);
     final r = await ref
         .read(adminActionsProvider)
@@ -781,7 +815,7 @@ class _BookForPatientSheetState extends ConsumerState<_BookForPatientSheet> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(switch (r) {
-          Ok() => 'Appointment booked for ${widget.patient.fullName}',
+          Ok() => t.appointmentBookedForSnackbar(widget.patient.fullName),
           Err(:final failure) => failure.message,
         }),
       ),
@@ -791,6 +825,7 @@ class _BookForPatientSheetState extends ConsumerState<_BookForPatientSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final df = MaterialLocalizations.of(context);
     final departments = ref.watch(departmentsProvider);
@@ -805,10 +840,10 @@ class _BookForPatientSheetState extends ConsumerState<_BookForPatientSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Book an appointment', style: theme.textTheme.titleLarge),
+            Text(t.bookAnAppointmentTitle, style: theme.textTheme.titleLarge),
             const SizedBox(height: Space.xxs),
             Text(
-              'For ${widget.patient.fullName}',
+              t.forPatientLabel(widget.patient.fullName),
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -817,7 +852,7 @@ class _BookForPatientSheetState extends ConsumerState<_BookForPatientSheet> {
             departments.maybeWhen(
               data: (list) => DropdownButtonFormField<String>(
                 initialValue: _departmentId,
-                decoration: const InputDecoration(labelText: 'Department'),
+                decoration: InputDecoration(labelText: t.departmentLabel),
                 items: [
                   for (final d in list)
                     DropdownMenuItem(value: d.id, child: Text(d.name)),
@@ -832,16 +867,15 @@ class _BookForPatientSheetState extends ConsumerState<_BookForPatientSheet> {
             const SizedBox(height: Space.sm),
             doctors.when(
               loading: () => const LoadingSkeleton(height: 56),
-              error: (e, _) =>
-                  const InlineBanner.error('Could not load doctors.'),
+              error: (e, _) => InlineBanner.error(t.couldNotLoadDoctors),
               data: (list) => DropdownButtonFormField<String>(
                 initialValue: _staffId,
                 decoration: InputDecoration(
-                  labelText: 'Doctor',
+                  labelText: t.doctorLabel,
                   helperText: _departmentId == null
-                      ? 'Choose a department first'
+                      ? t.chooseDepartmentFirstHelper
                       : list.isEmpty
-                      ? 'No doctors in this department'
+                      ? t.noDoctorsInDepartmentHelper
                       : null,
                 ),
                 items: [
@@ -864,7 +898,9 @@ class _BookForPatientSheetState extends ConsumerState<_BookForPatientSheet> {
                     onPressed: _pickDate,
                     icon: const Icon(Icons.calendar_today_outlined, size: 18),
                     label: Text(
-                      _date == null ? 'Date' : df.formatMediumDate(_date!),
+                      _date == null
+                          ? t.dateLabel
+                          : df.formatMediumDate(_date!),
                     ),
                   ),
                 ),
@@ -874,7 +910,7 @@ class _BookForPatientSheetState extends ConsumerState<_BookForPatientSheet> {
                     onPressed: _pickTime,
                     icon: const Icon(Icons.schedule_outlined, size: 18),
                     label: Text(
-                      _time == null ? 'Time' : _time!.format(context),
+                      _time == null ? t.timeLabel : _time!.format(context),
                     ),
                   ),
                 ),
@@ -883,7 +919,7 @@ class _BookForPatientSheetState extends ConsumerState<_BookForPatientSheet> {
             if (_start != null && !isWithinClinicHours(_start!)) ...[
               const SizedBox(height: Space.xs),
               Text(
-                'Pick a time between 08:00 and 20:00.',
+                t.pickTimeBetweenNote,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.error,
                 ),
@@ -892,7 +928,7 @@ class _BookForPatientSheetState extends ConsumerState<_BookForPatientSheet> {
             const SizedBox(height: Space.sm),
             DropdownButtonFormField<VisitType>(
               initialValue: _visitType,
-              decoration: const InputDecoration(labelText: 'Visit type'),
+              decoration: InputDecoration(labelText: t.visitTypeFieldLabel),
               items: [
                 for (final v in VisitType.values)
                   DropdownMenuItem(value: v, child: Text(visitTypeLabel(v))),
@@ -902,7 +938,7 @@ class _BookForPatientSheetState extends ConsumerState<_BookForPatientSheet> {
             const SizedBox(height: Space.sm),
             TextField(
               controller: _reason,
-              decoration: const InputDecoration(labelText: 'Reason (optional)'),
+              decoration: InputDecoration(labelText: t.reasonOptionalLabel),
             ),
             const SizedBox(height: Space.lg),
             FilledButton(
@@ -913,7 +949,7 @@ class _BookForPatientSheetState extends ConsumerState<_BookForPatientSheet> {
                       width: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Book appointment'),
+                  : Text(t.bookAppointmentAction),
             ),
           ],
         ),
@@ -950,6 +986,7 @@ class _ReferPatientSheetState extends ConsumerState<_ReferPatientSheet> {
       _reason.text.trim().isNotEmpty && (_external || _departmentId != null);
 
   Future<void> _submit(List<Department> departments) async {
+    final t = AppLocalizations.of(context)!;
     setState(() => _busy = true);
     final destination = _external
         ? _hospital
@@ -967,7 +1004,10 @@ class _ReferPatientSheetState extends ConsumerState<_ReferPatientSheet> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(switch (r) {
-          Ok() => '${widget.patient.fullName} referred to $destination',
+          Ok() => t.patientReferredToSnackbar(
+            widget.patient.fullName,
+            destination,
+          ),
           Err(:final failure) => failure.message,
         }),
       ),
@@ -977,6 +1017,7 @@ class _ReferPatientSheetState extends ConsumerState<_ReferPatientSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final departments = ref.watch(departmentsProvider);
 
@@ -987,7 +1028,7 @@ class _ReferPatientSheetState extends ConsumerState<_ReferPatientSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Refer patient', style: theme.textTheme.titleLarge),
+            Text(t.referPatientAction, style: theme.textTheme.titleLarge),
             const SizedBox(height: Space.xxs),
             Text(
               widget.patient.fullName,
@@ -997,9 +1038,15 @@ class _ReferPatientSheetState extends ConsumerState<_ReferPatientSheet> {
             ),
             const SizedBox(height: Space.md),
             SegmentedButton<bool>(
-              segments: const [
-                ButtonSegment(value: false, label: Text('Another department')),
-                ButtonSegment(value: true, label: Text('Another hospital')),
+              segments: [
+                ButtonSegment(
+                  value: false,
+                  label: Text(t.anotherDepartmentSegment),
+                ),
+                ButtonSegment(
+                  value: true,
+                  label: Text(t.anotherHospitalSegment),
+                ),
               ],
               selected: {_external},
               onSelectionChanged: (s) => setState(() => _external = s.first),
@@ -1008,7 +1055,7 @@ class _ReferPatientSheetState extends ConsumerState<_ReferPatientSheet> {
             if (_external)
               DropdownButtonFormField<String>(
                 initialValue: _hospital,
-                decoration: const InputDecoration(labelText: 'Hospital'),
+                decoration: InputDecoration(labelText: t.hospitalLabel),
                 items: [
                   for (final h in kReferralHospitals)
                     DropdownMenuItem(value: h, child: Text(h)),
@@ -1019,7 +1066,7 @@ class _ReferPatientSheetState extends ConsumerState<_ReferPatientSheet> {
               departments.maybeWhen(
                 data: (list) => DropdownButtonFormField<String>(
                   initialValue: _departmentId,
-                  decoration: const InputDecoration(labelText: 'Department'),
+                  decoration: InputDecoration(labelText: t.departmentLabel),
                   items: [
                     for (final d in list)
                       DropdownMenuItem(value: d.id, child: Text(d.name)),
@@ -1033,8 +1080,8 @@ class _ReferPatientSheetState extends ConsumerState<_ReferPatientSheet> {
               controller: _reason,
               minLines: 2,
               maxLines: 4,
-              decoration: const InputDecoration(
-                labelText: 'Reason for referral',
+              decoration: InputDecoration(
+                labelText: t.reasonForReferralLabel,
                 alignLabelWithHint: true,
               ),
               onChanged: (_) => setState(() {}),
@@ -1050,7 +1097,7 @@ class _ReferPatientSheetState extends ConsumerState<_ReferPatientSheet> {
                       width: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Refer patient'),
+                  : Text(t.referPatientAction),
             ),
           ],
         ),

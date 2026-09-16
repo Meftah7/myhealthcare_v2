@@ -8,11 +8,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
+import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../patient/presentation/patient_top_actions.dart';
 import '../application/billing_providers.dart';
 import 'pay_invoice_sheet.dart';
@@ -43,7 +45,7 @@ class BillingScreen extends ConsumerWidget {
     if (embedded) return body;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Billing'),
+        title: Text(AppLocalizations.of(context)!.quickActionBilling),
         actions: const [PatientTopActions()],
       ),
       body: body,
@@ -51,24 +53,24 @@ class BillingScreen extends ConsumerWidget {
   }
 
   Widget _list(BuildContext context, WidgetRef ref, WindowSize size) {
+    final t = AppLocalizations.of(context)!;
     final invoices = ref.watch(patientInvoicesProvider);
     final gutter = size.gutter;
     return invoices.when(
               loading: () => const SkeletonList(),
               error: (e, _) => ErrorStateView(
-                message: 'Could not load your invoices.',
+                message: t.couldNotLoadInvoices,
                 onRetry: () => ref.invalidate(patientInvoicesProvider),
               ),
               data: (list) {
                 if (list.isEmpty) {
                   return ListView(
                     padding: EdgeInsets.all(gutter),
-                    children: const [
-                      SizedBox(height: Space.xxl),
+                    children: [
+                      const SizedBox(height: Space.xxl),
                       EmptyState(
                         icon: Icons.receipt_long_outlined,
-                        message:
-                            'No invoices yet.\nBills for your visits will appear here.',
+                        message: t.noInvoicesYet,
                       ),
                     ],
                   );
@@ -88,12 +90,12 @@ class BillingScreen extends ConsumerWidget {
                     const _BillingSummaryCard(),
                     const SizedBox(height: Space.lg),
                     if (open.isNotEmpty) ...[
-                      const SectionHeader('Open', overline: true),
+                      SectionHeader(t.openSectionLabel, overline: true),
                       _InvoiceGrid(invoices: open, compact: size.isCompact),
                       const SizedBox(height: Space.lg),
                     ],
                     if (settled.isNotEmpty) ...[
-                      const SectionHeader('History', overline: true),
+                      SectionHeader(t.historyLabel, overline: true),
                       _InvoiceGrid(invoices: settled, compact: size.isCompact),
                     ],
                   ],
@@ -111,6 +113,7 @@ class _BillingSummaryCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final t = AppLocalizations.of(context)!;
     final summary = ref.watch(billingSummaryProvider).valueOrNull;
     if (summary == null) return const LoadingSkeleton(height: 92);
 
@@ -124,7 +127,7 @@ class _BillingSummaryCard extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  owes ? 'Outstanding balance' : 'All settled',
+                  owes ? t.outstandingBalance : t.allSettled,
                   style: theme.textTheme.labelLarge?.copyWith(
                     color: owes
                         ? scheme.onPrimaryContainer
@@ -143,8 +146,7 @@ class _BillingSummaryCard extends ConsumerWidget {
                 if (summary.openCount > 0) ...[
                   const SizedBox(height: Space.xxs),
                   Text(
-                    '${summary.openCount} open '
-                    '${summary.openCount == 1 ? 'invoice' : 'invoices'}',
+                    t.openInvoicesCount(summary.openCount),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: scheme.onPrimaryContainer,
                     ),
@@ -153,7 +155,7 @@ class _BillingSummaryCard extends ConsumerWidget {
                 if (summary.overdue > 0) ...[
                   const SizedBox(height: Space.xs),
                   Text(
-                    '${money(summary.overdue)} overdue',
+                    t.overdueAmount(money(summary.overdue)),
                     style: theme.textTheme.labelLarge?.copyWith(
                       color: theme.clinicalStatus.riskHigh.onContainer,
                     ),
@@ -216,6 +218,7 @@ class _InvoiceCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final t = AppLocalizations.of(context)!;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: Space.xxs),
@@ -236,7 +239,7 @@ class _InvoiceCard extends ConsumerWidget {
                         style: theme.textTheme.titleLarge,
                       ),
                       Text(
-                        'Issued ${fmtDate(invoice.issuedAt)}',
+                        t.issuedOn(fmtDate(invoice.issuedAt)),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: scheme.onSurfaceVariant,
                         ),
@@ -254,13 +257,13 @@ class _InvoiceCard extends ConsumerWidget {
             const SizedBox(height: Space.sm),
             const Divider(height: 1),
             const SizedBox(height: Space.sm),
-            _AmountRow(label: 'Subtotal', value: money(invoice.subtotal)),
+            _AmountRow(label: t.subtotalLabel, value: money(invoice.subtotal)),
             _AmountRow(
-              label: 'Tax (${invoice.taxRate.toStringAsFixed(0)}%)',
+              label: t.taxLabel(invoice.taxRate.toStringAsFixed(0)),
               value: money(invoice.taxAmount),
             ),
             _AmountRow(
-              label: 'Total',
+              label: t.totalLabel,
               value: money(invoice.totalAmount),
               emphasised: true,
             ),
@@ -268,8 +271,8 @@ class _InvoiceCard extends ConsumerWidget {
               const SizedBox(height: Space.xs),
               Text(
                 invoice.isOverdue
-                    ? 'Was due ${fmtDate(invoice.dueDate!)}'
-                    : 'Due ${fmtDate(invoice.dueDate!)}',
+                    ? t.wasDueOn(fmtDate(invoice.dueDate!))
+                    : t.dueOn(fmtDate(invoice.dueDate!)),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: invoice.isOverdue
                       ? theme.clinicalStatus.riskHigh.onContainer
@@ -280,7 +283,7 @@ class _InvoiceCard extends ConsumerWidget {
             if (invoice.paidAt != null) ...[
               const SizedBox(height: Space.xs),
               Text(
-                'Paid ${fmtDate(invoice.paidAt!)}'
+                '${t.paidOn(fmtDate(invoice.paidAt!))}'
                 '${invoice.paymentMethod == null ? '' : ' · ${invoice.paymentMethod}'}',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: scheme.onSurfaceVariant,
@@ -294,7 +297,7 @@ class _InvoiceCard extends ConsumerWidget {
                 child: FilledButton.icon(
                   onPressed: () => showPayInvoiceSheet(context, invoice),
                   icon: const Icon(Icons.credit_card),
-                  label: Text('Pay ${money(invoice.totalAmount)}'),
+                  label: Text(t.payAmountButton(money(invoice.totalAmount))),
                 ),
               ),
             ],
@@ -350,24 +353,26 @@ class _InvoiceStatusChip extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
 
-    final (label, bg, fg) = switch (invoice) {
+    final (bg, fg) = switch (invoice) {
       Invoice(status: InvoiceStatus.paid) => (
-        'Paid',
         theme.clinicalStatus.riskLow.container,
         theme.clinicalStatus.riskLow.onContainer,
       ),
       Invoice(status: InvoiceStatus.cancelled) => (
-        'Cancelled',
         scheme.surfaceContainerHighest,
         scheme.onSurfaceVariant,
       ),
       _ when invoice.isOverdue => (
-        'Overdue',
         theme.clinicalStatus.riskHigh.container,
         theme.clinicalStatus.riskHigh.onContainer,
       ),
-      _ => ('Pending', scheme.primaryContainer, scheme.onPrimaryContainer),
+      _ => (scheme.primaryContainer, scheme.onPrimaryContainer),
     };
+    final label = invoiceStatusLabel(
+      context,
+      invoice.status,
+      overdue: invoice.isOverdue,
+    );
 
     return Container(
       padding: const EdgeInsets.symmetric(

@@ -9,6 +9,9 @@ import '../../../core/presentation/app_card.dart';
 import '../../../core/result.dart';
 import '../../../domain/enums.dart';
 import '../../../domain/repositories/auth_repository.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../settings/presentation/language_icon_toggle.dart';
+import '../../settings/presentation/theme_mode_icon_toggle.dart';
 import '../application/session.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -102,8 +105,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Create account')),
+      appBar: AppBar(
+        title: Text(t.createAccount),
+        actions: const [
+          ThemeModeIconToggle(),
+          LanguageIconToggle(),
+          SizedBox(width: Space.xs),
+        ],
+      ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(
@@ -123,35 +134,34 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const SectionHeader(
-                          'Account',
-                          padding: EdgeInsets.only(bottom: Space.sm),
+                        SectionHeader(
+                          t.accountSection,
+                          padding: const EdgeInsets.only(bottom: Space.sm),
                         ),
                         TextFormField(
                           controller: _name,
-                          decoration: const InputDecoration(
-                            labelText: 'Full name',
-                          ),
-                          validator: _required,
+                          decoration: InputDecoration(labelText: t.fullName),
+                          validator: (v) =>
+                              (v == null || v.trim().isEmpty)
+                              ? t.requiredField
+                              : null,
                         ),
                         const SizedBox(height: Space.md),
                         TextFormField(
                           controller: _email,
                           keyboardType: TextInputType.emailAddress,
-                          decoration: const InputDecoration(labelText: 'Email'),
+                          decoration: InputDecoration(labelText: t.email),
                           validator: (v) => (v == null || !v.contains('@'))
-                              ? 'Enter a valid email'
+                              ? t.validEmailRequired
                               : null,
                         ),
                         const SizedBox(height: Space.md),
                         TextFormField(
                           controller: _password,
                           obscureText: true,
-                          decoration: const InputDecoration(
-                            labelText: 'Password',
-                          ),
+                          decoration: InputDecoration(labelText: t.password),
                           validator: (v) => (v == null || v.length < 6)
-                              ? 'At least 6 characters'
+                              ? t.passwordMinLength
                               : null,
                         ),
                       ],
@@ -162,15 +172,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const SectionHeader(
-                          'Details',
-                          padding: EdgeInsets.only(bottom: Space.sm),
+                        SectionHeader(
+                          t.detailsSection,
+                          padding: const EdgeInsets.only(bottom: Space.sm),
                         ),
                         TextFormField(
                           controller: _phone,
                           keyboardType: TextInputType.phone,
-                          decoration: const InputDecoration(
-                            labelText: 'Phone (optional)',
+                          decoration: InputDecoration(
+                            labelText: t.phoneOptional,
                           ),
                         ),
                         const SizedBox(height: Space.md),
@@ -182,7 +192,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                 icon: const Icon(Icons.cake_outlined),
                                 label: Text(
                                   _dob == null
-                                      ? 'Date of birth'
+                                      ? t.dateOfBirth
                                       : '${_dob!.year}-${_dob!.month.toString().padLeft(2, '0')}-${_dob!.day.toString().padLeft(2, '0')}',
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -193,17 +203,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               child: DropdownButtonFormField<Gender>(
                                 initialValue: _gender,
                                 isExpanded: true,
-                                decoration: const InputDecoration(
-                                  labelText: 'Gender',
+                                decoration: InputDecoration(
+                                  labelText: t.gender,
                                 ),
-                                items: const [
+                                items: [
                                   DropdownMenuItem(
                                     value: Gender.male,
-                                    child: Text('Male'),
+                                    child: Text(t.genderMale),
                                   ),
                                   DropdownMenuItem(
                                     value: Gender.female,
-                                    child: Text('Female'),
+                                    child: Text(t.genderFemale),
                                   ),
                                 ],
                                 onChanged: (v) => setState(() => _gender = v),
@@ -217,8 +227,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             Expanded(
                               child: TextFormField(
                                 controller: _nationalId,
-                                decoration: const InputDecoration(
-                                  labelText: 'National ID (optional)',
+                                decoration: InputDecoration(
+                                  labelText: t.nationalIdOptional,
                                 ),
                               ),
                             ),
@@ -227,8 +237,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               child: DropdownButtonFormField<String>(
                                 initialValue: _bloodType,
                                 isExpanded: true,
-                                decoration: const InputDecoration(
-                                  labelText: 'Blood type',
+                                decoration: InputDecoration(
+                                  labelText: t.bloodType,
                                 ),
                                 items: [
                                   for (final b in const [
@@ -260,30 +270,30 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const SectionHeader(
-                          'Medical (optional)',
-                          padding: EdgeInsets.only(bottom: Space.sm),
+                        SectionHeader(
+                          t.medicalSectionOptional,
+                          padding: const EdgeInsets.only(bottom: Space.sm),
                         ),
                         TextFormField(
                           controller: _conditions,
-                          decoration: const InputDecoration(
-                            labelText: 'Chronic conditions',
-                            helperText: 'Comma-separated',
+                          decoration: InputDecoration(
+                            labelText: t.chronicConditions,
+                            helperText: t.commaSeparatedHelper,
                           ),
                         ),
                         const SizedBox(height: Space.md),
                         TextFormField(
                           controller: _allergies,
-                          decoration: const InputDecoration(
-                            labelText: 'Allergies',
-                            helperText: 'Comma-separated',
+                          decoration: InputDecoration(
+                            labelText: t.allergies,
+                            helperText: t.commaSeparatedHelper,
                           ),
                         ),
                         const SizedBox(height: Space.md),
                         TextFormField(
                           controller: _emergency,
-                          decoration: const InputDecoration(
-                            labelText: 'Emergency contact',
+                          decoration: InputDecoration(
+                            labelText: t.emergencyContact,
                           ),
                         ),
                       ],
@@ -301,7 +311,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             dimension: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('Create account'),
+                        : Text(t.createAccount),
                   ),
                 ],
               ),
@@ -311,7 +321,4 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       ),
     );
   }
-
-  static String? _required(String? v) =>
-      (v == null || v.trim().isEmpty) ? 'Required' : null;
 }

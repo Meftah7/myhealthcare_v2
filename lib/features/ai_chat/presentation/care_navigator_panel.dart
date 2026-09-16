@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/care_navigator.dart';
 
 class CareNavigatorPanel extends ConsumerStatefulWidget {
@@ -51,6 +52,7 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final t = AppLocalizations.of(context)!;
     final chat = ref.watch(careNavigatorProvider);
     _scrollToEnd();
 
@@ -83,7 +85,7 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Care Navigator',
+                        t.aiFeatureCareNavigator,
                         style: theme.textTheme.titleSmall,
                       ),
                       Row(
@@ -98,7 +100,7 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
                           ),
                           const SizedBox(width: Space.xxs),
                           Text(
-                            'Online',
+                            t.onlineStatus,
                             style: theme.textTheme.labelSmall?.copyWith(
                               color: scheme.onSurfaceVariant,
                             ),
@@ -148,10 +150,10 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
                     controller: _input,
                     textInputAction: TextInputAction.send,
                     onSubmitted: (_) => _send(),
-                    decoration: const InputDecoration(
-                      hintText: 'Ask about the app…',
+                    decoration: InputDecoration(
+                      hintText: t.askAboutAppHint,
                       isDense: true,
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                 ),
@@ -189,7 +191,7 @@ class _Bubble extends StatelessWidget {
         : (scheme.surfaceContainerHighest, scheme.onSurface);
 
     return Align(
-      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+      alignment: isUser ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: Space.xxs),
         padding: const EdgeInsets.symmetric(
@@ -201,11 +203,15 @@ class _Bubble extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           color: bg,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(16),
-            topRight: const Radius.circular(16),
-            bottomLeft: Radius.circular(isUser ? 16 : 4),
-            bottomRight: Radius.circular(isUser ? 4 : 16),
+          // Directional, not physical, corners — the sharp "tail" corner
+          // needs to stay on the side the bubble is pointing from (bottom-end
+          // for the user, bottom-start for the assistant) in both directions,
+          // not fixed to left/right.
+          borderRadius: BorderRadiusDirectional.only(
+            topStart: const Radius.circular(16),
+            topEnd: const Radius.circular(16),
+            bottomStart: Radius.circular(isUser ? 16 : 4),
+            bottomEnd: Radius.circular(isUser ? 4 : 16),
           ),
         ),
         child: Text(
@@ -241,7 +247,7 @@ class _TypingDotsState extends State<_TypingDots>
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Align(
-      alignment: Alignment.centerLeft,
+      alignment: AlignmentDirectional.centerStart,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: Space.xxs),
         padding: const EdgeInsets.symmetric(

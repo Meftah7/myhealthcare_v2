@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/circle_icon_button.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../patient_home/presentation/notifications_button.dart';
 import '../../settings/presentation/theme_mode_icon_toggle.dart';
 
@@ -19,6 +20,7 @@ class PatientTopActions extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -26,7 +28,7 @@ class PatientTopActions extends ConsumerWidget {
         const ThemeModeIconToggle(),
         CircleIconButton(
           icon: Icons.account_circle_outlined,
-          tooltip: 'Profile',
+          tooltip: t.profileTooltip,
           onPressed: () => context.go(AppRoutes.patientSettings),
         ),
         const SizedBox(width: Space.xs),

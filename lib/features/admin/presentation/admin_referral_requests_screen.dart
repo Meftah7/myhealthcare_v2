@@ -14,6 +14,7 @@ import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/admin_providers.dart';
 import 'admin_top_actions.dart';
 
@@ -22,6 +23,7 @@ class AdminReferralRequestsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final queue = ref.watch(pendingReferralRequestsProvider);
     final patients =
         ref.watch(adminPatientNamesProvider).valueOrNull ?? const {};
@@ -29,20 +31,20 @@ class AdminReferralRequestsScreen extends ConsumerWidget {
         ref.watch(referralRequesterNamesProvider).valueOrNull ?? const {};
 
     return AppScaffold(
-      title: 'Referral requests',
+      title: t.referralRequestsTitle,
       actions: const [AdminTopActions()],
       onRefresh: () async => ref.invalidate(pendingReferralRequestsProvider),
       body: queue.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
-          message: 'Could not load the queue.',
+          message: t.couldNotLoadQueue,
           onRetry: () => ref.invalidate(pendingReferralRequestsProvider),
         ),
         data: (list) {
           if (list.isEmpty) {
-            return const EmptyState(
+            return EmptyState(
               icon: Icons.forward_to_inbox_outlined,
-              message: 'No referral requests waiting.',
+              message: t.noReferralRequestsWaiting,
             );
           }
           return Center(
@@ -61,9 +63,10 @@ class AdminReferralRequestsScreen extends ConsumerWidget {
                 separatorBuilder: (_, _) => const SizedBox(height: Space.sm),
                 itemBuilder: (context, i) => _RequestCard(
                   request: list[i],
-                  patientName: patients[list[i].patientId] ?? 'Patient',
+                  patientName: patients[list[i].patientId] ?? t.rolePatient,
                   doctorName:
-                      doctors[list[i].requestedByStaffId] ?? 'A clinician',
+                      doctors[list[i].requestedByStaffId] ??
+                      t.aClinicianFallback,
                 ),
               ),
             ),
@@ -87,6 +90,7 @@ class _RequestCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
 
@@ -97,7 +101,7 @@ class _RequestCard extends ConsumerWidget {
           Text(patientName, style: theme.textTheme.titleMedium),
           const SizedBox(height: Space.xxs),
           Text(
-            'Requested by $doctorName · ${fmtDate(request.createdAt)}',
+            t.requestedByOn(doctorName, fmtDate(request.createdAt)),
             style: theme.textTheme.bodySmall?.copyWith(
               color: scheme.onSurfaceVariant,
             ),
@@ -110,7 +114,7 @@ class _RequestCard extends ConsumerWidget {
               Expanded(
                 child: FilledButton(
                   onPressed: () => _action(context, ref),
-                  child: const Text('Action'),
+                  child: Text(t.actionButton),
                 ),
               ),
               const SizedBox(width: Space.sm),
@@ -123,7 +127,7 @@ class _RequestCard extends ConsumerWidget {
                       color: scheme.error.withValues(alpha: 0.4),
                     ),
                   ),
-                  child: const Text('Reject'),
+                  child: Text(t.rejectAction),
                 ),
               ),
             ],
@@ -134,6 +138,7 @@ class _RequestCard extends ConsumerWidget {
   }
 
   Future<void> _action(BuildContext context, WidgetRef ref) async {
+    final t = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
     final result = await showModalBottomSheet<Result<MedicalRecord>>(
       context: context,
@@ -149,7 +154,7 @@ class _RequestCard extends ConsumerWidget {
     messenger.showSnackBar(
       SnackBar(
         content: Text(switch (result) {
-          Ok() => '$patientName referred.',
+          Ok() => t.patientReferredSnackbar(patientName),
           Err(:final failure) => failure.message,
         }),
       ),
@@ -157,28 +162,27 @@ class _RequestCard extends ConsumerWidget {
   }
 
   Future<void> _reject(BuildContext context, WidgetRef ref) async {
+    final t = AppLocalizations.of(context)!;
     final controller = TextEditingController();
     final note = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Reject this request'),
+        title: Text(t.rejectThisRequestTitle),
         content: TextField(
           controller: controller,
           autofocus: true,
           minLines: 2,
           maxLines: 4,
-          decoration: const InputDecoration(
-            hintText: 'Why is no referral needed?',
-          ),
+          decoration: InputDecoration(hintText: t.whyNoReferralNeededHint),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(t.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(controller.text.trim()),
-            child: const Text('Reject'),
+            child: Text(t.rejectAction),
           ),
         ],
       ),
@@ -235,6 +239,7 @@ class _ActionSheetState extends ConsumerState<_ActionSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final departments = ref.watch(departmentsProvider);
 
@@ -245,7 +250,7 @@ class _ActionSheetState extends ConsumerState<_ActionSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Action referral', style: theme.textTheme.titleLarge),
+            Text(t.actionReferralTitle, style: theme.textTheme.titleLarge),
             const SizedBox(height: Space.xxs),
             Text(
               widget.patientName,
@@ -267,9 +272,15 @@ class _ActionSheetState extends ConsumerState<_ActionSheet> {
             ),
             const SizedBox(height: Space.md),
             SegmentedButton<bool>(
-              segments: const [
-                ButtonSegment(value: false, label: Text('Another department')),
-                ButtonSegment(value: true, label: Text('Another hospital')),
+              segments: [
+                ButtonSegment(
+                  value: false,
+                  label: Text(t.anotherDepartmentSegment),
+                ),
+                ButtonSegment(
+                  value: true,
+                  label: Text(t.anotherHospitalSegment),
+                ),
               ],
               selected: {_external},
               onSelectionChanged: (s) => setState(() => _external = s.first),
@@ -278,7 +289,7 @@ class _ActionSheetState extends ConsumerState<_ActionSheet> {
             if (_external)
               DropdownButtonFormField<String>(
                 initialValue: _hospital,
-                decoration: const InputDecoration(labelText: 'Hospital'),
+                decoration: InputDecoration(labelText: t.hospitalLabel),
                 items: [
                   for (final h in kReferralHospitals)
                     DropdownMenuItem(value: h, child: Text(h)),
@@ -289,7 +300,7 @@ class _ActionSheetState extends ConsumerState<_ActionSheet> {
               departments.maybeWhen(
                 data: (list) => DropdownButtonFormField<String>(
                   initialValue: _departmentId,
-                  decoration: const InputDecoration(labelText: 'Department'),
+                  decoration: InputDecoration(labelText: t.departmentLabel),
                   items: [
                     for (final d in list)
                       DropdownMenuItem(value: d.id, child: Text(d.name)),
@@ -301,8 +312,8 @@ class _ActionSheetState extends ConsumerState<_ActionSheet> {
             const SizedBox(height: Space.sm),
             TextField(
               controller: _note,
-              decoration: const InputDecoration(
-                labelText: 'Note for the record (optional)',
+              decoration: InputDecoration(
+                labelText: t.noteForRecordOptionalLabel,
               ),
             ),
             const SizedBox(height: Space.lg),
@@ -316,7 +327,7 @@ class _ActionSheetState extends ConsumerState<_ActionSheet> {
                       width: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Refer patient'),
+                  : Text(t.referPatientAction),
             ),
           ],
         ),

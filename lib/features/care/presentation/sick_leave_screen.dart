@@ -10,6 +10,7 @@ import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../patient/application/patient_data_providers.dart';
 import '../../patient/application/patient_documents.dart';
 import '../../patient/presentation/document_download_button.dart';
@@ -21,26 +22,26 @@ class SickLeaveScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final certs = ref.watch(patientSickLeaveProvider);
     final doctors = ref.watch(doctorDirectoryProvider).valueOrNull ?? const {};
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sick leave'),
+        title: Text(t.quickActionSickLeave),
         actions: const [PatientTopActions()],
       ),
       body: certs.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
-          message: 'Could not load your certificates.',
+          message: t.couldNotLoadCertificates,
           onRetry: () => ref.invalidate(patientSickLeaveProvider),
         ),
         data: (list) {
           if (list.isEmpty) {
-            return const EmptyState(
+            return EmptyState(
               icon: Icons.event_busy_outlined,
-              message: 'No sick-leave certificates.\nYour doctor can issue one '
-                  'after a visit.',
+              message: t.noSickLeaveCertificatesMessage,
             );
           }
           return Center(
@@ -80,6 +81,7 @@ class _CertCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final t = AppLocalizations.of(context)!;
 
     return AppCard(
       child: Column(
@@ -104,7 +106,7 @@ class _CertCard extends ConsumerWidget {
                     borderRadius: Radii.pill,
                   ),
                   child: Text(
-                    'Active',
+                    t.activeChip,
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: theme.clinicalStatus.riskLow.onContainer,
                     ),
@@ -114,14 +116,17 @@ class _CertCard extends ConsumerWidget {
           ),
           const SizedBox(height: Space.xs),
           Text(
-            '${fmtDate(cert.fromDate)} – ${fmtDate(cert.toDate)}  ·  '
-            '${cert.days} day${cert.days == 1 ? '' : 's'}',
+            t.dateRangeDays(
+              fmtDate(cert.fromDate),
+              fmtDate(cert.toDate),
+              cert.days,
+            ),
             style: theme.textTheme.bodyMedium?.copyWith(
               color: scheme.onSurfaceVariant,
             ),
           ),
           Text(
-            'Issued ${fmtDate(cert.issuedAt)}'
+            '${t.issuedOn(fmtDate(cert.issuedAt))}'
             '${doctorName == null ? '' : ' · $doctorName'}',
             style: theme.textTheme.bodySmall?.copyWith(
               color: scheme.onSurfaceVariant,
@@ -133,9 +138,9 @@ class _CertCard extends ConsumerWidget {
           ],
           const SizedBox(height: Space.xs),
           Align(
-            alignment: Alignment.centerLeft,
+            alignment: AlignmentDirectional.centerStart,
             child: DocumentDownloadButton(
-              label: 'Certificate PDF',
+              label: t.certificatePdfLabel,
               filename: 'sick-leave-${fmtDate(cert.fromDate)}.pdf',
               build: () => buildSickLeave(ref, cert),
             ),

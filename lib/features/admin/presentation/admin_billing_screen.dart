@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
+import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
@@ -14,6 +15,7 @@ import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/admin_providers.dart';
 import 'admin_top_actions.dart';
 
@@ -29,6 +31,7 @@ class _AdminBillingScreenState extends ConsumerState<AdminBillingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final invoices = ref.watch(allInvoicesProvider(_filter));
     final names = ref.watch(adminPatientNamesProvider).valueOrNull ?? const {};
@@ -36,7 +39,7 @@ class _AdminBillingScreenState extends ConsumerState<AdminBillingScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Billing'),
+        title: Text(t.billingTitle),
         actions: const [AdminTopActions()],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(52),
@@ -45,14 +48,17 @@ class _AdminBillingScreenState extends ConsumerState<AdminBillingScreen> {
             padding: const EdgeInsets.fromLTRB(Space.md, 0, Space.md, Space.xs),
             child: Row(
               children: [
-                for (final (label, value) in const [
-                  ('All', null),
-                  ('Open', InvoiceStatus.pending),
-                  ('Paid', InvoiceStatus.paid),
-                  ('Cancelled', InvoiceStatus.cancelled),
+                for (final (label, value) in [
+                  (t.allFilterChip, null),
+                  (InvoiceStatus.pending.label(context), InvoiceStatus.pending),
+                  (InvoiceStatus.paid.label(context), InvoiceStatus.paid),
+                  (
+                    InvoiceStatus.cancelled.label(context),
+                    InvoiceStatus.cancelled,
+                  ),
                 ])
                   Padding(
-                    padding: const EdgeInsets.only(right: Space.xs),
+                    padding: const EdgeInsetsDirectional.only(end: Space.xs),
                     child: FilterChip(
                       label: Text(label),
                       selected: _filter == value,
@@ -67,14 +73,14 @@ class _AdminBillingScreenState extends ConsumerState<AdminBillingScreen> {
       body: invoices.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
-          message: 'Could not load invoices.',
+          message: t.couldNotLoadInvoicesAdmin,
           onRetry: () => ref.invalidate(allInvoicesProvider(_filter)),
         ),
         data: (list) {
           if (list.isEmpty) {
-            return const EmptyState(
+            return EmptyState(
               icon: Icons.receipt_long_outlined,
-              message: 'No invoices in this view.',
+              message: t.noInvoicesInView,
             );
           }
           return Center(
@@ -121,6 +127,7 @@ class _InvoiceCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final scheme = theme.colorScheme;
     final open = invoice.status == InvoiceStatus.pending;
 
@@ -133,7 +140,7 @@ class _InvoiceCard extends ConsumerWidget {
             children: [
               Expanded(
                 child: Text(
-                  patientName ?? 'Patient',
+                  patientName ?? t.rolePatient,
                   style: theme.textTheme.titleSmall,
                 ),
               ),
@@ -142,9 +149,11 @@ class _InvoiceCard extends ConsumerWidget {
           ),
           const SizedBox(height: Space.xxs),
           Text(
-            'BD ${invoice.totalAmount.toStringAsFixed(2)} · '
-            'issued ${fmtDate(invoice.issuedAt)}'
-            '${invoice.dueDate == null ? '' : ' · due ${fmtDate(invoice.dueDate!)}'}',
+            [
+              'BD ${invoice.totalAmount.toStringAsFixed(2)}',
+              t.issuedOn(fmtDate(invoice.issuedAt)),
+              if (invoice.dueDate != null) t.dueOn(fmtDate(invoice.dueDate!)),
+            ].join(' · '),
             style: theme.textTheme.bodySmall?.copyWith(
               color: scheme.onSurfaceVariant,
             ),
@@ -159,23 +168,23 @@ class _InvoiceCard extends ConsumerWidget {
               children: [
                 FilledButton.tonal(
                   onPressed: () => _set(context, ref, InvoiceStatus.paid),
-                  child: const Text('Mark paid'),
+                  child: Text(t.markPaidAction),
                 ),
                 const SizedBox(width: Space.xs),
                 TextButton(
                   onPressed: () async {
                     final ok = await confirm(
                       context,
-                      title: 'Cancel this invoice?',
-                      message: 'The patient will no longer owe it.',
-                      confirmLabel: 'Cancel invoice',
+                      title: t.cancelThisInvoiceTitle,
+                      message: t.patientWillNoLongerOweIt,
+                      confirmLabel: t.cancelInvoiceAction,
                       destructive: true,
                     );
                     if (ok && context.mounted) {
                       await _set(context, ref, InvoiceStatus.cancelled);
                     }
                   },
-                  child: const Text('Cancel'),
+                  child: Text(t.cancel),
                 ),
               ],
             ),
@@ -190,6 +199,8 @@ class _InvoiceCard extends ConsumerWidget {
     WidgetRef ref,
     InvoiceStatus status,
   ) async {
+    final t = AppLocalizations.of(context)!;
+    final statusLabel = status.label(context);
     final messenger = ScaffoldMessenger.of(context);
     final r = await ref
         .read(adminActionsProvider)
@@ -197,7 +208,7 @@ class _InvoiceCard extends ConsumerWidget {
     messenger.showSnackBar(
       SnackBar(
         content: Text(switch (r) {
-          Ok() => 'Invoice marked ${status.name}.',
+          Ok() => t.invoiceMarkedStatus(statusLabel),
           Err(:final failure) => failure.message,
         }),
       ),
@@ -216,17 +227,17 @@ class _StatusChip extends StatelessWidget {
     final scheme = theme.colorScheme;
     final (label, bg, fg) = switch (status) {
       InvoiceStatus.paid => (
-        'Paid',
+        status.label(context),
         ramp.riskLow.container,
         ramp.riskLow.onContainer,
       ),
       InvoiceStatus.pending => (
-        'Open',
+        status.label(context),
         scheme.primaryContainer,
         scheme.onPrimaryContainer,
       ),
       InvoiceStatus.cancelled => (
-        'Cancelled',
+        status.label(context),
         scheme.surfaceContainerHighest,
         scheme.onSurfaceVariant,
       ),

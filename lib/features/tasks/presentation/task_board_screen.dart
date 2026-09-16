@@ -12,6 +12,7 @@ import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../staff_dashboard/application/staff_providers.dart';
 import '../../staff_dashboard/presentation/staff_top_actions.dart';
 
@@ -20,11 +21,12 @@ class TaskBoardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final tasks = ref.watch(staffTasksProvider);
     final weight = ref.watch(aiTaskWeightProvider).valueOrNull ?? 0.5;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Task board'),
+        title: Text(t.taskBoardTitle),
         actions: [
           _PrioritiseButton(),
           const StaffTopActions(),
@@ -33,14 +35,14 @@ class TaskBoardScreen extends ConsumerWidget {
       body: tasks.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
-          message: 'Could not load tasks.',
+          message: t.couldNotLoadTasks,
           onRetry: () => ref.invalidate(staffTasksProvider),
         ),
         data: (list) {
           if (list.isEmpty) {
-            return const EmptyState(
+            return EmptyState(
               icon: Icons.checklist_outlined,
-              message: 'No open tasks. Run a panel scan from the dashboard.',
+              message: t.noOpenTasksMessage,
             );
           }
           return Center(
@@ -57,8 +59,7 @@ class TaskBoardScreen extends ConsumerWidget {
                 ),
                 children: [
                   InlineBanner.info(
-                    'Priority blends the rule score '
-                    '${(weight * 100).round()}% with the AI score.',
+                    t.priorityBlendNote((weight * 100).round()),
                   ),
                   const SizedBox(height: Space.sm),
                   for (final t in list) ...[
@@ -85,12 +86,13 @@ class _PrioritiseButtonState extends ConsumerState<_PrioritiseButton> {
 
   Future<void> _run() async {
     setState(() => _busy = true);
+    final t = AppLocalizations.of(context)!;
     try {
       await ref.read(staffOpsProvider).prioritiseWithAi();
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Tasks re-prioritised.')));
+        ).showSnackBar(SnackBar(content: Text(t.tasksReprioritised)));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -108,7 +110,7 @@ class _PrioritiseButtonState extends ConsumerState<_PrioritiseButton> {
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           : const Icon(Icons.auto_awesome),
-      label: const Text('Prioritise'),
+      label: Text(AppLocalizations.of(context)!.prioritiseButton),
     );
   }
 }
@@ -122,6 +124,7 @@ class _TaskCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context)!;
     final priority = task.effectivePriority(weight);
     return AppCard(
       padding: const EdgeInsets.all(Space.md),
@@ -138,18 +141,18 @@ class _TaskCard extends ConsumerWidget {
                 PopupMenuButton<TaskStatus>(
                   onSelected: (s) =>
                       ref.read(staffOpsProvider).setTaskStatus(task.id, s),
-                  itemBuilder: (context) => const [
+                  itemBuilder: (context) => [
                     PopupMenuItem(
                       value: TaskStatus.inProgress,
-                      child: Text('Start'),
+                      child: Text(t.startAction),
                     ),
                     PopupMenuItem(
                       value: TaskStatus.done,
-                      child: Text('Complete'),
+                      child: Text(t.completeAction),
                     ),
                     PopupMenuItem(
                       value: TaskStatus.dismissed,
-                      child: Text('Dismiss'),
+                      child: Text(t.dismissAction),
                     ),
                   ],
                 ),
@@ -161,20 +164,20 @@ class _TaskCard extends ConsumerWidget {
               runSpacing: Space.xxs,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                _Tag(label: _kindLabel(task.kind)),
-                _Tag(label: 'rule ${task.ruleScore.toStringAsFixed(2)}'),
+                _Tag(label: _kindLabel(t, task.kind)),
+                _Tag(label: t.ruleScoreTag(task.ruleScore.toStringAsFixed(2))),
                 if (task.aiPriorityScore != null)
                   _Tag(
-                    label: 'AI ${task.aiPriorityScore!.toStringAsFixed(2)}',
+                    label: t.aiScoreTag(task.aiPriorityScore!.toStringAsFixed(2)),
                     icon: Icons.auto_awesome,
                   ),
                 if (task.dueAt != null)
                   _Tag(
-                    label: 'due ${fmtRelativeDay(task.dueAt!)}',
+                    label: t.dueTag(fmtRelativeDay(task.dueAt!)),
                     error: task.isOverdue,
                   ),
                 if (task.status == TaskStatus.inProgress)
-                  const _Tag(label: 'in progress'),
+                  _Tag(label: t.taskStatusInProgress),
               ],
             ),
             if (task.aiRationale != null) ...[
@@ -245,11 +248,11 @@ class _Tag extends StatelessWidget {
   }
 }
 
-String _kindLabel(TaskKind k) => switch (k) {
-  TaskKind.followUpDue => 'Follow-up',
-  TaskKind.unreviewedAbnormalLab => 'Abnormal lab',
-  TaskKind.unsignedNote => 'Unsigned note',
-  TaskKind.medicationReview => 'Medication review',
-  TaskKind.referralAction => 'Referral',
-  TaskKind.other => 'Other',
+String _kindLabel(AppLocalizations t, TaskKind k) => switch (k) {
+  TaskKind.followUpDue => t.taskKindFollowUpShort,
+  TaskKind.unreviewedAbnormalLab => t.taskKindAbnormalLabShort,
+  TaskKind.unsignedNote => t.taskKindUnsignedNote,
+  TaskKind.medicationReview => t.taskKindMedicationReview,
+  TaskKind.referralAction => t.taskKindReferralShort,
+  TaskKind.other => t.taskKindOther,
 };

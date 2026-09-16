@@ -14,6 +14,7 @@ import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/admin_providers.dart';
 import 'admin_top_actions.dart';
 
@@ -27,28 +28,29 @@ class DepartmentsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final departments = ref.watch(departmentsProvider);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Departments'),
+        title: Text(t.departmentsLabel),
         actions: const [AdminTopActions()],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _edit(context, ref, null),
         icon: const Icon(Icons.add),
-        label: const Text('New department'),
+        label: Text(t.newDepartmentAction),
       ),
       body: departments.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
-          message: 'Could not load departments.',
+          message: t.couldNotLoadDepartments,
           onRetry: () => ref.invalidate(departmentsProvider),
         ),
         data: (list) {
           if (list.isEmpty) {
-            return const EmptyState(
+            return EmptyState(
               icon: Icons.apartment_outlined,
-              message: 'No departments yet.',
+              message: t.noDepartmentsYet,
             );
           }
           return Center(
@@ -114,11 +116,14 @@ class DepartmentsScreen extends ConsumerWidget {
                                 unawaited(_delete(context, ref, d));
                               }
                             },
-                            itemBuilder: (context) => const [
-                              PopupMenuItem(value: 'edit', child: Text('Edit')),
+                            itemBuilder: (context) => [
+                              PopupMenuItem(
+                                value: 'edit',
+                                child: Text(t.editAction),
+                              ),
                               PopupMenuItem(
                                 value: 'delete',
-                                child: Text('Delete'),
+                                child: Text(t.deleteAction),
                               ),
                             ],
                           ),
@@ -140,12 +145,13 @@ class DepartmentsScreen extends ConsumerWidget {
     WidgetRef ref,
     Department d,
   ) async {
+    final t = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
     final ok = await confirm(
       context,
-      title: 'Delete ${d.name}?',
-      message: 'This cannot be undone.',
-      confirmLabel: 'Delete',
+      title: t.deleteConfirmTitle(d.name),
+      message: t.cannotBeUndoneNote,
+      confirmLabel: t.deleteAction,
       destructive: true,
     );
     if (!ok) return;
@@ -153,7 +159,9 @@ class DepartmentsScreen extends ConsumerWidget {
     if (r case Err(:final failure)) {
       messenger.showSnackBar(SnackBar(content: Text(failure.message)));
     } else {
-      messenger.showSnackBar(SnackBar(content: Text('${d.name} deleted')));
+      messenger.showSnackBar(
+        SnackBar(content: Text(t.itemDeletedSnackbar(d.name))),
+      );
     }
   }
 
@@ -162,24 +170,27 @@ class DepartmentsScreen extends ConsumerWidget {
     WidgetRef ref,
     Department? existing,
   ) {
+    final t = AppLocalizations.of(context)!;
     final name = TextEditingController(text: existing?.name ?? '');
     final desc = TextEditingController(text: existing?.description ?? '');
     return showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(existing == null ? 'New department' : 'Edit department'),
+        title: Text(
+          existing == null ? t.newDepartmentAction : t.editDepartmentTitle,
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: name,
-              decoration: const InputDecoration(labelText: 'Name'),
+              decoration: InputDecoration(labelText: t.nameLabel),
             ),
             const SizedBox(height: Space.sm),
             TextField(
               controller: desc,
-              decoration: const InputDecoration(
-                labelText: 'Description (optional)',
+              decoration: InputDecoration(
+                labelText: t.descriptionOptionalLabel,
               ),
             ),
           ],
@@ -187,7 +198,7 @@ class DepartmentsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(t.cancel),
           ),
           FilledButton(
             onPressed: () async {
@@ -210,7 +221,7 @@ class DepartmentsScreen extends ConsumerWidget {
                 );
               }
             },
-            child: const Text('Save'),
+            child: Text(t.saveButton),
           ),
         ],
       ),

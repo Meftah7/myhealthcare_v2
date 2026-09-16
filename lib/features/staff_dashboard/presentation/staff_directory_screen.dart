@@ -10,6 +10,7 @@ import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/staff_providers.dart';
 import 'staff_top_actions.dart' show presenceMeta;
 
@@ -18,23 +19,24 @@ class StaffDirectoryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final directory = ref.watch(staffDirectoryProvider);
     final gutter = WindowSize.of(context).gutter;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Staff directory')),
+      appBar: AppBar(title: Text(t.staffDirectoryTitle)),
       body: directory.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
-          message: 'Could not load the staff directory.',
+          message: t.couldNotLoadStaffDirectory,
           onRetry: () => ref.invalidate(staffDirectoryProvider),
         ),
         data: (staff) {
           if (staff.isEmpty) {
-            return const EmptyState(
+            return EmptyState(
               icon: Icons.badge_outlined,
-              message: 'No staff on record.',
+              message: t.noStaffOnRecord,
             );
           }
           return Center(
@@ -51,7 +53,7 @@ class StaffDirectoryScreen extends ConsumerWidget {
                 ),
                 children: [
                   Text(
-                    '${staff.length} clinicians',
+                    t.cliniciansCount(staff.length),
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),

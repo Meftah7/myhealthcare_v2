@@ -10,6 +10,7 @@ import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
 import '../../../core/result.dart';
 import '../../../domain/enums.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
 
 Future<void> showFeedbackSheet(BuildContext context, WidgetRef ref) {
@@ -21,12 +22,15 @@ Future<void> showFeedbackSheet(BuildContext context, WidgetRef ref) {
   );
 }
 
-String feedbackCategoryLabel(FeedbackCategory c) => switch (c) {
-  FeedbackCategory.bug => 'Something is broken',
-  FeedbackCategory.featureRequest => 'Feature request',
-  FeedbackCategory.generalFeedback => 'General feedback',
-  FeedbackCategory.complaint => 'Complaint',
-};
+String feedbackCategoryLabel(BuildContext context, FeedbackCategory c) {
+  final t = AppLocalizations.of(context)!;
+  return switch (c) {
+    FeedbackCategory.bug => t.somethingIsBrokenOption,
+    FeedbackCategory.featureRequest => t.feedbackCategoryFeatureRequest,
+    FeedbackCategory.generalFeedback => t.feedbackCategoryGeneralFeedback,
+    FeedbackCategory.complaint => t.feedbackCategoryComplaint,
+  };
+}
 
 class _FeedbackSheet extends ConsumerStatefulWidget {
   const _FeedbackSheet();
@@ -48,6 +52,7 @@ class _FeedbackSheetState extends ConsumerState<_FeedbackSheet> {
 
   Future<void> _submit() async {
     setState(() => _busy = true);
+    final t = AppLocalizations.of(context)!;
     final result = await ref
         .read(feedbackRepositoryProvider)
         .submit(
@@ -60,7 +65,7 @@ class _FeedbackSheetState extends ConsumerState<_FeedbackSheet> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(switch (result) {
-          Ok() => 'Thanks — your feedback was sent to the team.',
+          Ok() => t.feedbackThanksMessage,
           Err(:final failure) => failure.message,
         }),
       ),
@@ -71,6 +76,7 @@ class _FeedbackSheetState extends ConsumerState<_FeedbackSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context)!;
     final insets = MediaQuery.viewInsetsOf(context).bottom;
     return Padding(
       padding: EdgeInsets.fromLTRB(Space.lg, 0, Space.lg, Space.lg + insets),
@@ -79,11 +85,10 @@ class _FeedbackSheetState extends ConsumerState<_FeedbackSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Send feedback', style: theme.textTheme.titleLarge),
+            Text(t.sendFeedbackTitle, style: theme.textTheme.titleLarge),
             const SizedBox(height: Space.xs),
             Text(
-              'Tell the team what is working, what is not, or what you wish the '
-              'app did.',
+              t.feedbackIntroText,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -91,12 +96,12 @@ class _FeedbackSheetState extends ConsumerState<_FeedbackSheet> {
             const SizedBox(height: Space.md),
             DropdownButtonFormField<FeedbackCategory>(
               initialValue: _category,
-              decoration: const InputDecoration(labelText: 'About'),
+              decoration: InputDecoration(labelText: t.aboutLabel),
               items: [
                 for (final c in FeedbackCategory.values)
                   DropdownMenuItem(
                     value: c,
-                    child: Text(feedbackCategoryLabel(c)),
+                    child: Text(feedbackCategoryLabel(context, c)),
                   ),
               ],
               onChanged: (v) => setState(() => _category = v!),
@@ -106,8 +111,8 @@ class _FeedbackSheetState extends ConsumerState<_FeedbackSheet> {
               controller: _message,
               minLines: 3,
               maxLines: 8,
-              decoration: const InputDecoration(
-                labelText: 'Your message',
+              decoration: InputDecoration(
+                labelText: t.yourMessageLabel,
                 alignLabelWithHint: true,
               ),
               onChanged: (_) => setState(() {}),
@@ -123,7 +128,7 @@ class _FeedbackSheetState extends ConsumerState<_FeedbackSheet> {
                       width: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Send'),
+                  : Text(t.sendButton),
             ),
           ],
         ),

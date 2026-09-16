@@ -7,10 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
+import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
-import '../../../domain/enums.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/staff_providers.dart';
 
 enum _ActivityView { records, prescriptions }
@@ -28,11 +29,12 @@ class _StaffActivityScreenState extends ConsumerState<StaffActivityScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final gutter = WindowSize.of(context).gutter;
     final names = ref.watch(patientNameLookupProvider).valueOrNull ?? const {};
 
     return Scaffold(
-      appBar: AppBar(title: const Text('My activity')),
+      appBar: AppBar(title: Text(t.myActivityTitle)),
       body: Column(
         children: [
           Padding(
@@ -45,16 +47,16 @@ class _StaffActivityScreenState extends ConsumerState<StaffActivityScreen> {
                 child: SizedBox(
                   width: double.infinity,
                   child: SegmentedButton<_ActivityView>(
-                    segments: const [
+                    segments: [
                       ButtonSegment(
                         value: _ActivityView.records,
-                        icon: Icon(Icons.description_outlined),
-                        label: Text('Records'),
+                        icon: const Icon(Icons.description_outlined),
+                        label: Text(t.recordsTab),
                       ),
                       ButtonSegment(
                         value: _ActivityView.prescriptions,
-                        icon: Icon(Icons.medication_outlined),
-                        label: Text('Prescriptions'),
+                        icon: const Icon(Icons.medication_outlined),
+                        label: Text(t.prescriptionsTab),
                       ),
                     ],
                     selected: {_view},
@@ -92,19 +94,20 @@ class _RecordsList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final records = ref.watch(staffRecordsAuthoredProvider);
     return records.when(
       loading: () => const SkeletonList(),
       error: (e, _) => ErrorStateView(
-        message: 'Could not load your records.',
+        message: t.couldNotLoadYourRecords,
         onRetry: () => ref.invalidate(staffRecordsAuthoredProvider),
       ),
       data: (list) {
         if (list.isEmpty) {
-          return const EmptyState(
+          return EmptyState(
             icon: Icons.description_outlined,
-            message: 'You have not authored any records yet.',
+            message: t.noRecordsAuthoredYet,
           );
         }
         return ListView.separated(
@@ -138,8 +141,8 @@ class _RecordsList extends ConsumerWidget {
                   ),
                   const SizedBox(height: Space.xxs),
                   Text(
-                    '${names[r.patientId] ?? 'Patient'} · '
-                    '${_recordTypeLabel(r.recordType)} · '
+                    '${names[r.patientId] ?? t.rolePatient} · '
+                    '${r.recordType.label(context)} · '
                     '${fmtDate(r.occurredAt)}',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
@@ -170,19 +173,20 @@ class _PrescriptionsList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final meds = ref.watch(staffPrescriptionsIssuedProvider);
     return meds.when(
       loading: () => const SkeletonList(),
       error: (e, _) => ErrorStateView(
-        message: 'Could not load your prescriptions.',
+        message: t.couldNotLoadYourPrescriptions,
         onRetry: () => ref.invalidate(staffPrescriptionsIssuedProvider),
       ),
       data: (list) {
         if (list.isEmpty) {
-          return const EmptyState(
+          return EmptyState(
             icon: Icons.medication_outlined,
-            message: 'You have not issued any prescriptions yet.',
+            message: t.noPrescriptionsIssuedYet,
           );
         }
         return ListView.separated(
@@ -217,7 +221,7 @@ class _PrescriptionsList extends ConsumerWidget {
                             borderRadius: Radii.chip,
                           ),
                           child: Text(
-                            'Active',
+                            t.currentMedicationChip,
                             style: theme.textTheme.labelSmall?.copyWith(
                               color: theme.colorScheme.onSecondaryContainer,
                             ),
@@ -228,7 +232,7 @@ class _PrescriptionsList extends ConsumerWidget {
                   const SizedBox(height: Space.xxs),
                   Text(
                     [
-                      names[m.patientId] ?? 'Patient',
+                      names[m.patientId] ?? t.rolePatient,
                       if (m.dose != null) m.dose,
                       if (m.frequency != null) m.frequency,
                       fmtDate(m.startDate),
@@ -246,13 +250,3 @@ class _PrescriptionsList extends ConsumerWidget {
     );
   }
 }
-
-String _recordTypeLabel(RecordType t) => switch (t) {
-  RecordType.visitNote => 'Visit note',
-  RecordType.labResult => 'Lab result',
-  RecordType.imaging => 'Imaging',
-  RecordType.prescription => 'Prescription',
-  RecordType.vaccination => 'Vaccination',
-  RecordType.discharge => 'Discharge',
-  RecordType.referral => 'Referral',
-};

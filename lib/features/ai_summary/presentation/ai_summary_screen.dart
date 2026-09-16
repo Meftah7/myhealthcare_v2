@@ -12,6 +12,7 @@ import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
 import '../../../core/utils/format.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/ai_summary_provider.dart';
 
 class AiSummaryScreen extends ConsumerWidget {
@@ -19,15 +20,16 @@ class AiSummaryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final summary = ref.watch(patientAiSummaryProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('AI health summary'),
+        title: Text(t.aiHealthSummaryTitle),
         actions: [
           IconButton(
-            tooltip: 'Regenerate',
+            tooltip: t.regenerateTooltip,
             icon: const Icon(Icons.refresh),
             onPressed: summary.isLoading
                 ? null
@@ -42,7 +44,7 @@ class AiSummaryScreen extends ConsumerWidget {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            'Regenerated ${fmtDateTime(entity.generatedAt)}',
+                            t.regeneratedAt(fmtDateTime(entity.generatedAt)),
                           ),
                         ),
                       );
@@ -58,7 +60,7 @@ class AiSummaryScreen extends ConsumerWidget {
             child: summary.when(
               loading: () => const SkeletonList(),
               error: (e, _) => ErrorStateView(
-                message: 'Could not generate a summary.\n$e',
+                message: t.couldNotGenerateSummary('$e'),
                 onRetry: () => ref.invalidate(patientAiSummaryProvider),
               ),
               data: (s) => Center(
@@ -84,8 +86,11 @@ class AiSummaryScreen extends ConsumerWidget {
                             ),
                             const SizedBox(height: Space.sm),
                             Text(
-                              'Generated ${fmtDateTime(s.generatedAt)}  ·  '
-                              '${s.modelId}  ·  ${s.promptVersion}',
+                              t.generatedMeta(
+                                fmtDateTime(s.generatedAt),
+                                s.modelId,
+                                s.promptVersion,
+                              ),
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),
@@ -95,8 +100,8 @@ class AiSummaryScreen extends ConsumerWidget {
                       ),
 
                       if (s.redFlags.isNotEmpty) ...[
-                        const SectionHeader(
-                          'Things to check',
+                        SectionHeader(
+                          t.thingsToCheckHeader,
                           overline: true,
                         ),
                         AppCard(
@@ -129,7 +134,7 @@ class AiSummaryScreen extends ConsumerWidget {
                       ],
 
                       if (s.trends.isNotEmpty) ...[
-                        const SectionHeader('Trends', overline: true),
+                        SectionHeader(t.trendsHeader, overline: true),
                         AppCard(
                           padding: EdgeInsets.zero,
                           child: Column(
@@ -149,7 +154,7 @@ class AiSummaryScreen extends ConsumerWidget {
                       ],
 
                       if (s.keyEvents.isNotEmpty) ...[
-                        const SectionHeader('Key events', overline: true),
+                        SectionHeader(t.keyEventsHeader, overline: true),
                         AppCard(
                           padding: EdgeInsets.zero,
                           child: Column(

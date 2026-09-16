@@ -61,6 +61,7 @@ void main() {
       find.widgetWithText(TextFormField, 'Password'),
       Seeder.demoPassword,
     );
+    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Sign in'));
     await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
     await passMfa(tester);
     await _settle(tester);

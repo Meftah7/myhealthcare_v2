@@ -18,6 +18,7 @@ import '../../../core/presentation/status_badges.dart';
 import '../../../core/utils/clinic_hours.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../booking/presentation/booking_screen.dart';
 import '../../patient/application/patient_data_providers.dart';
 import '../../patient/presentation/patient_top_actions.dart';
@@ -27,13 +28,14 @@ class AppointmentsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final appts = ref.watch(patientAppointmentsProvider);
     final doctors = ref.watch(doctorDirectoryProvider).valueOrNull ?? const {};
     final departments =
         ref.watch(departmentDirectoryProvider).valueOrNull ?? const {};
 
     return AppScaffold(
-      title: 'My appointments',
+      title: t.appointmentsTitle,
       actions: const [PatientTopActions()],
       onRefresh: () async => ref.invalidate(patientAppointmentsProvider),
       children: [
@@ -48,7 +50,7 @@ class AppointmentsScreen extends ConsumerWidget {
           error: (e, _) => [
             const SizedBox(height: Space.xl),
             ErrorStateView(
-              message: 'Could not load appointments.',
+              message: t.couldNotLoadAppointments,
               onRetry: () => ref.invalidate(patientAppointmentsProvider),
             ),
           ],
@@ -66,19 +68,17 @@ class AppointmentsScreen extends ConsumerWidget {
             );
 
             return [
-              SectionHeader('Upcoming (${upcoming.length})', overline: true),
+              SectionHeader(t.upcomingCount(upcoming.length), overline: true),
               if (upcoming.isEmpty)
-                const _EmptyNote(
-                  'Nothing booked. Use Book now or Schedule above.',
-                )
+                _EmptyNote(t.nothingBookedNote)
               else
                 CardColumns(
                   children: [for (final a in upcoming) card(a, upcoming: true)],
                 ),
 
-              SectionHeader('History (${past.length})', overline: true),
+              SectionHeader(t.historyCount(past.length), overline: true),
               if (past.isEmpty)
-                const _EmptyNote('No past visits yet.')
+                _EmptyNote(t.noPastVisitsNote)
               else
                 for (final entry in _byMonth(past.take(40)).entries) ...[
                   _MonthLabel(entry.key),
@@ -113,6 +113,7 @@ class _EntryButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -120,8 +121,8 @@ class _EntryButtons extends StatelessWidget {
           Expanded(
             child: EntryCard(
               icon: Icons.bolt_outlined,
-              title: 'Book now',
-              subtitle: 'Soonest opening',
+              title: t.bookNowTitle,
+              subtitle: t.bookNowSubtitle,
               filled: true,
               onTap: () =>
                   context.push(AppRoutes.patientBook, extra: BookingMode.now),
@@ -131,8 +132,8 @@ class _EntryButtons extends StatelessWidget {
           Expanded(
             child: EntryCard(
               icon: Icons.calendar_month_outlined,
-              title: 'Schedule',
-              subtitle: 'Pick a date',
+              title: t.scheduleTitle,
+              subtitle: t.scheduleSubtitle,
               onTap: () => context.push(
                 AppRoutes.patientBook,
                 extra: BookingMode.schedule,
@@ -195,14 +196,15 @@ class _ApptCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context)!;
     final meta = [
       visitTypeLabel(appt.visitType),
       ?doctor,
       ?department,
     ].join('  ·  ');
     final ticketMeta = [
-      appt.ticketTag == null ? 'Ticket —' : 'Ticket ${appt.ticketTag}',
-      'Room ${appt.roomNumber ?? '—'}',
+      t.ticketLabel(appt.ticketTag ?? t.none),
+      t.roomNumber(appt.roomNumber ?? t.none),
     ].join('  ·  ');
 
     return AppCard(
@@ -249,7 +251,7 @@ class _ApptCard extends ConsumerWidget {
                 ),
                 const SizedBox(width: Space.xxs),
                 Text(
-                  'For ${appt.bookedForName}',
+                  t.bookedForName(appt.bookedForName!),
                   style: theme.textTheme.labelMedium?.copyWith(
                     color: theme.colorScheme.primary,
                   ),
@@ -279,7 +281,7 @@ class _ApptCard extends ConsumerWidget {
           ],
           const SizedBox(height: Space.xs),
           Text(
-            'Booked ${fmtDate(appt.bookedAt)}',
+            t.bookedOn(fmtDate(appt.bookedAt)),
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -303,7 +305,7 @@ class _ApptCard extends ConsumerWidget {
                 children: [
                   OutlinedButton(
                     onPressed: () => _reschedule(context, ref),
-                    child: const Text('Reschedule'),
+                    child: Text(t.reschedule),
                   ),
                   OutlinedButton(
                     onPressed: () => _cancel(context, ref),
@@ -313,7 +315,7 @@ class _ApptCard extends ConsumerWidget {
                         color: theme.colorScheme.error.withValues(alpha: 0.4),
                       ),
                     ),
-                    child: const Text('Cancel'),
+                    child: Text(t.cancel),
                   ),
                 ],
               ),
@@ -325,11 +327,12 @@ class _ApptCard extends ConsumerWidget {
   }
 
   Future<void> _cancel(BuildContext context, WidgetRef ref) async {
+    final t = AppLocalizations.of(context)!;
     final ok = await confirm(
       context,
-      title: 'Cancel appointment?',
-      message: 'This frees the slot for someone else.',
-      confirmLabel: 'Cancel it',
+      title: t.cancelAppointmentTitle,
+      message: t.cancelAppointmentMessage,
+      confirmLabel: t.cancelItLabel,
       destructive: true,
     );
     if (!ok) return;
@@ -338,6 +341,7 @@ class _ApptCard extends ConsumerWidget {
   }
 
   Future<void> _reschedule(BuildContext context, WidgetRef ref) async {
+    final t = AppLocalizations.of(context)!;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final base = appt.slotStart.isAfter(now) ? appt.slotStart : today;
@@ -347,20 +351,20 @@ class _ApptCard extends ConsumerWidget {
       firstDate: today,
       lastDate: today.add(const Duration(days: 60)),
       selectableDayPredicate: isClinicDay,
-      helpText: 'Clinic days: Sunday–Thursday',
+      helpText: t.clinicDaysHelp,
     );
     if (date == null || !context.mounted) return;
     final time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(appt.slotStart),
-      helpText: 'Clinic hours: 08:00–20:00',
+      helpText: t.clinicHoursHelp,
     );
     if (time == null) return;
     if (time.hour < clinicOpenHour || time.hour >= clinicCloseHour) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Pick a time between 08:00 and 20:00.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(t.pickTimeInRange)));
       }
       return;
     }
