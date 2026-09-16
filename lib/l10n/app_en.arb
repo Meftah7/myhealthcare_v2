@@ -56,7 +56,9 @@
   },
 
   "createAccount": "Create account",
+  "editProfile": "Edit profile",
   "accountSection": "Account",
+  "settingsSection": "Settings",
   "detailsSection": "Details",
   "medicalSectionOptional": "Medical (optional)",
   "fullName": "Full name",

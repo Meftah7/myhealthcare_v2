@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/app.dart';
 import 'package:myhealthcare/app/settings/ui_prefs.dart';
 import 'package:myhealthcare/core/di.dart';
+import 'package:myhealthcare/core/presentation/app_card.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -84,7 +85,7 @@ void main() {
     await tester.tap(find.text('Preferences'));
     await _settle(tester);
     expect(find.widgetWithText(AppBar, 'Preferences'), findsOneWidget);
-    expect(find.byType(SegmentedButton<ThemeMode>), findsOneWidget);
+    expect(find.byType(PillSegmented<ThemeMode>), findsOneWidget);
     expect(find.text('Text size'), findsOneWidget);
     expect(find.byType(Slider), findsOneWidget);
     expect(find.widgetWithText(SwitchListTile, 'SMS'), findsOneWidget);

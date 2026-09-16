@@ -146,7 +146,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createAccount => 'Create account';
 
   @override
+  String get editProfile => 'Edit profile';
+
+  @override
   String get accountSection => 'Account';
+
+  @override
+  String get settingsSection => 'Settings';
 
   @override
   String get detailsSection => 'Details';

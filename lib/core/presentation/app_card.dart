@@ -439,12 +439,14 @@ class ListCard extends StatelessWidget {
     required this.children,
     this.emptyIcon,
     this.emptyText,
+    this.elevated = false,
     super.key,
   });
 
   final List<Widget> children;
   final IconData? emptyIcon;
   final String? emptyText;
+  final bool elevated;
 
   @override
   Widget build(BuildContext context) {
@@ -475,6 +477,7 @@ class ListCard extends StatelessWidget {
     }
     return AppCard(
       padding: EdgeInsets.zero,
+      elevated: elevated,
       child: Column(
         children: [
           for (var i = 0; i < children.length; i++) ...[
@@ -494,32 +497,74 @@ class ProfileHeader extends StatelessWidget {
     required this.name,
     required this.email,
     this.role,
+    this.phone,
+    this.avatarSize = 56,
+    this.elevated = false,
+    this.onEditAvatar,
     super.key,
   });
 
   final String name;
   final String email;
   final String? role;
+  final String? phone;
+  final double avatarSize;
+  final bool elevated;
+
+  /// When set, a small tappable badge overlaps the avatar's bottom-right
+  /// corner — the profile screen's "edit" affordance on the identity photo.
+  final VoidCallback? onEditAvatar;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     return AppCard(
+      elevated: elevated,
       child: Row(
         children: [
-          Container(
-            width: 56,
-            height: 56,
-            alignment: Alignment.center,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: AppColors.brandGradient,
-            ),
-            child: Text(
-              name.isNotEmpty ? name[0].toUpperCase() : '?',
-              style: theme.textTheme.titleLarge?.copyWith(color: Colors.white),
-            ),
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: avatarSize,
+                height: avatarSize,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: AppColors.brandGradient,
+                ),
+                child: Text(
+                  name.isNotEmpty ? name[0].toUpperCase() : '?',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              if (onEditAvatar != null)
+                Positioned(
+                  right: -2,
+                  bottom: -2,
+                  child: Pressable(
+                    onTap: onEditAvatar,
+                    child: Container(
+                      width: 26,
+                      height: 26,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: scheme.primary,
+                        border: Border.all(color: scheme.surface, width: 2),
+                      ),
+                      child: Icon(
+                        Icons.edit_outlined,
+                        size: 13,
+                        color: scheme.onPrimary,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(width: Space.md),
           Expanded(
@@ -527,16 +572,8 @@ class ProfileHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(name, style: theme.textTheme.titleLarge),
-                Text(
-                  email,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
                 if (role != null) ...[
-                  const SizedBox(height: Space.xs),
+                  const SizedBox(height: Space.xxs),
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: Space.xs,
@@ -552,6 +589,26 @@ class ProfileHeader extends StatelessWidget {
                         color: scheme.onSecondaryContainer,
                       ),
                     ),
+                  ),
+                ],
+                const SizedBox(height: Space.xxs),
+                Text(
+                  email,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (phone != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    phone!,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ],
@@ -614,6 +671,90 @@ class InlineBanner extends StatelessWidget {
               style: theme.textTheme.bodyMedium?.copyWith(color: fg),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A small caption above a [PillSegmented] control — e.g. "Language", "Theme".
+class PillLabel extends StatelessWidget {
+  const PillLabel(this.text, {super.key});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Text(
+      text,
+      style: theme.textTheme.labelMedium?.copyWith(
+        color: theme.colorScheme.onSurfaceVariant,
+      ),
+    );
+  }
+}
+
+/// A rounded pill-track segmented control: every option in one row inside a
+/// filled track, the selected one a solid pill, everything else transparent.
+/// The house look for a small mutually-exclusive choice (theme mode,
+/// language) — in place of Material's boxier [SegmentedButton].
+class PillSegmented<T> extends StatelessWidget {
+  const PillSegmented({
+    required this.segments,
+    required this.selected,
+    required this.onChanged,
+    super.key,
+  });
+
+  final List<(T value, String label)> segments;
+  final T selected;
+  final ValueChanged<T> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest,
+        borderRadius: Radii.pill,
+      ),
+      child: Row(
+        children: [
+          for (final (value, label) in segments)
+            Expanded(
+              child: Pressable(
+                onTap: () => onChanged(value),
+                child: AnimatedContainer(
+                  duration: Motion.fast,
+                  curve: Motion.standard,
+                  padding: const EdgeInsets.symmetric(vertical: Space.xs),
+                  decoration: BoxDecoration(
+                    color: value == selected
+                        ? scheme.primary
+                        : Colors.transparent,
+                    borderRadius: Radii.pill,
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    label,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: value == selected
+                          ? scheme.onPrimary
+                          : scheme.onSurfaceVariant,
+                      fontWeight: value == selected
+                          ? FontWeight.w700
+                          : FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
