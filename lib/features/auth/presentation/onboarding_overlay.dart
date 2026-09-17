@@ -23,18 +23,12 @@ import 'splash_overlay.dart';
 class _OnboardingPage {
   const _OnboardingPage({
     required this.asset,
-    required this.assetAspectRatio,
     required this.title,
     required this.body,
   });
 
   /// A cropped illustration graphic (no text/logo/buttons baked in).
   final String asset;
-
-  /// The asset's own width/height — each illustration crops differently, so
-  /// the hero panel is sized per page rather than stretched to one shared
-  /// box (which left dead tinted space above/below a shorter image).
-  final double assetAspectRatio;
 
   final String title;
   final String body;
@@ -84,19 +78,16 @@ class _OnboardingOverlayState extends ConsumerState<OnboardingOverlay> {
     final pages = [
       _OnboardingPage(
         asset: 'assets/images/onboarding_1.png',
-        assetAspectRatio: 700 / 579,
         title: t.onboardingPage1Title,
         body: t.onboardingPage1Body,
       ),
       _OnboardingPage(
         asset: 'assets/images/onboarding_2.png',
-        assetAspectRatio: 700 / 539,
         title: t.onboardingPage2Title,
         body: t.onboardingPage2Body,
       ),
       _OnboardingPage(
         asset: 'assets/images/onboarding_3.png',
-        assetAspectRatio: 700 / 637,
         title: t.onboardingPage3Title,
         body: t.onboardingPage3Body,
       ),
@@ -317,39 +308,33 @@ class _OnboardingPageView extends StatelessWidget {
           // floating image into a composed "hero" moment instead of a
           // picture pasted on the page, and (since the tint comes from
           // primaryContainer) settles into dark mode as a muted violet
-          // rather than the image's own opaque light background. The
-          // Expanded reserves the vertical space so the title/body land in a
-          // consistent spot across pages; the AspectRatio inside it sizes
-          // the panel to the *image's own* proportions (each illustration
-          // crops differently) so the panel hugs the artwork instead of
-          // stretching it and leaving a band of tinted dead space top/bottom.
+          // rather than the image's own opaque light background. Expanded so
+          // it fills the available height; the image is fit:cover (not
+          // contain) so it scales up to fill that panel edge-to-edge instead
+          // of letterboxing and leaving tinted dead space around it.
           Expanded(
-            child: Center(
-              child: AspectRatio(
-                aspectRatio: page.assetAspectRatio,
-                child: Container(
-                  padding: const EdgeInsets.all(Space.lg),
-                  decoration: BoxDecoration(
-                    color: Color.alphaBlend(
-                      scheme.primaryContainer.withValues(alpha: 0.35),
-                      scheme.surface,
-                    ),
-                    borderRadius: Radii.cardLarge,
-                  ),
-                  // The source images have an opaque light background, so on
-                  // a dark screen the clipped corners + shadow read as a
-                  // deliberate card rather than a stray light rectangle.
-                  child: DecoratedBox(
-                    decoration: const BoxDecoration(
-                      borderRadius: Radii.card,
-                      boxShadow: Shadows.e1,
-                    ),
-                    child: ClipRRect(
-                      borderRadius: Radii.card,
-                      child: SizedBox.expand(
-                        child: Image.asset(page.asset, fit: BoxFit.cover),
-                      ),
-                    ),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(Space.xl),
+              decoration: BoxDecoration(
+                color: Color.alphaBlend(
+                  scheme.primaryContainer.withValues(alpha: 0.35),
+                  scheme.surface,
+                ),
+                borderRadius: Radii.cardLarge,
+              ),
+              // The source images have an opaque light background, so on a
+              // dark screen the clipped corners + shadow read as a
+              // deliberate card rather than a stray light rectangle.
+              child: DecoratedBox(
+                decoration: const BoxDecoration(
+                  borderRadius: Radii.card,
+                  boxShadow: Shadows.e1,
+                ),
+                child: ClipRRect(
+                  borderRadius: Radii.card,
+                  child: SizedBox.expand(
+                    child: Image.asset(page.asset, fit: BoxFit.cover),
                   ),
                 ),
               ),
