@@ -253,3 +253,29 @@ final notificationPrefsProvider =
     NotifierProvider<NotificationPrefsController, NotificationPrefs>(
       NotificationPrefsController.new,
     );
+
+// --- onboarding -----------------------------------------------------------
+
+const _hasSeenOnboardingKey = 'ui.hasSeenOnboarding';
+
+/// Whether the intro carousel has already been shown on this device. A
+/// per-device preference like the theme mode, so it lives in
+/// [SharedPreferences] rather than clinical data.
+class HasSeenOnboardingController extends Notifier<bool> {
+  @override
+  bool build() =>
+      ref.read(sharedPreferencesProvider).getBool(_hasSeenOnboardingKey) ??
+      false;
+
+  Future<void> markSeen() async {
+    state = true;
+    await ref
+        .read(sharedPreferencesProvider)
+        .setBool(_hasSeenOnboardingKey, true);
+  }
+}
+
+final hasSeenOnboardingProvider =
+    NotifierProvider<HasSeenOnboardingController, bool>(
+      HasSeenOnboardingController.new,
+    );

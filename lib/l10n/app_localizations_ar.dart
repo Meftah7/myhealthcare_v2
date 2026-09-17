@@ -1910,6 +1910,33 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nextLabel => 'التالي';
 
   @override
+  String get onboardingPage1Title => 'افهم صحتك بنظرة واحدة';
+
+  @override
+  String get onboardingPage1Body =>
+      'ملخصات ذكية لنتائج التحاليل والسجلات والعلامات الحيوية تتحول إلى صورة واضحة لحالتك.';
+
+  @override
+  String get onboardingPage2Title => 'احجز الموعد المناسب بشكل أسرع';
+
+  @override
+  String get onboardingPage2Body =>
+      'الحجز المرتب حسب الأولوية يوصلك إلى الطبيب المختص دون تكرار الخطوات.';
+
+  @override
+  String get onboardingPage3Title => 'تطبيق واحد لفريق الرعاية بأكمله';
+
+  @override
+  String get onboardingPage3Body =>
+      'المرضى والموظفون والإداريون يستخدمون نفس التطبيق، فيبقى الجميع على اطلاع.';
+
+  @override
+  String get onboardingSkip => 'تخطي';
+
+  @override
+  String get onboardingGetStarted => 'ابدأ الآن';
+
+  @override
   String get couldNotLoadYourCalendar => 'تعذّر تحميل جدولك.';
 
   @override
