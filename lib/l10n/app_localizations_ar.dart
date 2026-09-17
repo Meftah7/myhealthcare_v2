@@ -27,7 +27,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get roleStaff => 'طاقم طبي';
 
   @override
-  String get rolePatient => 'مري/ة';
+  String get rolePatient => 'مريض';
+
+  @override
+  String get rolePatientMale => 'مريض';
+
+  @override
+  String get rolePatientFemale => 'مريضة';
 
   @override
   String get roleAdmin => 'مسؤول';

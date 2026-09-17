@@ -16,6 +16,8 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../../core/utils/format.dart';
+
 abstract final class Motion {
   /// Press feedback, hover, tiny state flips.
   static const Duration fast = Duration(milliseconds: 120);
@@ -266,7 +268,8 @@ class AppCountUp extends StatelessWidget {
   final TextAlign? textAlign;
   final String? semanticsLabel;
 
-  String _format(num v) => '$prefix${v.toStringAsFixed(fractionDigits)}$suffix';
+  String _format(num v) =>
+      localizeDigits('$prefix${v.toStringAsFixed(fractionDigits)}$suffix');
 
   @override
   Widget build(BuildContext context) {

@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme/theme.dart';
 import '../../l10n/app_localizations.dart';
+import '../utils/format.dart';
 
 /// One size for every "this row opens something" chevron. Picked once here
 /// because the app previously drew them at 17, 18 and 24 on rows that sit a few
@@ -842,7 +843,7 @@ class MetricTile extends StatelessWidget {
               final number = int.tryParse(value);
               if (number == null) {
                 return Text(
-                  value,
+                  localizeDigits(value),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: style?.copyWith(fontFeatures: kTabularFigures),

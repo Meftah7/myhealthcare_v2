@@ -20,15 +20,25 @@ enum WindowSize {
   /// ≥ 1200dp — persistent detail pane, content column capped ~1100 and centred.
   large;
 
-  static WindowSize of(BuildContext context) =>
-      fromWidth(MediaQuery.sizeOf(context).width);
+  static WindowSize of(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    return fromSize(width: size.width, shortestSide: size.shortestSide);
+  }
 
-  static WindowSize fromWidth(double width) {
-    if (width < 600) return WindowSize.compact;
+  /// Width alone misclassifies a rotated phone as a tablet — an iPhone in
+  /// landscape is ~844dp wide (past the 840dp `expanded` cutoff) but only
+  /// ~390dp on its short side. Gating on `shortestSide` too keeps a phone in
+  /// `compact` in both orientations while leaving genuinely wide windows
+  /// (tablets, desktop — whose shortest side is already ≥ 600dp) unaffected.
+  static WindowSize fromSize({required double width, double? shortestSide}) {
+    final short = shortestSide ?? width;
+    if (width < 600 || short < 600) return WindowSize.compact;
     if (width < 840) return WindowSize.medium;
     if (width < 1200) return WindowSize.expanded;
     return WindowSize.large;
   }
+
+  static WindowSize fromWidth(double width) => fromSize(width: width);
 
   bool get isCompact => this == WindowSize.compact;
   bool get isMedium => this == WindowSize.medium;

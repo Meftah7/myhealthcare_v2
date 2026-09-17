@@ -22,10 +22,17 @@ import '../../domain/enums.dart';
 import '../../l10n/app_localizations.dart';
 
 extension UserRoleLabel on UserRole {
-  String label(BuildContext context) {
+  /// [gender] picks the grammatically-agreeing Arabic form for a patient
+  /// ("مريض" / "مريضة") — English has no such agreement, so it's ignored
+  /// there. Leave it null for a generic/unknown-gender label.
+  String label(BuildContext context, {Gender? gender}) {
     final t = AppLocalizations.of(context)!;
     return switch (this) {
-      UserRole.patient => t.rolePatient,
+      UserRole.patient => switch (gender) {
+        Gender.male => t.rolePatientMale,
+        Gender.female => t.rolePatientFemale,
+        Gender.other || Gender.undisclosed || null => t.rolePatient,
+      },
       UserRole.staff => t.roleStaff,
       UserRole.admin => t.roleAdmin,
     };

@@ -108,6 +108,42 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
   });
 
+  testWidgets(
+    'admin departments screen meets contrast guidelines in light mode',
+    (tester) async {
+      // A compact (phone) width — the reported issue is on an iPhone, and the
+      // bottom `NavigationBar` (vs. a `NavigationRail` at wider test default
+      // sizes) is what actually ships to a phone.
+      tester.view.physicalSize = const Size(400, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final db = newTestDatabase();
+      await Seeder(db).run();
+      final handle = tester.ensureSemantics();
+
+      await tester.pumpWidget(await _app(db));
+      await _pump(tester);
+      await _login(tester, 'admin@myhealth.demo');
+
+      await tester.tap(
+        find.widgetWithText(NavigationDestination, 'Departments'),
+      );
+      await _pump(tester);
+
+      await expectLater(tester, meetsGuideline(textContrastGuideline));
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+
+      handle.dispose();
+      // Tear the tree down so any dashboard-driven timer (e.g. the home
+      // carousel's auto-advance) cancels instead of tripping the
+      // pending-timer assertion.
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 1));
+    },
+  );
+
   testWidgets('login screen survives a 2x text scale without overflow', (
     tester,
   ) async {

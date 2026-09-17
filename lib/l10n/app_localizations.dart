@@ -140,6 +140,18 @@ abstract class AppLocalizations {
   /// **'Patient'**
   String get rolePatient;
 
+  /// No description provided for @rolePatientMale.
+  ///
+  /// In en, this message translates to:
+  /// **'Patient'**
+  String get rolePatientMale;
+
+  /// No description provided for @rolePatientFemale.
+  ///
+  /// In en, this message translates to:
+  /// **'Patient'**
+  String get rolePatientFemale;
+
   /// No description provided for @roleAdmin.
   ///
   /// In en, this message translates to:

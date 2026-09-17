@@ -30,6 +30,15 @@ class DepartmentsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
     final departments = ref.watch(departmentsProvider);
+    // Read once here, on this widget's own context — not inside `itemBuilder`
+    // below, whose `context` parameter shadows this one. A `ListView.builder`
+    // doesn't reliably re-invoke `itemBuilder` for already-realized rows
+    // purely because an *inherited* dependency (like `Theme`) changed deeper
+    // in the tree; reading it here makes this widget itself depend on Theme,
+    // so switching light/dark rebuilds the whole list with the right colors
+    // instead of leaving already-drawn rows on the old theme's colors.
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return Scaffold(
       appBar: AppBar(
         title: Text(t.departmentsLabel),
@@ -81,9 +90,7 @@ class DepartmentsScreen extends ConsumerWidget {
                         children: [
                           Icon(
                             Icons.apartment_outlined,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
+                            color: scheme.onSurfaceVariant,
                           ),
                           const SizedBox(width: Space.sm),
                           Expanded(
@@ -92,17 +99,16 @@ class DepartmentsScreen extends ConsumerWidget {
                               children: [
                                 Text(
                                   d.name,
-                                  style: Theme.of(context).textTheme.titleSmall,
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    color: scheme.onSurface,
+                                  ),
                                 ),
                                 if (d.description != null)
                                   Text(
                                     d.description!,
-                                    style: Theme.of(context).textTheme.bodySmall
-                                        ?.copyWith(
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.onSurfaceVariant,
-                                        ),
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: scheme.onSurfaceVariant,
+                                    ),
                                   ),
                               ],
                             ),

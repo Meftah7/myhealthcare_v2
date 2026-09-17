@@ -163,9 +163,7 @@ class _UserList extends ConsumerWidget {
         if (list.isEmpty) {
           return EmptyState(
             icon: Icons.people_outline,
-            message: q.isEmpty
-                ? t.noUsersInGroup
-                : t.noUsersMatchQuery(query),
+            message: q.isEmpty ? t.noUsersInGroup : t.noUsersMatchQuery(query),
           );
         }
         return ListView.builder(
@@ -231,9 +229,7 @@ class _UserCard extends ConsumerWidget {
             ),
             title: Text(user.fullName),
             subtitle: Text(
-              user.isActive
-                  ? user.email
-                  : t.emailDeactivatedLabel(user.email),
+              user.isActive ? user.email : t.emailDeactivatedLabel(user.email),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -383,9 +379,8 @@ class _DetailRows extends StatelessWidget {
       children: [
         row(t.emailLabel, user.email),
         if (user.phone != null) row(t.phoneLabel, user.phone!),
-        if (user.nationalId != null)
-          row(t.nationalIdLabel, user.nationalId!),
-        row(t.roleLabel, user.role.label(context)),
+        if (user.nationalId != null) row(t.nationalIdLabel, user.nationalId!),
+        row(t.roleLabel, user.role.label(context, gender: user.gender)),
         row(
           t.statusLabel,
           user.isActive ? t.accountActiveLabel : t.accountDeactivatedLabel,
@@ -540,9 +535,7 @@ class _CreatePersonSheetState extends ConsumerState<_CreatePersonSheet> {
             const SizedBox(height: Space.sm),
             TextField(
               controller: _password,
-              decoration: InputDecoration(
-                labelText: t.temporaryPasswordLabel,
-              ),
+              decoration: InputDecoration(labelText: t.temporaryPasswordLabel),
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: Space.lg),
@@ -666,9 +659,7 @@ class _CreateStaffSheetState extends ConsumerState<_CreateStaffSheet> {
             const SizedBox(height: Space.sm),
             TextField(
               controller: _password,
-              decoration: InputDecoration(
-                labelText: t.temporaryPasswordLabel,
-              ),
+              decoration: InputDecoration(labelText: t.temporaryPasswordLabel),
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: Space.sm),
@@ -707,9 +698,24 @@ class _CreateStaffSheetState extends ConsumerState<_CreateStaffSheet> {
                   labelText: t.departmentOptionalLabel,
                 ),
                 items: [
-                  DropdownMenuItem(child: Text(t.noneOption)),
+                  DropdownMenuItem(
+                    child: Text(
+                      t.noneOption,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
                   for (final d in list)
-                    DropdownMenuItem(value: d.id, child: Text(d.name)),
+                    DropdownMenuItem(
+                      value: d.id,
+                      child: Text(
+                        d.name,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
                 ],
                 onChanged: (v) => setState(() => _departmentId = v),
               ),
@@ -855,7 +861,15 @@ class _BookForPatientSheetState extends ConsumerState<_BookForPatientSheet> {
                 decoration: InputDecoration(labelText: t.departmentLabel),
                 items: [
                   for (final d in list)
-                    DropdownMenuItem(value: d.id, child: Text(d.name)),
+                    DropdownMenuItem(
+                      value: d.id,
+                      child: Text(
+                        d.name,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
                 ],
                 onChanged: (v) => setState(() {
                   _departmentId = v;
@@ -898,9 +912,7 @@ class _BookForPatientSheetState extends ConsumerState<_BookForPatientSheet> {
                     onPressed: _pickDate,
                     icon: const Icon(Icons.calendar_today_outlined, size: 18),
                     label: Text(
-                      _date == null
-                          ? t.dateLabel
-                          : df.formatMediumDate(_date!),
+                      _date == null ? t.dateLabel : df.formatMediumDate(_date!),
                     ),
                   ),
                 ),
@@ -1069,7 +1081,15 @@ class _ReferPatientSheetState extends ConsumerState<_ReferPatientSheet> {
                   decoration: InputDecoration(labelText: t.departmentLabel),
                   items: [
                     for (final d in list)
-                      DropdownMenuItem(value: d.id, child: Text(d.name)),
+                      DropdownMenuItem(
+                        value: d.id,
+                        child: Text(
+                          d.name,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                      ),
                   ],
                   onChanged: (v) => setState(() => _departmentId = v),
                 ),

@@ -31,6 +31,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rolePatient => 'Patient';
 
   @override
+  String get rolePatientMale => 'Patient';
+
+  @override
+  String get rolePatientFemale => 'Patient';
+
+  @override
   String get roleAdmin => 'Administrator';
 
   @override

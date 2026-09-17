@@ -87,7 +87,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(mode == BookingMode.now ? t.bookNowTitle : t.scheduleAVisitTitle),
+        title: Text(
+          mode == BookingMode.now ? t.bookNowTitle : t.scheduleAVisitTitle,
+        ),
         actions: const [PatientTopActions()],
       ),
       body: departments.when(
@@ -100,12 +102,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: Space.maxContentWidth),
             child: ListView(
-              padding: EdgeInsets.fromLTRB(
-                gutter,
-                Space.md,
-                gutter,
-                Space.xxl,
-              ),
+              padding: EdgeInsets.fromLTRB(gutter, Space.md, gutter, Space.xxl),
               children: [
                 const _BookingForSelector(),
                 _StepBar(current: _stepFor(draft)),
@@ -199,7 +196,8 @@ class _BookingForSelector extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final members = ref.watch(patientFamilyMembersProvider).valueOrNull ?? const [];
+    final members =
+        ref.watch(patientFamilyMembersProvider).valueOrNull ?? const [];
     if (members.isEmpty) return const SizedBox.shrink();
 
     final theme = Theme.of(context);
@@ -241,8 +239,9 @@ class _BookingForSelector extends ConsumerWidget {
                   ChoiceChip(
                     label: Text(m.fullName),
                     selected: selected == m.fullName,
-                    onSelected: (_) => notifier.state =
-                        draft.copyWith(bookedForName: m.fullName),
+                    onSelected: (_) => notifier.state = draft.copyWith(
+                      bookedForName: m.fullName,
+                    ),
                   ),
               ],
             ),
@@ -276,7 +275,12 @@ class _StepBar extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final t = AppLocalizations.of(context)!;
-    final labels = [t.stepDepartment, t.stepDoctor, t.stepReasonShort, t.stepDateTime];
+    final labels = [
+      t.stepDepartment,
+      t.stepDoctor,
+      t.stepReasonShort,
+      t.stepDateTime,
+    ];
     final clamped = current.clamp(0, labels.length - 1);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -555,11 +559,7 @@ class _NowDateLine extends StatelessWidget {
     final t = AppLocalizations.of(context)!;
     return Row(
       children: [
-        Icon(
-          Icons.bolt_outlined,
-          size: 18,
-          color: theme.colorScheme.primary,
-        ),
+        Icon(Icons.bolt_outlined, size: 18, color: theme.colorScheme.primary),
         const SizedBox(width: Space.xs),
         Expanded(
           child: Text(
@@ -603,7 +603,8 @@ class _DateStrip extends StatelessWidget {
         separatorBuilder: (_, _) => const SizedBox(width: Space.xs),
         itemBuilder: (context, i) {
           final day = _days[i];
-          final isSel = selected != null &&
+          final isSel =
+              selected != null &&
               selected!.year == day.year &&
               selected!.month == day.month &&
               selected!.day == day.day;
@@ -627,14 +628,12 @@ class _DateStrip extends StatelessWidget {
                   Text(
                     _weekday(day),
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: isSel
-                          ? scheme.onPrimary
-                          : scheme.onSurfaceVariant,
+                      color: isSel ? scheme.onPrimary : scheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${day.day}',
+                    localizeDigits('${day.day}'),
                     style: theme.textTheme.titleMedium?.copyWith(
                       color: isSel ? scheme.onPrimary : null,
                     ),
@@ -642,9 +641,7 @@ class _DateStrip extends StatelessWidget {
                   Text(
                     _month(day),
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: isSel
-                          ? scheme.onPrimary
-                          : scheme.onSurfaceVariant,
+                      color: isSel ? scheme.onPrimary : scheme.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -741,10 +738,7 @@ class _SlotList extends ConsumerWidget {
               runSpacing: Space.xs,
               children: [
                 for (final s in byTime)
-                  _TimeChip(
-                    slot: s,
-                    onTap: () => _review(context, ref, s),
-                  ),
+                  _TimeChip(slot: s, onTap: () => _review(context, ref, s)),
               ],
             ),
           ],
@@ -853,23 +847,23 @@ class _ReviewSheet extends StatelessWidget {
     final t = AppLocalizations.of(context)!;
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          Space.lg,
-          0,
-          Space.lg,
-          Space.lg,
-        ),
+        padding: const EdgeInsets.fromLTRB(Space.lg, 0, Space.lg, Space.lg),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(t.reviewAndConfirm, style: theme.textTheme.titleLarge),
             const SizedBox(height: Space.md),
-            if (bookedFor != null) _Row(label: t.rowLabelFor, value: bookedFor!),
-            _Row(label: t.rowLabelWhen, value:
-                '${fmtRelativeDay(slot.slot.start)}, '
-                '${fmtDate(slot.slot.start)} · ${fmtTime(slot.slot.start)}'),
-            if (department != null) _Row(label: t.stepDepartment, value: department!),
+            if (bookedFor != null)
+              _Row(label: t.rowLabelFor, value: bookedFor!),
+            _Row(
+              label: t.rowLabelWhen,
+              value:
+                  '${fmtRelativeDay(slot.slot.start)}, '
+                  '${fmtDate(slot.slot.start)} · ${fmtTime(slot.slot.start)}',
+            ),
+            if (department != null)
+              _Row(label: t.stepDepartment, value: department!),
             if (doctor != null) _Row(label: t.stepDoctor, value: doctor!),
             _Row(label: t.stepReasonShort, value: visitTypeLabel(visitType)),
             const SizedBox(height: Space.sm),
@@ -916,9 +910,7 @@ class _Row extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(
-            child: Text(value, style: theme.textTheme.bodyMedium),
-          ),
+          Expanded(child: Text(value, style: theme.textTheme.bodyMedium)),
         ],
       ),
     );

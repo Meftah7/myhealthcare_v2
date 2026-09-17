@@ -303,7 +303,13 @@ class _ActionSheetState extends ConsumerState<_ActionSheet> {
                   decoration: InputDecoration(labelText: t.departmentLabel),
                   items: [
                     for (final d in list)
-                      DropdownMenuItem(value: d.id, child: Text(d.name)),
+                      DropdownMenuItem(
+                        value: d.id,
+                        child: Text(
+                          d.name,
+                          style: TextStyle(color: theme.colorScheme.onSurface),
+                        ),
+                      ),
                   ],
                   onChanged: (v) => setState(() => _departmentId = v),
                 ),

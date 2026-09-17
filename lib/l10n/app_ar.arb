@@ -8,7 +8,9 @@
 
   "account": "الحساب",
   "roleStaff": "طاقم طبي",
-  "rolePatient": "مري/ة",
+  "rolePatient": "مريض",
+  "rolePatientMale": "مريض",
+  "rolePatientFemale": "مريضة",
   "roleAdmin": "مسؤول",
 
   "specialty": "التخصص",

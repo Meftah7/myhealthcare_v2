@@ -69,14 +69,20 @@ class _AppointmentConfirmationOverlayState
       }
     });
 
+    // Read on this widget's own context, not inside `AnimatedBuilder`'s
+    // `builder` below (whose `context` parameter shadows this one) — a
+    // rebuild triggered purely by the ambient Theme changing (an in-session
+    // light/dark toggle) doesn't reliably reach a nested builder callback
+    // otherwise, leaving this overlay on the previous theme's colors.
+    final theme = Theme.of(context);
+    final reduce = Motion.reduced(context);
+
     return IgnorePointer(
       child: AnimatedBuilder(
         animation: _controller,
         builder: (context, _) {
           final t = _controller.value;
           if (t == 0) return const SizedBox.shrink();
-          final theme = Theme.of(context);
-          final reduce = Motion.reduced(context);
           final scale = reduce
               ? 1.0
               : Curves.easeOutBack.transform(t.clamp(0.0, 1.0));

@@ -18,6 +18,11 @@ class AuditLogScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
     final entries = ref.watch(auditLogProvider);
+    // Read once here, on this widget's own context — not inside `itemBuilder`
+    // below, whose `context` parameter shadows this one and won't reliably
+    // rebuild already-realized rows on an in-session theme toggle otherwise.
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return Scaffold(
       appBar: AppBar(
         title: Text(t.auditLogTitle),
@@ -67,17 +72,14 @@ class AuditLogScreen extends ConsumerWidget {
                             Expanded(
                               child: Text(
                                 e.action,
-                                style: Theme.of(context).textTheme.titleSmall,
+                                style: theme.textTheme.titleSmall,
                               ),
                             ),
                             Text(
                               fmtDateTime(e.at),
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                                  ),
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                              ),
                             ),
                           ],
                         ),
@@ -90,12 +92,9 @@ class AuditLogScreen extends ConsumerWidget {
                               t.byActorLabel(e.actorUserId!),
                             if (e.detail != null) e.detail,
                           ].whereType<String>().join(' · '),
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                          ),
                         ),
                       ],
                     ),

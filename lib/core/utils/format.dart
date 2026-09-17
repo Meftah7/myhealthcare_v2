@@ -15,13 +15,37 @@ import '../../domain/enums.dart';
 
 bool get _ar => Intl.getCurrentLocale().startsWith('ar');
 
-String fmtDate(DateTime d) => DateFormat('d MMM yyyy').format(d);
+const _easternArabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+
+/// Swaps Western digits (0-9) for Eastern Arabic-Indic digits (٠-٩) when the
+/// current locale is Arabic. `DateFormat` and plain string interpolation
+/// (`'${diff.inMinutes}'`) both always emit Western digits regardless of
+/// locale, so every formatter in this file routes its result through this
+/// before returning.
+String localizeDigits(String s) {
+  if (!_ar) return s;
+  final buffer = StringBuffer();
+  for (final rune in s.runes) {
+    if (rune >= 0x30 && rune <= 0x39) {
+      buffer.write(_easternArabicDigits[rune - 0x30]);
+    } else {
+      buffer.writeCharCode(rune);
+    }
+  }
+  return buffer.toString();
+}
+
+String fmtDate(DateTime d) =>
+    localizeDigits(DateFormat('d MMM yyyy').format(d));
 
 /// Day + month, no year — for compact tiles ("14 Aug").
-String fmtShortDate(DateTime d) => DateFormat('d MMM').format(d);
-String fmtDateTime(DateTime d) => DateFormat('d MMM yyyy · HH:mm').format(d);
-String fmtMonthYear(DateTime d) => DateFormat('MMMM yyyy').format(d);
-String fmtTime(DateTime d) => DateFormat('HH:mm').format(d);
+String fmtShortDate(DateTime d) =>
+    localizeDigits(DateFormat('d MMM').format(d));
+String fmtDateTime(DateTime d) =>
+    localizeDigits(DateFormat('d MMM yyyy · HH:mm').format(d));
+String fmtMonthYear(DateTime d) =>
+    localizeDigits(DateFormat('MMMM yyyy').format(d));
+String fmtTime(DateTime d) => localizeDigits(DateFormat('HH:mm').format(d));
 
 /// A clinician's name with the "Dr" / "د." honorific — added exactly once.
 /// Names are stored plain (`users.fullName`); this is the display form.
@@ -82,11 +106,15 @@ String fmtTimeAgo(DateTime d, {DateTime? now}) {
   final diff = (now ?? DateTime.now()).difference(d);
   if (diff.inMinutes < 1) return _ar ? 'الآن' : 'just now';
   if (diff.inMinutes < 60) {
-    return _ar ? '${diff.inMinutes} د' : '${diff.inMinutes}m';
+    return localizeDigits(_ar ? '${diff.inMinutes} د' : '${diff.inMinutes}m');
   }
-  if (diff.inHours < 24) return _ar ? '${diff.inHours} س' : '${diff.inHours}h';
-  if (diff.inDays < 7) return _ar ? '${diff.inDays} ي' : '${diff.inDays}d';
-  return DateFormat('d MMM yyyy').format(d);
+  if (diff.inHours < 24) {
+    return localizeDigits(_ar ? '${diff.inHours} س' : '${diff.inHours}h');
+  }
+  if (diff.inDays < 7) {
+    return localizeDigits(_ar ? '${diff.inDays} ي' : '${diff.inDays}d');
+  }
+  return localizeDigits(DateFormat('d MMM yyyy').format(d));
 }
 
 String fmtRelativeDay(DateTime d) {
@@ -98,7 +126,7 @@ String fmtRelativeDay(DateTime d) {
     0 => _ar ? 'اليوم' : 'Today',
     1 => _ar ? 'غداً' : 'Tomorrow',
     -1 => _ar ? 'أمس' : 'Yesterday',
-    _ when diff > 1 && diff < 7 => DateFormat('EEEE').format(d),
-    _ => DateFormat('d MMM yyyy').format(d),
+    _ when diff > 1 && diff < 7 => localizeDigits(DateFormat('EEEE').format(d)),
+    _ => localizeDigits(DateFormat('d MMM yyyy').format(d)),
   };
 }

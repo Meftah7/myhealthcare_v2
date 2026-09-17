@@ -312,14 +312,22 @@ class ClinicPdf {
   /// The bundled app font (Inter) so a PDF can render dashes, symbols and any
   /// non-Latin text — the pdf package's built-in Helvetica is ASCII-only. Falls
   /// back to Helvetica if the asset can't be read (e.g. in some test hosts).
+  ///
+  /// Loads the static Regular/SemiBold instances, not the variable-font
+  /// source — the `pdf` package embeds a font's glyphs as-is with no weight
+  /// interpolation, so passing the same variable-font bytes for both `base`
+  /// and `bold` rendered every PDF with no bold text at all.
   static Future<pw.ThemeData?> _theme() async {
     if (_themeTried) return _cachedTheme;
     _themeTried = true;
     try {
-      final inter = pw.Font.ttf(
-        await rootBundle.load('assets/fonts/Inter.ttf'),
+      final base = pw.Font.ttf(
+        await rootBundle.load('assets/fonts/static/Inter-Regular.ttf'),
       );
-      return _cachedTheme = pw.ThemeData.withFont(base: inter, bold: inter);
+      final bold = pw.Font.ttf(
+        await rootBundle.load('assets/fonts/static/Inter-SemiBold.ttf'),
+      );
+      return _cachedTheme = pw.ThemeData.withFont(base: base, bold: bold);
     } catch (_) {
       return null;
     }

@@ -74,7 +74,7 @@ class ProfileScreen extends ConsumerWidget {
             name: p.user.fullName,
             email: p.user.email,
             phone: p.user.phone,
-            role: p.user.role.label(context),
+            role: p.user.role.label(context, gender: p.user.gender),
             avatarSize: 72,
             elevated: true,
             onEditAvatar: () =>

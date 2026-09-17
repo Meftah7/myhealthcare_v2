@@ -9,6 +9,8 @@
   "account": "Account",
   "roleStaff": "Medical staff",
   "rolePatient": "Patient",
+  "rolePatientMale": "Patient",
+  "rolePatientFemale": "Patient",
   "roleAdmin": "Administrator",
 
   "specialty": "Specialty",

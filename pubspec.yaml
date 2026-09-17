@@ -117,22 +117,38 @@ flutter:
   # Generates AppLocalizations from lib/l10n/*.arb per l10n.yaml (P8-07 i18n).
   generate: true
 
-  # Bundled so the app runs fully offline (DESIGN.md §3.1). Variable fonts —
-  # Flutter maps FontWeight to the `wght` axis.
+  # Bundled so the app runs fully offline (DESIGN.md §3.1). Static per-weight
+  # instances, not the variable-font source files — CanvasKit (Flutter web)
+  # doesn't reliably interpolate a variable font's `wght` axis and silently
+  # falls back to the font's default instance (400/Regular) for every
+  # requested weight, so "semibold" text renders as thin, low-contrast
+  # Regular instead. Each weight actually used by the type scale
+  # (app_typography.dart) gets its own static file here instead.
   fonts:
     - family: Lexend
       fonts:
-        - asset: assets/fonts/Lexend.ttf
+        - asset: assets/fonts/static/Lexend-Medium.ttf
+          weight: 500
     - family: Inter
       fonts:
-        - asset: assets/fonts/Inter.ttf
+        - asset: assets/fonts/static/Inter-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/static/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/static/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/static/Inter-Bold.ttf
+          weight: 700
     - family: JetBrainsMono
       fonts:
         - asset: assets/fonts/JetBrainsMono.ttf
 
   assets:
     - assets/models/no_show_model.json
-    - assets/fonts/Inter.ttf   # also read at runtime by the PDF layer (P10-01)
+    # Also read directly by the PDF layer (P10-01), which embeds a font as-is
+    # with no weight interpolation of its own.
+    - assets/fonts/static/Inter-Regular.ttf
+    - assets/fonts/static/Inter-SemiBold.ttf
     - assets/images/
     - assets/sounds/
 

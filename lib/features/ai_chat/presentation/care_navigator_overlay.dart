@@ -111,17 +111,29 @@ class _PanelHost extends StatelessWidget {
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
     final compact = size.width < 520;
+    // `SafeArea` only insets for the notch / home indicator, not the on-screen
+    // keyboard — without this, the keyboard covers the panel's input row
+    // instead of the panel shrinking to sit above it.
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
     return SafeArea(
-      child: Align(
-        alignment: compact ? Alignment.bottomCenter : AlignmentDirectional.bottomEnd,
-        child: Padding(
-          padding: EdgeInsets.all(compact ? 8 : 20),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: 420,
-              maxHeight: size.height * (compact ? 0.8 : 0.72),
+      child: AnimatedPadding(
+        duration: Motion.medium,
+        curve: Motion.standard,
+        padding: EdgeInsets.only(bottom: keyboardInset),
+        child: Align(
+          alignment: compact
+              ? Alignment.bottomCenter
+              : AlignmentDirectional.bottomEnd,
+          child: Padding(
+            padding: EdgeInsets.all(compact ? 8 : 20),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: 420,
+                maxHeight:
+                    (size.height - keyboardInset) * (compact ? 0.8 : 0.72),
+              ),
+              child: const CareNavigatorPanel(),
             ),
-            child: const CareNavigatorPanel(),
           ),
         ),
       ),
@@ -229,8 +241,7 @@ class _DraggableFabState extends ConsumerState<_DraggableFab>
                           child: AnimatedBuilder(
                             animation: _pulse,
                             builder: (context, _) {
-                              final t =
-                                  Curves.easeOut.transform(_pulse.value);
+                              final t = Curves.easeOut.transform(_pulse.value);
                               return Container(
                                 width: _fabCircle + 20 * t,
                                 height: _fabCircle + 20 * t,
