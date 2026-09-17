@@ -309,13 +309,13 @@ class _OnboardingPageView extends StatelessWidget {
           // picture pasted on the page, and (since the tint comes from
           // primaryContainer) settles into dark mode as a muted violet
           // rather than the image's own opaque light background. Expanded so
-          // it fills the available height; the image is fit:cover (not
-          // contain) so it scales up to fill that panel edge-to-edge instead
-          // of letterboxing and leaving tinted dead space around it.
+          // it fills the available height; fit:contain (not cover) so the
+          // whole illustration stays visible and sharp instead of getting
+          // cropped and blown up past its own resolution.
           Expanded(
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(Space.xl),
+              padding: const EdgeInsets.all(Space.lg),
               decoration: BoxDecoration(
                 color: Color.alphaBlend(
                   scheme.primaryContainer.withValues(alpha: 0.35),
@@ -334,7 +334,7 @@ class _OnboardingPageView extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: Radii.card,
                   child: SizedBox.expand(
-                    child: Image.asset(page.asset, fit: BoxFit.cover),
+                    child: Image.asset(page.asset, fit: BoxFit.contain),
                   ),
                 ),
               ),
