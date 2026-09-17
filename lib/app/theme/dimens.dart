@@ -33,6 +33,7 @@ abstract final class Space {
 /// reads as one machined object rather than two stacked rectangles.
 abstract final class Radii {
   static const BorderRadius card = BorderRadius.all(Radius.circular(22));
+  static const BorderRadius cardLarge = BorderRadius.all(Radius.circular(28));
   static const BorderRadius cardSmall = BorderRadius.all(Radius.circular(16));
   static const BorderRadius sheet = BorderRadius.vertical(
     top: Radius.circular(28),

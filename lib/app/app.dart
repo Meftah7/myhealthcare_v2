@@ -8,6 +8,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/presentation/appointment_confirmation_overlay.dart';
+import '../features/auth/presentation/onboarding_overlay.dart';
 import '../features/auth/presentation/session_activity_monitor.dart';
 import '../features/auth/presentation/splash_overlay.dart';
 import '../features/notifications/presentation/notification_sound_cue.dart';
@@ -71,6 +72,7 @@ class _AppFrame extends StatelessWidget {
             children: [
               child,
               const AppointmentConfirmationOverlay(),
+              const OnboardingOverlay(),
               const SplashOverlay(),
             ],
           ),

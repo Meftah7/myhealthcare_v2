@@ -1896,6 +1896,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nextLabel => 'Next';
 
   @override
+  String get onboardingPage1Title => 'Understand your health at a glance';
+
+  @override
+  String get onboardingPage1Body =>
+      'AI-summarised labs, records and vitals turn into one clear picture of how you\'re doing.';
+
+  @override
+  String get onboardingPage2Title => 'Book the right appointment, faster';
+
+  @override
+  String get onboardingPage2Body =>
+      'Risk-ranked booking gets you to the right specialist without the back-and-forth.';
+
+  @override
+  String get onboardingPage3Title => 'One app, your whole care team';
+
+  @override
+  String get onboardingPage3Body =>
+      'Patients, staff and admins share one app, so everyone stays on the same page.';
+
+  @override
+  String get onboardingSkip => 'Skip';
+
+  @override
+  String get onboardingGetStarted => 'Get started';
+
+  @override
   String get couldNotLoadYourCalendar => 'Could not load your calendar.';
 
   @override
