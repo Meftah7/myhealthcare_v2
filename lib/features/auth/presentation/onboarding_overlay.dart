@@ -108,8 +108,11 @@ class _OnboardingOverlayState extends ConsumerState<OnboardingOverlay> {
               ),
               child: Row(
                 children: [
-                  AppBrandLockup(),
-                  Spacer(),
+                  // Expanded (not a bare child + Spacer) so the lockup's own
+                  // ellipsis actually gets a bounded width to shrink against
+                  // — on a 360dp-wide phone the wordmark otherwise reports
+                  // its full natural width and overflows past the toggles.
+                  Expanded(child: AppBrandLockup()),
                   _OnboardingThemeToggle(),
                   _OnboardingLanguageToggle(),
                 ],
@@ -308,14 +311,15 @@ class _OnboardingPageView extends StatelessWidget {
           // floating image into a composed "hero" moment instead of a
           // picture pasted on the page, and (since the tint comes from
           // primaryContainer) settles into dark mode as a muted violet
-          // rather than the image's own opaque light background. Expanded so
-          // it fills the available height; fit:contain (not cover) so the
-          // whole illustration stays visible and sharp instead of getting
-          // cropped and blown up past its own resolution.
+          // rather than a hard image edge. Expanded so it fills the
+          // available height. The artwork itself (1080x1520, with its own
+          // soft gradient background baked in) sits inset by 8dp so that
+          // tint reads as a thin frame, then fills the rest edge-to-edge via
+          // fit:cover — no letterboxing, no separate card-on-card shadow.
           Expanded(
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(Space.lg),
+              padding: const EdgeInsets.all(Space.xs),
               decoration: BoxDecoration(
                 color: Color.alphaBlend(
                   scheme.primaryContainer.withValues(alpha: 0.35),
@@ -323,19 +327,10 @@ class _OnboardingPageView extends StatelessWidget {
                 ),
                 borderRadius: Radii.cardLarge,
               ),
-              // The source images have an opaque light background, so on a
-              // dark screen the clipped corners + shadow read as a
-              // deliberate card rather than a stray light rectangle.
-              child: DecoratedBox(
-                decoration: const BoxDecoration(
-                  borderRadius: Radii.card,
-                  boxShadow: Shadows.e1,
-                ),
-                child: ClipRRect(
-                  borderRadius: Radii.card,
-                  child: SizedBox.expand(
-                    child: Image.asset(page.asset, fit: BoxFit.contain),
-                  ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: SizedBox.expand(
+                  child: Image.asset(page.asset, fit: BoxFit.cover),
                 ),
               ),
             ),
