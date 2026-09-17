@@ -32,7 +32,7 @@ void main() {
 
     await _pumpPastSplash(tester);
 
-    expect(find.text('Understand your health at a glance'), findsOneWidget);
+    expect(find.text('Your health at a glance'), findsOneWidget);
     expect(find.text('Skip'), findsOneWidget);
     expect(find.text('Next'), findsOneWidget);
 
@@ -40,7 +40,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
-    expect(find.text('Understand your health at a glance'), findsNothing);
+    expect(find.text('Your health at a glance'), findsNothing);
     expect(find.text('Sign in'), findsWidgets);
     expect(prefs.getBool('ui.hasSeenOnboarding'), isTrue);
   });
@@ -94,7 +94,7 @@ void main() {
 
     await _pumpPastSplash(tester);
 
-    expect(find.text('Understand your health at a glance'), findsNothing);
+    expect(find.text('Your health at a glance'), findsNothing);
     expect(find.text('Sign in'), findsWidgets);
   });
 }

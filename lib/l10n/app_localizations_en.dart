@@ -1896,7 +1896,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nextLabel => 'Next';
 
   @override
-  String get onboardingPage1Title => 'Understand your health at a glance';
+  String get onboardingPage1Title => 'Your health at a glance';
 
   @override
   String get onboardingPage1Body =>

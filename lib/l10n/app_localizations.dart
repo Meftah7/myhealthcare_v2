@@ -3503,7 +3503,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingPage1Title.
   ///
   /// In en, this message translates to:
-  /// **'Understand your health at a glance'**
+  /// **'Your health at a glance'**
   String get onboardingPage1Title;
 
   /// No description provided for @onboardingPage1Body.

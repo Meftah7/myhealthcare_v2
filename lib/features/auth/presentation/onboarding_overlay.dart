@@ -20,6 +20,26 @@ import '../../../l10n/app_localizations.dart';
 import '../application/session.dart';
 import 'splash_overlay.dart';
 
+/// The hero panel's frame — a thin tinted border around the artwork rather
+/// than the page's own `primaryContainer`, per the design pass on
+/// 2026-09-17: the standard container tint read too washed-out at this size.
+abstract final class _OnboardingFrame {
+  static const Color lightFill = Color(0xFFDEDAFB);
+  static const Color lightBorder = Color(0xFFCDC6F8);
+  static const Color darkFill = Color(0xFF342E64);
+  static const Color darkBorder = Color(0xFF504896);
+
+  /// Dark mode only: the artwork was designed against a light background, so
+  /// it's dimmed to ~85% brightness (not desaturated) rather than shown at
+  /// full brightness against the surrounding dark frame.
+  static const dimInDark = ColorFilter.matrix([
+    0.85, 0, 0, 0, 0, //
+    0, 0.85, 0, 0, 0, //
+    0, 0, 0.85, 0, 0, //
+    0, 0, 0, 1, 0,
+  ]);
+}
+
 class _OnboardingPage {
   const _OnboardingPage({
     required this.asset,
@@ -175,6 +195,16 @@ class _OnboardingOverlayState extends ConsumerState<OnboardingOverlay> {
                                 ),
                               ),
                         style: FilledButton.styleFrom(
+                          // The theme's dark-mode primary is a pale lavender
+                          // (meant for text-on-dark contrast) — too weak for
+                          // a filled CTA, so this one button pins a stronger
+                          // purple with white text instead.
+                          backgroundColor: theme.brightness == Brightness.dark
+                              ? const Color(0xFF6C5AF5)
+                              : null,
+                          foregroundColor: theme.brightness == Brightness.dark
+                              ? Colors.white
+                              : null,
                           padding: const EdgeInsets.symmetric(
                             horizontal: Space.lg,
                             vertical: Space.sm,
@@ -303,34 +333,41 @@ class _OnboardingPageView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: Space.xl),
       child: Column(
         children: [
-          // A big soft-tinted backdrop panel behind the card — turns a
-          // floating image into a composed "hero" moment instead of a
-          // picture pasted on the page, and (since the tint comes from
-          // primaryContainer) settles into dark mode as a muted violet
-          // rather than a hard image edge. Expanded so it fills the
-          // available height. The artwork itself (1080x1520, with its own
-          // soft gradient background baked in) sits inset by 8dp so that
-          // tint reads as a thin frame, then fills the rest edge-to-edge via
-          // fit:cover — no letterboxing, no separate card-on-card shadow.
+          // A thin tinted frame behind the card — turns a floating image
+          // into a composed "hero" moment instead of a picture pasted on the
+          // page. Expanded so it fills the available height. The artwork
+          // itself (1080x1520, with its own soft gradient background baked
+          // in) sits inset by 8dp so the frame reads as a border, then fills
+          // the rest edge-to-edge via fit:cover — no letterboxing.
           Expanded(
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.all(Space.xs),
               decoration: BoxDecoration(
-                color: Color.alphaBlend(
-                  scheme.primaryContainer.withValues(alpha: 0.35),
-                  scheme.surface,
+                color: isDark
+                    ? _OnboardingFrame.darkFill
+                    : _OnboardingFrame.lightFill,
+                border: Border.all(
+                  color: isDark
+                      ? _OnboardingFrame.darkBorder
+                      : _OnboardingFrame.lightBorder,
                 ),
                 borderRadius: Radii.cardLarge,
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(20),
                 child: SizedBox.expand(
-                  child: Image.asset(page.asset, fit: BoxFit.cover),
+                  child: isDark
+                      ? ColorFiltered(
+                          colorFilter: _OnboardingFrame.dimInDark,
+                          child: Image.asset(page.asset, fit: BoxFit.cover),
+                        )
+                      : Image.asset(page.asset, fit: BoxFit.cover),
                 ),
               ),
             ),

@@ -1916,7 +1916,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nextLabel => 'التالي';
 
   @override
-  String get onboardingPage1Title => 'افهم صحتك بنظرة واحدة';
+  String get onboardingPage1Title => 'صحتك بنظرة واحدة';
 
   @override
   String get onboardingPage1Body =>
