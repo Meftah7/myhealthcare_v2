@@ -6,9 +6,8 @@ library;
 const clinicOpenHour = 8;
 const clinicCloseHour = 20; // last slot starts before this
 
-/// Clinic weeks run Sunday–Thursday.
-bool isClinicDay(DateTime d) =>
-    d.weekday != DateTime.friday && d.weekday != DateTime.saturday;
+/// The clinic is open every day of the week.
+bool isClinicDay(DateTime d) => true;
 
 /// The next clinic day strictly after [from].
 DateTime nextClinicDay(DateTime from) {
