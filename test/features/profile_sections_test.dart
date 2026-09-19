@@ -31,7 +31,7 @@ void main() {
 
     final db = newTestDatabase();
     await Seeder(db).run();
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({'ui.hasSeenOnboarding': true});
     final prefs = await SharedPreferences.getInstance();
     final container = ProviderContainer(
       overrides: [
@@ -125,7 +125,7 @@ void main() {
 
     final db = newTestDatabase();
     await Seeder(db).run();
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({'ui.hasSeenOnboarding': true});
     final prefs = await SharedPreferences.getInstance();
     final container = ProviderContainer(
       overrides: [

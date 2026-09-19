@@ -15,8 +15,8 @@ import '../support/test_database.dart';
 
 Future<void> _pump(WidgetTester tester) async {
   // Long enough for the opening splash overlay to finish and clear — it holds
-  // for kSplashDuration (~3.15s), and until it does it covers the screen the
-  // contrast guidelines are measuring.
+  // for kSplashDuration, and until it does it covers the screen the contrast
+  // guidelines are measuring.
   for (var i = 0; i < 44; i++) {
     await tester.pump(const Duration(milliseconds: 80));
   }

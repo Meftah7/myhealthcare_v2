@@ -12,8 +12,10 @@ import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_scaffold.dart';
 
 /// How long the opening screen holds before it dissolves. Long enough to read
-/// as a deliberate welcome rather than a flash of branding.
-const kSplashDuration = Duration(milliseconds: 3150);
+/// as a deliberate welcome rather than a flash of branding — but this is also
+/// how long a cold start blocks on before sign-in (or, for a first-time
+/// visitor, onboarding) becomes reachable, so it stays short.
+const kSplashDuration = Duration(milliseconds: 1500);
 
 class SplashOverlay extends StatefulWidget {
   const SplashOverlay({super.key});

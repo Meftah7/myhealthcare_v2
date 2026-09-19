@@ -26,7 +26,7 @@ Future<void> _settle(WidgetTester tester) async {
 Future<ProviderContainer> _signInAdmin(WidgetTester tester) async {
   final db = newTestDatabase();
   await Seeder(db).run();
-  SharedPreferences.setMockInitialValues({});
+  SharedPreferences.setMockInitialValues({'ui.hasSeenOnboarding': true});
   final prefs = await SharedPreferences.getInstance();
   final container = ProviderContainer(
     overrides: [
@@ -164,7 +164,7 @@ void main() {
   test('admin issueInvoice raises a bill the patient can see', () async {
     final db = newTestDatabase();
     await Seeder(db).run();
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({'ui.hasSeenOnboarding': true});
     final prefs = await SharedPreferences.getInstance();
     final container = ProviderContainer(
       overrides: [
