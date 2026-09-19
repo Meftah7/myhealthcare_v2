@@ -23,7 +23,10 @@ Future<void> _pump(WidgetTester tester) async {
 }
 
 Future<Widget> _app(AppDatabase db) async {
-  SharedPreferences.setMockInitialValues({});
+  // This suite exercises existing screens, not the onboarding carousel —
+  // pre-seed it as already seen so it doesn't sit on top of the login
+  // screen and swallow the taps `_login` sends to "Sign in".
+  SharedPreferences.setMockInitialValues({'ui.hasSeenOnboarding': true});
   final prefs = await SharedPreferences.getInstance();
   return ProviderScope(
     overrides: [
