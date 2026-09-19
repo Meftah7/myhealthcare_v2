@@ -420,6 +420,17 @@ class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
   Timer? _timer;
   int _index = 0;
   int _count = 0;
+  bool _reduceMotion = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Cached here (not read inside `_restartTimer`) because that runs from a
+    // post-frame callback, which can fire after this element is deactivated
+    // (e.g. mid teardown) — looking up an InheritedWidget at that point
+    // throws "Looking up a deactivated widget's ancestor is unsafe".
+    _reduceMotion = Motion.reduced(context);
+  }
 
   @override
   void dispose() {
@@ -433,7 +444,7 @@ class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
     if (_count <= 1) return;
     // An auto-advancing carousel is motion the user didn't ask for; when the
     // OS says "reduce motion", it stops advancing and the arrows take over.
-    if (Motion.reduced(context)) return;
+    if (_reduceMotion) return;
     _timer = Timer.periodic(_slideEvery, (_) => _step(1));
   }
 

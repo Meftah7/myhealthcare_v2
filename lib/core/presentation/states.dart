@@ -2,6 +2,8 @@
 /// everywhere — DESIGN.md §5.2.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../app/theme/theme.dart';
@@ -164,10 +166,22 @@ class LoadingSkeleton extends StatefulWidget {
 
 class _LoadingSkeletonState extends State<LoadingSkeleton>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1100),
-  )..repeat(reverse: true);
+  late final AnimationController _c;
+
+  @override
+  void initState() {
+    super.initState();
+    // Eagerly created (not a lazy `late final` initializer) even though
+    // `build` skips it under reduce-motion: a lazy field first touched from
+    // `dispose()` constructs the controller then, and `vsync: this` needs a
+    // live context to find its TickerMode — which throws "Looking up a
+    // deactivated widget's ancestor is unsafe" on a context mid-teardown.
+    _c = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1100),
+    );
+    unawaited(_c.repeat(reverse: true));
+  }
 
   @override
   void dispose() {

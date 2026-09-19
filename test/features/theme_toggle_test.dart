@@ -27,7 +27,9 @@ void main() {
     (tester) async {
       final db = newTestDatabase();
       await Seeder(db).run();
-      SharedPreferences.setMockInitialValues({});
+      // Pre-seed onboarding as already seen so it doesn't sit on top of the
+      // login screen and swallow the tap meant for "Sign in".
+      SharedPreferences.setMockInitialValues({'ui.hasSeenOnboarding': true});
       final prefs = await SharedPreferences.getInstance();
       final container = ProviderContainer(
         overrides: [

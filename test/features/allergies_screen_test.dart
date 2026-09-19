@@ -2,6 +2,7 @@
 // (P10-06).
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/theme/theme.dart';
@@ -9,6 +10,7 @@ import 'package:myhealthcare/domain/entities/entities.dart';
 import 'package:myhealthcare/domain/enums.dart';
 import 'package:myhealthcare/features/patient/application/patient_data_providers.dart';
 import 'package:myhealthcare/features/patient/presentation/allergies_screen.dart';
+import 'package:myhealthcare/l10n/app_localizations.dart';
 
 Patient _patient({List<String> allergies = const []}) => Patient(
   user: User(
@@ -26,7 +28,17 @@ Future<void> _pump(WidgetTester tester, Patient patient) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [patientProfileProvider.overrideWith((ref) async => patient)],
-      child: MaterialApp(theme: AppTheme.light, home: const AllergiesScreen()),
+      child: MaterialApp(
+        theme: AppTheme.light,
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: const AllergiesScreen(),
+      ),
     ),
   );
   await tester.pumpAndSettle();

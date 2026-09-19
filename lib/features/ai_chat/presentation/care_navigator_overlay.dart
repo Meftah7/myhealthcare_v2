@@ -164,12 +164,24 @@ class _DraggableFab extends ConsumerStatefulWidget {
 
 class _DraggableFabState extends ConsumerState<_DraggableFab>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _pulse = AnimationController(
-    vsync: this,
-    duration: const Duration(seconds: 2),
-  )..repeat();
+  late final AnimationController _pulse;
 
   bool _dragging = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Eagerly created (not a lazy `late final` initializer): `build` skips
+    // `_pulse` entirely under reduce-motion, so a lazy field would only be
+    // first touched from `dispose()` — where `vsync: this` needs a live
+    // context to find its TickerMode and throws "Looking up a deactivated
+    // widget's ancestor is unsafe" instead.
+    _pulse = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    );
+    unawaited(_pulse.repeat());
+  }
 
   @override
   void dispose() {

@@ -219,14 +219,14 @@ void main() {
     expect(find.widgetWithText(AppBar, 'Billing'), findsOneWidget);
     expect(find.textContaining('BD '), findsWidgets);
 
-    // Filter to open invoices and pay the first one.
-    await tester.tap(find.widgetWithText(FilterChip, 'Open'));
+    // Filter to pending invoices and pay the first one.
+    await tester.tap(find.widgetWithText(FilterChip, 'Pending'));
     await _settle(tester);
     final payButtons = find.widgetWithText(FilledButton, 'Mark paid');
     if (payButtons.evaluate().isNotEmpty) {
       await tester.tap(payButtons.first);
       await _settle(tester);
-      expect(find.textContaining('marked paid'), findsOneWidget);
+      expect(find.textContaining('marked Paid'), findsOneWidget);
     }
 
     await tester.pumpWidget(const SizedBox());

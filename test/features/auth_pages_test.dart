@@ -23,7 +23,9 @@ Future<void> _settle(WidgetTester tester) async {
 Future<ProviderContainer> _pumpApp(WidgetTester tester) async {
   final db = newTestDatabase();
   await Seeder(db).run();
-  SharedPreferences.setMockInitialValues({});
+  // Pre-seed onboarding as already seen so it doesn't sit on top of the
+  // login/reset screens and swallow taps meant for them.
+  SharedPreferences.setMockInitialValues({'ui.hasSeenOnboarding': true});
   final prefs = await SharedPreferences.getInstance();
   final container = ProviderContainer(
     overrides: [

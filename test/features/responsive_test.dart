@@ -52,7 +52,12 @@ Future<void> _signIn(
 
   final db = newTestDatabase();
   await Seeder(db).run();
-  SharedPreferences.setMockInitialValues({});
+  // Pre-seed onboarding as already seen: otherwise it pops in mid-test once
+  // its own splash-length timer fires (independent of `_settle`'s pump
+  // count), mounting/unmounting a heavy subtree while the app is also
+  // navigating post-login — which is what was tripping the "deactivated
+  // widget" errors below, not the screens actually under test here.
+  SharedPreferences.setMockInitialValues({'ui.hasSeenOnboarding': true});
   final prefs = await SharedPreferences.getInstance();
 
   await tester.pumpWidget(
