@@ -4,6 +4,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -62,19 +63,41 @@ class _AppFrame extends StatelessWidget {
     // `textScalerOf` subscribes to just that aspect of MediaQuery; the rest of
     // the data is read once here and passes straight through.
     final base = MediaQuery.textScalerOf(context);
+    final scheme = Theme.of(context).colorScheme;
+    final isLight = Theme.of(context).brightness == Brightness.light;
+
     return MediaQuery(
       data: MediaQuery.of(context).copyWith(
         textScaler: _ScaledTextScaler(base, textScale),
       ),
-      child: NotificationSoundCue(
-        child: SessionActivityMonitor(
-          child: Stack(
-            children: [
-              child,
-              const AppointmentConfirmationOverlay(),
-              const OnboardingOverlay(),
-              const SplashOverlay(),
-            ],
+      // Most screens build their own header instead of a Material `AppBar`
+      // (whose theme otherwise sets this automatically), so without this the
+      // status bar — and, on Android, the gesture/nav bar — sits at
+      // Flutter's engine default (a solid white strip) regardless of the
+      // app's actual theme. This is the one place every screen passes
+      // through, so it's the reliable spot to keep it in sync with the
+      // current theme instead of matching only where an AppBar happens to
+      // be present.
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: isLight ? Brightness.dark : Brightness.light,
+          statusBarBrightness: isLight ? Brightness.light : Brightness.dark,
+          systemNavigationBarColor: scheme.surface,
+          systemNavigationBarIconBrightness: isLight
+              ? Brightness.dark
+              : Brightness.light,
+        ),
+        child: NotificationSoundCue(
+          child: SessionActivityMonitor(
+            child: Stack(
+              children: [
+                child,
+                const AppointmentConfirmationOverlay(),
+                const OnboardingOverlay(),
+                const SplashOverlay(),
+              ],
+            ),
           ),
         ),
       ),
