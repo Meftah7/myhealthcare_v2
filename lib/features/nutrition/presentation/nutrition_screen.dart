@@ -8,6 +8,8 @@
 /// across the meals).
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -136,7 +138,11 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
   MacroInputs get _i => _inputs ??= _seed();
 
   MacroInputs _seed() {
-    final d = ref.read(defaultMacroInputsProvider);
+    // Prefer what the patient last calculated (persisted across restarts)
+    // over the profile-derived defaults, so the form shows what they
+    // actually entered rather than resetting every time.
+    final MacroInputs d =
+        ref.read(macroInputsProvider) ?? ref.read(defaultMacroInputsProvider);
     _age.text = '${d.age}';
     _weight.text = _trim(d.weightKg);
     _height.text = _trim(d.heightCm);
@@ -149,7 +155,7 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
   void _update(MacroInputs next) {
     setState(() => _inputs = next);
     if (ref.read(macroTargetsProvider) != null) {
-      ref.read(macroTargetsProvider.notifier).set(next);
+      unawaited(ref.read(macroInputsProvider.notifier).set(next));
     }
   }
 
@@ -160,7 +166,7 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
       heightCm: double.tryParse(_height.text) ?? _i.heightCm,
     );
     setState(() => _inputs = next);
-    ref.read(macroTargetsProvider.notifier).set(next);
+    unawaited(ref.read(macroInputsProvider.notifier).set(next));
   }
 
   @override

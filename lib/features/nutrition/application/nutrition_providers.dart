@@ -2,8 +2,11 @@
 /// calculator and the meal planner), the food database, and its filters.
 library;
 
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/di.dart';
 import '../../../domain/enums.dart' as app;
 import '../../patient/application/patient_data_providers.dart';
 import '../domain/nutrition_data.dart';
@@ -34,21 +37,98 @@ final defaultMacroInputsProvider = Provider<MacroInputs>((ref) {
   );
 });
 
-/// The last-computed macro targets, or null until the patient calculates.
-/// Persisted for the session — this is the link between the Calculator and the
-/// Meal plan.
-class MacroTargetsController extends Notifier<MacroResult?> {
-  @override
-  MacroResult? build() => null;
+// --- macro calculator -----------------------------------------------------
 
-  void set(MacroInputs inputs) => state = calculateMacros(inputs);
-  void clear() => state = null;
+const _macroAgeKey = 'nutrition.age';
+const _macroSexKey = 'nutrition.sex';
+const _macroWeightKey = 'nutrition.weightKg';
+const _macroHeightKey = 'nutrition.heightCm';
+const _macroActivityKey = 'nutrition.activityFactor';
+const _macroGoalKey = 'nutrition.goal';
+const _macroRateKey = 'nutrition.weeklyRateKg';
+const _macroPresetKey = 'nutrition.preset';
+
+/// The inputs behind the last calculation, or null until the patient
+/// calculates for the first time. Persisted to [SharedPreferences] (like the
+/// rest of `ui_prefs.dart`'s device settings) so the Calculator and the Meal
+/// plan survive closing the app, not just the session.
+class MacroInputsController extends Notifier<MacroInputs?> {
+  @override
+  MacroInputs? build() {
+    final prefs = ref.read(sharedPreferencesProvider);
+    final age = prefs.getInt(_macroAgeKey);
+    final sexName = prefs.getString(_macroSexKey);
+    final weight = prefs.getDouble(_macroWeightKey);
+    final height = prefs.getDouble(_macroHeightKey);
+    final activity = prefs.getDouble(_macroActivityKey);
+    final goalName = prefs.getString(_macroGoalKey);
+    final rate = prefs.getDouble(_macroRateKey);
+    final presetName = prefs.getString(_macroPresetKey);
+    if (age == null ||
+        sexName == null ||
+        weight == null ||
+        height == null ||
+        activity == null ||
+        goalName == null ||
+        rate == null ||
+        presetName == null) {
+      return null;
+    }
+    return MacroInputs(
+      age: age,
+      sex: Sex.values.byName(sexName),
+      weightKg: weight,
+      heightCm: height,
+      activityFactor: activity,
+      goal: FitnessGoal.values.byName(goalName),
+      weeklyRateKg: rate,
+      preset: MacroPreset.values.byName(presetName),
+    );
+  }
+
+  Future<void> set(MacroInputs inputs) async {
+    state = inputs;
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setInt(_macroAgeKey, inputs.age);
+    await prefs.setString(_macroSexKey, inputs.sex.name);
+    await prefs.setDouble(_macroWeightKey, inputs.weightKg);
+    await prefs.setDouble(_macroHeightKey, inputs.heightCm);
+    await prefs.setDouble(_macroActivityKey, inputs.activityFactor);
+    await prefs.setString(_macroGoalKey, inputs.goal.name);
+    await prefs.setDouble(_macroRateKey, inputs.weeklyRateKg);
+    await prefs.setString(_macroPresetKey, inputs.preset.name);
+  }
+
+  Future<void> clear() async {
+    state = null;
+    final prefs = ref.read(sharedPreferencesProvider);
+    for (final key in [
+      _macroAgeKey,
+      _macroSexKey,
+      _macroWeightKey,
+      _macroHeightKey,
+      _macroActivityKey,
+      _macroGoalKey,
+      _macroRateKey,
+      _macroPresetKey,
+    ]) {
+      await prefs.remove(key);
+    }
+  }
 }
 
-final macroTargetsProvider =
-    NotifierProvider<MacroTargetsController, MacroResult?>(
-      MacroTargetsController.new,
+final macroInputsProvider =
+    NotifierProvider<MacroInputsController, MacroInputs?>(
+      MacroInputsController.new,
     );
+
+/// The last-computed macro targets, or null until the patient calculates —
+/// purely derived from [macroInputsProvider], which is what's actually
+/// persisted.
+final macroTargetsProvider = Provider<MacroResult?>((ref) {
+  final inputs = ref.watch(macroInputsProvider);
+  return inputs == null ? null : calculateMacros(inputs);
+});
 
 // --- food database -------------------------------------------------------
 
@@ -143,11 +223,33 @@ class GeneratedMealPlan {
   final List<MealTargets>? perMeal;
 }
 
+const _mealIncludeSweetKey = 'nutrition.includeSweet';
+
 class MealPlanController extends Notifier<GeneratedMealPlan?> {
   @override
-  GeneratedMealPlan? build() => null;
+  GeneratedMealPlan? build() {
+    // Re-derive the plan the patient last generated: if there's a saved
+    // "include dessert" choice and the calculator's targets survived the
+    // restart too (via [macroInputsProvider]), rebuild it immediately
+    // instead of making them press "Build my day" again.
+    final prefs = ref.read(sharedPreferencesProvider);
+    final includeSweet = prefs.getBool(_mealIncludeSweetKey);
+    if (includeSweet == null || ref.watch(macroTargetsProvider) == null) {
+      return null;
+    }
+    return _generate(MealPlanRequest(includeSweet: includeSweet));
+  }
 
   void generate(MealPlanRequest req) {
+    unawaited(
+      ref
+          .read(sharedPreferencesProvider)
+          .setBool(_mealIncludeSweetKey, req.includeSweet),
+    );
+    state = _generate(req);
+  }
+
+  GeneratedMealPlan? _generate(MealPlanRequest req) {
     final types = [
       MealType.breakfast,
       MealType.lunch,
@@ -172,10 +274,13 @@ class MealPlanController extends Notifier<GeneratedMealPlan?> {
       ];
     }
 
-    state = GeneratedMealPlan(perMeal: perMeal);
+    return GeneratedMealPlan(perMeal: perMeal);
   }
 
-  void clear() => state = null;
+  Future<void> clear() async {
+    state = null;
+    await ref.read(sharedPreferencesProvider).remove(_mealIncludeSweetKey);
+  }
 }
 
 final mealPlanProvider =

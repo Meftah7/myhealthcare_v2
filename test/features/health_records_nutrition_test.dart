@@ -184,4 +184,82 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
   });
+
+  testWidgets(
+    'Nutrition targets and meal plan survive closing the app',
+    (tester) async {
+      tester.view.physicalSize = const Size(1200, 2600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final db = newTestDatabase();
+      addTearDown(db.close);
+      await Seeder(db).run();
+      SharedPreferences.setMockInitialValues({'ui.hasSeenOnboarding': true});
+      final prefs = await SharedPreferences.getInstance();
+
+      Future<ProviderContainer> launch() async {
+        final container = ProviderContainer(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            appDatabaseProvider.overrideWith((ref) => db),
+          ],
+        );
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: const MyHealthCareApp(),
+          ),
+        );
+        await _settle(tester);
+        await tester.enterText(
+          find.widgetWithText(TextFormField, 'Email'),
+          'patient1@myhealth.demo',
+        );
+        await tester.enterText(
+          find.widgetWithText(TextFormField, 'Password'),
+          Seeder.demoPassword,
+        );
+        await tester.ensureVisible(find.widgetWithText(FilledButton, 'Sign in'));
+        await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
+        await passMfa(tester);
+        await _settle(tester);
+        return container;
+      }
+
+      // First "session": calculate targets and build the meal plan.
+      final first = await launch();
+      await tester.tap(find.text('Nutrition').first);
+      await _settle(tester);
+      await tester.tap(find.widgetWithText(FilledButton, 'Calculate targets'));
+      await _settle(tester);
+      expect(find.text('DAILY TARGETS'), findsOneWidget);
+      await tester.tap(find.text('Meal plan'));
+      await _settle(tester);
+      await tester.tap(find.widgetWithText(FilledButton, 'Build my day'));
+      await _settle(tester);
+      expect(find.text('Your day'), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 1));
+      first.dispose();
+
+      // A fresh "session" — new ProviderContainer, same SharedPreferences and
+      // database, as if the app had been closed and reopened. Both should
+      // already be there, with no Calculate / Build my day needed.
+      final second = await launch();
+      addTearDown(second.dispose);
+      await tester.tap(find.text('Nutrition').first);
+      await _settle(tester);
+      expect(find.text('DAILY TARGETS'), findsOneWidget);
+      await tester.tap(find.text('Meal plan'));
+      await _settle(tester);
+      expect(find.text('Your day'), findsOneWidget);
+      expect(find.text('Breakfast'), findsWidgets);
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 1));
+    },
+  );
 }
