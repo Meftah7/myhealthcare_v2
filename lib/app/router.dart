@@ -19,6 +19,7 @@ import '../features/admin/presentation/admin_referral_requests_screen.dart';
 import '../features/admin/presentation/admin_top_actions.dart';
 import '../features/admin/presentation/ai_settings_screen.dart';
 import '../features/admin/presentation/audit_log_screen.dart';
+import '../features/admin/presentation/clinic_hours_screen.dart';
 import '../features/admin/presentation/departments_screen.dart';
 import '../features/admin/presentation/system_analytics_screen.dart';
 import '../features/admin/presentation/user_management_screen.dart';
@@ -183,6 +184,7 @@ abstract final class AppRoutes {
   static const adminProfileAiSettings = '/admin/profile/ai';
   static const adminProfileAiLog = '/admin/profile/ai-log';
   static const adminProfilePreferences = '/admin/profile/preferences';
+  static const adminProfileClinicHours = '/admin/profile/clinic-hours';
 
   // Deprecated aliases — kept so old deep links / the audit `entityId`
   // strings still resolve. Prefer the `adminProfile*` names.
@@ -729,6 +731,10 @@ StatefulShellRoute _adminShell() {
               GoRoute(
                 path: 'preferences',
                 builder: (_, _) => const AdminPreferencesPage(),
+              ),
+              GoRoute(
+                path: 'clinic-hours',
+                builder: (_, _) => const ClinicHoursScreen(),
               ),
             ],
           ),

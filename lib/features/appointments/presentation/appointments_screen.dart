@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
+import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
 import '../../../core/presentation/app_card.dart';
@@ -342,15 +343,18 @@ class _ApptCard extends ConsumerWidget {
 
   Future<void> _reschedule(BuildContext context, WidgetRef ref) async {
     final t = AppLocalizations.of(context)!;
+    final schedule = ref.read(clinicScheduleProvider);
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final base = appt.slotStart.isAfter(now) ? appt.slotStart : today;
     final date = await showDatePicker(
       context: context,
-      initialDate: isClinicDay(base) ? base : nextClinicDay(today),
+      initialDate: isClinicDay(base, schedule)
+          ? base
+          : nextClinicDay(today, schedule),
       firstDate: today,
       lastDate: today.add(const Duration(days: 60)),
-      selectableDayPredicate: isClinicDay,
+      selectableDayPredicate: (d) => isClinicDay(d, schedule),
       helpText: t.clinicDaysHelp,
     );
     if (date == null || !context.mounted) return;
@@ -360,7 +364,7 @@ class _ApptCard extends ConsumerWidget {
       helpText: t.clinicHoursHelp,
     );
     if (time == null) return;
-    if (time.hour < clinicOpenHour || time.hour >= clinicCloseHour) {
+    if (time.hour < schedule.openHour || time.hour >= schedule.closeHour) {
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,

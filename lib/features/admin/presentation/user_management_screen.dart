@@ -6,6 +6,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
@@ -774,19 +775,24 @@ class _BookForPatientSheetState extends ConsumerState<_BookForPatientSheet> {
 
   bool get _valid {
     final s = _start;
-    return _staffId != null && s != null && isWithinClinicHours(s);
+    return _staffId != null &&
+        s != null &&
+        isWithinClinicHours(s, ref.read(clinicScheduleProvider));
   }
 
   Future<void> _pickDate() async {
     final t = AppLocalizations.of(context)!;
+    final schedule = ref.read(clinicScheduleProvider);
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final picked = await showDatePicker(
       context: context,
-      initialDate: isClinicDay(today) ? today : nextClinicDay(today),
+      initialDate: isClinicDay(today, schedule)
+          ? today
+          : nextClinicDay(today, schedule),
       firstDate: today,
       lastDate: today.add(const Duration(days: 60)),
-      selectableDayPredicate: isClinicDay,
+      selectableDayPredicate: (d) => isClinicDay(d, schedule),
       helpText: t.clinicDaysHelpText,
     );
     if (picked != null) setState(() => _date = picked);
@@ -796,7 +802,10 @@ class _BookForPatientSheetState extends ConsumerState<_BookForPatientSheet> {
     final t = AppLocalizations.of(context)!;
     final picked = await showTimePicker(
       context: context,
-      initialTime: const TimeOfDay(hour: clinicOpenHour, minute: 0),
+      initialTime: TimeOfDay(
+        hour: ref.read(clinicScheduleProvider).openHour,
+        minute: 0,
+      ),
       helpText: t.clinicHoursHelpText,
     );
     if (picked != null) setState(() => _time = picked);
@@ -928,7 +937,11 @@ class _BookForPatientSheetState extends ConsumerState<_BookForPatientSheet> {
                 ),
               ],
             ),
-            if (_start != null && !isWithinClinicHours(_start!)) ...[
+            if (_start != null &&
+                !isWithinClinicHours(
+                  _start!,
+                  ref.read(clinicScheduleProvider),
+                )) ...[
               const SizedBox(height: Space.xs),
               Text(
                 t.pickTimeBetweenNote,

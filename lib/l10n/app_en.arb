@@ -310,6 +310,12 @@
   "clinicDaysHelp": "Clinic days: Sunday–Thursday",
   "clinicHoursHelp": "Clinic hours: 08:00–20:00",
   "pickTimeInRange": "Pick a time between 08:00 and 20:00.",
+  "clinicHoursTitle": "Clinic hours",
+  "clinicHoursSubtitle": "Open days and hours",
+  "openDaysLabel": "Open days",
+  "openTimeLabel": "Opens",
+  "closeTimeLabel": "Closes",
+  "clinicHoursSaved": "Clinic hours updated.",
   "bookedOn": "Booked {date}",
   "@bookedOn": {
     "placeholders": {

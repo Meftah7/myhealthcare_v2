@@ -682,6 +682,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pickTimeInRange => 'Pick a time between 08:00 and 20:00.';
 
   @override
+  String get clinicHoursTitle => 'Clinic hours';
+
+  @override
+  String get clinicHoursSubtitle => 'Open days and hours';
+
+  @override
+  String get openDaysLabel => 'Open days';
+
+  @override
+  String get openTimeLabel => 'Opens';
+
+  @override
+  String get closeTimeLabel => 'Closes';
+
+  @override
+  String get clinicHoursSaved => 'Clinic hours updated.';
+
+  @override
   String bookedOn(String date) {
     return 'Booked $date';
   }

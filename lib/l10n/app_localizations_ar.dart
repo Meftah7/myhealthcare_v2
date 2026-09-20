@@ -679,6 +679,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pickTimeInRange => 'اختر وقتاً بين 08:00 و20:00.';
 
   @override
+  String get clinicHoursTitle => 'ساعات العيادة';
+
+  @override
+  String get clinicHoursSubtitle => 'أيام وساعات العمل';
+
+  @override
+  String get openDaysLabel => 'أيام العمل';
+
+  @override
+  String get openTimeLabel => 'يفتح';
+
+  @override
+  String get closeTimeLabel => 'يغلق';
+
+  @override
+  String get clinicHoursSaved => 'تم تحديث ساعات العيادة.';
+
+  @override
   String bookedOn(String date) {
     return 'تم الحجز $date';
   }

@@ -310,6 +310,12 @@
   "clinicDaysHelp": "أيام العيادة: الأحد–الخميس",
   "clinicHoursHelp": "ساعات العيادة: 08:00–20:00",
   "pickTimeInRange": "اختر وقتاً بين 08:00 و20:00.",
+  "clinicHoursTitle": "ساعات العيادة",
+  "clinicHoursSubtitle": "أيام وساعات العمل",
+  "openDaysLabel": "أيام العمل",
+  "openTimeLabel": "يفتح",
+  "closeTimeLabel": "يغلق",
+  "clinicHoursSaved": "تم تحديث ساعات العيادة.",
   "bookedOn": "تم الحجز {date}",
   "@bookedOn": {
     "placeholders": {

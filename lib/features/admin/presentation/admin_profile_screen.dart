@@ -47,6 +47,11 @@ class AdminProfileScreen extends ConsumerWidget {
       t.aiActivityTitle,
       AppRoutes.adminProfileAiLog,
     ),
+    (
+      Icons.schedule_outlined,
+      t.clinicHoursTitle,
+      AppRoutes.adminProfileClinicHours,
+    ),
   ];
 
   @override

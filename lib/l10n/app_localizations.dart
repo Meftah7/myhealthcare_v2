@@ -1382,6 +1382,42 @@ abstract class AppLocalizations {
   /// **'Pick a time between 08:00 and 20:00.'**
   String get pickTimeInRange;
 
+  /// No description provided for @clinicHoursTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clinic hours'**
+  String get clinicHoursTitle;
+
+  /// No description provided for @clinicHoursSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open days and hours'**
+  String get clinicHoursSubtitle;
+
+  /// No description provided for @openDaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Open days'**
+  String get openDaysLabel;
+
+  /// No description provided for @openTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Opens'**
+  String get openTimeLabel;
+
+  /// No description provided for @closeTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Closes'**
+  String get closeTimeLabel;
+
+  /// No description provided for @clinicHoursSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Clinic hours updated.'**
+  String get clinicHoursSaved;
+
   /// No description provided for @bookedOn.
   ///
   /// In en, this message translates to:

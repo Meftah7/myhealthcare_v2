@@ -11,6 +11,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../app/router.dart';
+import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
 import '../../../core/presentation/app_card.dart';
@@ -84,6 +85,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     final departments = ref.watch(departmentsProvider);
     final notifier = ref.read(bookingDraftProvider.notifier);
     final gutter = WindowSize.of(context).gutter;
+    final schedule = ref.watch(clinicScheduleProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -165,6 +167,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                         ? _NowDateLine(date: draft.date)
                         : _DateStrip(
                             selected: draft.date,
+                            schedule: schedule,
                             onPick: (d) =>
                                 notifier.state = draft.copyWith(date: d),
                           ),
@@ -575,9 +578,14 @@ class _NowDateLine extends StatelessWidget {
 }
 
 class _DateStrip extends StatelessWidget {
-  const _DateStrip({required this.selected, required this.onPick});
+  const _DateStrip({
+    required this.selected,
+    required this.schedule,
+    required this.onPick,
+  });
 
   final DateTime? selected;
+  final ClinicSchedule schedule;
   final ValueChanged<DateTime> onPick;
 
   List<DateTime> get _days {
@@ -585,7 +593,7 @@ class _DateStrip extends StatelessWidget {
     var d = DateTime(now.year, now.month, now.day);
     final out = <DateTime>[];
     for (var i = 0; i < 45 && out.length < 21; i++) {
-      if (isClinicDay(d)) out.add(d);
+      if (isClinicDay(d, schedule)) out.add(d);
       d = d.add(const Duration(days: 1));
     }
     return out;

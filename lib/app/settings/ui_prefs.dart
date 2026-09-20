@@ -279,3 +279,65 @@ final hasSeenOnboardingProvider =
     NotifierProvider<HasSeenOnboardingController, bool>(
       HasSeenOnboardingController.new,
     );
+
+// --- clinic schedule --------------------------------------------------
+
+const _clinicOpenDaysKey = 'clinic.openDays';
+const _clinicOpenHourKey = 'clinic.openHour';
+const _clinicCloseHourKey = 'clinic.closeHour';
+
+/// When the clinic is open — which [DateTime.weekday] values (1=Mon..7=Sun)
+/// count as open, and the open/close hour. Admin-editable (Profile → Clinic
+/// hours); shared by the booking wizard, the reschedule flow, and admin
+/// scheduling. There's no backend in this demo app, so — like every other
+/// setting in this file — "shared" just means the one local device's
+/// [SharedPreferences], same as the rest of `ui_prefs.dart`.
+class ClinicSchedule {
+  const ClinicSchedule({
+    this.openDays = const {1, 2, 3, 4, 5, 6, 7},
+    this.openHour = 8,
+    this.closeHour = 20,
+  });
+
+  final Set<int> openDays;
+  final int openHour;
+  final int closeHour;
+
+  ClinicSchedule copyWith({Set<int>? openDays, int? openHour, int? closeHour}) =>
+      ClinicSchedule(
+        openDays: openDays ?? this.openDays,
+        openHour: openHour ?? this.openHour,
+        closeHour: closeHour ?? this.closeHour,
+      );
+}
+
+class ClinicScheduleController extends Notifier<ClinicSchedule> {
+  @override
+  ClinicSchedule build() {
+    final prefs = ref.read(sharedPreferencesProvider);
+    final days = prefs.getStringList(_clinicOpenDaysKey);
+    return ClinicSchedule(
+      openDays: days == null
+          ? const {1, 2, 3, 4, 5, 6, 7}
+          : days.map(int.parse).toSet(),
+      openHour: prefs.getInt(_clinicOpenHourKey) ?? 8,
+      closeHour: prefs.getInt(_clinicCloseHourKey) ?? 20,
+    );
+  }
+
+  Future<void> set(ClinicSchedule schedule) async {
+    state = schedule;
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setStringList(
+      _clinicOpenDaysKey,
+      schedule.openDays.map((d) => d.toString()).toList(),
+    );
+    await prefs.setInt(_clinicOpenHourKey, schedule.openHour);
+    await prefs.setInt(_clinicCloseHourKey, schedule.closeHour);
+  }
+}
+
+final clinicScheduleProvider =
+    NotifierProvider<ClinicScheduleController, ClinicSchedule>(
+      ClinicScheduleController.new,
+    );
