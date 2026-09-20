@@ -63,27 +63,30 @@ class _AppFrame extends StatelessWidget {
     // `textScalerOf` subscribes to just that aspect of MediaQuery; the rest of
     // the data is read once here and passes straight through.
     final base = MediaQuery.textScalerOf(context);
+    final scheme = Theme.of(context).colorScheme;
     final isLight = Theme.of(context).brightness == Brightness.light;
 
-    // A screen-wide default so the system status/navigation bars always match
-    // the current theme, not just on screens with an `AppBar` (which sets its
-    // own via `appBarTheme.systemOverlayStyle`) — a dashboard or sign-in
-    // screen with no AppBar would otherwise fall back to the OS's own
-    // (usually light) default and show a mismatched bar over dark content.
-    final overlayStyle = (isLight ? SystemUiOverlayStyle.dark : SystemUiOverlayStyle.light)
-        .copyWith(
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(
+        textScaler: _ScaledTextScaler(base, textScale),
+      ),
+      // Most screens build their own header instead of a Material `AppBar`
+      // (whose theme otherwise sets this automatically), so without this the
+      // status bar — and, on Android, the gesture/nav bar — sits at
+      // Flutter's engine default (a solid white strip) regardless of the
+      // app's actual theme. This is the one place every screen passes
+      // through, so it's the reliable spot to keep it in sync with the
+      // current theme instead of matching only where an AppBar happens to
+      // be present.
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
-          systemNavigationBarColor: Colors.transparent,
+          statusBarIconBrightness: isLight ? Brightness.dark : Brightness.light,
+          statusBarBrightness: isLight ? Brightness.light : Brightness.dark,
+          systemNavigationBarColor: scheme.surface,
           systemNavigationBarIconBrightness: isLight
               ? Brightness.dark
               : Brightness.light,
-        );
-
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: overlayStyle,
-      child: MediaQuery(
-        data: MediaQuery.of(context).copyWith(
-          textScaler: _ScaledTextScaler(base, textScale),
         ),
         child: NotificationSoundCue(
           child: SessionActivityMonitor(
