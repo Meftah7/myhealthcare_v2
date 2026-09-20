@@ -8,6 +8,8 @@
 /// across the meals).
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -136,7 +138,9 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
   MacroInputs get _i => _inputs ??= _seed();
 
   MacroInputs _seed() {
-    final d = ref.read(defaultMacroInputsProvider);
+    final MacroInputs d =
+        ref.read(savedMacroInputsProvider) ??
+        ref.read(defaultMacroInputsProvider);
     _age.text = '${d.age}';
     _weight.text = _trim(d.weightKg);
     _height.text = _trim(d.heightCm);
@@ -149,7 +153,7 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
   void _update(MacroInputs next) {
     setState(() => _inputs = next);
     if (ref.read(macroTargetsProvider) != null) {
-      ref.read(macroTargetsProvider.notifier).set(next);
+      unawaited(ref.read(macroTargetsProvider.notifier).set(next));
     }
   }
 
@@ -160,7 +164,7 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
       heightCm: double.tryParse(_height.text) ?? _i.heightCm,
     );
     setState(() => _inputs = next);
-    ref.read(macroTargetsProvider.notifier).set(next);
+    unawaited(ref.read(macroTargetsProvider.notifier).set(next));
   }
 
   @override
@@ -722,12 +726,17 @@ class _MealPlanView extends ConsumerStatefulWidget {
 }
 
 class _MealPlanViewState extends ConsumerState<_MealPlanView> {
-  bool _includeSweet = true;
+  bool? _includeSweetOverride;
+
+  bool get _includeSweet =>
+      _includeSweetOverride ?? ref.read(savedIncludeSweetProvider);
 
   void _generate() {
-    ref
-        .read(mealPlanProvider.notifier)
-        .generate(MealPlanRequest(includeSweet: _includeSweet));
+    unawaited(
+      ref
+          .read(mealPlanProvider.notifier)
+          .generate(MealPlanRequest(includeSweet: _includeSweet)),
+    );
   }
 
   @override
@@ -750,7 +759,7 @@ class _MealPlanViewState extends ConsumerState<_MealPlanView> {
                 title: Text(t.includeDessertTitle),
                 subtitle: Text(t.includeDessertSubtitle),
                 value: _includeSweet,
-                onChanged: (v) => setState(() => _includeSweet = v),
+                onChanged: (v) => setState(() => _includeSweetOverride = v),
               ),
               const SizedBox(height: Space.xs),
               FilledButton.icon(

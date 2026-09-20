@@ -4,6 +4,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -62,19 +63,38 @@ class _AppFrame extends StatelessWidget {
     // `textScalerOf` subscribes to just that aspect of MediaQuery; the rest of
     // the data is read once here and passes straight through.
     final base = MediaQuery.textScalerOf(context);
-    return MediaQuery(
-      data: MediaQuery.of(context).copyWith(
-        textScaler: _ScaledTextScaler(base, textScale),
-      ),
-      child: NotificationSoundCue(
-        child: SessionActivityMonitor(
-          child: Stack(
-            children: [
-              child,
-              const AppointmentConfirmationOverlay(),
-              const OnboardingOverlay(),
-              const SplashOverlay(),
-            ],
+    final isLight = Theme.of(context).brightness == Brightness.light;
+
+    // A screen-wide default so the system status/navigation bars always match
+    // the current theme, not just on screens with an `AppBar` (which sets its
+    // own via `appBarTheme.systemOverlayStyle`) — a dashboard or sign-in
+    // screen with no AppBar would otherwise fall back to the OS's own
+    // (usually light) default and show a mismatched bar over dark content.
+    final overlayStyle = (isLight ? SystemUiOverlayStyle.dark : SystemUiOverlayStyle.light)
+        .copyWith(
+          statusBarColor: Colors.transparent,
+          systemNavigationBarColor: Colors.transparent,
+          systemNavigationBarIconBrightness: isLight
+              ? Brightness.dark
+              : Brightness.light,
+        );
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: overlayStyle,
+      child: MediaQuery(
+        data: MediaQuery.of(context).copyWith(
+          textScaler: _ScaledTextScaler(base, textScale),
+        ),
+        child: NotificationSoundCue(
+          child: SessionActivityMonitor(
+            child: Stack(
+              children: [
+                child,
+                const AppointmentConfirmationOverlay(),
+                const OnboardingOverlay(),
+                const SplashOverlay(),
+              ],
+            ),
           ),
         ),
       ),

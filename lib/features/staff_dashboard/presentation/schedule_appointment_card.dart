@@ -4,14 +4,14 @@
 /// only the ones that apply to the current state are shown:
 ///
 ///   Booked / Called   Call patient · Arrived · Not arrived · Open chart
-///   Arrived           Complete visit · Open chart
+///   Arrived           Start appointment · Open chart
 ///   Not arrived       Arrived (undo) · Open chart
 ///   Completed         Open chart
 ///
 /// "Call patient" pages the patient in over the clinic system (not a phone
 /// call) and is repeatable — the card notes the last page. "Patient arrived"
 /// and "Patient not arrived" flash a green ✓ / red ✕ (the booking-confirmation
-/// motion) and keep the doctor on the schedule. "Complete visit" opens the
+/// motion) and keep the doctor on the schedule. "Start appointment" opens the
 /// consultation page, where the visit is actually closed; the card flashes ✓
 /// again when it returns as completed. "Open chart" is the only action that
 /// navigates.
@@ -434,8 +434,8 @@ class _ScheduleAppointmentCardState
       case ScheduleCardState.arrived:
         return [
           _CardActionSpec(
-            Icons.done_all_rounded,
-            'Complete visit',
+            Icons.play_arrow_rounded,
+            'Start appointment',
             _completeVisit,
             _ActionKind.completeVisit,
           ),
@@ -649,7 +649,7 @@ class _CardButton extends StatelessWidget {
 
     switch (action.kind) {
       case _ActionKind.call:
-        // Violet, tonal — a lighter touch than the solid "Complete visit".
+        // Violet, tonal — a lighter touch than the solid "Start appointment".
         return FilledButton.tonalIcon(
           onPressed: action.onTap,
           icon: icon,

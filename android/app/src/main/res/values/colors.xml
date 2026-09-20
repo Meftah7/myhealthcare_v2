@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#FFFFFF</color>
+    <!-- Matches AppColors.light.surface — the native window/splash background,
+         so nothing but the app's own dark-mode-aware surface ever shows behind
+         the Flutter view (a status-bar-height gap during rotation otherwise
+         flashes the system's default light background). -->
+    <color name="window_background">#F7F8FB</color>
 </resources>

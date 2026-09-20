@@ -1,9 +1,17 @@
 /// Nutrition-section state: the patient's macro targets (shared between the
 /// calculator and the meal planner), the food database, and its filters.
+///
+/// The calculator inputs and the "include dessert" preference are device data
+/// (like the settings in `app/settings/ui_prefs.dart`), so they're mirrored
+/// into [SharedPreferences] and survive closing the app — the macro targets
+/// and meal plan themselves are just recomputed from them on the next launch.
 library;
+
+import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/di.dart';
 import '../../../domain/enums.dart' as app;
 import '../../patient/application/patient_data_providers.dart';
 import '../domain/nutrition_data.dart';
@@ -34,15 +42,68 @@ final defaultMacroInputsProvider = Provider<MacroInputs>((ref) {
   );
 });
 
+const _macroInputsKey = 'nutrition.macroInputs';
+
+Map<String, dynamic> _encodeMacroInputs(MacroInputs i) => {
+  'age': i.age,
+  'sex': i.sex.name,
+  'weightKg': i.weightKg,
+  'heightCm': i.heightCm,
+  'activityFactor': i.activityFactor,
+  'goal': i.goal.name,
+  'weeklyRateKg': i.weeklyRateKg,
+  'preset': i.preset.name,
+};
+
+MacroInputs? _decodeMacroInputs(String? raw) {
+  if (raw == null) return null;
+  try {
+    final map = jsonDecode(raw) as Map<String, dynamic>;
+    return MacroInputs(
+      age: map['age'] as int,
+      sex: Sex.values.byName(map['sex'] as String),
+      weightKg: (map['weightKg'] as num).toDouble(),
+      heightCm: (map['heightCm'] as num).toDouble(),
+      activityFactor: (map['activityFactor'] as num).toDouble(),
+      goal: FitnessGoal.values.byName(map['goal'] as String),
+      weeklyRateKg: (map['weeklyRateKg'] as num).toDouble(),
+      preset: MacroPreset.values.byName(map['preset'] as String),
+    );
+  } catch (_) {
+    return null;
+  }
+}
+
+/// The calculator inputs last saved to the device, or null if the patient has
+/// never run the calculator. Read once by the calculator form to restore its
+/// fields after the app restarts.
+final savedMacroInputsProvider = Provider<MacroInputs?>(
+  (ref) => _decodeMacroInputs(
+    ref.watch(sharedPreferencesProvider).getString(_macroInputsKey),
+  ),
+);
+
 /// The last-computed macro targets, or null until the patient calculates.
-/// Persisted for the session — this is the link between the Calculator and the
-/// Meal plan.
+/// This is the link between the Calculator and the Meal plan, and it's
+/// restored from the device on launch by recomputing from the saved inputs.
 class MacroTargetsController extends Notifier<MacroResult?> {
   @override
-  MacroResult? build() => null;
+  MacroResult? build() {
+    final inputs = ref.watch(savedMacroInputsProvider);
+    return inputs == null ? null : calculateMacros(inputs);
+  }
 
-  void set(MacroInputs inputs) => state = calculateMacros(inputs);
-  void clear() => state = null;
+  Future<void> set(MacroInputs inputs) async {
+    state = calculateMacros(inputs);
+    await ref
+        .read(sharedPreferencesProvider)
+        .setString(_macroInputsKey, jsonEncode(_encodeMacroInputs(inputs)));
+  }
+
+  Future<void> clear() async {
+    state = null;
+    await ref.read(sharedPreferencesProvider).remove(_macroInputsKey);
+  }
 }
 
 final macroTargetsProvider =
@@ -143,36 +204,56 @@ class GeneratedMealPlan {
   final List<MealTargets>? perMeal;
 }
 
+const _includeSweetKey = 'nutrition.includeSweet';
+
+/// The "include dessert" toggle last saved to the device — read once by the
+/// meal-plan form to restore its switch after the app restarts.
+final savedIncludeSweetProvider = Provider<bool>(
+  (ref) =>
+      ref.watch(sharedPreferencesProvider).getBool(_includeSweetKey) ?? true,
+);
+
+GeneratedMealPlan _buildPlan(MacroResult? targets, bool includeSweet) {
+  final types = [
+    MealType.breakfast,
+    MealType.lunch,
+    MealType.dinner,
+    if (includeSweet) MealType.sweet,
+  ];
+
+  List<MealTargets>? perMeal;
+  if (targets != null) {
+    final split = const MealSplit().withDessert(includeSweet);
+    perMeal = [
+      for (final t in types)
+        MealTargets(
+          type: t,
+          calories: (targets.targetCalories * split.fractionFor(t)).round(),
+          protein: (targets.protein * split.fractionFor(t)).round(),
+          carbs: (targets.carbs * split.fractionFor(t)).round(),
+          fat: (targets.fat * split.fractionFor(t)).round(),
+        ),
+    ];
+  }
+  return GeneratedMealPlan(perMeal: perMeal);
+}
+
 class MealPlanController extends Notifier<GeneratedMealPlan?> {
   @override
-  GeneratedMealPlan? build() => null;
+  GeneratedMealPlan? build() {
+    final targets = ref.watch(macroTargetsProvider);
+    if (targets == null) return null;
+    // The patient already ran the calculator on a previous visit — rebuild
+    // the plan they last generated instead of making them tap the button
+    // again every time the app restarts.
+    return _buildPlan(targets, ref.watch(savedIncludeSweetProvider));
+  }
 
-  void generate(MealPlanRequest req) {
-    final types = [
-      MealType.breakfast,
-      MealType.lunch,
-      MealType.dinner,
-      if (req.includeSweet) MealType.sweet,
-    ];
-
-    final targets = ref.read(macroTargetsProvider);
-    List<MealTargets>? perMeal;
-    if (targets != null) {
-      final split = const MealSplit().withDessert(req.includeSweet);
-      perMeal = [
-        for (final t in types)
-          MealTargets(
-            type: t,
-            calories:
-                (targets.targetCalories * split.fractionFor(t)).round(),
-            protein: (targets.protein * split.fractionFor(t)).round(),
-            carbs: (targets.carbs * split.fractionFor(t)).round(),
-            fat: (targets.fat * split.fractionFor(t)).round(),
-          ),
-      ];
-    }
-
-    state = GeneratedMealPlan(perMeal: perMeal);
+  Future<void> generate(MealPlanRequest req) async {
+    state = _buildPlan(ref.read(macroTargetsProvider), req.includeSweet);
+    await ref
+        .read(sharedPreferencesProvider)
+        .setBool(_includeSweetKey, req.includeSweet);
   }
 
   void clear() => state = null;
