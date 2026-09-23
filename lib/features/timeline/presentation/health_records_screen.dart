@@ -65,28 +65,40 @@ class _HealthRecordsScreenState extends State<HealthRecordsScreen> {
                     const SizedBox(height: Space.sm),
                     SizedBox(
                       width: double.infinity,
-                      child: SegmentedButton<_RecordsView>(
-                        segments: [
-                          ButtonSegment(
-                            value: _RecordsView.timeline,
-                            icon: const Icon(Icons.timeline_outlined),
-                            label: Text(t.timelineSegment),
-                          ),
-                          ButtonSegment(
-                            value: _RecordsView.medications,
-                            icon: const Icon(Icons.medication_outlined),
-                            label: Text(t.medicationsSegment),
-                          ),
-                          ButtonSegment(
-                            value: _RecordsView.bills,
-                            icon: const Icon(Icons.receipt_long_outlined),
-                            label: Text(t.billsSegment),
-                          ),
-                        ],
-                        selected: {_view},
-                        showSelectedIcon: false,
-                        onSelectionChanged: (s) =>
-                            setState(() => _view = s.first),
+                      // Clamped the same way as the bottom nav bar
+                      // (app_shell.dart) — at the Default text-size tier and
+                      // up, "Medication" wraps to a second line in this
+                      // segment's fixed width. Capping at the Small tier's
+                      // 0.92 keeps every segment label on one line.
+                      child: MediaQuery(
+                        data: MediaQuery.of(context).copyWith(
+                          textScaler: MediaQuery.textScalerOf(
+                            context,
+                          ).clamp(maxScaleFactor: 0.92),
+                        ),
+                        child: SegmentedButton<_RecordsView>(
+                          segments: [
+                            ButtonSegment(
+                              value: _RecordsView.timeline,
+                              icon: const Icon(Icons.timeline_outlined),
+                              label: Text(t.timelineSegment),
+                            ),
+                            ButtonSegment(
+                              value: _RecordsView.medications,
+                              icon: const Icon(Icons.medication_outlined),
+                              label: Text(t.medicationsSegment),
+                            ),
+                            ButtonSegment(
+                              value: _RecordsView.bills,
+                              icon: const Icon(Icons.receipt_long_outlined),
+                              label: Text(t.billsSegment),
+                            ),
+                          ],
+                          selected: {_view},
+                          showSelectedIcon: false,
+                          onSelectionChanged: (s) =>
+                              setState(() => _view = s.first),
+                        ),
                       ),
                     ),
                   ],
