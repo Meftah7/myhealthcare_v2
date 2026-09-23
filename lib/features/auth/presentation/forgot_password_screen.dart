@@ -14,6 +14,7 @@ import '../../../core/di.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/result.dart';
 import '../../../l10n/app_localizations.dart';
+import 'auth_app_bar_actions.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -63,7 +64,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(t.resetPasswordTitle)),
+      appBar: AppBar(
+        title: Text(t.resetPasswordTitle),
+        actions: authAppBarActions,
+      ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(Space.lg),

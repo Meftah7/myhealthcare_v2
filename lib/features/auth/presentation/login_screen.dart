@@ -6,13 +6,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
-import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/result.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/session.dart';
+import 'auth_app_bar_actions.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -193,12 +193,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         elevation: 0,
         scrolledUnderElevation: 0,
         automaticallyImplyLeading: false,
-        actions: const [
-          _LanguagePill(),
-          SizedBox(width: Space.xs),
-          _ThemeIconButton(),
-          SizedBox(width: Space.sm),
-        ],
+        actions: authAppBarActions,
       ),
       // On a wide window the form becomes a floating card on the tinted page;
       // on a phone it is the page, so the card chrome would just be noise.
@@ -275,89 +270,6 @@ class _BrandLockup extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-/// A minimal, sign-in-specific language switch: a pill (globe + the language
-/// name a tap switches *to*) rather than the circular icon used elsewhere —
-/// there's room here for the label to speak for itself, so it does.
-class _LanguagePill extends ConsumerWidget {
-  const _LanguagePill();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final scheme = Theme.of(context).colorScheme;
-    // The resolved locale (not the raw provider value) so a device set to
-    // Arabic — provider still `null`, "system" — still offers English.
-    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
-    final next = isArabic ? const Locale('en') : const Locale('ar');
-    final label = isArabic ? 'English' : 'العربية';
-
-    return Material(
-      color: scheme.surfaceContainerLowest,
-      shape: const StadiumBorder(),
-      child: InkWell(
-        customBorder: const StadiumBorder(),
-        onTap: () => ref.read(localeProvider.notifier).set(next),
-        // The drawn pill reads as compact, but the tappable/semantics area
-        // still meets the 48dp a11y minimum (DESIGN.md §8) via this floor
-        // rather than by inflating the visible padding to match.
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: Space.sm),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.language_outlined,
-                  size: 16,
-                  color: scheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  label,
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// A bare theme icon — same light/dark logic as the shared theme toggle used
-/// elsewhere, but without its circular chip, to sit quietly beside the
-/// language pill.
-class _ThemeIconButton extends ConsumerWidget {
-  const _ThemeIconButton();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final t = AppLocalizations.of(context)!;
-    final mode = ref.watch(themeModeProvider);
-    final platformIsDark =
-        MediaQuery.platformBrightnessOf(context) == Brightness.dark;
-    final isDark =
-        mode == ThemeMode.dark || (mode == ThemeMode.system && platformIsDark);
-    final scheme = Theme.of(context).colorScheme;
-
-    return IconButton(
-      tooltip: isDark ? t.switchToLightMode : t.switchToDarkMode,
-      onPressed: () => ref
-          .read(themeModeProvider.notifier)
-          .set(isDark ? ThemeMode.light : ThemeMode.dark),
-      icon: Icon(
-        isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-        color: scheme.onSurfaceVariant,
-      ),
     );
   }
 }

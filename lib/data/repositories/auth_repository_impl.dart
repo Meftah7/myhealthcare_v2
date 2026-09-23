@@ -171,6 +171,15 @@ class AuthRepositoryImpl implements AuthRepository {
         _db.users,
       )..where((u) => u.id.equals(userId))).getSingleOrNull();
       if (exists == null) throw const NotFoundFailure('Account not found.');
+      if (_hasher.verify(
+        newPassword,
+        hash: exists.passwordHash,
+        salt: exists.passwordSalt,
+      )) {
+        throw const ValidationFailure(
+          'This is your current password. Choose a different password.',
+        );
+      }
       final pw = _hasher.hashNew(newPassword);
       await (_db.update(_db.users)..where((u) => u.id.equals(userId))).write(
         UsersCompanion(

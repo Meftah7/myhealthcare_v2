@@ -12,6 +12,7 @@ import '../../../core/di.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/result.dart';
 import '../../../l10n/app_localizations.dart';
+import 'auth_app_bar_actions.dart';
 
 class ResetPasswordScreen extends ConsumerStatefulWidget {
   const ResetPasswordScreen({required this.userId, super.key});
@@ -68,7 +69,10 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     final invalidUser = widget.userId.isEmpty;
 
     return Scaffold(
-      appBar: AppBar(title: Text(t.setNewPasswordTitle)),
+      appBar: AppBar(
+        title: Text(t.setNewPasswordTitle),
+        actions: authAppBarActions,
+      ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(Space.lg),
