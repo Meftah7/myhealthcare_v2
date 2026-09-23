@@ -87,24 +87,36 @@ class _AppShellState extends State<AppShell> {
     if (size.isCompact) {
       return Scaffold(
         body: body,
-        bottomNavigationBar: DecoratedBox(
-          // The bar is flat (DESIGN.md §4.3); the hairline is what separates it
-          // from the content, not a shadow strip.
-          decoration: BoxDecoration(
-            border: Border(top: BorderSide(color: hairline)),
+        // Clamped independently of the app's own text-size preference
+        // (`textScaleProvider`, up to 1.3x): at that size an English label
+        // like "Appointment" wraps to a second line in the bar's fixed
+        // height and gets clipped. Capping at 1.0 here keeps every label on
+        // one line without shrinking text anywhere else in the app.
+        bottomNavigationBar: MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: MediaQuery.textScalerOf(
+              context,
+            ).clamp(maxScaleFactor: 1),
           ),
-          child: NavigationBar(
-            selectedIndex: current,
-            onDestinationSelected: _go,
-            destinations: [
-              for (final d in widget.destinations)
-                NavigationDestination(
-                  icon: Icon(d.icon),
-                  selectedIcon: Icon(d.selectedIcon),
-                  label: d.label,
-                  tooltip: d.label,
-                ),
-            ],
+          child: DecoratedBox(
+            // The bar is flat (DESIGN.md §4.3); the hairline is what separates
+            // it from the content, not a shadow strip.
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: hairline)),
+            ),
+            child: NavigationBar(
+              selectedIndex: current,
+              onDestinationSelected: _go,
+              destinations: [
+                for (final d in widget.destinations)
+                  NavigationDestination(
+                    icon: Icon(d.icon),
+                    selectedIcon: Icon(d.selectedIcon),
+                    label: d.label,
+                    tooltip: d.label,
+                  ),
+              ],
+            ),
           ),
         ),
       );
@@ -151,45 +163,53 @@ class _Rail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) => SingleChildScrollView(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(minHeight: constraints.maxHeight),
-          child: IntrinsicHeight(
-            child: NavigationRail(
-              selectedIndex: currentIndex,
-              onDestinationSelected: onSelected,
-              extended: extended,
-              // An extended rail draws its own inline labels, so the label type
-              // must be `none` there; the icon rail stacks them underneath.
-              labelType: extended
-                  ? NavigationRailLabelType.none
-                  : NavigationRailLabelType.all,
-              leading: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  Space.sm,
-                  Space.md,
-                  Space.sm,
-                  Space.lg,
-                ),
-                child: extended
-                    ? const SizedBox(
-                        width: 200,
-                        child: Align(
-                          alignment: AlignmentDirectional.centerStart,
-                          child: AppBrandLockup(),
-                        ),
-                      )
-                    : const AppLogo(height: 28),
-              ),
-              destinations: [
-                for (final d in destinations)
-                  NavigationRailDestination(
-                    icon: Icon(d.icon),
-                    selectedIcon: Icon(d.selectedIcon),
-                    label: Text(d.label),
+    // Same clamp as the compact bottom bar (see its comment) — the rail's
+    // icon-labelled layout wraps a long English label the same way.
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(
+        textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: IntrinsicHeight(
+              child: NavigationRail(
+                selectedIndex: currentIndex,
+                onDestinationSelected: onSelected,
+                extended: extended,
+                // An extended rail draws its own inline labels, so the label
+                // type must be `none` there; the icon rail stacks them
+                // underneath.
+                labelType: extended
+                    ? NavigationRailLabelType.none
+                    : NavigationRailLabelType.all,
+                leading: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    Space.sm,
+                    Space.md,
+                    Space.sm,
+                    Space.lg,
                   ),
-              ],
+                  child: extended
+                      ? const SizedBox(
+                          width: 200,
+                          child: Align(
+                            alignment: AlignmentDirectional.centerStart,
+                            child: AppBrandLockup(),
+                          ),
+                        )
+                      : const AppLogo(height: 28),
+                ),
+                destinations: [
+                  for (final d in destinations)
+                    NavigationRailDestination(
+                      icon: Icon(d.icon),
+                      selectedIcon: Icon(d.selectedIcon),
+                      label: Text(d.label),
+                    ),
+                ],
+              ),
             ),
           ),
         ),

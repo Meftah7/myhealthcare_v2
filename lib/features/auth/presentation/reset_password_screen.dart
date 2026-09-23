@@ -70,6 +70,11 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+          onPressed: () => context.go(AppRoutes.forgotPassword),
+        ),
         title: Text(t.setNewPasswordTitle),
         actions: authAppBarActions,
       ),
