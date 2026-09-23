@@ -990,25 +990,6 @@
   "emailOrNationalIdLabel": "Email or national ID",
   "continueButton": "Continue",
   "backToSignIn": "Back to sign in",
-  "verifyItsYouTitle": "Verify it’s you",
-  "codeNotRightError": "That code is not right. Try again.",
-  "enterSixDigitCode": "Enter your 6-digit code",
-  "almostThereName": "Almost there, {name}",
-  "@almostThereName": {
-    "placeholders": {
-      "name": { "type": "String" }
-    }
-  },
-  "sixDigitCodeSentNote": "We sent a 6-digit verification code to your device.",
-  "verifyButton": "Verify",
-  "codeResentLabel": "Code re-sent",
-  "resendCodeLabel": "Resend code",
-  "demoCodeNote": "Demo build — the verification code is {code}.",
-  "@demoCodeNote": {
-    "placeholders": {
-      "code": { "type": "String" }
-    }
-  },
   "setNewPasswordTitle": "Set a new password",
   "startFromForgotPasswordNote": "Start from the \"Forgot password\" screen so we know which account to reset.",
   "newPasswordTitle": "New password",

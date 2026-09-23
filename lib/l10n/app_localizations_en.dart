@@ -2041,38 +2041,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backToSignIn => 'Back to sign in';
 
   @override
-  String get verifyItsYouTitle => 'Verify it’s you';
-
-  @override
-  String get codeNotRightError => 'That code is not right. Try again.';
-
-  @override
-  String get enterSixDigitCode => 'Enter your 6-digit code';
-
-  @override
-  String almostThereName(String name) {
-    return 'Almost there, $name';
-  }
-
-  @override
-  String get sixDigitCodeSentNote =>
-      'We sent a 6-digit verification code to your device.';
-
-  @override
-  String get verifyButton => 'Verify';
-
-  @override
-  String get codeResentLabel => 'Code re-sent';
-
-  @override
-  String get resendCodeLabel => 'Resend code';
-
-  @override
-  String demoCodeNote(String code) {
-    return 'Demo build — the verification code is $code.';
-  }
-
-  @override
   String get setNewPasswordTitle => 'Set a new password';
 
   @override

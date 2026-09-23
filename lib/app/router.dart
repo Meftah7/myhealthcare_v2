@@ -30,7 +30,6 @@ import '../features/appointments/presentation/appointments_screen.dart';
 import '../features/auth/application/session.dart';
 import '../features/auth/presentation/forgot_password_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
-import '../features/auth/presentation/mfa_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
 import '../features/auth/presentation/reset_password_screen.dart';
 import '../features/billing/presentation/billing_screen.dart';
@@ -99,7 +98,6 @@ abstract final class AppRoutes {
   static const register = '/register';
   static const forgotPassword = '/forgot-password';
   static const resetPassword = '/reset-password';
-  static const mfa = '/verify';
 
   // Patient
   static const patientHome = '/patient/home';
@@ -221,8 +219,6 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
           userId: state.uri.queryParameters['user'] ?? '',
         ),
       ),
-      GoRoute(path: AppRoutes.mfa, builder: (_, _) => const MfaScreen()),
-
       // The booking wizard is a focused full-screen flow over the shell — no
       // bottom nav while a multi-step task is in progress (DESIGN.md §6).
       GoRoute(
@@ -291,13 +287,6 @@ String? _guard(Ref ref, GoRouterState state) {
   if (user == null) {
     return onAuthScreen ? null : AppRoutes.login;
   }
-
-  // Signed in but still owes the MFA code → hold on the verify screen.
-  if (session.needsMfa) {
-    return loc == AppRoutes.mfa ? null : AppRoutes.mfa;
-  }
-  // MFA done (or not required): /verify is no longer a valid place to be.
-  if (loc == AppRoutes.mfa) return homeForRole(user.role);
 
   // Signed in: keep them out of the splash / auth screens, and out of
   // another role's area.

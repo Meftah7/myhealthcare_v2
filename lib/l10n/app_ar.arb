@@ -990,25 +990,6 @@
   "emailOrNationalIdLabel": "البريد الإلكتروني أو الرقم الوطني",
   "continueButton": "متابعة",
   "backToSignIn": "العودة لتسجيل الدخول",
-  "verifyItsYouTitle": "تحقق من هويتك",
-  "codeNotRightError": "هذا الرمز غير صحيح. حاول مرة أخرى.",
-  "enterSixDigitCode": "أدخل الرمز المكوّن من 6 أرقام",
-  "almostThereName": "أوشكت على الانتهاء يا {name}",
-  "@almostThereName": {
-    "placeholders": {
-      "name": { "type": "String" }
-    }
-  },
-  "sixDigitCodeSentNote": "أرسلنا رمز تحقق مكوّناً من 6 أرقام إلى جهازك.",
-  "verifyButton": "تحقق",
-  "codeResentLabel": "تم إعادة إرسال الرمز",
-  "resendCodeLabel": "إعادة إرسال الرمز",
-  "demoCodeNote": "نسخة تجريبية — رمز التحقق هو {code}.",
-  "@demoCodeNote": {
-    "placeholders": {
-      "code": { "type": "String" }
-    }
-  },
   "setNewPasswordTitle": "تعيين كلمة مرور جديدة",
   "startFromForgotPasswordNote": "ابدأ من شاشة \"نسيت كلمة المرور\" حتى نعرف الحساب المطلوب إعادة تعيينه.",
   "newPasswordTitle": "كلمة مرور جديدة",

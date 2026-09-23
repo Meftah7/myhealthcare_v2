@@ -3734,60 +3734,6 @@ abstract class AppLocalizations {
   /// **'Back to sign in'**
   String get backToSignIn;
 
-  /// No description provided for @verifyItsYouTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Verify it’s you'**
-  String get verifyItsYouTitle;
-
-  /// No description provided for @codeNotRightError.
-  ///
-  /// In en, this message translates to:
-  /// **'That code is not right. Try again.'**
-  String get codeNotRightError;
-
-  /// No description provided for @enterSixDigitCode.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter your 6-digit code'**
-  String get enterSixDigitCode;
-
-  /// No description provided for @almostThereName.
-  ///
-  /// In en, this message translates to:
-  /// **'Almost there, {name}'**
-  String almostThereName(String name);
-
-  /// No description provided for @sixDigitCodeSentNote.
-  ///
-  /// In en, this message translates to:
-  /// **'We sent a 6-digit verification code to your device.'**
-  String get sixDigitCodeSentNote;
-
-  /// No description provided for @verifyButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Verify'**
-  String get verifyButton;
-
-  /// No description provided for @codeResentLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Code re-sent'**
-  String get codeResentLabel;
-
-  /// No description provided for @resendCodeLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Resend code'**
-  String get resendCodeLabel;
-
-  /// No description provided for @demoCodeNote.
-  ///
-  /// In en, this message translates to:
-  /// **'Demo build — the verification code is {code}.'**
-  String demoCodeNote(String code);
-
   /// No description provided for @setNewPasswordTitle.
   ///
   /// In en, this message translates to:

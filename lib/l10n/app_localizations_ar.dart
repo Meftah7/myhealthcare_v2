@@ -2069,38 +2069,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backToSignIn => 'العودة لتسجيل الدخول';
 
   @override
-  String get verifyItsYouTitle => 'تحقق من هويتك';
-
-  @override
-  String get codeNotRightError => 'هذا الرمز غير صحيح. حاول مرة أخرى.';
-
-  @override
-  String get enterSixDigitCode => 'أدخل الرمز المكوّن من 6 أرقام';
-
-  @override
-  String almostThereName(String name) {
-    return 'أوشكت على الانتهاء يا $name';
-  }
-
-  @override
-  String get sixDigitCodeSentNote =>
-      'أرسلنا رمز تحقق مكوّناً من 6 أرقام إلى جهازك.';
-
-  @override
-  String get verifyButton => 'تحقق';
-
-  @override
-  String get codeResentLabel => 'تم إعادة إرسال الرمز';
-
-  @override
-  String get resendCodeLabel => 'إعادة إرسال الرمز';
-
-  @override
-  String demoCodeNote(String code) {
-    return 'نسخة تجريبية — رمز التحقق هو $code.';
-  }
-
-  @override
   String get setNewPasswordTitle => 'تعيين كلمة مرور جديدة';
 
   @override
