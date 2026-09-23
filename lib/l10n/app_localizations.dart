@@ -1700,6 +1700,12 @@ abstract class AppLocalizations {
   /// **'Timeline'**
   String get timelineSegment;
 
+  /// No description provided for @medicationsSegment.
+  ///
+  /// In en, this message translates to:
+  /// **'Medication'**
+  String get medicationsSegment;
+
   /// No description provided for @billsSegment.
   ///
   /// In en, this message translates to:

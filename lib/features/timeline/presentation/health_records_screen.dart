@@ -75,7 +75,7 @@ class _HealthRecordsScreenState extends State<HealthRecordsScreen> {
                           ButtonSegment(
                             value: _RecordsView.medications,
                             icon: const Icon(Icons.medication_outlined),
-                            label: Text(t.quickActionMedications),
+                            label: Text(t.medicationsSegment),
                           ),
                           ButtonSegment(
                             value: _RecordsView.bills,

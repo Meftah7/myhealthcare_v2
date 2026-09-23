@@ -410,6 +410,7 @@
 
   "recordsTitle": "Records",
   "timelineSegment": "Timeline",
+  "medicationsSegment": "Medication",
   "billsSegment": "Bills",
   "vitalSignsReportLabel": "Vital signs report",
   "allergiesLabel": "Allergies",
@@ -1650,7 +1651,7 @@
   "bookAgainAction": "Book again",
   "navHome": "Home",
   "navNutrition": "Nutrition",
-  "navAppointments": "Appointments",
+  "navAppointments": "Appointment",
   "navRecords": "Records",
   "navDashboard": "Dashboard",
   "navPatients": "Patients",

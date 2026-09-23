@@ -854,6 +854,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get timelineSegment => 'الجدول الزمني';
 
   @override
+  String get medicationsSegment => 'الدواء';
+
+  @override
   String get billsSegment => 'الفواتير';
 
   @override

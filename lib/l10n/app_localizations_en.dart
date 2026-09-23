@@ -856,6 +856,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get timelineSegment => 'Timeline';
 
   @override
+  String get medicationsSegment => 'Medication';
+
+  @override
   String get billsSegment => 'Bills';
 
   @override
@@ -3370,7 +3373,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navNutrition => 'Nutrition';
 
   @override
-  String get navAppointments => 'Appointments';
+  String get navAppointments => 'Appointment';
 
   @override
   String get navRecords => 'Records';
