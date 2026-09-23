@@ -88,15 +88,16 @@ class _AppShellState extends State<AppShell> {
       return Scaffold(
         body: body,
         // Clamped independently of the app's own text-size preference
-        // (`textScaleProvider`, up to 1.3x): at that size an English label
-        // like "Appointment" wraps to a second line in the bar's fixed
-        // height and gets clipped. Capping at 1.0 here keeps every label on
-        // one line without shrinking text anywhere else in the app.
+        // (`textScaleProvider`: xSmall .85 – xLarge 1.3): a label like
+        // "Appointment" already wraps to a second line in the bar's fixed
+        // height at the Default (1.0) tier, let alone Large/Larger. Capping
+        // at the Small tier's 0.92 here keeps every label on one line
+        // without shrinking text anywhere else in the app.
         bottomNavigationBar: MediaQuery(
           data: MediaQuery.of(context).copyWith(
             textScaler: MediaQuery.textScalerOf(
               context,
-            ).clamp(maxScaleFactor: 1),
+            ).clamp(maxScaleFactor: 0.92),
           ),
           child: DecoratedBox(
             // The bar is flat (DESIGN.md §4.3); the hairline is what separates
@@ -167,7 +168,9 @@ class _Rail extends StatelessWidget {
     // icon-labelled layout wraps a long English label the same way.
     return MediaQuery(
       data: MediaQuery.of(context).copyWith(
-        textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1),
+        textScaler: MediaQuery.textScalerOf(
+          context,
+        ).clamp(maxScaleFactor: 0.92),
       ),
       child: LayoutBuilder(
         builder: (context, constraints) => SingleChildScrollView(
