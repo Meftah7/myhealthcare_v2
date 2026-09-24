@@ -9923,6 +9923,483 @@ class PaymentMethodsCompanion extends UpdateCompanion<PaymentMethodRow> {
   }
 }
 
+class $WalletTransactionsTable extends WalletTransactions
+    with TableInfo<$WalletTransactionsTable, WalletTransactionRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $WalletTransactionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _patientIdMeta = const VerificationMeta(
+    'patientId',
+  );
+  @override
+  late final GeneratedColumn<String> patientId = GeneratedColumn<String>(
+    'patient_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE CASCADE',
+    ),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<WalletTransactionType, String>
+  type =
+      GeneratedColumn<String>(
+        'type',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<WalletTransactionType>(
+        $WalletTransactionsTable.$convertertype,
+      );
+  static const VerificationMeta _amountMeta = const VerificationMeta('amount');
+  @override
+  late final GeneratedColumn<double> amount = GeneratedColumn<double>(
+    'amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _methodMeta = const VerificationMeta('method');
+  @override
+  late final GeneratedColumn<String> method = GeneratedColumn<String>(
+    'method',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _invoiceIdMeta = const VerificationMeta(
+    'invoiceId',
+  );
+  @override
+  late final GeneratedColumn<String> invoiceId = GeneratedColumn<String>(
+    'invoice_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES invoices (id) ON DELETE SET NULL',
+    ),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    patientId,
+    type,
+    amount,
+    method,
+    invoiceId,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'wallet_transactions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<WalletTransactionRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('patient_id')) {
+      context.handle(
+        _patientIdMeta,
+        patientId.isAcceptableOrUnknown(data['patient_id']!, _patientIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_patientIdMeta);
+    }
+    if (data.containsKey('amount')) {
+      context.handle(
+        _amountMeta,
+        amount.isAcceptableOrUnknown(data['amount']!, _amountMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMeta);
+    }
+    if (data.containsKey('method')) {
+      context.handle(
+        _methodMeta,
+        method.isAcceptableOrUnknown(data['method']!, _methodMeta),
+      );
+    }
+    if (data.containsKey('invoice_id')) {
+      context.handle(
+        _invoiceIdMeta,
+        invoiceId.isAcceptableOrUnknown(data['invoice_id']!, _invoiceIdMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  WalletTransactionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return WalletTransactionRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      patientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}patient_id'],
+      )!,
+      type: $WalletTransactionsTable.$convertertype.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}type'],
+        )!,
+      ),
+      amount: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}amount'],
+      )!,
+      method: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}method'],
+      ),
+      invoiceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}invoice_id'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $WalletTransactionsTable createAlias(String alias) {
+    return $WalletTransactionsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<WalletTransactionType, String, String>
+  $convertertype = const EnumNameConverter<WalletTransactionType>(
+    WalletTransactionType.values,
+  );
+}
+
+class WalletTransactionRow extends DataClass
+    implements Insertable<WalletTransactionRow> {
+  final String id;
+  final String patientId;
+  final WalletTransactionType type;
+
+  /// Always positive — `type` gives the sign.
+  final double amount;
+
+  /// Masked card descriptor for a top-up, null for a redemption.
+  final String? method;
+
+  /// The invoice a redemption paid toward, null for a top-up.
+  final String? invoiceId;
+  final DateTime createdAt;
+  const WalletTransactionRow({
+    required this.id,
+    required this.patientId,
+    required this.type,
+    required this.amount,
+    this.method,
+    this.invoiceId,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['patient_id'] = Variable<String>(patientId);
+    {
+      map['type'] = Variable<String>(
+        $WalletTransactionsTable.$convertertype.toSql(type),
+      );
+    }
+    map['amount'] = Variable<double>(amount);
+    if (!nullToAbsent || method != null) {
+      map['method'] = Variable<String>(method);
+    }
+    if (!nullToAbsent || invoiceId != null) {
+      map['invoice_id'] = Variable<String>(invoiceId);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  WalletTransactionsCompanion toCompanion(bool nullToAbsent) {
+    return WalletTransactionsCompanion(
+      id: Value(id),
+      patientId: Value(patientId),
+      type: Value(type),
+      amount: Value(amount),
+      method: method == null && nullToAbsent
+          ? const Value.absent()
+          : Value(method),
+      invoiceId: invoiceId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(invoiceId),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory WalletTransactionRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return WalletTransactionRow(
+      id: serializer.fromJson<String>(json['id']),
+      patientId: serializer.fromJson<String>(json['patientId']),
+      type: $WalletTransactionsTable.$convertertype.fromJson(
+        serializer.fromJson<String>(json['type']),
+      ),
+      amount: serializer.fromJson<double>(json['amount']),
+      method: serializer.fromJson<String?>(json['method']),
+      invoiceId: serializer.fromJson<String?>(json['invoiceId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'patientId': serializer.toJson<String>(patientId),
+      'type': serializer.toJson<String>(
+        $WalletTransactionsTable.$convertertype.toJson(type),
+      ),
+      'amount': serializer.toJson<double>(amount),
+      'method': serializer.toJson<String?>(method),
+      'invoiceId': serializer.toJson<String?>(invoiceId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  WalletTransactionRow copyWith({
+    String? id,
+    String? patientId,
+    WalletTransactionType? type,
+    double? amount,
+    Value<String?> method = const Value.absent(),
+    Value<String?> invoiceId = const Value.absent(),
+    DateTime? createdAt,
+  }) => WalletTransactionRow(
+    id: id ?? this.id,
+    patientId: patientId ?? this.patientId,
+    type: type ?? this.type,
+    amount: amount ?? this.amount,
+    method: method.present ? method.value : this.method,
+    invoiceId: invoiceId.present ? invoiceId.value : this.invoiceId,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  WalletTransactionRow copyWithCompanion(WalletTransactionsCompanion data) {
+    return WalletTransactionRow(
+      id: data.id.present ? data.id.value : this.id,
+      patientId: data.patientId.present ? data.patientId.value : this.patientId,
+      type: data.type.present ? data.type.value : this.type,
+      amount: data.amount.present ? data.amount.value : this.amount,
+      method: data.method.present ? data.method.value : this.method,
+      invoiceId: data.invoiceId.present ? data.invoiceId.value : this.invoiceId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WalletTransactionRow(')
+          ..write('id: $id, ')
+          ..write('patientId: $patientId, ')
+          ..write('type: $type, ')
+          ..write('amount: $amount, ')
+          ..write('method: $method, ')
+          ..write('invoiceId: $invoiceId, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, patientId, type, amount, method, invoiceId, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is WalletTransactionRow &&
+          other.id == this.id &&
+          other.patientId == this.patientId &&
+          other.type == this.type &&
+          other.amount == this.amount &&
+          other.method == this.method &&
+          other.invoiceId == this.invoiceId &&
+          other.createdAt == this.createdAt);
+}
+
+class WalletTransactionsCompanion
+    extends UpdateCompanion<WalletTransactionRow> {
+  final Value<String> id;
+  final Value<String> patientId;
+  final Value<WalletTransactionType> type;
+  final Value<double> amount;
+  final Value<String?> method;
+  final Value<String?> invoiceId;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const WalletTransactionsCompanion({
+    this.id = const Value.absent(),
+    this.patientId = const Value.absent(),
+    this.type = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.method = const Value.absent(),
+    this.invoiceId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  WalletTransactionsCompanion.insert({
+    required String id,
+    required String patientId,
+    required WalletTransactionType type,
+    required double amount,
+    this.method = const Value.absent(),
+    this.invoiceId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       patientId = Value(patientId),
+       type = Value(type),
+       amount = Value(amount);
+  static Insertable<WalletTransactionRow> custom({
+    Expression<String>? id,
+    Expression<String>? patientId,
+    Expression<String>? type,
+    Expression<double>? amount,
+    Expression<String>? method,
+    Expression<String>? invoiceId,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (patientId != null) 'patient_id': patientId,
+      if (type != null) 'type': type,
+      if (amount != null) 'amount': amount,
+      if (method != null) 'method': method,
+      if (invoiceId != null) 'invoice_id': invoiceId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  WalletTransactionsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? patientId,
+    Value<WalletTransactionType>? type,
+    Value<double>? amount,
+    Value<String?>? method,
+    Value<String?>? invoiceId,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return WalletTransactionsCompanion(
+      id: id ?? this.id,
+      patientId: patientId ?? this.patientId,
+      type: type ?? this.type,
+      amount: amount ?? this.amount,
+      method: method ?? this.method,
+      invoiceId: invoiceId ?? this.invoiceId,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (patientId.present) {
+      map['patient_id'] = Variable<String>(patientId.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(
+        $WalletTransactionsTable.$convertertype.toSql(type.value),
+      );
+    }
+    if (amount.present) {
+      map['amount'] = Variable<double>(amount.value);
+    }
+    if (method.present) {
+      map['method'] = Variable<String>(method.value);
+    }
+    if (invoiceId.present) {
+      map['invoice_id'] = Variable<String>(invoiceId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WalletTransactionsCompanion(')
+          ..write('id: $id, ')
+          ..write('patientId: $patientId, ')
+          ..write('type: $type, ')
+          ..write('amount: $amount, ')
+          ..write('method: $method, ')
+          ..write('invoiceId: $invoiceId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $NotificationsTable extends Notifications
     with TableInfo<$NotificationsTable, NotificationRow> {
   @override
@@ -15557,6 +16034,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $RiskFlagsTable riskFlags = $RiskFlagsTable(this);
   late final $InvoicesTable invoices = $InvoicesTable(this);
   late final $PaymentMethodsTable paymentMethods = $PaymentMethodsTable(this);
+  late final $WalletTransactionsTable walletTransactions =
+      $WalletTransactionsTable(this);
   late final $NotificationsTable notifications = $NotificationsTable(this);
   late final $SickLeaveCertificatesTable sickLeaveCertificates =
       $SickLeaveCertificatesTable(this);
@@ -15592,6 +16071,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     riskFlags,
     invoices,
     paymentMethods,
+    walletTransactions,
     notifications,
     sickLeaveCertificates,
     careMessages,
@@ -15723,6 +16203,20 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('payment_methods', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('wallet_transactions', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'invoices',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('wallet_transactions', kind: UpdateKind.update)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(

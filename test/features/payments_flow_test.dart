@@ -1,5 +1,5 @@
-// Billing UI: reach it from Home's quick actions, see the balance and an
-// invoice, and keep the bottom nav visible throughout.
+// Payments UI: reach it from Home's quick actions, see the wallet balance
+// and an invoice, and keep the bottom nav visible throughout.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,7 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/app.dart';
 import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
-import 'package:myhealthcare/features/billing/presentation/billing_screen.dart';
+import 'package:myhealthcare/features/billing/presentation/payments_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/mfa.dart';
@@ -20,7 +20,7 @@ Future<void> _settle(WidgetTester tester) async {
 }
 
 void main() {
-  testWidgets('billing: open from Home, see balance and an invoice', (
+  testWidgets('payments: open from Home, see balance and an invoice', (
     tester,
   ) async {
     final db = newTestDatabase();
@@ -60,8 +60,8 @@ void main() {
     await passMfa(tester);
     await _settle(tester);
 
-    // Billing is a Home quick action near the bottom of a lazy list.
-    final tile = find.text('Billing');
+    // Payments is a Home quick action near the bottom of a lazy list.
+    final tile = find.text('Payments');
     await tester.scrollUntilVisible(
       tile,
       240,
@@ -71,8 +71,8 @@ void main() {
     await tester.tap(tile.first);
     await _settle(tester);
 
-    expect(find.widgetWithText(AppBar, 'Billing'), findsOneWidget);
-    expect(find.byType(BillingScreen), findsOneWidget);
+    expect(find.widgetWithText(AppBar, 'Payments'), findsOneWidget);
+    expect(find.byType(PaymentsScreen), findsOneWidget);
 
     // The balance card and at least one invoice rendered.
     expect(
@@ -81,8 +81,8 @@ void main() {
       reason: 'invoice amounts should be formatted as currency',
     );
 
-    // The bottom nav stays visible on Billing (it nests under the Home branch).
-    expect(find.text('Appointments'), findsWidgets);
+    // The bottom nav stays visible on Payments (it nests under the Home branch).
+    expect(find.text('Appointment'), findsWidgets);
     expect(find.text('Records'), findsWidgets);
   });
 }

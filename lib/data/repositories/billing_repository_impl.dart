@@ -324,6 +324,152 @@ class BillingRepositoryImpl implements BillingRepository {
     });
   }
 
+  @override
+  Future<Result<double>> walletBalance(String patientId) {
+    return Result.guardAsync(() async {
+      final rows = await (_db.select(
+        _db.walletTransactions,
+      )..where((w) => w.patientId.equals(patientId))).get();
+      return rows.fold<double>(0.0, (sum, r) => sum + r.toEntity().signedAmount);
+    });
+  }
+
+  @override
+  Future<Result<double>> topUpWallet({
+    required String patientId,
+    required double amount,
+    required CardPayment card,
+  }) {
+    return Result.guardAsync(() async {
+      _validateCard(card);
+      return _creditWallet(
+        patientId: patientId,
+        amount: amount,
+        method: card.maskedDescriptor,
+      );
+    });
+  }
+
+  @override
+  Future<Result<double>> topUpWalletWithSavedCard({
+    required String patientId,
+    required double amount,
+    required String cardId,
+    required String cvc,
+  }) {
+    return Result.guardAsync(() async {
+      if (!RegExp(r'^\d{3,4}$').hasMatch(cvc)) {
+        throw const ValidationFailure('CVC must be 3 or 4 digits.');
+      }
+      final card =
+          await (_db.select(_db.paymentMethods)..where(
+                (c) => c.id.equals(cardId) & c.patientId.equals(patientId),
+              ))
+              .getSingleOrNull();
+      if (card == null) throw const NotFoundFailure('Card not found.');
+
+      final firstOfNextMonth = card.expiryMonth == 12
+          ? DateTime(card.expiryYear + 1)
+          : DateTime(card.expiryYear, card.expiryMonth + 1);
+      if (!firstOfNextMonth.isAfter(DateTime.now())) {
+        throw const ValidationFailure(
+          'That card has expired. Choose another card.',
+        );
+      }
+
+      return _creditWallet(
+        patientId: patientId,
+        amount: amount,
+        method: '${card.brand} ····${card.last4}',
+      );
+    });
+  }
+
+  Future<double> _creditWallet({
+    required String patientId,
+    required double amount,
+    required String method,
+  }) async {
+    if (amount <= 0) {
+      throw const ValidationFailure('Enter an amount greater than zero.');
+    }
+    await _db
+        .into(_db.walletTransactions)
+        .insert(
+          WalletTransactionsCompanion.insert(
+            id: newId('wtx'),
+            patientId: patientId,
+            type: WalletTransactionType.topUp,
+            amount: amount,
+            method: Value(method),
+          ),
+        );
+    return _balanceOf(patientId);
+  }
+
+  @override
+  Future<Result<Invoice>> payWithWallet({
+    required String invoiceId,
+    required String patientId,
+  }) {
+    return Result.guardAsync(() async {
+      final row =
+          await (_db.select(_db.invoices)..where(
+                (i) => i.id.equals(invoiceId) & i.patientId.equals(patientId),
+              ))
+              .getSingleOrNull();
+      if (row == null) throw const NotFoundFailure('Invoice not found.');
+
+      final invoice = row.toEntity();
+      if (invoice.status == InvoiceStatus.paid) {
+        throw const ValidationFailure('This invoice is already paid.');
+      }
+      if (invoice.status == InvoiceStatus.cancelled) {
+        throw const ValidationFailure('This invoice was cancelled.');
+      }
+
+      final balance = await _balanceOf(patientId);
+      if (balance < invoice.totalAmount) {
+        throw const ValidationFailure(
+          'Not enough wallet balance to cover this invoice.',
+        );
+      }
+
+      await _db
+          .into(_db.walletTransactions)
+          .insert(
+            WalletTransactionsCompanion.insert(
+              id: newId('wtx'),
+              patientId: patientId,
+              type: WalletTransactionType.redemption,
+              amount: invoice.totalAmount,
+              invoiceId: Value(invoiceId),
+            ),
+          );
+      await (_db.update(
+        _db.invoices,
+      )..where((i) => i.id.equals(invoiceId))).write(
+        InvoicesCompanion(
+          status: const Value(InvoiceStatus.paid),
+          paidAt: Value(DateTime.now()),
+          paymentMethod: const Value('Wallet balance'),
+        ),
+      );
+
+      final updated = await (_db.select(
+        _db.invoices,
+      )..where((i) => i.id.equals(invoiceId))).getSingle();
+      return updated.toEntity();
+    });
+  }
+
+  Future<double> _balanceOf(String patientId) async {
+    final rows = await (_db.select(
+      _db.walletTransactions,
+    )..where((w) => w.patientId.equals(patientId))).get();
+    return rows.fold<double>(0.0, (sum, r) => sum + r.toEntity().signedAmount);
+  }
+
   void _validateCard(CardPayment p) {
     if (p.cardHolder.trim().isEmpty) {
       throw const ValidationFailure('Enter the name on the card.');

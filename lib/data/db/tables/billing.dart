@@ -61,3 +61,27 @@ class Invoices extends Table {
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
+
+/// One entry in a patient's wallet ledger. The balance is never stored on its
+/// own — it's the sum of these rows, so it can never drift from its history.
+@DataClassName('WalletTransactionRow')
+class WalletTransactions extends Table {
+  TextColumn get id => text()();
+  TextColumn get patientId =>
+      text().references(Users, #id, onDelete: KeyAction.cascade)();
+  TextColumn get type => textEnum<WalletTransactionType>()();
+
+  /// Always positive — `type` gives the sign.
+  RealColumn get amount => real()();
+
+  /// Masked card descriptor for a top-up, null for a redemption.
+  TextColumn get method => text().nullable()();
+
+  /// The invoice a redemption paid toward, null for a top-up.
+  TextColumn get invoiceId =>
+      text().nullable().references(Invoices, #id, onDelete: KeyAction.setNull)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}

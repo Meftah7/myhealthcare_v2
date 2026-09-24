@@ -23,3 +23,4 @@ export 'staff_task.dart';
 export 'user.dart';
 export 'vitals.dart';
 export 'walk_in_ticket.dart';
+export 'wallet_transaction.dart';

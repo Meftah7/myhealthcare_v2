@@ -1115,6 +1115,54 @@ class AppLocalizationsEn extends AppLocalizations {
   String get expiredSuffix => 'expired';
 
   @override
+  String get paymentsTitle => 'Payments';
+
+  @override
+  String get walletBalanceLabel => 'Wallet balance';
+
+  @override
+  String get topUpButton => 'Top up';
+
+  @override
+  String get topUpWalletTitle => 'Top up wallet';
+
+  @override
+  String get topUpAmountLabel => 'Amount';
+
+  @override
+  String get enterTopUpAmount => 'Enter an amount';
+
+  @override
+  String get topUpAmountTooSmall => 'Enter an amount greater than zero.';
+
+  @override
+  String get walletTopUpNote =>
+      'This is a demo top-up — no real money moves, and the balance is stored on this device only.';
+
+  @override
+  String topUpAmountButton(String amount) {
+    return 'Top up $amount';
+  }
+
+  @override
+  String get walletToppedUpMessage => 'Wallet topped up';
+
+  @override
+  String get payWithWalletLabel => 'Wallet balance';
+
+  @override
+  String walletBalanceAvailable(String amount) {
+    return '$amount available';
+  }
+
+  @override
+  String get insufficientWalletBalanceHint =>
+      'Not enough balance to cover this invoice';
+
+  @override
+  String get walletBalancePaidMessage => 'Paid from wallet balance';
+
+  @override
   String get markAllReadButton => 'Mark all read';
 
   @override

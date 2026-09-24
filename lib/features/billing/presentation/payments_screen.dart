@@ -1,4 +1,6 @@
-/// Billing — the patient's invoices, and settling an open one.
+/// Payments — one screen for the patient's wallet balance, invoices and
+/// saved cards. Balance (+ top-up) at the top, invoices below, payment
+/// methods at the bottom: one place, not three.
 ///
 /// Adaptive per DESIGN.md §6: a single column on compact, a two-column grid of
 /// receipt cards from medium up, capped at the shared max content width.
@@ -18,14 +20,16 @@ import '../../../l10n/app_localizations.dart';
 import '../../patient/presentation/patient_top_actions.dart';
 import '../application/billing_providers.dart';
 import 'pay_invoice_sheet.dart';
+import 'payment_methods_section.dart';
+import 'wallet_topup_sheet.dart';
 
 String money(double amount) => 'BD ${amount.toStringAsFixed(2)}';
 
-class BillingScreen extends ConsumerWidget {
-  const BillingScreen({this.embedded = false, super.key});
+class PaymentsScreen extends ConsumerWidget {
+  const PaymentsScreen({this.embedded = false, super.key});
 
-  /// When true, render the list without a Scaffold/AppBar — the Health Records
-  /// screen supplies those.
+  /// When true, render the list without a Scaffold/AppBar — the Health
+  /// Records screen supplies those.
   final bool embedded;
 
   @override
@@ -33,11 +37,14 @@ class BillingScreen extends ConsumerWidget {
     final size = WindowSize.of(context);
 
     final body = RefreshIndicator(
-      onRefresh: () async => ref.invalidate(patientInvoicesProvider),
+      onRefresh: () async {
+        ref.invalidate(patientInvoicesProvider);
+        ref.invalidate(walletBalanceProvider);
+      },
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: Space.maxContentWidth),
-          child: _list(context, ref, size),
+          child: _body(context, ref, size),
         ),
       ),
     );
@@ -45,130 +52,149 @@ class BillingScreen extends ConsumerWidget {
     if (embedded) return body;
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.quickActionBilling),
+        title: Text(AppLocalizations.of(context)!.paymentsTitle),
         actions: const [PatientTopActions()],
       ),
       body: body,
     );
   }
 
-  Widget _list(BuildContext context, WidgetRef ref, WindowSize size) {
+  Widget _body(BuildContext context, WidgetRef ref, WindowSize size) {
     final t = AppLocalizations.of(context)!;
     final invoices = ref.watch(patientInvoicesProvider);
     final gutter = size.gutter;
     return invoices.when(
-              loading: () => const SkeletonList(),
-              error: (e, _) => ErrorStateView(
-                message: t.couldNotLoadInvoices,
-                onRetry: () => ref.invalidate(patientInvoicesProvider),
-              ),
-              data: (list) {
-                if (list.isEmpty) {
-                  return ListView(
-                    padding: EdgeInsets.all(gutter),
-                    children: [
-                      const SizedBox(height: Space.xxl),
-                      EmptyState(
-                        icon: Icons.receipt_long_outlined,
-                        message: t.noInvoicesYet,
-                      ),
-                    ],
-                  );
-                }
+      loading: () => const SkeletonList(),
+      error: (e, _) => ErrorStateView(
+        message: t.couldNotLoadInvoices,
+        onRetry: () => ref.invalidate(patientInvoicesProvider),
+      ),
+      data: (list) {
+        final open = list.where((i) => i.isOutstanding).toList();
+        final settled = list.where((i) => !i.isOutstanding).toList();
 
-                final open = list.where((i) => i.isOutstanding).toList();
-                final settled = list.where((i) => !i.isOutstanding).toList();
-
-                return ListView(
-                  padding: EdgeInsets.fromLTRB(
-                    gutter,
-                    Space.md,
-                    gutter,
-                    Space.xxl,
-                  ),
-                  children: [
-                    const _BillingSummaryCard(),
-                    const SizedBox(height: Space.lg),
-                    if (open.isNotEmpty) ...[
-                      SectionHeader(t.openSectionLabel, overline: true),
-                      _InvoiceGrid(invoices: open, compact: size.isCompact),
-                      const SizedBox(height: Space.lg),
-                    ],
-                    if (settled.isNotEmpty) ...[
-                      SectionHeader(t.historyLabel, overline: true),
-                      _InvoiceGrid(invoices: settled, compact: size.isCompact),
-                    ],
-                  ],
-                );
-              },
+        return ListView(
+          padding: EdgeInsets.fromLTRB(gutter, Space.md, gutter, Space.xxl),
+          children: [
+            const _BalanceCard(),
+            const SizedBox(height: Space.lg),
+            if (list.isEmpty)
+              EmptyState(
+                icon: Icons.receipt_long_outlined,
+                message: t.noInvoicesYet,
+              )
+            else ...[
+              if (open.isNotEmpty) ...[
+                SectionHeader(t.openSectionLabel, overline: true),
+                _InvoiceGrid(invoices: open, compact: size.isCompact),
+                const SizedBox(height: Space.lg),
+              ],
+              if (settled.isNotEmpty) ...[
+                SectionHeader(t.historyLabel, overline: true),
+                _InvoiceGrid(invoices: settled, compact: size.isCompact),
+                const SizedBox(height: Space.lg),
+              ],
+            ],
+            const Divider(height: 1),
+            const SizedBox(height: Space.lg),
+            const PaymentMethodsSection(),
+          ],
+        );
+      },
     );
   }
 }
 
-/// Outstanding balance at a glance, with an overdue call-out when relevant.
-class _BillingSummaryCard extends ConsumerWidget {
-  const _BillingSummaryCard();
+/// Wallet balance (with a Top Up button) and, when relevant, what's still
+/// owed — one card, so there's a single "balance" the patient sees at a
+/// glance.
+class _BalanceCard extends ConsumerWidget {
+  const _BalanceCard();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final t = AppLocalizations.of(context)!;
+    final balanceAsync = ref.watch(walletBalanceProvider);
     final summary = ref.watch(billingSummaryProvider).valueOrNull;
-    if (summary == null) return const LoadingSkeleton(height: 92);
 
-    final owes = summary.outstanding > 0;
+    if (!balanceAsync.hasValue) return const LoadingSkeleton(height: 120);
+    final balance = balanceAsync.value!;
+
     return AppCard(
-      color: owes ? scheme.primaryContainer : scheme.surfaceContainerHighest,
-      child: Row(
+      color: scheme.primaryContainer,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      t.walletBalanceLabel,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: scheme.onPrimaryContainer,
+                      ),
+                    ),
+                    const SizedBox(height: Space.xxs),
+                    Text(
+                      money(balance),
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        color: scheme.onPrimaryContainer,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              FilledButton.icon(
+                onPressed: () => showWalletTopUpSheet(context),
+                icon: const Icon(Icons.add, size: 18),
+                label: Text(t.topUpButton),
+              ),
+            ],
+          ),
+          if (summary != null && summary.outstanding > 0) ...[
+            const SizedBox(height: Space.sm),
+            const Divider(height: 1),
+            const SizedBox(height: Space.sm),
+            Row(
               children: [
-                Text(
-                  owes ? t.outstandingBalance : t.allSettled,
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: owes
-                        ? scheme.onPrimaryContainer
-                        : scheme.onSurfaceVariant,
-                  ),
+                Icon(
+                  Icons.receipt_long_outlined,
+                  size: 18,
+                  color: scheme.onPrimaryContainer,
                 ),
-                const SizedBox(height: Space.xxs),
-                Text(
-                  money(summary.outstanding),
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    color: owes
-                        ? scheme.onPrimaryContainer
-                        : scheme.onSurfaceVariant,
-                  ),
-                ),
-                if (summary.openCount > 0) ...[
-                  const SizedBox(height: Space.xxs),
-                  Text(
+                const SizedBox(width: Space.xs),
+                Expanded(
+                  child: Text(
                     t.openInvoicesCount(summary.openCount),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: scheme.onPrimaryContainer,
                     ),
                   ),
-                ],
-                if (summary.overdue > 0) ...[
-                  const SizedBox(height: Space.xs),
-                  Text(
-                    t.overdueAmount(money(summary.overdue)),
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: theme.clinicalStatus.riskHigh.onContainer,
-                    ),
+                ),
+                Text(
+                  money(summary.outstanding),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: scheme.onPrimaryContainer,
                   ),
-                ],
+                ),
               ],
             ),
-          ),
-          Icon(
-            owes ? Icons.account_balance_wallet_outlined : Icons.verified_outlined,
-            size: 36,
-            color: owes ? scheme.onPrimaryContainer : scheme.onSurfaceVariant,
-          ),
+            if (summary.overdue > 0) ...[
+              const SizedBox(height: Space.xs),
+              Text(
+                t.overdueAmount(money(summary.overdue)),
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: theme.clinicalStatus.riskHigh.onContainer,
+                ),
+              ),
+            ],
+          ],
         ],
       ),
     );

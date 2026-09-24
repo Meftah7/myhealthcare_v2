@@ -249,6 +249,99 @@ void main() {
       expect(expired.failureOrNull!.message.toLowerCase(), contains('expired'));
     });
   });
+
+  group('wallet balance', () {
+    late AppDatabaseHarness harness;
+
+    setUp(() async {
+      harness = await AppDatabaseHarness.create();
+    });
+    tearDown(() => harness.db.close());
+
+    test('starts at zero and rises after a top-up with a new card', () async {
+      final before = (await harness.repo.walletBalance(harness.patientId))
+          .valueOrNull!;
+      expect(before, 0);
+
+      final after = await harness.repo.topUpWallet(
+        patientId: harness.patientId,
+        amount: 25,
+        card: validCard(),
+      );
+      expect(after.isOk, isTrue);
+      expect(after.valueOrNull, 25);
+
+      final balance = (await harness.repo.walletBalance(harness.patientId))
+          .valueOrNull!;
+      expect(balance, 25);
+    });
+
+    test('rejects a top-up of zero or less', () async {
+      final result = await harness.repo.topUpWallet(
+        patientId: harness.patientId,
+        amount: 0,
+        card: validCard(),
+      );
+      expect(result.isErr, isTrue);
+      expect(result.failureOrNull!.message, contains('greater than zero'));
+    });
+
+    test('tops up with a saved card', () async {
+      final saved = (await harness.repo.cardsFor(harness.patientId))
+          .valueOrNull!
+          .first;
+      final result = await harness.repo.topUpWalletWithSavedCard(
+        patientId: harness.patientId,
+        amount: 10,
+        cardId: saved.id,
+        cvc: '123',
+      );
+      expect(result.isOk, isTrue);
+      expect(result.valueOrNull, 10);
+    });
+
+    test('pays an invoice from the wallet balance', () async {
+      final invoice = (await harness.repo.byId(harness.invoiceId))
+          .valueOrNull!;
+      await harness.repo.topUpWallet(
+        patientId: harness.patientId,
+        amount: invoice.totalAmount + 5,
+        card: validCard(),
+      );
+
+      final paid = await harness.repo.payWithWallet(
+        invoiceId: harness.invoiceId,
+        patientId: harness.patientId,
+      );
+      expect(paid.isOk, isTrue);
+      expect(paid.valueOrNull!.status, InvoiceStatus.paid);
+      expect(paid.valueOrNull!.paymentMethod, 'Wallet balance');
+
+      final remaining = (await harness.repo.walletBalance(harness.patientId))
+          .valueOrNull!;
+      expect(remaining, closeTo(5, 0.001));
+    });
+
+    test('refuses to pay when the wallet balance is insufficient', () async {
+      final invoice = (await harness.repo.byId(harness.invoiceId))
+          .valueOrNull!;
+      await harness.repo.topUpWallet(
+        patientId: harness.patientId,
+        amount: invoice.totalAmount - 1,
+        card: validCard(),
+      );
+
+      final result = await harness.repo.payWithWallet(
+        invoiceId: harness.invoiceId,
+        patientId: harness.patientId,
+      );
+      expect(result.isErr, isTrue);
+      expect(result.failureOrNull!.message, contains('Not enough'));
+
+      final still = (await harness.repo.byId(harness.invoiceId)).valueOrNull!;
+      expect(still.status, isNot(InvoiceStatus.paid));
+    });
+  });
 }
 
 /// A seeded DB plus one known-open invoice, for the validation cases.

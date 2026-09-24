@@ -283,7 +283,8 @@ as String?,
 /// @nodoc
 mixin _$Trend {
 
- String get metric; String get direction; String get summary;
+ String get metric; String get direction;// 'up' | 'down' | 'stable'
+ String get summary;
 /// Create a copy of Trend
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -482,6 +483,7 @@ class _Trend implements Trend {
 
 @override final  String metric;
 @override final  String direction;
+// 'up' | 'down' | 'stable'
 @override final  String summary;
 
 /// Create a copy of Trend

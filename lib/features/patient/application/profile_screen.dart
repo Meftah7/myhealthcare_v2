@@ -30,11 +30,7 @@ class ProfileScreen extends ConsumerWidget {
   List<(IconData, String, String)> _sections(AppLocalizations t) => [
     (Icons.badge_outlined, t.personalInfoTitle, AppRoutes.patientProfilePersonal),
     (Icons.favorite_outline, t.healthDetailsTitle, AppRoutes.patientProfileHealth),
-    (
-      Icons.account_balance_wallet_outlined,
-      t.walletTitle,
-      AppRoutes.patientProfileWallet,
-    ),
+    (Icons.payments_outlined, t.paymentsTitle, AppRoutes.patientBilling),
     (
       Icons.family_restroom_outlined,
       t.familyNetworkTitle,

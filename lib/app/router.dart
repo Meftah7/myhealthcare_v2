@@ -32,7 +32,7 @@ import '../features/auth/presentation/forgot_password_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
 import '../features/auth/presentation/reset_password_screen.dart';
-import '../features/billing/presentation/billing_screen.dart';
+import '../features/billing/presentation/payments_screen.dart';
 import '../features/booking/presentation/booking_screen.dart';
 import '../features/care/presentation/admin_home_visits_screen.dart';
 import '../features/care/presentation/home_visit_screen.dart';
@@ -111,7 +111,6 @@ abstract final class AppRoutes {
   static const patientSettings = '/patient/settings';
   static const patientProfilePersonal = '/patient/settings/personal';
   static const patientProfileHealth = '/patient/settings/health';
-  static const patientProfileWallet = '/patient/settings/wallet';
   static const patientProfilePreferences = '/patient/settings/preferences';
   static const patientProfileFamily = '/patient/settings/family';
 
@@ -355,7 +354,7 @@ StatefulShellRoute _patientShell() {
               GoRoute(path: 'vitals', builder: (_, _) => const VitalsScreen()),
               GoRoute(
                 path: 'billing',
-                builder: (_, _) => const BillingScreen(),
+                builder: (_, _) => const PaymentsScreen(),
               ),
               GoRoute(
                 path: 'notifications',
@@ -448,7 +447,6 @@ StatefulShellRoute _patientShell() {
                 path: 'health',
                 builder: (_, _) => const HealthDetailsPage(),
               ),
-              GoRoute(path: 'wallet', builder: (_, _) => const WalletPage()),
               GoRoute(
                 path: 'preferences',
                 builder: (_, _) => const PreferencesPage(),

@@ -1,5 +1,5 @@
-/// Wallet — the patient's saved cards, what they owe now, and past payments.
-/// Rendered bare inside its own profile page.
+/// Saved payment methods — the cards a patient can pay invoices or top up
+/// their wallet with. Rendered as the bottom section of the Payments screen.
 library;
 
 import 'package:flutter/material.dart';
@@ -12,28 +12,23 @@ import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/card_input.dart';
-import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
-import '../../../domain/enums.dart';
 import '../../../domain/repositories/billing_repository.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/billing_providers.dart';
-import 'billing_screen.dart' show money;
 
-class WalletSection extends ConsumerWidget {
-  const WalletSection({super.key});
+class PaymentMethodsSection extends ConsumerWidget {
+  const PaymentMethodsSection({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final t = AppLocalizations.of(context)!;
-    final invoices = ref.watch(patientInvoicesProvider);
     final cards = ref.watch(walletCardsProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // --- Saved cards ---
         Row(
           children: [
             Expanded(child: _Label(t.savedCardsLabel)),
@@ -59,70 +54,6 @@ class WalletSection extends ConsumerWidget {
             return Column(children: [for (final c in list) _CardTile(card: c)]);
           },
         ),
-
-        const SizedBox(height: Space.md),
-        const Divider(height: 1),
-        const SizedBox(height: Space.md),
-
-        // --- History ---
-        _Label(t.transactionHistoryLabel),
-        invoices.when(
-          loading: () => const LoadingSkeleton(height: 48),
-          error: (e, _) => const SizedBox.shrink(),
-          data: (list) {
-            final paid =
-                list.where((i) => i.status == InvoiceStatus.paid).toList()
-                  ..sort((a, b) {
-                    final ap = a.paidAt ?? a.issuedAt;
-                    final bp = b.paidAt ?? b.issuedAt;
-                    return bp.compareTo(ap);
-                  });
-            if (paid.isEmpty) {
-              return Text(
-                t.noPaymentsYet,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              );
-            }
-            return Column(
-              children: [
-                for (final inv in paid.take(12))
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: Space.xxs),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.check_circle_outline,
-                          size: 16,
-                          color: theme.clinicalStatus.riskLow.onContainer,
-                        ),
-                        const SizedBox(width: Space.xs),
-                        Expanded(
-                          child: Text(
-                            fmtDate(inv.paidAt ?? inv.issuedAt),
-                            style: theme.textTheme.bodySmall,
-                          ),
-                        ),
-                        if (inv.paymentMethod != null)
-                          Text(
-                            inv.paymentMethod!,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        const SizedBox(width: Space.sm),
-                        Text(
-                          money(inv.totalAmount),
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
-            );
-          },
-        ),
       ],
     );
   }
@@ -132,7 +63,7 @@ class WalletSection extends ConsumerWidget {
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
-      builder: (_) => const _AddCardSheet(),
+      builder: (_) => const AddCardSheet(),
     );
   }
 }
@@ -236,14 +167,15 @@ class _CardTile extends ConsumerWidget {
   }
 }
 
-class _AddCardSheet extends ConsumerStatefulWidget {
-  const _AddCardSheet();
+/// Add-a-card sheet, shared by the Payment Methods list and the top-up flow.
+class AddCardSheet extends ConsumerStatefulWidget {
+  const AddCardSheet({super.key});
 
   @override
-  ConsumerState<_AddCardSheet> createState() => _AddCardSheetState();
+  ConsumerState<AddCardSheet> createState() => _AddCardSheetState();
 }
 
-class _AddCardSheetState extends ConsumerState<_AddCardSheet> {
+class _AddCardSheetState extends ConsumerState<AddCardSheet> {
   final _formKey = GlobalKey<FormState>();
   final _number = TextEditingController();
   final _holder = TextEditingController();

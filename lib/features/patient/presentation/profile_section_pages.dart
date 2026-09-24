@@ -10,7 +10,6 @@ import '../../../app/theme/theme.dart';
 import '../../../core/presentation/states.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../billing/presentation/wallet_section.dart';
 import '../../settings/presentation/preferences_section.dart';
 import '../application/patient_data_providers.dart';
 import 'family_network_section.dart';
@@ -95,16 +94,6 @@ class FamilyNetworkPage extends StatelessWidget {
   Widget build(BuildContext context) => _PatientSectionPage(
     title: AppLocalizations.of(context)!.familyNetworkTitle,
     builder: (p) => FamilyNetworkSection(patient: p, embedded: true),
-  );
-}
-
-class WalletPage extends StatelessWidget {
-  const WalletPage({super.key});
-
-  @override
-  Widget build(BuildContext context) => _SectionScaffold(
-    title: AppLocalizations.of(context)!.walletTitle,
-    child: const WalletSection(),
   );
 }
 

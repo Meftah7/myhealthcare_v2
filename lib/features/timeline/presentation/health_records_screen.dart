@@ -11,7 +11,7 @@ import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../billing/presentation/billing_screen.dart';
+import '../../billing/presentation/payments_screen.dart';
 import '../../patient/application/patient_data_providers.dart';
 import '../../patient/application/patient_documents.dart';
 import '../../patient/presentation/document_download_button.dart';
@@ -112,7 +112,7 @@ class _HealthRecordsScreenState extends State<HealthRecordsScreen> {
               _RecordsView.medications => const MedicationsScreen(
                 embedded: true,
               ),
-              _RecordsView.bills => const BillingScreen(embedded: true),
+              _RecordsView.bills => const PaymentsScreen(embedded: true),
             },
           ),
         ],

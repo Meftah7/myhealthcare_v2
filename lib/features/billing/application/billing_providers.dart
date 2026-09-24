@@ -51,6 +51,19 @@ final walletCardsProvider = FutureProvider<List<PaymentMethod>>((ref) async {
   };
 });
 
+/// The patient's current wallet balance.
+final walletBalanceProvider = FutureProvider<double>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null || !user.isPatient) return 0;
+  final result = await ref
+      .watch(billingRepositoryProvider)
+      .walletBalance(user.id);
+  return switch (result) {
+    Ok(:final value) => value,
+    Err(:final failure) => throw failure,
+  };
+});
+
 class BillingController {
   BillingController(this._ref);
   final Ref _ref;
@@ -123,6 +136,53 @@ class BillingController {
           cvc: cvc,
         );
     if (result case Ok()) _ref.invalidate(patientInvoicesProvider);
+    return result;
+  }
+
+  /// Tops up the signed-in patient's wallet with a new card.
+  Future<Result<double>> topUpWallet(double amount, CardPayment card) async {
+    final id = _patientId;
+    if (id == null) return const Err(AuthFailure('Sign in to top up.'));
+    final result = await _ref
+        .read(billingRepositoryProvider)
+        .topUpWallet(patientId: id, amount: amount, card: card);
+    if (result case Ok()) _ref.invalidate(walletBalanceProvider);
+    return result;
+  }
+
+  /// Tops up the signed-in patient's wallet with one of their saved cards.
+  Future<Result<double>> topUpWalletWithSavedCard({
+    required double amount,
+    required String cardId,
+    required String cvc,
+  }) async {
+    final id = _patientId;
+    if (id == null) return const Err(AuthFailure('Sign in to top up.'));
+    final result = await _ref
+        .read(billingRepositoryProvider)
+        .topUpWalletWithSavedCard(
+          patientId: id,
+          amount: amount,
+          cardId: cardId,
+          cvc: cvc,
+        );
+    if (result case Ok()) _ref.invalidate(walletBalanceProvider);
+    return result;
+  }
+
+  /// Settles [invoiceId] from the signed-in patient's wallet balance.
+  Future<Result<Invoice>> payWithWallet(String invoiceId) async {
+    final user = _ref.read(currentUserProvider);
+    if (user == null || !user.isPatient) {
+      return const Err(AuthFailure('Sign in to pay an invoice.'));
+    }
+    final result = await _ref
+        .read(billingRepositoryProvider)
+        .payWithWallet(invoiceId: invoiceId, patientId: user.id);
+    if (result case Ok()) {
+      _ref.invalidate(patientInvoicesProvider);
+      _ref.invalidate(walletBalanceProvider);
+    }
     return result;
   }
 }

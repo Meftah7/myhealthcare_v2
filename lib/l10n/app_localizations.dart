@@ -2150,6 +2150,90 @@ abstract class AppLocalizations {
   /// **'expired'**
   String get expiredSuffix;
 
+  /// No description provided for @paymentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payments'**
+  String get paymentsTitle;
+
+  /// No description provided for @walletBalanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet balance'**
+  String get walletBalanceLabel;
+
+  /// No description provided for @topUpButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Top up'**
+  String get topUpButton;
+
+  /// No description provided for @topUpWalletTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Top up wallet'**
+  String get topUpWalletTitle;
+
+  /// No description provided for @topUpAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get topUpAmountLabel;
+
+  /// No description provided for @enterTopUpAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount'**
+  String get enterTopUpAmount;
+
+  /// No description provided for @topUpAmountTooSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount greater than zero.'**
+  String get topUpAmountTooSmall;
+
+  /// No description provided for @walletTopUpNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a demo top-up — no real money moves, and the balance is stored on this device only.'**
+  String get walletTopUpNote;
+
+  /// No description provided for @topUpAmountButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Top up {amount}'**
+  String topUpAmountButton(String amount);
+
+  /// No description provided for @walletToppedUpMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet topped up'**
+  String get walletToppedUpMessage;
+
+  /// No description provided for @payWithWalletLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet balance'**
+  String get payWithWalletLabel;
+
+  /// No description provided for @walletBalanceAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} available'**
+  String walletBalanceAvailable(String amount);
+
+  /// No description provided for @insufficientWalletBalanceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough balance to cover this invoice'**
+  String get insufficientWalletBalanceHint;
+
+  /// No description provided for @walletBalancePaidMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid from wallet balance'**
+  String get walletBalancePaidMessage;
+
   /// No description provided for @markAllReadButton.
   ///
   /// In en, this message translates to:
@@ -6005,7 +6089,7 @@ abstract class AppLocalizations {
   /// No description provided for @navAppointments.
   ///
   /// In en, this message translates to:
-  /// **'Appointments'**
+  /// **'Appointment'**
   String get navAppointments;
 
   /// No description provided for @navRecords.

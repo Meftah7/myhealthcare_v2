@@ -72,7 +72,7 @@ void main() {
     for (final label in const [
       'Personal info',
       'Health details',
-      'Wallet',
+      'Payments',
       'Preferences',
       'Family network',
     ]) {

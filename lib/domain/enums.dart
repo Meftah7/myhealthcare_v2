@@ -98,6 +98,11 @@ enum InvoiceStatus { pending, paid, cancelled }
 /// submission; the clinic moves it from there.
 enum HomeVisitStatus { requested, scheduled, completed, declined, cancelled }
 
+/// A movement in the patient's wallet balance: money added, or money spent
+/// settling an invoice. The balance itself is never stored — it's the sum of
+/// these entries, so it can never drift from its history.
+enum WalletTransactionType { topUp, redemption }
+
 /// What a patient notification is about — drives its icon and accent.
 enum NotificationCategory {
   appointment,

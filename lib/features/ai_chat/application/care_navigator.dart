@@ -188,9 +188,10 @@ class CareNavigator extends Notifier<CareNavigatorState> {
       '$name. Keep replies short (2-4 sentences) and friendly. You help people '
       'navigate the app: Home, Appointments (book/cancel/reschedule), Health '
       'Records (visit timeline + medications), Nutrition (macro targets, food '
-      'lookup, meal plan), Billing and the Wallet (cards, bills), Notifications, '
-      'and Profile. For any medical or symptom question, do NOT give medical '
-      "advice: say you can't and suggest booking an appointment with a doctor. "
+      'lookup, meal plan), Payments (wallet balance, bills, saved cards), '
+      'Notifications, and Profile. For any medical or symptom question, do '
+      "NOT give medical advice: say you can't and suggest booking an "
+      'appointment with a doctor. '
       'Never mention other patients or internal data.';
 
   /// Deterministic navigation help — used offline and as the mock.
@@ -212,8 +213,9 @@ class CareNavigator extends Notifier<CareNavigatorState> {
     }
     if (has(['bill', 'invoice', 'pay', 'payment', 'card', 'wallet',
         'outstanding', 'owe', 'transaction'])) {
-      return 'Billing shows every invoice with a Pay button, and Profile → '
-          'Wallet keeps your saved cards, your current bill and past payments.';
+      return 'Payments (from Home or Profile) shows your wallet balance with '
+          'a Top up button, every invoice with a Pay button, and your saved '
+          'cards, all in one place.';
     }
     if (has(['nutrition', 'calorie', 'macro', 'diet', 'meal', 'food', 'bmr',
         'tdee', 'weight'])) {
@@ -228,8 +230,8 @@ class CareNavigator extends Notifier<CareNavigatorState> {
     if (has(['profile', 'password', 'email', 'phone', 'family', 'emergency',
         'blood type', 'allergy', 'allergies', 'setting', 'theme', 'language'])) {
       return 'Everything about you is in Profile: personal info, health details, '
-          'wallet, preferences (theme & language), notification channels and your '
-          'family network. Tap a section to expand it.';
+          'payments, preferences (theme & language), notification channels and '
+          'your family network. Tap a section to expand it.';
     }
     if (has(['symptom', 'pain', 'fever', 'sick', 'hurt', 'ache', 'rash',
         'dizzy', 'nausea', 'diagnos', 'treat', 'should i'])) {
@@ -237,8 +239,8 @@ class CareNavigator extends Notifier<CareNavigatorState> {
           'Appointments tab so a doctor can help you properly. If it feels '
           "urgent, don't wait — contact emergency services.";
     }
-    return 'I can point you to Appointments, Records, Nutrition, Billing '
-        '& Wallet, Notifications or your Profile. Which would you like?';
+    return 'I can point you to Appointments, Records, Nutrition, Payments, '
+        'Notifications or your Profile. Which would you like?';
   }
 }
 

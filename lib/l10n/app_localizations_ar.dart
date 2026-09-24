@@ -1117,6 +1117,54 @@ class AppLocalizationsAr extends AppLocalizations {
   String get expiredSuffix => 'منتهية';
 
   @override
+  String get paymentsTitle => 'المدفوعات';
+
+  @override
+  String get walletBalanceLabel => 'رصيد المحفظة';
+
+  @override
+  String get topUpButton => 'شحن الرصيد';
+
+  @override
+  String get topUpWalletTitle => 'شحن رصيد المحفظة';
+
+  @override
+  String get topUpAmountLabel => 'المبلغ';
+
+  @override
+  String get enterTopUpAmount => 'أدخل مبلغاً';
+
+  @override
+  String get topUpAmountTooSmall => 'أدخل مبلغاً أكبر من صفر.';
+
+  @override
+  String get walletTopUpNote =>
+      'هذا شحن رصيد تجريبي — لا تُحرَّك أموال حقيقية، والرصيد يُخزَّن على هذا الجهاز فقط.';
+
+  @override
+  String topUpAmountButton(String amount) {
+    return 'شحن $amount';
+  }
+
+  @override
+  String get walletToppedUpMessage => 'تم شحن رصيد المحفظة';
+
+  @override
+  String get payWithWalletLabel => 'رصيد المحفظة';
+
+  @override
+  String walletBalanceAvailable(String amount) {
+    return '$amount متاح';
+  }
+
+  @override
+  String get insufficientWalletBalanceHint =>
+      'الرصيد غير كافٍ لتغطية هذه الفاتورة';
+
+  @override
+  String get walletBalancePaidMessage => 'تم الدفع من رصيد المحفظة';
+
+  @override
   String get markAllReadButton => 'تحديد الكل كمقروء';
 
   @override

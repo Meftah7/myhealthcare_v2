@@ -552,6 +552,31 @@
   "cardSavedNote": "يتم حفظ آخر 4 أرقام وتاريخ الانتهاء فقط — أبداً الرقم الكامل أو رمز الأمان.",
   "expiredSuffix": "منتهية",
 
+  "paymentsTitle": "المدفوعات",
+  "walletBalanceLabel": "رصيد المحفظة",
+  "topUpButton": "شحن الرصيد",
+  "topUpWalletTitle": "شحن رصيد المحفظة",
+  "topUpAmountLabel": "المبلغ",
+  "enterTopUpAmount": "أدخل مبلغاً",
+  "topUpAmountTooSmall": "أدخل مبلغاً أكبر من صفر.",
+  "walletTopUpNote": "هذا شحن رصيد تجريبي — لا تُحرَّك أموال حقيقية، والرصيد يُخزَّن على هذا الجهاز فقط.",
+  "topUpAmountButton": "شحن {amount}",
+  "@topUpAmountButton": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "walletToppedUpMessage": "تم شحن رصيد المحفظة",
+  "payWithWalletLabel": "رصيد المحفظة",
+  "walletBalanceAvailable": "{amount} متاح",
+  "@walletBalanceAvailable": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "insufficientWalletBalanceHint": "الرصيد غير كافٍ لتغطية هذه الفاتورة",
+  "walletBalancePaidMessage": "تم الدفع من رصيد المحفظة",
+
   "markAllReadButton": "تحديد الكل كمقروء",
   "couldNotLoadNotifications": "تعذّر تحميل إشعاراتك.",
   "allCaughtUpMessage": "أنت على اطلاع بكل شيء.\nلا جديد هنا.",

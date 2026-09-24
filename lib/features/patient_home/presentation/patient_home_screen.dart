@@ -367,8 +367,8 @@ class _QuickActions extends StatelessWidget {
         true,
       ),
       (
-        Icons.receipt_long_outlined,
-        t.quickActionBilling,
+        Icons.payments_outlined,
+        t.paymentsTitle,
         AppRoutes.patientBilling,
         false,
       ),

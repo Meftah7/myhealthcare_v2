@@ -134,6 +134,18 @@ extension PaymentMethodRowX on PaymentMethodRow {
   );
 }
 
+extension WalletTransactionRowX on WalletTransactionRow {
+  WalletTransaction toEntity() => WalletTransaction(
+    id: id,
+    patientId: patientId,
+    type: type,
+    amount: amount,
+    createdAt: createdAt,
+    method: method,
+    invoiceId: invoiceId,
+  );
+}
+
 extension NotificationRowX on NotificationRow {
   AppNotification toEntity() => AppNotification(
     id: id,

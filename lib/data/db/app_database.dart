@@ -43,6 +43,7 @@ part 'app_database.g.dart';
     // billing
     Invoices,
     PaymentMethods,
+    WalletTransactions,
     // engagement
     Notifications,
     // care services (P10 Batch B)
@@ -81,7 +82,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 12;
+  int get schemaVersion => 13;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -146,6 +147,12 @@ class AppDatabase extends _$AppDatabase {
         await m.addColumn(medications, medications.appointmentId);
         await m.createTable(walkInTickets);
         await m.createTable(referralRequests);
+      }
+      if (from < 13) {
+        // Wallet: a real credit balance (top-up + redemption ledger),
+        // replacing the old cards-only "Wallet" page. Billing + Wallet merge
+        // into one Payments screen.
+        await m.createTable(walletTransactions);
       }
     },
     beforeOpen: (details) async {

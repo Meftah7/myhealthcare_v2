@@ -127,4 +127,31 @@ abstract interface class BillingRepository {
     required String id,
     required String patientId,
   });
+
+  // --- wallet: credit balance ----------------------------------------------
+
+  /// The patient's current wallet balance — the sum of their wallet ledger.
+  Future<Result<double>> walletBalance(String patientId);
+
+  /// Adds [amount] to [patientId]'s wallet balance, charged to a new card.
+  Future<Result<double>> topUpWallet({
+    required String patientId,
+    required double amount,
+    required CardPayment card,
+  });
+
+  /// Adds [amount] to [patientId]'s wallet balance, charged to a saved card.
+  Future<Result<double>> topUpWalletWithSavedCard({
+    required String patientId,
+    required double amount,
+    required String cardId,
+    required String cvc,
+  });
+
+  /// Settles [invoiceId] entirely from [patientId]'s wallet balance. Fails if
+  /// the balance can't cover the full amount.
+  Future<Result<Invoice>> payWithWallet({
+    required String invoiceId,
+    required String patientId,
+  });
 }
