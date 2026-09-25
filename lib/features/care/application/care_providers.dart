@@ -272,8 +272,46 @@ class HomeVisitActions {
           assignedStaffId: assignedStaffId,
           decisionNote: decisionNote,
         );
-    if (result.isOk) _invalidate();
+    if (result case Ok(:final value)) {
+      _invalidate();
+      await _notifyPatient(value);
+    }
     return result;
+  }
+
+  /// Drop an in-app notification for the patient when their home-visit
+  /// request is scheduled, declined or completed — a bare row update
+  /// otherwise gives them no signal that a decision was made.
+  Future<void> _notifyPatient(HomeVisitRequest request) async {
+    final (String, String)? content = switch (request.status) {
+      HomeVisitStatus.scheduled => (
+        'Home visit scheduled',
+        request.decisionNote ??
+            'Your home visit request has been scheduled.',
+      ),
+      HomeVisitStatus.declined => (
+        'Home visit request declined',
+        request.decisionNote ?? 'Your home visit request was declined.',
+      ),
+      HomeVisitStatus.completed => (
+        'Home visit completed',
+        'Your home visit has been marked complete.',
+      ),
+      HomeVisitStatus.requested || HomeVisitStatus.cancelled => null,
+    };
+    if (content == null) return;
+    final (title, body) = content;
+    await _ref
+        .read(notificationRepositoryProvider)
+        .send(
+          NewNotification(
+            recipientId: request.patientId,
+            category: NotificationCategory.system,
+            title: title,
+            body: body,
+            deepLink: AppRoutes.patientHomeVisit,
+          ),
+        );
   }
 
   void _invalidate() {

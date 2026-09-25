@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
+import 'package:myhealthcare/domain/entities/entities.dart';
 import 'package:myhealthcare/domain/enums.dart';
 import 'package:myhealthcare/features/auth/application/session.dart';
 import 'package:myhealthcare/features/care/application/care_providers.dart';
@@ -169,6 +170,53 @@ void main() {
           decisionNote: 'Nurse will call to confirm.',
         );
     expect(decided.valueOrNull!.status, HomeVisitStatus.scheduled);
+
+    // The patient is notified of the decision.
+    final patientId = decided.valueOrNull!.patientId;
+    final notifications = (await c
+            .read(notificationRepositoryProvider)
+            .forRecipient(patientId))
+        .valueOrNull!;
+    expect(
+      notifications,
+      contains(
+        predicate<AppNotification>(
+          (n) =>
+              n.category == NotificationCategory.system &&
+              n.body.contains('Nurse will call to confirm.'),
+        ),
+      ),
+    );
+  });
+
+  test('declining or completing a home visit also notifies the patient', () async {
+    final c = await _container();
+    await _login(c, 'patient5@myhealth.demo');
+    final created = await c
+        .read(homeVisitActionsProvider)
+        .request(
+          address: 'Building 1, Road 1, Block 100',
+          preferredDate: DateTime.now().add(const Duration(days: 2)),
+          reason: 'Dressing change',
+        );
+    final requestId = created.valueOrNull!.id;
+    final patientId = created.valueOrNull!.patientId;
+
+    await _login(c, 'admin@myhealth.demo');
+    await c
+        .read(homeVisitActionsProvider)
+        .decide(id: requestId, status: HomeVisitStatus.declined);
+
+    final notifications = (await c
+            .read(notificationRepositoryProvider)
+            .forRecipient(patientId))
+        .valueOrNull!;
+    expect(
+      notifications.any(
+        (n) => n.title.toLowerCase().contains('declined'),
+      ),
+      isTrue,
+    );
   });
 }
 
