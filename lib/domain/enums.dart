@@ -103,6 +103,13 @@ enum HomeVisitStatus { requested, scheduled, completed, declined, cancelled }
 /// these entries, so it can never drift from its history.
 enum WalletTransactionType { topUp, redemption }
 
+/// What a linked family account can do with the owner's data.
+enum FamilyLinkPermission { viewOnly, manage }
+
+/// A family-link request's lifecycle. The owner must accept before the
+/// viewer gets any access — declining or unlinking just removes the row.
+enum FamilyLinkStatus { pending, accepted }
+
 /// What a patient notification is about — drives its icon and accent.
 enum NotificationCategory {
   appointment,

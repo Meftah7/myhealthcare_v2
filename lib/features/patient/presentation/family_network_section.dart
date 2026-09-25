@@ -24,6 +24,7 @@ import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/patient_data_providers.dart';
+import 'linked_family_accounts_section.dart';
 
 class FamilyNetworkSection extends ConsumerWidget {
   const FamilyNetworkSection({
@@ -75,6 +76,8 @@ class FamilyNetworkSection extends ConsumerWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          const LinkedFamilyAccountsSection(),
+          const SizedBox(height: Space.md),
           Align(
             alignment: AlignmentDirectional.centerStart,
             child: OutlinedButton.icon(

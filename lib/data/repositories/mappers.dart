@@ -134,6 +134,18 @@ extension PaymentMethodRowX on PaymentMethodRow {
   );
 }
 
+extension FamilyLinkRowX on FamilyLinkRow {
+  FamilyLink toEntity() => FamilyLink(
+    id: id,
+    ownerPatientId: ownerPatientId,
+    viewerPatientId: viewerPatientId,
+    permission: permission,
+    status: status,
+    createdAt: createdAt,
+    respondedAt: respondedAt,
+  );
+}
+
 extension WalletTransactionRowX on WalletTransactionRow {
   WalletTransaction toEntity() => WalletTransaction(
     id: id,

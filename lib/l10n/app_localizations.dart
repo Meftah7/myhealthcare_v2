@@ -6026,6 +6026,186 @@ abstract class AppLocalizations {
   /// **'Other'**
   String get familyRelationshipOther;
 
+  /// No description provided for @linkedAccountsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked accounts'**
+  String get linkedAccountsTitle;
+
+  /// No description provided for @linkAccountAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Link account'**
+  String get linkAccountAction;
+
+  /// No description provided for @linkAccountSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Link an account'**
+  String get linkAccountSheetTitle;
+
+  /// No description provided for @linkAccountSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name, phone or national ID'**
+  String get linkAccountSearchHint;
+
+  /// No description provided for @linkAccountSearchHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'They must already have a MyHealth Care account.'**
+  String get linkAccountSearchHelper;
+
+  /// No description provided for @noAccountsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No accounts found.'**
+  String get noAccountsFound;
+
+  /// No description provided for @permissionQuestionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'What can they do?'**
+  String get permissionQuestionLabel;
+
+  /// No description provided for @viewOnlyPermissionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Can view only'**
+  String get viewOnlyPermissionLabel;
+
+  /// No description provided for @viewOnlyPermissionDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Sees your appointments and health records.'**
+  String get viewOnlyPermissionDescription;
+
+  /// No description provided for @managePermissionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Can manage'**
+  String get managePermissionLabel;
+
+  /// No description provided for @managePermissionDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Can also cancel and reschedule your appointments.'**
+  String get managePermissionDescription;
+
+  /// No description provided for @requestSentMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Request sent'**
+  String get requestSentMessage;
+
+  /// No description provided for @acceptButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get acceptButton;
+
+  /// No description provided for @pendingRequestsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending requests'**
+  String get pendingRequestsTitle;
+
+  /// No description provided for @requestsAccessNote.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} wants this access to your account:'**
+  String requestsAccessNote(String name);
+
+  /// No description provided for @sentRequestsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent requests'**
+  String get sentRequestsTitle;
+
+  /// No description provided for @waitingForAcceptanceNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for {name} to accept.'**
+  String waitingForAcceptanceNote(String name);
+
+  /// No description provided for @noLinkedAccountsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No linked accounts yet.'**
+  String get noLinkedAccountsYet;
+
+  /// No description provided for @viewersOfMeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Who can see you'**
+  String get viewersOfMeTitle;
+
+  /// No description provided for @noOneElseHasAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'No one else has access to your account.'**
+  String get noOneElseHasAccess;
+
+  /// No description provided for @unlinkAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink {name}?'**
+  String unlinkAccountTitle(String name);
+
+  /// No description provided for @unlinkAccountNote.
+  ///
+  /// In en, this message translates to:
+  /// **'They will lose all access to your account.'**
+  String get unlinkAccountNote;
+
+  /// No description provided for @unlinkAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink'**
+  String get unlinkAction;
+
+  /// No description provided for @revokeAccessNote.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} will no longer be able to see your account.'**
+  String revokeAccessNote(String name);
+
+  /// No description provided for @viewAccountAction.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get viewAccountAction;
+
+  /// No description provided for @linkedAccountAppointmentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Appointments'**
+  String get linkedAccountAppointmentsTitle;
+
+  /// No description provided for @linkedAccountHealthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Health records'**
+  String get linkedAccountHealthTitle;
+
+  /// No description provided for @viewOnlyAccessNote.
+  ///
+  /// In en, this message translates to:
+  /// **'You have view-only access — you can\'t book, cancel or reschedule.'**
+  String get viewOnlyAccessNote;
+
+  /// No description provided for @noAccessToThisAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not have access to this account.'**
+  String get noAccessToThisAccount;
+
+  /// No description provided for @couldNotSendRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not send the request.'**
+  String get couldNotSendRequest;
+
   /// No description provided for @visitedDoctorsTitle.
   ///
   /// In en, this message translates to:

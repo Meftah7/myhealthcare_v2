@@ -10400,6 +10400,507 @@ class WalletTransactionsCompanion
   }
 }
 
+class $FamilyLinksTable extends FamilyLinks
+    with TableInfo<$FamilyLinksTable, FamilyLinkRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FamilyLinksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _ownerPatientIdMeta = const VerificationMeta(
+    'ownerPatientId',
+  );
+  @override
+  late final GeneratedColumn<String> ownerPatientId = GeneratedColumn<String>(
+    'owner_patient_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _viewerPatientIdMeta = const VerificationMeta(
+    'viewerPatientId',
+  );
+  @override
+  late final GeneratedColumn<String> viewerPatientId = GeneratedColumn<String>(
+    'viewer_patient_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE CASCADE',
+    ),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<FamilyLinkPermission, String>
+  permission = GeneratedColumn<String>(
+    'permission',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  ).withConverter<FamilyLinkPermission>($FamilyLinksTable.$converterpermission);
+  @override
+  late final GeneratedColumnWithTypeConverter<FamilyLinkStatus, String> status =
+      GeneratedColumn<String>(
+        'status',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('pending'),
+      ).withConverter<FamilyLinkStatus>($FamilyLinksTable.$converterstatus);
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _respondedAtMeta = const VerificationMeta(
+    'respondedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> respondedAt = GeneratedColumn<DateTime>(
+    'responded_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    ownerPatientId,
+    viewerPatientId,
+    permission,
+    status,
+    createdAt,
+    respondedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'family_links';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FamilyLinkRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('owner_patient_id')) {
+      context.handle(
+        _ownerPatientIdMeta,
+        ownerPatientId.isAcceptableOrUnknown(
+          data['owner_patient_id']!,
+          _ownerPatientIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_ownerPatientIdMeta);
+    }
+    if (data.containsKey('viewer_patient_id')) {
+      context.handle(
+        _viewerPatientIdMeta,
+        viewerPatientId.isAcceptableOrUnknown(
+          data['viewer_patient_id']!,
+          _viewerPatientIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_viewerPatientIdMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('responded_at')) {
+      context.handle(
+        _respondedAtMeta,
+        respondedAt.isAcceptableOrUnknown(
+          data['responded_at']!,
+          _respondedAtMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FamilyLinkRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FamilyLinkRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      ownerPatientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner_patient_id'],
+      )!,
+      viewerPatientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}viewer_patient_id'],
+      )!,
+      permission: $FamilyLinksTable.$converterpermission.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}permission'],
+        )!,
+      ),
+      status: $FamilyLinksTable.$converterstatus.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}status'],
+        )!,
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      respondedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}responded_at'],
+      ),
+    );
+  }
+
+  @override
+  $FamilyLinksTable createAlias(String alias) {
+    return $FamilyLinksTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<FamilyLinkPermission, String, String>
+  $converterpermission = const EnumNameConverter<FamilyLinkPermission>(
+    FamilyLinkPermission.values,
+  );
+  static JsonTypeConverter2<FamilyLinkStatus, String, String> $converterstatus =
+      const EnumNameConverter<FamilyLinkStatus>(FamilyLinkStatus.values);
+}
+
+class FamilyLinkRow extends DataClass implements Insertable<FamilyLinkRow> {
+  final String id;
+
+  /// The account whose data is being shared.
+  final String ownerPatientId;
+
+  /// The account being granted access.
+  final String viewerPatientId;
+  final FamilyLinkPermission permission;
+  final FamilyLinkStatus status;
+  final DateTime createdAt;
+  final DateTime? respondedAt;
+  const FamilyLinkRow({
+    required this.id,
+    required this.ownerPatientId,
+    required this.viewerPatientId,
+    required this.permission,
+    required this.status,
+    required this.createdAt,
+    this.respondedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['owner_patient_id'] = Variable<String>(ownerPatientId);
+    map['viewer_patient_id'] = Variable<String>(viewerPatientId);
+    {
+      map['permission'] = Variable<String>(
+        $FamilyLinksTable.$converterpermission.toSql(permission),
+      );
+    }
+    {
+      map['status'] = Variable<String>(
+        $FamilyLinksTable.$converterstatus.toSql(status),
+      );
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || respondedAt != null) {
+      map['responded_at'] = Variable<DateTime>(respondedAt);
+    }
+    return map;
+  }
+
+  FamilyLinksCompanion toCompanion(bool nullToAbsent) {
+    return FamilyLinksCompanion(
+      id: Value(id),
+      ownerPatientId: Value(ownerPatientId),
+      viewerPatientId: Value(viewerPatientId),
+      permission: Value(permission),
+      status: Value(status),
+      createdAt: Value(createdAt),
+      respondedAt: respondedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(respondedAt),
+    );
+  }
+
+  factory FamilyLinkRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FamilyLinkRow(
+      id: serializer.fromJson<String>(json['id']),
+      ownerPatientId: serializer.fromJson<String>(json['ownerPatientId']),
+      viewerPatientId: serializer.fromJson<String>(json['viewerPatientId']),
+      permission: $FamilyLinksTable.$converterpermission.fromJson(
+        serializer.fromJson<String>(json['permission']),
+      ),
+      status: $FamilyLinksTable.$converterstatus.fromJson(
+        serializer.fromJson<String>(json['status']),
+      ),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      respondedAt: serializer.fromJson<DateTime?>(json['respondedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'ownerPatientId': serializer.toJson<String>(ownerPatientId),
+      'viewerPatientId': serializer.toJson<String>(viewerPatientId),
+      'permission': serializer.toJson<String>(
+        $FamilyLinksTable.$converterpermission.toJson(permission),
+      ),
+      'status': serializer.toJson<String>(
+        $FamilyLinksTable.$converterstatus.toJson(status),
+      ),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'respondedAt': serializer.toJson<DateTime?>(respondedAt),
+    };
+  }
+
+  FamilyLinkRow copyWith({
+    String? id,
+    String? ownerPatientId,
+    String? viewerPatientId,
+    FamilyLinkPermission? permission,
+    FamilyLinkStatus? status,
+    DateTime? createdAt,
+    Value<DateTime?> respondedAt = const Value.absent(),
+  }) => FamilyLinkRow(
+    id: id ?? this.id,
+    ownerPatientId: ownerPatientId ?? this.ownerPatientId,
+    viewerPatientId: viewerPatientId ?? this.viewerPatientId,
+    permission: permission ?? this.permission,
+    status: status ?? this.status,
+    createdAt: createdAt ?? this.createdAt,
+    respondedAt: respondedAt.present ? respondedAt.value : this.respondedAt,
+  );
+  FamilyLinkRow copyWithCompanion(FamilyLinksCompanion data) {
+    return FamilyLinkRow(
+      id: data.id.present ? data.id.value : this.id,
+      ownerPatientId: data.ownerPatientId.present
+          ? data.ownerPatientId.value
+          : this.ownerPatientId,
+      viewerPatientId: data.viewerPatientId.present
+          ? data.viewerPatientId.value
+          : this.viewerPatientId,
+      permission: data.permission.present
+          ? data.permission.value
+          : this.permission,
+      status: data.status.present ? data.status.value : this.status,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      respondedAt: data.respondedAt.present
+          ? data.respondedAt.value
+          : this.respondedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FamilyLinkRow(')
+          ..write('id: $id, ')
+          ..write('ownerPatientId: $ownerPatientId, ')
+          ..write('viewerPatientId: $viewerPatientId, ')
+          ..write('permission: $permission, ')
+          ..write('status: $status, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('respondedAt: $respondedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    ownerPatientId,
+    viewerPatientId,
+    permission,
+    status,
+    createdAt,
+    respondedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FamilyLinkRow &&
+          other.id == this.id &&
+          other.ownerPatientId == this.ownerPatientId &&
+          other.viewerPatientId == this.viewerPatientId &&
+          other.permission == this.permission &&
+          other.status == this.status &&
+          other.createdAt == this.createdAt &&
+          other.respondedAt == this.respondedAt);
+}
+
+class FamilyLinksCompanion extends UpdateCompanion<FamilyLinkRow> {
+  final Value<String> id;
+  final Value<String> ownerPatientId;
+  final Value<String> viewerPatientId;
+  final Value<FamilyLinkPermission> permission;
+  final Value<FamilyLinkStatus> status;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> respondedAt;
+  final Value<int> rowid;
+  const FamilyLinksCompanion({
+    this.id = const Value.absent(),
+    this.ownerPatientId = const Value.absent(),
+    this.viewerPatientId = const Value.absent(),
+    this.permission = const Value.absent(),
+    this.status = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.respondedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FamilyLinksCompanion.insert({
+    required String id,
+    required String ownerPatientId,
+    required String viewerPatientId,
+    required FamilyLinkPermission permission,
+    this.status = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.respondedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       ownerPatientId = Value(ownerPatientId),
+       viewerPatientId = Value(viewerPatientId),
+       permission = Value(permission);
+  static Insertable<FamilyLinkRow> custom({
+    Expression<String>? id,
+    Expression<String>? ownerPatientId,
+    Expression<String>? viewerPatientId,
+    Expression<String>? permission,
+    Expression<String>? status,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? respondedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (ownerPatientId != null) 'owner_patient_id': ownerPatientId,
+      if (viewerPatientId != null) 'viewer_patient_id': viewerPatientId,
+      if (permission != null) 'permission': permission,
+      if (status != null) 'status': status,
+      if (createdAt != null) 'created_at': createdAt,
+      if (respondedAt != null) 'responded_at': respondedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FamilyLinksCompanion copyWith({
+    Value<String>? id,
+    Value<String>? ownerPatientId,
+    Value<String>? viewerPatientId,
+    Value<FamilyLinkPermission>? permission,
+    Value<FamilyLinkStatus>? status,
+    Value<DateTime>? createdAt,
+    Value<DateTime?>? respondedAt,
+    Value<int>? rowid,
+  }) {
+    return FamilyLinksCompanion(
+      id: id ?? this.id,
+      ownerPatientId: ownerPatientId ?? this.ownerPatientId,
+      viewerPatientId: viewerPatientId ?? this.viewerPatientId,
+      permission: permission ?? this.permission,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+      respondedAt: respondedAt ?? this.respondedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (ownerPatientId.present) {
+      map['owner_patient_id'] = Variable<String>(ownerPatientId.value);
+    }
+    if (viewerPatientId.present) {
+      map['viewer_patient_id'] = Variable<String>(viewerPatientId.value);
+    }
+    if (permission.present) {
+      map['permission'] = Variable<String>(
+        $FamilyLinksTable.$converterpermission.toSql(permission.value),
+      );
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(
+        $FamilyLinksTable.$converterstatus.toSql(status.value),
+      );
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (respondedAt.present) {
+      map['responded_at'] = Variable<DateTime>(respondedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FamilyLinksCompanion(')
+          ..write('id: $id, ')
+          ..write('ownerPatientId: $ownerPatientId, ')
+          ..write('viewerPatientId: $viewerPatientId, ')
+          ..write('permission: $permission, ')
+          ..write('status: $status, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('respondedAt: $respondedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $NotificationsTable extends Notifications
     with TableInfo<$NotificationsTable, NotificationRow> {
   @override
@@ -16036,6 +16537,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $PaymentMethodsTable paymentMethods = $PaymentMethodsTable(this);
   late final $WalletTransactionsTable walletTransactions =
       $WalletTransactionsTable(this);
+  late final $FamilyLinksTable familyLinks = $FamilyLinksTable(this);
   late final $NotificationsTable notifications = $NotificationsTable(this);
   late final $SickLeaveCertificatesTable sickLeaveCertificates =
       $SickLeaveCertificatesTable(this);
@@ -16072,6 +16574,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     invoices,
     paymentMethods,
     walletTransactions,
+    familyLinks,
     notifications,
     sickLeaveCertificates,
     careMessages,
@@ -16217,6 +16720,20 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('wallet_transactions', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('family_links', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('family_links', kind: UpdateKind.delete)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(

@@ -23,6 +23,7 @@ import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../patient/application/family_link_providers.dart';
 import '../../patient/application/patient_data_providers.dart';
 import '../../patient/presentation/patient_top_actions.dart';
 import '../application/appointment_confirmation.dart';
@@ -37,6 +38,7 @@ class BookingScreen extends ConsumerStatefulWidget {
     this.mode = BookingMode.schedule,
     this.initialDepartmentId,
     this.initialStaffId,
+    this.targetPatientId,
     super.key,
   });
 
@@ -46,6 +48,10 @@ class BookingScreen extends ConsumerStatefulWidget {
   /// again" on a doctor they have already seen (P10-04).
   final String? initialDepartmentId;
   final String? initialStaffId;
+
+  /// Set when arriving from "Book for [name]" on a "manage" linked account —
+  /// this books on that account, not the signed-in patient's own.
+  final String? targetPatientId;
 
   @override
   ConsumerState<BookingScreen> createState() => _BookingScreenState();
@@ -65,6 +71,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
           departmentId: widget.initialDepartmentId,
           staffId: widget.initialStaffId,
         );
+        ref.read(bookingTargetPatientIdProvider.notifier).state =
+            widget.targetPatientId;
       }
     });
   }
@@ -106,7 +114,12 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             child: ListView(
               padding: EdgeInsets.fromLTRB(gutter, Space.md, gutter, Space.xxl),
               children: [
-                const _BookingForSelector(),
+                if (widget.targetPatientId != null)
+                  _BookingForLinkedAccountBanner(
+                    ownerPatientId: widget.targetPatientId!,
+                  )
+                else
+                  const _BookingForSelector(),
                 _StepBar(current: _stepFor(draft)),
                 const SizedBox(height: Space.lg),
 
@@ -190,6 +203,29 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
 // ---------------------------------------------------------------------------
 // Who is this for?
 // ---------------------------------------------------------------------------
+
+/// Shown instead of [_BookingForSelector] when this wizard was opened from
+/// "Book for [name]" on a "manage" linked account — the visit is created
+/// under *their* account, not a cosmetic label on the signed-in patient's own.
+class _BookingForLinkedAccountBanner extends ConsumerWidget {
+  const _BookingForLinkedAccountBanner({required this.ownerPatientId});
+
+  final String ownerPatientId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
+    final patient = ref.watch(linkedPatientProvider(ownerPatientId));
+    return Padding(
+      padding: const EdgeInsets.only(bottom: Space.lg),
+      child: patient.when(
+        loading: () => const LoadingSkeleton(height: 48),
+        error: (e, _) => InlineBanner.error(t.noAccessToThisAccount),
+        data: (p) => InlineBanner.info(t.bookedForNotice(p.fullName)),
+      ),
+    );
+  }
+}
 
 /// A "Booking for" chooser shown above the wizard when the account holder has
 /// linked family members. "Myself" clears the draft's `bookedForName`; picking

@@ -14,6 +14,7 @@ import '../data/repositories/auth_repository_impl.dart';
 import '../data/repositories/billing_repository_impl.dart';
 import '../data/repositories/care_repository_impl.dart';
 import '../data/repositories/consultation_repository_impl.dart';
+import '../data/repositories/family_link_repository_impl.dart';
 import '../data/repositories/notification_repository_impl.dart';
 import '../data/repositories/patient_repository_impl.dart';
 import '../data/repositories/record_repository_impl.dart';
@@ -82,6 +83,10 @@ final appointmentRepositoryProvider = Provider<AppointmentRepository>(
 
 final billingRepositoryProvider = Provider<BillingRepository>(
   (ref) => BillingRepositoryImpl(ref.watch(appDatabaseProvider)),
+);
+
+final familyLinkRepositoryProvider = Provider<FamilyLinkRepository>(
+  (ref) => FamilyLinkRepositoryImpl(ref.watch(appDatabaseProvider)),
 );
 
 final sickLeaveRepositoryProvider = Provider<SickLeaveRepository>(

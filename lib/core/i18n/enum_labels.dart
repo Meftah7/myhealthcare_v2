@@ -307,6 +307,24 @@ String invoiceStatusLabel(
   return status.label(context);
 }
 
+extension FamilyLinkPermissionLabel on FamilyLinkPermission {
+  String label(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    return switch (this) {
+      FamilyLinkPermission.viewOnly => t.viewOnlyPermissionLabel,
+      FamilyLinkPermission.manage => t.managePermissionLabel,
+    };
+  }
+
+  String description(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    return switch (this) {
+      FamilyLinkPermission.viewOnly => t.viewOnlyPermissionDescription,
+      FamilyLinkPermission.manage => t.managePermissionDescription,
+    };
+  }
+}
+
 extension FamilyRelationshipLabel on FamilyRelationship {
   String label(BuildContext context) {
     final t = AppLocalizations.of(context)!;

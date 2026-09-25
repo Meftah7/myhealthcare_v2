@@ -115,7 +115,7 @@ void main() {
     expect(find.byType(SearchBar), findsOneWidget);
 
     // Switch to Medications.
-    await tester.tap(find.text('Medications'));
+    await tester.tap(find.text('Medication'));
     await _settle(tester);
     expect(find.byType(SearchBar), findsNothing);
     // Seeded chronic patient is on medication.
@@ -147,7 +147,7 @@ void main() {
     expect(find.widgetWithText(AppBar, 'Nutrition'), findsOneWidget);
 
     // The bottom nav is still visible (Nutrition is a shell branch).
-    expect(find.text('Appointments'), findsWidgets);
+    expect(find.text('Appointment'), findsWidgets);
 
     // Tabs, in order: Calculator → Meal plan → Foods.
     expect(find.text('Calculator'), findsOneWidget);

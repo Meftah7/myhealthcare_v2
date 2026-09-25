@@ -1632,6 +1632,58 @@
   "familyRelationshipGuardian": "وصي",
   "familyRelationshipOther": "أخرى",
 
+  "linkedAccountsTitle": "الحسابات المرتبطة",
+  "linkAccountAction": "ربط حساب",
+  "linkAccountSheetTitle": "ربط حساب",
+  "linkAccountSearchHint": "ابحث بالاسم أو الهاتف أو الرقم الشخصي",
+  "linkAccountSearchHelper": "يجب أن يكون لديهم حساب MyHealth Care بالفعل.",
+  "noAccountsFound": "لم يتم العثور على حسابات.",
+  "permissionQuestionLabel": "ما الذي يمكنهم فعله؟",
+  "viewOnlyPermissionLabel": "عرض فقط",
+  "viewOnlyPermissionDescription": "يرى مواعيدك وسجلاتك الصحية.",
+  "managePermissionLabel": "إدارة كاملة",
+  "managePermissionDescription": "يمكنه أيضاً إلغاء وإعادة جدولة مواعيدك.",
+  "sendRequestButton": "إرسال الطلب",
+  "requestSentMessage": "تم إرسال الطلب",
+  "acceptButton": "قبول",
+  "pendingRequestsTitle": "طلبات معلقة",
+  "requestsAccessNote": "{name} يطلب هذا الوصول إلى حسابك:",
+  "@requestsAccessNote": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "sentRequestsTitle": "الطلبات المرسلة",
+  "waitingForAcceptanceNote": "بانتظار موافقة {name}.",
+  "@waitingForAcceptanceNote": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "noLinkedAccountsYet": "لا توجد حسابات مرتبطة بعد.",
+  "viewersOfMeTitle": "من يمكنه رؤيتك",
+  "noOneElseHasAccess": "لا يوجد شخص آخر لديه وصول إلى حسابك.",
+  "unlinkAccountTitle": "إلغاء ربط {name}؟",
+  "@unlinkAccountTitle": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "unlinkAccountNote": "سيفقدون كل الوصول إلى حسابك.",
+  "unlinkAction": "إلغاء الربط",
+  "revokeAccessNote": "لن يتمكن {name} بعد الآن من رؤية حسابك.",
+  "@revokeAccessNote": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "viewAccountAction": "عرض",
+  "linkedAccountAppointmentsTitle": "المواعيد",
+  "linkedAccountHealthTitle": "السجلات الصحية",
+  "viewOnlyAccessNote": "لديك وصول للعرض فقط — لا يمكنك الحجز أو الإلغاء أو إعادة الجدولة.",
+  "noAccessToThisAccount": "ليس لديك وصول إلى هذا الحساب.",
+  "couldNotSendRequest": "تعذّر إرسال الطلب.",
+
   "visitedDoctorsTitle": "الأطباء الذين تمت زيارتهم",
   "couldNotLoadYourCareTeam": "تعذّر تحميل فريق رعايتك.",
   "noPastVisitsYetMessage": "لا توجد زيارات سابقة بعد.\nسيظهر هنا الأطباء الذين تزورهم.",

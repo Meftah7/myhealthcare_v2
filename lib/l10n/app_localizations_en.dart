@@ -3346,6 +3346,108 @@ class AppLocalizationsEn extends AppLocalizations {
   String get familyRelationshipOther => 'Other';
 
   @override
+  String get linkedAccountsTitle => 'Linked accounts';
+
+  @override
+  String get linkAccountAction => 'Link account';
+
+  @override
+  String get linkAccountSheetTitle => 'Link an account';
+
+  @override
+  String get linkAccountSearchHint => 'Search by name, phone or national ID';
+
+  @override
+  String get linkAccountSearchHelper =>
+      'They must already have a MyHealth Care account.';
+
+  @override
+  String get noAccountsFound => 'No accounts found.';
+
+  @override
+  String get permissionQuestionLabel => 'What can they do?';
+
+  @override
+  String get viewOnlyPermissionLabel => 'Can view only';
+
+  @override
+  String get viewOnlyPermissionDescription =>
+      'Sees your appointments and health records.';
+
+  @override
+  String get managePermissionLabel => 'Can manage';
+
+  @override
+  String get managePermissionDescription =>
+      'Can also cancel and reschedule your appointments.';
+
+  @override
+  String get requestSentMessage => 'Request sent';
+
+  @override
+  String get acceptButton => 'Accept';
+
+  @override
+  String get pendingRequestsTitle => 'Pending requests';
+
+  @override
+  String requestsAccessNote(String name) {
+    return '$name wants this access to your account:';
+  }
+
+  @override
+  String get sentRequestsTitle => 'Sent requests';
+
+  @override
+  String waitingForAcceptanceNote(String name) {
+    return 'Waiting for $name to accept.';
+  }
+
+  @override
+  String get noLinkedAccountsYet => 'No linked accounts yet.';
+
+  @override
+  String get viewersOfMeTitle => 'Who can see you';
+
+  @override
+  String get noOneElseHasAccess => 'No one else has access to your account.';
+
+  @override
+  String unlinkAccountTitle(String name) {
+    return 'Unlink $name?';
+  }
+
+  @override
+  String get unlinkAccountNote => 'They will lose all access to your account.';
+
+  @override
+  String get unlinkAction => 'Unlink';
+
+  @override
+  String revokeAccessNote(String name) {
+    return '$name will no longer be able to see your account.';
+  }
+
+  @override
+  String get viewAccountAction => 'View';
+
+  @override
+  String get linkedAccountAppointmentsTitle => 'Appointments';
+
+  @override
+  String get linkedAccountHealthTitle => 'Health records';
+
+  @override
+  String get viewOnlyAccessNote =>
+      'You have view-only access — you can\'t book, cancel or reschedule.';
+
+  @override
+  String get noAccessToThisAccount => 'You do not have access to this account.';
+
+  @override
+  String get couldNotSendRequest => 'Could not send the request.';
+
+  @override
   String get visitedDoctorsTitle => 'Visited doctors';
 
   @override

@@ -13,6 +13,7 @@ import 'tables/ai.dart';
 import 'tables/appointments.dart';
 import 'tables/billing.dart';
 import 'tables/care.dart';
+import 'tables/family.dart';
 import 'tables/notifications.dart';
 import 'tables/records.dart';
 import 'tables/system.dart';
@@ -44,6 +45,8 @@ part 'app_database.g.dart';
     Invoices,
     PaymentMethods,
     WalletTransactions,
+    // family network
+    FamilyLinks,
     // engagement
     Notifications,
     // care services (P10 Batch B)
@@ -82,7 +85,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 13;
+  int get schemaVersion => 14;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -153,6 +156,11 @@ class AppDatabase extends _$AppDatabase {
         // replacing the old cards-only "Wallet" page. Billing + Wallet merge
         // into one Payments screen.
         await m.createTable(walletTransactions);
+      }
+      if (from < 14) {
+        // Family Network: link two real patient accounts, with a
+        // view-only/manage permission the owner must accept.
+        await m.createTable(familyLinks);
       }
     },
     beforeOpen: (details) async {

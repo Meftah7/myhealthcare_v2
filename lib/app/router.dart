@@ -44,6 +44,7 @@ import '../features/notifications/presentation/notifications_screen.dart';
 import '../features/nutrition/presentation/nutrition_screen.dart';
 import '../features/patient/application/profile_screen.dart';
 import '../features/patient/presentation/allergies_screen.dart';
+import '../features/patient/presentation/linked_account_screen.dart';
 import '../features/patient/presentation/profile_section_pages.dart';
 import '../features/patient/presentation/visited_doctors_screen.dart';
 import '../features/patient_chart/presentation/patient_chart_screen.dart';
@@ -113,6 +114,10 @@ abstract final class AppRoutes {
   static const patientProfileHealth = '/patient/settings/health';
   static const patientProfilePreferences = '/patient/settings/preferences';
   static const patientProfileFamily = '/patient/settings/family';
+
+  /// A linked family account, viewed through the access its owner granted.
+  static String linkedAccount(String ownerPatientId) =>
+      '$patientProfileFamily/linked/$ownerPatientId';
 
   /// Opens Health Records with the Medications view selected (keeps the shell
   /// nav rail / bar visible, unlike a standalone route).
@@ -230,6 +235,7 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
           mode: (state.extra as BookingMode?) ?? BookingMode.schedule,
           initialStaffId: state.uri.queryParameters['staff'],
           initialDepartmentId: state.uri.queryParameters['dept'],
+          targetPatientId: state.uri.queryParameters['for'],
         ),
       ),
       GoRoute(
@@ -454,6 +460,14 @@ StatefulShellRoute _patientShell() {
               GoRoute(
                 path: 'family',
                 builder: (_, _) => const FamilyNetworkPage(),
+                routes: [
+                  GoRoute(
+                    path: 'linked/:ownerId',
+                    builder: (_, state) => LinkedAccountScreen(
+                      ownerPatientId: state.pathParameters['ownerId']!,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

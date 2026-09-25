@@ -3403,6 +3403,107 @@ class AppLocalizationsAr extends AppLocalizations {
   String get familyRelationshipOther => 'أخرى';
 
   @override
+  String get linkedAccountsTitle => 'الحسابات المرتبطة';
+
+  @override
+  String get linkAccountAction => 'ربط حساب';
+
+  @override
+  String get linkAccountSheetTitle => 'ربط حساب';
+
+  @override
+  String get linkAccountSearchHint => 'ابحث بالاسم أو الهاتف أو الرقم الشخصي';
+
+  @override
+  String get linkAccountSearchHelper =>
+      'يجب أن يكون لديهم حساب MyHealth Care بالفعل.';
+
+  @override
+  String get noAccountsFound => 'لم يتم العثور على حسابات.';
+
+  @override
+  String get permissionQuestionLabel => 'ما الذي يمكنهم فعله؟';
+
+  @override
+  String get viewOnlyPermissionLabel => 'عرض فقط';
+
+  @override
+  String get viewOnlyPermissionDescription => 'يرى مواعيدك وسجلاتك الصحية.';
+
+  @override
+  String get managePermissionLabel => 'إدارة كاملة';
+
+  @override
+  String get managePermissionDescription =>
+      'يمكنه أيضاً إلغاء وإعادة جدولة مواعيدك.';
+
+  @override
+  String get requestSentMessage => 'تم إرسال الطلب';
+
+  @override
+  String get acceptButton => 'قبول';
+
+  @override
+  String get pendingRequestsTitle => 'طلبات معلقة';
+
+  @override
+  String requestsAccessNote(String name) {
+    return '$name يطلب هذا الوصول إلى حسابك:';
+  }
+
+  @override
+  String get sentRequestsTitle => 'الطلبات المرسلة';
+
+  @override
+  String waitingForAcceptanceNote(String name) {
+    return 'بانتظار موافقة $name.';
+  }
+
+  @override
+  String get noLinkedAccountsYet => 'لا توجد حسابات مرتبطة بعد.';
+
+  @override
+  String get viewersOfMeTitle => 'من يمكنه رؤيتك';
+
+  @override
+  String get noOneElseHasAccess => 'لا يوجد شخص آخر لديه وصول إلى حسابك.';
+
+  @override
+  String unlinkAccountTitle(String name) {
+    return 'إلغاء ربط $name؟';
+  }
+
+  @override
+  String get unlinkAccountNote => 'سيفقدون كل الوصول إلى حسابك.';
+
+  @override
+  String get unlinkAction => 'إلغاء الربط';
+
+  @override
+  String revokeAccessNote(String name) {
+    return 'لن يتمكن $name بعد الآن من رؤية حسابك.';
+  }
+
+  @override
+  String get viewAccountAction => 'عرض';
+
+  @override
+  String get linkedAccountAppointmentsTitle => 'المواعيد';
+
+  @override
+  String get linkedAccountHealthTitle => 'السجلات الصحية';
+
+  @override
+  String get viewOnlyAccessNote =>
+      'لديك وصول للعرض فقط — لا يمكنك الحجز أو الإلغاء أو إعادة الجدولة.';
+
+  @override
+  String get noAccessToThisAccount => 'ليس لديك وصول إلى هذا الحساب.';
+
+  @override
+  String get couldNotSendRequest => 'تعذّر إرسال الطلب.';
+
+  @override
   String get visitedDoctorsTitle => 'الأطباء الذين تمت زيارتهم';
 
   @override

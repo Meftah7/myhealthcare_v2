@@ -7,7 +7,8 @@ import '../entities/entities.dart';
 abstract interface class PatientRepository {
   Future<Result<Patient>> byId(String id);
 
-  /// Free-text search over name / national id (staff patient search, P5-06).
+  /// Free-text search over name / national id / phone (staff patient search,
+  /// P5-06; also used to find an account to family-link with).
   Future<Result<List<Patient>>> search(String query, {int limit});
 
   Future<Result<List<Patient>>> all({int limit, int offset});

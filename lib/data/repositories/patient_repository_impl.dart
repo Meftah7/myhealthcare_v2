@@ -41,7 +41,9 @@ class PatientRepositoryImpl implements PatientRepository {
                 ..where(
                   (u) =>
                       u.role.equalsValue(UserRole.patient) &
-                      (u.fullName.like(q) | u.nationalId.like(q)),
+                      (u.fullName.like(q) |
+                          u.nationalId.like(q) |
+                          u.phone.like(q)),
                 )
                 ..orderBy([(u) => OrderingTerm(expression: u.fullName)])
                 ..limit(limit))

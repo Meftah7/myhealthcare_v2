@@ -4,6 +4,7 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/di.dart';
+import '../../../core/failures.dart';
 import '../../../core/result.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
@@ -11,6 +12,7 @@ import '../../../domain/repositories/appointment_repository.dart';
 import '../../../services/ml/feature_extractor.dart';
 import '../../../services/ml/no_show_predictor.dart';
 import '../../auth/application/session.dart';
+import '../../patient/application/family_link_providers.dart';
 import '../../patient/application/patient_data_providers.dart';
 
 /// The trained no-show model, loaded once from the bundled asset.
@@ -92,6 +94,30 @@ final bookingDraftProvider = StateProvider<BookingRequestDraft>(
   (_) => const BookingRequestDraft(),
 );
 
+/// null = booking for the signed-in patient themself. Otherwise, a linked
+/// family account's id — set when the wizard is opened from "Book for
+/// [name]" on a "manage" linked account. Re-checked at [BookingController.
+/// confirm] time, never trusted from the UI alone.
+final bookingTargetPatientIdProvider = StateProvider<String?>((_) => null);
+
+/// Whoever the current draft books a visit for — the signed-in patient, or
+/// the linked account being booked for.
+final _bookingSubjectProvider = FutureProvider<Patient>((ref) async {
+  final targetId = ref.watch(bookingTargetPatientIdProvider);
+  if (targetId == null) return ref.watch(patientProfileProvider.future);
+  return _unwrap(await ref.watch(patientRepositoryProvider).byId(targetId));
+});
+
+final _bookingSubjectHistoryProvider = FutureProvider<List<Appointment>>((
+  ref,
+) async {
+  final targetId = ref.watch(bookingTargetPatientIdProvider);
+  if (targetId == null) return ref.watch(patientAppointmentsProvider.future);
+  return _unwrap(
+    await ref.watch(appointmentRepositoryProvider).forPatient(targetId),
+  );
+});
+
 /// Ranked open slots for the current draft (staff + date), best first.
 final rankedSlotsProvider = FutureProvider<List<RankedSlot>>((ref) async {
   final draft = ref.watch(bookingDraftProvider);
@@ -101,8 +127,8 @@ final rankedSlotsProvider = FutureProvider<List<RankedSlot>>((ref) async {
   final slots = _unwrap(await appts.openSlots(draft.staffId!, draft.date!));
   if (slots.isEmpty) return const [];
 
-  final patient = await ref.watch(patientProfileProvider.future);
-  final history = await ref.watch(patientAppointmentsProvider.future);
+  final patient = await ref.watch(_bookingSubjectProvider.future);
+  final history = await ref.watch(_bookingSubjectHistoryProvider.future);
   final model = await ref.watch(noShowModelProvider.future);
 
   final resolved = history.where(
@@ -172,7 +198,29 @@ class BookingController {
 
   Future<Result<Appointment>> confirm(RankedSlot slot) async {
     final draft = _ref.read(bookingDraftProvider);
-    final patientId = _ref.read(currentUserProvider)!.id;
+    final actingPatientId = _ref.read(currentUserProvider)!.id;
+    final targetId = _ref.read(bookingTargetPatientIdProvider);
+
+    String patientId;
+    if (targetId != null && targetId != actingPatientId) {
+      final guard = await _ref
+          .read(familyLinkRepositoryProvider)
+          .activeLink(
+            viewerPatientId: actingPatientId,
+            ownerPatientId: targetId,
+          );
+      if (guard case Err(:final failure)) return Err(failure);
+      final link = guard.valueOrNull;
+      if (link == null || !link.canManage) {
+        return const Err(
+          AuthFailure('You do not have manage access to this account.'),
+        );
+      }
+      patientId = targetId;
+    } else {
+      patientId = actingPatientId;
+    }
+
     final result = await _ref
         .read(appointmentRepositoryProvider)
         .book(
@@ -190,9 +238,12 @@ class BookingController {
           ),
         );
     if (result case Ok(:final value)) {
-      _ref
-        ..invalidate(patientAppointmentsProvider)
-        ..invalidate(rankedSlotsProvider);
+      _ref.invalidate(rankedSlotsProvider);
+      if (patientId == actingPatientId) {
+        _ref.invalidate(patientAppointmentsProvider);
+      } else {
+        _ref.invalidate(linkedAppointmentsProvider(patientId));
+      }
       await _ref
           .read(reminderSchedulerProvider)
           .scheduleFor(
@@ -206,7 +257,7 @@ class BookingController {
             action: 'appointment.book',
             entityType: 'appointment',
             entityId: value.id,
-            actorUserId: patientId,
+            actorUserId: actingPatientId,
           );
     }
     return result;

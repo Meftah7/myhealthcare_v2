@@ -8,6 +8,7 @@ export 'appointment.dart';
 export 'audit_entry.dart';
 export 'care.dart';
 export 'department.dart';
+export 'family_link.dart';
 export 'family_member.dart';
 export 'feedback.dart';
 export 'invoice.dart';

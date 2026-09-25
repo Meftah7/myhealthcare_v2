@@ -1632,6 +1632,58 @@
   "familyRelationshipGuardian": "Guardian",
   "familyRelationshipOther": "Other",
 
+  "linkedAccountsTitle": "Linked accounts",
+  "linkAccountAction": "Link account",
+  "linkAccountSheetTitle": "Link an account",
+  "linkAccountSearchHint": "Search by name, phone or national ID",
+  "linkAccountSearchHelper": "They must already have a MyHealth Care account.",
+  "noAccountsFound": "No accounts found.",
+  "permissionQuestionLabel": "What can they do?",
+  "viewOnlyPermissionLabel": "Can view only",
+  "viewOnlyPermissionDescription": "Sees your appointments and health records.",
+  "managePermissionLabel": "Can manage",
+  "managePermissionDescription": "Can also cancel and reschedule your appointments.",
+  "sendRequestButton": "Send request",
+  "requestSentMessage": "Request sent",
+  "acceptButton": "Accept",
+  "pendingRequestsTitle": "Pending requests",
+  "requestsAccessNote": "{name} wants this access to your account:",
+  "@requestsAccessNote": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "sentRequestsTitle": "Sent requests",
+  "waitingForAcceptanceNote": "Waiting for {name} to accept.",
+  "@waitingForAcceptanceNote": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "noLinkedAccountsYet": "No linked accounts yet.",
+  "viewersOfMeTitle": "Who can see you",
+  "noOneElseHasAccess": "No one else has access to your account.",
+  "unlinkAccountTitle": "Unlink {name}?",
+  "@unlinkAccountTitle": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "unlinkAccountNote": "They will lose all access to your account.",
+  "unlinkAction": "Unlink",
+  "revokeAccessNote": "{name} will no longer be able to see your account.",
+  "@revokeAccessNote": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "viewAccountAction": "View",
+  "linkedAccountAppointmentsTitle": "Appointments",
+  "linkedAccountHealthTitle": "Health records",
+  "viewOnlyAccessNote": "You have view-only access — you can't book, cancel or reschedule.",
+  "noAccessToThisAccount": "You do not have access to this account.",
+  "couldNotSendRequest": "Could not send the request.",
+
   "visitedDoctorsTitle": "Visited doctors",
   "couldNotLoadYourCareTeam": "Could not load your care team.",
   "noPastVisitsYetMessage": "No past visits yet.\nDoctors you see will appear here.",
