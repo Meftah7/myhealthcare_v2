@@ -196,6 +196,7 @@ class _UserCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final isPatient = user.role == UserRole.patient;
+    final isStaff = user.role == UserRole.staff;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: Space.xs),
@@ -284,6 +285,12 @@ class _UserCard extends ConsumerWidget {
                       label: Text(t.referAction),
                     ),
                   ],
+                  if (isStaff)
+                    OutlinedButton.icon(
+                      onPressed: () => _editSchedule(context),
+                      icon: const Icon(Icons.calendar_month_outlined, size: 18),
+                      label: Text(t.editScheduleAction),
+                    ),
                 ],
               ),
             ],
@@ -343,6 +350,16 @@ class _UserCard extends ConsumerWidget {
     builder: (context) => Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: _ReferPatientSheet(patient: user),
+    ),
+  );
+
+  Future<void> _editSchedule(BuildContext context) => showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    showDragHandle: true,
+    builder: (context) => Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: _ScheduleEditorSheet(staff: user),
     ),
   );
 }
@@ -1132,6 +1149,284 @@ class _ReferPatientSheetState extends ConsumerState<_ReferPatientSheet> {
                     )
                   : Text(t.referPatientAction),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DayDraft {
+  _DayDraft({
+    required this.weekday,
+    this.active = false,
+    this.startMinutes = 9 * 60,
+    this.endMinutes = 17 * 60,
+    this.slotMinutes = 20,
+  });
+
+  final int weekday;
+  bool active;
+  int startMinutes;
+  int endMinutes;
+  int slotMinutes;
+}
+
+class _ScheduleEditorSheet extends ConsumerStatefulWidget {
+  const _ScheduleEditorSheet({required this.staff});
+  final User staff;
+
+  @override
+  ConsumerState<_ScheduleEditorSheet> createState() =>
+      _ScheduleEditorSheetState();
+}
+
+class _ScheduleEditorSheetState extends ConsumerState<_ScheduleEditorSheet> {
+  List<_DayDraft>? _days;
+  bool _busy = false;
+  String? _error;
+
+  void _initFrom(List<ScheduleTemplate> templates) {
+    if (_days != null) return;
+    final byWeekday = {for (final t in templates) t.weekday: t};
+    _days = [
+      for (var w = 1; w <= 7; w++)
+        if (byWeekday[w] case final existing?)
+          _DayDraft(
+            weekday: w,
+            active: true,
+            startMinutes: existing.startMinutes,
+            endMinutes: existing.endMinutes,
+            slotMinutes: existing.slotMinutes,
+          )
+        else
+          _DayDraft(weekday: w),
+    ];
+  }
+
+  Future<void> _pickTime(_DayDraft day, {required bool isStart}) async {
+    final t = AppLocalizations.of(context)!;
+    final current = isStart ? day.startMinutes : day.endMinutes;
+    final initial = TimeOfDay(hour: current ~/ 60, minute: current % 60);
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: initial,
+      helpText: isStart ? t.startTimeLabel : t.endTimeLabel,
+    );
+    if (picked == null) return;
+    setState(() {
+      final minutes = picked.hour * 60 + picked.minute;
+      if (isStart) {
+        day.startMinutes = minutes;
+      } else {
+        day.endMinutes = minutes;
+      }
+    });
+  }
+
+  Future<void> _save() async {
+    final t = AppLocalizations.of(context)!;
+    final active = _days!.where((d) => d.active).toList();
+    if (active.isEmpty) {
+      setState(() => _error = t.noWorkingDaysNote);
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    final result = await ref
+        .read(scheduleTemplateActionsProvider)
+        .save(
+          staffId: widget.staff.id,
+          templates: [
+            for (final d in active)
+              NewScheduleTemplate(
+                weekday: d.weekday,
+                startMinutes: d.startMinutes,
+                endMinutes: d.endMinutes,
+                slotMinutes: d.slotMinutes,
+              ),
+          ],
+        );
+    if (!mounted) return;
+    switch (result) {
+      case Ok():
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(t.scheduleSavedMessage)));
+      case Err(:final failure):
+        setState(() {
+          _busy = false;
+          _error = failure.message;
+        });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final async = ref.watch(staffScheduleTemplatesProvider(widget.staff.id));
+
+    return Padding(
+      padding: const EdgeInsets.all(Space.lg),
+      child: async.when(
+        loading: () => const SizedBox(
+          height: 200,
+          child: Center(child: CircularProgressIndicator()),
+        ),
+        error: (e, _) => SizedBox(
+          height: 120,
+          child: Center(child: Text(t.couldNotLoadSchedule)),
+        ),
+        data: (templates) {
+          _initFrom(templates);
+          final days = _days!;
+          return SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(t.scheduleEditorTitle, style: theme.textTheme.titleLarge),
+                const SizedBox(height: Space.xxs),
+                Text(
+                  '${widget.staff.fullName} · ${t.scheduleEditorSubtitle}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: Space.md),
+                for (final d in days)
+                  _DayRow(
+                    day: d,
+                    onToggle: () => setState(() => d.active = !d.active),
+                    onPickStart: () => _pickTime(d, isStart: true),
+                    onPickEnd: () => _pickTime(d, isStart: false),
+                    onSlotMinutesChanged: (v) =>
+                        setState(() => d.slotMinutes = v),
+                  ),
+                if (_error != null) ...[
+                  const SizedBox(height: Space.sm),
+                  Text(
+                    _error!,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.error,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: Space.md),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: _busy ? null : _save,
+                    child: _busy
+                        ? const SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(t.saveChangesAction),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _DayRow extends StatelessWidget {
+  const _DayRow({
+    required this.day,
+    required this.onToggle,
+    required this.onPickStart,
+    required this.onPickEnd,
+    required this.onSlotMinutesChanged,
+  });
+
+  final _DayDraft day;
+  final VoidCallback onToggle;
+  final VoidCallback onPickStart;
+  final VoidCallback onPickEnd;
+  final ValueChanged<int> onSlotMinutesChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: Space.xxs),
+      child: AppCard(
+        padding: const EdgeInsets.symmetric(
+          horizontal: Space.md,
+          vertical: Space.sm,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    fmtWeekdayName(day.weekday),
+                    style: theme.textTheme.titleSmall,
+                  ),
+                ),
+                Switch(value: day.active, onChanged: (_) => onToggle()),
+              ],
+            ),
+            if (day.active) ...[
+              const SizedBox(height: Space.xs),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: onPickStart,
+                      child: Text(
+                        '${t.startTimeLabel}: ${fmtMinutes(day.startMinutes)}',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: Space.sm),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: onPickEnd,
+                      child: Text(
+                        '${t.endTimeLabel}: ${fmtMinutes(day.endMinutes)}',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: Space.xs),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      t.slotLengthLabel,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  DropdownButton<int>(
+                    value: day.slotMinutes,
+                    items: const [10, 15, 20, 30, 45, 60]
+                        .map(
+                          (m) => DropdownMenuItem(value: m, child: Text('$m')),
+                        )
+                        .toList(),
+                    onChanged: (v) {
+                      if (v != null) onSlotMinutesChanged(v);
+                    },
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),

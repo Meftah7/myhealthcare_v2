@@ -46,6 +46,17 @@ Staff staffFrom(UserRow user, StaffProfileRow? profile) => Staff(
   presence: profile?.presence ?? PresenceStatus.offShift,
 );
 
+extension ScheduleTemplateRowX on ScheduleTemplateRow {
+  ScheduleTemplate toEntity() => ScheduleTemplate(
+    id: id,
+    staffId: staffId,
+    weekday: weekday,
+    startMinutes: startMinutes,
+    endMinutes: endMinutes,
+    slotMinutes: slotMinutes,
+  );
+}
+
 extension AppointmentRowX on AppointmentRow {
   Appointment toEntity() => Appointment(
     id: id,

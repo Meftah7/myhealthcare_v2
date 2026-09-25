@@ -156,6 +156,60 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
   }
 
   @override
+  Future<Result<List<ScheduleTemplate>>> templatesFor(String staffId) {
+    return Result.guardAsync(() async {
+      final rows =
+          await (_db.select(_db.scheduleTemplates)
+                ..where((t) => t.staffId.equals(staffId))
+                ..orderBy([(t) => OrderingTerm(expression: t.weekday)]))
+              .get();
+      return rows.map((r) => r.toEntity()).toList();
+    });
+  }
+
+  @override
+  Future<Result<List<ScheduleTemplate>>> setTemplates({
+    required String staffId,
+    required List<NewScheduleTemplate> templates,
+  }) {
+    return Result.guardAsync(() async {
+      for (final t in templates) {
+        if (t.startMinutes >= t.endMinutes) {
+          throw const ValidationFailure('Start time must be before end time.');
+        }
+        if (t.slotMinutes <= 0) {
+          throw const ValidationFailure('Slot length must be greater than zero.');
+        }
+      }
+      await _db.transaction(() async {
+        await (_db.delete(
+          _db.scheduleTemplates,
+        )..where((t) => t.staffId.equals(staffId))).go();
+        for (final t in templates) {
+          await _db
+              .into(_db.scheduleTemplates)
+              .insert(
+                ScheduleTemplatesCompanion.insert(
+                  id: newId('sched'),
+                  staffId: staffId,
+                  weekday: t.weekday,
+                  startMinutes: t.startMinutes,
+                  endMinutes: t.endMinutes,
+                  slotMinutes: Value(t.slotMinutes),
+                ),
+              );
+        }
+      });
+      final rows =
+          await (_db.select(_db.scheduleTemplates)
+                ..where((t) => t.staffId.equals(staffId))
+                ..orderBy([(t) => OrderingTerm(expression: t.weekday)]))
+              .get();
+      return rows.map((r) => r.toEntity()).toList();
+    });
+  }
+
+  @override
   Future<Result<Appointment>> book(BookingRequest r) {
     return Result.guardAsync(() async {
       final clash =

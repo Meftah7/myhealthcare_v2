@@ -75,6 +75,16 @@ abstract interface class AppointmentRepository {
   /// templates minus booked appointments.
   Future<Result<List<OpenSlot>>> openSlots(String staffId, DateTime day);
 
+  /// [staffId]'s recurring weekly working blocks, ordered by weekday.
+  Future<Result<List<ScheduleTemplate>>> templatesFor(String staffId);
+
+  /// Replaces every schedule-template row for [staffId] with [templates] in
+  /// one transaction — the admin schedule editor saves the whole week at once.
+  Future<Result<List<ScheduleTemplate>>> setTemplates({
+    required String staffId,
+    required List<NewScheduleTemplate> templates,
+  });
+
   Future<Result<Appointment>> book(BookingRequest request);
 
   Future<Result<Appointment>> reschedule({

@@ -170,6 +170,32 @@ void main() {
         AbnormalFlag.normal,
       );
     });
+
+    test('an imported PDF round-trips its filename and extracted text',
+        () async {
+      final patient = await registerPatient(email: 'import@example.com');
+      final repo = RecordRepositoryImpl(db);
+
+      final saved = (await repo.add(
+        NewRecord(
+          patientId: patient.id,
+          recordType: RecordType.labResult,
+          title: 'Outside lab result',
+          occurredAt: DateTime(2026, 3),
+          attachmentPath: 'lab_report.pdf',
+          extractedText: 'Hemoglobin 13.2 g/dL — within range',
+        ),
+      )).valueOrNull!;
+
+      expect(saved.hasAttachment, isTrue);
+      expect(saved.attachmentPath, 'lab_report.pdf');
+      expect(saved.extractedText, contains('Hemoglobin'));
+
+      // It shows up in the patient's timeline like any other record.
+      final timeline =
+          (await repo.timeline(patient.id)).valueOrNull!;
+      expect(timeline.any((r) => r.id == saved.id), isTrue);
+    });
   });
 
   group('RiskRepository', () {

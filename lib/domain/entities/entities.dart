@@ -19,6 +19,7 @@ export 'patient.dart';
 export 'payment_method.dart';
 export 'referral_request.dart';
 export 'risk_flag.dart';
+export 'schedule_template.dart';
 export 'staff.dart';
 export 'staff_task.dart';
 export 'user.dart';

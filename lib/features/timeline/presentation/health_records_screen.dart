@@ -17,6 +17,7 @@ import '../../patient/application/patient_documents.dart';
 import '../../patient/presentation/document_download_button.dart';
 import '../../patient/presentation/patient_top_actions.dart';
 import '../../records/presentation/medications_screen.dart';
+import 'import_record_sheet.dart';
 import 'timeline_screen.dart';
 
 enum _RecordsView { timeline, medications, bills }
@@ -45,6 +46,13 @@ class _HealthRecordsScreenState extends State<HealthRecordsScreen> {
         title: Text(t.recordsTitle),
         actions: const [PatientTopActions()],
       ),
+      floatingActionButton: _view == _RecordsView.timeline
+          ? FloatingActionButton.extended(
+              onPressed: () => showImportRecordSheet(context),
+              icon: const Icon(Icons.upload_file_outlined),
+              label: Text(t.importPdfAction),
+            )
+          : null,
       body: Column(
         children: [
           Center(

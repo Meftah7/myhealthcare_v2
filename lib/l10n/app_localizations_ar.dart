@@ -685,6 +685,38 @@ class AppLocalizationsAr extends AppLocalizations {
   String get clinicHoursSubtitle => 'أيام وساعات العمل';
 
   @override
+  String get editScheduleAction => 'تعديل الجدول';
+
+  @override
+  String get scheduleEditorTitle => 'الجدول الأسبوعي';
+
+  @override
+  String get scheduleEditorSubtitle =>
+      'الأيام والساعات التي يستقبل فيها هذا الطبيب المواعيد.';
+
+  @override
+  String get worksThisDayLabel => 'يعمل هذا اليوم';
+
+  @override
+  String get startTimeLabel => 'البداية';
+
+  @override
+  String get endTimeLabel => 'النهاية';
+
+  @override
+  String get slotLengthLabel => 'مدة الموعد (دقائق)';
+
+  @override
+  String get scheduleSavedMessage => 'تم حفظ الجدول';
+
+  @override
+  String get noWorkingDaysNote =>
+      'فعّل يوماً واحداً على الأقل حتى تتوفر مواعيد لهذا الطبيب.';
+
+  @override
+  String get couldNotLoadSchedule => 'تعذّر تحميل الجدول.';
+
+  @override
   String get openDaysLabel => 'أيام العمل';
 
   @override
@@ -864,6 +896,40 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get allergiesLabel => 'الحساسية';
+
+  @override
+  String get importPdfAction => 'استيراد PDF';
+
+  @override
+  String get importRecordTitle => 'استيراد مستند';
+
+  @override
+  String get importRecordSubtitle =>
+      'أضف نتيجة تحليل أو تقريراً من خارج العيادة.';
+
+  @override
+  String get chooseFileAction => 'اختر ملف PDF';
+
+  @override
+  String get changeFileAction => 'اختر ملفاً آخر';
+
+  @override
+  String get recordTypeLabel => 'النوع';
+
+  @override
+  String get extractedTextPreviewLabel => 'النص المستخرج';
+
+  @override
+  String get extractingPdfMessage => 'جارٍ قراءة الملف…';
+
+  @override
+  String get pdfImportFailedError => 'تعذّرت قراءة هذا الملف. جرّب ملفاً آخر.';
+
+  @override
+  String get importedRecordSavedMessage => 'تمت إضافته إلى سجلاتك الصحية';
+
+  @override
+  String get saveRecordAction => 'حفظ في السجلات';
 
   @override
   String get couldNotLoadRecords => 'تعذّر تحميل سجلاتك.';

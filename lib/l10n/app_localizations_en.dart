@@ -688,6 +688,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clinicHoursSubtitle => 'Open days and hours';
 
   @override
+  String get editScheduleAction => 'Edit schedule';
+
+  @override
+  String get scheduleEditorTitle => 'Weekly schedule';
+
+  @override
+  String get scheduleEditorSubtitle =>
+      'Days and hours this doctor takes appointments.';
+
+  @override
+  String get worksThisDayLabel => 'Works this day';
+
+  @override
+  String get startTimeLabel => 'Start';
+
+  @override
+  String get endTimeLabel => 'End';
+
+  @override
+  String get slotLengthLabel => 'Slot length (minutes)';
+
+  @override
+  String get scheduleSavedMessage => 'Schedule saved';
+
+  @override
+  String get noWorkingDaysNote =>
+      'Turn on at least one day so this doctor has bookable slots.';
+
+  @override
+  String get couldNotLoadSchedule => 'Could not load the schedule.';
+
+  @override
   String get openDaysLabel => 'Open days';
 
   @override
@@ -866,6 +898,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get allergiesLabel => 'Allergies';
+
+  @override
+  String get importPdfAction => 'Import PDF';
+
+  @override
+  String get importRecordTitle => 'Import a document';
+
+  @override
+  String get importRecordSubtitle =>
+      'Bring in a lab result or report from outside the clinic.';
+
+  @override
+  String get chooseFileAction => 'Choose a PDF';
+
+  @override
+  String get changeFileAction => 'Choose a different PDF';
+
+  @override
+  String get recordTypeLabel => 'Type';
+
+  @override
+  String get extractedTextPreviewLabel => 'Extracted text';
+
+  @override
+  String get extractingPdfMessage => 'Reading the PDF…';
+
+  @override
+  String get pdfImportFailedError =>
+      'Could not read that PDF. Try a different file.';
+
+  @override
+  String get importedRecordSavedMessage => 'Added to your health records';
+
+  @override
+  String get saveRecordAction => 'Save to records';
 
   @override
   String get couldNotLoadRecords => 'Could not load your records.';

@@ -38,6 +38,17 @@ String localizeDigits(String s) {
 String fmtDate(DateTime d) =>
     localizeDigits(DateFormat('d MMM yyyy').format(d));
 
+/// Full weekday name for a `DateTime.weekday` int (1 = Monday … 7 = Sunday).
+String fmtWeekdayName(int weekday) =>
+    DateFormat('EEEE').format(DateTime(2024, 1, weekday));
+
+/// `09:00` style time-of-day for minutes since midnight.
+String fmtMinutes(int minutes) {
+  final h = (minutes ~/ 60).toString().padLeft(2, '0');
+  final m = (minutes % 60).toString().padLeft(2, '0');
+  return localizeDigits('$h:$m');
+}
+
 /// Day + month, no year — for compact tiles ("14 Aug").
 String fmtShortDate(DateTime d) =>
     localizeDigits(DateFormat('d MMM').format(d));

@@ -1394,6 +1394,66 @@ abstract class AppLocalizations {
   /// **'Open days and hours'**
   String get clinicHoursSubtitle;
 
+  /// No description provided for @editScheduleAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit schedule'**
+  String get editScheduleAction;
+
+  /// No description provided for @scheduleEditorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly schedule'**
+  String get scheduleEditorTitle;
+
+  /// No description provided for @scheduleEditorSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Days and hours this doctor takes appointments.'**
+  String get scheduleEditorSubtitle;
+
+  /// No description provided for @worksThisDayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Works this day'**
+  String get worksThisDayLabel;
+
+  /// No description provided for @startTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get startTimeLabel;
+
+  /// No description provided for @endTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get endTimeLabel;
+
+  /// No description provided for @slotLengthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Slot length (minutes)'**
+  String get slotLengthLabel;
+
+  /// No description provided for @scheduleSavedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule saved'**
+  String get scheduleSavedMessage;
+
+  /// No description provided for @noWorkingDaysNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on at least one day so this doctor has bookable slots.'**
+  String get noWorkingDaysNote;
+
+  /// No description provided for @couldNotLoadSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the schedule.'**
+  String get couldNotLoadSchedule;
+
   /// No description provided for @openDaysLabel.
   ///
   /// In en, this message translates to:
@@ -1723,6 +1783,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Allergies'**
   String get allergiesLabel;
+
+  /// No description provided for @importPdfAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Import PDF'**
+  String get importPdfAction;
+
+  /// No description provided for @importRecordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import a document'**
+  String get importRecordTitle;
+
+  /// No description provided for @importRecordSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring in a lab result or report from outside the clinic.'**
+  String get importRecordSubtitle;
+
+  /// No description provided for @chooseFileAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a PDF'**
+  String get chooseFileAction;
+
+  /// No description provided for @changeFileAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a different PDF'**
+  String get changeFileAction;
+
+  /// No description provided for @recordTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get recordTypeLabel;
+
+  /// No description provided for @extractedTextPreviewLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Extracted text'**
+  String get extractedTextPreviewLabel;
+
+  /// No description provided for @extractingPdfMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading the PDF…'**
+  String get extractingPdfMessage;
+
+  /// No description provided for @pdfImportFailedError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read that PDF. Try a different file.'**
+  String get pdfImportFailedError;
+
+  /// No description provided for @importedRecordSavedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to your health records'**
+  String get importedRecordSavedMessage;
+
+  /// No description provided for @saveRecordAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Save to records'**
+  String get saveRecordAction;
 
   /// No description provided for @couldNotLoadRecords.
   ///

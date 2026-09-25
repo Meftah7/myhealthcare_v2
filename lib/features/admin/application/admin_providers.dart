@@ -40,6 +40,34 @@ final adminDepartmentDoctorsProvider =
       return staff.where((s) => s.isDoctor && s.user.isActive).toList();
     });
 
+/// A staff member's weekly working blocks — the admin schedule editor.
+final staffScheduleTemplatesProvider =
+    FutureProvider.family<List<ScheduleTemplate>, String>((ref, staffId) async {
+      return _unwrap(
+        await ref.watch(appointmentRepositoryProvider).templatesFor(staffId),
+      );
+    });
+
+class ScheduleTemplateActions {
+  ScheduleTemplateActions(this._ref);
+  final Ref _ref;
+
+  Future<Result<List<ScheduleTemplate>>> save({
+    required String staffId,
+    required List<NewScheduleTemplate> templates,
+  }) async {
+    final result = await _ref
+        .read(appointmentRepositoryProvider)
+        .setTemplates(staffId: staffId, templates: templates);
+    if (result.isOk) _ref.invalidate(staffScheduleTemplatesProvider(staffId));
+    return result;
+  }
+}
+
+final scheduleTemplateActionsProvider = Provider<ScheduleTemplateActions>(
+  ScheduleTemplateActions.new,
+);
+
 /// Pending doctor→admin referral requests — the admin queue + a dashboard
 /// count.
 final pendingReferralRequestsProvider = FutureProvider<List<ReferralRequest>>((
