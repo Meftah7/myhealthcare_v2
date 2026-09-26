@@ -13,6 +13,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../services/ai/ai_models.dart';
 import '../../../services/ai/gemini_ai_service.dart';
 import '../application/settings_providers.dart';
+import 'admin_profile_pages.dart';
 
 class AiSettingsScreen extends ConsumerWidget {
   const AiSettingsScreen({super.key});
@@ -23,9 +24,9 @@ class AiSettingsScreen extends ConsumerWidget {
     final settings = ref.watch(appSettingsProvider);
     final hasKey = ref.watch(aiKeyPresentProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(t.aiSettingsTitle)),
-      body: settings.when(
+    return AdminSectionScaffold(
+      title: t.aiSettingsTitle,
+      child: settings.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
           message: t.couldNotLoadSettings,
@@ -33,65 +34,83 @@ class AiSettingsScreen extends ConsumerWidget {
         ),
         data: (s) {
           final controller = ref.read(settingsControllerProvider);
-          return ListView(
-            padding: const EdgeInsets.all(Space.lg),
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SwitchListTile(
-                title: Text(t.aiFeaturesEnabledTitle),
-                subtitle: Text(t.aiFeaturesEnabledSubtitle),
-                value: s.aiEnabled,
-                onChanged: (v) => controller.update(s.copyWith(aiEnabled: v)),
+              AppCard(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    SwitchListTile(
+                      title: Text(t.aiFeaturesEnabledTitle),
+                      subtitle: Text(t.aiFeaturesEnabledSubtitle),
+                      value: s.aiEnabled,
+                      onChanged: (v) =>
+                          controller.update(s.copyWith(aiEnabled: v)),
+                    ),
+                    const Divider(height: 1, indent: Space.md),
+                    SwitchListTile(
+                      title: Text(t.forceMockModeTitle),
+                      subtitle: Text(t.forceMockModeSubtitle),
+                      value: s.mockMode,
+                      onChanged: s.aiEnabled
+                          ? (v) => controller.update(s.copyWith(mockMode: v))
+                          : null,
+                    ),
+                  ],
+                ),
               ),
-              SwitchListTile(
-                title: Text(t.forceMockModeTitle),
-                subtitle: Text(t.forceMockModeSubtitle),
-                value: s.mockMode,
-                onChanged: s.aiEnabled
-                    ? (v) => controller.update(s.copyWith(mockMode: v))
-                    : null,
-              ),
-              const Divider(height: Space.xl),
 
               SectionHeader(t.llmProviderHeader),
-              _ModelField(
-                initial: s.modelId,
-                onSubmit: (m) => controller.update(s.copyWith(modelId: m)),
+              AppCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _ModelField(
+                      initial: s.modelId,
+                      onSubmit: (m) =>
+                          controller.update(s.copyWith(modelId: m)),
+                    ),
+                    const SizedBox(height: Space.sm),
+                    hasKey.when(
+                      loading: () => const LoadingSkeleton(height: 40),
+                      error: (_, _) => const SizedBox.shrink(),
+                      data: (present) => _ApiKeyField(present: present),
+                    ),
+                    const SizedBox(height: Space.sm),
+                    _TestConnectionButton(model: s.modelId),
+                  ],
+                ),
               ),
-              const SizedBox(height: Space.sm),
-              hasKey.when(
-                loading: () => const LoadingSkeleton(height: 40),
-                error: (_, _) => const SizedBox.shrink(),
-                data: (present) => _ApiKeyField(present: present),
-              ),
-              const SizedBox(height: Space.sm),
-              _TestConnectionButton(model: s.modelId),
 
-              const Divider(height: Space.xl),
               SectionHeader(t.demoDataHeader),
-              ListTile(
-                leading: const Icon(Icons.restart_alt),
-                title: Text(t.reseedDemoDataTitle),
-                subtitle: Text(t.reseedDemoDataSubtitle),
-                onTap: () async {
-                  final ok = await confirm(
-                    context,
-                    title: t.reseedConfirmTitle,
-                    message: t.reseedConfirmBody,
-                    confirmLabel: t.reseedAction,
-                    destructive: true,
-                  );
-                  if (!ok || !context.mounted) return;
-                  final r = await ref.read(seederProvider).reset();
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          t.reseededSnackbar(r.patients, r.appointments),
-                        ),
-                      ),
+              AppCard(
+                padding: EdgeInsets.zero,
+                child: ListTile(
+                  leading: const Icon(Icons.restart_alt),
+                  title: Text(t.reseedDemoDataTitle),
+                  subtitle: Text(t.reseedDemoDataSubtitle),
+                  onTap: () async {
+                    final ok = await confirm(
+                      context,
+                      title: t.reseedConfirmTitle,
+                      message: t.reseedConfirmBody,
+                      confirmLabel: t.reseedAction,
+                      destructive: true,
                     );
-                  }
-                },
+                    if (!ok || !context.mounted) return;
+                    final r = await ref.read(seederProvider).reset();
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            t.reseededSnackbar(r.patients, r.appointments),
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                ),
               ),
             ],
           );

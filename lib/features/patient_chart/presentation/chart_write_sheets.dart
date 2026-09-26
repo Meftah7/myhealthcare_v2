@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
+import '../../../core/presentation/app_card.dart';
 import '../../../core/result.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/chart_providers.dart';
@@ -30,6 +31,7 @@ Future<void> _open(BuildContext context, Widget child) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
+    showDragHandle: true,
     builder: (context) => Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: child,
@@ -44,6 +46,7 @@ class _SheetScaffold extends StatelessWidget {
     required this.onSubmit,
     required this.submitting,
     required this.canSubmit,
+    this.error,
   });
 
   final String title;
@@ -51,48 +54,61 @@ class _SheetScaffold extends StatelessWidget {
   final VoidCallback onSubmit;
   final bool submitting;
   final bool canSubmit;
+  final String? error;
 
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(Space.lg),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(title, style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: Space.md),
-            ...children,
-            const SizedBox(height: Space.lg),
-            FilledButton(
-              onPressed: (submitting || !canSubmit) ? null : onSubmit,
-              child: submitting
-                  ? const SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(t.saveButton),
-            ),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(title, style: theme.textTheme.titleLarge),
+              const SizedBox(height: Space.md),
+              ...children,
+              if (error != null) ...[
+                const SizedBox(height: Space.sm),
+                InlineBanner.error(error!),
+              ],
+              const SizedBox(height: Space.lg),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: (submitting || !canSubmit) ? null : onSubmit,
+                  child: submitting
+                      ? const SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(t.saveButton),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-void _report(BuildContext context, Result<Object?> result, String ok) {
-  final messenger = ScaffoldMessenger.of(context);
-  messenger.showSnackBar(
-    SnackBar(
-      content: Text(switch (result) {
-        Ok() => ok,
-        Err(:final failure) => failure.message,
-      }),
-    ),
-  );
+/// Reports failures inline on the sheet (via [error]) and successes with a
+/// snackbar after the sheet has closed — a failure keeps the sheet open with
+/// the entered data intact, so it needs the message to stay in view.
+String? _errorOf(Result<Object?> result) => switch (result) {
+  Ok() => null,
+  Err(:final failure) => failure.message,
+};
+
+void _reportOk(BuildContext context, String message) {
+  ScaffoldMessenger.of(
+    context,
+  ).showSnackBar(SnackBar(content: Text(message)));
 }
 
 // --- clinical note ---------------------------------------------------------
@@ -110,6 +126,7 @@ class _NoteSheetState extends ConsumerState<_NoteSheet> {
   final _body = TextEditingController();
   bool _busy = false;
   bool _titleSeeded = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -120,7 +137,10 @@ class _NoteSheetState extends ConsumerState<_NoteSheet> {
 
   Future<void> _submit() async {
     final t = AppLocalizations.of(context)!;
-    setState(() => _busy = true);
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
     final result = await ref
         .read(chartActionsProvider(widget.patientId))
         .addNote(
@@ -129,9 +149,14 @@ class _NoteSheetState extends ConsumerState<_NoteSheet> {
           occurredAt: DateTime.now(),
         );
     if (!mounted) return;
-    setState(() => _busy = false);
-    _report(context, result, t.noteAdded);
-    if (result.isOk) Navigator.of(context).pop();
+    setState(() {
+      _busy = false;
+      _error = _errorOf(result);
+    });
+    if (result.isOk) {
+      Navigator.of(context).pop();
+      _reportOk(context, t.noteAdded);
+    }
   }
 
   @override
@@ -146,6 +171,7 @@ class _NoteSheetState extends ConsumerState<_NoteSheet> {
       submitting: _busy,
       canSubmit: _body.text.trim().isNotEmpty,
       onSubmit: _submit,
+      error: _error,
       children: [
         TextField(
           controller: _title,
@@ -182,6 +208,7 @@ class _PrescribeSheetState extends ConsumerState<_PrescribeSheet> {
   final _dose = TextEditingController();
   final _freq = TextEditingController();
   bool _busy = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -193,7 +220,10 @@ class _PrescribeSheetState extends ConsumerState<_PrescribeSheet> {
 
   Future<void> _submit() async {
     final t = AppLocalizations.of(context)!;
-    setState(() => _busy = true);
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
     final result = await ref
         .read(chartActionsProvider(widget.patientId))
         .prescribe(
@@ -202,9 +232,14 @@ class _PrescribeSheetState extends ConsumerState<_PrescribeSheet> {
           frequency: _freq.text.trim().isEmpty ? null : _freq.text.trim(),
         );
     if (!mounted) return;
-    setState(() => _busy = false);
-    _report(context, result, t.medicationPrescribed);
-    if (result.isOk) Navigator.of(context).pop();
+    setState(() {
+      _busy = false;
+      _error = _errorOf(result);
+    });
+    if (result.isOk) {
+      Navigator.of(context).pop();
+      _reportOk(context, t.medicationPrescribed);
+    }
   }
 
   @override
@@ -215,6 +250,7 @@ class _PrescribeSheetState extends ConsumerState<_PrescribeSheet> {
       submitting: _busy,
       canSubmit: _name.text.trim().isNotEmpty,
       onSubmit: _submit,
+      error: _error,
       children: [
         TextField(
           controller: _name,
@@ -255,6 +291,7 @@ class _LabSheetState extends ConsumerState<_LabSheet> {
   final _high = TextEditingController();
   bool _busy = false;
   bool _panelSeeded = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -270,7 +307,10 @@ class _LabSheetState extends ConsumerState<_LabSheet> {
 
   Future<void> _submit() async {
     final t = AppLocalizations.of(context)!;
-    setState(() => _busy = true);
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
     final result = await ref
         .read(chartActionsProvider(widget.patientId))
         .addLabResult(
@@ -283,9 +323,14 @@ class _LabSheetState extends ConsumerState<_LabSheet> {
           refHigh: double.tryParse(_high.text.trim()),
         );
     if (!mounted) return;
-    setState(() => _busy = false);
-    _report(context, result, t.labResultRecorded);
-    if (result.isOk) Navigator.of(context).pop();
+    setState(() {
+      _busy = false;
+      _error = _errorOf(result);
+    });
+    if (result.isOk) {
+      Navigator.of(context).pop();
+      _reportOk(context, t.labResultRecorded);
+    }
   }
 
   @override
@@ -300,6 +345,7 @@ class _LabSheetState extends ConsumerState<_LabSheet> {
       submitting: _busy,
       canSubmit: _valid,
       onSubmit: _submit,
+      error: _error,
       children: [
         TextField(
           controller: _panel,
@@ -378,6 +424,7 @@ class _SickLeaveSheetState extends ConsumerState<_SickLeaveSheet> {
   late DateTime _from = DateTime.now();
   late DateTime _to = DateTime.now().add(const Duration(days: 2));
   bool _busy = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -410,7 +457,10 @@ class _SickLeaveSheetState extends ConsumerState<_SickLeaveSheet> {
 
   Future<void> _submit() async {
     final t = AppLocalizations.of(context)!;
-    setState(() => _busy = true);
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
     final result = await ref
         .read(chartActionsProvider(widget.patientId))
         .issueSickLeave(
@@ -420,9 +470,14 @@ class _SickLeaveSheetState extends ConsumerState<_SickLeaveSheet> {
           notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
         );
     if (!mounted) return;
-    setState(() => _busy = false);
-    _report(context, result, t.certificateIssued);
-    if (result.isOk) Navigator.of(context).pop();
+    setState(() {
+      _busy = false;
+      _error = _errorOf(result);
+    });
+    if (result.isOk) {
+      Navigator.of(context).pop();
+      _reportOk(context, t.certificateIssued);
+    }
   }
 
   @override
@@ -434,6 +489,7 @@ class _SickLeaveSheetState extends ConsumerState<_SickLeaveSheet> {
       submitting: _busy,
       canSubmit: _diagnosis.text.trim().isNotEmpty && _days >= 1,
       onSubmit: _submit,
+      error: _error,
       children: [
         TextField(
           controller: _diagnosis,

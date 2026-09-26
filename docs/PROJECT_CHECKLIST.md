@@ -103,7 +103,7 @@ Legend: `[x]` done · `[ ]` not done / deferred
 - [x] Shared widgets (empty / error / loading / confirm)
 
 ## Deferred
-- [ ] PDF report import — pick file, extract text, save as a record
+- [x] PDF report import — pick file, extract text, save as a record
 - [ ] Attachment viewer
 
 ✅ Done when:
@@ -193,7 +193,7 @@ Legend: `[x]` done · `[ ]` not done / deferred
 ## Admin dashboard
 - [x] User management — create staff, activate / deactivate, reset password
 - [x] Departments — create / rename / describe
-- [ ] Schedule-template editor — deferred (templates are seeded for now)
+- [x] Schedule-template editor
 - [x] AI settings — API key, model, mock toggle, blend weight, re-seed
 - [x] System analytics + audit log viewer
 
@@ -294,8 +294,6 @@ One product, three experiences (patient / staff / admin) reworked together.
 | Item | Status | To close |
 | --- | --- | --- |
 | Android build | Blocked | Run the AEHD hypervisor driver installer (admin) or use a physical phone |
-| PDF report *import* | Deferred | Wire file picker → text extractor → new record (PDF *generation* is done, P10) |
-| Schedule-template editor | Deferred | Add a schedule-template repository |
 | Admin profile screen | Deferred | Mirror the patient / staff profile hub |
 | R4 IA reshuffle + 3 theme-only screens | Deferred | Finish the v2 redesign |
 | Usability study results | Pending | Run the protocol in `docs/usability_study.md` with 5–8 people |
