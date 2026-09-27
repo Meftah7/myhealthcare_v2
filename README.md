@@ -1,5 +1,7 @@
 # MyHealth Care
 
+**Live demo:** [https://meftah7.github.io/myhealthcare_v2/](https://meftah7.github.io/myhealthcare_v2/)
+
 An AI-assisted application for managing personal health records, appointments,
 and medical-staff workflows.
 
