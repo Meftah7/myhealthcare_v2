@@ -87,13 +87,26 @@ abstract interface class AppointmentRepository {
 
   Future<Result<Appointment>> book(BookingRequest request);
 
+  /// [patientId] must match the appointment's own patient — the repository
+  /// verifies this itself rather than trusting the caller, since a caller
+  /// with permission to manage one patient's appointments must not be able
+  /// to reach a *different* patient's appointment by ID alone.
+  ///
+  /// Rejects an interval that overlaps another active appointment for the
+  /// same clinician, a past time, or an appointment that isn't in a
+  /// reschedulable status. Rebuilds that appointment's reminders for the new
+  /// time on success.
   Future<Result<Appointment>> reschedule({
     required String id,
+    required String patientId,
     required DateTime newStart,
     required DateTime newEnd,
   });
 
-  Future<Result<void>> cancel(String id);
+  /// [patientId] must match the appointment's own patient (see [reschedule]).
+  /// Clears its unsent reminders. Cancelling an already-cancelled or
+  /// completed appointment fails cleanly rather than silently no-op'ing.
+  Future<Result<void>> cancel(String id, {required String patientId});
 
   Future<Result<void>> updateStatus({
     required String id,

@@ -233,7 +233,10 @@ void main() {
           )
           .then((_) {});
 
-      final base = DateTime(2026, 7, 6, 9); // a Monday
+      // Anchored to "now" (not a fixed calendar date) — book() now rejects a
+      // past start time, and a hardcoded date eventually stops being in the
+      // future as real time moves on.
+      final base = DateTime.now().add(const Duration(days: 7));
       await book(base);
       await book(base.add(const Duration(days: 2)));
       await book(base.add(const Duration(days: 30)));

@@ -16,9 +16,11 @@ import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
+import '../../../core/result.dart';
 import '../../../core/utils/clinic_hours.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../domain/enums.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../booking/presentation/booking_screen.dart';
 import '../../patient/application/patient_data_providers.dart';
@@ -291,43 +293,44 @@ class _ApptCard extends ConsumerWidget {
             const SizedBox(height: Space.sm),
             RiskBadge(appt.riskBand!),
           ],
-          if (upcoming) ...[
+          if (upcoming &&
+              (appt.status == AppointmentStatus.booked ||
+                  appt.status == AppointmentStatus.confirmed)) ...[
             const SizedBox(height: Space.sm),
-            // Outlined for the tertiary action and error-outlined for the
-            // destructive one — the same pair the rest of the app uses
-            // (DESIGN.md §5.1). Wrap so they stack instead of overflowing when
-            // the card is narrow or the text is scaled up.
-            Align(
-              alignment: AlignmentDirectional.centerEnd,
-              child: Wrap(
-                alignment: WrapAlignment.end,
-                spacing: Space.xs,
-                runSpacing: Space.xs,
-                children: [
-                  OutlinedButton(
-                    onPressed: () => _reschedule(context, ref),
-                    child: Text(t.reschedule),
-                  ),
-                  OutlinedButton(
-                    onPressed: () => _cancel(context, ref),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: theme.colorScheme.error,
-                      side: BorderSide(
-                        color: theme.colorScheme.error.withValues(alpha: 0.4),
-                      ),
-                    ),
-                    child: Text(t.cancel),
-                  ),
-                ],
-              ),
-            ),
+            _ApptActions(appt: appt),
           ],
         ],
       ),
     );
   }
+}
 
-  Future<void> _cancel(BuildContext context, WidgetRef ref) async {
+/// The reschedule/cancel buttons, split out from [_ApptCard] so they can own
+/// their own busy/error state — a card built by a stateless widget has
+/// nowhere to hold "this request is in flight" or "it just failed".
+class _ApptActions extends ConsumerStatefulWidget {
+  const _ApptActions({required this.appt});
+
+  final Appointment appt;
+
+  @override
+  ConsumerState<_ApptActions> createState() => _ApptActionsState();
+}
+
+class _ApptActionsState extends ConsumerState<_ApptActions> {
+  bool _busy = false;
+
+  Appointment get appt => widget.appt;
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _cancel() async {
+    if (_busy) return;
     final t = AppLocalizations.of(context)!;
     final ok = await confirm(
       context,
@@ -336,12 +339,23 @@ class _ApptCard extends ConsumerWidget {
       confirmLabel: t.cancelItLabel,
       destructive: true,
     );
-    if (!ok) return;
-    await ref.read(appointmentRepositoryProvider).cancel(appt.id);
-    ref.invalidate(patientAppointmentsProvider);
+    if (!ok || !mounted) return;
+    setState(() => _busy = true);
+    final result = await ref
+        .read(appointmentRepositoryProvider)
+        .cancel(appt.id, patientId: appt.patientId);
+    if (!mounted) return;
+    setState(() => _busy = false);
+    switch (result) {
+      case Ok():
+        ref.invalidate(patientAppointmentsProvider);
+      case Err(:final failure):
+        _showError(failure.message);
+    }
   }
 
-  Future<void> _reschedule(BuildContext context, WidgetRef ref) async {
+  Future<void> _reschedule() async {
+    if (_busy) return;
     final t = AppLocalizations.of(context)!;
     final schedule = ref.read(clinicScheduleProvider);
     final now = DateTime.now();
@@ -357,19 +371,15 @@ class _ApptCard extends ConsumerWidget {
       selectableDayPredicate: (d) => isClinicDay(d, schedule),
       helpText: t.clinicDaysHelp,
     );
-    if (date == null || !context.mounted) return;
+    if (date == null || !mounted) return;
     final time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(appt.slotStart),
       helpText: t.clinicHoursHelp,
     );
-    if (time == null) return;
+    if (time == null || !mounted) return;
     if (time.hour < schedule.openHour || time.hour >= schedule.closeHour) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(t.pickTimeInRange)));
-      }
+      _showError(t.pickTimeInRange);
       return;
     }
     final newStart = DateTime(
@@ -379,13 +389,59 @@ class _ApptCard extends ConsumerWidget {
       time.hour,
       time.minute,
     );
-    await ref
+    setState(() => _busy = true);
+    // The original appointment is left untouched unless this actually
+    // succeeds — a rejected slot (already taken, outside hours, in the
+    // past) surfaces as a message, not a silently-unchanged screen.
+    final result = await ref
         .read(appointmentRepositoryProvider)
         .reschedule(
           id: appt.id,
+          patientId: appt.patientId,
           newStart: newStart,
           newEnd: newStart.add(appt.duration),
         );
-    ref.invalidate(patientAppointmentsProvider);
+    if (!mounted) return;
+    setState(() => _busy = false);
+    switch (result) {
+      case Ok():
+        ref.invalidate(patientAppointmentsProvider);
+      case Err(:final failure):
+        _showError(failure.message);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final t = AppLocalizations.of(context)!;
+    // Outlined for the tertiary action and error-outlined for the
+    // destructive one — the same pair the rest of the app uses
+    // (DESIGN.md §5.1). Wrap so they stack instead of overflowing when
+    // the card is narrow or the text is scaled up.
+    return Align(
+      alignment: AlignmentDirectional.centerEnd,
+      child: Wrap(
+        alignment: WrapAlignment.end,
+        spacing: Space.xs,
+        runSpacing: Space.xs,
+        children: [
+          OutlinedButton(
+            onPressed: _busy ? null : _reschedule,
+            child: Text(t.reschedule),
+          ),
+          OutlinedButton(
+            onPressed: _busy ? null : _cancel,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: theme.colorScheme.error,
+              side: BorderSide(
+                color: theme.colorScheme.error.withValues(alpha: 0.4),
+              ),
+            ),
+            child: Text(t.cancel),
+          ),
+        ],
+      ),
+    );
   }
 }

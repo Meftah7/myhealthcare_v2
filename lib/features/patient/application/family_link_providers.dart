@@ -250,7 +250,7 @@ class FamilyLinkController {
     if (link case Err(:final failure)) return Err(failure);
     final result = await _ref
         .read(appointmentRepositoryProvider)
-        .cancel(appointmentId);
+        .cancel(appointmentId, patientId: ownerPatientId);
     if (result case Ok()) {
       _ref.invalidate(linkedAppointmentsProvider(ownerPatientId));
     }
@@ -267,7 +267,12 @@ class FamilyLinkController {
     if (link case Err(:final failure)) return Err(failure);
     final result = await _ref
         .read(appointmentRepositoryProvider)
-        .reschedule(id: appointmentId, newStart: newStart, newEnd: newEnd);
+        .reschedule(
+          id: appointmentId,
+          patientId: ownerPatientId,
+          newStart: newStart,
+          newEnd: newEnd,
+        );
     if (result case Ok()) {
       _ref.invalidate(linkedAppointmentsProvider(ownerPatientId));
     }

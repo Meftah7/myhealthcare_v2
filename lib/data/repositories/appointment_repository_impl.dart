@@ -10,6 +10,7 @@ import '../../core/utils/ticketing.dart';
 import '../../domain/entities/entities.dart';
 import '../../domain/enums.dart';
 import '../../domain/repositories/appointment_repository.dart';
+import '../../services/notifications/reminder_scheduler.dart';
 import '../db/app_database.dart';
 import 'mappers.dart';
 
@@ -181,6 +182,26 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
           throw const ValidationFailure('Slot length must be greater than zero.');
         }
       }
+      // Two templates for the same weekday that overlap in time would make
+      // `openSlots` generate the same wall-clock slot twice from different
+      // sources — reject that combination outright.
+      final byWeekday = <int, List<NewScheduleTemplate>>{};
+      for (final t in templates) {
+        byWeekday.putIfAbsent(t.weekday, () => []).add(t);
+      }
+      for (final group in byWeekday.values) {
+        for (var i = 0; i < group.length; i++) {
+          for (var j = i + 1; j < group.length; j++) {
+            final a = group[i];
+            final b = group[j];
+            if (a.startMinutes < b.endMinutes && a.endMinutes > b.startMinutes) {
+              throw const ValidationFailure(
+                'Two schedules for the same day overlap. Adjust the times.',
+              );
+            }
+          }
+        }
+      }
       await _db.transaction(() async {
         await (_db.delete(
           _db.scheduleTemplates,
@@ -211,51 +232,115 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
 
   @override
   Future<Result<Appointment>> book(BookingRequest r) {
-    return Result.guardAsync(() async {
-      final clash =
-          await (_db.select(_db.appointments)..where(
-                (a) =>
-                    a.staffId.equals(r.staffId) &
-                    a.slotStart.equals(r.start) &
-                    a.status.equalsValue(AppointmentStatus.cancelled).not(),
-              ))
-              .getSingleOrNull();
-      if (clash != null) {
-        throw const ValidationFailure('That slot was just taken.');
-      }
+    // The whole thing — the overlap check, the ticket-count read, and the
+    // insert — runs as one transaction. SQLite serializes writers, so two
+    // concurrent bookings can no longer both pass the check (a stale read
+    // racing an insert) and no longer both land on the same ticket count.
+    return Result.guardAsync(
+      () => _db.transaction(() async {
+        if (r.end.isBefore(r.start) || r.end.isAtSameMomentAs(r.start)) {
+          throw const ValidationFailure('The visit must end after it starts.');
+        }
+        if (!r.start.isAfter(DateTime.now())) {
+          throw const ValidationFailure(
+            'That time has already passed. Choose a later slot.',
+          );
+        }
+        if (await _hasOverlap(staffId: r.staffId, start: r.start, end: r.end)) {
+          throw const ValidationFailure('That slot was just taken.');
+        }
 
-      final id = newId('appt');
-      final ticketTag = await _issueTicketTag(r.start);
-      // Every appointment gets a room. If the request didn't name a
-      // department, fall back to the doctor's own.
-      final departmentId = r.departmentId ?? await _departmentOf(r.staffId);
-      final roomNumber = departmentId == null
-          ? null
-          : await _assignRoomNumber(departmentId, r.staffId);
+        final id = newId('appt');
+        final ticketTag = await _issueTicketTag(r.start);
+        // Every appointment gets a room. If the request didn't name a
+        // department, fall back to the doctor's own.
+        final departmentId = r.departmentId ?? await _departmentOf(r.staffId);
+        final roomNumber = departmentId == null
+            ? null
+            : await _assignRoomNumber(departmentId, r.staffId);
+        await _db
+            .into(_db.appointments)
+            .insert(
+              AppointmentsCompanion.insert(
+                id: id,
+                patientId: r.patientId,
+                staffId: r.staffId,
+                slotStart: r.start,
+                slotEnd: r.end,
+                visitType: r.visitType,
+                departmentId: Value(departmentId),
+                reasonText: Value(r.reasonText),
+                noShowRisk: Value(r.noShowRisk),
+                riskBand: Value(r.riskBand),
+                ticketTag: Value(ticketTag),
+                roomNumber: Value(roomNumber),
+                bookedForName: Value(r.bookedForName),
+              ),
+            );
+        // Reminder scheduling for a fresh booking stays with the caller
+        // (`booking_providers.dart`/`quick_appointment_providers.dart`),
+        // which already calls `ReminderScheduler.scheduleFor` right after —
+        // duplicating that here would just make it run twice. `reschedule`
+        // and `cancel` below use `_rebuildReminders` directly because,
+        // unlike booking, nothing else currently handles it for them.
+        final row = await (_db.select(
+          _db.appointments,
+        )..where((a) => a.id.equals(id))).getSingle();
+        return row.toEntity();
+      }),
+    );
+  }
+
+  /// True when [staffId] already has an active (non-cancelled) appointment
+  /// whose interval overlaps `[start, end)` — the standard
+  /// `existing.start < end && existing.end > start` test, not just an
+  /// exact-start-time match, so two differently-aligned bookings (e.g. from
+  /// two schedule templates, or a free-form admin time entry) can't overlap.
+  Future<bool> _hasOverlap({
+    required String staffId,
+    required DateTime start,
+    required DateTime end,
+    String? excludingAppointmentId,
+  }) async {
+    var q = _db.select(_db.appointments)
+      ..where(
+        (a) =>
+            a.staffId.equals(staffId) &
+            a.status.equalsValue(AppointmentStatus.cancelled).not() &
+            a.slotStart.isSmallerThanValue(end) &
+            a.slotEnd.isBiggerThanValue(start),
+      );
+    if (excludingAppointmentId != null) {
+      q = q..where((a) => a.id.equals(excludingAppointmentId).not());
+    }
+    return (await q.get()).isNotEmpty;
+  }
+
+  Future<void> _rebuildReminders({
+    required String appointmentId,
+    required DateTime slotStart,
+    required RiskBand band,
+  }) async {
+    await (_db.delete(_db.reminders)..where(
+          (r) => r.appointmentId.equals(appointmentId) & r.sentAt.isNull(),
+        ))
+        .go();
+    final now = DateTime.now();
+    for (final plan in reminderPlanFor(band)) {
+      final at = slotStart.subtract(plan.offsetBeforeSlot);
+      if (at.isBefore(now)) continue;
       await _db
-          .into(_db.appointments)
+          .into(_db.reminders)
           .insert(
-            AppointmentsCompanion.insert(
-              id: id,
-              patientId: r.patientId,
-              staffId: r.staffId,
-              slotStart: r.start,
-              slotEnd: r.end,
-              visitType: r.visitType,
-              departmentId: Value(departmentId),
-              reasonText: Value(r.reasonText),
-              noShowRisk: Value(r.noShowRisk),
-              riskBand: Value(r.riskBand),
-              ticketTag: Value(ticketTag),
-              roomNumber: Value(roomNumber),
-              bookedForName: Value(r.bookedForName),
+            RemindersCompanion.insert(
+              id: newId('rem'),
+              appointmentId: appointmentId,
+              scheduledFor: at,
+              channel: plan.channel,
+              kind: Value(plan.kind),
             ),
           );
-      final row = await (_db.select(
-        _db.appointments,
-      )..where((a) => a.id.equals(id))).getSingle();
-      return row.toEntity();
-    });
+    }
   }
 
   /// `[hour letter]-[facility-wide count of tickets already issued for that
@@ -315,34 +400,113 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     return '${departmentLetterFor(department.name)}-$sequence';
   }
 
+  static const _reschedulableStatuses = {
+    AppointmentStatus.booked,
+    AppointmentStatus.confirmed,
+  };
+
   @override
   Future<Result<Appointment>> reschedule({
     required String id,
+    required String patientId,
     required DateTime newStart,
     required DateTime newEnd,
   }) {
-    return Result.guardAsync(() async {
-      await (_db.update(_db.appointments)..where((a) => a.id.equals(id))).write(
-        AppointmentsCompanion(
-          slotStart: Value(newStart),
-          slotEnd: Value(newEnd),
-          status: const Value(AppointmentStatus.booked),
-        ),
-      );
-      final row = await (_db.select(
-        _db.appointments,
-      )..where((a) => a.id.equals(id))).getSingle();
-      return row.toEntity();
-    });
+    return Result.guardAsync(
+      () => _db.transaction(() async {
+        final row = await (_db.select(
+          _db.appointments,
+        )..where((a) => a.id.equals(id))).getSingleOrNull();
+        if (row == null) throw NotFoundFailure('No appointment $id.');
+        // A caller with permission over one patient's appointments (e.g. a
+        // family "manage" link) must not be able to reach a *different*
+        // patient's appointment just by knowing/guessing its ID.
+        if (row.patientId != patientId) {
+          throw const AuthFailure(
+            'You do not have permission to change this appointment.',
+          );
+        }
+        if (!_reschedulableStatuses.contains(row.status)) {
+          throw const ValidationFailure(
+            'This appointment can no longer be rescheduled.',
+          );
+        }
+        if (newEnd.isBefore(newStart) || newEnd.isAtSameMomentAs(newStart)) {
+          throw const ValidationFailure('The visit must end after it starts.');
+        }
+        if (!newStart.isAfter(DateTime.now())) {
+          throw const ValidationFailure(
+            'That time has already passed. Choose a later slot.',
+          );
+        }
+        if (await _hasOverlap(
+          staffId: row.staffId,
+          start: newStart,
+          end: newEnd,
+          excludingAppointmentId: id,
+        )) {
+          throw const ValidationFailure(
+            'That slot is no longer available. Choose another.',
+          );
+        }
+
+        await (_db.update(
+          _db.appointments,
+        )..where((a) => a.id.equals(id))).write(
+          AppointmentsCompanion(
+            slotStart: Value(newStart),
+            slotEnd: Value(newEnd),
+            status: const Value(AppointmentStatus.booked),
+          ),
+        );
+        await _rebuildReminders(
+          appointmentId: id,
+          slotStart: newStart,
+          band: row.riskBand ?? RiskBand.low,
+        );
+
+        final updated = await (_db.select(
+          _db.appointments,
+        )..where((a) => a.id.equals(id))).getSingle();
+        return updated.toEntity();
+      }),
+    );
   }
 
   @override
-  Future<Result<void>> cancel(String id) {
-    return Result.guardAsync(() async {
-      await (_db.update(_db.appointments)..where((a) => a.id.equals(id))).write(
-        const AppointmentsCompanion(status: Value(AppointmentStatus.cancelled)),
-      );
-    });
+  Future<Result<void>> cancel(String id, {required String patientId}) {
+    return Result.guardAsync(
+      () => _db.transaction(() async {
+        final row = await (_db.select(
+          _db.appointments,
+        )..where((a) => a.id.equals(id))).getSingleOrNull();
+        if (row == null) throw NotFoundFailure('No appointment $id.');
+        if (row.patientId != patientId) {
+          throw const AuthFailure(
+            'You do not have permission to cancel this appointment.',
+          );
+        }
+        if (row.status == AppointmentStatus.cancelled) {
+          throw const ValidationFailure('This appointment is already cancelled.');
+        }
+        if (row.status == AppointmentStatus.completed) {
+          throw const ValidationFailure(
+            'A completed visit cannot be cancelled.',
+          );
+        }
+        await (_db.update(
+          _db.appointments,
+        )..where((a) => a.id.equals(id))).write(
+          const AppointmentsCompanion(
+            status: Value(AppointmentStatus.cancelled),
+          ),
+        );
+        await (_db.delete(_db.reminders)..where(
+              (r) => r.appointmentId.equals(id) & r.sentAt.isNull(),
+            ))
+            .go();
+      }),
+    );
   }
 
   @override

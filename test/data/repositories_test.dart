@@ -141,6 +141,289 @@ void main() {
       );
       expect((await appts.book(request())).isErr, isTrue);
     });
+
+    Future<String> makeStaff(String id) async {
+      await db
+          .into(db.users)
+          .insert(
+            UsersCompanion.insert(
+              id: id,
+              role: UserRole.staff,
+              fullName: 'Dr Staff',
+              email: '$id@example.com',
+              passwordHash: 'x',
+              passwordSalt: 'y',
+            ),
+          );
+      return id;
+    }
+
+    test(
+      'book rejects an interval overlap even with a different start time',
+      () async {
+        final patient = await registerPatient(email: 'ov1@example.com');
+        final staffId = await makeStaff('staff-ov1');
+        final appts = AppointmentRepositoryImpl(db);
+        final start = _nextWeekday(
+          DateTime.monday,
+        ).add(const Duration(hours: 9));
+
+        final first = await appts.book(
+          BookingRequest(
+            patientId: patient.id,
+            staffId: staffId,
+            start: start,
+            end: start.add(const Duration(minutes: 20)),
+            visitType: VisitType.followUp,
+          ),
+        );
+        expect(first.isOk, isTrue);
+
+        // Starts 10 minutes into the first appointment — not an exact-start
+        // match, but the intervals overlap.
+        final overlapping = await appts.book(
+          BookingRequest(
+            patientId: patient.id,
+            staffId: staffId,
+            start: start.add(const Duration(minutes: 10)),
+            end: start.add(const Duration(minutes: 30)),
+            visitType: VisitType.followUp,
+          ),
+        );
+        expect(overlapping.isErr, isTrue);
+      },
+    );
+
+    test('book rejects a past start time', () async {
+      final patient = await registerPatient(email: 'past1@example.com');
+      final staffId = await makeStaff('staff-past1');
+      final appts = AppointmentRepositoryImpl(db);
+      final past = DateTime.now().subtract(const Duration(days: 1));
+
+      final result = await appts.book(
+        BookingRequest(
+          patientId: patient.id,
+          staffId: staffId,
+          start: past,
+          end: past.add(const Duration(minutes: 20)),
+          visitType: VisitType.followUp,
+        ),
+      );
+      expect(result.isErr, isTrue);
+    });
+
+    test(
+      'reschedule rejects a caller who does not own the appointment',
+      () async {
+        final owner = await registerPatient(email: 'owner1@example.com');
+        final stranger = await registerPatient(
+          email: 'stranger1@example.com',
+        );
+        final staffId = await makeStaff('staff-auth1');
+        final appts = AppointmentRepositoryImpl(db);
+        final start = _nextWeekday(
+          DateTime.monday,
+        ).add(const Duration(hours: 9));
+
+        final booked = (await appts.book(
+          BookingRequest(
+            patientId: owner.id,
+            staffId: staffId,
+            start: start,
+            end: start.add(const Duration(minutes: 20)),
+            visitType: VisitType.followUp,
+          ),
+        )).valueOrNull!;
+
+        final result = await appts.reschedule(
+          id: booked.id,
+          patientId: stranger.id,
+          newStart: start.add(const Duration(days: 1)),
+          newEnd: start.add(const Duration(days: 1, minutes: 20)),
+        );
+        expect(result.isErr, isTrue);
+        expect(result.failureOrNull, isA<AuthFailure>());
+
+        // Untouched — still at its original time.
+        final unchanged = (await appts.byId(booked.id)).valueOrNull!;
+        expect(unchanged.slotStart, start);
+      },
+    );
+
+    test(
+      'reschedule rejects an interval that overlaps another appointment',
+      () async {
+        final patient = await registerPatient(email: 'resched1@example.com');
+        final staffId = await makeStaff('staff-resched1');
+        final appts = AppointmentRepositoryImpl(db);
+        final start = _nextWeekday(
+          DateTime.monday,
+        ).add(const Duration(hours: 9));
+
+        final first = (await appts.book(
+          BookingRequest(
+            patientId: patient.id,
+            staffId: staffId,
+            start: start,
+            end: start.add(const Duration(minutes: 20)),
+            visitType: VisitType.followUp,
+          ),
+        )).valueOrNull!;
+        final second = (await appts.book(
+          BookingRequest(
+            patientId: patient.id,
+            staffId: staffId,
+            start: start.add(const Duration(days: 1)),
+            end: start.add(const Duration(days: 1, minutes: 20)),
+            visitType: VisitType.followUp,
+          ),
+        )).valueOrNull!;
+
+        // Try to move the second appointment onto the first's time.
+        final result = await appts.reschedule(
+          id: second.id,
+          patientId: patient.id,
+          newStart: first.slotStart,
+          newEnd: first.slotEnd,
+        );
+        expect(result.isErr, isTrue);
+      },
+    );
+
+    test(
+      'reschedule rejects a completed appointment and rebuilds reminders '
+      'on success',
+      () async {
+        final patient = await registerPatient(email: 'resched2@example.com');
+        final staffId = await makeStaff('staff-resched2');
+        final appts = AppointmentRepositoryImpl(db);
+        final start = _nextWeekday(
+          DateTime.monday,
+        ).add(const Duration(hours: 9));
+
+        final booked = (await appts.book(
+          BookingRequest(
+            patientId: patient.id,
+            staffId: staffId,
+            start: start,
+            end: start.add(const Duration(minutes: 20)),
+            visitType: VisitType.followUp,
+            riskBand: RiskBand.low,
+          ),
+        )).valueOrNull!;
+
+        final newStart = start.add(const Duration(days: 1));
+        final rescheduled = await appts.reschedule(
+          id: booked.id,
+          patientId: patient.id,
+          newStart: newStart,
+          newEnd: newStart.add(const Duration(minutes: 20)),
+        );
+        expect(rescheduled.isOk, isTrue);
+
+        final reminders = await (db.select(
+          db.reminders,
+        )..where((r) => r.appointmentId.equals(booked.id))).get();
+        expect(reminders, isNotEmpty);
+        expect(
+          reminders.every((r) => r.scheduledFor.isBefore(newStart)),
+          isTrue,
+        );
+
+        await appts.updateStatus(
+          id: booked.id,
+          status: AppointmentStatus.completed,
+        );
+        final afterCompletion = await appts.reschedule(
+          id: booked.id,
+          patientId: patient.id,
+          newStart: newStart.add(const Duration(days: 1)),
+          newEnd: newStart.add(const Duration(days: 1, minutes: 20)),
+        );
+        expect(afterCompletion.isErr, isTrue);
+      },
+    );
+
+    test(
+      'cancel rejects a non-owner, is not repeatable, and clears '
+      'unsent reminders',
+      () async {
+        final owner = await registerPatient(email: 'owner2@example.com');
+        final stranger = await registerPatient(email: 'stranger2@example.com');
+        final staffId = await makeStaff('staff-cancel1');
+        final appts = AppointmentRepositoryImpl(db);
+        final start = _nextWeekday(
+          DateTime.monday,
+        ).add(const Duration(hours: 9));
+
+        final booked = (await appts.book(
+          BookingRequest(
+            patientId: owner.id,
+            staffId: staffId,
+            start: start,
+            end: start.add(const Duration(minutes: 20)),
+            visitType: VisitType.followUp,
+            riskBand: RiskBand.low,
+          ),
+        )).valueOrNull!;
+        // Booking itself doesn't schedule reminders (the caller does);
+        // create one directly so there is something to clear.
+        await db
+            .into(db.reminders)
+            .insert(
+              RemindersCompanion.insert(
+                id: 'rem-cancel1',
+                appointmentId: booked.id,
+                scheduledFor: start.subtract(const Duration(hours: 24)),
+                channel: ReminderChannel.push,
+              ),
+            );
+
+        final wrongOwner = await appts.cancel(
+          booked.id,
+          patientId: stranger.id,
+        );
+        expect(wrongOwner.isErr, isTrue);
+
+        final firstCancel = await appts.cancel(booked.id, patientId: owner.id);
+        expect(firstCancel.isOk, isTrue);
+
+        final secondCancel = await appts.cancel(
+          booked.id,
+          patientId: owner.id,
+        );
+        expect(secondCancel.isErr, isTrue);
+
+        final remaining = await (db.select(
+          db.reminders,
+        )..where((r) => r.appointmentId.equals(booked.id))).get();
+        expect(remaining, isEmpty);
+      },
+    );
+
+    test(
+      'setTemplates rejects two overlapping templates on the same weekday',
+      () async {
+        final staffId = await makeStaff('staff-tmpl1');
+        final appts = AppointmentRepositoryImpl(db);
+        final result = await appts.setTemplates(
+          staffId: staffId,
+          templates: [
+            const NewScheduleTemplate(
+              weekday: DateTime.monday,
+              startMinutes: 9 * 60,
+              endMinutes: 11 * 60,
+            ),
+            const NewScheduleTemplate(
+              weekday: DateTime.monday,
+              startMinutes: 10 * 60,
+              endMinutes: 12 * 60,
+            ),
+          ],
+        );
+        expect(result.isErr, isTrue);
+      },
+    );
   });
 
   group('RecordRepository', () {
