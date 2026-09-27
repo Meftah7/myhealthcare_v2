@@ -122,6 +122,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get hidePassword => 'إخفاء كلمة المرور';
 
   @override
+  String get startupFailedTitle => 'تعذّر تحميل بياناتك';
+
+  @override
+  String get startupFailedSubtitle =>
+      'حدث ما منع التطبيق من إعداد قاعدة بياناته المحلية. تحقق من إعدادات التخزين في متصفحك (التصفح الخاص وبعض إضافات الخصوصية قد تمنع ذلك)، ثم أعد المحاولة.';
+
+  @override
   String get uploadedByPatientTag => 'رفعه المريض — لم تتم مراجعته';
 
   @override

@@ -41,6 +41,8 @@
   "password": "Password",
   "showPassword": "Show password",
   "hidePassword": "Hide password",
+  "startupFailedTitle": "Couldn't load your data",
+  "startupFailedSubtitle": "Something stopped the app from setting up its local database. Check your browser's storage settings (private browsing and some privacy extensions can block it), then try again.",
   "uploadedByPatientTag": "Uploaded by patient — not reviewed",
   "uploadedByPatientNote": "The patient uploaded this document. A clinician has not reviewed it, so it is not a clinic result.",
   "refreshTooltip": "Refresh",

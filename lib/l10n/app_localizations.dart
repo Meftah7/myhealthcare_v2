@@ -314,6 +314,18 @@ abstract class AppLocalizations {
   /// **'Hide password'**
   String get hidePassword;
 
+  /// No description provided for @startupFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your data'**
+  String get startupFailedTitle;
+
+  /// No description provided for @startupFailedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Something stopped the app from setting up its local database. Check your browser\'s storage settings (private browsing and some privacy extensions can block it), then try again.'**
+  String get startupFailedSubtitle;
+
   /// No description provided for @uploadedByPatientTag.
   ///
   /// In en, this message translates to:

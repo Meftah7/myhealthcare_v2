@@ -281,9 +281,13 @@ String? _guard(Ref ref, GoRouterState state) {
   };
   final onAuthScreen = publicAuth.contains(loc);
 
-  // Dataset still seeding / migrating, or the persisted session still loading
-  // → sit on the splash so nothing reads half-populated data.
-  final booting = ref.read(appBootstrapProvider).isLoading;
+  // Dataset still seeding/migrating (or failed to), or the persisted session
+  // still loading → sit on the splash so nothing reads half-populated data.
+  // A failed seed must hold here too: falling through to the login screen
+  // with zero accounts actually created would make every login — including
+  // every demo account — fail with "account not found" and no explanation.
+  final bootstrap = ref.read(appBootstrapProvider);
+  final booting = bootstrap.isLoading || bootstrap.hasError;
   if (booting || session.isRestoring) {
     return loc == onSplash ? null : onSplash;
   }
@@ -300,12 +304,54 @@ String? _guard(Ref ref, GoRouterState state) {
   return null;
 }
 
-class _SplashScreen extends StatelessWidget {
+class _SplashScreen extends ConsumerWidget {
   const _SplashScreen();
 
   @override
-  Widget build(BuildContext context) =>
-      const Scaffold(body: Center(child: CircularProgressIndicator()));
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bootstrap = ref.watch(appBootstrapProvider);
+    if (!bootstrap.hasError) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    // Seeding/migration failed (e.g. the browser's local storage refused to
+    // open) — say so and let the user retry, instead of silently continuing
+    // to a login screen backed by an empty database.
+    final t = AppLocalizations.of(context)!;
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.cloud_off_rounded,
+                size: 40,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                t.startupFailedTitle,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                t.startupFailedSubtitle,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 20),
+              FilledButton(
+                onPressed: () => ref.invalidate(appBootstrapProvider),
+                child: Text(t.tryAgain),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------

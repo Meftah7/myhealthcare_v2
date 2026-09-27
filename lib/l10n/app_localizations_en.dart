@@ -123,6 +123,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hidePassword => 'Hide password';
 
   @override
+  String get startupFailedTitle => 'Couldn\'t load your data';
+
+  @override
+  String get startupFailedSubtitle =>
+      'Something stopped the app from setting up its local database. Check your browser\'s storage settings (private browsing and some privacy extensions can block it), then try again.';
+
+  @override
   String get uploadedByPatientTag => 'Uploaded by patient — not reviewed';
 
   @override
