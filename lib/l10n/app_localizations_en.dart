@@ -130,6 +130,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Something stopped the app from setting up its local database. Check your browser\'s storage settings (private browsing and some privacy extensions can block it), then try again.';
 
   @override
+  String get technicalDetailsLabel => 'Technical details';
+
+  @override
   String get uploadedByPatientTag => 'Uploaded by patient — not reviewed';
 
   @override

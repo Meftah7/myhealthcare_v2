@@ -326,6 +326,12 @@ abstract class AppLocalizations {
   /// **'Something stopped the app from setting up its local database. Check your browser\'s storage settings (private browsing and some privacy extensions can block it), then try again.'**
   String get startupFailedSubtitle;
 
+  /// No description provided for @technicalDetailsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Technical details'**
+  String get technicalDetailsLabel;
+
   /// No description provided for @uploadedByPatientTag.
   ///
   /// In en, this message translates to:

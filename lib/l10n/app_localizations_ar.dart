@@ -129,6 +129,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'حدث ما منع التطبيق من إعداد قاعدة بياناته المحلية. تحقق من إعدادات التخزين في متصفحك (التصفح الخاص وبعض إضافات الخصوصية قد تمنع ذلك)، ثم أعد المحاولة.';
 
   @override
+  String get technicalDetailsLabel => 'تفاصيل تقنية';
+
+  @override
   String get uploadedByPatientTag => 'رفعه المريض — لم تتم مراجعته';
 
   @override

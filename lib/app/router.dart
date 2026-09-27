@@ -346,6 +346,28 @@ class _SplashScreen extends ConsumerWidget {
                 onPressed: () => ref.invalidate(appBootstrapProvider),
                 child: Text(t.tryAgain),
               ),
+              const SizedBox(height: 12),
+              // Collapsed by default (this is patient-facing), but the raw
+              // exception is what actually lets a bug report be fixed —
+              // "something went wrong" alone taught us nothing last time.
+              ExpansionTile(
+                title: Text(
+                  t.technicalDetailsLabel,
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: const EdgeInsets.only(bottom: 8),
+                children: [
+                  SelectableText(
+                    '${bootstrap.error}',
+                    textAlign: TextAlign.start,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontFamily: 'monospace',
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
