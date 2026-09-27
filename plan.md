@@ -281,4 +281,416 @@ python generate_dataset.py && python train_no_show.py && python evaluate.py
 
 ## Open item
 
+---
+
+## Design, layout, and animation audit backlog
+
+This section records the design review so future implementation instructions can refer to one durable source instead of relying on chat history.
+
+### Overall direction
+
+Keep the existing **clinical premium** direction: calm, structured, trustworthy, and modern. Do not replace it with a louder wellness aesthetic, generic AI visuals, or decorative glassmorphism.
+
+The central objective is: make every screen communicate priority faster, with fewer competing surfaces, clearer hierarchy, and restrained motion.
+
+The current foundation is strong: Material 3, Lexend headings, Inter UI text, semantic colors, light/dark themes, responsive window classes, shared scaffolds, and reduced-motion support.
+
+### Design priorities
+
+#### P1 — Reduce competing surfaces
+
+Cards, borders, containers, chips, hero panels, quick-action grids, and dashboard sections are individually reasonable but can collectively make screens feel like collections of panels.
+
+- Give each screen one primary visual anchor.
+- Use whitespace and section headers before adding another card.
+- Reserve strong borders for interactive or important content.
+- Limit each screen to one main gradient/hero surface.
+- Avoid making every information group look equally important.
+
+#### P1 — Simplify information architecture
+
+The three role apps have clear primary destinations, but secondary features can create too many routes and duplicate entry points.
+
+- Keep the primary role tabs stable.
+- Make pushed/detail routes visibly subordinate to primary destinations.
+- Keep dashboard quick actions only for frequent or urgent tasks.
+- Remove duplicate shortcuts when they do not add meaningful context.
+- Make dashboard summary, workflow, and detail visually distinct.
+
+#### P1 — Stress-test responsive layouts
+
+Verify important screens at 320×568, 375×667, 430×932, 600×800, 840×700, 1024×768, and 1440×900, plus portrait/landscape phone, 200% text scaling, Arabic/RTL, and keyboard-open states.
+
+Check navigation labels, charts, appointment cards, schedule grids, profile headers, bottom sheets, long translations, and buttons beside expanded text.
+
+#### P1 — Standardize page framing
+
+`AppScaffold` should own standard screen framing: gutters, max width, scrolling, refresh, bottom padding, and entrance behavior. Use custom framing only for genuinely specialized screens such as calendars, chat threads, split panes, or full-screen workflows.
+
+Review screens that still hand-roll `ListView`, `GridView`, `Center`, padding, and width constraints for visual drift.
+
+#### P2 — Simplify the login surface
+
+The login screen currently includes the brand lockup, two fields, helper text, forgot password, error banner, sign-in, registration, demo accounts, demo password, and theme/language actions.
+
+- Hide demo accounts behind a demo/development mode in production builds.
+- Keep the authentication task visually dominant.
+- Make “email or national ID” consistent between label and helper text.
+- Preserve user input after errors.
+- Give loading, error, and success states clear hierarchy.
+
+#### P2 — Strengthen hierarchy
+
+Use three levels: screen purpose, section/task group, and supporting metadata.
+
+Prioritize urgent and actionable content over totals and secondary analytics. Patient priority should generally be next appointment, urgent health information, recent records, then optional tools. Staff/admin priority should be what needs attention now, today’s workflow, then analytics/reference information.
+
+#### P2 — Reconsider navigation indicators
+
+The rounded selected navigation indicator is functional but adds to the repeated soft/pill language used by cards, fields, buttons, chips, and status elements.
+
+Consider a quieter selected navigation treatment such as a tinted structural background, rail marker, or underline. Preserve pill shapes primarily for semantic status badges.
+
+#### P2 — Validate subtle surface contrast
+
+The system relies on fill contrast plus hairline borders. This may be too subtle for older users, low-vision users, and dark-mode users.
+
+- Check light and dark screenshots at reduced brightness.
+- Increase page/card contrast slightly if adjacent cards merge visually.
+- Use stronger separation for interactive and priority surfaces.
+- Never communicate selected, focused, or urgent state with border color alone.
+
+#### P2 — Keep gradients rare
+
+Use the brand gradient for recognition and exceptional moments, not as a general accent. Preferred uses are login identity, onboarding, one role hero, and one meaningful empty-state action. Routine buttons should usually use a flat semantic primary color.
+
+### Accessibility checklist
+
+- Every icon-only action has a meaningful tooltip and semantic label.
+- Form errors are announced to screen readers.
+- Focus moves to the first invalid field after submission.
+- Loading states announce “Signing in” or equivalent status.
+- Password visibility controls expose their current state.
+- All screens remain usable at 200% text scaling.
+- Arabic/RTL layouts are tested, not only translated.
+- Keyboard traversal works on Windows and web.
+- Touch targets remain at least 48dp where possible.
+- Selected/focused/error states do not depend on color alone.
+- Session timeout notices are announced when the user returns to login.
+- Bottom sheets and forms remain usable when the keyboard is open.
+
+### Animation direction
+
+Motion should communicate state, location, hierarchy, and touch feedback. It should not make routine healthcare work feel theatrical.
+
+| Context | Motion level | Direction |
+|---|---:|---|
+| Login/authentication | Very low | Short fade or instant state change |
+| Routine dashboard navigation | Low | Near-instant or subtle fade |
+| Modal/bottom sheet | Medium | Short scale/fade from trigger |
+| List/detail transition | Medium | Shared-axis transition |
+| Clinical alert | Low | Restrained emphasis; never playful |
+| Onboarding/first visit | Medium-high | Strongest brand expression |
+
+#### Motion findings to address
+
+- `Motion.slow` is 320ms in `lib/app/theme/motion.dart`; consider 240–280ms for frequent navigation and reserve 320ms for larger, rare transitions.
+- `AnimatedSize` in `motion.dart` animates layout height and can shift nearby content; prefer opacity plus transform where possible.
+- `AnimatedPositioned` in draggable/overlay areas can trigger layout work; prefer transform-based movement for drag and settle motion when feasible.
+- `AppEntrance` is applied broadly through `AppScaffold`; use it selectively so routine navigation does not feel delayed.
+- Use `AppCountUp` only for meaningful dashboard arrival or explicit updates, not every rebuild of a clinical value.
+- Avoid stacking multiple fades, scales, and size animations in one region.
+- Preserve reduced-motion behavior across every new animation.
+- Use trigger-origin animation for sheets, popovers, and menus.
+- Prefer transform and opacity over width, height, margin, padding, top, and left animations.
+
+#### Motion acceptance criteria
+
+- Every animation has a one-sentence purpose.
+- Frequent actions complete visually within roughly 300ms.
+- No animation uses `transition: all` or equivalent unbounded properties.
+- No interaction depends on hover.
+- Reduced motion removes movement and unnecessary delay.
+- Animations are interruptible where the user can act again quickly.
+- Clinical numbers do not visually change in a way that undermines trust.
+
+### Suggested implementation order
+
+1. Run a responsive and accessibility pass on login, patient home, staff dashboard, admin dashboard, schedule, timeline, and profile.
+2. Reduce unnecessary cards and repeated rounded surfaces.
+3. Standardize remaining screens on `AppScaffold`.
+4. Simplify navigation and remove duplicate entry points.
+5. Verify light/dark contrast and Arabic/RTL behavior.
+6. Reduce motion on routine flows and remove layout-property animations where practical.
+7. Add focused visual regression tests at compact, expanded, dark, RTL, and 200% text-scale configurations.
+8. Run one final polish pass after structural changes.
+
+### Suggested review commands
+
+- `$impeccable audit` — technical accessibility, performance, responsiveness, and theming audit.
+- `$impeccable critique` — heuristic UX and information-hierarchy review.
+- `$impeccable layout` — spacing, rhythm, width, and hierarchy refinement.
+- `$impeccable adapt` — compact/medium/expanded/large layout fixes.
+- `$impeccable animate` — purposeful motion improvements.
+- `$impeccable typeset` — typography and text-scale refinement.
+- `$impeccable clarify` — labels, helper text, errors, and action copy.
+- `$impeccable polish` — final visual quality pass.
+
+Re-run the audit after fixes and update this section with completed items and remaining risks.
+
+## Settings and appointments audit backlog
+
+This section records the settings and appointment-flow review. Appointment
+reliability is a primary product priority because it is the main patient-facing
+workflow.
+
+### Appointment bugs and risks
+
+#### P0 — Rescheduling can create conflicts
+
+`lib/data/repositories/appointment_repository_impl.dart` updates an appointment
+without checking whether the new interval overlaps another appointment, is part
+of the clinician's schedule, falls within clinic hours, or is on an open day.
+Rescheduling must use the same availability rules as booking.
+
+#### P1 — Reschedule results are ignored
+
+`lib/features/appointments/presentation/appointments_screen.dart` calls the
+reschedule repository method without inspecting its `Result`. A failed
+reschedule can appear to do nothing and gives the patient no explanation.
+
+Add loading, success, and error states while preserving the original appointment.
+
+#### P1 — Rescheduling does not rebuild reminders
+
+Booking schedules reminders, but the patient reschedule flow does not rebuild
+them. Reminders can remain attached to the old appointment time.
+
+After a successful reschedule, delete unsent reminders and call the reminder
+scheduler with the new start time and risk band.
+
+#### P1 — Booking conflict check is not atomic
+
+Booking checks for a clash and inserts later. Concurrent requests can both pass
+the check. Use a transaction and a database-level uniqueness/locking strategy
+where possible.
+
+#### P1 — Overlapping appointments are not detected
+
+The current booking check compares only identical start times. It must reject
+interval overlap using the standard condition:
+
+```text
+existing.start < requested.end && existing.end > requested.start
+```
+
+Cancelled appointments should remain excluded from the conflict check.
+
+#### P1 — Reschedule allows arbitrary minutes
+
+The time picker can produce times such as 10:07 even when the clinician uses
+20-minute slots. Rescheduling must display valid `OpenSlot` values rather than a
+free-form clock picker.
+
+#### P1 — Reschedule validates only the selected hour
+
+The current UI does not fully validate future time, open day, staff schedule,
+slot alignment, appointment duration, or closing-time boundaries. All of these
+must be checked in the repository as well as the UI.
+
+#### P1 — Appointment mutations lack repository-level authorization
+
+`cancel`, `reschedule`, and `updateStatus` accept only an appointment ID. The
+repository boundary does not verify acting user, patient ownership, assigned
+clinician, role, or valid status transition.
+
+The application layer may perform some checks, but the data boundary must not
+trust callers. Introduce an authorization-aware mutation API or require actor
+and ownership context for mutations.
+
+#### P1 — Cancellation failures are ignored
+
+The patient appointment card calls cancel and immediately refreshes the list
+without checking the result. Add loading protection, success feedback, and an
+error message. Prevent repeated cancellation taps.
+
+#### P2 — “Book Now” has a misleading no-availability fallback
+
+The quick-book flow searches 14 days and returns today if no slot is found. This
+can make the UI describe today as the soonest opening while no slot exists.
+
+Return an explicit empty result and show “No opening found in the next 14 days,”
+with a later-date or alternate-clinician action.
+
+#### P2 — Overlapping schedule templates can duplicate slots
+
+Admin schedule-template saving must reject overlapping templates for the same
+clinician and weekday. Otherwise the booking UI can show duplicate slots.
+
+#### P2 — Ticket generation is race-prone
+
+Ticket numbers are generated by counting existing appointments and adding one.
+Concurrent bookings can receive the same ticket. Use a transaction-backed counter
+or unique constraint/retry strategy.
+
+#### P2 — Appointment history is silently limited
+
+The patient UI displays only the latest 40 past appointments without pagination
+or a “load more” action. Add pagination or explain the limit and provide a way to
+load older history.
+
+#### P2 — Upcoming actions depend only on date
+
+Reschedule and cancel actions are shown for every future appointment. Also check
+status, check-in state, time-to-appointment, and business rules before exposing
+each action.
+
+### Appointment UX improvements
+
+#### Booking flow
+
+The preferred flow is:
+
+1. Choose visit type/reason.
+2. Choose department or clinician.
+3. Choose a day with availability counts.
+4. Choose from valid slots only.
+5. Review date, time, clinician, department, reason, room, and reminders.
+6. Confirm with a loading state and an idempotent request.
+7. Show a confirmation containing date, time, clinician, room, ticket, and
+   reminder details.
+
+Improve the flow by showing next available day, preventing past slots, clearly
+   indicating timezone/local time, making the selected slot unmistakable, and
+   providing retryable errors.
+
+#### Appointment detail
+
+Add a dedicated appointment detail surface containing date/time, clinician,
+department, room, ticket, visit type, reason, status, check-in instructions,
+reminder settings, reschedule/cancel, calendar export, and help/contact action.
+
+#### Cancellation
+
+Validate status and ownership, optionally collect a reason, cancel unsent
+reminders, show success feedback, write an audit entry, and distinguish patient
+cancellation from staff no-show marking.
+
+#### Staff lifecycle
+
+Enforce valid status transitions:
+
+```text
+booked → confirmed
+confirmed → inProgress
+inProgress → completed
+booked/confirmed → cancelled
+booked/confirmed → noShow
+```
+
+Reject invalid transitions such as completed → booked, cancelled → inProgress,
+or noShow → completed.
+
+#### Reminder lifecycle
+
+Rebuild reminders after booking, rescheduling, cancellation, and risk-band
+changes. Cancel or suppress unsent reminders when an appointment is cancelled.
+
+### Settings architecture findings
+
+#### P1 — Push notification setting is not visible
+
+`NotificationPrefs` stores a push preference, but the preferences UI exposes only
+SMS, email, and sound. Add a push toggle or remove the unused state. The visible
+settings model and stored settings model must agree.
+
+#### P1 — Notification settings do not control reminder scheduling
+
+The reminder scheduler always creates push reminders and does not read SMS,
+email, push, or operating-system permission state. Wire notification preferences
+into reminder creation and delivery.
+
+#### P1 — Device, user, and clinic settings are mixed
+
+Theme, language, text scale, and sounds are device preferences. Notification and
+account preferences should be associated with the signed-in user. Clinic hours,
+open days, slot duration, holidays, and staff schedules are shared operational
+data and should live in the database rather than device-local preferences.
+
+The current local-only demo can keep them local temporarily, but the UI must make
+the scope explicit.
+
+#### P2 — No in-app reduced-motion preference
+
+The app follows the operating-system reduced-motion setting but does not provide
+System / Reduced / Full motion choices. Add this under Accessibility, with System
+as the default.
+
+#### P2 — No high-contrast/accessibility mode
+
+Add optional high contrast, stronger borders, larger touch targets, and simplified
+visual density for patients with low vision or motor limitations.
+
+#### P2 — Notification settings lack explanation
+
+Explain what each channel delivers, whether the channel is supported, whether OS
+permission is enabled, and whether the local demo simulates delivery.
+
+#### P2 — Settings persistence failures are not surfaced
+
+Controllers update visible state before awaiting persistence. If storage fails,
+the UI can display a value that was not saved. Add error handling, rollback, and a
+small failure message where persistence can fail.
+
+#### P2 — No scoped reset controls
+
+Add reset-to-default actions for appearance, notifications, clinic schedule, and
+all device preferences. Avoid a single destructive reset without clear scope.
+
+### Settings structure recommendation
+
+Organize settings into:
+
+1. Appearance — theme, language, text size, reduced motion.
+2. Notifications — push, email, SMS, sounds, appointment reminders.
+3. Appointments — default visit type, reminder timing, calendar preferences.
+4. Account and security — password, logout/session, privacy.
+5. Clinic administration — open days, hours, holidays, slot duration, staff
+   schedules.
+6. AI settings — model, mock mode, API key, data handling, disclaimers.
+7. Accessibility — high contrast, larger targets, screen-reader support.
+
+### Required appointment tests
+
+- Rescheduling into an occupied slot fails.
+- Rescheduling into an overlapping interval fails.
+- Rescheduling outside clinic hours fails.
+- Rescheduling on a closed day fails.
+- Rescheduling to a non-slot minute fails.
+- Rescheduling an already completed appointment fails.
+- Cancelling an appointment twice fails cleanly.
+- A patient cannot mutate another patient's appointment.
+- A clinician cannot mutate an appointment assigned to another clinician.
+- Concurrent identical bookings create only one appointment.
+- Ticket numbers remain unique.
+- Rescheduling rebuilds reminders.
+- Cancellation removes unsent reminders.
+- Notification preferences affect reminder channels.
+- “Book Now” shows an explicit empty state when no opening exists.
+- Changing clinic hours updates booking availability correctly.
+- Clinic schedule changes persist according to their intended scope.
+
+### Recommended implementation order
+
+1. Harden appointment repository validation and authorization.
+2. Replace free-form rescheduling with valid-slot selection.
+3. Make booking/rescheduling/cancellation transactional and result-aware.
+4. Rebuild and cancel reminders as appointment state changes.
+5. Add appointment detail and clear loading/success/error states.
+6. Separate device, user, and clinic settings.
+7. Connect visible notification preferences to actual reminder behavior.
+8. Add the appointment and settings regression tests listed above.
+
+### Existing open item
+
 The proposal is dated Semester 2, 2025/2026 (submitted 1/2/2026), but the current date is August 2026. All phases above are keyed to the proposal's **relative** week numbers (W1–W16) rather than calendar dates. Confirm the actual deadline and the phases can be re-scaled to fit.
