@@ -171,13 +171,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             onPressed: _busy ? null : () => context.push(AppRoutes.register),
             child: Text(t.createPatientAccount),
           ),
-          const SizedBox(height: Space.lg),
-          _DemoHint(
-            onFill: (email) {
-              _email.text = email;
-              _password.text = 'password';
-            },
-          ),
+          // Demo accounts are a demo affordance, not part of a real sign-in
+          // screen. This app is only deployed as a demo (GitHub Pages), so
+          // they show by default; a real production build hides them with
+          // --dart-define=HIDE_DEMO_ACCOUNTS=true.
+          if (kShowDemoAccounts) ...[
+            const SizedBox(height: Space.lg),
+            _DemoHint(
+              onFill: (email) {
+                _email.text = email;
+                _password.text = 'password';
+              },
+            ),
+          ],
         ],
       ),
     );
@@ -274,6 +280,9 @@ class _BrandLockup extends StatelessWidget {
     );
   }
 }
+
+/// See the `_DemoHint` call site.
+const bool kShowDemoAccounts = !bool.fromEnvironment('HIDE_DEMO_ACCOUNTS');
 
 class _DemoHint extends StatelessWidget {
   const _DemoHint({required this.onFill});

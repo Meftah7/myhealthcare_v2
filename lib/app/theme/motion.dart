@@ -26,7 +26,7 @@ abstract final class Motion {
   static const Duration medium = Duration(milliseconds: 220);
 
   /// Page-level transitions, larger reveals.
-  static const Duration slow = Duration(milliseconds: 320);
+  static const Duration slow = Duration(milliseconds: 260);
 
   /// Numeric roll-ups — long enough to read as counting, short enough that the
   /// figure is settled before the eye asks for it.
