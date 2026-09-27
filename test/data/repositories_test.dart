@@ -406,11 +406,12 @@ void main() {
           isTrue,
         );
 
-        await appts.updateStatus(
-          id: booked.id,
+        await appts.markArrived(
+          booked.id,
           staffId: staffId,
-          status: AppointmentStatus.completed,
+          at: DateTime.now(),
         );
+        await appts.completeVisit(id: booked.id, staffId: staffId);
         final afterCompletion = await appts.reschedule(
           id: booked.id,
           patientId: patient.id,
@@ -580,6 +581,45 @@ void main() {
         );
       },
     );
+
+    test('terminal appointment states cannot be reopened', () async {
+      final patient = await registerPatient(email: 'terminal@example.com');
+      final staffId = await makeStaff('staff-terminal');
+      final appts = AppointmentRepositoryImpl(db);
+      final start = _nextWeekday(
+        DateTime.monday,
+      ).add(const Duration(hours: 9));
+      final booked = (await appts.book(
+        BookingRequest(
+          patientId: patient.id,
+          staffId: staffId,
+          start: start,
+          end: start.add(const Duration(minutes: 20)),
+          visitType: VisitType.followUp,
+        ),
+      )).valueOrNull!;
+
+      expect(
+        (await appts.updateStatus(
+          id: booked.id,
+          staffId: staffId,
+          status: AppointmentStatus.noShow,
+        )).isOk,
+        isTrue,
+      );
+      expect(
+        (await appts.markArrived(
+          booked.id,
+          staffId: staffId,
+          at: DateTime.now(),
+        )).isErr,
+        isTrue,
+      );
+      expect(
+        (await appts.completeVisit(id: booked.id, staffId: staffId)).isErr,
+        isTrue,
+      );
+    });
   });
 
   group('RecordRepository', () {

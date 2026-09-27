@@ -218,6 +218,7 @@ class StaffOps {
     for (final (task, score, rationale) in _rankTasks(tasks)) {
       await repo.applyAiPriority(
         id: task.id,
+        staffId: staffId,
         score: score,
         rationale: rationale,
       );
@@ -236,7 +237,10 @@ class StaffOps {
   }
 
   Future<void> setTaskStatus(String taskId, TaskStatus status) async {
-    await _ref.read(taskRepositoryProvider).setStatus(taskId, status);
+    final staffId = _ref.read(currentUserProvider)!.id;
+    await _ref
+        .read(taskRepositoryProvider)
+        .setStatus(id: taskId, staffId: staffId, status: status);
     _ref.invalidate(staffTasksProvider);
   }
 

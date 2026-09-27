@@ -196,6 +196,7 @@ void main() {
 
         await tasks.applyAiPriority(
           id: 'low',
+          staffId: sid,
           score: 0.95,
           rationale: 'bumped',
         );
@@ -205,7 +206,11 @@ void main() {
         expect(low.aiRationale, 'bumped');
         expect(low.effectivePriority(1), closeTo(0.95, 1e-9));
 
-        await tasks.setStatus('high', TaskStatus.done);
+        await tasks.setStatus(
+          id: 'high',
+          staffId: sid,
+          status: TaskStatus.done,
+        );
         final open = (await tasks.forStaff(sid, openOnly: true)).valueOrNull!;
         expect(open.map((t) => t.id), ['low']);
       },

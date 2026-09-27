@@ -21,6 +21,7 @@ import '../../../core/utils/format.dart';
 import '../../../domain/enums.dart';
 import '../../../domain/repositories/record_repository.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../services/crypto/document_cipher.dart';
 import '../../auth/application/session.dart';
 import '../../patient/application/patient_data_providers.dart';
 
@@ -61,6 +62,14 @@ class _ImportRecordSheetState extends ConsumerState<_ImportRecordSheet> {
   /// bloat on-device storage and stall text extraction.
   static const _maxBytes = 20 * 1024 * 1024;
 
+  static bool _looksLikePdf(Uint8List bytes) =>
+      bytes.length > 5 &&
+      bytes[0] == 0x25 && // %PDF-
+      bytes[1] == 0x50 &&
+      bytes[2] == 0x44 &&
+      bytes[3] == 0x46 &&
+      bytes[4] == 0x2D;
+
   @override
   void dispose() {
     _title.dispose();
@@ -87,9 +96,13 @@ class _ImportRecordSheetState extends ConsumerState<_ImportRecordSheet> {
         });
         return;
       }
-      final document = PdfDocument(inputBytes: bytes);
-      final text = PdfTextExtractor(document).extractText();
-      document.dispose();
+      // Untrusted input: check the magic bytes, then parse off the UI isolate
+      // with page/text caps and a timeout (SEC-PAT-10).
+      if (!_looksLikePdf(bytes)) throw const FormatException('not a PDF');
+      final text = await compute(
+        _extractPdfText,
+        bytes,
+      ).timeout(const Duration(seconds: 20));
       if (!mounted) return;
       setState(() {
         _fileName = file.name;
@@ -123,7 +136,7 @@ class _ImportRecordSheetState extends ConsumerState<_ImportRecordSheet> {
     if (picked != null) setState(() => _occurredAt = picked);
   }
 
-  /// Copies the picked PDF into app storage and returns its path; null on
+  /// Encrypts the picked PDF into app storage and returns its path; null on
   /// web, which has no app file system (the name is kept instead).
   Future<String?> _storeOriginal(String patientId) async {
     final bytes = _bytes;
@@ -131,10 +144,13 @@ class _ImportRecordSheetState extends ConsumerState<_ImportRecordSheet> {
     final base = await getApplicationSupportDirectory();
     final dir = Directory('${base.path}/imports/$patientId');
     await dir.create(recursive: true);
+    // Encrypted at rest with a keystore-held key (SEC-PAT-08); read back
+    // through DocumentCipher.decrypt.
+    final sealed = await DocumentCipher().encrypt(bytes);
     final file = File(
-      '${dir.path}/${DateTime.now().microsecondsSinceEpoch}.pdf',
+      '${dir.path}/${DateTime.now().microsecondsSinceEpoch}.pdf.enc',
     );
-    await file.writeAsBytes(bytes, flush: true);
+    await file.writeAsBytes(sealed, flush: true);
     return file.path;
   }
 
@@ -188,6 +204,14 @@ class _ImportRecordSheetState extends ConsumerState<_ImportRecordSheet> {
           context,
         ).showSnackBar(SnackBar(content: Text(t.importedRecordSavedMessage)));
       case Err(:final failure):
+        if (storedPath != null) {
+          try {
+            await File(storedPath).delete();
+          } on FileSystemException {
+            // Best-effort cleanup; preserve the original persistence failure.
+          }
+        }
+        if (!mounted) return;
         setState(() {
           _saving = false;
           _error = failure.message;
@@ -304,5 +328,24 @@ class _ImportRecordSheetState extends ConsumerState<_ImportRecordSheet> {
         ),
       ),
     );
+  }
+}
+
+const _maxPdfPages = 200;
+const _maxExtractedChars = 200000;
+
+/// Top-level so [compute] can run it on a background isolate.
+String _extractPdfText(Uint8List bytes) {
+  final document = PdfDocument(inputBytes: bytes);
+  try {
+    if (document.pages.count > _maxPdfPages) {
+      throw const FormatException('too many pages');
+    }
+    final text = PdfTextExtractor(document).extractText();
+    return text.length > _maxExtractedChars
+        ? text.substring(0, _maxExtractedChars)
+        : text;
+  } finally {
+    document.dispose();
   }
 }

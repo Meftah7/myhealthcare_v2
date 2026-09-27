@@ -7,6 +7,7 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/di.dart';
+import '../../../core/failures.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -160,6 +161,27 @@ class FamilyMemberController {
     return result;
   }
 }
+
+class PatientProfileController {
+  PatientProfileController(this._ref);
+  final Ref _ref;
+
+  Future<Result<void>> update(Patient patient) async {
+    final id = _requirePatient(_ref);
+    if (patient.id != id) {
+      return const Err(AuthFailure('You can only update your own profile.'));
+    }
+    final result = await _ref.read(patientRepositoryProvider).updateProfile(
+      patient,
+    );
+    if (result case Ok()) _ref.invalidate(patientProfileProvider);
+    return result;
+  }
+}
+
+final patientProfileControllerProvider = Provider<PatientProfileController>(
+  PatientProfileController.new,
+);
 
 final familyMemberControllerProvider = Provider<FamilyMemberController>(
   FamilyMemberController.new,

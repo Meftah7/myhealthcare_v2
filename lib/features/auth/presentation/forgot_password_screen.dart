@@ -16,6 +16,7 @@ import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/result.dart';
 import '../../../l10n/app_localizations.dart';
 import 'auth_app_bar_actions.dart';
 
@@ -52,8 +53,17 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     });
     // This always succeeds from the caller's point of view — see the class
     // doc. There is deliberately nothing to switch on here.
-    await ref.read(authRepositoryProvider).requestPasswordReset(id);
+    final result = await ref
+        .read(authRepositoryProvider)
+        .requestPasswordReset(id);
     if (!mounted) return;
+    if (result case Err(:final failure)) {
+      setState(() {
+        _busy = false;
+        _error = failure.message;
+      });
+      return;
+    }
     setState(() {
       _busy = false;
       _submitted = true;

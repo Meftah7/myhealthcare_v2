@@ -2,6 +2,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
@@ -83,8 +84,8 @@ class AiSettingsScreen extends ConsumerWidget {
                 ),
               ),
 
-              SectionHeader(t.demoDataHeader),
-              AppCard(
+              if (kDebugMode) SectionHeader(t.demoDataHeader),
+              if (kDebugMode) AppCard(
                 padding: EdgeInsets.zero,
                 child: ListTile(
                   leading: const Icon(Icons.restart_alt),

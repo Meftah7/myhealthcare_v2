@@ -246,9 +246,14 @@ class ReferralRequestRepositoryImpl implements ReferralRequestRepository {
     String? note,
   }) {
     return Result.guardAsync(() async {
-      await (_db.update(
+      final updated = await (_db.update(
         _db.referralRequests,
-      )..where((t) => t.id.equals(id))).write(
+      )..where(
+            (t) =>
+                t.id.equals(id) &
+                t.status.equalsValue(ReferralRequestStatus.pending),
+          ))
+          .write(
         ReferralRequestsCompanion(
           status: Value(status),
           decidedByAdminId: Value(adminId),
@@ -258,6 +263,11 @@ class ReferralRequestRepositoryImpl implements ReferralRequestRepository {
           decidedAt: Value(DateTime.now()),
         ),
       );
+      if (updated != 1) {
+        throw const ValidationFailure(
+          'This referral request is no longer pending.',
+        );
+      }
       return _require(id);
     });
   }

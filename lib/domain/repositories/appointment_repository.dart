@@ -50,6 +50,13 @@ class BookingRequest {
 abstract interface class AppointmentRepository {
   Future<Result<Appointment>> byId(String id);
 
+  /// Whether this clinician has an established appointment relationship with
+  /// the patient. Used as the minimum chart-access boundary.
+  Future<Result<bool>> hasCareRelationship({
+    required String staffId,
+    required String patientId,
+  });
+
   Future<Result<List<Appointment>>> forPatient(
     String patientId, {
     bool upcomingOnly,

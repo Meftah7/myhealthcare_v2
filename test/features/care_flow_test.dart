@@ -4,6 +4,7 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:myhealthcare/core/failures.dart';
 import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:myhealthcare/domain/entities/entities.dart';
@@ -72,13 +73,21 @@ void main() {
 
     final sent = await c
         .read(messageActionsProvider)
-        .send(
-          patientId: patientId,
-          staffId: staffId,
-          fromStaff: false,
+        .sendAsCurrentUser(
+          counterpartId: staffId,
           body: 'Is my dose still right?',
         );
     expect(sent.isOk, isTrue);
+
+    // A patient cannot open or message a thread with an arbitrary user id.
+    final spoofed = await c
+        .read(messageActionsProvider)
+        .sendAsCurrentUser(counterpartId: patientId, body: 'hi');
+    expect(spoofed.isOk, isFalse);
+    await expectLater(
+      c.read(patientThreadProvider(patientId).future),
+      throwsA(isA<AuthFailure>()),
+    );
 
     // The patient's message dropped a notification for the doctor.
     final staffInbox = await c
@@ -105,10 +114,8 @@ void main() {
 
     await c
         .read(messageActionsProvider)
-        .send(
-          patientId: patientId,
-          staffId: staffId,
-          fromStaff: true,
+        .sendAsCurrentUser(
+          counterpartId: patientId,
           body: 'Yes, keep the same dose.',
         );
 

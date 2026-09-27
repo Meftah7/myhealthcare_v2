@@ -2,6 +2,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -346,7 +347,7 @@ class _SplashScreen extends ConsumerWidget {
               // Collapsed by default (this is patient-facing), but the raw
               // exception is what actually lets a bug report be fixed —
               // "something went wrong" alone taught us nothing last time.
-              ExpansionTile(
+              if (kDebugMode) ExpansionTile(
                 title: Text(
                   t.technicalDetailsLabel,
                   style: Theme.of(context).textTheme.labelMedium,

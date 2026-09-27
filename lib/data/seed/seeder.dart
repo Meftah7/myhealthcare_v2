@@ -10,6 +10,7 @@ library;
 import 'dart:math';
 
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../core/utils/format.dart';
 import '../../core/utils/ticketing.dart';
@@ -71,19 +72,32 @@ class Seeder {
   Future<SeedResult?> run({bool force = false}) async {
     final current = await _currentSeedVersion();
     if (!force && current == seedVersion) return null;
-
-    await _wipe();
-    final result = await _db.transaction(_generate);
-    await _setSeedVersion(seedVersion);
-    return result;
+    if (!force && current != 0) {
+      await _setSeedVersion(seedVersion);
+      return null;
+    }
+    if (force && !kDebugMode) {
+      throw StateError('Forced demo seeding is disabled in release builds.');
+    }
+    return _db.transaction(() async {
+      await _wipe();
+      final result = await _generate();
+      await _setSeedVersion(seedVersion);
+      return result;
+    });
   }
 
   /// P1-21: wipe all demo data and regenerate from scratch.
   Future<SeedResult> reset() async {
-    await _wipe();
-    final result = await _db.transaction(_generate);
-    await _setSeedVersion(seedVersion);
-    return result;
+    if (!kDebugMode) {
+      throw StateError('Demo reset is disabled in release builds.');
+    }
+    return _db.transaction(() async {
+      await _wipe();
+      final result = await _generate();
+      await _setSeedVersion(seedVersion);
+      return result;
+    });
   }
 
   // --- generation --------------------------------------------------------

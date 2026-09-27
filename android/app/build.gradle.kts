@@ -26,11 +26,21 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            val path = System.getenv("MYHEALTHCARE_KEYSTORE")
+            if (!path.isNullOrBlank()) {
+                storeFile = file(path)
+                storePassword = System.getenv("MYHEALTHCARE_STORE_PASSWORD")
+                keyAlias = System.getenv("MYHEALTHCARE_KEY_ALIAS")
+                keyPassword = System.getenv("MYHEALTHCARE_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }

@@ -7,6 +7,7 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/di.dart';
+import '../../../core/failures.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/ids.dart';
 import '../../../domain/entities/entities.dart';
@@ -17,15 +18,35 @@ import '../../auth/application/session.dart';
 import '../../care/application/care_providers.dart';
 import '../../staff_dashboard/application/staff_providers.dart';
 
+final staffPatientAccessProvider = FutureProvider.family<void, String>((
+  ref,
+  patientId,
+) async {
+  final actor = ref.watch(currentUserProvider);
+  if (actor == null || !actor.isStaff || !actor.isActive) {
+    throw const AuthFailure('Staff access is required.');
+  }
+  final allowed = _unwrap(
+    await ref
+        .watch(appointmentRepositoryProvider)
+        .hasCareRelationship(staffId: actor.id, patientId: patientId),
+  );
+  if (!allowed) {
+    throw const AuthFailure('You are not assigned to this patient.');
+  }
+});
+
 final chartPatientProvider = FutureProvider.family<Patient, String>((
   ref,
   id,
 ) async {
+  await ref.watch(staffPatientAccessProvider(id).future);
   return _unwrap(await ref.watch(patientRepositoryProvider).byId(id));
 });
 
 final chartTimelineProvider =
     FutureProvider.family<List<MedicalRecord>, String>((ref, id) async {
+      await ref.watch(staffPatientAccessProvider(id).future);
       return _unwrap(
         await ref.watch(recordRepositoryProvider).timeline(id, limit: 500),
       );
@@ -35,11 +56,13 @@ final chartVitalsProvider = FutureProvider.family<List<Vitals>, String>((
   ref,
   id,
 ) async {
+  await ref.watch(staffPatientAccessProvider(id).future);
   return _unwrap(await ref.watch(vitalsRepositoryProvider).forPatient(id));
 });
 
 final chartMedicationsProvider =
     FutureProvider.family<List<Medication>, String>((ref, id) async {
+      await ref.watch(staffPatientAccessProvider(id).future);
       return _unwrap(
         await ref.watch(medicationRepositoryProvider).forPatient(id),
       );
@@ -49,6 +72,7 @@ final chartFlagsProvider = FutureProvider.family<List<RiskFlag>, String>((
   ref,
   id,
 ) async {
+  await ref.watch(staffPatientAccessProvider(id).future);
   return _unwrap(await ref.watch(riskRepositoryProvider).forPatient(id));
 });
 
@@ -59,6 +83,15 @@ class ChartActions {
   final String _patientId;
 
   String get _authorId => _ref.read(currentUserProvider)!.id;
+
+  Future<Result<T>?> _denyWithoutAccess<T>() async {
+    try {
+      await _ref.read(staffPatientAccessProvider(_patientId).future);
+      return null;
+    } on AuthFailure catch (failure) {
+      return Err(failure);
+    }
+  }
 
   void _refresh() {
     _ref
@@ -74,6 +107,8 @@ class ChartActions {
     required String body,
     required DateTime occurredAt,
   }) async {
+    final denied = await _denyWithoutAccess<MedicalRecord>();
+    if (denied != null) return denied;
     final result = await _ref
         .read(recordRepositoryProvider)
         .add(
@@ -99,6 +134,8 @@ class ChartActions {
     String? dose,
     String? frequency,
   }) async {
+    final denied = await _denyWithoutAccess<Medication>();
+    if (denied != null) return denied;
     final result = await _ref
         .read(medicationRepositoryProvider)
         .prescribe(
@@ -130,6 +167,8 @@ class ChartActions {
     double? refLow,
     double? refHigh,
   }) async {
+    final denied = await _denyWithoutAccess<MedicalRecord>();
+    if (denied != null) return denied;
     final result = await _ref
         .read(recordRepositoryProvider)
         .add(
@@ -164,6 +203,8 @@ class ChartActions {
     required DateTime toDate,
     String? notes,
   }) async {
+    final denied = await _denyWithoutAccess<SickLeaveCertificate>();
+    if (denied != null) return denied;
     final result = await _ref
         .read(sickLeaveRepositoryProvider)
         .issue(
@@ -192,6 +233,8 @@ class ChartActions {
 
   /// P5-05/P5-07 — acknowledge a risk flag; keeps the dashboard list in sync.
   Future<Result<void>> acknowledgeFlag(String flagId) async {
+    final denied = await _denyWithoutAccess<void>();
+    if (denied != null) return denied;
     final result = await _ref
         .read(riskRepositoryProvider)
         .acknowledge(id: flagId, staffId: _authorId);

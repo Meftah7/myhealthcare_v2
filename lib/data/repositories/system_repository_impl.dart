@@ -153,7 +153,6 @@ class SettingsRepositoryImpl implements SettingsRepository {
           mockMode: Value(s.mockMode),
           modelId: Value(s.modelId),
           aiTaskWeight: Value(s.aiTaskWeight),
-          seedVersion: Value(s.seedVersion),
           updatedAt: Value(DateTime.now()),
         ),
       );

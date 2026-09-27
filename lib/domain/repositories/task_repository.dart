@@ -12,11 +12,16 @@ abstract interface class TaskRepository {
 
   Future<Result<void>> upsert(StaffTask task);
 
-  Future<Result<void>> setStatus(String id, TaskStatus status);
+  Future<Result<void>> setStatus({
+    required String id,
+    required String staffId,
+    required TaskStatus status,
+  });
 
   /// Writes AI priority + rationale onto an existing task (P5-10).
   Future<Result<void>> applyAiPriority({
     required String id,
+    required String staffId,
     required double score,
     required String rationale,
   });

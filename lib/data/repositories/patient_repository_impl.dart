@@ -53,6 +53,27 @@ class PatientRepositoryImpl implements PatientRepository {
   }
 
   @override
+  Future<Result<List<PatientLinkCandidate>>> findLinkCandidate(
+    String identifier,
+  ) {
+    return Result.guardAsync(() async {
+      final value = identifier.trim();
+      if (value.length < 5 || value.length > 254) return const [];
+      final normalizedEmail = value.toLowerCase();
+      final rows = await (_db.select(_db.users)..where(
+            (u) =>
+                u.role.equalsValue(UserRole.patient) &
+                u.isActive.equals(true) &
+                (u.email.equals(normalizedEmail) | u.nationalId.equals(value)),
+          ))
+          .get();
+      return rows
+          .map((u) => PatientLinkCandidate(id: u.id, fullName: u.fullName))
+          .toList(growable: false);
+    });
+  }
+
+  @override
   Future<Result<List<Patient>>> all({int limit = 100, int offset = 0}) {
     return Result.guardAsync(() async {
       final users =
@@ -93,11 +114,9 @@ class PatientRepositoryImpl implements PatientRepository {
       )..where((u) => u.id.equals(patient.id))).write(
         UsersCompanion(
           fullName: Value(patient.user.fullName),
-          email: Value(patient.user.email),
           phone: Value(patient.user.phone),
           dob: Value(patient.user.dob),
           gender: Value(patient.user.gender),
-          nationalId: Value(patient.user.nationalId),
         ),
       );
     });

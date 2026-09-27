@@ -19,6 +19,7 @@ import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../domain/repositories/patient_repository.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/family_link_providers.dart';
 
@@ -411,7 +412,7 @@ class _LinkAccountSheet extends ConsumerStatefulWidget {
 
 class _LinkAccountSheetState extends ConsumerState<_LinkAccountSheet> {
   final _query = TextEditingController();
-  Patient? _selected;
+  PatientLinkCandidate? _selected;
   FamilyLinkPermission _permission = FamilyLinkPermission.viewOnly;
   bool _busy = false;
   String? _error;
@@ -487,7 +488,7 @@ class _LinkAccountSheetState extends ConsumerState<_LinkAccountSheet> {
                 loading: () => const LoadingSkeleton(height: 48),
                 error: (e, _) => const SizedBox.shrink(),
                 data: (list) {
-                  if (_query.text.trim().length < 2) {
+                  if (_query.text.trim().length < 5) {
                     return const SizedBox.shrink();
                   }
                   if (list.isEmpty) {
@@ -505,9 +506,6 @@ class _LinkAccountSheetState extends ConsumerState<_LinkAccountSheet> {
                           contentPadding: EdgeInsets.zero,
                           leading: _Avatar(p.fullName),
                           title: Text(p.fullName),
-                          subtitle: p.user.phone == null
-                              ? null
-                              : Text(p.user.phone!),
                           onTap: () => setState(() => _selected = p),
                         ),
                     ],

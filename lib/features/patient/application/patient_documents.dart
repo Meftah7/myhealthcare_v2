@@ -39,6 +39,9 @@ Future<Uint8List> buildRadiologyReport(
   MedicalRecord record,
 ) async {
   final identity = await ref.read(pdfIdentityProvider.future);
+  if (record.patientId != identity.patientId) {
+    throw StateError('The record does not belong to the signed-in patient.');
+  }
   final doctors = await ref.read(doctorDirectoryProvider.future);
   return radiologyReportPdf(
     patient: identity,
@@ -55,6 +58,9 @@ Future<Uint8List> buildReferralLetter(
   MedicalRecord record,
 ) async {
   final identity = await ref.read(pdfIdentityProvider.future);
+  if (record.patientId != identity.patientId) {
+    throw StateError('The record does not belong to the signed-in patient.');
+  }
   final doctors = await ref.read(doctorDirectoryProvider.future);
   final clinician = doctors[record.authorStaffId]?.name;
   return referralLetterPdf(
@@ -75,6 +81,11 @@ Future<Uint8List> buildSickLeave(
   SickLeaveCertificate certificate,
 ) async {
   final identity = await ref.read(pdfIdentityProvider.future);
+  if (certificate.patientId != identity.patientId) {
+    throw StateError(
+      'The certificate does not belong to the signed-in patient.',
+    );
+  }
   final doctors = await ref.read(doctorDirectoryProvider.future);
   return sickLeavePdf(
     patient: identity,

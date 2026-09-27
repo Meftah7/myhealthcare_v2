@@ -42,12 +42,17 @@ class PasswordHasher {
   /// absurd count and hang the login thread on every attempt against it.
   static const _minIterations = 1000;
   static const _maxIterations = 2000000;
+  static const maxPasswordBytes = 1024;
 
   static final _random = Random.secure();
 
   PasswordHash hashNew(String password, {List<int>? salt}) {
+    final passwordBytes = utf8.encode(password);
+    if (passwordBytes.length > maxPasswordBytes) {
+      throw ArgumentError.value(password, 'password', 'Password is too long.');
+    }
     final saltBytes = salt ?? _randomBytes(16);
-    final derived = _pbkdf2(utf8.encode(password), saltBytes, iterations);
+    final derived = _pbkdf2(passwordBytes, saltBytes, iterations);
     return PasswordHash(
       hash: '$iterations:${base64.encode(derived)}',
       salt: base64.encode(saltBytes),
@@ -55,6 +60,8 @@ class PasswordHasher {
   }
 
   bool verify(String password, {required String hash, required String salt}) {
+    final passwordBytes = utf8.encode(password);
+    if (passwordBytes.length > maxPasswordBytes) return false;
     final sep = hash.indexOf(':');
     if (sep <= 0) return false;
     final iters = int.tryParse(hash.substring(0, sep));
@@ -62,7 +69,7 @@ class PasswordHasher {
       return false;
     }
     final expected = hash.substring(sep + 1);
-    final derived = _pbkdf2(utf8.encode(password), base64.decode(salt), iters);
+    final derived = _pbkdf2(passwordBytes, base64.decode(salt), iters);
     return _constantTimeEquals(base64.encode(derived), expected);
   }
 

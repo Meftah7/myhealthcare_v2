@@ -33,6 +33,21 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
   }
 
   @override
+  Future<Result<bool>> hasCareRelationship({
+    required String staffId,
+    required String patientId,
+  }) {
+    return Result.guardAsync(() async {
+      final row = await (_db.select(_db.appointments)..where(
+            (a) =>
+                a.staffId.equals(staffId) & a.patientId.equals(patientId),
+          )..limit(1))
+          .getSingleOrNull();
+      return row != null;
+    });
+  }
+
+  @override
   Future<Result<List<Appointment>>> forPatient(
     String patientId, {
     bool upcomingOnly = false,
@@ -226,6 +241,36 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
               );
             }
           }
+        }
+      }
+      final existingAppointments = await (_db.select(_db.appointments)..where(
+            (a) =>
+                a.staffId.equals(staffId) &
+                a.slotStart.isBiggerThanValue(DateTime.now()) &
+                a.status.isInValues([
+                  AppointmentStatus.booked,
+                  AppointmentStatus.confirmed,
+                ]),
+          ))
+          .get();
+      for (final appointment in existingAppointments) {
+        final startMinutes =
+            appointment.slotStart.hour * 60 + appointment.slotStart.minute;
+        final endMinutes =
+            appointment.slotEnd.hour * 60 + appointment.slotEnd.minute;
+        final covered = templates.any(
+          (template) =>
+              template.weekday == appointment.slotStart.weekday &&
+              startMinutes >= template.startMinutes &&
+              endMinutes <= template.endMinutes &&
+              endMinutes - startMinutes == template.slotMinutes &&
+              (startMinutes - template.startMinutes) % template.slotMinutes ==
+                  0,
+        );
+        if (!covered) {
+          throw const ValidationFailure(
+            'The new schedule conflicts with an existing appointment.',
+          );
         }
       }
       await _db.transaction(() async {
@@ -575,18 +620,48 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     return row;
   }
 
+  bool _canTransition(AppointmentStatus from, AppointmentStatus to) => switch (
+    from
+  ) {
+    AppointmentStatus.booked =>
+      to == AppointmentStatus.confirmed ||
+          to == AppointmentStatus.inProgress ||
+          to == AppointmentStatus.cancelled ||
+          to == AppointmentStatus.noShow,
+    AppointmentStatus.confirmed =>
+      to == AppointmentStatus.inProgress ||
+          to == AppointmentStatus.cancelled ||
+          to == AppointmentStatus.noShow,
+    AppointmentStatus.inProgress =>
+      to == AppointmentStatus.completed ||
+          to == AppointmentStatus.cancelled ||
+          to == AppointmentStatus.noShow,
+    AppointmentStatus.completed ||
+    AppointmentStatus.cancelled ||
+    AppointmentStatus.noShow => false,
+  };
+
+  void _requireTransition(AppointmentStatus from, AppointmentStatus to) {
+    if (!_canTransition(from, to)) {
+      throw ValidationFailure(
+        'Cannot change an appointment from ${from.name} to ${to.name}.',
+      );
+    }
+  }
+
   @override
   Future<Result<void>> updateStatus({
     required String id,
     required String staffId,
     required AppointmentStatus status,
   }) {
-    return Result.guardAsync(() async {
-      await _ownedByStaff(id, staffId);
+    return Result.guardAsync(() => _db.transaction(() async {
+      final row = await _ownedByStaff(id, staffId);
+      _requireTransition(row.status, status);
       await (_db.update(_db.appointments)..where((a) => a.id.equals(id))).write(
         AppointmentsCompanion(status: Value(status)),
       );
-    });
+    }));
   }
 
   @override
@@ -595,15 +670,16 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     required String staffId,
     required DateTime at,
   }) {
-    return Result.guardAsync(() async {
-      await _ownedByStaff(id, staffId);
+    return Result.guardAsync(() => _db.transaction(() async {
+      final row = await _ownedByStaff(id, staffId);
+      _requireTransition(row.status, AppointmentStatus.confirmed);
       await (_db.update(_db.appointments)..where((a) => a.id.equals(id))).write(
         AppointmentsCompanion(
           checkedInAt: Value(at),
           status: const Value(AppointmentStatus.confirmed),
         ),
       );
-    });
+    }));
   }
 
   @override
@@ -612,12 +688,19 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     required String staffId,
     required DateTime at,
   }) {
-    return Result.guardAsync(() async {
-      await _ownedByStaff(id, staffId);
+    return Result.guardAsync(() => _db.transaction(() async {
+      final row = await _ownedByStaff(id, staffId);
+      if (row.status == AppointmentStatus.completed ||
+          row.status == AppointmentStatus.cancelled ||
+          row.status == AppointmentStatus.noShow) {
+        throw const ValidationFailure(
+          'A closed appointment cannot be called in.',
+        );
+      }
       await (_db.update(_db.appointments)..where((a) => a.id.equals(id))).write(
         AppointmentsCompanion(calledInAt: Value(at)),
       );
-    });
+    }));
   }
 
   @override
@@ -626,15 +709,19 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     required String staffId,
     required DateTime at,
   }) {
-    return Result.guardAsync(() async {
-      await _ownedByStaff(id, staffId);
+    return Result.guardAsync(() => _db.transaction(() async {
+      final row = await _ownedByStaff(id, staffId);
+      if (row.status != AppointmentStatus.inProgress &&
+          row.status != AppointmentStatus.noShow) {
+        _requireTransition(row.status, AppointmentStatus.inProgress);
+      }
       await (_db.update(_db.appointments)..where((a) => a.id.equals(id))).write(
         AppointmentsCompanion(
           checkedInAt: Value(at),
           status: const Value(AppointmentStatus.inProgress),
         ),
       );
-    });
+    }));
   }
 
   @override
@@ -643,8 +730,9 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     required String staffId,
     String? outcomeNote,
   }) {
-    return Result.guardAsync(() async {
-      await _ownedByStaff(id, staffId);
+    return Result.guardAsync(() => _db.transaction(() async {
+      final row = await _ownedByStaff(id, staffId);
+      _requireTransition(row.status, AppointmentStatus.completed);
       await (_db.update(_db.appointments)..where((a) => a.id.equals(id))).write(
         AppointmentsCompanion(
           status: const Value(AppointmentStatus.completed),
@@ -653,7 +741,7 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
               : Value(outcomeNote.trim()),
         ),
       );
-    });
+    }));
   }
 
   @override

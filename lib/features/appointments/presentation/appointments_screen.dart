@@ -405,7 +405,7 @@ class _ApptActionsState extends ConsumerState<ApptActions> {
           id: appt.id,
           patientId: appt.patientId,
           newStart: slot.start,
-          newEnd: slot.end,
+          newEnd: slot.start.add(appt.duration),
           enabledChannels: ref.read(notificationPrefsProvider).enabledChannels,
         );
     if (!mounted) return;

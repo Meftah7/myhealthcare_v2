@@ -106,7 +106,19 @@ final bookingTargetPatientIdProvider = StateProvider<String?>((_) => null);
 final _bookingSubjectProvider = FutureProvider<Patient>((ref) async {
   final targetId = ref.watch(bookingTargetPatientIdProvider);
   if (targetId == null) return ref.watch(patientProfileProvider.future);
-  return _unwrap(await ref.watch(patientRepositoryProvider).byId(targetId));
+  final actingPatientId = ref.watch(currentUserProvider)?.id;
+  if (targetId == actingPatientId) {
+    return ref.watch(patientProfileProvider.future);
+  }
+  final permission = await ref.watch(
+    linkedPermissionProvider(targetId).future,
+  );
+  if (permission != FamilyLinkPermission.manage) {
+    throw const AuthFailure(
+      'You do not have manage access to this account.',
+    );
+  }
+  return ref.watch(linkedPatientProvider(targetId).future);
 });
 
 final _bookingSubjectHistoryProvider = FutureProvider<List<Appointment>>((
@@ -114,9 +126,19 @@ final _bookingSubjectHistoryProvider = FutureProvider<List<Appointment>>((
 ) async {
   final targetId = ref.watch(bookingTargetPatientIdProvider);
   if (targetId == null) return ref.watch(patientAppointmentsProvider.future);
-  return _unwrap(
-    await ref.watch(appointmentRepositoryProvider).forPatient(targetId),
+  final actingPatientId = ref.watch(currentUserProvider)?.id;
+  if (targetId == actingPatientId) {
+    return ref.watch(patientAppointmentsProvider.future);
+  }
+  final permission = await ref.watch(
+    linkedPermissionProvider(targetId).future,
   );
+  if (permission != FamilyLinkPermission.manage) {
+    throw const AuthFailure(
+      'You do not have manage access to this account.',
+    );
+  }
+  return ref.watch(linkedAppointmentsProvider(targetId).future);
 });
 
 /// Ranked open slots for the current draft (staff + date), best first.

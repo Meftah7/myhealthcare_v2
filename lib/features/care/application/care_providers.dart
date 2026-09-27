@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/router.dart';
 import '../../../core/di.dart';
+import '../../../core/failures.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -27,6 +28,21 @@ T _unwrap<T>(Result<T> r) => switch (r) {
   Ok(:final value) => value,
   Err(:final failure) => throw failure,
 };
+
+/// Threads exist only between a patient and a clinician who has an
+/// appointment with them (SEC-PAT-04, SEC-STAFF-06). Checked on read and send.
+Future<void> _requireCareRelationship(
+  Ref ref, {
+  required String patientId,
+  required String staffId,
+}) async {
+  final allowed = _unwrap(
+    await ref
+        .read(appointmentRepositoryProvider)
+        .hasCareRelationship(staffId: staffId, patientId: patientId),
+  );
+  if (!allowed) throw const AuthFailure('You cannot message this account.');
+}
 
 // --- sick leave -----------------------------------------------------------
 
@@ -52,6 +68,11 @@ final patientThreadsProvider = FutureProvider<List<CareThread>>((ref) async {
 final patientThreadProvider =
     FutureProvider.family<List<CareMessage>, String>((ref, staffId) async {
       final patientId = _requirePatient(ref);
+      await _requireCareRelationship(
+        ref,
+        patientId: patientId,
+        staffId: staffId,
+      );
       return _unwrap(
         await ref
             .watch(careMessageRepositoryProvider)
@@ -85,7 +106,11 @@ final staffThreadProvider = FutureProvider.family<List<CareMessage>, String>((
   ref,
   patientId,
 ) async {
-  final user = ref.watch(currentUserProvider)!;
+  final user = ref.watch(currentUserProvider);
+  if (user == null || !user.isStaff || !user.isActive) {
+    throw const AuthFailure('Staff access is required.');
+  }
+  await _requireCareRelationship(ref, patientId: patientId, staffId: user.id);
   return _unwrap(
     await ref
         .watch(careMessageRepositoryProvider)
@@ -102,12 +127,29 @@ class MessageActions {
   MessageActions(this._ref);
   final Ref _ref;
 
-  Future<Result<CareMessage>> send({
-    required String patientId,
-    required String staffId,
-    required bool fromStaff,
+  /// Sends as the signed-in user; the sender side and identity come from the
+  /// session, never the caller (SEC-PAT-05). [counterpartId] is the staff id
+  /// for a patient sender and the patient id for a staff sender.
+  Future<Result<CareMessage>> sendAsCurrentUser({
+    required String counterpartId,
     required String body,
   }) async {
+    final user = _ref.read(currentUserProvider);
+    if (user == null || !user.isActive || !(user.isPatient || user.isStaff)) {
+      return const Err(AuthFailure('Sign in to send messages.'));
+    }
+    final fromStaff = user.isStaff;
+    final patientId = fromStaff ? counterpartId : user.id;
+    final staffId = fromStaff ? user.id : counterpartId;
+    try {
+      await _requireCareRelationship(
+        _ref,
+        patientId: patientId,
+        staffId: staffId,
+      );
+    } on Failure catch (f) {
+      return Err(f);
+    }
     final result = await _ref
         .read(careMessageRepositoryProvider)
         .send(
@@ -122,7 +164,6 @@ class MessageActions {
         patientId: patientId,
         staffId: staffId,
         fromStaff: fromStaff,
-        body: result.valueOrNull!.body,
       );
     }
     return result;
@@ -134,7 +175,6 @@ class MessageActions {
     required String patientId,
     required String staffId,
     required bool fromStaff,
-    required String body,
   }) async {
     final recipientId = fromStaff ? patientId : staffId;
     final senderId = fromStaff ? staffId : patientId;
@@ -143,8 +183,6 @@ class MessageActions {
     final senderName = sender == null
         ? (fromStaff ? 'your clinician' : 'a patient')
         : (fromStaff ? clinicianName(sender.fullName) : sender.fullName);
-    final preview = body.length <= 120 ? body : '${body.substring(0, 117)}…';
-
     await _ref
         .read(notificationRepositoryProvider)
         .send(
@@ -152,7 +190,7 @@ class MessageActions {
             recipientId: recipientId,
             category: NotificationCategory.message,
             title: 'New message from $senderName',
-            body: preview,
+            body: 'Open MyHealth Care to read your secure message.',
             deepLink: fromStaff
                 ? '${AppRoutes.patientMessages}/$staffId'
                 : AppRoutes.staffInbox,

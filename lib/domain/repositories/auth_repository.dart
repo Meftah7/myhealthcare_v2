@@ -112,6 +112,12 @@ abstract interface class UserRepository {
     required String newPassword,
   });
 
+  Future<Result<void>> resetPasswordAndResolve({
+    required String id,
+    required String newPassword,
+    required String adminId,
+  });
+
   /// User IDs with at least one unresolved [PasswordResetRequest] — an admin
   /// row shows a "reset requested" badge for these.
   Future<Result<Set<String>>> userIdsWithPendingPasswordResetRequests();
