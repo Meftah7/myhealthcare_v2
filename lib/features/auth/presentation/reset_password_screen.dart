@@ -53,9 +53,9 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     setState(() => _busy = false);
     switch (result) {
       case Ok():
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(t.passwordUpdatedSnackbar)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(t.passwordUpdatedSnackbar)));
         context.go(AppRoutes.login);
       case Err(:final failure):
         setState(() => _error = failure.message);
@@ -104,6 +104,9 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                             labelText: t.newPasswordLabel,
                             prefixIcon: const Icon(Icons.lock_outline),
                             suffixIcon: IconButton(
+                              tooltip: _obscure
+                                  ? AppLocalizations.of(context)!.showPassword
+                                  : AppLocalizations.of(context)!.hidePassword,
                               onPressed: () =>
                                   setState(() => _obscure = !_obscure),
                               icon: Icon(

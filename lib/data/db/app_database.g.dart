@@ -4084,6 +4084,21 @@ class $MedicalRecordsTable extends MedicalRecords
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _uploadedByPatientMeta = const VerificationMeta(
+    'uploadedByPatient',
+  );
+  @override
+  late final GeneratedColumn<bool> uploadedByPatient = GeneratedColumn<bool>(
+    'uploaded_by_patient',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("uploaded_by_patient" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -4109,6 +4124,7 @@ class $MedicalRecordsTable extends MedicalRecords
     sourceFacility,
     attachmentPath,
     extractedText,
+    uploadedByPatient,
     createdAt,
   ];
   @override
@@ -4203,6 +4219,15 @@ class $MedicalRecordsTable extends MedicalRecords
         ),
       );
     }
+    if (data.containsKey('uploaded_by_patient')) {
+      context.handle(
+        _uploadedByPatientMeta,
+        uploadedByPatient.isAcceptableOrUnknown(
+          data['uploaded_by_patient']!,
+          _uploadedByPatientMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -4264,6 +4289,10 @@ class $MedicalRecordsTable extends MedicalRecords
         DriftSqlType.string,
         data['${effectivePrefix}extracted_text'],
       ),
+      uploadedByPatient: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}uploaded_by_patient'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -4303,6 +4332,10 @@ class MedicalRecordRow extends DataClass
   /// Text pulled out of [attachmentPath] by the PDF extractor (P2-11), fed to
   /// the AI context builder (P3-02).
   final String? extractedText;
+
+  /// True when the patient imported this themselves. Such a record has not
+  /// been reviewed by a clinician and must never read as a clinic result.
+  final bool uploadedByPatient;
   final DateTime createdAt;
   const MedicalRecordRow({
     required this.id,
@@ -4316,6 +4349,7 @@ class MedicalRecordRow extends DataClass
     this.sourceFacility,
     this.attachmentPath,
     this.extractedText,
+    required this.uploadedByPatient,
     required this.createdAt,
   });
   @override
@@ -4348,6 +4382,7 @@ class MedicalRecordRow extends DataClass
     if (!nullToAbsent || extractedText != null) {
       map['extracted_text'] = Variable<String>(extractedText);
     }
+    map['uploaded_by_patient'] = Variable<bool>(uploadedByPatient);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -4375,6 +4410,7 @@ class MedicalRecordRow extends DataClass
       extractedText: extractedText == null && nullToAbsent
           ? const Value.absent()
           : Value(extractedText),
+      uploadedByPatient: Value(uploadedByPatient),
       createdAt: Value(createdAt),
     );
   }
@@ -4398,6 +4434,7 @@ class MedicalRecordRow extends DataClass
       sourceFacility: serializer.fromJson<String?>(json['sourceFacility']),
       attachmentPath: serializer.fromJson<String?>(json['attachmentPath']),
       extractedText: serializer.fromJson<String?>(json['extractedText']),
+      uploadedByPatient: serializer.fromJson<bool>(json['uploadedByPatient']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -4418,6 +4455,7 @@ class MedicalRecordRow extends DataClass
       'sourceFacility': serializer.toJson<String?>(sourceFacility),
       'attachmentPath': serializer.toJson<String?>(attachmentPath),
       'extractedText': serializer.toJson<String?>(extractedText),
+      'uploadedByPatient': serializer.toJson<bool>(uploadedByPatient),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -4434,6 +4472,7 @@ class MedicalRecordRow extends DataClass
     Value<String?> sourceFacility = const Value.absent(),
     Value<String?> attachmentPath = const Value.absent(),
     Value<String?> extractedText = const Value.absent(),
+    bool? uploadedByPatient,
     DateTime? createdAt,
   }) => MedicalRecordRow(
     id: id ?? this.id,
@@ -4457,6 +4496,7 @@ class MedicalRecordRow extends DataClass
     extractedText: extractedText.present
         ? extractedText.value
         : this.extractedText,
+    uploadedByPatient: uploadedByPatient ?? this.uploadedByPatient,
     createdAt: createdAt ?? this.createdAt,
   );
   MedicalRecordRow copyWithCompanion(MedicalRecordsCompanion data) {
@@ -4486,6 +4526,9 @@ class MedicalRecordRow extends DataClass
       extractedText: data.extractedText.present
           ? data.extractedText.value
           : this.extractedText,
+      uploadedByPatient: data.uploadedByPatient.present
+          ? data.uploadedByPatient.value
+          : this.uploadedByPatient,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -4504,6 +4547,7 @@ class MedicalRecordRow extends DataClass
           ..write('sourceFacility: $sourceFacility, ')
           ..write('attachmentPath: $attachmentPath, ')
           ..write('extractedText: $extractedText, ')
+          ..write('uploadedByPatient: $uploadedByPatient, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -4522,6 +4566,7 @@ class MedicalRecordRow extends DataClass
     sourceFacility,
     attachmentPath,
     extractedText,
+    uploadedByPatient,
     createdAt,
   );
   @override
@@ -4539,6 +4584,7 @@ class MedicalRecordRow extends DataClass
           other.sourceFacility == this.sourceFacility &&
           other.attachmentPath == this.attachmentPath &&
           other.extractedText == this.extractedText &&
+          other.uploadedByPatient == this.uploadedByPatient &&
           other.createdAt == this.createdAt);
 }
 
@@ -4554,6 +4600,7 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
   final Value<String?> sourceFacility;
   final Value<String?> attachmentPath;
   final Value<String?> extractedText;
+  final Value<bool> uploadedByPatient;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
   const MedicalRecordsCompanion({
@@ -4568,6 +4615,7 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
     this.sourceFacility = const Value.absent(),
     this.attachmentPath = const Value.absent(),
     this.extractedText = const Value.absent(),
+    this.uploadedByPatient = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -4583,6 +4631,7 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
     this.sourceFacility = const Value.absent(),
     this.attachmentPath = const Value.absent(),
     this.extractedText = const Value.absent(),
+    this.uploadedByPatient = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -4602,6 +4651,7 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
     Expression<String>? sourceFacility,
     Expression<String>? attachmentPath,
     Expression<String>? extractedText,
+    Expression<bool>? uploadedByPatient,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
   }) {
@@ -4617,6 +4667,7 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
       if (sourceFacility != null) 'source_facility': sourceFacility,
       if (attachmentPath != null) 'attachment_path': attachmentPath,
       if (extractedText != null) 'extracted_text': extractedText,
+      if (uploadedByPatient != null) 'uploaded_by_patient': uploadedByPatient,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -4634,6 +4685,7 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
     Value<String?>? sourceFacility,
     Value<String?>? attachmentPath,
     Value<String?>? extractedText,
+    Value<bool>? uploadedByPatient,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
   }) {
@@ -4649,6 +4701,7 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
       sourceFacility: sourceFacility ?? this.sourceFacility,
       attachmentPath: attachmentPath ?? this.attachmentPath,
       extractedText: extractedText ?? this.extractedText,
+      uploadedByPatient: uploadedByPatient ?? this.uploadedByPatient,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
     );
@@ -4692,6 +4745,9 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
     if (extractedText.present) {
       map['extracted_text'] = Variable<String>(extractedText.value);
     }
+    if (uploadedByPatient.present) {
+      map['uploaded_by_patient'] = Variable<bool>(uploadedByPatient.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -4715,6 +4771,7 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
           ..write('sourceFacility: $sourceFacility, ')
           ..write('attachmentPath: $attachmentPath, ')
           ..write('extractedText: $extractedText, ')
+          ..write('uploadedByPatient: $uploadedByPatient, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))

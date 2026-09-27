@@ -72,6 +72,12 @@ class RecordDetailScreen extends ConsumerWidget {
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
+                if (r.uploadedByPatient) ...[
+                  const SizedBox(height: Space.sm),
+                  InlineBanner.info(
+                    AppLocalizations.of(context)!.uploadedByPatientNote,
+                  ),
+                ],
                 if (r.appointmentId != null) ...[
                   const SizedBox(height: Space.xs),
                   Text(

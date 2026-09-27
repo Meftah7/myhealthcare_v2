@@ -196,6 +196,41 @@ void main() {
           (await repo.timeline(patient.id)).valueOrNull!;
       expect(timeline.any((r) => r.id == saved.id), isTrue);
     });
+
+    test('a patient upload stays marked as unreviewed; clinic records do not',
+        () async {
+      final patient = await registerPatient(email: 'upload@example.com');
+      final repo = RecordRepositoryImpl(db);
+
+      final upload = (await repo.add(
+        NewRecord(
+          patientId: patient.id,
+          recordType: RecordType.labResult,
+          title: 'My outside lab',
+          occurredAt: DateTime(2026, 3),
+          attachmentPath: 'lab.pdf',
+          uploadedByPatient: true,
+        ),
+      )).valueOrNull!;
+      final clinic = (await repo.add(
+        NewRecord(
+          patientId: patient.id,
+          recordType: RecordType.labResult,
+          title: 'Clinic CBC',
+          occurredAt: DateTime(2026, 3),
+        ),
+      )).valueOrNull!;
+
+      final timeline = (await repo.timeline(patient.id)).valueOrNull!;
+      expect(
+        timeline.firstWhere((r) => r.id == upload.id).uploadedByPatient,
+        isTrue,
+      );
+      expect(
+        timeline.firstWhere((r) => r.id == clinic.id).uploadedByPatient,
+        isFalse,
+      );
+    });
   });
 
   group('RiskRepository', () {

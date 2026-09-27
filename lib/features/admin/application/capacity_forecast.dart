@@ -90,7 +90,9 @@ CapacityForecast forecastFromHistory(
           peakCount: 0,
           level: DemandLevel.low,
           overflowRisk: false,
-          note: _ar ? 'لا يوجد سجل لهذا اليوم بعد.' : 'No history for this day yet.',
+          note: _ar
+              ? 'لا يوجد سجل لهذا اليوم بعد.'
+              : 'No history for this day yet.',
         ),
       );
       continue;
@@ -190,7 +192,9 @@ Future<Map<int, String>> _narrate(
 
   final res = await dio.post<Map<String, dynamic>>(
     '/models/$model:generateContent',
-    queryParameters: {'key': apiKey},
+    // Sent as a header, not a query parameter, so the key never lands
+    // in URL logs (proxies, crash reports, server access logs).
+    options: Options(headers: {'x-goog-api-key': apiKey}),
     data: {
       'systemInstruction': {
         'parts': [

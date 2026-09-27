@@ -40,6 +40,7 @@ class _HealthRecordsScreenState extends State<HealthRecordsScreen> {
   Widget build(BuildContext context) {
     final gutter = WindowSize.of(context).gutter;
     final t = AppLocalizations.of(context)!;
+    final largeText = MediaQuery.textScalerOf(context).scale(1) > 1.0;
 
     return Scaffold(
       appBar: AppBar(
@@ -73,40 +74,47 @@ class _HealthRecordsScreenState extends State<HealthRecordsScreen> {
                     const SizedBox(height: Space.sm),
                     SizedBox(
                       width: double.infinity,
-                      // Clamped the same way as the bottom nav bar
-                      // (app_shell.dart) — at the Default text-size tier and
-                      // up, "Medication" wraps to a second line in this
-                      // segment's fixed width. Capping at the Small tier's
-                      // 0.92 keeps every segment label on one line.
-                      child: MediaQuery(
-                        data: MediaQuery.of(context).copyWith(
-                          textScaler: MediaQuery.textScalerOf(
-                            context,
-                          ).clamp(maxScaleFactor: 0.92),
-                        ),
-                        child: SegmentedButton<_RecordsView>(
-                          segments: [
-                            ButtonSegment(
-                              value: _RecordsView.timeline,
-                              icon: const Icon(Icons.timeline_outlined),
-                              label: Text(t.timelineSegment),
+                      // Labels follow the user's text size. Past the
+                      // Default tier the icons drop out to give the words
+                      // the width, and a long label wraps instead of being
+                      // shrunk.
+                      child: SegmentedButton<_RecordsView>(
+                        segments: [
+                          ButtonSegment(
+                            value: _RecordsView.timeline,
+                            icon: largeText
+                                ? null
+                                : const Icon(Icons.timeline_outlined),
+                            label: Text(
+                              t.timelineSegment,
+                              textAlign: TextAlign.center,
                             ),
-                            ButtonSegment(
-                              value: _RecordsView.medications,
-                              icon: const Icon(Icons.medication_outlined),
-                              label: Text(t.medicationsSegment),
+                          ),
+                          ButtonSegment(
+                            value: _RecordsView.medications,
+                            icon: largeText
+                                ? null
+                                : const Icon(Icons.medication_outlined),
+                            label: Text(
+                              t.medicationsSegment,
+                              textAlign: TextAlign.center,
                             ),
-                            ButtonSegment(
-                              value: _RecordsView.bills,
-                              icon: const Icon(Icons.receipt_long_outlined),
-                              label: Text(t.billsSegment),
+                          ),
+                          ButtonSegment(
+                            value: _RecordsView.bills,
+                            icon: largeText
+                                ? null
+                                : const Icon(Icons.receipt_long_outlined),
+                            label: Text(
+                              t.billsSegment,
+                              textAlign: TextAlign.center,
                             ),
-                          ],
-                          selected: {_view},
-                          showSelectedIcon: false,
-                          onSelectionChanged: (s) =>
-                              setState(() => _view = s.first),
-                        ),
+                          ),
+                        ],
+                        selected: {_view},
+                        showSelectedIcon: false,
+                        onSelectionChanged: (s) =>
+                            setState(() => _view = s.first),
                       ),
                     ),
                   ],

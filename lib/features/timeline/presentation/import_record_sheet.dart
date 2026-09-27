@@ -3,9 +3,13 @@
 /// and save. Nothing is uploaded anywhere — the PDF never leaves the device.
 library;
 
+import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 
 import '../../../app/theme/theme.dart';
@@ -38,13 +42,13 @@ class _ImportRecordSheet extends ConsumerStatefulWidget {
   const _ImportRecordSheet();
 
   @override
-  ConsumerState<_ImportRecordSheet> createState() =>
-      _ImportRecordSheetState();
+  ConsumerState<_ImportRecordSheet> createState() => _ImportRecordSheetState();
 }
 
 class _ImportRecordSheetState extends ConsumerState<_ImportRecordSheet> {
   final _title = TextEditingController();
   String? _fileName;
+  Uint8List? _bytes;
   String? _extractedText;
   RecordType _recordType = RecordType.labResult;
   DateTime _occurredAt = DateTime.now();
@@ -52,6 +56,10 @@ class _ImportRecordSheetState extends ConsumerState<_ImportRecordSheet> {
   bool _reading = false;
   bool _saving = false;
   String? _error;
+
+  /// Largest PDF accepted — larger files are almost always scans that would
+  /// bloat on-device storage and stall text extraction.
+  static const _maxBytes = 20 * 1024 * 1024;
 
   @override
   void dispose() {
@@ -71,12 +79,21 @@ class _ImportRecordSheetState extends ConsumerState<_ImportRecordSheet> {
     setState(() => _reading = true);
     try {
       final bytes = await file.readAsBytes();
+      if (bytes.length > _maxBytes) {
+        if (!mounted) return;
+        setState(() {
+          _reading = false;
+          _error = t.pdfTooLargeError;
+        });
+        return;
+      }
       final document = PdfDocument(inputBytes: bytes);
       final text = PdfTextExtractor(document).extractText();
       document.dispose();
       if (!mounted) return;
       setState(() {
         _fileName = file.name;
+        _bytes = bytes;
         _extractedText = text.trim();
         _reading = false;
         if (_title.text.trim().isEmpty) {
@@ -106,8 +123,26 @@ class _ImportRecordSheetState extends ConsumerState<_ImportRecordSheet> {
     if (picked != null) setState(() => _occurredAt = picked);
   }
 
+  /// Copies the picked PDF into app storage and returns its path; null on
+  /// web, which has no app file system (the name is kept instead).
+  Future<String?> _storeOriginal(String patientId) async {
+    final bytes = _bytes;
+    if (kIsWeb || bytes == null) return null;
+    final base = await getApplicationSupportDirectory();
+    final dir = Directory('${base.path}/imports/$patientId');
+    await dir.create(recursive: true);
+    final file = File(
+      '${dir.path}/${DateTime.now().microsecondsSinceEpoch}.pdf',
+    );
+    await file.writeAsBytes(bytes, flush: true);
+    return file.path;
+  }
+
   bool get _canSave =>
-      _fileName != null && !_reading && !_saving && _title.text.trim().isNotEmpty;
+      _fileName != null &&
+      !_reading &&
+      !_saving &&
+      _title.text.trim().isNotEmpty;
 
   Future<void> _save() async {
     final t = AppLocalizations.of(context)!;
@@ -117,6 +152,20 @@ class _ImportRecordSheetState extends ConsumerState<_ImportRecordSheet> {
       _saving = true;
       _error = null;
     });
+    // Keep the original document, not just its name — the extracted text is
+    // lossy, and a clinician reviewing the upload needs the real file.
+    String? storedPath;
+    try {
+      storedPath = await _storeOriginal(user.id);
+    } on Object {
+      if (!mounted) return;
+      setState(() {
+        _saving = false;
+        _error = t.pdfImportFailedError;
+      });
+      return;
+    }
+    if (!mounted) return;
     final result = await ref
         .read(recordRepositoryProvider)
         .add(
@@ -125,8 +174,9 @@ class _ImportRecordSheetState extends ConsumerState<_ImportRecordSheet> {
             recordType: _recordType,
             title: _title.text.trim(),
             occurredAt: _occurredAt,
-            attachmentPath: _fileName,
+            attachmentPath: storedPath ?? _fileName,
             extractedText: _extractedText,
+            uploadedByPatient: true,
           ),
         );
     if (!mounted) return;
@@ -134,9 +184,9 @@ class _ImportRecordSheetState extends ConsumerState<_ImportRecordSheet> {
       case Ok():
         ref.invalidate(patientTimelineProvider);
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(t.importedRecordSavedMessage)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(t.importedRecordSavedMessage)));
       case Err(:final failure):
         setState(() {
           _saving = false;

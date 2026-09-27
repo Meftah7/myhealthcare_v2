@@ -28,6 +28,7 @@ class AuditLogScreen extends ConsumerWidget {
         title: Text(t.auditLogTitle),
         actions: [
           IconButton(
+            tooltip: AppLocalizations.of(context)!.refreshTooltip,
             icon: const Icon(Icons.refresh),
             onPressed: () => ref.invalidate(auditLogProvider),
           ),

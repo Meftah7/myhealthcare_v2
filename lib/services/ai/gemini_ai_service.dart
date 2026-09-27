@@ -71,7 +71,9 @@ class GeminiAiService implements AiService {
       try {
         final res = await _dio.post<Map<String, dynamic>>(
           '/models/$model:generateContent',
-          queryParameters: {'key': apiKey},
+          // Sent as a header, not a query parameter, so the key never lands
+          // in URL logs (proxies, crash reports, server access logs).
+          options: Options(headers: {'x-goog-api-key': apiKey}),
           data: body,
         );
         return _extractText(res.data);

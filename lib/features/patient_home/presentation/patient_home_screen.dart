@@ -397,7 +397,8 @@ class _QuickActions extends StatelessWidget {
 /// The patient's booked appointments as an auto-advancing card carousel
 /// (redesign v3, matching the FirstSemMyHealth "active ticket" strip): a
 /// prominent ticket number, the room, date/time and doctor, with page dots
-/// and a "1 of N" count. Slides on its own every 5 seconds.
+/// and a "1 of N" count. It never moves on its own — an appointment card
+/// has to stay put long enough to read; the user swipes or uses the arrows.
 class _UpcomingCarousel extends ConsumerStatefulWidget {
   const _UpcomingCarousel();
 
@@ -406,8 +407,6 @@ class _UpcomingCarousel extends ConsumerStatefulWidget {
 }
 
 class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
-  static const _slideEvery = Duration(seconds: 5);
-
   // A large mid-point so the PageView can scroll forever in both directions;
   // the real card is `rawPage % count`, so advancing past the last one brings
   // the first back in from the right instead of snapping backwards.
@@ -417,35 +416,13 @@ class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
     initialPage: _origin,
     viewportFraction: 0.92,
   );
-  Timer? _timer;
   int _index = 0;
   int _count = 0;
-  bool _reduceMotion = false;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Cached here (not read inside `_restartTimer`) because that runs from a
-    // post-frame callback, which can fire after this element is deactivated
-    // (e.g. mid teardown) — looking up an InheritedWidget at that point
-    // throws "Looking up a deactivated widget's ancestor is unsafe".
-    _reduceMotion = Motion.reduced(context);
-  }
 
   @override
   void dispose() {
-    _timer?.cancel();
     _controller.dispose();
     super.dispose();
-  }
-
-  void _restartTimer() {
-    _timer?.cancel();
-    if (_count <= 1) return;
-    // An auto-advancing carousel is motion the user didn't ask for; when the
-    // OS says "reduce motion", it stops advancing and the arrows take over.
-    if (_reduceMotion) return;
-    _timer = Timer.periodic(_slideEvery, (_) => _step(1));
   }
 
   int _rawPage() =>
@@ -476,18 +453,20 @@ class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
       loading: () => const LoadingSkeleton(height: 200),
       error: (e, _) => InlineBanner.error(t.couldNotLoadAppointments),
       data: (list) {
+        final now = DateTime.now();
         final active =
             list
                 .where(
                   (a) =>
-                      a.status == AppointmentStatus.booked ||
-                      a.status == AppointmentStatus.confirmed,
+                      (a.status == AppointmentStatus.booked ||
+                          a.status == AppointmentStatus.confirmed) &&
+                      // A past visit still marked "booked" is not upcoming.
+                      a.slotEnd.isAfter(now),
                 )
                 .toList()
               ..sort((a, b) => a.slotStart.compareTo(b.slotStart));
 
         if (active.isEmpty) {
-          _timer?.cancel();
           return NavRow(
             icon: Icons.event_available_outlined,
             title: t.noUpcomingAppointments,
@@ -499,9 +478,6 @@ class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
         if (active.length != _count) {
           _count = active.length;
           if (_index >= _count) _index = 0;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) _restartTimer();
-          });
         }
 
         return Column(
@@ -549,8 +525,7 @@ class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
                 active,
                 doctorName: (a) => doctors[a.staffId]?.name,
               ),
-              // The auto-advancing pager animates on its own; keep its repaints
-              // off the rest of Home.
+              // Keep the pager's swipe repaints off the rest of Home.
               child: RepaintBoundary(
                 child: PageView.builder(
                   controller: _controller,
@@ -558,7 +533,6 @@ class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
                   // `rawPage % count`, so the list wraps in either direction.
                   onPageChanged: (raw) {
                     setState(() => _index = ((raw % _count) + _count) % _count);
-                    _restartTimer();
                   },
                   itemBuilder: (context, raw) {
                     if (_count == 0) return const SizedBox.shrink();

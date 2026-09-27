@@ -277,6 +277,7 @@ class _RecordTile extends StatelessWidget {
       subtitle: Text(
         '${fmtDate(record.occurredAt)}'
         '${record.sourceFacility == null ? '' : ' · ${record.sourceFacility}'}'
+        '${record.uploadedByPatient ? ' · ${t.uploadedByPatientTag}' : ''}'
         '${isKeyEvent ? ' · ${t.flaggedByAi}' : ''}',
         style: theme.textTheme.bodySmall,
       ),

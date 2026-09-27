@@ -123,6 +123,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hidePassword => 'Hide password';
 
   @override
+  String get uploadedByPatientTag => 'Uploaded by patient — not reviewed';
+
+  @override
+  String get uploadedByPatientNote =>
+      'The patient uploaded this document. A clinician has not reviewed it, so it is not a clinic result.';
+
+  @override
+  String get refreshTooltip => 'Refresh';
+
+  @override
+  String get clearSearchTooltip => 'Clear search';
+
+  @override
+  String get closeTooltip => 'Close';
+
+  @override
+  String get restartConversationTooltip => 'Start a new conversation';
+
+  @override
   String get passwordRequired => 'Enter your password';
 
   @override
@@ -927,6 +946,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get pdfImportFailedError =>
       'Could not read that PDF. Try a different file.';
+
+  @override
+  String get pdfTooLargeError =>
+      'That PDF is larger than 20 MB. Choose a smaller file.';
 
   @override
   String get importedRecordSavedMessage => 'Added to your health records';
@@ -2818,6 +2841,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get allClearTitle => 'All clear';
+
+  @override
+  String get riskFlagsCheckFailed =>
+      'Couldn\'t check risk flags for this patient';
+
+  @override
+  String get queuesCheckFailedTitle => 'Couldn\'t check queues';
+
+  @override
+  String get queuesCheckFailedSubtitle =>
+      'Some queues failed to load — tap to try again';
+
+  @override
+  String get queuesCheckingTitle => 'Checking queues…';
+
+  @override
+  String get queuesCheckingSubtitle =>
+      'Loading invoices, reports, visit and referral requests';
 
   @override
   String get noQueuesWaitingSubtitle =>

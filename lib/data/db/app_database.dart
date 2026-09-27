@@ -85,7 +85,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 14;
+  int get schemaVersion => 15;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -161,6 +161,11 @@ class AppDatabase extends _$AppDatabase {
         // Family Network: link two real patient accounts, with a
         // view-only/manage permission the owner must accept.
         await m.createTable(familyLinks);
+      }
+      if (from < 15) {
+        // Patient-imported records are flagged so they never pass as a
+        // clinician-reviewed result.
+        await m.addColumn(medicalRecords, medicalRecords.uploadedByPatient);
       }
     },
     beforeOpen: (details) async {

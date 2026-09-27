@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
+import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
@@ -41,8 +42,16 @@ class NotificationsScreen extends ConsumerWidget {
         actions: [
           if (unread > 0)
             TextButton(
-              onPressed: () =>
-                  ref.read(notificationControllerProvider).markAllRead(),
+              onPressed: () async {
+                final result = await ref
+                    .read(notificationControllerProvider)
+                    .markAllRead();
+                if (result case Err(:final failure) when context.mounted) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text(failure.message)));
+                }
+              },
               child: Text(t.markAllReadButton),
             ),
           topActions,
@@ -209,7 +218,10 @@ class _NotificationTile extends ConsumerWidget {
             ),
             if (unread)
               Container(
-                margin: const EdgeInsetsDirectional.only(start: Space.xs, top: 4),
+                margin: const EdgeInsetsDirectional.only(
+                  start: Space.xs,
+                  top: 4,
+                ),
                 width: 8,
                 height: 8,
                 decoration: BoxDecoration(
@@ -225,7 +237,14 @@ class _NotificationTile extends ConsumerWidget {
 
   Future<void> _open(BuildContext context, WidgetRef ref) async {
     if (!notification.isRead) {
-      await ref.read(notificationControllerProvider).markRead(notification.id);
+      final result = await ref
+          .read(notificationControllerProvider)
+          .markRead(notification.id);
+      if (result case Err(:final failure) when context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(failure.message)));
+      }
     }
     if (!context.mounted) return;
     await showModalBottomSheet<void>(
@@ -251,12 +270,7 @@ class _NotificationDetailSheet extends StatelessWidget {
 
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          Space.lg,
-          0,
-          Space.lg,
-          Space.lg,
-        ),
+        padding: const EdgeInsets.fromLTRB(Space.lg, 0, Space.lg, Space.lg),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,

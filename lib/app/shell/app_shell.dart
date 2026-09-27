@@ -11,6 +11,10 @@ import 'package:go_router/go_router.dart';
 import '../../core/presentation/app_scaffold.dart';
 import '../theme/theme.dart';
 
+/// Navigation labels scale with the user's text size up to the app's own
+/// largest tier; beyond that the bar would crowd out the page content.
+const double _navMaxTextScale = 1.3;
+
 /// One navigation destination in a role shell.
 class AppDestination {
   const AppDestination({
@@ -85,20 +89,16 @@ class _AppShellState extends State<AppShell> {
     );
 
     if (size.isCompact) {
+      final navScaler = MediaQuery.textScalerOf(
+        context,
+      ).clamp(maxScaleFactor: _navMaxTextScale);
       return Scaffold(
         body: body,
-        // Clamped independently of the app's own text-size preference
-        // (`textScaleProvider`: xSmall .85 – xLarge 1.3): a label like
-        // "Appointment" already wraps to a second line in the bar's fixed
-        // height at the Default (1.0) tier, let alone Large/Larger. Capping
-        // at the Small tier's 0.92 here keeps every label on one line
-        // without shrinking text anywhere else in the app.
+        // Labels follow the user's text size (up to the app's xLarge 1.3
+        // tier) instead of being shrunk below it; the bar grows taller so a
+        // long label like "Appointments" can wrap to a second line.
         bottomNavigationBar: MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            textScaler: MediaQuery.textScalerOf(
-              context,
-            ).clamp(maxScaleFactor: 0.92),
-          ),
+          data: MediaQuery.of(context).copyWith(textScaler: navScaler),
           child: DecoratedBox(
             // The bar is flat (DESIGN.md §4.3); the hairline is what separates
             // it from the content, not a shadow strip.
@@ -106,6 +106,7 @@ class _AppShellState extends State<AppShell> {
               border: Border(top: BorderSide(color: hairline)),
             ),
             child: NavigationBar(
+              height: 64 + 32 * navScaler.scale(1),
               selectedIndex: current,
               onDestinationSelected: _go,
               destinations: [
@@ -164,13 +165,13 @@ class _Rail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Same clamp as the compact bottom bar (see its comment) — the rail's
-    // icon-labelled layout wraps a long English label the same way.
+    // Same ceiling as the compact bottom bar (see its comment); the rail
+    // already scrolls, so taller wrapped labels still fit.
     return MediaQuery(
       data: MediaQuery.of(context).copyWith(
         textScaler: MediaQuery.textScalerOf(
           context,
-        ).clamp(maxScaleFactor: 0.92),
+        ).clamp(maxScaleFactor: _navMaxTextScale),
       ),
       child: LayoutBuilder(
         builder: (context, constraints) => SingleChildScrollView(

@@ -191,11 +191,22 @@ class ChartActions {
   }
 
   /// P5-05/P5-07 — acknowledge a risk flag; keeps the dashboard list in sync.
-  Future<void> acknowledgeFlag(String flagId) async {
-    await _ref
+  Future<Result<void>> acknowledgeFlag(String flagId) async {
+    final result = await _ref
         .read(riskRepositoryProvider)
         .acknowledge(id: flagId, staffId: _authorId);
+    if (result.isOk) {
+      await _ref
+          .read(auditRepositoryProvider)
+          .record(
+            action: 'risk_flag.acknowledge',
+            entityType: 'risk_flag',
+            entityId: flagId,
+            actorUserId: _authorId,
+          );
+    }
     _refresh();
+    return result;
   }
 
   Future<void> _audit(String action, String entityId) async {

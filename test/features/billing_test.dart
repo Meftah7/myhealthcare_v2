@@ -69,10 +69,7 @@ void main() {
 
     // Totals add up.
     final any = invoices.first;
-    expect(
-      any.totalAmount,
-      closeTo(any.subtotal + any.taxAmount, 0.001),
-    );
+    expect(any.totalAmount, closeTo(any.subtotal + any.taxAmount, 0.001));
 
     final open = invoices.where((i) => i.isPayable).toList();
     expect(open, isNotEmpty, reason: 'seed leaves recent visits unpaid');
@@ -164,7 +161,10 @@ void main() {
         payment: card,
       );
       expect(result.isErr, isTrue);
-      expect(result.failureOrNull!.message.toLowerCase(), stringContainsInOrder([contains]));
+      expect(
+        result.failureOrNull!.message.toLowerCase(),
+        stringContainsInOrder([contains]),
+      );
     }
 
     test('rejects a bad card number', () async {
@@ -221,9 +221,9 @@ void main() {
 
     test('pays with a saved card, and refuses an expired saved card', () async {
       // The seed gives every patient one default card.
-      final saved = (await harness.repo.cardsFor(harness.patientId))
-          .valueOrNull!
-          .first;
+      final saved = (await harness.repo.cardsFor(
+        harness.patientId,
+      )).valueOrNull!.first;
       final ok = await harness.repo.payWithSavedCard(
         invoiceId: harness.invoiceId,
         patientId: harness.patientId,
@@ -259,8 +259,9 @@ void main() {
     tearDown(() => harness.db.close());
 
     test('starts at zero and rises after a top-up with a new card', () async {
-      final before = (await harness.repo.walletBalance(harness.patientId))
-          .valueOrNull!;
+      final before = (await harness.repo.walletBalance(
+        harness.patientId,
+      )).valueOrNull!;
       expect(before, 0);
 
       final after = await harness.repo.topUpWallet(
@@ -271,8 +272,9 @@ void main() {
       expect(after.isOk, isTrue);
       expect(after.valueOrNull, 25);
 
-      final balance = (await harness.repo.walletBalance(harness.patientId))
-          .valueOrNull!;
+      final balance = (await harness.repo.walletBalance(
+        harness.patientId,
+      )).valueOrNull!;
       expect(balance, 25);
     });
 
@@ -287,9 +289,9 @@ void main() {
     });
 
     test('tops up with a saved card', () async {
-      final saved = (await harness.repo.cardsFor(harness.patientId))
-          .valueOrNull!
-          .first;
+      final saved = (await harness.repo.cardsFor(
+        harness.patientId,
+      )).valueOrNull!.first;
       final result = await harness.repo.topUpWalletWithSavedCard(
         patientId: harness.patientId,
         amount: 10,
@@ -301,8 +303,7 @@ void main() {
     });
 
     test('pays an invoice from the wallet balance', () async {
-      final invoice = (await harness.repo.byId(harness.invoiceId))
-          .valueOrNull!;
+      final invoice = (await harness.repo.byId(harness.invoiceId)).valueOrNull!;
       await harness.repo.topUpWallet(
         patientId: harness.patientId,
         amount: invoice.totalAmount + 5,
@@ -317,14 +318,41 @@ void main() {
       expect(paid.valueOrNull!.status, InvoiceStatus.paid);
       expect(paid.valueOrNull!.paymentMethod, 'Wallet balance');
 
-      final remaining = (await harness.repo.walletBalance(harness.patientId))
-          .valueOrNull!;
+      final remaining = (await harness.repo.walletBalance(
+        harness.patientId,
+      )).valueOrNull!;
       expect(remaining, closeTo(5, 0.001));
     });
 
+    test('a double-tap pays once and debits the wallet once', () async {
+      final invoice = (await harness.repo.byId(harness.invoiceId)).valueOrNull!;
+      await harness.repo.topUpWallet(
+        patientId: harness.patientId,
+        amount: invoice.totalAmount * 2,
+        card: validCard(),
+      );
+
+      final results = await Future.wait([
+        harness.repo.payWithWallet(
+          invoiceId: harness.invoiceId,
+          patientId: harness.patientId,
+        ),
+        harness.repo.payWithWallet(
+          invoiceId: harness.invoiceId,
+          patientId: harness.patientId,
+        ),
+      ]);
+      expect(results.where((r) => r.isOk), hasLength(1));
+      expect(results.where((r) => r.isErr), hasLength(1));
+
+      final remaining = (await harness.repo.walletBalance(
+        harness.patientId,
+      )).valueOrNull!;
+      expect(remaining, closeTo(invoice.totalAmount, 0.0005));
+    });
+
     test('refuses to pay when the wallet balance is insufficient', () async {
-      final invoice = (await harness.repo.byId(harness.invoiceId))
-          .valueOrNull!;
+      final invoice = (await harness.repo.byId(harness.invoiceId)).valueOrNull!;
       await harness.repo.topUpWallet(
         patientId: harness.patientId,
         amount: invoice.totalAmount - 1,

@@ -75,6 +75,12 @@ class PatientContextBuilder {
       b.writeln(
         '\n## ${fmtDate(r.occurredAt)} — ${r.recordType.name}: ${r.title}',
       );
+      if (r.uploadedByPatient) {
+        b.writeln(
+          'Source: uploaded by the patient — NOT reviewed by a clinician; '
+          'do not treat as a verified clinic result.',
+        );
+      }
       if (r.sourceFacility != null) b.writeln('Facility: ${r.sourceFacility}');
       if (r.body != null) b.writeln(r.body);
       for (final lab in r.labValues) {

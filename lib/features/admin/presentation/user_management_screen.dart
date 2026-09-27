@@ -100,6 +100,9 @@ class _State extends ConsumerState<UserManagementScreen>
                   trailing: [
                     if (_query.isNotEmpty)
                       IconButton(
+                        tooltip: AppLocalizations.of(
+                          context,
+                        )!.clearSearchTooltip,
                         icon: const Icon(Icons.clear),
                         onPressed: () {
                           _search.clear();

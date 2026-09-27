@@ -83,11 +83,14 @@ class _CenteredState extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final fg = tone == _StateTone.error ? scheme.error : scheme.onSurfaceVariant;
-    final bg = (tone == _StateTone.error
-            ? scheme.errorContainer
-            : scheme.surfaceContainerHighest)
-        .withValues(alpha: tone == _StateTone.error ? 0.5 : 1);
+    final fg = tone == _StateTone.error
+        ? scheme.error
+        : scheme.onSurfaceVariant;
+    final bg =
+        (tone == _StateTone.error
+                ? scheme.errorContainer
+                : scheme.surfaceContainerHighest)
+            .withValues(alpha: tone == _StateTone.error ? 0.5 : 1);
 
     // A scrollable, not a bare Center — this is dropped into all sorts of
     // constrained-height spots (a squeezed Expanded, a small dialog), and a
@@ -231,8 +234,16 @@ class SkeletonList extends StatelessWidget {
     // A ListView, not a Column — a placeholder must never hard-overflow the
     // space it's loading into, whatever squeezes that space (a longer
     // translated header above it, a short window, a big text-scale setting).
+    // shrinkWrap so it also lays out when a caller places it inside another
+    // scrollable (unbounded height) — it only ever holds a few cards.
     return ListView(
-      padding: const EdgeInsets.fromLTRB(Space.md, Space.sm, Space.md, Space.sm),
+      shrinkWrap: true,
+      padding: const EdgeInsets.fromLTRB(
+        Space.md,
+        Space.sm,
+        Space.md,
+        Space.sm,
+      ),
       children: [
         for (var i = 0; i < lines; i++)
           Container(

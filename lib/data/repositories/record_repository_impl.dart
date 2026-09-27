@@ -137,6 +137,7 @@ class RecordRepositoryImpl implements RecordRepository {
                 body: Value(record.body),
                 sourceFacility: Value(record.sourceFacility),
                 attachmentPath: Value(record.attachmentPath),
+                uploadedByPatient: Value(record.uploadedByPatient),
                 extractedText: Value(record.extractedText),
               ),
             );

@@ -314,6 +314,42 @@ abstract class AppLocalizations {
   /// **'Hide password'**
   String get hidePassword;
 
+  /// No description provided for @uploadedByPatientTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploaded by patient — not reviewed'**
+  String get uploadedByPatientTag;
+
+  /// No description provided for @uploadedByPatientNote.
+  ///
+  /// In en, this message translates to:
+  /// **'The patient uploaded this document. A clinician has not reviewed it, so it is not a clinic result.'**
+  String get uploadedByPatientNote;
+
+  /// No description provided for @refreshTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get refreshTooltip;
+
+  /// No description provided for @clearSearchTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get clearSearchTooltip;
+
+  /// No description provided for @closeTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get closeTooltip;
+
+  /// No description provided for @restartConversationTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a new conversation'**
+  String get restartConversationTooltip;
+
   /// No description provided for @passwordRequired.
   ///
   /// In en, this message translates to:
@@ -1837,6 +1873,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not read that PDF. Try a different file.'**
   String get pdfImportFailedError;
+
+  /// No description provided for @pdfTooLargeError.
+  ///
+  /// In en, this message translates to:
+  /// **'That PDF is larger than 20 MB. Choose a smaller file.'**
+  String get pdfTooLargeError;
 
   /// No description provided for @importedRecordSavedMessage.
   ///
@@ -5161,6 +5203,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All clear'**
   String get allClearTitle;
+
+  /// No description provided for @riskFlagsCheckFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t check risk flags for this patient'**
+  String get riskFlagsCheckFailed;
+
+  /// No description provided for @queuesCheckFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t check queues'**
+  String get queuesCheckFailedTitle;
+
+  /// No description provided for @queuesCheckFailedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some queues failed to load — tap to try again'**
+  String get queuesCheckFailedSubtitle;
+
+  /// No description provided for @queuesCheckingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking queues…'**
+  String get queuesCheckingTitle;
+
+  /// No description provided for @queuesCheckingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading invoices, reports, visit and referral requests'**
+  String get queuesCheckingSubtitle;
 
   /// No description provided for @noQueuesWaitingSubtitle.
   ///

@@ -122,6 +122,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get hidePassword => 'إخفاء كلمة المرور';
 
   @override
+  String get uploadedByPatientTag => 'رفعه المريض — لم تتم مراجعته';
+
+  @override
+  String get uploadedByPatientNote =>
+      'رفع المريض هذا المستند ولم يراجعه طبيب بعد، لذا فهو ليس نتيجة صادرة عن العيادة.';
+
+  @override
+  String get refreshTooltip => 'تحديث';
+
+  @override
+  String get clearSearchTooltip => 'مسح البحث';
+
+  @override
+  String get closeTooltip => 'إغلاق';
+
+  @override
+  String get restartConversationTooltip => 'بدء محادثة جديدة';
+
+  @override
   String get passwordRequired => 'أدخل كلمة المرور';
 
   @override
@@ -924,6 +943,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get pdfImportFailedError => 'تعذّرت قراءة هذا الملف. جرّب ملفاً آخر.';
+
+  @override
+  String get pdfTooLargeError =>
+      'حجم ملف PDF أكبر من 20 ميغابايت. اختر ملفًا أصغر.';
 
   @override
   String get importedRecordSavedMessage => 'تمت إضافته إلى سجلاتك الصحية';
@@ -2849,6 +2872,23 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get allClearTitle => 'لا يوجد ما يستدعي الانتباه';
+
+  @override
+  String get riskFlagsCheckFailed => 'تعذّر التحقق من مؤشرات الخطر لهذا المريض';
+
+  @override
+  String get queuesCheckFailedTitle => 'تعذّر التحقق من قوائم الانتظار';
+
+  @override
+  String get queuesCheckFailedSubtitle =>
+      'تعذّر تحميل بعض القوائم — اضغط لإعادة المحاولة';
+
+  @override
+  String get queuesCheckingTitle => 'جارٍ التحقق من قوائم الانتظار…';
+
+  @override
+  String get queuesCheckingSubtitle =>
+      'جارٍ تحميل الفواتير والتقارير وطلبات الزيارة والتحويل';
 
   @override
   String get noQueuesWaitingSubtitle =>

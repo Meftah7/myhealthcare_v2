@@ -330,7 +330,10 @@ class BillingRepositoryImpl implements BillingRepository {
       final rows = await (_db.select(
         _db.walletTransactions,
       )..where((w) => w.patientId.equals(patientId))).get();
-      return rows.fold<double>(0.0, (sum, r) => sum + r.toEntity().signedAmount);
+      return rows.fold<double>(
+        0.0,
+        (sum, r) => sum + r.toEntity().signedAmount,
+      );
     });
   }
 
@@ -390,9 +393,10 @@ class BillingRepositoryImpl implements BillingRepository {
     required double amount,
     required String method,
   }) async {
-    if (amount <= 0) {
+    if (_fils(amount) <= 0) {
       throw const ValidationFailure('Enter an amount greater than zero.');
     }
+    final exact = _fils(amount) / 1000;
     await _db
         .into(_db.walletTransactions)
         .insert(
@@ -400,7 +404,7 @@ class BillingRepositoryImpl implements BillingRepository {
             id: newId('wtx'),
             patientId: patientId,
             type: WalletTransactionType.topUp,
-            amount: amount,
+            amount: exact,
             method: Value(method),
           ),
         );
@@ -412,56 +416,75 @@ class BillingRepositoryImpl implements BillingRepository {
     required String invoiceId,
     required String patientId,
   }) {
-    return Result.guardAsync(() async {
-      final row =
-          await (_db.select(_db.invoices)..where(
-                (i) => i.id.equals(invoiceId) & i.patientId.equals(patientId),
-              ))
-              .getSingleOrNull();
-      if (row == null) throw const NotFoundFailure('Invoice not found.');
+    // One transaction: the balance check, the debit and the invoice update
+    // either all happen or none do. A double-tap or a crash mid-way can no
+    // longer debit the wallet without settling the bill, or debit it twice.
+    return Result.guardAsync(
+      () => _db.transaction(() async {
+        final row =
+            await (_db.select(_db.invoices)..where(
+                  (i) => i.id.equals(invoiceId) & i.patientId.equals(patientId),
+                ))
+                .getSingleOrNull();
+        if (row == null) throw const NotFoundFailure('Invoice not found.');
 
-      final invoice = row.toEntity();
-      if (invoice.status == InvoiceStatus.paid) {
-        throw const ValidationFailure('This invoice is already paid.');
-      }
-      if (invoice.status == InvoiceStatus.cancelled) {
-        throw const ValidationFailure('This invoice was cancelled.');
-      }
+        final invoice = row.toEntity();
+        if (invoice.status == InvoiceStatus.paid) {
+          throw const ValidationFailure('This invoice is already paid.');
+        }
+        if (invoice.status == InvoiceStatus.cancelled) {
+          throw const ValidationFailure('This invoice was cancelled.');
+        }
 
-      final balance = await _balanceOf(patientId);
-      if (balance < invoice.totalAmount) {
-        throw const ValidationFailure(
-          'Not enough wallet balance to cover this invoice.',
-        );
-      }
-
-      await _db
-          .into(_db.walletTransactions)
-          .insert(
-            WalletTransactionsCompanion.insert(
-              id: newId('wtx'),
-              patientId: patientId,
-              type: WalletTransactionType.redemption,
-              amount: invoice.totalAmount,
-              invoiceId: Value(invoiceId),
-            ),
+        final balance = await _balanceOf(patientId);
+        if (_fils(balance) < _fils(invoice.totalAmount)) {
+          throw const ValidationFailure(
+            'Not enough wallet balance to cover this invoice.',
           );
-      await (_db.update(
-        _db.invoices,
-      )..where((i) => i.id.equals(invoiceId))).write(
-        InvoicesCompanion(
-          status: const Value(InvoiceStatus.paid),
-          paidAt: Value(DateTime.now()),
-          paymentMethod: const Value('Wallet balance'),
-        ),
-      );
+        }
 
-      final updated = await (_db.select(
-        _db.invoices,
-      )..where((i) => i.id.equals(invoiceId))).getSingle();
-      return updated.toEntity();
-    });
+        // Only settle a bill that is still unpaid — if another request got
+        // there first, nothing is written and the debit below is rolled back.
+        final settled =
+            await (_db.update(_db.invoices)..where(
+                  (i) =>
+                      i.id.equals(invoiceId) &
+                      i.status.equalsValue(InvoiceStatus.paid).not(),
+                ))
+                .write(
+                  InvoicesCompanion(
+                    status: const Value(InvoiceStatus.paid),
+                    paidAt: Value(DateTime.now()),
+                    paymentMethod: const Value('Wallet balance'),
+                  ),
+                );
+        if (settled != 1) {
+          throw const ValidationFailure('This invoice is already paid.');
+        }
+
+        await _db
+            .into(_db.walletTransactions)
+            .insert(
+              WalletTransactionsCompanion.insert(
+                id: newId('wtx'),
+                patientId: patientId,
+                type: WalletTransactionType.redemption,
+                amount: invoice.totalAmount,
+                invoiceId: Value(invoiceId),
+              ),
+            );
+
+        final updated = await (_db.select(
+          _db.invoices,
+        )..where((i) => i.id.equals(invoiceId))).getSingle();
+        return updated.toEntity();
+      }),
+    );
   }
+
+  /// BHD has three decimal places; money is compared in whole fils so
+  /// floating-point drift can't make an exact balance look short.
+  static int _fils(double bhd) => (bhd * 1000).round();
 
   Future<double> _balanceOf(String patientId) async {
     final rows = await (_db.select(

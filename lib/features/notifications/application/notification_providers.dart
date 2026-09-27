@@ -33,13 +33,12 @@ class NotificationController {
   NotificationController(this._ref);
   final Ref _ref;
 
-  String? get _patientId {
-    final user = _ref.read(currentUserProvider);
-    return (user != null && user.isPatient) ? user.id : null;
-  }
+  /// The signed-in recipient, whatever their role — staff and admins own
+  /// notifications too, and the repository scopes every write to this id.
+  String? get _recipientId => _ref.read(currentUserProvider)?.id;
 
   Future<Result<void>> markRead(String id) async {
-    final recipientId = _patientId;
+    final recipientId = _recipientId;
     if (recipientId == null) {
       return const Err(AuthFailure('Sign in to read notifications.'));
     }
@@ -49,13 +48,11 @@ class NotificationController {
   }
 
   Future<Result<void>> markAllRead() async {
-    final recipientId = _patientId;
+    final recipientId = _recipientId;
     if (recipientId == null) {
       return const Err(AuthFailure('Sign in to read notifications.'));
     }
-    return _ref
-        .read(notificationRepositoryProvider)
-        .markAllRead(recipientId);
+    return _ref.read(notificationRepositoryProvider).markAllRead(recipientId);
   }
 }
 

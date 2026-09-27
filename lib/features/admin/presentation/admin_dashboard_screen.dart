@@ -14,6 +14,7 @@ import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
+import '../../../domain/enums.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
 import '../../care/application/care_providers.dart';
@@ -29,9 +30,9 @@ class AdminDashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
     final user = ref.watch(currentUserProvider);
-    final firstName = (user?.fullName ?? t.greetingFallbackName).split(
-      ' ',
-    ).first;
+    final firstName = (user?.fullName ?? t.greetingFallbackName)
+        .split(' ')
+        .first;
 
     return AppScaffold(
       titleWidget: AppBrandLockup(subtitle: t.roleAdmin),
@@ -91,8 +92,38 @@ class _NeedsYouHero extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
-    final unpaid = ref.watch(unpaidInvoiceCountProvider).valueOrNull ?? 0;
-    final feedback = ref.watch(openFeedbackCountProvider).valueOrNull ?? 0;
+    // "All clear" is only honest once every queue has actually been read —
+    // a failed or pending read must never look like an empty queue.
+    final sources = <AsyncValue<Object?>>[
+      ref.watch(unpaidInvoiceCountProvider),
+      ref.watch(openFeedbackCountProvider),
+      ref.watch(homeVisitQueueProvider(HomeVisitStatus.requested)),
+      ref.watch(pendingReferralRequestsProvider),
+    ];
+    if (sources.any((s) => s.hasError)) {
+      return GradientHeroCard(
+        icon: Icons.sync_problem_outlined,
+        title: t.queuesCheckFailedTitle,
+        subtitle: t.queuesCheckFailedSubtitle,
+        onTap: () {
+          ref
+            ..invalidate(unpaidInvoiceCountProvider)
+            ..invalidate(openFeedbackCountProvider)
+            ..invalidate(homeVisitQueueProvider(HomeVisitStatus.requested))
+            ..invalidate(pendingReferralRequestsProvider);
+        },
+      );
+    }
+    if (sources.any((s) => !s.hasValue)) {
+      return GradientHeroCard(
+        icon: Icons.hourglass_empty,
+        title: t.queuesCheckingTitle,
+        subtitle: t.queuesCheckingSubtitle,
+      );
+    }
+
+    final unpaid = ref.watch(unpaidInvoiceCountProvider).requireValue;
+    final feedback = ref.watch(openFeedbackCountProvider).requireValue;
     final homeVisits = ref.watch(openHomeVisitCountProvider);
     final referrals = ref.watch(pendingReferralRequestCountProvider);
     final total = unpaid + feedback + homeVisits + referrals;

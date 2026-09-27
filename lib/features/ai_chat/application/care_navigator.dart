@@ -35,10 +35,21 @@ const _greeting = ChatMessage(
 
 /// Lower-cased phrases that trigger the emergency response (from ai_chat.php).
 const _emergencyPhrases = [
-  'chest pain', 'heart attack', "can't breathe", 'cannot breathe',
-  'difficulty breathing', 'severe bleeding', 'unconscious', 'stroke',
-  'seizure', 'choking', 'suicide', 'overdose', 'anaphylaxis',
-  'allergic reaction', 'not breathing',
+  'chest pain',
+  'heart attack',
+  "can't breathe",
+  'cannot breathe',
+  'difficulty breathing',
+  'severe bleeding',
+  'unconscious',
+  'stroke',
+  'seizure',
+  'choking',
+  'suicide',
+  'overdose',
+  'anaphylaxis',
+  'allergic reaction',
+  'not breathing',
 ];
 
 const _emergencyReply = ChatMessage(
@@ -58,19 +69,16 @@ class CareNavigatorState {
   final List<ChatMessage> messages;
   final bool sending;
 
-  CareNavigatorState copyWith({
-    List<ChatMessage>? messages,
-    bool? sending,
-  }) => CareNavigatorState(
-    messages: messages ?? this.messages,
-    sending: sending ?? this.sending,
-  );
+  CareNavigatorState copyWith({List<ChatMessage>? messages, bool? sending}) =>
+      CareNavigatorState(
+        messages: messages ?? this.messages,
+        sending: sending ?? this.sending,
+      );
 }
 
 class CareNavigator extends Notifier<CareNavigatorState> {
   @override
-  CareNavigatorState build() =>
-      const CareNavigatorState(messages: [_greeting]);
+  CareNavigatorState build() => const CareNavigatorState(messages: [_greeting]);
 
   bool _isEmergency(String text) {
     final t = text.toLowerCase();
@@ -86,9 +94,7 @@ class CareNavigator extends Notifier<CareNavigatorState> {
     );
 
     if (_isEmergency(text)) {
-      state = state.copyWith(
-        messages: [...state.messages, _emergencyReply],
-      );
+      state = state.copyWith(messages: [...state.messages, _emergencyReply]);
       return;
     }
 
@@ -127,10 +133,7 @@ class CareNavigator extends Notifier<CareNavigatorState> {
     if (!settings.usesRealAi || key == null || key.isEmpty) {
       return (_offlineReply(text), false);
     }
-    return (
-      await _askGemini(text, apiKey: key, model: settings.modelId),
-      true,
-    );
+    return (await _askGemini(text, apiKey: key, model: settings.modelId), true);
   }
 
   Future<String> _askGemini(
@@ -160,7 +163,9 @@ class CareNavigator extends Notifier<CareNavigatorState> {
 
     final res = await dio.post<Map<String, dynamic>>(
       '/models/$model:generateContent',
-      queryParameters: {'key': apiKey},
+      // Sent as a header, not a query parameter, so the key never lands
+      // in URL logs (proxies, crash reports, server access logs).
+      options: Options(headers: {'x-goog-api-key': apiKey}),
       data: {
         'systemInstruction': {
           'parts': [
@@ -199,26 +204,64 @@ class CareNavigator extends Notifier<CareNavigatorState> {
     final t = text.toLowerCase();
     bool has(List<String> ws) => ws.any(t.contains);
 
-    if (has(['book', 'appointment', 'appt', 'schedule', 'reschedule', 'cancel',
-        'doctor', 'visit'])) {
+    if (has([
+      'book',
+      'appointment',
+      'appt',
+      'schedule',
+      'reschedule',
+      'cancel',
+      'doctor',
+      'visit',
+    ])) {
       return 'Open the Appointments tab. "Book now" jumps to the soonest slot, '
           '"Schedule" lets you pick a date; you can also reschedule or cancel an '
           'upcoming visit there.';
     }
-    if (has(['record', 'result', 'lab', 'timeline', 'history', 'note',
-        'imaging', 'prescription', 'medication', 'medicine', 'meds', 'drug'])) {
+    if (has([
+      'record',
+      'result',
+      'lab',
+      'timeline',
+      'history',
+      'note',
+      'imaging',
+      'prescription',
+      'medication',
+      'medicine',
+      'meds',
+      'drug',
+    ])) {
       return 'Go to Records. The "Timeline" view lists your visits, '
           'labs and vitals; switch to "Medications" for your current and past '
           'prescriptions, or "Bills" for your invoices.';
     }
-    if (has(['bill', 'invoice', 'pay', 'payment', 'card', 'wallet',
-        'outstanding', 'owe', 'transaction'])) {
+    if (has([
+      'bill',
+      'invoice',
+      'pay',
+      'payment',
+      'card',
+      'wallet',
+      'outstanding',
+      'owe',
+      'transaction',
+    ])) {
       return 'Payments (from Home or Profile) shows your wallet balance with '
           'a Top up button, every invoice with a Pay button, and your saved '
           'cards, all in one place.';
     }
-    if (has(['nutrition', 'calorie', 'macro', 'diet', 'meal', 'food', 'bmr',
-        'tdee', 'weight'])) {
+    if (has([
+      'nutrition',
+      'calorie',
+      'macro',
+      'diet',
+      'meal',
+      'food',
+      'bmr',
+      'tdee',
+      'weight',
+    ])) {
       return 'The Nutrition tab has three views: Targets works out your daily '
           'calories and macros, Foods looks up nutrients, and Meal plan suggests '
           'allergen-safe meals.';
@@ -227,14 +270,38 @@ class CareNavigator extends Notifier<CareNavigatorState> {
       return 'Tap the bell at the top of Home to open your Notifications — '
           'appointment reminders, lab results and billing alerts land there.';
     }
-    if (has(['profile', 'password', 'email', 'phone', 'family', 'emergency',
-        'blood type', 'allergy', 'allergies', 'setting', 'theme', 'language'])) {
+    if (has([
+      'profile',
+      'password',
+      'email',
+      'phone',
+      'family',
+      'emergency',
+      'blood type',
+      'allergy',
+      'allergies',
+      'setting',
+      'theme',
+      'language',
+    ])) {
       return 'Everything about you is in Profile: personal info, health details, '
           'payments, preferences (theme & language), notification channels and '
           'your family network. Tap a section to expand it.';
     }
-    if (has(['symptom', 'pain', 'fever', 'sick', 'hurt', 'ache', 'rash',
-        'dizzy', 'nausea', 'diagnos', 'treat', 'should i'])) {
+    if (has([
+      'symptom',
+      'pain',
+      'fever',
+      'sick',
+      'hurt',
+      'ache',
+      'rash',
+      'dizzy',
+      'nausea',
+      'diagnos',
+      'treat',
+      'should i',
+    ])) {
       return "I can't give medical advice. Please book an appointment from the "
           'Appointments tab so a doctor can help you properly. If it feels '
           "urgent, don't wait — contact emergency services.";
@@ -254,8 +321,9 @@ final careNavigatorProvider =
 /// Kept out of [CareNavigator] so toggling it doesn't rebuild the conversation.
 enum CareNavView { edge, fab, panel }
 
-final careNavigatorViewProvider =
-    StateProvider<CareNavView>((_) => CareNavView.fab);
+final careNavigatorViewProvider = StateProvider<CareNavView>(
+  (_) => CareNavView.fab,
+);
 
 /// Where the patient has parked the floating button. [dx] / [dy] are fractions
 /// (0–1) of the free area — `dx` is which side it gravitates to, `dy` its
@@ -294,8 +362,7 @@ class CareNavPlacementController extends Notifier<CareNavPlacement> {
     );
   }
 
-  void drag({double? dx, double? dy}) =>
-      state = state.copyWith(dx: dx, dy: dy);
+  void drag({double? dx, double? dy}) => state = state.copyWith(dx: dx, dy: dy);
 
   /// Persist the final resting place (called on drag end).
   Future<void> settle({bool snapToSide = false}) async {

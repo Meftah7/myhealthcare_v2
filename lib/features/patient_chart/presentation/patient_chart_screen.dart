@@ -14,6 +14,7 @@ import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
+import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
@@ -43,7 +44,9 @@ class PatientChartScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: !embedded,
-        title: Text(patient.valueOrNull?.fullName ?? t.patientChartFallbackTitle),
+        title: Text(
+          patient.valueOrNull?.fullName ?? t.patientChartFallbackTitle,
+        ),
         actions: [
           IconButton(
             tooltip: t.aiSummaryTooltip,
@@ -165,7 +168,21 @@ class _FlagsCard extends ConsumerWidget {
     final flags = ref.watch(chartFlagsProvider(patientId));
     return flags.when(
       loading: () => const LoadingSkeleton(height: 40),
-      error: (e, _) => const SizedBox.shrink(),
+      // A failed read must not look like "no risks" — say so and offer retry.
+      error: (e, _) => AppCard(
+        padding: EdgeInsets.zero,
+        child: ListTile(
+          leading: Icon(
+            Icons.warning_amber_rounded,
+            color: Theme.of(context).colorScheme.error,
+          ),
+          title: Text(t.riskFlagsCheckFailed),
+          trailing: TextButton(
+            onPressed: () => ref.invalidate(chartFlagsProvider(patientId)),
+            child: Text(t.tryAgain),
+          ),
+        ),
+      ),
       data: (list) {
         final open = list.where((f) => !f.isAcknowledged).toList()
           ..sort((a, b) => b.severity.index.compareTo(a.severity.index));
@@ -181,9 +198,18 @@ class _FlagsCard extends ConsumerWidget {
                   trailing: IconButton(
                     tooltip: t.acknowledgeTooltip,
                     icon: const Icon(Icons.done),
-                    onPressed: () => ref
-                        .read(chartActionsProvider(patientId))
-                        .acknowledgeFlag(f.id),
+                    onPressed: () async {
+                      final result = await ref
+                          .read(chartActionsProvider(patientId))
+                          .acknowledgeFlag(f.id);
+                      if (result case Err(
+                        :final failure,
+                      ) when context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(failure.message)),
+                        );
+                      }
+                    },
                   ),
                 ),
             ],
@@ -303,7 +329,8 @@ class _TimelineCard extends ConsumerWidget {
                   leading: Icon(_recordIcon(r.recordType)),
                   title: Text(r.title),
                   subtitle: Text(
-                    '${fmtDate(r.occurredAt)} · ${r.recordType.label(context)}',
+                    '${fmtDate(r.occurredAt)} · ${r.recordType.label(context)}'
+                    '${r.uploadedByPatient ? ' · ${t.uploadedByPatientTag}' : ''}',
                     style: theme.textTheme.bodySmall,
                   ),
                   trailing: r.hasAbnormalLabs

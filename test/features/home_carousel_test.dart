@@ -1,5 +1,5 @@
 // Home restructure: sections in the new order, and the Upcoming appointments
-// carousel shows a ticket number, a room, a "N of M" count and auto-advances.
+// carousel shows a ticket number, a room, a "N of M" count and stays still.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -87,20 +87,20 @@ void main() {
     // The count is visible.
     expect(find.textContaining(RegExp(r'^\d+ of \d+$')), findsOneWidget);
 
-    // Auto-advances after 5s.
+    // Never advances on its own — the card stays put so it can be read.
     final firstCount = tester
         .widgetList<Text>(find.textContaining(RegExp(r'^\d+ of \d+$')))
         .first
         .data!;
-    if (firstCount != '1 of 1') {
-      await tester.pump(const Duration(seconds: 5));
-      await tester.pump(const Duration(milliseconds: 400));
-      final nextCount = tester
+    await tester.pump(const Duration(seconds: 10));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(
+      tester
           .widgetList<Text>(find.textContaining(RegExp(r'^\d+ of \d+$')))
           .first
-          .data!;
-      expect(nextCount, isNot(firstCount));
-    }
+          .data,
+      firstCount,
+    );
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));

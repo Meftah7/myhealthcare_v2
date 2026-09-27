@@ -41,6 +41,9 @@ abstract class MedicalRecord with _$MedicalRecord {
     String? sourceFacility,
     String? attachmentPath,
     String? extractedText,
+
+    /// Imported by the patient — not reviewed by a clinician.
+    @Default(false) bool uploadedByPatient,
   }) = _MedicalRecord;
 
   const MedicalRecord._();

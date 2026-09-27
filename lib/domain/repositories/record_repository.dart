@@ -18,6 +18,7 @@ class NewRecord {
     this.attachmentPath,
     this.extractedText,
     this.labValues = const [],
+    this.uploadedByPatient = false,
   });
 
   final String patientId;
@@ -31,6 +32,7 @@ class NewRecord {
   final String? attachmentPath;
   final String? extractedText;
   final List<NewLabValue> labValues;
+  final bool uploadedByPatient;
 }
 
 class NewLabValue {

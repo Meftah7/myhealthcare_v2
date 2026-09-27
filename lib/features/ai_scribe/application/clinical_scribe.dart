@@ -46,9 +46,8 @@ class ScribeDraft {
   final bool usedAi;
 
   /// Everything the clinician typed, laid out as a note body.
-  static ScribeDraft offline(String freeText) => ScribeDraft(
-    hpi: freeText.trim(),
-  );
+  static ScribeDraft offline(String freeText) =>
+      ScribeDraft(hpi: freeText.trim());
 
   /// The draft rendered as a single note body for [MedicalRecord.body].
   String toNoteBody() {
@@ -142,7 +141,9 @@ covered in the dictation, use "Not provided."; output valid JSON only.''';
 
     final res = await dio.post<Map<String, dynamic>>(
       '/models/$model:generateContent',
-      queryParameters: {'key': apiKey},
+      // Sent as a header, not a query parameter, so the key never lands
+      // in URL logs (proxies, crash reports, server access logs).
+      options: Options(headers: {'x-goog-api-key': apiKey}),
       data: {
         'systemInstruction': {
           'parts': [

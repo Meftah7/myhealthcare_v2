@@ -38,6 +38,11 @@ class MedicalRecords extends Table {
   /// the AI context builder (P3-02).
   TextColumn get extractedText => text().nullable()();
 
+  /// True when the patient imported this themselves. Such a record has not
+  /// been reviewed by a clinician and must never read as a clinic result.
+  BoolColumn get uploadedByPatient =>
+      boolean().withDefault(const Constant(false))();
+
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 
   @override

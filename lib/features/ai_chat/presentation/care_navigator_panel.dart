@@ -111,15 +111,19 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
                   ),
                 ),
                 IconButton(
+                  tooltip: AppLocalizations.of(
+                    context,
+                  )!.restartConversationTooltip,
                   icon: const Icon(Icons.refresh, size: 18),
                   onPressed: () =>
                       ref.read(careNavigatorProvider.notifier).reset(),
                 ),
                 IconButton(
+                  tooltip: AppLocalizations.of(context)!.closeTooltip,
                   icon: const Icon(Icons.close, size: 20),
-                  onPressed: () => ref
-                      .read(careNavigatorViewProvider.notifier)
-                      .state = CareNavView.fab,
+                  onPressed: () =>
+                      ref.read(careNavigatorViewProvider.notifier).state =
+                          CareNavView.fab,
                 ),
               ],
             ),
@@ -191,7 +195,9 @@ class _Bubble extends StatelessWidget {
         : (scheme.surfaceContainerHighest, scheme.onSurface);
 
     return Align(
-      alignment: isUser ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
+      alignment: isUser
+          ? AlignmentDirectional.centerEnd
+          : AlignmentDirectional.centerStart,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: Space.xxs),
         padding: const EdgeInsets.symmetric(
@@ -267,7 +273,8 @@ class _TypingDotsState extends State<_TypingDots>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 2),
                   child: Opacity(
-                    opacity: 0.3 +
+                    opacity:
+                        0.3 +
                         0.7 *
                             (0.5 +
                                 0.5 *

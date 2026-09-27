@@ -209,6 +209,7 @@ MedicalRecord recordFrom(MedicalRecordRow row, List<LabValueRow> labs) =>
       body: row.body,
       sourceFacility: row.sourceFacility,
       attachmentPath: row.attachmentPath,
+      uploadedByPatient: row.uploadedByPatient,
       extractedText: row.extractedText,
     );
 
