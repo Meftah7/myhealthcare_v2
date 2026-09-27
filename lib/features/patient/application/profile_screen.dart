@@ -13,11 +13,13 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/di.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
+import '../../../core/result.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
 import '../../feedback/presentation/feedback_sheet.dart';
@@ -96,6 +98,27 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                   onTap: () => unawaited(context.push(route)),
                 ),
+              ListTile(
+                dense: true,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: Space.md,
+                  vertical: Space.xxs,
+                ),
+                leading: Icon(
+                  Icons.lock_outline,
+                  size: 20,
+                  color: theme.colorScheme.primary,
+                ),
+                title: Text(t.changePasswordTitle, style: theme.textTheme.titleSmall),
+                trailing: Icon(
+                  Icons.chevron_right,
+                  size: kTrailingChevronSize,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                onTap: () => unawaited(
+                  _showChangePasswordDialog(context, ref, p.user.id),
+                ),
+              ),
             ],
           ),
 
@@ -192,4 +215,118 @@ class ProfileScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+Future<void> _showChangePasswordDialog(
+  BuildContext context,
+  WidgetRef ref,
+  String userId,
+) async {
+  final t = AppLocalizations.of(context)!;
+  final formKey = GlobalKey<FormState>();
+  final current = TextEditingController();
+  final next = TextEditingController();
+  final confirmNext = TextEditingController();
+  var obscure = true;
+  var busy = false;
+  String? error;
+
+  await showDialog<void>(
+    context: context,
+    builder: (context) => StatefulBuilder(
+      builder: (context, setState) => AlertDialog(
+        title: Text(t.changePasswordTitle),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextFormField(
+                controller: current,
+                obscureText: obscure,
+                autofocus: true,
+                decoration: InputDecoration(labelText: t.currentPasswordLabel),
+                validator: (v) =>
+                    (v == null || v.isEmpty) ? t.passwordRequired : null,
+              ),
+              const SizedBox(height: Space.sm),
+              TextFormField(
+                controller: next,
+                obscureText: obscure,
+                decoration: InputDecoration(
+                  labelText: t.newPasswordLabel,
+                ),
+                validator: (v) => (v == null || v.trim().length < 8)
+                    ? t.atLeast8Characters
+                    : null,
+              ),
+              const SizedBox(height: Space.sm),
+              TextFormField(
+                controller: confirmNext,
+                obscureText: obscure,
+                decoration: InputDecoration(labelText: t.confirmNewPasswordLabel),
+                validator: (v) =>
+                    v != next.text ? t.passwordsDoNotMatch : null,
+              ),
+              CheckboxListTile(
+                value: !obscure,
+                onChanged: (v) => setState(() => obscure = !(v ?? false)),
+                contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
+                title: Text(t.showPassword),
+              ),
+              if (error != null) ...[
+                const SizedBox(height: Space.xs),
+                InlineBanner.error(error!),
+              ],
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: busy ? null : () => Navigator.pop(context),
+            child: Text(t.cancel),
+          ),
+          FilledButton(
+            onPressed: busy
+                ? null
+                : () async {
+                    if (!(formKey.currentState?.validate() ?? false)) return;
+                    setState(() {
+                      busy = true;
+                      error = null;
+                    });
+                    final result = await ref
+                        .read(authRepositoryProvider)
+                        .changePassword(
+                          userId: userId,
+                          currentPassword: current.text,
+                          newPassword: next.text,
+                        );
+                    if (!context.mounted) return;
+                    switch (result) {
+                      case Ok():
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(t.passwordChangedSnackbar)),
+                        );
+                      case Err(:final failure):
+                        setState(() {
+                          busy = false;
+                          error = failure.message;
+                        });
+                    }
+                  },
+            child: busy
+                ? const SizedBox.square(
+                    dimension: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(t.changePasswordAction),
+          ),
+        ],
+      ),
+    ),
+  );
 }

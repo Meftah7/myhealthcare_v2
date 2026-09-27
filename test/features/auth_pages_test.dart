@@ -69,7 +69,99 @@ void main() {
     expect(byId.valueOrNull!.id, patient.id);
   });
 
-  test('forgot → reset actually changes the password', () async {
+  test(
+    'forgot password always succeeds and never reveals whether the '
+    'account exists',
+    () async {
+      final db = newTestDatabase();
+      await Seeder(db).run();
+      final container = ProviderContainer(
+        overrides: [appDatabaseProvider.overrideWithValue(db)],
+      );
+      addTearDown(container.dispose);
+      final auth = container.read(authRepositoryProvider);
+
+      // A real identifier and a made-up one report the identical outcome.
+      expect(
+        await auth.requestPasswordReset('patient1@myhealth.demo'),
+        isA<Ok<dynamic>>(),
+      );
+      expect(
+        await auth.requestPasswordReset('nobody@myhealth.demo'),
+        isA<Ok<dynamic>>(),
+      );
+    },
+  );
+
+  test(
+    'a queued request is visible to admin and resolving it via the '
+    'existing admin reset actually changes the password and clears the flag',
+    () async {
+      final db = newTestDatabase();
+      await Seeder(db).run();
+      final container = ProviderContainer(
+        overrides: [appDatabaseProvider.overrideWithValue(db)],
+      );
+      addTearDown(container.dispose);
+      final auth = container.read(authRepositoryProvider);
+      final users = container.read(userRepositoryProvider);
+
+      final patient = (await users.byRole(UserRole.patient)).valueOrNull!
+          .firstWhere((u) => u.email == 'patient1@myhealth.demo');
+      final admin = (await users.byRole(UserRole.admin)).valueOrNull!.first;
+
+      await auth.requestPasswordReset('patient1@myhealth.demo');
+      final pending = await users.userIdsWithPendingPasswordResetRequests();
+      expect(pending.valueOrNull, contains(patient.id));
+
+      final reset = await users.resetPassword(
+        id: patient.id,
+        newPassword: 'brandNewPw9',
+      );
+      expect(reset, isA<Ok<dynamic>>());
+      await users.resolvePasswordResetRequests(
+        userId: patient.id,
+        staffId: admin.id,
+      );
+
+      final pendingAfter =
+          await users.userIdsWithPendingPasswordResetRequests();
+      expect(pendingAfter.valueOrNull, isNot(contains(patient.id)));
+
+      // Old password no longer works, new one does.
+      expect(
+        await auth.login(
+          email: 'patient1@myhealth.demo',
+          password: 'password',
+        ),
+        isA<Err<dynamic>>(),
+      );
+      expect(
+        await auth.login(
+          email: 'patient1@myhealth.demo',
+          password: 'brandNewPw9',
+        ),
+        isA<Ok<dynamic>>(),
+      );
+    },
+  );
+
+  test('admin reset rejects a too-short password', () async {
+    final db = newTestDatabase();
+    await Seeder(db).run();
+    final container = ProviderContainer(
+      overrides: [appDatabaseProvider.overrideWithValue(db)],
+    );
+    addTearDown(container.dispose);
+    final users = container.read(userRepositoryProvider);
+    final patient = (await users.byRole(UserRole.patient)).valueOrNull!.first;
+    expect(
+      await users.resetPassword(id: patient.id, newPassword: 'short'),
+      isA<Err<dynamic>>(),
+    );
+  });
+
+  test('login locks the account after repeated wrong passwords', () async {
     final db = newTestDatabase();
     await Seeder(db).run();
     final container = ProviderContainer(
@@ -78,78 +170,76 @@ void main() {
     addTearDown(container.dispose);
     final auth = container.read(authRepositoryProvider);
 
-    final found = await auth.accountForIdentifier('patient1@myhealth.demo');
-    expect(found, isA<Ok<User>>());
-    final userId = found.valueOrNull!.id;
-
-    final reset =
-        await auth.resetPassword(userId: userId, newPassword: 'brandNewPw9');
-    expect(reset, isA<Ok<dynamic>>());
-
-    // Old password no longer works, new one does.
-    expect(
-      await auth.login(email: 'patient1@myhealth.demo', password: 'password'),
-      isA<Err<dynamic>>(),
-    );
-    expect(
-      await auth.login(
+    for (var i = 0; i < 5; i++) {
+      final r = await auth.login(
         email: 'patient1@myhealth.demo',
-        password: 'brandNewPw9',
-      ),
-      isA<Ok<dynamic>>(),
+        password: 'wrong-password',
+      );
+      expect(r, isA<Err<dynamic>>());
+    }
+
+    // Locked out now, even with the correct password.
+    final locked = await auth.login(
+      email: 'patient1@myhealth.demo',
+      password: 'password',
     );
+    expect(locked.isErr, isTrue);
+    expect(locked.failureOrNull!.message, contains('Too many attempts'));
   });
 
-  test('reset rejects a too-short password', () async {
-    final db = newTestDatabase();
-    await Seeder(db).run();
-    final container = ProviderContainer(
-      overrides: [appDatabaseProvider.overrideWithValue(db)],
-    );
-    addTearDown(container.dispose);
-    final auth = container.read(authRepositoryProvider);
-    final userId = (await auth.accountForIdentifier('patient1@myhealth.demo'))
-        .valueOrNull!
-        .id;
-    expect(
-      await auth.resetPassword(userId: userId, newPassword: 'short'),
-      isA<Err<dynamic>>(),
-    );
-  });
+  test(
+    'login never distinguishes an unknown identifier from a wrong password',
+    () async {
+      final db = newTestDatabase();
+      await Seeder(db).run();
+      final container = ProviderContainer(
+        overrides: [appDatabaseProvider.overrideWithValue(db)],
+      );
+      addTearDown(container.dispose);
+      final auth = container.read(authRepositoryProvider);
 
-  testWidgets('forgot-password screen routes to reset and back to login', (
-    tester,
-  ) async {
-    final container = await _pumpApp(tester);
-    addTearDown(container.dispose);
+      final unknown = await auth.login(
+        email: 'nobody@myhealth.demo',
+        password: 'whatever12',
+      );
+      final wrongPassword = await auth.login(
+        email: 'patient1@myhealth.demo',
+        password: 'whatever12',
+      );
+      expect(unknown.failureOrNull!.message, wrongPassword.failureOrNull!.message);
+    },
+  );
 
-    await tester.tap(find.text('Forgot password?'));
-    await _settle(tester);
-    expect(find.text('Forgot your password?'), findsOneWidget);
+  testWidgets(
+    'forgot-password screen never lets the requester set a new password '
+    'directly — it queues a request and shows one generic confirmation',
+    (tester) async {
+      final container = await _pumpApp(tester);
+      addTearDown(container.dispose);
 
-    await tester.enterText(
-      find.widgetWithText(TextField, 'Email or national ID'),
-      'patient1@myhealth.demo',
-    );
-    await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
-    await _settle(tester);
+      await tester.tap(find.text('Forgot password?'));
+      await _settle(tester);
+      expect(find.text('Forgot your password?'), findsOneWidget);
 
-    expect(find.text('New password'), findsOneWidget);
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'New password (8+ characters)'),
-      'freshPass12',
-    );
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Confirm new password'),
-      'freshPass12',
-    );
-    await tester.tap(find.widgetWithText(FilledButton, 'Update password'));
-    await _settle(tester);
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Email or national ID'),
+        'patient1@myhealth.demo',
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
+      await _settle(tester);
 
-    // Back on the sign-in screen.
-    expect(find.widgetWithText(FilledButton, 'Sign in'), findsOneWidget);
+      // No password field is ever shown from this unauthenticated flow.
+      expect(find.byType(TextFormField), findsNothing);
+      expect(find.text('Request sent'), findsOneWidget);
 
-    await tester.pumpWidget(const SizedBox());
-    await tester.pump(const Duration(seconds: 1));
-  });
+      await tester.tap(find.widgetWithText(FilledButton, 'Back to sign in'));
+      await _settle(tester);
+
+      // Back on the sign-in screen.
+      expect(find.widgetWithText(FilledButton, 'Sign in'), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 1));
+    },
+  );
 }

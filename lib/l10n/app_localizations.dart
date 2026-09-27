@@ -5228,6 +5228,48 @@ abstract class AppLocalizations {
   /// **'All clear'**
   String get allClearTitle;
 
+  /// No description provided for @changePasswordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change password'**
+  String get changePasswordTitle;
+
+  /// No description provided for @changePasswordAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Change password'**
+  String get changePasswordAction;
+
+  /// No description provided for @currentPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current password'**
+  String get currentPasswordLabel;
+
+  /// No description provided for @passwordChangedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Password changed.'**
+  String get passwordChangedSnackbar;
+
+  /// No description provided for @passwordResetRequestedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Password reset requested'**
+  String get passwordResetRequestedBadge;
+
+  /// No description provided for @passwordResetRequestedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request sent'**
+  String get passwordResetRequestedTitle;
+
+  /// No description provided for @passwordResetRequestedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'If that matches an account, our team will verify your identity and help you regain access. This can take a little time — thank you for your patience.'**
+  String get passwordResetRequestedBody;
+
   /// No description provided for @riskFlagsCheckFailed.
   ///
   /// In en, this message translates to:

@@ -28,6 +28,7 @@ part 'app_database.g.dart';
     Users,
     PatientProfiles,
     StaffProfiles,
+    PasswordResetRequests,
     // scheduling
     ScheduleTemplates,
     Appointments,
@@ -85,7 +86,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 15;
+  int get schemaVersion => 16;
 
   /// True when [table] already has a column named [columnName] — lets a
   /// migration step that already partly ran (e.g. the app/tab was closed or
@@ -227,6 +228,19 @@ class AppDatabase extends _$AppDatabase {
           m,
           medicalRecords,
           medicalRecords.uploadedByPatient,
+        );
+      }
+      if (from < 16) {
+        // Login throttling (consecutive-failure counter + lockout) and the
+        // admin-queued password-reset request flow.
+        await _addColumnIfMissing(m, users, users.failedLoginAttempts);
+        await _addColumnIfMissing(m, users, users.lockedUntil);
+        await _createTableIfMissing(m, passwordResetRequests);
+        // A partial index — SQLite allows many NULL national IDs but not two
+        // accounts sharing the same non-null one.
+        await customStatement(
+          'CREATE UNIQUE INDEX IF NOT EXISTS idx_users_national_id '
+          'ON users (national_id) WHERE national_id IS NOT NULL',
         );
       }
     }),

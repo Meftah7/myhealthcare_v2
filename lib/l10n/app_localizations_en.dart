@@ -2856,6 +2856,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get allClearTitle => 'All clear';
 
   @override
+  String get changePasswordTitle => 'Change password';
+
+  @override
+  String get changePasswordAction => 'Change password';
+
+  @override
+  String get currentPasswordLabel => 'Current password';
+
+  @override
+  String get passwordChangedSnackbar => 'Password changed.';
+
+  @override
+  String get passwordResetRequestedBadge => 'Password reset requested';
+
+  @override
+  String get passwordResetRequestedTitle => 'Request sent';
+
+  @override
+  String get passwordResetRequestedBody =>
+      'If that matches an account, our team will verify your identity and help you regain access. This can take a little time — thank you for your patience.';
+
+  @override
   String get riskFlagsCheckFailed =>
       'Couldn\'t check risk flags for this patient';
 

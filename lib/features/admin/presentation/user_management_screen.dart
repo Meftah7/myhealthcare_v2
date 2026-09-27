@@ -200,6 +200,10 @@ class _UserCard extends ConsumerWidget {
     final scheme = theme.colorScheme;
     final isPatient = user.role == UserRole.patient;
     final isStaff = user.role == UserRole.staff;
+    final pendingReset =
+        (ref.watch(pendingPasswordResetUserIdsProvider).valueOrNull ??
+                const {})
+            .contains(user.id);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: Space.xs),
@@ -233,10 +237,29 @@ class _UserCard extends ConsumerWidget {
               ),
             ),
             title: Text(user.fullName),
-            subtitle: Text(
-              user.isActive ? user.email : t.emailDeactivatedLabel(user.email),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            subtitle: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    user.isActive
+                        ? user.email
+                        : t.emailDeactivatedLabel(user.email),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (pendingReset) ...[
+                  const SizedBox(width: Space.xs),
+                  Tooltip(
+                    message: t.passwordResetRequestedBadge,
+                    child: Icon(
+                      Icons.mark_email_unread_outlined,
+                      size: 18,
+                      color: theme.colorScheme.error,
+                    ),
+                  ),
+                ],
+              ],
             ),
             children: [
               _DetailRows(user: user),

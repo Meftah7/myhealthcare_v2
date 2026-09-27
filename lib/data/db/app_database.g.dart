@@ -410,6 +410,28 @@ class $UsersTable extends Users with TableInfo<$UsersTable, UserRow> {
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _failedLoginAttemptsMeta =
+      const VerificationMeta('failedLoginAttempts');
+  @override
+  late final GeneratedColumn<int> failedLoginAttempts = GeneratedColumn<int>(
+    'failed_login_attempts',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _lockedUntilMeta = const VerificationMeta(
+    'lockedUntil',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lockedUntil = GeneratedColumn<DateTime>(
+    'locked_until',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -424,6 +446,8 @@ class $UsersTable extends Users with TableInfo<$UsersTable, UserRow> {
     nationalId,
     isActive,
     createdAt,
+    failedLoginAttempts,
+    lockedUntil,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -510,6 +534,24 @@ class $UsersTable extends Users with TableInfo<$UsersTable, UserRow> {
         createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
       );
     }
+    if (data.containsKey('failed_login_attempts')) {
+      context.handle(
+        _failedLoginAttemptsMeta,
+        failedLoginAttempts.isAcceptableOrUnknown(
+          data['failed_login_attempts']!,
+          _failedLoginAttemptsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('locked_until')) {
+      context.handle(
+        _lockedUntilMeta,
+        lockedUntil.isAcceptableOrUnknown(
+          data['locked_until']!,
+          _lockedUntilMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -571,6 +613,14 @@ class $UsersTable extends Users with TableInfo<$UsersTable, UserRow> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
       )!,
+      failedLoginAttempts: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}failed_login_attempts'],
+      )!,
+      lockedUntil: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}locked_until'],
+      ),
     );
   }
 
@@ -600,6 +650,14 @@ class UserRow extends DataClass implements Insertable<UserRow> {
   final String? nationalId;
   final bool isActive;
   final DateTime createdAt;
+
+  /// Consecutive wrong-password attempts since the last success — backs
+  /// login throttling. Reset to 0 on a successful login.
+  final int failedLoginAttempts;
+
+  /// Set once [failedLoginAttempts] crosses the threshold; login is refused
+  /// (with a generic message) while this is in the future.
+  final DateTime? lockedUntil;
   const UserRow({
     required this.id,
     required this.role,
@@ -613,6 +671,8 @@ class UserRow extends DataClass implements Insertable<UserRow> {
     this.nationalId,
     required this.isActive,
     required this.createdAt,
+    required this.failedLoginAttempts,
+    this.lockedUntil,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -641,6 +701,10 @@ class UserRow extends DataClass implements Insertable<UserRow> {
     }
     map['is_active'] = Variable<bool>(isActive);
     map['created_at'] = Variable<DateTime>(createdAt);
+    map['failed_login_attempts'] = Variable<int>(failedLoginAttempts);
+    if (!nullToAbsent || lockedUntil != null) {
+      map['locked_until'] = Variable<DateTime>(lockedUntil);
+    }
     return map;
   }
 
@@ -664,6 +728,10 @@ class UserRow extends DataClass implements Insertable<UserRow> {
           : Value(nationalId),
       isActive: Value(isActive),
       createdAt: Value(createdAt),
+      failedLoginAttempts: Value(failedLoginAttempts),
+      lockedUntil: lockedUntil == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lockedUntil),
     );
   }
 
@@ -689,6 +757,10 @@ class UserRow extends DataClass implements Insertable<UserRow> {
       nationalId: serializer.fromJson<String?>(json['nationalId']),
       isActive: serializer.fromJson<bool>(json['isActive']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      failedLoginAttempts: serializer.fromJson<int>(
+        json['failedLoginAttempts'],
+      ),
+      lockedUntil: serializer.fromJson<DateTime?>(json['lockedUntil']),
     );
   }
   @override
@@ -711,6 +783,8 @@ class UserRow extends DataClass implements Insertable<UserRow> {
       'nationalId': serializer.toJson<String?>(nationalId),
       'isActive': serializer.toJson<bool>(isActive),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'failedLoginAttempts': serializer.toJson<int>(failedLoginAttempts),
+      'lockedUntil': serializer.toJson<DateTime?>(lockedUntil),
     };
   }
 
@@ -727,6 +801,8 @@ class UserRow extends DataClass implements Insertable<UserRow> {
     Value<String?> nationalId = const Value.absent(),
     bool? isActive,
     DateTime? createdAt,
+    int? failedLoginAttempts,
+    Value<DateTime?> lockedUntil = const Value.absent(),
   }) => UserRow(
     id: id ?? this.id,
     role: role ?? this.role,
@@ -740,6 +816,8 @@ class UserRow extends DataClass implements Insertable<UserRow> {
     nationalId: nationalId.present ? nationalId.value : this.nationalId,
     isActive: isActive ?? this.isActive,
     createdAt: createdAt ?? this.createdAt,
+    failedLoginAttempts: failedLoginAttempts ?? this.failedLoginAttempts,
+    lockedUntil: lockedUntil.present ? lockedUntil.value : this.lockedUntil,
   );
   UserRow copyWithCompanion(UsersCompanion data) {
     return UserRow(
@@ -761,6 +839,12 @@ class UserRow extends DataClass implements Insertable<UserRow> {
           : this.nationalId,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      failedLoginAttempts: data.failedLoginAttempts.present
+          ? data.failedLoginAttempts.value
+          : this.failedLoginAttempts,
+      lockedUntil: data.lockedUntil.present
+          ? data.lockedUntil.value
+          : this.lockedUntil,
     );
   }
 
@@ -778,7 +862,9 @@ class UserRow extends DataClass implements Insertable<UserRow> {
           ..write('gender: $gender, ')
           ..write('nationalId: $nationalId, ')
           ..write('isActive: $isActive, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('failedLoginAttempts: $failedLoginAttempts, ')
+          ..write('lockedUntil: $lockedUntil')
           ..write(')'))
         .toString();
   }
@@ -797,6 +883,8 @@ class UserRow extends DataClass implements Insertable<UserRow> {
     nationalId,
     isActive,
     createdAt,
+    failedLoginAttempts,
+    lockedUntil,
   );
   @override
   bool operator ==(Object other) =>
@@ -813,7 +901,9 @@ class UserRow extends DataClass implements Insertable<UserRow> {
           other.gender == this.gender &&
           other.nationalId == this.nationalId &&
           other.isActive == this.isActive &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.failedLoginAttempts == this.failedLoginAttempts &&
+          other.lockedUntil == this.lockedUntil);
 }
 
 class UsersCompanion extends UpdateCompanion<UserRow> {
@@ -829,6 +919,8 @@ class UsersCompanion extends UpdateCompanion<UserRow> {
   final Value<String?> nationalId;
   final Value<bool> isActive;
   final Value<DateTime> createdAt;
+  final Value<int> failedLoginAttempts;
+  final Value<DateTime?> lockedUntil;
   final Value<int> rowid;
   const UsersCompanion({
     this.id = const Value.absent(),
@@ -843,6 +935,8 @@ class UsersCompanion extends UpdateCompanion<UserRow> {
     this.nationalId = const Value.absent(),
     this.isActive = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.failedLoginAttempts = const Value.absent(),
+    this.lockedUntil = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   UsersCompanion.insert({
@@ -858,6 +952,8 @@ class UsersCompanion extends UpdateCompanion<UserRow> {
     this.nationalId = const Value.absent(),
     this.isActive = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.failedLoginAttempts = const Value.absent(),
+    this.lockedUntil = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        role = Value(role),
@@ -878,6 +974,8 @@ class UsersCompanion extends UpdateCompanion<UserRow> {
     Expression<String>? nationalId,
     Expression<bool>? isActive,
     Expression<DateTime>? createdAt,
+    Expression<int>? failedLoginAttempts,
+    Expression<DateTime>? lockedUntil,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -893,6 +991,9 @@ class UsersCompanion extends UpdateCompanion<UserRow> {
       if (nationalId != null) 'national_id': nationalId,
       if (isActive != null) 'is_active': isActive,
       if (createdAt != null) 'created_at': createdAt,
+      if (failedLoginAttempts != null)
+        'failed_login_attempts': failedLoginAttempts,
+      if (lockedUntil != null) 'locked_until': lockedUntil,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -910,6 +1011,8 @@ class UsersCompanion extends UpdateCompanion<UserRow> {
     Value<String?>? nationalId,
     Value<bool>? isActive,
     Value<DateTime>? createdAt,
+    Value<int>? failedLoginAttempts,
+    Value<DateTime?>? lockedUntil,
     Value<int>? rowid,
   }) {
     return UsersCompanion(
@@ -925,6 +1028,8 @@ class UsersCompanion extends UpdateCompanion<UserRow> {
       nationalId: nationalId ?? this.nationalId,
       isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,
+      failedLoginAttempts: failedLoginAttempts ?? this.failedLoginAttempts,
+      lockedUntil: lockedUntil ?? this.lockedUntil,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -972,6 +1077,12 @@ class UsersCompanion extends UpdateCompanion<UserRow> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (failedLoginAttempts.present) {
+      map['failed_login_attempts'] = Variable<int>(failedLoginAttempts.value);
+    }
+    if (lockedUntil.present) {
+      map['locked_until'] = Variable<DateTime>(lockedUntil.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -993,6 +1104,8 @@ class UsersCompanion extends UpdateCompanion<UserRow> {
           ..write('nationalId: $nationalId, ')
           ..write('isActive: $isActive, ')
           ..write('createdAt: $createdAt, ')
+          ..write('failedLoginAttempts: $failedLoginAttempts, ')
+          ..write('lockedUntil: $lockedUntil, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1895,6 +2008,508 @@ class StaffProfilesCompanion extends UpdateCompanion<StaffProfileRow> {
           ..write('licenseNo: $licenseNo, ')
           ..write('jobTitle: $jobTitle, ')
           ..write('presence: $presence, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PasswordResetRequestsTable extends PasswordResetRequests
+    with TableInfo<$PasswordResetRequestsTable, PasswordResetRequestRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PasswordResetRequestsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _identifierEnteredMeta = const VerificationMeta(
+    'identifierEntered',
+  );
+  @override
+  late final GeneratedColumn<String> identifierEntered =
+      GeneratedColumn<String>(
+        'identifier_entered',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _requestedAtMeta = const VerificationMeta(
+    'requestedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> requestedAt = GeneratedColumn<DateTime>(
+    'requested_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _resolvedMeta = const VerificationMeta(
+    'resolved',
+  );
+  @override
+  late final GeneratedColumn<bool> resolved = GeneratedColumn<bool>(
+    'resolved',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("resolved" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _resolvedByStaffIdMeta = const VerificationMeta(
+    'resolvedByStaffId',
+  );
+  @override
+  late final GeneratedColumn<String> resolvedByStaffId =
+      GeneratedColumn<String>(
+        'resolved_by_staff_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES users (id)',
+        ),
+      );
+  static const VerificationMeta _resolvedAtMeta = const VerificationMeta(
+    'resolvedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> resolvedAt = GeneratedColumn<DateTime>(
+    'resolved_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    userId,
+    identifierEntered,
+    requestedAt,
+    resolved,
+    resolvedByStaffId,
+    resolvedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'password_reset_requests';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PasswordResetRequestRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('identifier_entered')) {
+      context.handle(
+        _identifierEnteredMeta,
+        identifierEntered.isAcceptableOrUnknown(
+          data['identifier_entered']!,
+          _identifierEnteredMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_identifierEnteredMeta);
+    }
+    if (data.containsKey('requested_at')) {
+      context.handle(
+        _requestedAtMeta,
+        requestedAt.isAcceptableOrUnknown(
+          data['requested_at']!,
+          _requestedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('resolved')) {
+      context.handle(
+        _resolvedMeta,
+        resolved.isAcceptableOrUnknown(data['resolved']!, _resolvedMeta),
+      );
+    }
+    if (data.containsKey('resolved_by_staff_id')) {
+      context.handle(
+        _resolvedByStaffIdMeta,
+        resolvedByStaffId.isAcceptableOrUnknown(
+          data['resolved_by_staff_id']!,
+          _resolvedByStaffIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('resolved_at')) {
+      context.handle(
+        _resolvedAtMeta,
+        resolvedAt.isAcceptableOrUnknown(data['resolved_at']!, _resolvedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PasswordResetRequestRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PasswordResetRequestRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      identifierEntered: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}identifier_entered'],
+      )!,
+      requestedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}requested_at'],
+      )!,
+      resolved: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}resolved'],
+      )!,
+      resolvedByStaffId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}resolved_by_staff_id'],
+      ),
+      resolvedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}resolved_at'],
+      ),
+    );
+  }
+
+  @override
+  $PasswordResetRequestsTable createAlias(String alias) {
+    return $PasswordResetRequestsTable(attachedDatabase, alias);
+  }
+}
+
+class PasswordResetRequestRow extends DataClass
+    implements Insertable<PasswordResetRequestRow> {
+  final String id;
+  final String userId;
+
+  /// What the requester typed (email or national ID) — shown to the admin
+  /// for context; never used to bypass looking the account up server-side.
+  final String identifierEntered;
+  final DateTime requestedAt;
+  final bool resolved;
+  final String? resolvedByStaffId;
+  final DateTime? resolvedAt;
+  const PasswordResetRequestRow({
+    required this.id,
+    required this.userId,
+    required this.identifierEntered,
+    required this.requestedAt,
+    required this.resolved,
+    this.resolvedByStaffId,
+    this.resolvedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['user_id'] = Variable<String>(userId);
+    map['identifier_entered'] = Variable<String>(identifierEntered);
+    map['requested_at'] = Variable<DateTime>(requestedAt);
+    map['resolved'] = Variable<bool>(resolved);
+    if (!nullToAbsent || resolvedByStaffId != null) {
+      map['resolved_by_staff_id'] = Variable<String>(resolvedByStaffId);
+    }
+    if (!nullToAbsent || resolvedAt != null) {
+      map['resolved_at'] = Variable<DateTime>(resolvedAt);
+    }
+    return map;
+  }
+
+  PasswordResetRequestsCompanion toCompanion(bool nullToAbsent) {
+    return PasswordResetRequestsCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      identifierEntered: Value(identifierEntered),
+      requestedAt: Value(requestedAt),
+      resolved: Value(resolved),
+      resolvedByStaffId: resolvedByStaffId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(resolvedByStaffId),
+      resolvedAt: resolvedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(resolvedAt),
+    );
+  }
+
+  factory PasswordResetRequestRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PasswordResetRequestRow(
+      id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String>(json['userId']),
+      identifierEntered: serializer.fromJson<String>(json['identifierEntered']),
+      requestedAt: serializer.fromJson<DateTime>(json['requestedAt']),
+      resolved: serializer.fromJson<bool>(json['resolved']),
+      resolvedByStaffId: serializer.fromJson<String?>(
+        json['resolvedByStaffId'],
+      ),
+      resolvedAt: serializer.fromJson<DateTime?>(json['resolvedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String>(userId),
+      'identifierEntered': serializer.toJson<String>(identifierEntered),
+      'requestedAt': serializer.toJson<DateTime>(requestedAt),
+      'resolved': serializer.toJson<bool>(resolved),
+      'resolvedByStaffId': serializer.toJson<String?>(resolvedByStaffId),
+      'resolvedAt': serializer.toJson<DateTime?>(resolvedAt),
+    };
+  }
+
+  PasswordResetRequestRow copyWith({
+    String? id,
+    String? userId,
+    String? identifierEntered,
+    DateTime? requestedAt,
+    bool? resolved,
+    Value<String?> resolvedByStaffId = const Value.absent(),
+    Value<DateTime?> resolvedAt = const Value.absent(),
+  }) => PasswordResetRequestRow(
+    id: id ?? this.id,
+    userId: userId ?? this.userId,
+    identifierEntered: identifierEntered ?? this.identifierEntered,
+    requestedAt: requestedAt ?? this.requestedAt,
+    resolved: resolved ?? this.resolved,
+    resolvedByStaffId: resolvedByStaffId.present
+        ? resolvedByStaffId.value
+        : this.resolvedByStaffId,
+    resolvedAt: resolvedAt.present ? resolvedAt.value : this.resolvedAt,
+  );
+  PasswordResetRequestRow copyWithCompanion(
+    PasswordResetRequestsCompanion data,
+  ) {
+    return PasswordResetRequestRow(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      identifierEntered: data.identifierEntered.present
+          ? data.identifierEntered.value
+          : this.identifierEntered,
+      requestedAt: data.requestedAt.present
+          ? data.requestedAt.value
+          : this.requestedAt,
+      resolved: data.resolved.present ? data.resolved.value : this.resolved,
+      resolvedByStaffId: data.resolvedByStaffId.present
+          ? data.resolvedByStaffId.value
+          : this.resolvedByStaffId,
+      resolvedAt: data.resolvedAt.present
+          ? data.resolvedAt.value
+          : this.resolvedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PasswordResetRequestRow(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('identifierEntered: $identifierEntered, ')
+          ..write('requestedAt: $requestedAt, ')
+          ..write('resolved: $resolved, ')
+          ..write('resolvedByStaffId: $resolvedByStaffId, ')
+          ..write('resolvedAt: $resolvedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    userId,
+    identifierEntered,
+    requestedAt,
+    resolved,
+    resolvedByStaffId,
+    resolvedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PasswordResetRequestRow &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.identifierEntered == this.identifierEntered &&
+          other.requestedAt == this.requestedAt &&
+          other.resolved == this.resolved &&
+          other.resolvedByStaffId == this.resolvedByStaffId &&
+          other.resolvedAt == this.resolvedAt);
+}
+
+class PasswordResetRequestsCompanion
+    extends UpdateCompanion<PasswordResetRequestRow> {
+  final Value<String> id;
+  final Value<String> userId;
+  final Value<String> identifierEntered;
+  final Value<DateTime> requestedAt;
+  final Value<bool> resolved;
+  final Value<String?> resolvedByStaffId;
+  final Value<DateTime?> resolvedAt;
+  final Value<int> rowid;
+  const PasswordResetRequestsCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.identifierEntered = const Value.absent(),
+    this.requestedAt = const Value.absent(),
+    this.resolved = const Value.absent(),
+    this.resolvedByStaffId = const Value.absent(),
+    this.resolvedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PasswordResetRequestsCompanion.insert({
+    required String id,
+    required String userId,
+    required String identifierEntered,
+    this.requestedAt = const Value.absent(),
+    this.resolved = const Value.absent(),
+    this.resolvedByStaffId = const Value.absent(),
+    this.resolvedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       userId = Value(userId),
+       identifierEntered = Value(identifierEntered);
+  static Insertable<PasswordResetRequestRow> custom({
+    Expression<String>? id,
+    Expression<String>? userId,
+    Expression<String>? identifierEntered,
+    Expression<DateTime>? requestedAt,
+    Expression<bool>? resolved,
+    Expression<String>? resolvedByStaffId,
+    Expression<DateTime>? resolvedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (identifierEntered != null) 'identifier_entered': identifierEntered,
+      if (requestedAt != null) 'requested_at': requestedAt,
+      if (resolved != null) 'resolved': resolved,
+      if (resolvedByStaffId != null) 'resolved_by_staff_id': resolvedByStaffId,
+      if (resolvedAt != null) 'resolved_at': resolvedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PasswordResetRequestsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? userId,
+    Value<String>? identifierEntered,
+    Value<DateTime>? requestedAt,
+    Value<bool>? resolved,
+    Value<String?>? resolvedByStaffId,
+    Value<DateTime?>? resolvedAt,
+    Value<int>? rowid,
+  }) {
+    return PasswordResetRequestsCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      identifierEntered: identifierEntered ?? this.identifierEntered,
+      requestedAt: requestedAt ?? this.requestedAt,
+      resolved: resolved ?? this.resolved,
+      resolvedByStaffId: resolvedByStaffId ?? this.resolvedByStaffId,
+      resolvedAt: resolvedAt ?? this.resolvedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (identifierEntered.present) {
+      map['identifier_entered'] = Variable<String>(identifierEntered.value);
+    }
+    if (requestedAt.present) {
+      map['requested_at'] = Variable<DateTime>(requestedAt.value);
+    }
+    if (resolved.present) {
+      map['resolved'] = Variable<bool>(resolved.value);
+    }
+    if (resolvedByStaffId.present) {
+      map['resolved_by_staff_id'] = Variable<String>(resolvedByStaffId.value);
+    }
+    if (resolvedAt.present) {
+      map['resolved_at'] = Variable<DateTime>(resolvedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PasswordResetRequestsCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('identifierEntered: $identifierEntered, ')
+          ..write('requestedAt: $requestedAt, ')
+          ..write('resolved: $resolved, ')
+          ..write('resolvedByStaffId: $resolvedByStaffId, ')
+          ..write('resolvedAt: $resolvedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -16579,6 +17194,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     this,
   );
   late final $StaffProfilesTable staffProfiles = $StaffProfilesTable(this);
+  late final $PasswordResetRequestsTable passwordResetRequests =
+      $PasswordResetRequestsTable(this);
   late final $ScheduleTemplatesTable scheduleTemplates =
       $ScheduleTemplatesTable(this);
   late final $AppointmentsTable appointments = $AppointmentsTable(this);
@@ -16618,6 +17235,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     users,
     patientProfiles,
     staffProfiles,
+    passwordResetRequests,
     scheduleTemplates,
     appointments,
     reminders,
@@ -16658,6 +17276,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('staff_profiles', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('password_reset_requests', kind: UpdateKind.delete)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(

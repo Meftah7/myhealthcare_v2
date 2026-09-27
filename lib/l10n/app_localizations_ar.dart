@@ -2887,6 +2887,28 @@ class AppLocalizationsAr extends AppLocalizations {
   String get allClearTitle => 'لا يوجد ما يستدعي الانتباه';
 
   @override
+  String get changePasswordTitle => 'تغيير كلمة المرور';
+
+  @override
+  String get changePasswordAction => 'تغيير كلمة المرور';
+
+  @override
+  String get currentPasswordLabel => 'كلمة المرور الحالية';
+
+  @override
+  String get passwordChangedSnackbar => 'تم تغيير كلمة المرور.';
+
+  @override
+  String get passwordResetRequestedBadge => 'طُلبت إعادة تعيين كلمة المرور';
+
+  @override
+  String get passwordResetRequestedTitle => 'تم إرسال الطلب';
+
+  @override
+  String get passwordResetRequestedBody =>
+      'إذا كان هذا يطابق حسابًا، سيقوم فريقنا بالتحقق من هويتك ومساعدتك على استعادة الوصول. قد يستغرق ذلك بعض الوقت — شكرًا لصبرك.';
+
+  @override
   String get riskFlagsCheckFailed => 'تعذّر التحقق من مؤشرات الخطر لهذا المريض';
 
   @override

@@ -162,6 +162,18 @@ final allInvoicesProvider =
       );
     });
 
+/// User IDs with an unresolved password-reset request — backs the "reset
+/// requested" badge on their row in User management.
+final pendingPasswordResetUserIdsProvider = FutureProvider<Set<String>>((
+  ref,
+) async {
+  return _unwrap(
+    await ref
+        .read(userRepositoryProvider)
+        .userIdsWithPendingPasswordResetRequests(),
+  );
+});
+
 /// Count of unpaid (pending) invoices — a dashboard stat.
 final unpaidInvoiceCountProvider = FutureProvider<int>((ref) async {
   final list = await ref.watch(allInvoicesProvider(null).future);
@@ -291,6 +303,14 @@ class AdminActions {
     final r = await _ref
         .read(userRepositoryProvider)
         .resetPassword(id: id, newPassword: newPassword);
+    if (r.isOk) {
+      // Clears the "reset requested" badge — this is the resolution.
+      final adminId = _ref.read(currentUserProvider)?.id ?? '';
+      await _ref
+          .read(userRepositoryProvider)
+          .resolvePasswordResetRequests(userId: id, staffId: adminId);
+      _ref.invalidate(pendingPasswordResetUserIdsProvider);
+    }
     return r;
   }
 

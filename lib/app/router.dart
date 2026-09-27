@@ -31,7 +31,6 @@ import '../features/auth/application/session.dart';
 import '../features/auth/presentation/forgot_password_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
-import '../features/auth/presentation/reset_password_screen.dart';
 import '../features/billing/presentation/payments_screen.dart';
 import '../features/booking/presentation/booking_screen.dart';
 import '../features/care/presentation/admin_home_visits_screen.dart';
@@ -98,7 +97,6 @@ abstract final class AppRoutes {
   static const login = '/login';
   static const register = '/register';
   static const forgotPassword = '/forgot-password';
-  static const resetPassword = '/reset-password';
 
   // Patient
   static const patientHome = '/patient/home';
@@ -217,12 +215,6 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
         path: AppRoutes.forgotPassword,
         builder: (_, _) => const ForgotPasswordScreen(),
       ),
-      GoRoute(
-        path: AppRoutes.resetPassword,
-        builder: (_, state) => ResetPasswordScreen(
-          userId: state.uri.queryParameters['user'] ?? '',
-        ),
-      ),
       // The booking wizard is a focused full-screen flow over the shell — no
       // bottom nav while a multi-step task is in progress (DESIGN.md §6).
       GoRoute(
@@ -277,7 +269,6 @@ String? _guard(Ref ref, GoRouterState state) {
     AppRoutes.login,
     AppRoutes.register,
     AppRoutes.forgotPassword,
-    AppRoutes.resetPassword,
   };
   final onAuthScreen = publicAuth.contains(loc);
 

@@ -25,7 +25,7 @@ void main() {
       });
 
       // A fully-seeded, current-schema database — its actual columns/tables
-      // are already at schemaVersion 15.
+      // are already at the current schema version.
       var db = AppDatabase(NativeDatabase(file));
       await Seeder(db).run();
 
@@ -36,7 +36,7 @@ void main() {
       await db.customStatement('PRAGMA user_version = 2');
       await db.close();
 
-      // Reopening triggers onUpgrade(from: 2, to: 15). Every step it re-runs
+      // Reopening triggers onUpgrade(from: 2, to: the current version). Every step it re-runs
       // (starting with adding the already-present `ticket_tag` column) must
       // detect the prior work and skip it — not throw "duplicate column
       // name: ticket_tag", which is what a real user hit here.
@@ -45,7 +45,7 @@ void main() {
       expect(users, isNotEmpty);
 
       final version = await db.customSelect('PRAGMA user_version').getSingle();
-      expect(version.read<int>('user_version'), 15);
+      expect(version.read<int>('user_version'), db.schemaVersion);
 
       await db.close();
     },

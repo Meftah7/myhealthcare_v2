@@ -31,6 +31,41 @@ class Users extends Table {
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 
+  /// Consecutive wrong-password attempts since the last success — backs
+  /// login throttling. Reset to 0 on a successful login.
+  IntColumn get failedLoginAttempts =>
+      integer().withDefault(const Constant(0))();
+
+  /// Set once [failedLoginAttempts] crosses the threshold; login is refused
+  /// (with a generic message) while this is in the future.
+  DateTimeColumn get lockedUntil => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+/// A patient's request to reset a forgotten password. There is no email/SMS
+/// delivery in this app, so a self-service "click a link" reset can't prove
+/// the requester owns the account — instead the request is queued for an
+/// authenticated admin to verify the person and issue a new password
+/// (resolving it), the same trust boundary the admin's existing per-user
+/// "Reset password" action already relies on.
+@DataClassName('PasswordResetRequestRow')
+class PasswordResetRequests extends Table {
+  TextColumn get id => text()();
+  TextColumn get userId =>
+      text().references(Users, #id, onDelete: KeyAction.cascade)();
+
+  /// What the requester typed (email or national ID) — shown to the admin
+  /// for context; never used to bypass looking the account up server-side.
+  TextColumn get identifierEntered => text()();
+  DateTimeColumn get requestedAt =>
+      dateTime().withDefault(currentDateAndTime)();
+  BoolColumn get resolved => boolean().withDefault(const Constant(false))();
+  TextColumn get resolvedByStaffId =>
+      text().nullable().references(Users, #id)();
+  DateTimeColumn get resolvedAt => dateTime().nullable()();
+
   @override
   Set<Column<Object>> get primaryKey => {id};
 }

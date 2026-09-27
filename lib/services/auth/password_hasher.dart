@@ -25,12 +25,23 @@ class PasswordHash {
 }
 
 class PasswordHasher {
-  const PasswordHasher({this.iterations = 20000, this.keyLength = 32});
+  const PasswordHasher({this.iterations = 120000, this.keyLength = 32});
 
   /// Work factor for *new* hashes. Verification reads the count from the
   /// stored string, so existing hashes keep working when this changes.
+  /// 120,000 (up from an earlier 20,000) balances OWASP's PBKDF2-SHA256
+  /// guidance against this being a pure-Dart loop with no native/hardware
+  /// acceleration; a memory-hard KDF (Argon2id/scrypt/bcrypt) is still the
+  /// right choice for production.
   final int iterations;
   final int keyLength;
+
+  /// Reject an iteration count outside this range before ever running the
+  /// PBKDF2 loop. [verify] reads the count from the *stored* hash string, so
+  /// without this bound a tampered/corrupted database row could embed an
+  /// absurd count and hang the login thread on every attempt against it.
+  static const _minIterations = 1000;
+  static const _maxIterations = 2000000;
 
   static final _random = Random.secure();
 
@@ -47,7 +58,9 @@ class PasswordHasher {
     final sep = hash.indexOf(':');
     if (sep <= 0) return false;
     final iters = int.tryParse(hash.substring(0, sep));
-    if (iters == null) return false;
+    if (iters == null || iters < _minIterations || iters > _maxIterations) {
+      return false;
+    }
     final expected = hash.substring(sep + 1);
     final derived = _pbkdf2(utf8.encode(password), base64.decode(salt), iters);
     return _constantTimeEquals(base64.encode(derived), expected);
