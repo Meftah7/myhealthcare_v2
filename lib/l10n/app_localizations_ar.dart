@@ -2887,6 +2887,48 @@ class AppLocalizationsAr extends AppLocalizations {
   String get allClearTitle => 'لا يوجد ما يستدعي الانتباه';
 
   @override
+  String get settingSaveFailedMessage =>
+      'تعذّر حفظ هذا الإعداد، وأُعيد إلى قيمته السابقة.';
+
+  @override
+  String get smsChannelSubtitle => 'تذكيرات المواعيد عبر الرسائل النصية';
+
+  @override
+  String get emailChannelSubtitle =>
+      'التذكيرات والإيصالات عبر البريد الإلكتروني';
+
+  @override
+  String get pushChannelSubtitle =>
+      'تنبيهات على هذا الجهاز حتى عندما يكون التطبيق مغلقًا';
+
+  @override
+  String get inAppAlwaysOnNote =>
+      'الإشعارات داخل التطبيق مفعّلة دائمًا حتى لا يفوتك أي تذكير. هذا العرض التجريبي يحاكي إرسال الرسائل النصية والبريد الإلكتروني وإشعارات الدفع.';
+
+  @override
+  String get resetNotificationsTitle => 'إعادة ضبط الإشعارات';
+
+  @override
+  String get resetNotificationsMessage =>
+      'تفعيل البريد الإلكتروني وإشعارات الدفع مجددًا، وإيقاف الرسائل النصية، وتشغيل الأصوات؟';
+
+  @override
+  String get resetAppearanceTitle => 'إعادة ضبط المظهر';
+
+  @override
+  String get resetAppearanceMessage =>
+      'إعادة السمة وحجم النص والحركة والتباين إلى القيم الافتراضية؟';
+
+  @override
+  String get resetAction => 'إعادة تعيين';
+
+  @override
+  String get highContrastLabel => 'تباين عالٍ';
+
+  @override
+  String get highContrastSubtitle => 'نص أغمق وحدود أوضح';
+
+  @override
   String get motionLabel => 'الحركة';
 
   @override
@@ -3298,9 +3340,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get newTemporaryPasswordTitle => 'كلمة مرور مؤقتة جديدة';
-
-  @override
-  String get resetAction => 'إعادة تعيين';
 
   @override
   String get addAnAdministratorTitle => 'إضافة مسؤول';

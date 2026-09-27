@@ -23,11 +23,12 @@ class MyHealthCareApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final highContrast = ref.watch(highContrastProvider);
     return MaterialApp.router(
       title: 'MyHealth Care',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
+      theme: highContrast ? AppTheme.lightHighContrast : AppTheme.light,
+      darkTheme: highContrast ? AppTheme.darkHighContrast : AppTheme.dark,
       themeMode: ref.watch(themeModeProvider),
       locale: ref.watch(localeProvider),
       supportedLocales: supportedLocales,

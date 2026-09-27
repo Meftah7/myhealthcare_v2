@@ -2856,6 +2856,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get allClearTitle => 'All clear';
 
   @override
+  String get settingSaveFailedMessage =>
+      'Couldn\'t save that setting. It has been changed back.';
+
+  @override
+  String get smsChannelSubtitle => 'Appointment reminders by text message';
+
+  @override
+  String get emailChannelSubtitle => 'Reminders and receipts by email';
+
+  @override
+  String get pushChannelSubtitle =>
+      'Alerts on this device, even when the app is closed';
+
+  @override
+  String get inAppAlwaysOnNote =>
+      'In-app notifications are always on, so you never miss a reminder. This demo simulates SMS, email and push delivery.';
+
+  @override
+  String get resetNotificationsTitle => 'Reset notifications';
+
+  @override
+  String get resetNotificationsMessage =>
+      'Turn email and push back on, SMS off, and sounds on?';
+
+  @override
+  String get resetAppearanceTitle => 'Reset appearance';
+
+  @override
+  String get resetAppearanceMessage =>
+      'Return theme, text size, motion and contrast to their defaults?';
+
+  @override
+  String get resetAction => 'Reset';
+
+  @override
+  String get highContrastLabel => 'High contrast';
+
+  @override
+  String get highContrastSubtitle => 'Darker text and stronger borders';
+
+  @override
   String get motionLabel => 'Motion';
 
   @override
@@ -3239,9 +3280,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get newTemporaryPasswordTitle => 'New temporary password';
-
-  @override
-  String get resetAction => 'Reset';
 
   @override
   String get addAnAdministratorTitle => 'Add an administrator';

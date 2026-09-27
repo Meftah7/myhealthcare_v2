@@ -5228,6 +5228,78 @@ abstract class AppLocalizations {
   /// **'All clear'**
   String get allClearTitle;
 
+  /// No description provided for @settingSaveFailedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save that setting. It has been changed back.'**
+  String get settingSaveFailedMessage;
+
+  /// No description provided for @smsChannelSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Appointment reminders by text message'**
+  String get smsChannelSubtitle;
+
+  /// No description provided for @emailChannelSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders and receipts by email'**
+  String get emailChannelSubtitle;
+
+  /// No description provided for @pushChannelSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts on this device, even when the app is closed'**
+  String get pushChannelSubtitle;
+
+  /// No description provided for @inAppAlwaysOnNote.
+  ///
+  /// In en, this message translates to:
+  /// **'In-app notifications are always on, so you never miss a reminder. This demo simulates SMS, email and push delivery.'**
+  String get inAppAlwaysOnNote;
+
+  /// No description provided for @resetNotificationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset notifications'**
+  String get resetNotificationsTitle;
+
+  /// No description provided for @resetNotificationsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn email and push back on, SMS off, and sounds on?'**
+  String get resetNotificationsMessage;
+
+  /// No description provided for @resetAppearanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset appearance'**
+  String get resetAppearanceTitle;
+
+  /// No description provided for @resetAppearanceMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Return theme, text size, motion and contrast to their defaults?'**
+  String get resetAppearanceMessage;
+
+  /// No description provided for @resetAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get resetAction;
+
+  /// No description provided for @highContrastLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'High contrast'**
+  String get highContrastLabel;
+
+  /// No description provided for @highContrastSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Darker text and stronger borders'**
+  String get highContrastSubtitle;
+
   /// No description provided for @motionLabel.
   ///
   /// In en, this message translates to:
@@ -5821,12 +5893,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'New temporary password'**
   String get newTemporaryPasswordTitle;
-
-  /// No description provided for @resetAction.
-  ///
-  /// In en, this message translates to:
-  /// **'Reset'**
-  String get resetAction;
 
   /// No description provided for @addAnAdministratorTitle.
   ///
