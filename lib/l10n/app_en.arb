@@ -1167,6 +1167,7 @@
   "noMedicationsAdded": "No medications added.",
   "removeTooltip": "Remove",
   "addMedicationAction": "Add medication",
+  "editMedicationAction": "Edit medication",
   "referralHeader": "Referral",
   "referralRequestedAwaitingAdmin": "Referral requested — awaiting admin",
   "requestAReferralAction": "Request a referral",
