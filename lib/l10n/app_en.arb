@@ -1351,6 +1351,7 @@
   "analyticsAction": "Analytics",
   "recentActivityHeader": "Recent activity",
   "allClearTitle": "All clear",
+  "pushLabel": "Push notifications",
   "showOlderVisitsAction": "{count, plural, one{Show {count} older visit} other{Show {count} older visits}}",
   "appointmentDetailTitle": "Appointment details",
   "appointmentNotFoundNote": "This appointment could not be found",

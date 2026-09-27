@@ -355,6 +355,7 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     required String appointmentId,
     required DateTime slotStart,
     required RiskBand band,
+    Set<ReminderChannel>? enabledChannels,
   }) async {
     await (_db.delete(_db.reminders)..where(
           (r) => r.appointmentId.equals(appointmentId) & r.sentAt.isNull(),
@@ -362,6 +363,9 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
         .go();
     final now = DateTime.now();
     for (final plan in reminderPlanFor(band)) {
+      if (enabledChannels != null && !enabledChannels.contains(plan.channel)) {
+        continue;
+      }
       final at = slotStart.subtract(plan.offsetBeforeSlot);
       if (at.isBefore(now)) continue;
       await _db
@@ -446,6 +450,7 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     required String patientId,
     required DateTime newStart,
     required DateTime newEnd,
+    Set<ReminderChannel>? enabledChannels,
   }) {
     return Result.guardAsync(
       () => _db.transaction(() async {
@@ -507,6 +512,7 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
           appointmentId: id,
           slotStart: newStart,
           band: row.riskBand ?? RiskBand.low,
+          enabledChannels: enabledChannels,
         );
 
         final updated = await (_db.select(

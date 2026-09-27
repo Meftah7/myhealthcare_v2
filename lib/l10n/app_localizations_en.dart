@@ -2856,6 +2856,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get allClearTitle => 'All clear';
 
   @override
+  String get pushLabel => 'Push notifications';
+
+  @override
   String showOlderVisitsAction(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

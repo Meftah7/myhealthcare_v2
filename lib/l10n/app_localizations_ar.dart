@@ -2887,6 +2887,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get allClearTitle => 'لا يوجد ما يستدعي الانتباه';
 
   @override
+  String get pushLabel => 'إشعارات الدفع';
+
+  @override
   String showOlderVisitsAction(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

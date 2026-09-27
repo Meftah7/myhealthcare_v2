@@ -5228,6 +5228,12 @@ abstract class AppLocalizations {
   /// **'All clear'**
   String get allClearTitle;
 
+  /// No description provided for @pushLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Push notifications'**
+  String get pushLabel;
+
   /// No description provided for @showOlderVisitsAction.
   ///
   /// In en, this message translates to:

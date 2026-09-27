@@ -1351,6 +1351,7 @@
   "analyticsAction": "التحليلات",
   "recentActivityHeader": "النشاط الأخير",
   "allClearTitle": "لا يوجد ما يستدعي الانتباه",
+  "pushLabel": "إشعارات الدفع",
   "showOlderVisitsAction": "{count, plural, zero{عرض الزيارات الأقدم} one{عرض زيارة أقدم واحدة} two{عرض زيارتين أقدم} few{عرض {count} زيارات أقدم} many{عرض {count} زيارة أقدم} other{عرض {count} زيارة أقدم}}",
   "appointmentDetailTitle": "تفاصيل الموعد",
   "appointmentNotFoundNote": "تعذّر العثور على هذا الموعد",

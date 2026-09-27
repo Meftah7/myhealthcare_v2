@@ -12,6 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' as intl;
 
 import '../../core/di.dart';
+import '../../domain/enums.dart';
 
 /// Locales the app is built to support. English is the source language;
 /// Arabic is wired end to end (RTL + Material localisation) — full UI string
@@ -221,6 +222,18 @@ class NotificationPrefs {
         email: email ?? this.email,
         push: push ?? this.push,
       );
+
+  /// Which reminder channels these preferences actually allow — read by the
+  /// reminder scheduler so a disabled channel is never queued for delivery.
+  /// [ReminderChannel.inApp] has no toggle and is always included: it's the
+  /// guaranteed fallback so turning off sms/email/push never means zero
+  /// delivery.
+  Set<ReminderChannel> get enabledChannels => {
+    ReminderChannel.inApp,
+    if (push) ReminderChannel.push,
+    if (sms) ReminderChannel.sms,
+    if (email) ReminderChannel.email,
+  };
 }
 
 /// SMS / Email / Push toggles — a device preference like theme mode, not

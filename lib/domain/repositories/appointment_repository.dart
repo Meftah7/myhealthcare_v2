@@ -101,6 +101,7 @@ abstract interface class AppointmentRepository {
     required String patientId,
     required DateTime newStart,
     required DateTime newEnd,
+    Set<ReminderChannel>? enabledChannels,
   });
 
   /// [patientId] must match the appointment's own patient (see [reschedule]).

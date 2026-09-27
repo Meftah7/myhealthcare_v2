@@ -5,6 +5,7 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/settings/ui_prefs.dart';
 import '../../../core/di.dart';
 import '../../../core/failures.dart';
 import '../../../core/result.dart';
@@ -272,6 +273,12 @@ class FamilyLinkController {
           patientId: ownerPatientId,
           newStart: newStart,
           newEnd: newEnd,
+          // Notification preferences are still device-scoped, not per-user
+          // (a larger, separate architecture gap) — this is the acting
+          // device's preferences, same limitation as everywhere else they're
+          // read.
+          enabledChannels:
+              _ref.read(notificationPrefsProvider).enabledChannels,
         );
     if (result case Ok()) {
       _ref.invalidate(linkedAppointmentsProvider(ownerPatientId));

@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/settings/ui_prefs.dart';
 import '../../../core/di.dart';
 import '../../../core/failures.dart';
 import '../../../core/result.dart';
@@ -250,6 +251,9 @@ class BookingController {
             appointmentId: value.id,
             slotStart: value.slotStart,
             band: value.riskBand ?? RiskBand.low,
+            enabledChannels: _ref
+                .read(notificationPrefsProvider)
+                .enabledChannels,
           );
       await _ref
           .read(auditRepositoryProvider)

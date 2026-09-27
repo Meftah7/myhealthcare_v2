@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
+import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
 import '../../../core/presentation/app_card.dart';
@@ -405,6 +406,7 @@ class _ApptActionsState extends ConsumerState<ApptActions> {
           patientId: appt.patientId,
           newStart: slot.start,
           newEnd: slot.end,
+          enabledChannels: ref.read(notificationPrefsProvider).enabledChannels,
         );
     if (!mounted) return;
     setState(() => _busy = false);

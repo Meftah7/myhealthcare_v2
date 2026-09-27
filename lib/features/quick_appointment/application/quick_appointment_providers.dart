@@ -8,6 +8,7 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/settings/ui_prefs.dart';
 import '../../../core/di.dart';
 import '../../../core/failures.dart';
 import '../../../core/result.dart';
@@ -75,6 +76,9 @@ class QuickAppointmentController {
             appointmentId: booked.id,
             slotStart: booked.slotStart,
             band: booked.riskBand ?? RiskBand.low,
+            enabledChannels: _ref
+                .read(notificationPrefsProvider)
+                .enabledChannels,
           );
       await _ref
           .read(auditRepositoryProvider)
@@ -106,8 +110,9 @@ class QuickAppointmentController {
   }
 }
 
-final quickAppointmentControllerProvider =
-    Provider<QuickAppointmentController>(QuickAppointmentController.new);
+final quickAppointmentControllerProvider = Provider<QuickAppointmentController>(
+  QuickAppointmentController.new,
+);
 
 T _unwrap<T>(Result<T> result) => switch (result) {
   Ok(:final value) => value,

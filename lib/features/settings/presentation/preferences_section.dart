@@ -164,6 +164,12 @@ class PreferencesSection extends ConsumerWidget {
         ),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
+          title: Text(t.pushLabel),
+          value: notify.push,
+          onChanged: ref.read(notificationPrefsProvider.notifier).setPush,
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
           title: Text(t.soundsLabel),
           subtitle: Text(t.soundsSubtitle),
           value: soundsOn,
