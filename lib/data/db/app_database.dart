@@ -87,10 +87,60 @@ class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => 15;
 
+  /// True when [table] already has a column named [columnName] — lets a
+  /// migration step that already partly ran (e.g. the app/tab was closed or
+  /// crashed mid-upgrade, so the schema changed but [schemaVersion] was never
+  /// recorded) skip work it already did instead of failing on "duplicate
+  /// column"/"table already exists" and leaving the database permanently
+  /// stuck retrying the same broken step forever.
+  Future<bool> _hasColumn(
+    TableInfo<Table, dynamic> table,
+    String columnName,
+  ) async {
+    final rows = await customSelect(
+      'PRAGMA table_info(${table.actualTableName})',
+    ).get();
+    return rows.any((r) => r.read<String>('name') == columnName);
+  }
+
+  Future<bool> _hasTable(TableInfo<Table, dynamic> table) async {
+    final rows = await customSelect(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?",
+      variables: [Variable.withString(table.actualTableName)],
+    ).get();
+    return rows.isNotEmpty;
+  }
+
+  Future<void> _addColumnIfMissing(
+    Migrator m,
+    TableInfo<Table, dynamic> table,
+    GeneratedColumn column,
+  ) async {
+    if (!await _hasColumn(table, column.name)) {
+      await m.addColumn(table, column);
+    }
+  }
+
+  Future<void> _createTableIfMissing(
+    Migrator m,
+    TableInfo<Table, dynamic> table,
+  ) async {
+    if (!await _hasTable(table)) {
+      await m.createTable(table);
+    }
+  }
+
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) => m.createAll(),
-    onUpgrade: (m, from, to) async {
+    // The whole upgrade runs as one transaction: if any step throws (a
+    // browser tab closed mid-migration, a transient storage error), SQLite
+    // rolls every statement in it back together, so the schema and the
+    // recorded [schemaVersion] never disagree with each other. Combined with
+    // the per-step guards below, a database that somehow still got stuck
+    // partway through (e.g. from before this fix) can self-heal on its next
+    // open instead of failing the same "duplicate column" error forever.
+    onUpgrade: (m, from, to) => m.database.transaction(() async {
       if (from < 2) {
         // Default LLM provider changed from Anthropic to Gemini (free tier).
         await customStatement(
@@ -101,73 +151,85 @@ class AppDatabase extends _$AppDatabase {
       if (from < 3) {
         // Patient dashboard rebuild: ticket tag + room number, assigned once
         // at booking time (redesign v2).
-        await m.addColumn(appointments, appointments.ticketTag);
-        await m.addColumn(appointments, appointments.roomNumber);
+        await _addColumnIfMissing(m, appointments, appointments.ticketTag);
+        await _addColumnIfMissing(m, appointments, appointments.roomNumber);
       }
       if (from < 4) {
         // Patient dashboard rebuild: Family Network (redesign v2).
-        await m.addColumn(patientProfiles, patientProfiles.familyMembers);
+        await _addColumnIfMissing(
+          m,
+          patientProfiles,
+          patientProfiles.familyMembers,
+        );
       }
       if (from < 5) {
         // Billing: patient invoices.
-        await m.createTable(invoices);
+        await _createTableIfMissing(m, invoices);
       }
       if (from < 6) {
         // Notifications centre.
-        await m.createTable(notifications);
+        await _createTableIfMissing(m, notifications);
       }
       if (from < 7) {
         // Wallet: saved cards.
-        await m.createTable(paymentMethods);
+        await _createTableIfMissing(m, paymentMethods);
       }
       if (from < 8) {
         // Staff dashboard rebuild: live presence status.
-        await m.addColumn(staffProfiles, staffProfiles.presence);
+        await _addColumnIfMissing(m, staffProfiles, staffProfiles.presence);
       }
       if (from < 9) {
         // Admin dashboard Tier B: feedback inbox + AI usage log.
-        await m.createTable(feedbacks);
-        await m.createTable(aiUsageLog);
+        await _createTableIfMissing(m, feedbacks);
+        await _createTableIfMissing(m, aiUsageLog);
       }
       if (from < 10) {
         // Book an appointment for a linked family member.
-        await m.addColumn(appointments, appointments.bookedForName);
+        await _addColumnIfMissing(m, appointments, appointments.bookedForName);
       }
       if (from < 11) {
         // Care services: sick-leave notes, patient<->doctor messages, home
         // visits (P10 Batch B).
-        await m.createTable(sickLeaveCertificates);
-        await m.createTable(careMessages);
-        await m.createTable(homeVisitRequests);
+        await _createTableIfMissing(m, sickLeaveCertificates);
+        await _createTableIfMissing(m, careMessages);
+        await _createTableIfMissing(m, homeVisitRequests);
       }
       if (from < 12) {
         // Consultation flow: call/arrive timestamps + closing note on a visit,
         // the visit link on records/prescriptions, the department walk-in
         // queue, and the doctor→admin referral request.
-        await m.addColumn(appointments, appointments.calledInAt);
-        await m.addColumn(appointments, appointments.outcomeNote);
-        await m.addColumn(medicalRecords, medicalRecords.appointmentId);
-        await m.addColumn(medications, medications.appointmentId);
-        await m.createTable(walkInTickets);
-        await m.createTable(referralRequests);
+        await _addColumnIfMissing(m, appointments, appointments.calledInAt);
+        await _addColumnIfMissing(m, appointments, appointments.outcomeNote);
+        await _addColumnIfMissing(
+          m,
+          medicalRecords,
+          medicalRecords.appointmentId,
+        );
+        await _addColumnIfMissing(m, medications, medications.appointmentId);
+        await _createTableIfMissing(m, walkInTickets);
+        await _createTableIfMissing(m, referralRequests);
       }
       if (from < 13) {
         // Wallet: a real credit balance (top-up + redemption ledger),
         // replacing the old cards-only "Wallet" page. Billing + Wallet merge
         // into one Payments screen.
-        await m.createTable(walletTransactions);
+        await _createTableIfMissing(m, walletTransactions);
       }
       if (from < 14) {
         // Family Network: link two real patient accounts, with a
         // view-only/manage permission the owner must accept.
-        await m.createTable(familyLinks);
+        await _createTableIfMissing(m, familyLinks);
       }
       if (from < 15) {
         // Patient-imported records are flagged so they never pass as a
         // clinician-reviewed result.
-        await m.addColumn(medicalRecords, medicalRecords.uploadedByPatient);
+        await _addColumnIfMissing(
+          m,
+          medicalRecords,
+          medicalRecords.uploadedByPatient,
+        );
       }
-    },
+    }),
     beforeOpen: (details) async {
       // Referential integrity is off by default in SQLite.
       await customStatement('PRAGMA foreign_keys = ON');
