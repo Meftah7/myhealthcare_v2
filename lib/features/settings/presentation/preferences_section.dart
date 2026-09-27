@@ -32,7 +32,7 @@ String _textScaleLabel(BuildContext context, TextScaleLevel level) {
 /// One togglable block inside [PreferencesSection]. Lets a caller — the
 /// compact Profile page vs. the full Preferences page — show only the blocks
 /// it needs from the one implementation, instead of two copies drifting apart.
-enum PrefsBlock { theme, textSize, language, notifications }
+enum PrefsBlock { theme, textSize, language, notifications, accessibility }
 
 class PreferencesSection extends ConsumerWidget {
   const PreferencesSection({
@@ -42,6 +42,7 @@ class PreferencesSection extends ConsumerWidget {
       PrefsBlock.textSize,
       PrefsBlock.language,
       PrefsBlock.notifications,
+      PrefsBlock.accessibility,
     },
     super.key,
   });
@@ -65,6 +66,7 @@ class PreferencesSection extends ConsumerWidget {
     final locale = ref.watch(localeProvider);
     final notify = ref.watch(notificationPrefsProvider);
     final soundsOn = ref.watch(soundsEnabledProvider);
+    final motionPref = ref.watch(motionPreferenceProvider);
 
     final themeBlock = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -186,11 +188,33 @@ class PreferencesSection extends ConsumerWidget {
       ],
     );
 
+    final accessibilityBlock = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _BlockLabel(
+          icon: Icons.accessibility_new_outlined,
+          label: t.motionLabel,
+        ),
+        const SizedBox(height: Space.sm),
+        PillSegmented<MotionPreference>(
+          segments: [
+            (MotionPreference.system, t.motionSystem),
+            (MotionPreference.reduced, t.motionReduced),
+            (MotionPreference.full, t.motionFull),
+          ],
+          selected: motionPref,
+          onChanged: (v) =>
+              ref.read(motionPreferenceProvider.notifier).set(v),
+        ),
+      ],
+    );
+
     final byBlock = {
       PrefsBlock.theme: themeBlock,
       PrefsBlock.textSize: textSizeBlock,
       PrefsBlock.language: languageBlock,
       PrefsBlock.notifications: notificationsBlock,
+      PrefsBlock.accessibility: accessibilityBlock,
     };
     final shown = [
       for (final b in PrefsBlock.values)

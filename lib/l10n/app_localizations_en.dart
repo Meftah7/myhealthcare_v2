@@ -2856,6 +2856,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get allClearTitle => 'All clear';
 
   @override
+  String get motionLabel => 'Motion';
+
+  @override
+  String get motionSystem => 'System';
+
+  @override
+  String get motionReduced => 'Reduced';
+
+  @override
+  String get motionFull => 'Full';
+
+  @override
   String get pushLabel => 'Push notifications';
 
   @override

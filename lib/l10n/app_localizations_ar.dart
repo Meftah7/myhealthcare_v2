@@ -2887,6 +2887,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get allClearTitle => 'لا يوجد ما يستدعي الانتباه';
 
   @override
+  String get motionLabel => 'الحركة';
+
+  @override
+  String get motionSystem => 'النظام';
+
+  @override
+  String get motionReduced => 'مخفّضة';
+
+  @override
+  String get motionFull => 'كاملة';
+
+  @override
   String get pushLabel => 'إشعارات الدفع';
 
   @override

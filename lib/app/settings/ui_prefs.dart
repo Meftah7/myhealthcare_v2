@@ -19,6 +19,40 @@ import '../../domain/enums.dart';
 /// translation is tracked as future work (P8-07).
 const supportedLocales = <Locale>[Locale('en'), Locale('ar')];
 
+// --- motion ------------------------------------------------------------
+
+const _motionPrefKey = 'ui.motionPreference';
+
+/// An explicit in-app override for animation, alongside following the OS
+/// setting. [system] (the default) defers to [MediaQuery.disableAnimations];
+/// [reduced] and [full] force the choice regardless of the OS setting, for
+/// someone whose device default doesn't match what they actually want here.
+enum MotionPreference { system, reduced, full }
+
+class MotionPreferenceController extends Notifier<MotionPreference> {
+  @override
+  MotionPreference build() {
+    final raw = ref.read(sharedPreferencesProvider).getString(_motionPrefKey);
+    return switch (raw) {
+      'reduced' => MotionPreference.reduced,
+      'full' => MotionPreference.full,
+      _ => MotionPreference.system,
+    };
+  }
+
+  Future<void> set(MotionPreference pref) async {
+    state = pref;
+    await ref
+        .read(sharedPreferencesProvider)
+        .setString(_motionPrefKey, pref.name);
+  }
+}
+
+final motionPreferenceProvider =
+    NotifierProvider<MotionPreferenceController, MotionPreference>(
+      MotionPreferenceController.new,
+    );
+
 // --- theme mode ------------------------------------------------------------
 
 const _themeModeKey = 'ui.themeMode';

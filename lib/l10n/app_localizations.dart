@@ -5228,6 +5228,30 @@ abstract class AppLocalizations {
   /// **'All clear'**
   String get allClearTitle;
 
+  /// No description provided for @motionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Motion'**
+  String get motionLabel;
+
+  /// No description provided for @motionSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get motionSystem;
+
+  /// No description provided for @motionReduced.
+  ///
+  /// In en, this message translates to:
+  /// **'Reduced'**
+  String get motionReduced;
+
+  /// No description provided for @motionFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Full'**
+  String get motionFull;
+
   /// No description provided for @pushLabel.
   ///
   /// In en, this message translates to:
