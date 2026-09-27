@@ -127,7 +127,7 @@ class ConsultationController {
     );
     final r = await _ref
         .read(appointmentRepositoryProvider)
-        .markCalledIn(appointmentId, DateTime.now());
+        .markCalledIn(appointmentId, staffId: _doctorId, at: DateTime.now());
     if (r.isOk) {
       await _audit('appointment.call');
       await _ref
@@ -154,7 +154,7 @@ class ConsultationController {
   Future<Result<void>> markArrived({bool fromNoShow = false}) async {
     final r = await _ref
         .read(appointmentRepositoryProvider)
-        .markArrived(appointmentId, DateTime.now());
+        .markArrived(appointmentId, staffId: _doctorId, at: DateTime.now());
     if (r.isOk) {
       await _audit(
         fromNoShow ? 'appointment.noshow_cleared' : 'appointment.arrive',
@@ -167,7 +167,11 @@ class ConsultationController {
   Future<Result<void>> markNoShow() async {
     final r = await _ref
         .read(appointmentRepositoryProvider)
-        .updateStatus(id: appointmentId, status: AppointmentStatus.noShow);
+        .updateStatus(
+            id: appointmentId,
+            staffId: _doctorId,
+            status: AppointmentStatus.noShow,
+          );
     if (r.isOk) {
       await _audit('appointment.noshow');
       _refreshQueue();
@@ -261,7 +265,11 @@ class ConsultationController {
       _throwIfErr(
         await _ref
             .read(appointmentRepositoryProvider)
-            .completeVisit(id: appointmentId, outcomeNote: outcomeNote),
+            .completeVisit(
+              id: appointmentId,
+              staffId: _doctorId,
+              outcomeNote: outcomeNote,
+            ),
       );
       // If this visit came from a department walk-in, close that ticket too.
       await _ref

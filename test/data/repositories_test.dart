@@ -408,6 +408,7 @@ void main() {
 
         await appts.updateStatus(
           id: booked.id,
+          staffId: staffId,
           status: AppointmentStatus.completed,
         );
         final afterCompletion = await appts.reschedule(
@@ -498,6 +499,85 @@ void main() {
           ],
         );
         expect(result.isErr, isTrue);
+      },
+    );
+
+    test(
+      'a clinician cannot mutate an appointment assigned to another '
+      'clinician',
+      () async {
+        final patient = await registerPatient(email: 'staffauth1@example.com');
+        final ownerStaffId = await makeStaff('staff-owner1');
+        final otherStaffId = await makeStaff('staff-other1');
+        final appts = AppointmentRepositoryImpl(db);
+        final start = _nextWeekday(
+          DateTime.monday,
+        ).add(const Duration(hours: 9));
+
+        final booked = (await appts.book(
+          BookingRequest(
+            patientId: patient.id,
+            staffId: ownerStaffId,
+            start: start,
+            end: start.add(const Duration(minutes: 20)),
+            visitType: VisitType.followUp,
+          ),
+        )).valueOrNull!;
+
+        expect(
+          (await appts.updateStatus(
+            id: booked.id,
+            staffId: otherStaffId,
+            status: AppointmentStatus.noShow,
+          )).isErr,
+          isTrue,
+        );
+        expect(
+          (await appts.markCalledIn(
+            booked.id,
+            staffId: otherStaffId,
+            at: DateTime.now(),
+          )).isErr,
+          isTrue,
+        );
+        expect(
+          (await appts.markArrived(
+            booked.id,
+            staffId: otherStaffId,
+            at: DateTime.now(),
+          )).isErr,
+          isTrue,
+        );
+        expect(
+          (await appts.completeVisit(
+            id: booked.id,
+            staffId: otherStaffId,
+          )).isErr,
+          isTrue,
+        );
+        expect(
+          (await appts.transfer(
+            id: booked.id,
+            fromStaffId: otherStaffId,
+            toStaffId: ownerStaffId,
+          )).isErr,
+          isTrue,
+        );
+
+        // Untouched by any of the rejected attempts.
+        final unchanged = (await appts.byId(booked.id)).valueOrNull!;
+        expect(unchanged.status, AppointmentStatus.booked);
+        expect(unchanged.staffId, ownerStaffId);
+
+        // The actual owner can, though.
+        expect(
+          (await appts.markCalledIn(
+            booked.id,
+            staffId: ownerStaffId,
+            at: DateTime.now(),
+          )).isOk,
+          isTrue,
+        );
       },
     );
   });

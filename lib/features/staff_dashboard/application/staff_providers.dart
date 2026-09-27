@@ -270,10 +270,12 @@ class StaffOps {
 
   /// Mark the visit cancelled / no-show.
   Future<void> cancelAppointment(String id, {bool noShow = false}) async {
+    final staffId = _ref.read(currentUserProvider)!.id;
     await _ref
         .read(appointmentRepositoryProvider)
         .updateStatus(
           id: id,
+          staffId: staffId,
           status: noShow
               ? AppointmentStatus.noShow
               : AppointmentStatus.cancelled,
@@ -289,7 +291,7 @@ class StaffOps {
     final actorId = _ref.read(currentUserProvider)!.id;
     final result = await _ref
         .read(appointmentRepositoryProvider)
-        .transfer(id: id, toStaffId: toStaffId);
+        .transfer(id: id, fromStaffId: actorId, toStaffId: toStaffId);
     if (result.isOk) {
       await _ref
           .read(auditRepositoryProvider)

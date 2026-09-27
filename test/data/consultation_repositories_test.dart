@@ -141,8 +141,16 @@ void main() {
       )).valueOrNull!;
 
       // openWalkInVisit already lands in-progress; drive a normal one instead.
-      await h.appts.markCalledIn(appt.id, DateTime(2026, 5, 1, 9));
-      await h.appts.markArrived(appt.id, DateTime(2026, 5, 1, 9, 5));
+      await h.appts.markCalledIn(
+        appt.id,
+        staffId: h.doctorId,
+        at: DateTime(2026, 5, 1, 9),
+      );
+      await h.appts.markArrived(
+        appt.id,
+        staffId: h.doctorId,
+        at: DateTime(2026, 5, 1, 9, 5),
+      );
       var row = (await h.appts.byId(appt.id)).valueOrNull!;
       expect(row.status, AppointmentStatus.inProgress);
       expect(row.calledInAt, isNotNull);
@@ -150,6 +158,7 @@ void main() {
 
       await h.appts.completeVisit(
         id: appt.id,
+        staffId: h.doctorId,
         outcomeNote: 'Reviewed, stable.',
       );
       row = (await h.appts.byId(appt.id)).valueOrNull!;

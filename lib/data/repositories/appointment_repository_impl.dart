@@ -553,12 +553,30 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     );
   }
 
+  /// Loads the appointment and verifies [staffId] matches its current
+  /// clinician — every staff-side mutation below goes through this so a
+  /// clinician can't act on a colleague's visit just by knowing its ID.
+  Future<AppointmentRow> _ownedByStaff(String id, String staffId) async {
+    final row = await (_db.select(
+      _db.appointments,
+    )..where((a) => a.id.equals(id))).getSingleOrNull();
+    if (row == null) throw NotFoundFailure('No appointment $id.');
+    if (row.staffId != staffId) {
+      throw const AuthFailure(
+        'This appointment is assigned to a different clinician.',
+      );
+    }
+    return row;
+  }
+
   @override
   Future<Result<void>> updateStatus({
     required String id,
+    required String staffId,
     required AppointmentStatus status,
   }) {
     return Result.guardAsync(() async {
+      await _ownedByStaff(id, staffId);
       await (_db.update(_db.appointments)..where((a) => a.id.equals(id))).write(
         AppointmentsCompanion(status: Value(status)),
       );
@@ -566,8 +584,13 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
   }
 
   @override
-  Future<Result<void>> markCheckedIn(String id, DateTime at) {
+  Future<Result<void>> markCheckedIn(
+    String id, {
+    required String staffId,
+    required DateTime at,
+  }) {
     return Result.guardAsync(() async {
+      await _ownedByStaff(id, staffId);
       await (_db.update(_db.appointments)..where((a) => a.id.equals(id))).write(
         AppointmentsCompanion(
           checkedInAt: Value(at),
@@ -578,8 +601,13 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
   }
 
   @override
-  Future<Result<void>> markCalledIn(String id, DateTime at) {
+  Future<Result<void>> markCalledIn(
+    String id, {
+    required String staffId,
+    required DateTime at,
+  }) {
     return Result.guardAsync(() async {
+      await _ownedByStaff(id, staffId);
       await (_db.update(_db.appointments)..where((a) => a.id.equals(id))).write(
         AppointmentsCompanion(calledInAt: Value(at)),
       );
@@ -587,8 +615,13 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
   }
 
   @override
-  Future<Result<void>> markArrived(String id, DateTime at) {
+  Future<Result<void>> markArrived(
+    String id, {
+    required String staffId,
+    required DateTime at,
+  }) {
     return Result.guardAsync(() async {
+      await _ownedByStaff(id, staffId);
       await (_db.update(_db.appointments)..where((a) => a.id.equals(id))).write(
         AppointmentsCompanion(
           checkedInAt: Value(at),
@@ -601,9 +634,11 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
   @override
   Future<Result<void>> completeVisit({
     required String id,
+    required String staffId,
     String? outcomeNote,
   }) {
     return Result.guardAsync(() async {
+      await _ownedByStaff(id, staffId);
       await (_db.update(_db.appointments)..where((a) => a.id.equals(id))).write(
         AppointmentsCompanion(
           status: const Value(AppointmentStatus.completed),
@@ -656,13 +691,11 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
   @override
   Future<Result<Appointment>> transfer({
     required String id,
+    required String fromStaffId,
     required String toStaffId,
   }) {
     return Result.guardAsync(() async {
-      final current = await (_db.select(
-        _db.appointments,
-      )..where((a) => a.id.equals(id))).getSingleOrNull();
-      if (current == null) throw NotFoundFailure('No appointment $id.');
+      final current = await _ownedByStaff(id, fromStaffId);
       if (current.staffId == toStaffId) {
         throw const ValidationFailure(
           'That appointment is already with this clinician.',
