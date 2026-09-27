@@ -124,13 +124,8 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
   @override
   Future<Result<List<OpenSlot>>> openSlots(String staffId, DateTime day) {
     return Result.guardAsync(() async {
-      final weekday = day.weekday;
-      final templates =
-          await (_db.select(_db.scheduleTemplates)..where(
-                (t) => t.staffId.equals(staffId) & t.weekday.equals(weekday),
-              ))
-              .get();
-      if (templates.isEmpty) return const <OpenSlot>[];
+      final raw = await _templateSlotsFor(staffId, day);
+      if (raw.isEmpty) return const <OpenSlot>[];
 
       final booked = await _forStaffOnDayQuery(staffId, day).get();
       final bookedStarts = booked
@@ -138,22 +133,53 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
           .map((a) => a.slotStart)
           .toSet();
 
-      final dayStart = _dayStart(day);
-      final slots = <OpenSlot>[];
-      for (final t in templates) {
-        var cursor = t.startMinutes;
-        while (cursor + t.slotMinutes <= t.endMinutes) {
-          final start = dayStart.add(Duration(minutes: cursor));
-          final end = start.add(Duration(minutes: t.slotMinutes));
-          if (start.isAfter(DateTime.now()) && !bookedStarts.contains(start)) {
-            slots.add(OpenSlot(staffId: staffId, start: start, end: end));
-          }
-          cursor += t.slotMinutes;
-        }
-      }
-      slots.sort((a, b) => a.start.compareTo(b.start));
+      final slots = raw
+          .where(
+            (s) => s.start.isAfter(DateTime.now()) &&
+                !bookedStarts.contains(s.start),
+          )
+          .toList()
+        ..sort((a, b) => a.start.compareTo(b.start));
       return slots;
     });
+  }
+
+  /// Every slot boundary [staffId]'s schedule templates generate for [day],
+  /// ignoring whether it's already booked or in the past — the raw grid, not
+  /// what's actually available. Shared by [openSlots] (which filters it) and
+  /// [_isOnScheduleGrid] (which just needs to know a boundary is legitimate).
+  Future<List<OpenSlot>> _templateSlotsFor(String staffId, DateTime day) async {
+    final templates =
+        await (_db.select(_db.scheduleTemplates)..where(
+              (t) =>
+                  t.staffId.equals(staffId) & t.weekday.equals(day.weekday),
+            ))
+            .get();
+    final dayStart = _dayStart(day);
+    final slots = <OpenSlot>[];
+    for (final t in templates) {
+      var cursor = t.startMinutes;
+      while (cursor + t.slotMinutes <= t.endMinutes) {
+        final start = dayStart.add(Duration(minutes: cursor));
+        final end = start.add(Duration(minutes: t.slotMinutes));
+        slots.add(OpenSlot(staffId: staffId, start: start, end: end));
+        cursor += t.slotMinutes;
+      }
+    }
+    return slots;
+  }
+
+  /// True when `[start, end)` exactly matches one of [staffId]'s real
+  /// schedule-template slot boundaries — independent of whether it's booked
+  /// (that's [_hasOverlap]'s job) or in the past (checked separately), this
+  /// just asks "is this a legitimate slot on the grid at all."
+  Future<bool> _isOnScheduleGrid({
+    required String staffId,
+    required DateTime start,
+    required DateTime end,
+  }) async {
+    final raw = await _templateSlotsFor(staffId, start);
+    return raw.any((s) => s.start == start && s.end == end);
   }
 
   @override
@@ -244,6 +270,15 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
         if (!r.start.isAfter(DateTime.now())) {
           throw const ValidationFailure(
             'That time has already passed. Choose a later slot.',
+          );
+        }
+        if (!await _isOnScheduleGrid(
+          staffId: r.staffId,
+          start: r.start,
+          end: r.end,
+        )) {
+          throw const ValidationFailure(
+            "That time isn't on this clinician's schedule. Choose a listed slot.",
           );
         }
         if (await _hasOverlap(staffId: r.staffId, start: r.start, end: r.end)) {
@@ -437,6 +472,15 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
         if (!newStart.isAfter(DateTime.now())) {
           throw const ValidationFailure(
             'That time has already passed. Choose a later slot.',
+          );
+        }
+        if (!await _isOnScheduleGrid(
+          staffId: row.staffId,
+          start: newStart,
+          end: newEnd,
+        )) {
+          throw const ValidationFailure(
+            "That time isn't on this clinician's schedule. Choose a listed slot.",
           );
         }
         if (await _hasOverlap(

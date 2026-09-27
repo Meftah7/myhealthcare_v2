@@ -7,7 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
-import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
 import '../../../core/presentation/app_card.dart';
@@ -17,7 +16,6 @@ import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
 import '../../../core/result.dart';
-import '../../../core/utils/clinic_hours.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
@@ -25,6 +23,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../booking/presentation/booking_screen.dart';
 import '../../patient/application/patient_data_providers.dart';
 import '../../patient/presentation/patient_top_actions.dart';
+import 'slot_picker_sheet.dart';
 
 class AppointmentsScreen extends ConsumerWidget {
   const AppointmentsScreen({super.key});
@@ -356,50 +355,29 @@ class _ApptActionsState extends ConsumerState<_ApptActions> {
 
   Future<void> _reschedule() async {
     if (_busy) return;
-    final t = AppLocalizations.of(context)!;
-    final schedule = ref.read(clinicScheduleProvider);
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final base = appt.slotStart.isAfter(now) ? appt.slotStart : today;
-    final date = await showDatePicker(
-      context: context,
-      initialDate: isClinicDay(base, schedule)
-          ? base
-          : nextClinicDay(today, schedule),
-      firstDate: today,
-      lastDate: today.add(const Duration(days: 60)),
-      selectableDayPredicate: (d) => isClinicDay(d, schedule),
-      helpText: t.clinicDaysHelp,
+    // A picked, listed slot — not a free-form date/time — so it's already
+    // on the clinician's real schedule grid; the repository still checks it
+    // itself, since another booking can land on it between picking and
+    // confirming.
+    final slot = await pickOpenSlot(
+      context,
+      staffId: appt.staffId,
+      initialDate: appt.slotStart.isAfter(DateTime.now())
+          ? appt.slotStart
+          : null,
     );
-    if (date == null || !mounted) return;
-    final time = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(appt.slotStart),
-      helpText: t.clinicHoursHelp,
-    );
-    if (time == null || !mounted) return;
-    if (time.hour < schedule.openHour || time.hour >= schedule.closeHour) {
-      _showError(t.pickTimeInRange);
-      return;
-    }
-    final newStart = DateTime(
-      date.year,
-      date.month,
-      date.day,
-      time.hour,
-      time.minute,
-    );
+    if (slot == null || !mounted) return;
     setState(() => _busy = true);
     // The original appointment is left untouched unless this actually
-    // succeeds — a rejected slot (already taken, outside hours, in the
-    // past) surfaces as a message, not a silently-unchanged screen.
+    // succeeds — a rejected slot (already taken, in the past) surfaces as a
+    // message, not a silently-unchanged screen.
     final result = await ref
         .read(appointmentRepositoryProvider)
         .reschedule(
           id: appt.id,
           patientId: appt.patientId,
-          newStart: newStart,
-          newEnd: newStart.add(appt.duration),
+          newStart: slot.start,
+          newEnd: slot.end,
         );
     if (!mounted) return;
     setState(() => _busy = false);

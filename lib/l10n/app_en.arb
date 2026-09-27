@@ -1351,6 +1351,8 @@
   "analyticsAction": "Analytics",
   "recentActivityHeader": "Recent activity",
   "allClearTitle": "All clear",
+  "chooseATimeTitle": "Choose a time",
+  "noOpenSlotsThatDay": "No open slots that day",
   "changePasswordTitle": "Change password",
   "changePasswordAction": "Change password",
   "currentPasswordLabel": "Current password",

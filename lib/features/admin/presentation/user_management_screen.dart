@@ -6,17 +6,17 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
-import '../../../core/utils/clinic_hours.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../domain/repositories/appointment_repository.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../appointments/presentation/slot_picker_sheet.dart';
 import '../application/admin_providers.dart';
 import 'admin_top_actions.dart';
 
@@ -798,8 +798,9 @@ class _BookForPatientSheet extends ConsumerStatefulWidget {
 class _BookForPatientSheetState extends ConsumerState<_BookForPatientSheet> {
   String? _departmentId;
   String? _staffId;
-  DateTime? _date;
-  TimeOfDay? _time;
+  // A real slot from the clinician's schedule grid, not a free-form
+  // date/time — the repository rejects an off-grid time outright now.
+  OpenSlot? _slot;
   VisitType _visitType = VisitType.followUp;
   final _reason = TextEditingController();
   bool _busy = false;
@@ -810,60 +811,26 @@ class _BookForPatientSheetState extends ConsumerState<_BookForPatientSheet> {
     super.dispose();
   }
 
-  DateTime? get _start {
-    final d = _date, t = _time;
-    if (d == null || t == null) return null;
-    return DateTime(d.year, d.month, d.day, t.hour, t.minute);
-  }
+  bool get _valid => _staffId != null && _slot != null;
 
-  bool get _valid {
-    final s = _start;
-    return _staffId != null &&
-        s != null &&
-        isWithinClinicHours(s, ref.read(clinicScheduleProvider));
-  }
-
-  Future<void> _pickDate() async {
-    final t = AppLocalizations.of(context)!;
-    final schedule = ref.read(clinicScheduleProvider);
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: isClinicDay(today, schedule)
-          ? today
-          : nextClinicDay(today, schedule),
-      firstDate: today,
-      lastDate: today.add(const Duration(days: 60)),
-      selectableDayPredicate: (d) => isClinicDay(d, schedule),
-      helpText: t.clinicDaysHelpText,
-    );
-    if (picked != null) setState(() => _date = picked);
-  }
-
-  Future<void> _pickTime() async {
-    final t = AppLocalizations.of(context)!;
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay(
-        hour: ref.read(clinicScheduleProvider).openHour,
-        minute: 0,
-      ),
-      helpText: t.clinicHoursHelpText,
-    );
-    if (picked != null) setState(() => _time = picked);
+  Future<void> _pickSlot() async {
+    final staffId = _staffId;
+    if (staffId == null) return;
+    final slot = await pickOpenSlot(context, staffId: staffId);
+    if (slot != null) setState(() => _slot = slot);
   }
 
   Future<void> _submit() async {
     final t = AppLocalizations.of(context)!;
+    final slot = _slot!;
     setState(() => _busy = true);
     final r = await ref
         .read(adminActionsProvider)
         .bookForPatient(
           patientId: widget.patient.id,
           staffId: _staffId!,
-          start: _start!,
-          duration: const Duration(minutes: 20),
+          start: slot.start,
+          duration: slot.end.difference(slot.start),
           visitType: _visitType,
           departmentId: _departmentId,
           reason: _reason.text.trim().isEmpty ? null : _reason.text.trim(),
@@ -957,42 +924,18 @@ class _BookForPatientSheetState extends ConsumerState<_BookForPatientSheet> {
               ),
             ),
             const SizedBox(height: Space.sm),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _pickDate,
-                    icon: const Icon(Icons.calendar_today_outlined, size: 18),
-                    label: Text(
-                      _date == null ? t.dateLabel : df.formatMediumDate(_date!),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: Space.sm),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _pickTime,
-                    icon: const Icon(Icons.schedule_outlined, size: 18),
-                    label: Text(
-                      _time == null ? t.timeLabel : _time!.format(context),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            if (_start != null &&
-                !isWithinClinicHours(
-                  _start!,
-                  ref.read(clinicScheduleProvider),
-                )) ...[
-              const SizedBox(height: Space.xs),
-              Text(
-                t.pickTimeBetweenNote,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.error,
-                ),
+            OutlinedButton.icon(
+              onPressed: _staffId == null ? null : _pickSlot,
+              icon: const Icon(Icons.schedule_outlined, size: 18),
+              label: Text(
+                _slot == null
+                    ? (_staffId == null
+                          ? t.chooseDepartmentFirstHelper
+                          : t.chooseATimeTitle)
+                    : '${df.formatMediumDate(_slot!.start)} · '
+                          '${fmtTime(_slot!.start)}',
               ),
-            ],
+            ),
             const SizedBox(height: Space.sm),
             DropdownButtonFormField<VisitType>(
               initialValue: _visitType,

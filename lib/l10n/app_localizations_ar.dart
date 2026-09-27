@@ -2887,6 +2887,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get allClearTitle => 'لا يوجد ما يستدعي الانتباه';
 
   @override
+  String get chooseATimeTitle => 'اختر وقتًا';
+
+  @override
+  String get noOpenSlotsThatDay => 'لا توجد مواعيد متاحة في هذا اليوم';
+
+  @override
   String get changePasswordTitle => 'تغيير كلمة المرور';
 
   @override

@@ -5228,6 +5228,18 @@ abstract class AppLocalizations {
   /// **'All clear'**
   String get allClearTitle;
 
+  /// No description provided for @chooseATimeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a time'**
+  String get chooseATimeTitle;
+
+  /// No description provided for @noOpenSlotsThatDay.
+  ///
+  /// In en, this message translates to:
+  /// **'No open slots that day'**
+  String get noOpenSlotsThatDay;
+
   /// No description provided for @changePasswordTitle.
   ///
   /// In en, this message translates to:

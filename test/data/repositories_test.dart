@@ -1,5 +1,6 @@
 // Repository behaviour against an in-memory database (P1-12…P1-18, P6-02).
 
+import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/core/failures.dart';
 import 'package:myhealthcare/data/db/app_database.dart';
@@ -142,6 +143,10 @@ void main() {
       expect((await appts.book(request())).isErr, isTrue);
     });
 
+    // Every test time below is constructed as an exact hour-of-day (always a
+    // multiple of the 20-minute grid) offset by whole days, so one
+    // full-day, every-weekday template makes any such time land on a real
+    // slot boundary regardless of which weekday it falls on.
     Future<String> makeStaff(String id) async {
       await db
           .into(db.users)
@@ -155,6 +160,20 @@ void main() {
               passwordSalt: 'y',
             ),
           );
+      for (var weekday = 1; weekday <= 7; weekday++) {
+        await db
+            .into(db.scheduleTemplates)
+            .insert(
+              ScheduleTemplatesCompanion.insert(
+                id: 'tmpl-$id-$weekday',
+                staffId: id,
+                weekday: weekday,
+                startMinutes: 0,
+                endMinutes: 24 * 60,
+                slotMinutes: const Value(20),
+              ),
+            );
+      }
       return id;
     }
 
@@ -211,6 +230,63 @@ void main() {
       );
       expect(result.isErr, isTrue);
     });
+
+    test(
+      "book rejects a time that isn't on the clinician's schedule grid",
+      () async {
+        final patient = await registerPatient(email: 'grid1@example.com');
+        final staffId = await makeStaff('staff-grid1');
+        final appts = AppointmentRepositoryImpl(db);
+        // makeStaff's template is on a 20-minute grid; 5 minutes past the
+        // hour never lands on one of its boundaries.
+        final offGrid = _nextWeekday(
+          DateTime.monday,
+        ).add(const Duration(hours: 9, minutes: 5));
+
+        final result = await appts.book(
+          BookingRequest(
+            patientId: patient.id,
+            staffId: staffId,
+            start: offGrid,
+            end: offGrid.add(const Duration(minutes: 20)),
+            visitType: VisitType.followUp,
+          ),
+        );
+        expect(result.isErr, isTrue);
+      },
+    );
+
+    test(
+      "reschedule rejects a time that isn't on the clinician's schedule "
+      'grid',
+      () async {
+        final patient = await registerPatient(email: 'grid2@example.com');
+        final staffId = await makeStaff('staff-grid2');
+        final appts = AppointmentRepositoryImpl(db);
+        final start = _nextWeekday(
+          DateTime.monday,
+        ).add(const Duration(hours: 9));
+
+        final booked = (await appts.book(
+          BookingRequest(
+            patientId: patient.id,
+            staffId: staffId,
+            start: start,
+            end: start.add(const Duration(minutes: 20)),
+            visitType: VisitType.followUp,
+          ),
+        )).valueOrNull!;
+
+        final offGrid = start.add(const Duration(days: 1, minutes: 5));
+        final result = await appts.reschedule(
+          id: booked.id,
+          patientId: patient.id,
+          newStart: offGrid,
+          newEnd: offGrid.add(const Duration(minutes: 20)),
+        );
+        expect(result.isErr, isTrue);
+      },
+    );
 
     test(
       'reschedule rejects a caller who does not own the appointment',

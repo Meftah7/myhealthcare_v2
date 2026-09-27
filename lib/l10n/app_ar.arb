@@ -1351,6 +1351,8 @@
   "analyticsAction": "التحليلات",
   "recentActivityHeader": "النشاط الأخير",
   "allClearTitle": "لا يوجد ما يستدعي الانتباه",
+  "chooseATimeTitle": "اختر وقتًا",
+  "noOpenSlotsThatDay": "لا توجد مواعيد متاحة في هذا اليوم",
   "changePasswordTitle": "تغيير كلمة المرور",
   "changePasswordAction": "تغيير كلمة المرور",
   "currentPasswordLabel": "كلمة المرور الحالية",

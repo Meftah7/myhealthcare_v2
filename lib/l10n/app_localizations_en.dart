@@ -2856,6 +2856,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get allClearTitle => 'All clear';
 
   @override
+  String get chooseATimeTitle => 'Choose a time';
+
+  @override
+  String get noOpenSlotsThatDay => 'No open slots that day';
+
+  @override
   String get changePasswordTitle => 'Change password';
 
   @override
