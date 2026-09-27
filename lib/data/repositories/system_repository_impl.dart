@@ -4,6 +4,7 @@ library;
 
 import 'package:drift/drift.dart';
 
+import '../../core/failures.dart';
 import '../../core/result.dart';
 import '../../core/utils/ids.dart';
 import '../../domain/entities/entities.dart';
@@ -96,6 +97,50 @@ class SettingsRepositoryImpl implements SettingsRepository {
     return (_db.select(_db.appSettings)..where((s) => s.id.equals(1)))
         .watchSingleOrNull()
         .asyncMap((row) async => (row ?? await _ensureRow()).toEntity());
+  }
+
+  @override
+  Future<Result<({Set<int> openDays, int openHour, int closeHour})?>>
+  clinicSchedule() {
+    return Result.guardAsync(() async {
+      final row = await _ensureRow();
+      final days = row.clinicOpenDays;
+      final open = row.clinicOpenHour;
+      final close = row.clinicCloseHour;
+      if (days == null || open == null || close == null) return null;
+      return (
+        openDays: days.isEmpty
+            ? <int>{}
+            : days.split(',').map(int.parse).toSet(),
+        openHour: open,
+        closeHour: close,
+      );
+    });
+  }
+
+  @override
+  Future<Result<void>> setClinicSchedule({
+    required Set<int> openDays,
+    required int openHour,
+    required int closeHour,
+  }) {
+    return Result.guardAsync(() async {
+      if (openHour < 0 || closeHour > 24 || openHour >= closeHour) {
+        throw const ValidationFailure(
+          'Opening time must be before closing time.',
+        );
+      }
+      await _ensureRow();
+      await (_db.update(
+        _db.appSettings,
+      )..where((r) => r.id.equals(1))).write(
+        AppSettingsCompanion(
+          clinicOpenDays: Value((openDays.toList()..sort()).join(',')),
+          clinicOpenHour: Value(openHour),
+          clinicCloseHour: Value(closeHour),
+        ),
+      );
+    });
   }
 
   @override

@@ -86,7 +86,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 16;
+  int get schemaVersion => 17;
 
   /// True when [table] already has a column named [columnName] — lets a
   /// migration step that already partly ran (e.g. the app/tab was closed or
@@ -242,6 +242,13 @@ class AppDatabase extends _$AppDatabase {
           'CREATE UNIQUE INDEX IF NOT EXISTS idx_users_national_id '
           'ON users (national_id) WHERE national_id IS NOT NULL',
         );
+      }
+      if (from < 17) {
+        // Clinic opening schedule moves from per-device SharedPreferences
+        // into the shared settings row.
+        await _addColumnIfMissing(m, appSettings, appSettings.clinicOpenDays);
+        await _addColumnIfMissing(m, appSettings, appSettings.clinicOpenHour);
+        await _addColumnIfMissing(m, appSettings, appSettings.clinicCloseHour);
       }
     }),
     beforeOpen: (details) async {

@@ -15849,6 +15849,39 @@ class $AppSettingsTable extends AppSettings
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _clinicOpenDaysMeta = const VerificationMeta(
+    'clinicOpenDays',
+  );
+  @override
+  late final GeneratedColumn<String> clinicOpenDays = GeneratedColumn<String>(
+    'clinic_open_days',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _clinicOpenHourMeta = const VerificationMeta(
+    'clinicOpenHour',
+  );
+  @override
+  late final GeneratedColumn<int> clinicOpenHour = GeneratedColumn<int>(
+    'clinic_open_hour',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _clinicCloseHourMeta = const VerificationMeta(
+    'clinicCloseHour',
+  );
+  @override
+  late final GeneratedColumn<int> clinicCloseHour = GeneratedColumn<int>(
+    'clinic_close_hour',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -15869,6 +15902,9 @@ class $AppSettingsTable extends AppSettings
     modelId,
     aiTaskWeight,
     seedVersion,
+    clinicOpenDays,
+    clinicOpenHour,
+    clinicCloseHour,
     updatedAt,
   ];
   @override
@@ -15922,6 +15958,33 @@ class $AppSettingsTable extends AppSettings
         ),
       );
     }
+    if (data.containsKey('clinic_open_days')) {
+      context.handle(
+        _clinicOpenDaysMeta,
+        clinicOpenDays.isAcceptableOrUnknown(
+          data['clinic_open_days']!,
+          _clinicOpenDaysMeta,
+        ),
+      );
+    }
+    if (data.containsKey('clinic_open_hour')) {
+      context.handle(
+        _clinicOpenHourMeta,
+        clinicOpenHour.isAcceptableOrUnknown(
+          data['clinic_open_hour']!,
+          _clinicOpenHourMeta,
+        ),
+      );
+    }
+    if (data.containsKey('clinic_close_hour')) {
+      context.handle(
+        _clinicCloseHourMeta,
+        clinicCloseHour.isAcceptableOrUnknown(
+          data['clinic_close_hour']!,
+          _clinicCloseHourMeta,
+        ),
+      );
+    }
     if (data.containsKey('updated_at')) {
       context.handle(
         _updatedAtMeta,
@@ -15961,6 +16024,18 @@ class $AppSettingsTable extends AppSettings
         DriftSqlType.int,
         data['${effectivePrefix}seed_version'],
       )!,
+      clinicOpenDays: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}clinic_open_days'],
+      ),
+      clinicOpenHour: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}clinic_open_hour'],
+      ),
+      clinicCloseHour: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}clinic_close_hour'],
+      ),
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
@@ -15988,6 +16063,14 @@ class AppSettingsRow extends DataClass implements Insertable<AppSettingsRow> {
 
   /// Bumped by the seeder so re-seeds are detectable (P1-21).
   final int seedVersion;
+
+  /// Clinic-wide opening schedule — shared operational data, so it lives
+  /// here rather than in one device's SharedPreferences. Null until first
+  /// saved (the app then uses its built-in default: every day, 08:00-20:00).
+  /// Open days are ISO weekdays (1 = Monday), comma-separated.
+  final String? clinicOpenDays;
+  final int? clinicOpenHour;
+  final int? clinicCloseHour;
   final DateTime updatedAt;
   const AppSettingsRow({
     required this.id,
@@ -15996,6 +16079,9 @@ class AppSettingsRow extends DataClass implements Insertable<AppSettingsRow> {
     required this.modelId,
     required this.aiTaskWeight,
     required this.seedVersion,
+    this.clinicOpenDays,
+    this.clinicOpenHour,
+    this.clinicCloseHour,
     required this.updatedAt,
   });
   @override
@@ -16007,6 +16093,15 @@ class AppSettingsRow extends DataClass implements Insertable<AppSettingsRow> {
     map['model_id'] = Variable<String>(modelId);
     map['ai_task_weight'] = Variable<double>(aiTaskWeight);
     map['seed_version'] = Variable<int>(seedVersion);
+    if (!nullToAbsent || clinicOpenDays != null) {
+      map['clinic_open_days'] = Variable<String>(clinicOpenDays);
+    }
+    if (!nullToAbsent || clinicOpenHour != null) {
+      map['clinic_open_hour'] = Variable<int>(clinicOpenHour);
+    }
+    if (!nullToAbsent || clinicCloseHour != null) {
+      map['clinic_close_hour'] = Variable<int>(clinicCloseHour);
+    }
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
@@ -16019,6 +16114,15 @@ class AppSettingsRow extends DataClass implements Insertable<AppSettingsRow> {
       modelId: Value(modelId),
       aiTaskWeight: Value(aiTaskWeight),
       seedVersion: Value(seedVersion),
+      clinicOpenDays: clinicOpenDays == null && nullToAbsent
+          ? const Value.absent()
+          : Value(clinicOpenDays),
+      clinicOpenHour: clinicOpenHour == null && nullToAbsent
+          ? const Value.absent()
+          : Value(clinicOpenHour),
+      clinicCloseHour: clinicCloseHour == null && nullToAbsent
+          ? const Value.absent()
+          : Value(clinicCloseHour),
       updatedAt: Value(updatedAt),
     );
   }
@@ -16035,6 +16139,9 @@ class AppSettingsRow extends DataClass implements Insertable<AppSettingsRow> {
       modelId: serializer.fromJson<String>(json['modelId']),
       aiTaskWeight: serializer.fromJson<double>(json['aiTaskWeight']),
       seedVersion: serializer.fromJson<int>(json['seedVersion']),
+      clinicOpenDays: serializer.fromJson<String?>(json['clinicOpenDays']),
+      clinicOpenHour: serializer.fromJson<int?>(json['clinicOpenHour']),
+      clinicCloseHour: serializer.fromJson<int?>(json['clinicCloseHour']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
@@ -16048,6 +16155,9 @@ class AppSettingsRow extends DataClass implements Insertable<AppSettingsRow> {
       'modelId': serializer.toJson<String>(modelId),
       'aiTaskWeight': serializer.toJson<double>(aiTaskWeight),
       'seedVersion': serializer.toJson<int>(seedVersion),
+      'clinicOpenDays': serializer.toJson<String?>(clinicOpenDays),
+      'clinicOpenHour': serializer.toJson<int?>(clinicOpenHour),
+      'clinicCloseHour': serializer.toJson<int?>(clinicCloseHour),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
@@ -16059,6 +16169,9 @@ class AppSettingsRow extends DataClass implements Insertable<AppSettingsRow> {
     String? modelId,
     double? aiTaskWeight,
     int? seedVersion,
+    Value<String?> clinicOpenDays = const Value.absent(),
+    Value<int?> clinicOpenHour = const Value.absent(),
+    Value<int?> clinicCloseHour = const Value.absent(),
     DateTime? updatedAt,
   }) => AppSettingsRow(
     id: id ?? this.id,
@@ -16067,6 +16180,15 @@ class AppSettingsRow extends DataClass implements Insertable<AppSettingsRow> {
     modelId: modelId ?? this.modelId,
     aiTaskWeight: aiTaskWeight ?? this.aiTaskWeight,
     seedVersion: seedVersion ?? this.seedVersion,
+    clinicOpenDays: clinicOpenDays.present
+        ? clinicOpenDays.value
+        : this.clinicOpenDays,
+    clinicOpenHour: clinicOpenHour.present
+        ? clinicOpenHour.value
+        : this.clinicOpenHour,
+    clinicCloseHour: clinicCloseHour.present
+        ? clinicCloseHour.value
+        : this.clinicCloseHour,
     updatedAt: updatedAt ?? this.updatedAt,
   );
   AppSettingsRow copyWithCompanion(AppSettingsCompanion data) {
@@ -16081,6 +16203,15 @@ class AppSettingsRow extends DataClass implements Insertable<AppSettingsRow> {
       seedVersion: data.seedVersion.present
           ? data.seedVersion.value
           : this.seedVersion,
+      clinicOpenDays: data.clinicOpenDays.present
+          ? data.clinicOpenDays.value
+          : this.clinicOpenDays,
+      clinicOpenHour: data.clinicOpenHour.present
+          ? data.clinicOpenHour.value
+          : this.clinicOpenHour,
+      clinicCloseHour: data.clinicCloseHour.present
+          ? data.clinicCloseHour.value
+          : this.clinicCloseHour,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
@@ -16094,6 +16225,9 @@ class AppSettingsRow extends DataClass implements Insertable<AppSettingsRow> {
           ..write('modelId: $modelId, ')
           ..write('aiTaskWeight: $aiTaskWeight, ')
           ..write('seedVersion: $seedVersion, ')
+          ..write('clinicOpenDays: $clinicOpenDays, ')
+          ..write('clinicOpenHour: $clinicOpenHour, ')
+          ..write('clinicCloseHour: $clinicCloseHour, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
@@ -16107,6 +16241,9 @@ class AppSettingsRow extends DataClass implements Insertable<AppSettingsRow> {
     modelId,
     aiTaskWeight,
     seedVersion,
+    clinicOpenDays,
+    clinicOpenHour,
+    clinicCloseHour,
     updatedAt,
   );
   @override
@@ -16119,6 +16256,9 @@ class AppSettingsRow extends DataClass implements Insertable<AppSettingsRow> {
           other.modelId == this.modelId &&
           other.aiTaskWeight == this.aiTaskWeight &&
           other.seedVersion == this.seedVersion &&
+          other.clinicOpenDays == this.clinicOpenDays &&
+          other.clinicOpenHour == this.clinicOpenHour &&
+          other.clinicCloseHour == this.clinicCloseHour &&
           other.updatedAt == this.updatedAt);
 }
 
@@ -16129,6 +16269,9 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettingsRow> {
   final Value<String> modelId;
   final Value<double> aiTaskWeight;
   final Value<int> seedVersion;
+  final Value<String?> clinicOpenDays;
+  final Value<int?> clinicOpenHour;
+  final Value<int?> clinicCloseHour;
   final Value<DateTime> updatedAt;
   const AppSettingsCompanion({
     this.id = const Value.absent(),
@@ -16137,6 +16280,9 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettingsRow> {
     this.modelId = const Value.absent(),
     this.aiTaskWeight = const Value.absent(),
     this.seedVersion = const Value.absent(),
+    this.clinicOpenDays = const Value.absent(),
+    this.clinicOpenHour = const Value.absent(),
+    this.clinicCloseHour = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
   AppSettingsCompanion.insert({
@@ -16146,6 +16292,9 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettingsRow> {
     this.modelId = const Value.absent(),
     this.aiTaskWeight = const Value.absent(),
     this.seedVersion = const Value.absent(),
+    this.clinicOpenDays = const Value.absent(),
+    this.clinicOpenHour = const Value.absent(),
+    this.clinicCloseHour = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
   static Insertable<AppSettingsRow> custom({
@@ -16155,6 +16304,9 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettingsRow> {
     Expression<String>? modelId,
     Expression<double>? aiTaskWeight,
     Expression<int>? seedVersion,
+    Expression<String>? clinicOpenDays,
+    Expression<int>? clinicOpenHour,
+    Expression<int>? clinicCloseHour,
     Expression<DateTime>? updatedAt,
   }) {
     return RawValuesInsertable({
@@ -16164,6 +16316,9 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettingsRow> {
       if (modelId != null) 'model_id': modelId,
       if (aiTaskWeight != null) 'ai_task_weight': aiTaskWeight,
       if (seedVersion != null) 'seed_version': seedVersion,
+      if (clinicOpenDays != null) 'clinic_open_days': clinicOpenDays,
+      if (clinicOpenHour != null) 'clinic_open_hour': clinicOpenHour,
+      if (clinicCloseHour != null) 'clinic_close_hour': clinicCloseHour,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
   }
@@ -16175,6 +16330,9 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettingsRow> {
     Value<String>? modelId,
     Value<double>? aiTaskWeight,
     Value<int>? seedVersion,
+    Value<String?>? clinicOpenDays,
+    Value<int?>? clinicOpenHour,
+    Value<int?>? clinicCloseHour,
     Value<DateTime>? updatedAt,
   }) {
     return AppSettingsCompanion(
@@ -16184,6 +16342,9 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettingsRow> {
       modelId: modelId ?? this.modelId,
       aiTaskWeight: aiTaskWeight ?? this.aiTaskWeight,
       seedVersion: seedVersion ?? this.seedVersion,
+      clinicOpenDays: clinicOpenDays ?? this.clinicOpenDays,
+      clinicOpenHour: clinicOpenHour ?? this.clinicOpenHour,
+      clinicCloseHour: clinicCloseHour ?? this.clinicCloseHour,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
@@ -16209,6 +16370,15 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettingsRow> {
     if (seedVersion.present) {
       map['seed_version'] = Variable<int>(seedVersion.value);
     }
+    if (clinicOpenDays.present) {
+      map['clinic_open_days'] = Variable<String>(clinicOpenDays.value);
+    }
+    if (clinicOpenHour.present) {
+      map['clinic_open_hour'] = Variable<int>(clinicOpenHour.value);
+    }
+    if (clinicCloseHour.present) {
+      map['clinic_close_hour'] = Variable<int>(clinicCloseHour.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
@@ -16224,6 +16394,9 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettingsRow> {
           ..write('modelId: $modelId, ')
           ..write('aiTaskWeight: $aiTaskWeight, ')
           ..write('seedVersion: $seedVersion, ')
+          ..write('clinicOpenDays: $clinicOpenDays, ')
+          ..write('clinicOpenHour: $clinicOpenHour, ')
+          ..write('clinicCloseHour: $clinicCloseHour, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();

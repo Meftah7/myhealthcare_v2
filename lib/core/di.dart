@@ -7,6 +7,7 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../app/settings/ui_prefs.dart';
 import '../data/db/app_database.dart';
 import '../data/repositories/ai_summary_repository_impl.dart';
 import '../data/repositories/appointment_repository_impl.dart';
@@ -163,4 +164,7 @@ final seederProvider = Provider<Seeder>(
 /// holds on the splash while this is still running.
 final appBootstrapProvider = FutureProvider<void>((ref) async {
   await ref.read(seederProvider).run();
+  // The clinic schedule is shared data in the database; SharedPreferences
+  // only caches it so the first frame has something to show.
+  await ref.read(clinicScheduleProvider.notifier).hydrateFromDatabase();
 });

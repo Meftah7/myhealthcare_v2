@@ -43,6 +43,17 @@ abstract interface class SettingsRepository {
   Stream<AppSettings> watch();
 
   Future<Result<void>> update(AppSettings settings);
+
+  /// The clinic-wide opening schedule, or null if it has never been saved.
+  /// [openDays] are ISO weekdays (1 = Monday).
+  Future<Result<({Set<int> openDays, int openHour, int closeHour})?>>
+  clinicSchedule();
+
+  Future<Result<void>> setClinicSchedule({
+    required Set<int> openDays,
+    required int openHour,
+    required int closeHour,
+  });
 }
 
 /// User feedback / issue reports (patient + staff submit; admin triages).

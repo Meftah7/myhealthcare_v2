@@ -510,15 +510,63 @@ class ClinicScheduleController extends Notifier<ClinicSchedule> {
     );
   }
 
+  /// Saves to the shared database (the source of truth for everyone using
+  /// the clinic) and refreshes this device's startup cache. A failed database
+  /// write rolls the change back and is reported, like every other setting.
   Future<void> set(ClinicSchedule schedule) async {
+    final previous = state;
     state = schedule;
-    final prefs = ref.read(sharedPreferencesProvider);
-    await prefs.setStringList(
-      _clinicOpenDaysKey,
-      schedule.openDays.map((d) => d.toString()).toList(),
+    final saved = await _saveOrRollback(
+      ref,
+      previous: previous,
+      apply: (v) => state = v,
+      write: () async => (await ref
+              .read(settingsRepositoryProvider)
+              .setClinicSchedule(
+                openDays: schedule.openDays,
+                openHour: schedule.openHour,
+                closeHour: schedule.closeHour,
+              ))
+          .isOk,
     );
-    await prefs.setInt(_clinicOpenHourKey, schedule.openHour);
-    await prefs.setInt(_clinicCloseHourKey, schedule.closeHour);
+    if (saved) await _cache(schedule);
+  }
+
+  /// Loads the shared schedule from the database (run once during app
+  /// bootstrap). If the database has none yet, this device's previously
+  /// stored schedule is copied up so an existing clinic setup isn't lost.
+  Future<void> hydrateFromDatabase() async {
+    final repo = ref.read(settingsRepositoryProvider);
+    final stored = (await repo.clinicSchedule()).valueOrNull;
+    if (stored == null) {
+      await repo.setClinicSchedule(
+        openDays: state.openDays,
+        openHour: state.openHour,
+        closeHour: state.closeHour,
+      );
+      return;
+    }
+    final schedule = ClinicSchedule(
+      openDays: stored.openDays,
+      openHour: stored.openHour,
+      closeHour: stored.closeHour,
+    );
+    state = schedule;
+    await _cache(schedule);
+  }
+
+  Future<void> _cache(ClinicSchedule schedule) async {
+    try {
+      final prefs = ref.read(sharedPreferencesProvider);
+      await prefs.setStringList(
+        _clinicOpenDaysKey,
+        schedule.openDays.map((d) => d.toString()).toList(),
+      );
+      await prefs.setInt(_clinicOpenHourKey, schedule.openHour);
+      await prefs.setInt(_clinicCloseHourKey, schedule.closeHour);
+    } on Object {
+      // Only a startup cache — the database already has the real value.
+    }
   }
 }
 
