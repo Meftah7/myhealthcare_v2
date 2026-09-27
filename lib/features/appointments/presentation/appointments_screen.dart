@@ -25,11 +25,23 @@ import '../../patient/application/patient_data_providers.dart';
 import '../../patient/presentation/patient_top_actions.dart';
 import 'slot_picker_sheet.dart';
 
-class AppointmentsScreen extends ConsumerWidget {
+class AppointmentsScreen extends ConsumerStatefulWidget {
   const AppointmentsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AppointmentsScreen> createState() => _AppointmentsScreenState();
+}
+
+class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
+  static const _pageSize = 40;
+
+  /// How many past visits to show — grows by [_pageSize] each time "Show
+  /// more" is tapped, rather than silently hiding the rest with no way to
+  /// see them.
+  int _visiblePast = _pageSize;
+
+  @override
+  Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
     final appts = ref.watch(patientAppointmentsProvider);
     final doctors = ref.watch(doctorDirectoryProvider).valueOrNull ?? const {};
@@ -61,6 +73,8 @@ class AppointmentsScreen extends ConsumerWidget {
               ..sort((a, b) => a.slotStart.compareTo(b.slotStart));
             final past = list.where((a) => !a.isUpcoming).toList()
               ..sort((a, b) => b.slotStart.compareTo(a.slotStart));
+            final visiblePast = past.take(_visiblePast).toList();
+            final remaining = past.length - visiblePast.length;
 
             Widget card(Appointment a, {required bool upcoming}) => _ApptCard(
               a,
@@ -81,8 +95,8 @@ class AppointmentsScreen extends ConsumerWidget {
               SectionHeader(t.historyCount(past.length), overline: true),
               if (past.isEmpty)
                 _EmptyNote(t.noPastVisitsNote)
-              else
-                for (final entry in _byMonth(past.take(40)).entries) ...[
+              else ...[
+                for (final entry in _byMonth(visiblePast).entries) ...[
                   _MonthLabel(entry.key),
                   CardColumns(
                     children: [
@@ -90,6 +104,18 @@ class AppointmentsScreen extends ConsumerWidget {
                     ],
                   ),
                 ],
+                if (remaining > 0) ...[
+                  const SizedBox(height: Space.sm),
+                  Center(
+                    child: TextButton(
+                      onPressed: () => setState(
+                        () => _visiblePast += _pageSize,
+                      ),
+                      child: Text(t.showOlderVisitsAction(remaining)),
+                    ),
+                  ),
+                ],
+              ],
             ];
           },
         ),
@@ -211,6 +237,7 @@ class _ApptCard extends ConsumerWidget {
 
     return AppCard(
       padding: const EdgeInsets.all(Space.md),
+      onTap: () => context.push(AppRoutes.patientAppointmentDetail(appt.id)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -296,7 +323,7 @@ class _ApptCard extends ConsumerWidget {
               (appt.status == AppointmentStatus.booked ||
                   appt.status == AppointmentStatus.confirmed)) ...[
             const SizedBox(height: Space.sm),
-            _ApptActions(appt: appt),
+            ApptActions(appt: appt),
           ],
         ],
       ),
@@ -307,16 +334,16 @@ class _ApptCard extends ConsumerWidget {
 /// The reschedule/cancel buttons, split out from [_ApptCard] so they can own
 /// their own busy/error state — a card built by a stateless widget has
 /// nowhere to hold "this request is in flight" or "it just failed".
-class _ApptActions extends ConsumerStatefulWidget {
-  const _ApptActions({required this.appt});
+class ApptActions extends ConsumerStatefulWidget {
+  const ApptActions({required this.appt, super.key});
 
   final Appointment appt;
 
   @override
-  ConsumerState<_ApptActions> createState() => _ApptActionsState();
+  ConsumerState<ApptActions> createState() => _ApptActionsState();
 }
 
-class _ApptActionsState extends ConsumerState<_ApptActions> {
+class _ApptActionsState extends ConsumerState<ApptActions> {
   bool _busy = false;
 
   Appointment get appt => widget.appt;

@@ -5228,6 +5228,42 @@ abstract class AppLocalizations {
   /// **'All clear'**
   String get allClearTitle;
 
+  /// No description provided for @showOlderVisitsAction.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Show {count} older visit} other{Show {count} older visits}}'**
+  String showOlderVisitsAction(num count);
+
+  /// No description provided for @appointmentDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Appointment details'**
+  String get appointmentDetailTitle;
+
+  /// No description provided for @appointmentNotFoundNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This appointment could not be found'**
+  String get appointmentNotFoundNote;
+
+  /// No description provided for @addToCalendarAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to calendar'**
+  String get addToCalendarAction;
+
+  /// No description provided for @contactSupportAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact support'**
+  String get contactSupportAction;
+
+  /// No description provided for @calendarFileSavedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar file saved'**
+  String get calendarFileSavedMessage;
+
   /// No description provided for @chooseATimeTitle.
   ///
   /// In en, this message translates to:

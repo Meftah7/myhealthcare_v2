@@ -26,6 +26,7 @@ import '../features/admin/presentation/user_management_screen.dart';
 import '../features/ai_chat/presentation/care_navigator_overlay.dart';
 import '../features/ai_scribe/presentation/clinical_scribe_screen.dart';
 import '../features/ai_summary/presentation/ai_summary_screen.dart';
+import '../features/appointments/presentation/appointment_detail_screen.dart';
 import '../features/appointments/presentation/appointments_screen.dart';
 import '../features/auth/application/session.dart';
 import '../features/auth/presentation/forgot_password_screen.dart';
@@ -106,6 +107,10 @@ abstract final class AppRoutes {
   static const patientNotifications = '/patient/home/notifications';
   static const patientAppointments = '/patient/appointments';
   static const patientBook = '/patient/appointments/book';
+
+  /// Appointment detail — pass the appointment id.
+  static String patientAppointmentDetail(String id) =>
+      '$patientAppointments/detail/$id';
   static const patientSummary = '/patient/summary';
   static const patientSettings = '/patient/settings';
   static const patientProfilePersonal = '/patient/settings/personal';
@@ -463,6 +468,12 @@ StatefulShellRoute _patientShell() {
               GoRoute(
                 path: 'doctors',
                 builder: (_, _) => const VisitedDoctorsScreen(),
+              ),
+              GoRoute(
+                path: 'detail/:id',
+                builder: (_, state) => AppointmentDetailScreen(
+                  appointmentId: state.pathParameters['id']!,
+                ),
               ),
             ],
           ),

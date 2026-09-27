@@ -69,6 +69,22 @@ final patientAppointmentsProvider = FutureProvider<List<Appointment>>((
   return _unwrap(await ref.watch(appointmentRepositoryProvider).forPatient(id));
 });
 
+/// One appointment from the signed-in patient's own list, by id — derived
+/// from [patientAppointmentsProvider] rather than a fresh query, and so also
+/// naturally scoped to the current patient (an id that isn't theirs is
+/// invisible here, the same as it not existing). Backs the appointment
+/// detail screen.
+final patientAppointmentByIdProvider =
+    Provider.family<AsyncValue<Appointment?>, String>((ref, id) {
+      final list = ref.watch(patientAppointmentsProvider);
+      return list.whenData((xs) {
+        for (final a in xs) {
+          if (a.id == id) return a;
+        }
+        return null;
+      });
+    });
+
 /// staffId → display name ("Dr …") + department id, for labelling appointments.
 final doctorDirectoryProvider = FutureProvider<Map<String, ({String name, String? departmentId})>>((
   ref,

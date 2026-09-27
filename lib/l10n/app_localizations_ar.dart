@@ -2887,6 +2887,36 @@ class AppLocalizationsAr extends AppLocalizations {
   String get allClearTitle => 'لا يوجد ما يستدعي الانتباه';
 
   @override
+  String showOlderVisitsAction(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'عرض $count زيارة أقدم',
+      many: 'عرض $count زيارة أقدم',
+      few: 'عرض $count زيارات أقدم',
+      two: 'عرض زيارتين أقدم',
+      one: 'عرض زيارة أقدم واحدة',
+      zero: 'عرض الزيارات الأقدم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get appointmentDetailTitle => 'تفاصيل الموعد';
+
+  @override
+  String get appointmentNotFoundNote => 'تعذّر العثور على هذا الموعد';
+
+  @override
+  String get addToCalendarAction => 'إضافة إلى التقويم';
+
+  @override
+  String get contactSupportAction => 'تواصل مع الدعم';
+
+  @override
+  String get calendarFileSavedMessage => 'تم حفظ ملف التقويم';
+
+  @override
   String get chooseATimeTitle => 'اختر وقتًا';
 
   @override

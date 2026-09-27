@@ -2856,6 +2856,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get allClearTitle => 'All clear';
 
   @override
+  String showOlderVisitsAction(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Show $count older visits',
+      one: 'Show $count older visit',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get appointmentDetailTitle => 'Appointment details';
+
+  @override
+  String get appointmentNotFoundNote => 'This appointment could not be found';
+
+  @override
+  String get addToCalendarAction => 'Add to calendar';
+
+  @override
+  String get contactSupportAction => 'Contact support';
+
+  @override
+  String get calendarFileSavedMessage => 'Calendar file saved';
+
+  @override
   String get chooseATimeTitle => 'Choose a time';
 
   @override
