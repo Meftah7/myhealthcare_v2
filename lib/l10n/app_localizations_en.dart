@@ -2419,6 +2419,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addMedicationAction => 'Add medication';
 
   @override
+  String get editMedicationAction => 'Edit medication';
+
+  @override
   String get referralHeader => 'Referral';
 
   @override

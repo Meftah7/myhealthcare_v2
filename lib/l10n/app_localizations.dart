@@ -4424,6 +4424,12 @@ abstract class AppLocalizations {
   /// **'Add medication'**
   String get addMedicationAction;
 
+  /// No description provided for @editMedicationAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit medication'**
+  String get editMedicationAction;
+
   /// No description provided for @referralHeader.
   ///
   /// In en, this message translates to:

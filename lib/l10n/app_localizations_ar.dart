@@ -2450,6 +2450,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get addMedicationAction => 'إضافة دواء';
 
   @override
+  String get editMedicationAction => 'تعديل الدواء';
+
+  @override
   String get referralHeader => 'التحويل';
 
   @override

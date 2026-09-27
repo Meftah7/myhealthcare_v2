@@ -1160,6 +1160,7 @@
   "noMedicationsAdded": "لم تتم إضافة أي أدوية.",
   "removeTooltip": "إزالة",
   "addMedicationAction": "إضافة دواء",
+  "editMedicationAction": "تعديل الدواء",
   "referralHeader": "التحويل",
   "referralRequestedAwaitingAdmin": "تم طلب التحويل — بانتظار موافقة الإدارة",
   "requestAReferralAction": "طلب تحويل",
