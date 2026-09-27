@@ -186,12 +186,23 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
                   subtitle: Text(
                     [?draft.meds[i].dose, ?draft.meds[i].frequency].join(' · '),
                   ),
-                  trailing: IconButton(
-                    tooltip: t.removeTooltip,
-                    icon: const Icon(Icons.close),
-                    onPressed: () => _update(
-                      draft.copyWith(meds: [...draft.meds]..removeAt(i)),
-                    ),
+                  onTap: () => _editMedication(i),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        tooltip: t.editAction,
+                        icon: const Icon(Icons.edit_outlined),
+                        onPressed: () => _editMedication(i),
+                      ),
+                      IconButton(
+                        tooltip: t.removeTooltip,
+                        icon: const Icon(Icons.close),
+                        onPressed: () => _update(
+                          draft.copyWith(meds: [...draft.meds]..removeAt(i)),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -269,6 +280,23 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
     );
     if (added == null) return;
     _update(_draft.copyWith(meds: [..._draft.meds, added]));
+  }
+
+  Future<void> _editMedication(int i) async {
+    final edited = await showModalBottomSheet<DraftMed>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(context).bottom,
+        ),
+        child: _AddMedicationSheet(initial: _draft.meds[i]),
+      ),
+    );
+    if (edited == null) return;
+    _update(
+      _draft.copyWith(meds: [..._draft.meds]..[i] = edited),
+    );
   }
 
   Future<void> _requestReferral() async {
@@ -567,16 +595,21 @@ class _CompletedCard extends StatelessWidget {
 // --- sub-sheets --------------------------------------------------------
 
 class _AddMedicationSheet extends StatefulWidget {
-  const _AddMedicationSheet();
+  const _AddMedicationSheet({this.initial});
+
+  /// The medication being edited, or null when adding a new one.
+  final DraftMed? initial;
 
   @override
   State<_AddMedicationSheet> createState() => _AddMedicationSheetState();
 }
 
 class _AddMedicationSheetState extends State<_AddMedicationSheet> {
-  final _name = TextEditingController();
-  final _dose = TextEditingController();
-  final _freq = TextEditingController();
+  late final _name = TextEditingController(text: widget.initial?.name);
+  late final _dose = TextEditingController(text: widget.initial?.dose);
+  late final _freq = TextEditingController(text: widget.initial?.frequency);
+
+  bool get _isEditing => widget.initial != null;
 
   @override
   void dispose() {
@@ -597,7 +630,7 @@ class _AddMedicationSheetState extends State<_AddMedicationSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              t.addMedicationAction,
+              _isEditing ? t.editMedicationAction : t.addMedicationAction,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: Space.md),
@@ -634,7 +667,7 @@ class _AddMedicationSheetState extends State<_AddMedicationSheet> {
                             : _freq.text.trim(),
                       ),
                     ),
-              child: Text(t.addButton),
+              child: Text(_isEditing ? t.saveButton : t.addButton),
             ),
           ],
         ),
