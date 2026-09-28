@@ -22,6 +22,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
 import '../../feedback/presentation/feedback_sheet.dart';
 import '../../settings/presentation/preferences_section.dart';
+import '../presentation/avatar_photo_sheet.dart';
 import 'patient_data_providers.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -71,10 +72,16 @@ class ProfileScreen extends ConsumerWidget {
             email: p.user.email,
             phone: p.user.phone,
             role: p.user.role.label(context, gender: p.user.gender),
+            avatarPath: p.user.avatarPath,
             avatarSize: 72,
             elevated: true,
-            onEditAvatar: () =>
-                unawaited(context.push(AppRoutes.patientProfilePersonal)),
+            onEditAvatar: () => unawaited(
+              showAvatarPhotoSheet(
+                context,
+                userId: p.user.id,
+                hasPhoto: p.user.avatarPath != null,
+              ),
+            ),
           ),
           SectionHeader(t.accountSection, overline: true),
           ListCard(

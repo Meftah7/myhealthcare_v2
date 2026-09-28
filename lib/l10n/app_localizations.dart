@@ -410,6 +410,48 @@ abstract class AppLocalizations {
   /// **'Edit profile'**
   String get editProfile;
 
+  /// No description provided for @profilePhotoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile photo'**
+  String get profilePhotoTitle;
+
+  /// No description provided for @uploadPhotoAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload photo'**
+  String get uploadPhotoAction;
+
+  /// No description provided for @takePhotoAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo'**
+  String get takePhotoAction;
+
+  /// No description provided for @choosePhotoAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose photo'**
+  String get choosePhotoAction;
+
+  /// No description provided for @removePhotoAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get removePhotoAction;
+
+  /// No description provided for @photoUploadFailedError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save that photo. Try again.'**
+  String get photoUploadFailedError;
+
+  /// No description provided for @photoTooLargeError.
+  ///
+  /// In en, this message translates to:
+  /// **'That photo is too large. Choose a smaller one.'**
+  String get photoTooLargeError;
+
   /// No description provided for @accountSection.
   ///
   /// In en, this message translates to:

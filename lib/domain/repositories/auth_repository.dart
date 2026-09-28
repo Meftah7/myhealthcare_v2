@@ -106,6 +106,10 @@ abstract interface class UserRepository {
 
   Future<Result<void>> setActive({required String id, required bool active});
 
+  /// Sets or clears (pass null) the account's profile photo — a local file
+  /// path, never uploaded anywhere.
+  Future<Result<void>> setAvatarPath({required String id, String? avatarPath});
+
   Future<Result<void>> resetPassword({
     required String id,
     required String newPassword,

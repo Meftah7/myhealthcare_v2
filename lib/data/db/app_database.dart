@@ -85,7 +85,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 15;
+  int get schemaVersion => 16;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -166,6 +166,11 @@ class AppDatabase extends _$AppDatabase {
         // Patient-imported records are flagged so they never pass as a
         // clinician-reviewed result.
         await m.addColumn(medicalRecords, medicalRecords.uploadedByPatient);
+      }
+      if (from < 16) {
+        // Profile photo: a local file path on the account, set/cleared from
+        // the avatar badge on the profile header.
+        await m.addColumn(users, users.avatarPath);
       }
     },
     beforeOpen: (details) async {
