@@ -68,6 +68,13 @@
 
   "createAccount": "إنشاء حساب",
   "editProfile": "تعديل الملف الشخصي",
+  "profilePhotoTitle": "الصورة الشخصية",
+  "uploadPhotoAction": "رفع صورة",
+  "takePhotoAction": "التقاط صورة",
+  "choosePhotoAction": "اختيار صورة",
+  "removePhotoAction": "إزالة الصورة",
+  "photoUploadFailedError": "تعذر حفظ الصورة. حاول مرة أخرى.",
+  "photoTooLargeError": "الصورة كبيرة جداً. اختر صورة أصغر.",
   "accountSection": "الحساب",
   "settingsSection": "الإعدادات",
   "detailsSection": "التفاصيل",

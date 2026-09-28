@@ -489,6 +489,15 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
+  Future<Result<void>> setAvatarPath({required String id, String? avatarPath}) {
+    return Result.guardAsync(() async {
+      await (_db.update(_db.users)..where((u) => u.id.equals(id))).write(
+        UsersCompanion(avatarPath: Value(avatarPath)),
+      );
+    });
+  }
+
+  @override
   Future<Result<void>> resetPassword({
     required String id,
     required String newPassword,

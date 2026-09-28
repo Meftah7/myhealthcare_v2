@@ -20,6 +20,7 @@ abstract class User with _$User {
     DateTime? dob,
     Gender? gender,
     String? nationalId,
+    String? avatarPath,
   }) = _User;
 
   const User._();

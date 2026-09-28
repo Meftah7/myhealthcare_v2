@@ -68,6 +68,13 @@
 
   "createAccount": "Create account",
   "editProfile": "Edit profile",
+  "profilePhotoTitle": "Profile photo",
+  "uploadPhotoAction": "Upload photo",
+  "takePhotoAction": "Take a photo",
+  "choosePhotoAction": "Choose photo",
+  "removePhotoAction": "Remove photo",
+  "photoUploadFailedError": "Couldn't save that photo. Try again.",
+  "photoTooLargeError": "That photo is too large. Choose a smaller one.",
   "accountSection": "Account",
   "settingsSection": "Settings",
   "detailsSection": "Details",

@@ -183,6 +183,27 @@ class AppLocalizationsAr extends AppLocalizations {
   String get editProfile => 'تعديل الملف الشخصي';
 
   @override
+  String get profilePhotoTitle => 'الصورة الشخصية';
+
+  @override
+  String get uploadPhotoAction => 'رفع صورة';
+
+  @override
+  String get takePhotoAction => 'التقاط صورة';
+
+  @override
+  String get choosePhotoAction => 'اختيار صورة';
+
+  @override
+  String get removePhotoAction => 'إزالة الصورة';
+
+  @override
+  String get photoUploadFailedError => 'تعذر حفظ الصورة. حاول مرة أخرى.';
+
+  @override
+  String get photoTooLargeError => 'الصورة كبيرة جداً. اختر صورة أصغر.';
+
+  @override
   String get accountSection => 'الحساب';
 
   @override
