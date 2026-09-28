@@ -28,6 +28,11 @@ class Users extends Table {
   DateTimeColumn get dob => dateTime().nullable()();
   TextColumn get gender => textEnum<Gender>().nullable()();
   TextColumn get nationalId => text().nullable()();
+
+  /// Local file path to the account's profile photo, or null for the
+  /// generated-monogram fallback. Never a remote URL — the app is
+  /// offline-first, so the image lives on-device alongside the database.
+  TextColumn get avatarPath => text().nullable()();
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 

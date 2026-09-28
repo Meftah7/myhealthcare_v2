@@ -184,6 +184,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editProfile => 'Edit profile';
 
   @override
+  String get profilePhotoTitle => 'Profile photo';
+
+  @override
+  String get uploadPhotoAction => 'Upload photo';
+
+  @override
+  String get takePhotoAction => 'Take a photo';
+
+  @override
+  String get choosePhotoAction => 'Choose photo';
+
+  @override
+  String get removePhotoAction => 'Remove photo';
+
+  @override
+  String get photoUploadFailedError => 'Couldn\'t save that photo. Try again.';
+
+  @override
+  String get photoTooLargeError =>
+      'That photo is too large. Choose a smaller one.';
+
+  @override
   String get accountSection => 'Account';
 
   @override

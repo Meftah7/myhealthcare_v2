@@ -383,6 +383,17 @@ class $UsersTable extends Users with TableInfo<$UsersTable, UserRow> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _avatarPathMeta = const VerificationMeta(
+    'avatarPath',
+  );
+  @override
+  late final GeneratedColumn<String> avatarPath = GeneratedColumn<String>(
+    'avatar_path',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _isActiveMeta = const VerificationMeta(
     'isActive',
   );
@@ -444,6 +455,7 @@ class $UsersTable extends Users with TableInfo<$UsersTable, UserRow> {
     dob,
     gender,
     nationalId,
+    avatarPath,
     isActive,
     createdAt,
     failedLoginAttempts,
@@ -520,6 +532,12 @@ class $UsersTable extends Users with TableInfo<$UsersTable, UserRow> {
       context.handle(
         _nationalIdMeta,
         nationalId.isAcceptableOrUnknown(data['national_id']!, _nationalIdMeta),
+      );
+    }
+    if (data.containsKey('avatar_path')) {
+      context.handle(
+        _avatarPathMeta,
+        avatarPath.isAcceptableOrUnknown(data['avatar_path']!, _avatarPathMeta),
       );
     }
     if (data.containsKey('is_active')) {
@@ -605,6 +623,10 @@ class $UsersTable extends Users with TableInfo<$UsersTable, UserRow> {
         DriftSqlType.string,
         data['${effectivePrefix}national_id'],
       ),
+      avatarPath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}avatar_path'],
+      ),
       isActive: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_active'],
@@ -648,6 +670,11 @@ class UserRow extends DataClass implements Insertable<UserRow> {
   final DateTime? dob;
   final Gender? gender;
   final String? nationalId;
+
+  /// Local file path to the account's profile photo, or null for the
+  /// generated-monogram fallback. Never a remote URL — the app is
+  /// offline-first, so the image lives on-device alongside the database.
+  final String? avatarPath;
   final bool isActive;
   final DateTime createdAt;
 
@@ -669,6 +696,7 @@ class UserRow extends DataClass implements Insertable<UserRow> {
     this.dob,
     this.gender,
     this.nationalId,
+    this.avatarPath,
     required this.isActive,
     required this.createdAt,
     required this.failedLoginAttempts,
@@ -699,6 +727,9 @@ class UserRow extends DataClass implements Insertable<UserRow> {
     if (!nullToAbsent || nationalId != null) {
       map['national_id'] = Variable<String>(nationalId);
     }
+    if (!nullToAbsent || avatarPath != null) {
+      map['avatar_path'] = Variable<String>(avatarPath);
+    }
     map['is_active'] = Variable<bool>(isActive);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['failed_login_attempts'] = Variable<int>(failedLoginAttempts);
@@ -726,6 +757,9 @@ class UserRow extends DataClass implements Insertable<UserRow> {
       nationalId: nationalId == null && nullToAbsent
           ? const Value.absent()
           : Value(nationalId),
+      avatarPath: avatarPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(avatarPath),
       isActive: Value(isActive),
       createdAt: Value(createdAt),
       failedLoginAttempts: Value(failedLoginAttempts),
@@ -755,6 +789,7 @@ class UserRow extends DataClass implements Insertable<UserRow> {
         serializer.fromJson<String?>(json['gender']),
       ),
       nationalId: serializer.fromJson<String?>(json['nationalId']),
+      avatarPath: serializer.fromJson<String?>(json['avatarPath']),
       isActive: serializer.fromJson<bool>(json['isActive']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       failedLoginAttempts: serializer.fromJson<int>(
@@ -781,6 +816,7 @@ class UserRow extends DataClass implements Insertable<UserRow> {
         $UsersTable.$convertergendern.toJson(gender),
       ),
       'nationalId': serializer.toJson<String?>(nationalId),
+      'avatarPath': serializer.toJson<String?>(avatarPath),
       'isActive': serializer.toJson<bool>(isActive),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'failedLoginAttempts': serializer.toJson<int>(failedLoginAttempts),
@@ -799,6 +835,7 @@ class UserRow extends DataClass implements Insertable<UserRow> {
     Value<DateTime?> dob = const Value.absent(),
     Value<Gender?> gender = const Value.absent(),
     Value<String?> nationalId = const Value.absent(),
+    Value<String?> avatarPath = const Value.absent(),
     bool? isActive,
     DateTime? createdAt,
     int? failedLoginAttempts,
@@ -814,6 +851,7 @@ class UserRow extends DataClass implements Insertable<UserRow> {
     dob: dob.present ? dob.value : this.dob,
     gender: gender.present ? gender.value : this.gender,
     nationalId: nationalId.present ? nationalId.value : this.nationalId,
+    avatarPath: avatarPath.present ? avatarPath.value : this.avatarPath,
     isActive: isActive ?? this.isActive,
     createdAt: createdAt ?? this.createdAt,
     failedLoginAttempts: failedLoginAttempts ?? this.failedLoginAttempts,
@@ -837,6 +875,9 @@ class UserRow extends DataClass implements Insertable<UserRow> {
       nationalId: data.nationalId.present
           ? data.nationalId.value
           : this.nationalId,
+      avatarPath: data.avatarPath.present
+          ? data.avatarPath.value
+          : this.avatarPath,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       failedLoginAttempts: data.failedLoginAttempts.present
@@ -861,6 +902,7 @@ class UserRow extends DataClass implements Insertable<UserRow> {
           ..write('dob: $dob, ')
           ..write('gender: $gender, ')
           ..write('nationalId: $nationalId, ')
+          ..write('avatarPath: $avatarPath, ')
           ..write('isActive: $isActive, ')
           ..write('createdAt: $createdAt, ')
           ..write('failedLoginAttempts: $failedLoginAttempts, ')
@@ -881,6 +923,7 @@ class UserRow extends DataClass implements Insertable<UserRow> {
     dob,
     gender,
     nationalId,
+    avatarPath,
     isActive,
     createdAt,
     failedLoginAttempts,
@@ -900,6 +943,7 @@ class UserRow extends DataClass implements Insertable<UserRow> {
           other.dob == this.dob &&
           other.gender == this.gender &&
           other.nationalId == this.nationalId &&
+          other.avatarPath == this.avatarPath &&
           other.isActive == this.isActive &&
           other.createdAt == this.createdAt &&
           other.failedLoginAttempts == this.failedLoginAttempts &&
@@ -917,6 +961,7 @@ class UsersCompanion extends UpdateCompanion<UserRow> {
   final Value<DateTime?> dob;
   final Value<Gender?> gender;
   final Value<String?> nationalId;
+  final Value<String?> avatarPath;
   final Value<bool> isActive;
   final Value<DateTime> createdAt;
   final Value<int> failedLoginAttempts;
@@ -933,6 +978,7 @@ class UsersCompanion extends UpdateCompanion<UserRow> {
     this.dob = const Value.absent(),
     this.gender = const Value.absent(),
     this.nationalId = const Value.absent(),
+    this.avatarPath = const Value.absent(),
     this.isActive = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.failedLoginAttempts = const Value.absent(),
@@ -950,6 +996,7 @@ class UsersCompanion extends UpdateCompanion<UserRow> {
     this.dob = const Value.absent(),
     this.gender = const Value.absent(),
     this.nationalId = const Value.absent(),
+    this.avatarPath = const Value.absent(),
     this.isActive = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.failedLoginAttempts = const Value.absent(),
@@ -972,6 +1019,7 @@ class UsersCompanion extends UpdateCompanion<UserRow> {
     Expression<DateTime>? dob,
     Expression<String>? gender,
     Expression<String>? nationalId,
+    Expression<String>? avatarPath,
     Expression<bool>? isActive,
     Expression<DateTime>? createdAt,
     Expression<int>? failedLoginAttempts,
@@ -989,6 +1037,7 @@ class UsersCompanion extends UpdateCompanion<UserRow> {
       if (dob != null) 'dob': dob,
       if (gender != null) 'gender': gender,
       if (nationalId != null) 'national_id': nationalId,
+      if (avatarPath != null) 'avatar_path': avatarPath,
       if (isActive != null) 'is_active': isActive,
       if (createdAt != null) 'created_at': createdAt,
       if (failedLoginAttempts != null)
@@ -1009,6 +1058,7 @@ class UsersCompanion extends UpdateCompanion<UserRow> {
     Value<DateTime?>? dob,
     Value<Gender?>? gender,
     Value<String?>? nationalId,
+    Value<String?>? avatarPath,
     Value<bool>? isActive,
     Value<DateTime>? createdAt,
     Value<int>? failedLoginAttempts,
@@ -1026,6 +1076,7 @@ class UsersCompanion extends UpdateCompanion<UserRow> {
       dob: dob ?? this.dob,
       gender: gender ?? this.gender,
       nationalId: nationalId ?? this.nationalId,
+      avatarPath: avatarPath ?? this.avatarPath,
       isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,
       failedLoginAttempts: failedLoginAttempts ?? this.failedLoginAttempts,
@@ -1071,6 +1122,9 @@ class UsersCompanion extends UpdateCompanion<UserRow> {
     if (nationalId.present) {
       map['national_id'] = Variable<String>(nationalId.value);
     }
+    if (avatarPath.present) {
+      map['avatar_path'] = Variable<String>(avatarPath.value);
+    }
     if (isActive.present) {
       map['is_active'] = Variable<bool>(isActive.value);
     }
@@ -1102,6 +1156,7 @@ class UsersCompanion extends UpdateCompanion<UserRow> {
           ..write('dob: $dob, ')
           ..write('gender: $gender, ')
           ..write('nationalId: $nationalId, ')
+          ..write('avatarPath: $avatarPath, ')
           ..write('isActive: $isActive, ')
           ..write('createdAt: $createdAt, ')
           ..write('failedLoginAttempts: $failedLoginAttempts, ')

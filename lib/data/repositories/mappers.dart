@@ -21,6 +21,7 @@ extension UserRowX on UserRow {
     dob: dob,
     gender: gender,
     nationalId: nationalId,
+    avatarPath: avatarPath,
   );
 }
 

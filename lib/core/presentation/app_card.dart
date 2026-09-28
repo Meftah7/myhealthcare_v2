@@ -5,6 +5,9 @@
 /// "one number + label + trend" used on every dashboard.
 library;
 
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../../app/theme/theme.dart';
@@ -491,6 +494,16 @@ class ListCard extends StatelessWidget {
   }
 }
 
+/// A stored avatar is either a local file path (native platforms) or a
+/// base64 data URI (web, which has no file system to point a path at).
+ImageProvider _avatarImage(String avatarPath) {
+  if (avatarPath.startsWith('data:')) {
+    final b64 = avatarPath.substring(avatarPath.indexOf(',') + 1);
+    return MemoryImage(base64Decode(b64));
+  }
+  return FileImage(File(avatarPath));
+}
+
 /// The header on a profile screen: a gradient-ringed monogram, name, email,
 /// and a role pill.
 class ProfileHeader extends StatelessWidget {
@@ -499,6 +512,7 @@ class ProfileHeader extends StatelessWidget {
     required this.email,
     this.role,
     this.phone,
+    this.avatarPath,
     this.avatarSize = 56,
     this.elevated = false,
     this.onEditAvatar,
@@ -509,6 +523,10 @@ class ProfileHeader extends StatelessWidget {
   final String email;
   final String? role;
   final String? phone;
+
+  /// Local file path to the account's photo, or null for the generated
+  /// monogram.
+  final String? avatarPath;
   final double avatarSize;
   final bool elevated;
 
@@ -531,16 +549,24 @@ class ProfileHeader extends StatelessWidget {
                 width: avatarSize,
                 height: avatarSize,
                 alignment: Alignment.center,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: AppColors.brandGradient,
+                  gradient: avatarPath == null ? AppColors.brandGradient : null,
+                  image: avatarPath == null
+                      ? null
+                      : DecorationImage(
+                          image: _avatarImage(avatarPath!),
+                          fit: BoxFit.cover,
+                        ),
                 ),
-                child: Text(
-                  name.isNotEmpty ? name[0].toUpperCase() : '?',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    color: Colors.white,
-                  ),
-                ),
+                child: avatarPath != null
+                    ? null
+                    : Text(
+                        name.isNotEmpty ? name[0].toUpperCase() : '?',
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          color: Colors.white,
+                        ),
+                      ),
               ),
               if (onEditAvatar != null)
                 Positioned(
@@ -558,7 +584,7 @@ class ProfileHeader extends StatelessWidget {
                         border: Border.all(color: scheme.surface, width: 2),
                       ),
                       child: Icon(
-                        Icons.edit_outlined,
+                        Icons.photo_camera_outlined,
                         size: 13,
                         color: scheme.onPrimary,
                       ),
