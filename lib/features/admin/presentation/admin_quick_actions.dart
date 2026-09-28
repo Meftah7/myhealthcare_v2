@@ -10,6 +10,7 @@ library;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -87,11 +88,12 @@ class AdminQuickActions extends ConsumerWidget {
         label: t.newDepartmentAction,
         onTap: () => unawaited(showNewDepartmentDialog(context, ref)),
       ),
-      _QuickAction(
-        icon: Icons.dataset_outlined,
-        label: t.reseedDataAction,
-        onTap: () => unawaited(_reseed(context, ref)),
-      ),
+      if (kDebugMode)
+        _QuickAction(
+          icon: Icons.dataset_outlined,
+          label: t.reseedDataAction,
+          onTap: () => unawaited(_reseed(context, ref)),
+        ),
     ];
 
     // Two tiles per row on a phone, three once there's room — the same shape

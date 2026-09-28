@@ -76,10 +76,16 @@ class ReminderScheduler {
   /// (Re)builds the reminder rows for [appointmentId]. Existing unsent
   /// reminders for it are cleared first, so this is safe to call again after a
   /// reschedule.
+  /// [enabledChannels], when given, drops any plan step whose channel isn't
+  /// in the set — the patient's own notification preferences, so a disabled
+  /// channel is never queued for delivery. Null (the default) schedules
+  /// every channel [reminderPlanFor] specifies, for callers that don't have
+  /// a preference to apply.
   Future<Result<int>> scheduleFor({
     required String appointmentId,
     required DateTime slotStart,
     required RiskBand band,
+    Set<ReminderChannel>? enabledChannels,
   }) {
     return Result.guardAsync(() async {
       await (_db.delete(_db.reminders)..where(
@@ -90,6 +96,9 @@ class ReminderScheduler {
       final now = DateTime.now();
       var written = 0;
       for (final plan in reminderPlanFor(band)) {
+        if (enabledChannels != null && !enabledChannels.contains(plan.channel)) {
+          continue;
+        }
         final at = slotStart.subtract(plan.offsetBeforeSlot);
         if (at.isBefore(now)) continue; // no point scheduling the past
         await _db

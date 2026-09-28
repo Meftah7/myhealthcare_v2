@@ -91,6 +91,8 @@ class FamilyLinkRepositoryImpl implements FamilyLinkRepository {
     });
   }
 
+  static const maxRequestsPerDay = 10;
+
   @override
   Future<Result<FamilyLink>> request({
     required String ownerPatientId,
@@ -113,6 +115,25 @@ class FamilyLinkRepositoryImpl implements FamilyLinkRepository {
           existing.status == FamilyLinkStatus.accepted
               ? 'Already linked to this account.'
               : 'A request is already pending with this account.',
+        );
+      }
+
+      // Anti-spam: cap how many requests one account can send per day
+      // (SEC-PAT-11). Durable per-device throttling needs a backend.
+      final since = DateTime.now().subtract(const Duration(days: 1));
+      final recent = _db.familyLinks.id.count();
+      final sentToday =
+          await (_db.selectOnly(_db.familyLinks)
+                ..addColumns([recent])
+                ..where(
+                  _db.familyLinks.viewerPatientId.equals(viewerPatientId) &
+                      _db.familyLinks.createdAt.isBiggerOrEqualValue(since),
+                ))
+              .map((r) => r.read(recent) ?? 0)
+              .getSingle();
+      if (sentToday >= maxRequestsPerDay) {
+        throw const ValidationFailure(
+          'Too many link requests today. Try again tomorrow.',
         );
       }
 

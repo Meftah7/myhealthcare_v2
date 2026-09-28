@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
-import '../../../core/di.dart';
 import '../../../core/result.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../l10n/app_localizations.dart';
@@ -96,8 +95,9 @@ class _HealthDetailsSectionState extends ConsumerState<HealthDetailsSection> {
       emergencyContact:
           _emergency.text.trim().isEmpty ? null : _emergency.text.trim(),
     );
-    final result =
-        await ref.read(patientRepositoryProvider).updateProfile(updated);
+    final result = await ref
+        .read(patientProfileControllerProvider)
+        .update(updated);
     if (!mounted) return;
     setState(() => _busy = false);
     switch (result) {

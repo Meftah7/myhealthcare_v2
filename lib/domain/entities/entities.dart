@@ -15,6 +15,7 @@ export 'invoice.dart';
 export 'medical_record.dart';
 export 'medication.dart';
 export 'notification.dart';
+export 'password_reset_request.dart';
 export 'patient.dart';
 export 'payment_method.dart';
 export 'referral_request.dart';

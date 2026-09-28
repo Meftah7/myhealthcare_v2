@@ -7,7 +7,7 @@ time) so the web build is reproducible and offline.
 | File | Source | Version |
 |---|---|---|
 | `sqlite3.wasm` | https://github.com/simolus3/sqlite3.dart/releases | `sqlite3-3.5.2` (matches the resolved `sqlite3` package) |
-| `drift_worker.js` | https://github.com/simolus3/drift/releases | `drift-2.34.3` (matches the resolved `drift` package) |
+| `drift_worker.js` | https://github.com/simolus3/drift/releases | `drift-2.34.4` (matches the resolved `drift` package) |
 
 **When upgrading `drift` or `sqlite3`:** re-download both files from the release
 tag matching the new package version, or the web DB will fail to open.

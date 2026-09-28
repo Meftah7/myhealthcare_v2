@@ -1,6 +1,8 @@
 /// Drift-backed [AuthRepository] + [UserRepository] (P1-12).
 library;
 
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 
 import '../../core/failures.dart';
@@ -20,6 +22,24 @@ class AuthRepositoryImpl implements AuthRepository {
   final AppDatabase _db;
   final PasswordHasher _hasher;
 
+  /// One message for "no such account" and "wrong password" alike, so a
+  /// login attempt can never be used to test whether an email or national ID
+  /// has an account (OWASP account-enumeration guidance).
+  static const _badCredentials = AuthFailure('Incorrect email or password.');
+
+  /// Consecutive failures allowed before a temporary lockout.
+  static const _maxFailedAttempts = 5;
+
+  /// How long an account stays locked after crossing [_maxFailedAttempts].
+  static const _lockoutDuration = Duration(minutes: 5);
+
+  /// A hash/salt pair verify() always fails against — run when no account
+  /// matches, so a login attempt takes about as long whether or not the
+  /// identifier exists (a real difference here is a timing side-channel for
+  /// account enumeration).
+  static const _dummyHash = '120000:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';
+  static const _dummySalt = 'AAAAAAAAAAAAAAAAAAAAAA==';
+
   /// The account behind an "email or national ID" identifier.
   Future<UserRow?> _rowForIdentifier(String identifier) {
     final id = identifier.trim();
@@ -35,35 +55,102 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
   }) {
     return Result.guardAsync(() async {
+      if (!_passwordFits(password)) throw _badCredentials;
       final row = await _rowForIdentifier(email);
 
       if (row == null) {
-        throw const AuthFailure('No account found for that email or ID.');
+        // Still do the expensive hash work, so the response time doesn't
+        // give away that this identifier has no account.
+        _hasher.verify(password, hash: _dummyHash, salt: _dummySalt);
+        throw _badCredentials;
       }
-      if (!row.isActive) {
-        throw const AuthFailure('This account has been deactivated.');
+
+      final lockedUntil = row.lockedUntil;
+      if (lockedUntil != null && lockedUntil.isAfter(DateTime.now())) {
+        throw const AuthFailure(
+          'Too many attempts. Try again in a few minutes.',
+        );
       }
+
       final ok = _hasher.verify(
         password,
         hash: row.passwordHash,
         salt: row.passwordSalt,
       );
       if (!ok) {
-        throw const AuthFailure('Incorrect email or password.');
+        await _recordFailedAttempt(row.id);
+        throw _badCredentials;
+      }
+
+      // Only reveal deactivation once the password has actually been proven
+      // correct — otherwise anyone who merely knows the identifier could
+      // learn an account's status without ever guessing the password.
+      if (!row.isActive) {
+        throw const AuthFailure('This account has been deactivated.');
+      }
+
+      if (row.failedLoginAttempts > 0 || row.lockedUntil != null) {
+        await (_db.update(_db.users)..where((u) => u.id.equals(row.id))).write(
+          const UsersCompanion(
+            failedLoginAttempts: Value(0),
+            lockedUntil: Value(null),
+          ),
+        );
       }
       return row.toEntity();
     });
   }
 
+  Future<void> _recordFailedAttempt(String userId) {
+    return _db.transaction(() async {
+      final current = await (_db.select(
+        _db.users,
+      )..where((u) => u.id.equals(userId))).getSingle();
+      final attempts = current.failedLoginAttempts + 1;
+      final locked = attempts >= _maxFailedAttempts;
+      await (_db.update(_db.users)..where((u) => u.id.equals(userId))).write(
+        UsersCompanion(
+          failedLoginAttempts: Value(locked ? 0 : attempts),
+          lockedUntil: Value(
+            locked ? DateTime.now().add(_lockoutDuration) : null,
+          ),
+        ),
+      );
+    });
+  }
+
+  static bool _passwordFits(String password) =>
+      utf8.encode(password).length <= PasswordHasher.maxPasswordBytes;
+
+  static void _requireNewPassword(String password) {
+    if (password.length < 8 || !_passwordFits(password)) {
+      throw const ValidationFailure(
+        'Choose a password between 8 characters and 1 KiB.',
+      );
+    }
+  }
+
   @override
   Future<Result<Patient>> registerPatient(PatientRegistration reg) {
     return Result.guardAsync(() async {
+      _requireNewPassword(reg.password);
       final email = reg.email.trim().toLowerCase();
       final existing = await (_db.select(
         _db.users,
       )..where((u) => u.email.equals(email))).getSingleOrNull();
       if (existing != null) {
         throw const ValidationFailure('An account with that email exists.');
+      }
+      final nationalId = reg.nationalId?.trim();
+      if (nationalId != null && nationalId.isNotEmpty) {
+        final existingNationalId = await (_db.select(
+          _db.users,
+        )..where((u) => u.nationalId.equals(nationalId))).getSingleOrNull();
+        if (existingNationalId != null) {
+          throw const ValidationFailure(
+            'An account with that national ID already exists.',
+          );
+        }
       }
 
       final id = newId('user');
@@ -119,6 +206,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required String newPassword,
   }) {
     return Result.guardAsync(() async {
+      _requireNewPassword(newPassword);
       final row = await (_db.select(
         _db.users,
       )..where((u) => u.id.equals(userId))).getSingleOrNull();
@@ -157,37 +245,40 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Result<void>> resetPassword({
-    required String userId,
-    required String newPassword,
-  }) {
+  Future<Result<void>> requestPasswordReset(String identifier) {
     return Result.guardAsync(() async {
-      if (newPassword.trim().length < 8) {
-        throw const ValidationFailure(
-          'Choose a password of at least 8 characters.',
-        );
+      final row = await _rowForIdentifier(identifier);
+      // Deliberately no NotFoundFailure/deactivated distinction here: this
+      // always reports success to the caller so it can never be used to
+      // test whether an identifier has an account. Nothing is queued for a
+      // deactivated account, but that's invisible to the caller too.
+      if (row != null && row.isActive) {
+        final existing = await (_db.select(_db.passwordResetRequests)..where(
+              (r) => r.userId.equals(row.id) & r.resolved.equals(false),
+            ))
+            .getSingleOrNull();
+        if (existing != null) return;
+        await _db
+            .into(_db.passwordResetRequests)
+            .insert(
+              PasswordResetRequestsCompanion.insert(
+                id: newId('prr'),
+                userId: row.id,
+                identifierEntered: _maskedIdentifier(identifier),
+              ),
+            );
       }
-      final exists = await (_db.select(
-        _db.users,
-      )..where((u) => u.id.equals(userId))).getSingleOrNull();
-      if (exists == null) throw const NotFoundFailure('Account not found.');
-      if (_hasher.verify(
-        newPassword,
-        hash: exists.passwordHash,
-        salt: exists.passwordSalt,
-      )) {
-        throw const ValidationFailure(
-          'This is your current password. Choose a different password.',
-        );
-      }
-      final pw = _hasher.hashNew(newPassword);
-      await (_db.update(_db.users)..where((u) => u.id.equals(userId))).write(
-        UsersCompanion(
-          passwordHash: Value(pw.hash),
-          passwordSalt: Value(pw.salt),
-        ),
-      );
     });
+  }
+
+  static String _maskedIdentifier(String identifier) {
+    final value = identifier.trim();
+    final at = value.indexOf('@');
+    if (at > 0) {
+      return '${value[0]}***${value.substring(at).toLowerCase()}';
+    }
+    if (value.length <= 4) return '****';
+    return '${'*' * (value.length - 4)}${value.substring(value.length - 4)}';
   }
 }
 
@@ -197,6 +288,15 @@ class UserRepositoryImpl implements UserRepository {
 
   final AppDatabase _db;
   final PasswordHasher _hasher;
+
+  static void _requireNewPassword(String password) {
+    if (password.length < 8 ||
+        utf8.encode(password).length > PasswordHasher.maxPasswordBytes) {
+      throw const ValidationFailure(
+        'Choose a password between 8 characters and 1 KiB.',
+      );
+    }
+  }
 
   @override
   Future<Result<User>> byId(String id) {
@@ -302,6 +402,7 @@ class UserRepositoryImpl implements UserRepository {
     String? jobTitle,
   }) {
     return Result.guardAsync(() async {
+      _requireNewPassword(temporaryPassword);
       final id = newId('user');
       final pw = _hasher.hashNew(temporaryPassword);
       await _db.transaction(() async {
@@ -346,6 +447,7 @@ class UserRepositoryImpl implements UserRepository {
     required String temporaryPassword,
   }) {
     return Result.guardAsync(() async {
+      _requireNewPassword(temporaryPassword);
       final normalized = email.trim().toLowerCase();
       final existing = await (_db.select(
         _db.users,
@@ -377,9 +479,12 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Future<Result<void>> setActive({required String id, required bool active}) {
     return Result.guardAsync(() async {
-      await (_db.update(_db.users)..where((u) => u.id.equals(id))).write(
+      final updated = await (_db.update(
+        _db.users,
+      )..where((u) => u.id.equals(id))).write(
         UsersCompanion(isActive: Value(active)),
       );
+      if (updated != 1) throw NotFoundFailure('No user $id.');
     });
   }
 
@@ -398,13 +503,88 @@ class UserRepositoryImpl implements UserRepository {
     required String newPassword,
   }) {
     return Result.guardAsync(() async {
+      _requireNewPassword(newPassword);
       final pw = _hasher.hashNew(newPassword);
-      await (_db.update(_db.users)..where((u) => u.id.equals(id))).write(
+      final updated = await (_db.update(
+        _db.users,
+      )..where((u) => u.id.equals(id))).write(
         UsersCompanion(
           passwordHash: Value(pw.hash),
           passwordSalt: Value(pw.salt),
         ),
       );
+      if (updated != 1) throw NotFoundFailure('No user $id.');
+    });
+  }
+
+  @override
+  Future<Result<void>> resetPasswordAndResolve({
+    required String id,
+    required String newPassword,
+    required String adminId,
+  }) {
+    return Result.guardAsync(() => _db.transaction(() async {
+      _requireNewPassword(newPassword);
+      final admin = await (_db.select(_db.users)..where(
+            (u) =>
+                u.id.equals(adminId) &
+                u.role.equalsValue(UserRole.admin) &
+                u.isActive.equals(true),
+          ))
+          .getSingleOrNull();
+      if (admin == null) {
+        throw const AuthFailure('Administrator access is required.');
+      }
+      final pw = _hasher.hashNew(newPassword);
+      final updated = await (_db.update(
+        _db.users,
+      )..where((u) => u.id.equals(id))).write(
+        UsersCompanion(
+          passwordHash: Value(pw.hash),
+          passwordSalt: Value(pw.salt),
+        ),
+      );
+      if (updated != 1) throw NotFoundFailure('No user $id.');
+      await (_db.update(_db.passwordResetRequests)..where(
+            (r) => r.userId.equals(id) & r.resolved.equals(false),
+          ))
+          .write(
+            PasswordResetRequestsCompanion(
+              resolved: const Value(true),
+              resolvedByStaffId: Value(adminId),
+              resolvedAt: Value(DateTime.now()),
+            ),
+          );
+    }));
+  }
+
+  @override
+  Future<Result<Set<String>>> userIdsWithPendingPasswordResetRequests() {
+    return Result.guardAsync(() async {
+      final rows =
+          await (_db.select(_db.passwordResetRequests)
+                ..where((r) => r.resolved.equals(false)))
+              .get();
+      return rows.map((r) => r.userId).toSet();
+    });
+  }
+
+  @override
+  Future<Result<void>> resolvePasswordResetRequests({
+    required String userId,
+    required String staffId,
+  }) {
+    return Result.guardAsync(() async {
+      await (_db.update(_db.passwordResetRequests)..where(
+            (r) => r.userId.equals(userId) & r.resolved.equals(false),
+          ))
+          .write(
+            PasswordResetRequestsCompanion(
+              resolved: const Value(true),
+              resolvedByStaffId: Value(staffId),
+              resolvedAt: Value(DateTime.now()),
+            ),
+          );
     });
   }
 }

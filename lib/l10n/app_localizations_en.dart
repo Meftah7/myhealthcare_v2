@@ -123,6 +123,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hidePassword => 'Hide password';
 
   @override
+  String get startupFailedTitle => 'Couldn\'t load your data';
+
+  @override
+  String get startupFailedSubtitle =>
+      'Something stopped the app from setting up its local database. Check your browser\'s storage settings (private browsing and some privacy extensions can block it), then try again.';
+
+  @override
+  String get technicalDetailsLabel => 'Technical details';
+
+  @override
   String get uploadedByPatientTag => 'Uploaded by patient — not reviewed';
 
   @override
@@ -2868,6 +2878,116 @@ class AppLocalizationsEn extends AppLocalizations {
   String get allClearTitle => 'All clear';
 
   @override
+  String get settingSaveFailedMessage =>
+      'Couldn\'t save that setting. It has been changed back.';
+
+  @override
+  String get smsChannelSubtitle => 'Appointment reminders by text message';
+
+  @override
+  String get emailChannelSubtitle => 'Reminders and receipts by email';
+
+  @override
+  String get pushChannelSubtitle =>
+      'Alerts on this device, even when the app is closed';
+
+  @override
+  String get inAppAlwaysOnNote =>
+      'In-app notifications are always on, so you never miss a reminder. This demo simulates SMS, email and push delivery.';
+
+  @override
+  String get resetNotificationsTitle => 'Reset notifications';
+
+  @override
+  String get resetNotificationsMessage =>
+      'Turn email and push back on, SMS off, and sounds on?';
+
+  @override
+  String get resetAppearanceTitle => 'Reset appearance';
+
+  @override
+  String get resetAppearanceMessage =>
+      'Return theme, text size, motion and contrast to their defaults?';
+
+  @override
+  String get resetAction => 'Reset';
+
+  @override
+  String get highContrastLabel => 'High contrast';
+
+  @override
+  String get highContrastSubtitle => 'Darker text and stronger borders';
+
+  @override
+  String get motionLabel => 'Motion';
+
+  @override
+  String get motionSystem => 'System';
+
+  @override
+  String get motionReduced => 'Reduced';
+
+  @override
+  String get motionFull => 'Full';
+
+  @override
+  String get pushLabel => 'Push notifications';
+
+  @override
+  String showOlderVisitsAction(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Show $count older visits',
+      one: 'Show $count older visit',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get appointmentDetailTitle => 'Appointment details';
+
+  @override
+  String get appointmentNotFoundNote => 'This appointment could not be found';
+
+  @override
+  String get addToCalendarAction => 'Add to calendar';
+
+  @override
+  String get contactSupportAction => 'Contact support';
+
+  @override
+  String get calendarFileSavedMessage => 'Calendar file saved';
+
+  @override
+  String get chooseATimeTitle => 'Choose a time';
+
+  @override
+  String get noOpenSlotsThatDay => 'No open slots that day';
+
+  @override
+  String get changePasswordTitle => 'Change password';
+
+  @override
+  String get changePasswordAction => 'Change password';
+
+  @override
+  String get currentPasswordLabel => 'Current password';
+
+  @override
+  String get passwordChangedSnackbar => 'Password changed.';
+
+  @override
+  String get passwordResetRequestedBadge => 'Password reset requested';
+
+  @override
+  String get passwordResetRequestedTitle => 'Request sent';
+
+  @override
+  String get passwordResetRequestedBody =>
+      'If that matches an account, our team will verify your identity and help you regain access. This can take a little time — thank you for your patience.';
+
+  @override
   String get riskFlagsCheckFailed =>
       'Couldn\'t check risk flags for this patient';
 
@@ -3182,9 +3302,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get newTemporaryPasswordTitle => 'New temporary password';
-
-  @override
-  String get resetAction => 'Reset';
 
   @override
   String get addAnAdministratorTitle => 'Add an administrator';

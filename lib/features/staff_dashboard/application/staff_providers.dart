@@ -218,6 +218,7 @@ class StaffOps {
     for (final (task, score, rationale) in _rankTasks(tasks)) {
       await repo.applyAiPriority(
         id: task.id,
+        staffId: staffId,
         score: score,
         rationale: rationale,
       );
@@ -236,7 +237,10 @@ class StaffOps {
   }
 
   Future<void> setTaskStatus(String taskId, TaskStatus status) async {
-    await _ref.read(taskRepositoryProvider).setStatus(taskId, status);
+    final staffId = _ref.read(currentUserProvider)!.id;
+    await _ref
+        .read(taskRepositoryProvider)
+        .setStatus(id: taskId, staffId: staffId, status: status);
     _ref.invalidate(staffTasksProvider);
   }
 
@@ -270,10 +274,12 @@ class StaffOps {
 
   /// Mark the visit cancelled / no-show.
   Future<void> cancelAppointment(String id, {bool noShow = false}) async {
+    final staffId = _ref.read(currentUserProvider)!.id;
     await _ref
         .read(appointmentRepositoryProvider)
         .updateStatus(
           id: id,
+          staffId: staffId,
           status: noShow
               ? AppointmentStatus.noShow
               : AppointmentStatus.cancelled,
@@ -289,7 +295,7 @@ class StaffOps {
     final actorId = _ref.read(currentUserProvider)!.id;
     final result = await _ref
         .read(appointmentRepositoryProvider)
-        .transfer(id: id, toStaffId: toStaffId);
+        .transfer(id: id, fromStaffId: actorId, toStaffId: toStaffId);
     if (result.isOk) {
       await _ref
           .read(auditRepositoryProvider)

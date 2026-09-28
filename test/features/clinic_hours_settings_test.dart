@@ -13,6 +13,8 @@ import 'package:myhealthcare/features/admin/presentation/clinic_hours_screen.dar
 import 'package:myhealthcare/l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../support/test_database.dart';
+
 void main() {
   group('clinic_hours pure functions', () {
     const weekdaysOnly = ClinicSchedule(openDays: {1, 2, 3, 4, 5});
@@ -34,10 +36,16 @@ void main() {
 
     test('isWithinClinicHours respects custom open/close hours', () {
       const schedule = ClinicSchedule(openHour: 9, closeHour: 17);
-      expect(isWithinClinicHours(DateTime(2024, 1, 1, 8, 30), schedule), isFalse);
+      expect(
+        isWithinClinicHours(DateTime(2024, 1, 1, 8, 30), schedule),
+        isFalse,
+      );
       expect(isWithinClinicHours(DateTime(2024, 1, 1, 9), schedule), isTrue);
       expect(isWithinClinicHours(DateTime(2024, 1, 1, 17), schedule), isTrue);
-      expect(isWithinClinicHours(DateTime(2024, 1, 1, 17, 1), schedule), isFalse);
+      expect(
+        isWithinClinicHours(DateTime(2024, 1, 1, 17, 1), schedule),
+        isFalse,
+      );
     });
   });
 
@@ -58,14 +66,25 @@ void main() {
   test('ClinicScheduleController.set persists across a rebuild', () async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
+    final db = newTestDatabase();
+    addTearDown(db.close);
     final container = ProviderContainer(
-      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        appDatabaseProvider.overrideWithValue(db),
+      ],
     );
     addTearDown(container.dispose);
 
     await container
         .read(clinicScheduleProvider.notifier)
-        .set(const ClinicSchedule(openDays: {1, 2, 3, 4, 5}, openHour: 9, closeHour: 17));
+        .set(
+          const ClinicSchedule(
+            openDays: {1, 2, 3, 4, 5},
+            openHour: 9,
+            closeHour: 17,
+          ),
+        );
 
     final reread = ProviderContainer(
       overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
@@ -77,15 +96,67 @@ void main() {
     expect(schedule.closeHour, 17);
   });
 
+  test('the database is the source of truth: another device with an empty '
+      'cache picks the schedule up on bootstrap', () async {
+    final db = newTestDatabase();
+    addTearDown(db.close);
+
+    SharedPreferences.setMockInitialValues({});
+    final adminDevice = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(
+          await SharedPreferences.getInstance(),
+        ),
+        appDatabaseProvider.overrideWithValue(db),
+      ],
+    );
+    addTearDown(adminDevice.dispose);
+    await adminDevice
+        .read(clinicScheduleProvider.notifier)
+        .set(
+          const ClinicSchedule(
+            openDays: {1, 2, 3},
+            openHour: 10,
+            closeHour: 16,
+          ),
+        );
+
+    SharedPreferences.setMockInitialValues({});
+    final otherDevice = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(
+          await SharedPreferences.getInstance(),
+        ),
+        appDatabaseProvider.overrideWithValue(db),
+      ],
+    );
+    addTearDown(otherDevice.dispose);
+    // Nothing cached locally yet — still the built-in default.
+    expect(otherDevice.read(clinicScheduleProvider).openHour, 8);
+
+    await otherDevice
+        .read(clinicScheduleProvider.notifier)
+        .hydrateFromDatabase();
+    final schedule = otherDevice.read(clinicScheduleProvider);
+    expect(schedule.openDays, {1, 2, 3});
+    expect(schedule.openHour, 10);
+    expect(schedule.closeHour, 16);
+  });
+
   testWidgets('ClinicHoursScreen: turning a day off persists it', (
     tester,
   ) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
+    final db = newTestDatabase();
+    addTearDown(db.close);
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          appDatabaseProvider.overrideWithValue(db),
+        ],
         child: const MaterialApp(
           localizationsDelegates: [
             AppLocalizations.delegate,

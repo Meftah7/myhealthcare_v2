@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
+import '../../../core/failures.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
@@ -15,6 +16,7 @@ import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../auth/application/session.dart';
 import '../../patient/application/patient_documents.dart';
 import '../../patient/presentation/document_download_button.dart';
 import '../../patient/presentation/patient_top_actions.dart';
@@ -25,7 +27,9 @@ final recordDetailProvider = FutureProvider.family<MedicalRecord, String>((
 ) async {
   final result = await ref.watch(recordRepositoryProvider).byId(id);
   return switch (result) {
-    Ok(:final value) => value,
+    Ok(:final value)
+        when value.patientId == ref.watch(currentUserProvider)?.id => value,
+    Ok() => throw const AuthFailure('You cannot access this record.'),
     Err(:final failure) => throw failure,
   };
 });

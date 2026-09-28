@@ -16,7 +16,7 @@ final appSettingsProvider = FutureProvider<AppSettings>((ref) async {
   };
 });
 
-/// Whether an API key is stored / provided via --dart-define.
+/// Whether an API key is available from secure storage.
 final aiKeyPresentProvider = FutureProvider<bool>(
   (ref) => ref.watch(aiKeyStoreProvider).hasKey(),
 );

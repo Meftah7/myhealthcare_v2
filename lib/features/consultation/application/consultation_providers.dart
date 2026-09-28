@@ -6,6 +6,7 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/di.dart';
+import '../../../core/failures.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/ids.dart';
 import '../../../domain/entities/entities.dart';
@@ -64,9 +65,17 @@ final consultationDraftProvider =
 
 final consultationAppointmentProvider =
     FutureProvider.family<Appointment, String>((ref, appointmentId) async {
-      return _unwrap(
+      final appointment = _unwrap(
         await ref.watch(appointmentRepositoryProvider).byId(appointmentId),
       );
+      final actor = ref.watch(currentUserProvider);
+      if (actor == null ||
+          !actor.isStaff ||
+          !actor.isActive ||
+          appointment.staffId != actor.id) {
+        throw const AuthFailure('This consultation is not assigned to you.');
+      }
+      return appointment;
     });
 
 /// The patient of the appointment under consultation.
@@ -127,7 +136,7 @@ class ConsultationController {
     );
     final r = await _ref
         .read(appointmentRepositoryProvider)
-        .markCalledIn(appointmentId, DateTime.now());
+        .markCalledIn(appointmentId, staffId: _doctorId, at: DateTime.now());
     if (r.isOk) {
       await _audit('appointment.call');
       await _ref
@@ -154,7 +163,7 @@ class ConsultationController {
   Future<Result<void>> markArrived({bool fromNoShow = false}) async {
     final r = await _ref
         .read(appointmentRepositoryProvider)
-        .markArrived(appointmentId, DateTime.now());
+        .markArrived(appointmentId, staffId: _doctorId, at: DateTime.now());
     if (r.isOk) {
       await _audit(
         fromNoShow ? 'appointment.noshow_cleared' : 'appointment.arrive',
@@ -167,7 +176,11 @@ class ConsultationController {
   Future<Result<void>> markNoShow() async {
     final r = await _ref
         .read(appointmentRepositoryProvider)
-        .updateStatus(id: appointmentId, status: AppointmentStatus.noShow);
+        .updateStatus(
+            id: appointmentId,
+            staffId: _doctorId,
+            status: AppointmentStatus.noShow,
+          );
     if (r.isOk) {
       await _audit('appointment.noshow');
       _refreshQueue();
@@ -210,7 +223,7 @@ class ConsultationController {
     final appt = await _ref.read(
       consultationAppointmentProvider(appointmentId).future,
     );
-    return Result.guardAsync(() async {
+    return Result.guardAsync(() => _ref.read(appDatabaseProvider).transaction(() async {
       final records = _ref.read(recordRepositoryProvider);
       final meds = _ref.read(medicationRepositoryProvider);
 
@@ -246,36 +259,51 @@ class ConsultationController {
             ),
           ),
         );
-        await _ref
-            .read(notificationRepositoryProvider)
-            .send(
+        _throwIfErr(
+          await _ref.read(notificationRepositoryProvider).send(
               NewNotification(
                 recipientId: appt.patientId,
                 category: NotificationCategory.prescription,
                 title: 'New prescription',
                 body: [m.name, ?m.dose, ?m.frequency].join(' · '),
               ),
-            );
+            ),
+        );
       }
 
       _throwIfErr(
         await _ref
             .read(appointmentRepositoryProvider)
-            .completeVisit(id: appointmentId, outcomeNote: outcomeNote),
+            .completeVisit(
+              id: appointmentId,
+              staffId: _doctorId,
+              outcomeNote: outcomeNote,
+            ),
       );
       // If this visit came from a department walk-in, close that ticket too.
-      await _ref
-          .read(walkInTicketRepositoryProvider)
-          .resolveByAppointment(appointmentId);
+      _throwIfErr(
+        await _ref
+            .read(walkInTicketRepositoryProvider)
+            .resolveByAppointment(appointmentId),
+      );
 
-      await _audit('appointment.complete');
+      _throwIfErr(
+        await _ref
+            .read(auditRepositoryProvider)
+            .record(
+              action: 'appointment.complete',
+              entityType: 'appointment',
+              entityId: appointmentId,
+              actorUserId: _doctorId,
+            ),
+      );
 
       _ref
         ..invalidate(consultationDraftProvider(appointmentId))
         ..invalidate(chartTimelineProvider(appt.patientId))
         ..invalidate(chartMedicationsProvider(appt.patientId));
       _refreshQueue();
-    });
+    }));
   }
 }
 

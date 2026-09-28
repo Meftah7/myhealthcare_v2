@@ -1,6 +1,7 @@
 /// Sign-in screen (P2-02, redesign v2).
 library;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -37,6 +38,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _submit() async {
+    if (_busy) return;
     if (!_formKey.currentState!.validate()) return;
     setState(() {
       _busy = true;
@@ -170,13 +172,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             onPressed: _busy ? null : () => context.push(AppRoutes.register),
             child: Text(t.createPatientAccount),
           ),
-          const SizedBox(height: Space.lg),
-          _DemoHint(
-            onFill: (email) {
-              _email.text = email;
-              _password.text = 'password';
-            },
-          ),
+          // Demo credentials must never be included in a release UI.
+          if (kShowDemoAccounts) ...[
+            const SizedBox(height: Space.lg),
+            _DemoHint(
+              onFill: (email) {
+                _email.text = email;
+                _password.text = 'password';
+              },
+            ),
+          ],
         ],
       ),
     );
@@ -273,6 +278,9 @@ class _BrandLockup extends StatelessWidget {
     );
   }
 }
+
+/// See the `_DemoHint` call site.
+const bool kShowDemoAccounts = kDebugMode;
 
 class _DemoHint extends StatelessWidget {
   const _DemoHint({required this.onFill});

@@ -12,11 +12,85 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' as intl;
 
 import '../../core/di.dart';
+import '../../domain/enums.dart';
+import '../../features/auth/application/session.dart';
 
 /// Locales the app is built to support. English is the source language;
 /// Arabic is wired end to end (RTL + Material localisation) — full UI string
 /// translation is tracked as future work (P8-07).
 const supportedLocales = <Locale>[Locale('en'), Locale('ar')];
+
+// --- save / rollback ------------------------------------------------------
+
+/// Bumped every time a preference fails to save — the Preferences screen
+/// listens and says so, instead of the failure being silent.
+final settingsSaveFailureProvider = StateProvider<int>((ref) => 0);
+
+/// Every setter below applies its new value optimistically (so the control
+/// responds instantly), then writes it. If the write throws or
+/// SharedPreferences reports failure, the previous value is restored and the
+/// failure is reported — the screen never keeps showing a value that wasn't
+/// actually saved.
+Future<bool> _saveOrRollback<T>(
+  Ref ref, {
+  required T previous,
+  required void Function(T value) apply,
+  required Future<Object?> Function() write,
+}) async {
+  var ok = true;
+  try {
+    if (await write() == false) ok = false;
+  } on Object {
+    ok = false;
+  }
+  if (!ok) {
+    apply(previous);
+    ref.read(settingsSaveFailureProvider.notifier).state++;
+  }
+  return ok;
+}
+
+// --- motion ------------------------------------------------------------
+
+const _motionPrefKey = 'ui.motionPreference';
+
+/// An explicit in-app override for animation, alongside following the OS
+/// setting. [system] (the default) defers to [MediaQuery.disableAnimations];
+/// [reduced] and [full] force the choice regardless of the OS setting, for
+/// someone whose device default doesn't match what they actually want here.
+enum MotionPreference { system, reduced, full }
+
+class MotionPreferenceController extends Notifier<MotionPreference> {
+  @override
+  MotionPreference build() {
+    final raw = ref.read(sharedPreferencesProvider).getString(_motionPrefKey);
+    return switch (raw) {
+      'reduced' => MotionPreference.reduced,
+      'full' => MotionPreference.full,
+      _ => MotionPreference.system,
+    };
+  }
+
+  Future<void> set(MotionPreference pref) async {
+    final previous = state;
+    state = pref;
+    await _saveOrRollback(
+      ref,
+      previous: previous,
+      apply: (v) => state = v,
+      write: () => ref
+          .read(sharedPreferencesProvider)
+          .setString(_motionPrefKey, pref.name),
+    );
+  }
+
+  Future<void> reset() => set(MotionPreference.system);
+}
+
+final motionPreferenceProvider =
+    NotifierProvider<MotionPreferenceController, MotionPreference>(
+      MotionPreferenceController.new,
+    );
 
 // --- theme mode ------------------------------------------------------------
 
@@ -34,9 +108,19 @@ class ThemeModeController extends Notifier<ThemeMode> {
   }
 
   Future<void> set(ThemeMode mode) async {
+    final previous = state;
     state = mode;
-    await ref.read(sharedPreferencesProvider).setString(_themeModeKey, mode.name);
+    await _saveOrRollback(
+      ref,
+      previous: previous,
+      apply: (v) => state = v,
+      write: () => ref
+          .read(sharedPreferencesProvider)
+          .setString(_themeModeKey, mode.name),
+    );
   }
+
+  Future<void> reset() => set(ThemeMode.system);
 }
 
 final themeModeProvider = NotifierProvider<ThemeModeController, ThemeMode>(
@@ -58,14 +142,21 @@ class LocaleController extends Notifier<Locale?> {
   }
 
   Future<void> set(Locale? locale) async {
+    final previous = state;
     state = locale;
     _syncIntlDefaultLocale(locale);
     final prefs = ref.read(sharedPreferencesProvider);
-    if (locale == null) {
-      await prefs.remove(_localeKey);
-    } else {
-      await prefs.setString(_localeKey, locale.languageCode);
-    }
+    await _saveOrRollback(
+      ref,
+      previous: previous,
+      apply: (v) {
+        state = v;
+        _syncIntlDefaultLocale(v);
+      },
+      write: () => locale == null
+          ? prefs.remove(_localeKey)
+          : prefs.setString(_localeKey, locale.languageCode),
+    );
   }
 
   /// Keeps `Intl.defaultLocale` — which plain (non-widget) helpers like
@@ -122,11 +213,19 @@ class TextScaleController extends Notifier<TextScaleLevel> {
   }
 
   Future<void> set(TextScaleLevel level) async {
+    final previous = state;
     state = level;
-    await ref
-        .read(sharedPreferencesProvider)
-        .setString(_textScaleKey, level.name);
+    await _saveOrRollback(
+      ref,
+      previous: previous,
+      apply: (v) => state = v,
+      write: () => ref
+          .read(sharedPreferencesProvider)
+          .setString(_textScaleKey, level.name),
+    );
   }
+
+  Future<void> reset() => set(TextScaleLevel.medium);
 }
 
 final textScaleProvider =
@@ -147,15 +246,55 @@ class SoundsEnabledController extends Notifier<bool> {
       ref.read(sharedPreferencesProvider).getBool(_soundsKey) ?? true;
 
   Future<void> set({required bool enabled}) async {
+    final previous = state;
     state = enabled;
-    await ref.read(sharedPreferencesProvider).setBool(_soundsKey, enabled);
+    await _saveOrRollback(
+      ref,
+      previous: previous,
+      apply: (v) => state = v,
+      write: () =>
+          ref.read(sharedPreferencesProvider).setBool(_soundsKey, enabled),
+    );
   }
+
+  Future<void> reset() => set(enabled: true);
 }
 
 final soundsEnabledProvider =
     NotifierProvider<SoundsEnabledController, bool>(
       SoundsEnabledController.new,
     );
+
+// --- high contrast ---------------------------------------------------------
+
+const _highContrastKey = 'ui.highContrast';
+
+/// Stronger text and borders (AppTheme.*HighContrast) — a device preference
+/// like theme mode.
+class HighContrastController extends Notifier<bool> {
+  @override
+  bool build() =>
+      ref.read(sharedPreferencesProvider).getBool(_highContrastKey) ?? false;
+
+  Future<void> set({required bool enabled}) async {
+    final previous = state;
+    state = enabled;
+    await _saveOrRollback(
+      ref,
+      previous: previous,
+      apply: (v) => state = v,
+      write: () => ref
+          .read(sharedPreferencesProvider)
+          .setBool(_highContrastKey, enabled),
+    );
+  }
+
+  Future<void> reset() => set(enabled: false);
+}
+
+final highContrastProvider = NotifierProvider<HighContrastController, bool>(
+  HighContrastController.new,
+);
 
 // --- admin working status ---------------------------------------------
 
@@ -186,10 +325,16 @@ class AdminStatusController extends Notifier<AdminStatus> {
   }
 
   Future<void> set(AdminStatus status) async {
+    final previous = state;
     state = status;
-    await ref
-        .read(sharedPreferencesProvider)
-        .setString(_adminStatusKey, status.name);
+    await _saveOrRollback(
+      ref,
+      previous: previous,
+      apply: (v) => state = v,
+      write: () => ref
+          .read(sharedPreferencesProvider)
+          .setString(_adminStatusKey, status.name),
+    );
   }
 }
 
@@ -221,18 +366,44 @@ class NotificationPrefs {
         email: email ?? this.email,
         push: push ?? this.push,
       );
+
+  /// Which reminder channels these preferences actually allow — read by the
+  /// reminder scheduler so a disabled channel is never queued for delivery.
+  /// [ReminderChannel.inApp] has no toggle and is always included: it's the
+  /// guaranteed fallback so turning off sms/email/push never means zero
+  /// delivery.
+  Set<ReminderChannel> get enabledChannels => {
+    ReminderChannel.inApp,
+    if (push) ReminderChannel.push,
+    if (sms) ReminderChannel.sms,
+    if (email) ReminderChannel.email,
+  };
 }
 
 /// SMS / Email / Push toggles — a device preference like theme mode, not
 /// clinical data, so it lives in [SharedPreferences] too.
+/// Per-*user* (not per-device) — two people signing in on the same device
+/// each keep their own channels. Rebuilt whenever the signed-in user
+/// changes. Signed out, it falls back to the older device-wide keys, which
+/// also seed a user's first read so nobody loses what they'd already chosen.
 class NotificationPrefsController extends Notifier<NotificationPrefs> {
+  String _key(String base) {
+    final uid = _userId;
+    return uid == null ? base : '$base.$uid';
+  }
+
+  String? _userId;
+
   @override
   NotificationPrefs build() {
+    _userId = ref.watch(currentUserProvider)?.id;
     final prefs = ref.read(sharedPreferencesProvider);
+    bool read(String base, bool fallback) =>
+        prefs.getBool(_key(base)) ?? prefs.getBool(base) ?? fallback;
     return NotificationPrefs(
-      sms: prefs.getBool(_notifySmsKey) ?? false,
-      email: prefs.getBool(_notifyEmailKey) ?? true,
-      push: prefs.getBool(_notifyPushKey) ?? true,
+      sms: read(_notifySmsKey, false),
+      email: read(_notifyEmailKey, true),
+      push: read(_notifyPushKey, true),
     );
   }
 
@@ -241,11 +412,25 @@ class NotificationPrefsController extends Notifier<NotificationPrefs> {
   Future<void> setPush(bool value) => _set(push: value);
 
   Future<void> _set({bool? sms, bool? email, bool? push}) async {
-    state = state.copyWith(sms: sms, email: email, push: push);
+    final previous = state;
+    final next = state.copyWith(sms: sms, email: email, push: push);
+    state = next;
     final prefs = ref.read(sharedPreferencesProvider);
-    await prefs.setBool(_notifySmsKey, state.sms);
-    await prefs.setBool(_notifyEmailKey, state.email);
-    await prefs.setBool(_notifyPushKey, state.push);
+    await _saveOrRollback(
+      ref,
+      previous: previous,
+      apply: (v) => state = v,
+      write: () async =>
+          await prefs.setBool(_key(_notifySmsKey), next.sms) &&
+          await prefs.setBool(_key(_notifyEmailKey), next.email) &&
+          await prefs.setBool(_key(_notifyPushKey), next.push),
+    );
+  }
+
+  /// Back to the shipped defaults (email + push on, SMS off).
+  Future<void> reset() {
+    const d = NotificationPrefs();
+    return _set(sms: d.sms, email: d.email, push: d.push);
   }
 }
 
@@ -325,15 +510,63 @@ class ClinicScheduleController extends Notifier<ClinicSchedule> {
     );
   }
 
+  /// Saves to the shared database (the source of truth for everyone using
+  /// the clinic) and refreshes this device's startup cache. A failed database
+  /// write rolls the change back and is reported, like every other setting.
   Future<void> set(ClinicSchedule schedule) async {
+    final previous = state;
     state = schedule;
-    final prefs = ref.read(sharedPreferencesProvider);
-    await prefs.setStringList(
-      _clinicOpenDaysKey,
-      schedule.openDays.map((d) => d.toString()).toList(),
+    final saved = await _saveOrRollback(
+      ref,
+      previous: previous,
+      apply: (v) => state = v,
+      write: () async => (await ref
+              .read(settingsRepositoryProvider)
+              .setClinicSchedule(
+                openDays: schedule.openDays,
+                openHour: schedule.openHour,
+                closeHour: schedule.closeHour,
+              ))
+          .isOk,
     );
-    await prefs.setInt(_clinicOpenHourKey, schedule.openHour);
-    await prefs.setInt(_clinicCloseHourKey, schedule.closeHour);
+    if (saved) await _cache(schedule);
+  }
+
+  /// Loads the shared schedule from the database (run once during app
+  /// bootstrap). If the database has none yet, this device's previously
+  /// stored schedule is copied up so an existing clinic setup isn't lost.
+  Future<void> hydrateFromDatabase() async {
+    final repo = ref.read(settingsRepositoryProvider);
+    final stored = (await repo.clinicSchedule()).valueOrNull;
+    if (stored == null) {
+      await repo.setClinicSchedule(
+        openDays: state.openDays,
+        openHour: state.openHour,
+        closeHour: state.closeHour,
+      );
+      return;
+    }
+    final schedule = ClinicSchedule(
+      openDays: stored.openDays,
+      openHour: stored.openHour,
+      closeHour: stored.closeHour,
+    );
+    state = schedule;
+    await _cache(schedule);
+  }
+
+  Future<void> _cache(ClinicSchedule schedule) async {
+    try {
+      final prefs = ref.read(sharedPreferencesProvider);
+      await prefs.setStringList(
+        _clinicOpenDaysKey,
+        schedule.openDays.map((d) => d.toString()).toList(),
+      );
+      await prefs.setInt(_clinicOpenHourKey, schedule.openHour);
+      await prefs.setInt(_clinicCloseHourKey, schedule.closeHour);
+    } on Object {
+      // Only a startup cache — the database already has the real value.
+    }
   }
 }
 

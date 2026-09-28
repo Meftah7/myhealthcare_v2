@@ -1,6 +1,7 @@
 // Task, risk, admin-user and appointment-range repositories on an in-memory
 // database (P6-02). Complements repositories_test.dart.
 
+import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/data/db/app_database.dart';
 import 'package:myhealthcare/data/repositories/appointment_repository_impl.dart';
@@ -195,6 +196,7 @@ void main() {
 
         await tasks.applyAiPriority(
           id: 'low',
+          staffId: sid,
           score: 0.95,
           rationale: 'bumped',
         );
@@ -204,7 +206,11 @@ void main() {
         expect(low.aiRationale, 'bumped');
         expect(low.effectivePriority(1), closeTo(0.95, 1e-9));
 
-        await tasks.setStatus('high', TaskStatus.done);
+        await tasks.setStatus(
+          id: 'high',
+          staffId: sid,
+          status: TaskStatus.done,
+        );
         final open = (await tasks.forStaff(sid, openOnly: true)).valueOrNull!;
         expect(open.map((t) => t.id), ['low']);
       },
@@ -220,6 +226,23 @@ void main() {
         temporaryPassword: 'temp12345',
       )).valueOrNull!.id;
       final appts = AppointmentRepositoryImpl(db);
+      // A full-day, every-weekday template so a grid-aligned hour lands on a
+      // real slot boundary regardless of which weekday it falls on — book()
+      // now rejects a time that isn't actually on the clinician's schedule.
+      for (var weekday = 1; weekday <= 7; weekday++) {
+        await db
+            .into(db.scheduleTemplates)
+            .insert(
+              ScheduleTemplatesCompanion.insert(
+                id: 'tmpl-range-$weekday',
+                staffId: sid,
+                weekday: weekday,
+                startMinutes: 0,
+                endMinutes: 24 * 60,
+                slotMinutes: const Value(20),
+              ),
+            );
+      }
 
       Future<void> book(DateTime start) => appts
           .book(
@@ -233,7 +256,13 @@ void main() {
           )
           .then((_) {});
 
-      final base = DateTime(2026, 7, 6, 9); // a Monday
+      // Anchored to "now" (not a fixed calendar date) — book() now rejects a
+      // past start time, and a hardcoded date eventually stops being in the
+      // future as real time moves on. Normalized to a grid-aligned hour
+      // (book() now also rejects an off-grid time), not "now" itself, whose
+      // minute/second are whatever they happen to be at test-run time.
+      final anchor = DateTime.now().add(const Duration(days: 7));
+      final base = DateTime(anchor.year, anchor.month, anchor.day, 9);
       await book(base);
       await book(base.add(const Duration(days: 2)));
       await book(base.add(const Duration(days: 30)));

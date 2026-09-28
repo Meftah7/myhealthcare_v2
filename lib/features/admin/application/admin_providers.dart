@@ -5,6 +5,7 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/di.dart';
+import '../../../core/failures.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../core/utils/ids.dart';
@@ -56,6 +57,10 @@ class ScheduleTemplateActions {
     required String staffId,
     required List<NewScheduleTemplate> templates,
   }) async {
+    final actor = _ref.read(currentUserProvider);
+    if (actor == null || !actor.isAdmin || !actor.isActive) {
+      return const Err(AuthFailure('Administrator access is required.'));
+    }
     final result = await _ref
         .read(appointmentRepositoryProvider)
         .setTemplates(staffId: staffId, templates: templates);
@@ -162,6 +167,18 @@ final allInvoicesProvider =
       );
     });
 
+/// User IDs with an unresolved password-reset request — backs the "reset
+/// requested" badge on their row in User management.
+final pendingPasswordResetUserIdsProvider = FutureProvider<Set<String>>((
+  ref,
+) async {
+  return _unwrap(
+    await ref
+        .read(userRepositoryProvider)
+        .userIdsWithPendingPasswordResetRequests(),
+  );
+});
+
 /// Count of unpaid (pending) invoices — a dashboard stat.
 final unpaidInvoiceCountProvider = FutureProvider<int>((ref) async {
   final list = await ref.watch(allInvoicesProvider(null).future);
@@ -223,6 +240,14 @@ class AdminActions {
   AdminActions(this._ref);
   final Ref _ref;
 
+  Result<T>? _denyUnlessAdmin<T>() {
+    final actor = _ref.read(currentUserProvider);
+    if (actor == null || !actor.isAdmin || !actor.isActive) {
+      return const Err(AuthFailure('Administrator access is required.'));
+    }
+    return null;
+  }
+
   Future<Result<Staff>> createStaff({
     required String fullName,
     required String email,
@@ -231,6 +256,8 @@ class AdminActions {
     String? departmentId,
     String? jobTitle,
   }) async {
+    final denied = _denyUnlessAdmin<Staff>();
+    if (denied != null) return denied;
     final result = await _ref
         .read(userRepositoryProvider)
         .createStaff(
@@ -250,6 +277,8 @@ class AdminActions {
     required String email,
     required String temporaryPassword,
   }) async {
+    final denied = _denyUnlessAdmin<Patient>();
+    if (denied != null) return denied;
     final result = await _ref
         .read(authRepositoryProvider)
         .registerPatient(
@@ -268,6 +297,8 @@ class AdminActions {
     required String email,
     required String temporaryPassword,
   }) async {
+    final denied = _denyUnlessAdmin<User>();
+    if (denied != null) return denied;
     final result = await _ref
         .read(userRepositoryProvider)
         .createAdmin(
@@ -279,18 +310,34 @@ class AdminActions {
     return result;
   }
 
-  Future<void> setActive({required String id, required bool active}) async {
-    await _ref.read(userRepositoryProvider).setActive(id: id, active: active);
+  Future<Result<void>> setActive({required String id, required bool active}) async {
+    final denied = _denyUnlessAdmin<void>();
+    if (denied != null) return denied;
+    final result = await _ref
+        .read(userRepositoryProvider)
+        .setActive(id: id, active: active);
     _invalidateUsers();
+    return result;
   }
 
   Future<Result<void>> resetPassword({
     required String id,
     required String newPassword,
   }) async {
+    final denied = _denyUnlessAdmin<void>();
+    if (denied != null) return denied;
+    final adminId = _ref.read(currentUserProvider)!.id;
     final r = await _ref
         .read(userRepositoryProvider)
-        .resetPassword(id: id, newPassword: newPassword);
+        .resetPasswordAndResolve(
+          id: id,
+          newPassword: newPassword,
+          adminId: adminId,
+        );
+    if (r.isOk) {
+      // Clears the "reset requested" badge — this is the resolution.
+      _ref.invalidate(pendingPasswordResetUserIdsProvider);
+    }
     return r;
   }
 
@@ -305,6 +352,8 @@ class AdminActions {
     String? departmentId,
     String? reason,
   }) async {
+    final denied = _denyUnlessAdmin<Appointment>();
+    if (denied != null) return denied;
     final adminId = _ref.read(currentUserProvider)?.id;
     final r = await _ref
         .read(appointmentRepositoryProvider)
@@ -320,6 +369,13 @@ class AdminActions {
           ),
         );
     if (r case Ok(:final value)) {
+      await _ref
+          .read(reminderSchedulerProvider)
+          .scheduleFor(
+            appointmentId: value.id,
+            slotStart: value.slotStart,
+            band: value.riskBand ?? RiskBand.low,
+          );
       await _ref
           .read(auditRepositoryProvider)
           .record(
@@ -363,6 +419,8 @@ class AdminActions {
     String? departmentId,
     String? sourceAppointmentId,
   }) async {
+    final denied = _denyUnlessAdmin<MedicalRecord>();
+    if (denied != null) return denied;
     final adminId = _ref.read(currentUserProvider)?.id;
     final trimmedReason = reason.trim();
     final r = await _ref
@@ -441,33 +499,53 @@ class AdminActions {
     String? departmentId,
     String? decisionNote,
   }) async {
-    final adminId = _ref.read(currentUserProvider)?.id ?? '';
-    final r = await referPatient(
-      patientId: request.patientId,
-      destination: destination,
-      external: external,
-      reason: request.reason,
-      departmentId: departmentId,
-      sourceAppointmentId: request.appointmentId,
-    );
-    if (r.isOk) {
-      await _ref
-          .read(referralRequestRepositoryProvider)
-          .decide(
-            id: request.id,
-            status: ReferralRequestStatus.actioned,
-            adminId: adminId,
-            note: decisionNote,
+    final denied = _denyUnlessAdmin<MedicalRecord>();
+    if (denied != null) return denied;
+    final adminId = _ref.read(currentUserProvider)!.id;
+    final result = await Result.guardAsync(
+      () => _ref.read(appDatabaseProvider).transaction(() async {
+        final current = await _ref
+            .read(referralRequestRepositoryProvider)
+            .pendingForAppointment(request.appointmentId ?? '');
+        if (request.appointmentId != null &&
+            current.valueOrNull?.id != request.id) {
+          throw const ValidationFailure(
+            'This referral request is no longer pending.',
           );
+        }
+        final referral = await referPatient(
+          patientId: request.patientId,
+          destination: destination,
+          external: external,
+          reason: request.reason,
+          departmentId: departmentId,
+          sourceAppointmentId: request.appointmentId,
+        );
+        if (referral case Err(:final failure)) throw failure;
+        final decision = await _ref
+            .read(referralRequestRepositoryProvider)
+            .decide(
+              id: request.id,
+              status: ReferralRequestStatus.actioned,
+              adminId: adminId,
+              note: decisionNote,
+            );
+        if (decision case Err(:final failure)) throw failure;
+        return referral.valueOrNull!;
+      }),
+    );
+    if (result.isOk) {
       _ref.invalidate(pendingReferralRequestsProvider);
     }
-    return r;
+    return result;
   }
 
   Future<Result<ReferralRequest>> rejectReferralRequest({
     required String id,
     String? note,
   }) async {
+    final denied = _denyUnlessAdmin<ReferralRequest>();
+    if (denied != null) return denied;
     final adminId = _ref.read(currentUserProvider)?.id ?? '';
     final r = await _ref
         .read(referralRequestRepositoryProvider)
@@ -486,6 +564,8 @@ class AdminActions {
     String? id,
     String? description,
   }) async {
+    final denied = _denyUnlessAdmin<void>();
+    if (denied != null) return denied;
     final r = await _ref
         .read(departmentRepositoryProvider)
         .upsert(
@@ -507,6 +587,8 @@ class AdminActions {
     required String title,
     required String body,
   }) async {
+    final denied = _denyUnlessAdmin<int>();
+    if (denied != null) return denied;
     final r = await _ref
         .read(notificationRepositoryProvider)
         .broadcast(
@@ -533,6 +615,8 @@ class AdminActions {
     required double subtotal,
     String? notes,
   }) async {
+    final denied = _denyUnlessAdmin<Invoice>();
+    if (denied != null) return denied;
     final r = await _ref
         .read(billingRepositoryProvider)
         .issue(
@@ -563,6 +647,8 @@ class AdminActions {
     required String id,
     required InvoiceStatus status,
   }) async {
+    final denied = _denyUnlessAdmin<Invoice>();
+    if (denied != null) return denied;
     final r = await _ref
         .read(billingRepositoryProvider)
         .setStatus(id: id, status: status);
@@ -582,20 +668,25 @@ class AdminActions {
   }
 
   /// Mark a feedback report resolved / re-open it.
-  Future<void> setFeedbackStatus({
+  Future<Result<void>> setFeedbackStatus({
     required String id,
     required FeedbackStatus status,
   }) async {
+    final denied = _denyUnlessAdmin<void>();
+    if (denied != null) return denied;
     final adminId = _ref.read(currentUserProvider)?.id;
-    await _ref
+    final result = await _ref
         .read(feedbackRepositoryProvider)
         .setStatus(id: id, status: status, adminId: adminId);
     _ref
       ..invalidate(feedbackProvider)
       ..invalidate(openFeedbackCountProvider);
+    return result;
   }
 
   Future<Result<void>> deleteDepartment(String id) async {
+    final denied = _denyUnlessAdmin<void>();
+    if (denied != null) return denied;
     final r = await _ref.read(departmentRepositoryProvider).delete(id);
     if (r.isOk) {
       await _ref

@@ -3,6 +3,7 @@ library;
 
 import 'package:drift/drift.dart';
 
+import '../../core/failures.dart';
 import '../../core/result.dart';
 import '../../domain/entities/entities.dart';
 import '../../domain/enums.dart';
@@ -81,27 +82,42 @@ class TaskRepositoryImpl implements TaskRepository {
   }
 
   @override
-  Future<Result<void>> setStatus(String id, TaskStatus status) {
+  Future<Result<void>> setStatus({
+    required String id,
+    required String staffId,
+    required TaskStatus status,
+  }) {
     return Result.guardAsync(() async {
-      await (_db.update(_db.staffTasks)..where((t) => t.id.equals(id))).write(
-        StaffTasksCompanion(status: Value(status)),
-      );
+      final updated = await (_db.update(_db.staffTasks)..where(
+            (t) => t.id.equals(id) & t.staffId.equals(staffId),
+          ))
+          .write(StaffTasksCompanion(status: Value(status)));
+      if (updated != 1) {
+        throw const AuthFailure('This task is assigned to another clinician.');
+      }
     });
   }
 
   @override
   Future<Result<void>> applyAiPriority({
     required String id,
+    required String staffId,
     required double score,
     required String rationale,
   }) {
     return Result.guardAsync(() async {
-      await (_db.update(_db.staffTasks)..where((t) => t.id.equals(id))).write(
+      final updated = await (_db.update(_db.staffTasks)..where(
+            (t) => t.id.equals(id) & t.staffId.equals(staffId),
+          ))
+          .write(
         StaffTasksCompanion(
           aiPriorityScore: Value(score),
           aiRationale: Value(rationale),
         ),
       );
+      if (updated != 1) {
+        throw const AuthFailure('This task is assigned to another clinician.');
+      }
     });
   }
 }
@@ -185,12 +201,33 @@ class RiskRepositoryImpl implements RiskRepository {
     required String staffId,
   }) {
     return Result.guardAsync(() async {
-      await (_db.update(_db.riskFlags)..where((f) => f.id.equals(id))).write(
+      final flag = await (_db.select(
+        _db.riskFlags,
+      )..where((f) => f.id.equals(id))).getSingleOrNull();
+      if (flag == null) throw const NotFoundFailure('Risk flag not found.');
+      final relationship = await (_db.select(_db.appointments)..where(
+            (a) =>
+                a.staffId.equals(staffId) &
+                a.patientId.equals(flag.patientId),
+          )..limit(1))
+          .getSingleOrNull();
+      if (relationship == null) {
+        throw const AuthFailure('You are not assigned to this patient.');
+      }
+      final updated = await (_db.update(_db.riskFlags)..where(
+            (f) => f.id.equals(id) & f.acknowledgedBy.isNull(),
+          ))
+          .write(
         RiskFlagsCompanion(
           acknowledgedBy: Value(staffId),
           acknowledgedAt: Value(DateTime.now()),
         ),
       );
+      if (updated != 1) {
+        throw const ValidationFailure(
+          'This risk flag was already acknowledged.',
+        );
+      }
     });
   }
 }

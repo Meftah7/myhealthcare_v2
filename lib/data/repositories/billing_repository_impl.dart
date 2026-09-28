@@ -64,22 +64,37 @@ class BillingRepositoryImpl implements BillingRepository {
     required String id,
     required InvoiceStatus status,
   }) {
-    return Result.guardAsync(() async {
+    return Result.guardAsync(() => _db.transaction(() async {
       final row = await (_db.select(
         _db.invoices,
       )..where((i) => i.id.equals(id))).getSingleOrNull();
       if (row == null) throw const NotFoundFailure('Invoice not found.');
-      await (_db.update(_db.invoices)..where((i) => i.id.equals(id))).write(
+      if (row.status != InvoiceStatus.pending) {
+        throw const ValidationFailure(
+          'Only a pending invoice can be settled or cancelled.',
+        );
+      }
+      if (status == InvoiceStatus.pending) {
+        throw const ValidationFailure('The invoice is already pending.');
+      }
+      final changed = await (_db.update(_db.invoices)..where(
+            (i) =>
+                i.id.equals(id) & i.status.equalsValue(InvoiceStatus.pending),
+          ))
+          .write(
         InvoicesCompanion(
           status: Value(status),
           paidAt: Value(status == InvoiceStatus.paid ? DateTime.now() : null),
         ),
       );
+      if (changed != 1) {
+        throw const ValidationFailure('The invoice status changed. Retry.');
+      }
       final updated = await (_db.select(
         _db.invoices,
       )..where((i) => i.id.equals(id))).getSingle();
       return updated.toEntity();
-    });
+    }));
   }
 
   @override
@@ -99,7 +114,7 @@ class BillingRepositoryImpl implements BillingRepository {
     required String patientId,
     required CardPayment payment,
   }) {
-    return Result.guardAsync(() async {
+    return Result.guardAsync(() => _db.transaction(() async {
       _validateCard(payment);
 
       // Ownership and state are checked together, so another patient's bill
@@ -120,9 +135,15 @@ class BillingRepositoryImpl implements BillingRepository {
       }
 
       final paidAt = DateTime.now();
-      await (_db.update(
+      final changed = await (_db.update(
         _db.invoices,
-      )..where((i) => i.id.equals(invoiceId))).write(
+      )..where(
+            (i) =>
+                i.id.equals(invoiceId) &
+                i.patientId.equals(patientId) &
+                i.status.equalsValue(InvoiceStatus.pending),
+          ))
+          .write(
         InvoicesCompanion(
           status: const Value(InvoiceStatus.paid),
           paidAt: Value(paidAt),
@@ -130,12 +151,15 @@ class BillingRepositoryImpl implements BillingRepository {
           paymentMethod: Value(payment.maskedDescriptor),
         ),
       );
+      if (changed != 1) {
+        throw const ValidationFailure('This invoice is no longer unpaid.');
+      }
 
       final updated = await (_db.select(
         _db.invoices,
       )..where((i) => i.id.equals(invoiceId))).getSingle();
       return updated.toEntity();
-    });
+    }));
   }
 
   @override
@@ -145,7 +169,7 @@ class BillingRepositoryImpl implements BillingRepository {
     required String cardId,
     required String cvc,
   }) {
-    return Result.guardAsync(() async {
+    return Result.guardAsync(() => _db.transaction(() async {
       if (!RegExp(r'^\d{3,4}$').hasMatch(cvc)) {
         throw const ValidationFailure('CVC must be 3 or 4 digits.');
       }
@@ -181,41 +205,57 @@ class BillingRepositoryImpl implements BillingRepository {
         throw const ValidationFailure('This invoice was cancelled.');
       }
 
-      await (_db.update(
+      final changed = await (_db.update(
         _db.invoices,
-      )..where((i) => i.id.equals(invoiceId))).write(
+      )..where(
+            (i) =>
+                i.id.equals(invoiceId) &
+                i.patientId.equals(patientId) &
+                i.status.equalsValue(InvoiceStatus.pending),
+          ))
+          .write(
         InvoicesCompanion(
           status: const Value(InvoiceStatus.paid),
           paidAt: Value(DateTime.now()),
           paymentMethod: Value('${card.brand} ····${card.last4}'),
         ),
       );
+      if (changed != 1) {
+        throw const ValidationFailure('This invoice is no longer unpaid.');
+      }
 
       final updated = await (_db.select(
         _db.invoices,
       )..where((i) => i.id.equals(invoiceId))).getSingle();
       return updated.toEntity();
-    });
+    }));
   }
 
   @override
   Future<Result<Invoice>> issue(NewInvoice invoice) {
     return Result.guardAsync(() async {
-      if (invoice.subtotal < 0) {
+      if (!invoice.subtotal.isFinite ||
+          !invoice.taxRate.isFinite ||
+          invoice.subtotal < 0 ||
+          invoice.taxRate < 0) {
         throw const ValidationFailure('Amount cannot be negative.');
       }
       final id = newId('inv');
-      final taxAmount = invoice.subtotal * (invoice.taxRate / 100);
+      final subtotalFils = _fils(invoice.subtotal);
+      final taxFils = (subtotalFils * invoice.taxRate / 100).round();
+      final subtotal = subtotalFils / 1000;
+      final taxAmount = taxFils / 1000;
+      final totalAmount = (subtotalFils + taxFils) / 1000;
       await _db
           .into(_db.invoices)
           .insert(
             InvoicesCompanion.insert(
               id: id,
               patientId: invoice.patientId,
-              subtotal: Value(invoice.subtotal),
+              subtotal: Value(subtotal),
               taxRate: Value(invoice.taxRate),
               taxAmount: Value(taxAmount),
-              totalAmount: Value(invoice.subtotal + taxAmount),
+              totalAmount: Value(totalAmount),
               appointmentId: Value(invoice.appointmentId),
               dueDate: Value(invoice.dueDate),
               notes: Value(invoice.notes),
@@ -330,10 +370,12 @@ class BillingRepositoryImpl implements BillingRepository {
       final rows = await (_db.select(
         _db.walletTransactions,
       )..where((w) => w.patientId.equals(patientId))).get();
-      return rows.fold<double>(
-        0.0,
-        (sum, r) => sum + r.toEntity().signedAmount,
-      );
+      final balanceFils = rows.fold<int>(0, (sum, row) {
+        final amount = _fils(row.amount);
+        return sum +
+            (row.type == WalletTransactionType.topUp ? amount : -amount);
+      });
+      return balanceFils / 1000;
     });
   }
 
@@ -469,7 +511,7 @@ class BillingRepositoryImpl implements BillingRepository {
                 id: newId('wtx'),
                 patientId: patientId,
                 type: WalletTransactionType.redemption,
-                amount: invoice.totalAmount,
+                amount: _fils(invoice.totalAmount) / 1000,
                 invoiceId: Value(invoiceId),
               ),
             );
@@ -490,7 +532,12 @@ class BillingRepositoryImpl implements BillingRepository {
     final rows = await (_db.select(
       _db.walletTransactions,
     )..where((w) => w.patientId.equals(patientId))).get();
-    return rows.fold<double>(0.0, (sum, r) => sum + r.toEntity().signedAmount);
+    final balanceFils = rows.fold<int>(0, (sum, row) {
+      final amount = _fils(row.amount);
+      return sum +
+          (row.type == WalletTransactionType.topUp ? amount : -amount);
+    });
+    return balanceFils / 1000;
   }
 
   void _validateCard(CardPayment p) {

@@ -46,6 +46,7 @@ dependencies:
   drift: ^2.34.0
   drift_flutter: ^0.3.1
   sqlite3_flutter_libs: ^0.6.0+eol
+  sqlite3: ^3.5.2  # direct: the DB key setup callback uses CommonDatabase
 
   # Immutable models / JSON (P1-08..P1-10, P3-01)
   freezed_annotation: ^3.1.0
@@ -83,6 +84,7 @@ dependencies:
   audioplayers: ^6.8.1
   printing: ^5.15.0
   pdf: ^3.13.0
+  cryptography: ^2.9.0
 
 dev_dependencies:
   flutter_test:
@@ -103,7 +105,6 @@ dev_dependencies:
   json_serializable: ^6.8.0
   integration_test:
     sdk: flutter
-  sqlite3: ^3.5.2
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -179,3 +180,10 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# Encrypt the on-device database with SQLite3MultipleCiphers (ChaCha20-Poly1305
+# by default). The key lives in platform secure storage — see db_key_store.dart.
+hooks:
+  user_defines:
+    sqlite3:
+      source: sqlite3mc

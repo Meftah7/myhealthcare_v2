@@ -16,19 +16,33 @@ import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
-import '../../../core/utils/clinic_hours.dart';
+import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../domain/enums.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../booking/presentation/booking_screen.dart';
 import '../../patient/application/patient_data_providers.dart';
 import '../../patient/presentation/patient_top_actions.dart';
+import 'slot_picker_sheet.dart';
 
-class AppointmentsScreen extends ConsumerWidget {
+class AppointmentsScreen extends ConsumerStatefulWidget {
   const AppointmentsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AppointmentsScreen> createState() => _AppointmentsScreenState();
+}
+
+class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
+  static const _pageSize = 40;
+
+  /// How many past visits to show — grows by [_pageSize] each time "Show
+  /// more" is tapped, rather than silently hiding the rest with no way to
+  /// see them.
+  int _visiblePast = _pageSize;
+
+  @override
+  Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
     final appts = ref.watch(patientAppointmentsProvider);
     final doctors = ref.watch(doctorDirectoryProvider).valueOrNull ?? const {};
@@ -60,6 +74,8 @@ class AppointmentsScreen extends ConsumerWidget {
               ..sort((a, b) => a.slotStart.compareTo(b.slotStart));
             final past = list.where((a) => !a.isUpcoming).toList()
               ..sort((a, b) => b.slotStart.compareTo(a.slotStart));
+            final visiblePast = past.take(_visiblePast).toList();
+            final remaining = past.length - visiblePast.length;
 
             Widget card(Appointment a, {required bool upcoming}) => _ApptCard(
               a,
@@ -80,8 +96,8 @@ class AppointmentsScreen extends ConsumerWidget {
               SectionHeader(t.historyCount(past.length), overline: true),
               if (past.isEmpty)
                 _EmptyNote(t.noPastVisitsNote)
-              else
-                for (final entry in _byMonth(past.take(40)).entries) ...[
+              else ...[
+                for (final entry in _byMonth(visiblePast).entries) ...[
                   _MonthLabel(entry.key),
                   CardColumns(
                     children: [
@@ -89,6 +105,18 @@ class AppointmentsScreen extends ConsumerWidget {
                     ],
                   ),
                 ],
+                if (remaining > 0) ...[
+                  const SizedBox(height: Space.sm),
+                  Center(
+                    child: TextButton(
+                      onPressed: () => setState(
+                        () => _visiblePast += _pageSize,
+                      ),
+                      child: Text(t.showOlderVisitsAction(remaining)),
+                    ),
+                  ),
+                ],
+              ],
             ];
           },
         ),
@@ -210,6 +238,7 @@ class _ApptCard extends ConsumerWidget {
 
     return AppCard(
       padding: const EdgeInsets.all(Space.md),
+      onTap: () => context.push(AppRoutes.patientAppointmentDetail(appt.id)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -291,43 +320,44 @@ class _ApptCard extends ConsumerWidget {
             const SizedBox(height: Space.sm),
             RiskBadge(appt.riskBand!),
           ],
-          if (upcoming) ...[
+          if (upcoming &&
+              (appt.status == AppointmentStatus.booked ||
+                  appt.status == AppointmentStatus.confirmed)) ...[
             const SizedBox(height: Space.sm),
-            // Outlined for the tertiary action and error-outlined for the
-            // destructive one — the same pair the rest of the app uses
-            // (DESIGN.md §5.1). Wrap so they stack instead of overflowing when
-            // the card is narrow or the text is scaled up.
-            Align(
-              alignment: AlignmentDirectional.centerEnd,
-              child: Wrap(
-                alignment: WrapAlignment.end,
-                spacing: Space.xs,
-                runSpacing: Space.xs,
-                children: [
-                  OutlinedButton(
-                    onPressed: () => _reschedule(context, ref),
-                    child: Text(t.reschedule),
-                  ),
-                  OutlinedButton(
-                    onPressed: () => _cancel(context, ref),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: theme.colorScheme.error,
-                      side: BorderSide(
-                        color: theme.colorScheme.error.withValues(alpha: 0.4),
-                      ),
-                    ),
-                    child: Text(t.cancel),
-                  ),
-                ],
-              ),
-            ),
+            ApptActions(appt: appt),
           ],
         ],
       ),
     );
   }
+}
 
-  Future<void> _cancel(BuildContext context, WidgetRef ref) async {
+/// The reschedule/cancel buttons, split out from [_ApptCard] so they can own
+/// their own busy/error state — a card built by a stateless widget has
+/// nowhere to hold "this request is in flight" or "it just failed".
+class ApptActions extends ConsumerStatefulWidget {
+  const ApptActions({required this.appt, super.key});
+
+  final Appointment appt;
+
+  @override
+  ConsumerState<ApptActions> createState() => _ApptActionsState();
+}
+
+class _ApptActionsState extends ConsumerState<ApptActions> {
+  bool _busy = false;
+
+  Appointment get appt => widget.appt;
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _cancel() async {
+    if (_busy) return;
     final t = AppLocalizations.of(context)!;
     final ok = await confirm(
       context,
@@ -336,56 +366,89 @@ class _ApptCard extends ConsumerWidget {
       confirmLabel: t.cancelItLabel,
       destructive: true,
     );
-    if (!ok) return;
-    await ref.read(appointmentRepositoryProvider).cancel(appt.id);
-    ref.invalidate(patientAppointmentsProvider);
+    if (!ok || !mounted) return;
+    setState(() => _busy = true);
+    final result = await ref
+        .read(appointmentRepositoryProvider)
+        .cancel(appt.id, patientId: appt.patientId);
+    if (!mounted) return;
+    setState(() => _busy = false);
+    switch (result) {
+      case Ok():
+        ref.invalidate(patientAppointmentsProvider);
+      case Err(:final failure):
+        _showError(failure.message);
+    }
   }
 
-  Future<void> _reschedule(BuildContext context, WidgetRef ref) async {
-    final t = AppLocalizations.of(context)!;
-    final schedule = ref.read(clinicScheduleProvider);
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final base = appt.slotStart.isAfter(now) ? appt.slotStart : today;
-    final date = await showDatePicker(
-      context: context,
-      initialDate: isClinicDay(base, schedule)
-          ? base
-          : nextClinicDay(today, schedule),
-      firstDate: today,
-      lastDate: today.add(const Duration(days: 60)),
-      selectableDayPredicate: (d) => isClinicDay(d, schedule),
-      helpText: t.clinicDaysHelp,
+  Future<void> _reschedule() async {
+    if (_busy) return;
+    // A picked, listed slot — not a free-form date/time — so it's already
+    // on the clinician's real schedule grid; the repository still checks it
+    // itself, since another booking can land on it between picking and
+    // confirming.
+    final slot = await pickOpenSlot(
+      context,
+      staffId: appt.staffId,
+      initialDate: appt.slotStart.isAfter(DateTime.now())
+          ? appt.slotStart
+          : null,
     );
-    if (date == null || !context.mounted) return;
-    final time = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(appt.slotStart),
-      helpText: t.clinicHoursHelp,
-    );
-    if (time == null) return;
-    if (time.hour < schedule.openHour || time.hour >= schedule.closeHour) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(t.pickTimeInRange)));
-      }
-      return;
-    }
-    final newStart = DateTime(
-      date.year,
-      date.month,
-      date.day,
-      time.hour,
-      time.minute,
-    );
-    await ref
+    if (slot == null || !mounted) return;
+    setState(() => _busy = true);
+    // The original appointment is left untouched unless this actually
+    // succeeds — a rejected slot (already taken, in the past) surfaces as a
+    // message, not a silently-unchanged screen.
+    final result = await ref
         .read(appointmentRepositoryProvider)
         .reschedule(
           id: appt.id,
-          newStart: newStart,
-          newEnd: newStart.add(appt.duration),
+          patientId: appt.patientId,
+          newStart: slot.start,
+          newEnd: slot.start.add(appt.duration),
+          enabledChannels: ref.read(notificationPrefsProvider).enabledChannels,
         );
-    ref.invalidate(patientAppointmentsProvider);
+    if (!mounted) return;
+    setState(() => _busy = false);
+    switch (result) {
+      case Ok():
+        ref.invalidate(patientAppointmentsProvider);
+      case Err(:final failure):
+        _showError(failure.message);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final t = AppLocalizations.of(context)!;
+    // Outlined for the tertiary action and error-outlined for the
+    // destructive one — the same pair the rest of the app uses
+    // (DESIGN.md §5.1). Wrap so they stack instead of overflowing when
+    // the card is narrow or the text is scaled up.
+    return Align(
+      alignment: AlignmentDirectional.centerEnd,
+      child: Wrap(
+        alignment: WrapAlignment.end,
+        spacing: Space.xs,
+        runSpacing: Space.xs,
+        children: [
+          OutlinedButton(
+            onPressed: _busy ? null : _reschedule,
+            child: Text(t.reschedule),
+          ),
+          OutlinedButton(
+            onPressed: _busy ? null : _cancel,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: theme.colorScheme.error,
+              side: BorderSide(
+                color: theme.colorScheme.error.withValues(alpha: 0.4),
+              ),
+            ),
+            child: Text(t.cancel),
+          ),
+        ],
+      ),
+    );
   }
 }

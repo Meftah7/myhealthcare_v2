@@ -160,7 +160,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           controller: _password,
                           obscureText: true,
                           decoration: InputDecoration(labelText: t.password),
-                          validator: (v) => (v == null || v.length < 6)
+                          validator: (v) => (v == null || v.length < 8)
                               ? t.passwordMinLength
                               : null,
                         ),

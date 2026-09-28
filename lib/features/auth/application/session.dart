@@ -51,12 +51,14 @@ class Session {
 
 class SessionController extends Notifier<Session> {
   static const _prefsKey = 'session.userId';
+  StreamSubscription<User?>? _accountChanges;
 
   @override
   Session build() {
     // The session is intentionally *not* restored on startup: every cold start
     // must land on the Login screen (see `_guard` in `lib/app/router.dart`).
     unawaited(ref.read(sharedPreferencesProvider).remove(_prefsKey));
+    ref.onDispose(() => _accountChanges?.cancel());
     return const Session();
   }
 
@@ -70,6 +72,7 @@ class SessionController extends Notifier<Session> {
     if (result case Ok(:final value)) {
       await _persist(value);
       state = Session(user: value);
+      _watchAccount(value.id);
     }
     return result;
   }
@@ -77,6 +80,8 @@ class SessionController extends Notifier<Session> {
   /// End the session and return to sign-in. [inactivity] surfaces the "your
   /// session ended after 24 minutes of inactivity" notice on the login screen.
   Future<void> endSession({bool inactivity = false}) async {
+    await _accountChanges?.cancel();
+    _accountChanges = null;
     await ref.read(sharedPreferencesProvider).remove(_prefsKey);
     state = Session(endedByInactivity: inactivity);
   }
@@ -88,6 +93,7 @@ class SessionController extends Notifier<Session> {
     if (result case Ok(:final value)) {
       await _persist(value.user);
       state = Session(user: value.user);
+      _watchAccount(value.user.id);
     }
     return result;
   }
@@ -98,6 +104,23 @@ class SessionController extends Notifier<Session> {
   Future<void> switchTo(User user) async {
     await _persist(user);
     state = Session(user: user);
+    _watchAccount(user.id);
+  }
+
+  void _watchAccount(String userId) {
+    unawaited(_accountChanges?.cancel());
+    var first = true;
+    _accountChanges = ref.read(userRepositoryProvider).watchById(userId).listen((
+      user,
+    ) {
+      if (first) {
+        first = false;
+        if (user != null && user.isActive) return;
+      }
+      if (state.user?.id == userId) {
+        unawaited(endSession());
+      }
+    });
   }
 
   Future<void> _persist(User user) =>

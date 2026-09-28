@@ -5,11 +5,13 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/settings/ui_prefs.dart';
 import '../../../core/di.dart';
 import '../../../core/failures.dart';
 import '../../../core/result.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../domain/repositories/patient_repository.dart';
 import '../../auth/application/session.dart';
 
 /// The signed-in patient's id (null if not a patient session).
@@ -100,14 +102,14 @@ final familyLinkSearchQueryProvider = StateProvider.autoDispose<String>(
 );
 
 final familyLinkSearchResultsProvider =
-    FutureProvider.autoDispose<List<Patient>>((ref) async {
+    FutureProvider.autoDispose<List<PatientLinkCandidate>>((ref) async {
       final query = ref.watch(familyLinkSearchQueryProvider).trim();
-      if (query.length < 2) return const [];
+      if (query.length < 5) return const [];
       final me = _requirePatient(ref);
       final results = _unwrap(
-        await ref.watch(patientRepositoryProvider).search(query, limit: 15),
+        await ref.watch(patientRepositoryProvider).findLinkCandidate(query),
       );
-      return results.where((p) => p.user.id != me).toList();
+      return results.where((p) => p.id != me).toList();
     });
 
 /// The accepted link granting me access to [ownerPatientId]'s data, or a
@@ -190,7 +192,15 @@ class FamilyLinkController {
       ..invalidate(incomingFamilyRequestsProvider)
       ..invalidate(outgoingFamilyRequestsProvider)
       ..invalidate(linkedAccountsProvider)
-      ..invalidate(viewersOfMeProvider);
+      ..invalidate(viewersOfMeProvider)
+      // Every family instance re-runs _requireActiveLink, so revoked access
+      // drops loaded data immediately (SEC-PAT-12).
+      ..invalidate(linkedPatientProvider)
+      ..invalidate(linkedPermissionProvider)
+      ..invalidate(linkedAppointmentsProvider)
+      ..invalidate(linkedTimelineProvider)
+      ..invalidate(linkedVitalsProvider)
+      ..invalidate(linkedMedicationsProvider);
   }
 
   Future<Result<FamilyLink>> request({
@@ -250,7 +260,7 @@ class FamilyLinkController {
     if (link case Err(:final failure)) return Err(failure);
     final result = await _ref
         .read(appointmentRepositoryProvider)
-        .cancel(appointmentId);
+        .cancel(appointmentId, patientId: ownerPatientId);
     if (result case Ok()) {
       _ref.invalidate(linkedAppointmentsProvider(ownerPatientId));
     }
@@ -267,7 +277,18 @@ class FamilyLinkController {
     if (link case Err(:final failure)) return Err(failure);
     final result = await _ref
         .read(appointmentRepositoryProvider)
-        .reschedule(id: appointmentId, newStart: newStart, newEnd: newEnd);
+        .reschedule(
+          id: appointmentId,
+          patientId: ownerPatientId,
+          newStart: newStart,
+          newEnd: newEnd,
+          // Notification preferences are still device-scoped, not per-user
+          // (a larger, separate architecture gap) — this is the acting
+          // device's preferences, same limitation as everywhere else they're
+          // read.
+          enabledChannels:
+              _ref.read(notificationPrefsProvider).enabledChannels,
+        );
     if (result case Ok()) {
       _ref.invalidate(linkedAppointmentsProvider(ownerPatientId));
     }

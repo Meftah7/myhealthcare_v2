@@ -122,6 +122,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get hidePassword => 'إخفاء كلمة المرور';
 
   @override
+  String get startupFailedTitle => 'تعذّر تحميل بياناتك';
+
+  @override
+  String get startupFailedSubtitle =>
+      'حدث ما منع التطبيق من إعداد قاعدة بياناته المحلية. تحقق من إعدادات التخزين في متصفحك (التصفح الخاص وبعض إضافات الخصوصية قد تمنع ذلك)، ثم أعد المحاولة.';
+
+  @override
+  String get technicalDetailsLabel => 'تفاصيل تقنية';
+
+  @override
   String get uploadedByPatientTag => 'رفعه المريض — لم تتم مراجعته';
 
   @override
@@ -2898,6 +2908,121 @@ class AppLocalizationsAr extends AppLocalizations {
   String get allClearTitle => 'لا يوجد ما يستدعي الانتباه';
 
   @override
+  String get settingSaveFailedMessage =>
+      'تعذّر حفظ هذا الإعداد، وأُعيد إلى قيمته السابقة.';
+
+  @override
+  String get smsChannelSubtitle => 'تذكيرات المواعيد عبر الرسائل النصية';
+
+  @override
+  String get emailChannelSubtitle =>
+      'التذكيرات والإيصالات عبر البريد الإلكتروني';
+
+  @override
+  String get pushChannelSubtitle =>
+      'تنبيهات على هذا الجهاز حتى عندما يكون التطبيق مغلقًا';
+
+  @override
+  String get inAppAlwaysOnNote =>
+      'الإشعارات داخل التطبيق مفعّلة دائمًا حتى لا يفوتك أي تذكير. هذا العرض التجريبي يحاكي إرسال الرسائل النصية والبريد الإلكتروني وإشعارات الدفع.';
+
+  @override
+  String get resetNotificationsTitle => 'إعادة ضبط الإشعارات';
+
+  @override
+  String get resetNotificationsMessage =>
+      'تفعيل البريد الإلكتروني وإشعارات الدفع مجددًا، وإيقاف الرسائل النصية، وتشغيل الأصوات؟';
+
+  @override
+  String get resetAppearanceTitle => 'إعادة ضبط المظهر';
+
+  @override
+  String get resetAppearanceMessage =>
+      'إعادة السمة وحجم النص والحركة والتباين إلى القيم الافتراضية؟';
+
+  @override
+  String get resetAction => 'إعادة تعيين';
+
+  @override
+  String get highContrastLabel => 'تباين عالٍ';
+
+  @override
+  String get highContrastSubtitle => 'نص أغمق وحدود أوضح';
+
+  @override
+  String get motionLabel => 'الحركة';
+
+  @override
+  String get motionSystem => 'النظام';
+
+  @override
+  String get motionReduced => 'مخفّضة';
+
+  @override
+  String get motionFull => 'كاملة';
+
+  @override
+  String get pushLabel => 'إشعارات الدفع';
+
+  @override
+  String showOlderVisitsAction(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'عرض $count زيارة أقدم',
+      many: 'عرض $count زيارة أقدم',
+      few: 'عرض $count زيارات أقدم',
+      two: 'عرض زيارتين أقدم',
+      one: 'عرض زيارة أقدم واحدة',
+      zero: 'عرض الزيارات الأقدم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get appointmentDetailTitle => 'تفاصيل الموعد';
+
+  @override
+  String get appointmentNotFoundNote => 'تعذّر العثور على هذا الموعد';
+
+  @override
+  String get addToCalendarAction => 'إضافة إلى التقويم';
+
+  @override
+  String get contactSupportAction => 'تواصل مع الدعم';
+
+  @override
+  String get calendarFileSavedMessage => 'تم حفظ ملف التقويم';
+
+  @override
+  String get chooseATimeTitle => 'اختر وقتًا';
+
+  @override
+  String get noOpenSlotsThatDay => 'لا توجد مواعيد متاحة في هذا اليوم';
+
+  @override
+  String get changePasswordTitle => 'تغيير كلمة المرور';
+
+  @override
+  String get changePasswordAction => 'تغيير كلمة المرور';
+
+  @override
+  String get currentPasswordLabel => 'كلمة المرور الحالية';
+
+  @override
+  String get passwordChangedSnackbar => 'تم تغيير كلمة المرور.';
+
+  @override
+  String get passwordResetRequestedBadge => 'طُلبت إعادة تعيين كلمة المرور';
+
+  @override
+  String get passwordResetRequestedTitle => 'تم إرسال الطلب';
+
+  @override
+  String get passwordResetRequestedBody =>
+      'إذا كان هذا يطابق حسابًا، سيقوم فريقنا بالتحقق من هويتك ومساعدتك على استعادة الوصول. قد يستغرق ذلك بعض الوقت — شكرًا لصبرك.';
+
+  @override
   String get riskFlagsCheckFailed => 'تعذّر التحقق من مؤشرات الخطر لهذا المريض';
 
   @override
@@ -3236,9 +3361,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get newTemporaryPasswordTitle => 'كلمة مرور مؤقتة جديدة';
-
-  @override
-  String get resetAction => 'إعادة تعيين';
 
   @override
   String get addAnAdministratorTitle => 'إضافة مسؤول';

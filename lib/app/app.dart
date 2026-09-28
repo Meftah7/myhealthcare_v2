@@ -23,11 +23,12 @@ class MyHealthCareApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final highContrast = ref.watch(highContrastProvider);
     return MaterialApp.router(
       title: 'MyHealth Care',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
+      theme: highContrast ? AppTheme.lightHighContrast : AppTheme.light,
+      darkTheme: highContrast ? AppTheme.darkHighContrast : AppTheme.dark,
       themeMode: ref.watch(themeModeProvider),
       locale: ref.watch(localeProvider),
       supportedLocales: supportedLocales,
@@ -40,6 +41,7 @@ class MyHealthCareApp extends ConsumerWidget {
       routerConfig: ref.watch(routerProvider),
       builder: (context, child) => _AppFrame(
         textScale: ref.watch(textScaleProvider).factor,
+        motionPreference: ref.watch(motionPreferenceProvider),
         child: child ?? const SizedBox.shrink(),
       ),
     );
@@ -53,9 +55,14 @@ class MyHealthCareApp extends ConsumerWidget {
 /// Split out so the overlays and the [child] subtree are not rebuilt when the
 /// only thing that changed is a MediaQuery inset (a keyboard opening, say).
 class _AppFrame extends StatelessWidget {
-  const _AppFrame({required this.textScale, required this.child});
+  const _AppFrame({
+    required this.textScale,
+    required this.motionPreference,
+    required this.child,
+  });
 
   final double textScale;
+  final MotionPreference motionPreference;
   final Widget child;
 
   @override
@@ -65,10 +72,18 @@ class _AppFrame extends StatelessWidget {
     final base = MediaQuery.textScalerOf(context);
     final scheme = Theme.of(context).colorScheme;
     final isLight = Theme.of(context).brightness == Brightness.light;
+    // An explicit in-app choice overrides the OS setting Motion.reduced()
+    // otherwise reads; "system" leaves MediaQuery's own value untouched.
+    final disableAnimations = switch (motionPreference) {
+      MotionPreference.reduced => true,
+      MotionPreference.full => false,
+      MotionPreference.system => MediaQuery.of(context).disableAnimations,
+    };
 
     return MediaQuery(
       data: MediaQuery.of(context).copyWith(
         textScaler: _ScaledTextScaler(base, textScale),
+        disableAnimations: disableAnimations,
       ),
       // Most screens build their own header instead of a Material `AppBar`
       // (whose theme otherwise sets this automatically), so without this the

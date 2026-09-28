@@ -4,6 +4,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/core/di.dart';
+import 'package:myhealthcare/core/failures.dart';
 import 'package:myhealthcare/data/repositories/appointment_repository_impl.dart';
 import 'package:myhealthcare/data/repositories/family_link_repository_impl.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
@@ -280,20 +281,23 @@ void main() {
 
     final beforeCount = (await apptRepo.forPatient(owner.id)).valueOrNull!.length;
 
-    // View-only: booking for the owner is refused before it ever hits the
-    // appointments table.
+    // View-only: authorization fails before ranking can read the owner's
+    // profile or appointment history.
     await container
         .read(sessionProvider.notifier)
         .login(email: viewer.email, password: Seeder.demoPassword);
     container.read(bookingDraftProvider.notifier).state = draft;
     container.read(bookingTargetPatientIdProvider.notifier).state = owner.id;
-    final viewerRanked = await container.read(rankedSlotsProvider.future);
-    expect(viewerRanked, isNotEmpty);
-    final deniedResult = await container
-        .read(bookingControllerProvider)
-        .confirm(viewerRanked.first);
-    expect(deniedResult.isErr, isTrue);
-    expect(deniedResult.failureOrNull!.message, contains('manage access'));
+    await expectLater(
+      container.read(rankedSlotsProvider.future),
+      throwsA(
+        isA<AuthFailure>().having(
+          (failure) => failure.message,
+          'message',
+          contains('manage access'),
+        ),
+      ),
+    );
     expect(
       (await apptRepo.forPatient(owner.id)).valueOrNull!.length,
       beforeCount,

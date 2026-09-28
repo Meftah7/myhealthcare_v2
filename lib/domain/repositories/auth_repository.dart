@@ -57,12 +57,13 @@ abstract interface class AuthRepository {
   /// the forgot-password flow. [NotFoundFailure] when nothing matches.
   Future<Result<User>> accountForIdentifier(String identifier);
 
-  /// Set a new password without the current one — the reset-password step of
-  /// the forgot-password flow (the FirstSemMyHealth reset page does the same).
-  Future<Result<void>> resetPassword({
-    required String userId,
-    required String newPassword,
-  });
+  /// Queue a forgotten-password request for an admin to verify and resolve.
+  ///
+  /// There is no email/SMS delivery in this app, so a self-service reset
+  /// link can't prove the requester owns the account — this always succeeds
+  /// (an unknown identifier is silently ignored) so the response can never
+  /// be used to test whether an email or national ID has an account.
+  Future<Result<void>> requestPasswordReset(String identifier);
 }
 
 /// Account administration + lookups (admin screens, staff patient search).
@@ -113,5 +114,23 @@ abstract interface class UserRepository {
   Future<Result<void>> resetPassword({
     required String id,
     required String newPassword,
+  });
+
+  Future<Result<void>> resetPasswordAndResolve({
+    required String id,
+    required String newPassword,
+    required String adminId,
+  });
+
+  /// User IDs with at least one unresolved [PasswordResetRequest] — an admin
+  /// row shows a "reset requested" badge for these.
+  Future<Result<Set<String>>> userIdsWithPendingPasswordResetRequests();
+
+  /// Marks every unresolved password-reset request for [userId] as resolved
+  /// by [staffId]. Called after the admin actually issues the new password
+  /// (via [resetPassword] above) so the badge clears.
+  Future<Result<void>> resolvePasswordResetRequests({
+    required String userId,
+    required String staffId,
   });
 }

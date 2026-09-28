@@ -11,7 +11,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
-import '../../../core/di.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/date_input.dart';
@@ -145,8 +144,8 @@ class _PersonalInfoSectionState extends ConsumerState<PersonalInfoSection> {
     );
 
     final result = await ref
-        .read(patientRepositoryProvider)
-        .updateProfile(updated);
+        .read(patientProfileControllerProvider)
+        .update(updated);
     if (!mounted) return;
     setState(() => _busy = false);
 
@@ -193,6 +192,7 @@ class _PersonalInfoSectionState extends ConsumerState<PersonalInfoSection> {
         const SizedBox(height: Space.sm),
         TextField(
           controller: _cpr,
+          readOnly: true,
           keyboardType: TextInputType.number,
           inputFormatters: [
             FilteringTextInputFormatter.digitsOnly,
@@ -233,6 +233,7 @@ class _PersonalInfoSectionState extends ConsumerState<PersonalInfoSection> {
         const SizedBox(height: Space.sm),
         TextField(
           controller: _email,
+          readOnly: true,
           keyboardType: TextInputType.emailAddress,
           decoration: InputDecoration(labelText: t.emailLabel),
         ),

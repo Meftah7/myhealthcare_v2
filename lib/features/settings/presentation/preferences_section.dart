@@ -13,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/confirm_dialog.dart';
 import '../../../l10n/app_localizations.dart';
 
 /// Translated label for a [TextScaleLevel] — a device-local UI preference,
@@ -32,7 +33,7 @@ String _textScaleLabel(BuildContext context, TextScaleLevel level) {
 /// One togglable block inside [PreferencesSection]. Lets a caller — the
 /// compact Profile page vs. the full Preferences page — show only the blocks
 /// it needs from the one implementation, instead of two copies drifting apart.
-enum PrefsBlock { theme, textSize, language, notifications }
+enum PrefsBlock { theme, textSize, language, notifications, accessibility }
 
 class PreferencesSection extends ConsumerWidget {
   const PreferencesSection({
@@ -42,6 +43,7 @@ class PreferencesSection extends ConsumerWidget {
       PrefsBlock.textSize,
       PrefsBlock.language,
       PrefsBlock.notifications,
+      PrefsBlock.accessibility,
     },
     super.key,
   });
@@ -65,6 +67,15 @@ class PreferencesSection extends ConsumerWidget {
     final locale = ref.watch(localeProvider);
     final notify = ref.watch(notificationPrefsProvider);
     final soundsOn = ref.watch(soundsEnabledProvider);
+    final motionPref = ref.watch(motionPreferenceProvider);
+    final highContrast = ref.watch(highContrastProvider);
+    // A preference that failed to save has already been rolled back to its
+    // previous value; say so rather than let the control silently snap back.
+    ref.listen(settingsSaveFailureProvider, (_, _) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(t.settingSaveFailedMessage)));
+    });
 
     final themeBlock = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -153,14 +164,23 @@ class PreferencesSection extends ConsumerWidget {
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           title: Text(t.smsLabel),
+          subtitle: Text(t.smsChannelSubtitle),
           value: notify.sms,
           onChanged: ref.read(notificationPrefsProvider.notifier).setSms,
         ),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           title: Text(t.emailLabel),
+          subtitle: Text(t.emailChannelSubtitle),
           value: notify.email,
           onChanged: ref.read(notificationPrefsProvider.notifier).setEmail,
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(t.pushLabel),
+          subtitle: Text(t.pushChannelSubtitle),
+          value: notify.push,
+          onChanged: ref.read(notificationPrefsProvider.notifier).setPush,
         ),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
@@ -177,6 +197,79 @@ class PreferencesSection extends ConsumerWidget {
             color: scheme.onSurfaceVariant,
           ),
         ),
+        const SizedBox(height: Space.xs),
+        Text(
+          t.inAppAlwaysOnNote,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: scheme.onSurfaceVariant,
+          ),
+        ),
+        Align(
+          alignment: AlignmentDirectional.centerEnd,
+          child: TextButton(
+            onPressed: () async {
+              final ok = await confirm(
+                context,
+                title: t.resetNotificationsTitle,
+                message: t.resetNotificationsMessage,
+                confirmLabel: t.resetAction,
+              );
+              if (!ok) return;
+              await ref.read(notificationPrefsProvider.notifier).reset();
+              await ref.read(soundsEnabledProvider.notifier).reset();
+            },
+            child: Text(t.resetNotificationsTitle),
+          ),
+        ),
+      ],
+    );
+
+    final accessibilityBlock = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _BlockLabel(
+          icon: Icons.accessibility_new_outlined,
+          label: t.motionLabel,
+        ),
+        const SizedBox(height: Space.sm),
+        PillSegmented<MotionPreference>(
+          segments: [
+            (MotionPreference.system, t.motionSystem),
+            (MotionPreference.reduced, t.motionReduced),
+            (MotionPreference.full, t.motionFull),
+          ],
+          selected: motionPref,
+          onChanged: (v) =>
+              ref.read(motionPreferenceProvider.notifier).set(v),
+        ),
+        const SizedBox(height: Space.sm),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(t.highContrastLabel),
+          subtitle: Text(t.highContrastSubtitle),
+          value: highContrast,
+          onChanged: (v) =>
+              ref.read(highContrastProvider.notifier).set(enabled: v),
+        ),
+        Align(
+          alignment: AlignmentDirectional.centerEnd,
+          child: TextButton(
+            onPressed: () async {
+              final ok = await confirm(
+                context,
+                title: t.resetAppearanceTitle,
+                message: t.resetAppearanceMessage,
+                confirmLabel: t.resetAction,
+              );
+              if (!ok) return;
+              await ref.read(themeModeProvider.notifier).reset();
+              await ref.read(textScaleProvider.notifier).reset();
+              await ref.read(motionPreferenceProvider.notifier).reset();
+              await ref.read(highContrastProvider.notifier).reset();
+            },
+            child: Text(t.resetAppearanceTitle),
+          ),
+        ),
       ],
     );
 
@@ -185,6 +278,7 @@ class PreferencesSection extends ConsumerWidget {
       PrefsBlock.textSize: textSizeBlock,
       PrefsBlock.language: languageBlock,
       PrefsBlock.notifications: notificationsBlock,
+      PrefsBlock.accessibility: accessibilityBlock,
     };
     final shown = [
       for (final b in PrefsBlock.values)

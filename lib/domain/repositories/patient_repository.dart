@@ -4,12 +4,25 @@ library;
 import '../../core/result.dart';
 import '../entities/entities.dart';
 
+class PatientLinkCandidate {
+  const PatientLinkCandidate({required this.id, required this.fullName});
+
+  final String id;
+  final String fullName;
+}
+
 abstract interface class PatientRepository {
   Future<Result<Patient>> byId(String id);
 
   /// Free-text search over name / national id / phone (staff patient search,
   /// P5-06; also used to find an account to family-link with).
   Future<Result<List<Patient>>> search(String query, {int limit});
+
+  /// Exact email/national-ID lookup exposing only fields needed to request a
+  /// family link. It intentionally does not hydrate the clinical profile.
+  Future<Result<List<PatientLinkCandidate>>> findLinkCandidate(
+    String identifier,
+  );
 
   Future<Result<List<Patient>>> all({int limit, int offset});
 

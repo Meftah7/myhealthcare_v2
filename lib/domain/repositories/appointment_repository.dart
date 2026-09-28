@@ -50,6 +50,13 @@ class BookingRequest {
 abstract interface class AppointmentRepository {
   Future<Result<Appointment>> byId(String id);
 
+  /// Whether this clinician has an established appointment relationship with
+  /// the patient. Used as the minimum chart-access boundary.
+  Future<Result<bool>> hasCareRelationship({
+    required String staffId,
+    required String patientId,
+  });
+
   Future<Result<List<Appointment>>> forPatient(
     String patientId, {
     bool upcomingOnly,
@@ -87,31 +94,66 @@ abstract interface class AppointmentRepository {
 
   Future<Result<Appointment>> book(BookingRequest request);
 
+  /// [patientId] must match the appointment's own patient — the repository
+  /// verifies this itself rather than trusting the caller, since a caller
+  /// with permission to manage one patient's appointments must not be able
+  /// to reach a *different* patient's appointment by ID alone.
+  ///
+  /// Rejects an interval that overlaps another active appointment for the
+  /// same clinician, a past time, or an appointment that isn't in a
+  /// reschedulable status. Rebuilds that appointment's reminders for the new
+  /// time on success.
   Future<Result<Appointment>> reschedule({
     required String id,
+    required String patientId,
     required DateTime newStart,
     required DateTime newEnd,
+    Set<ReminderChannel>? enabledChannels,
   });
 
-  Future<Result<void>> cancel(String id);
+  /// [patientId] must match the appointment's own patient (see [reschedule]).
+  /// Clears its unsent reminders. Cancelling an already-cancelled or
+  /// completed appointment fails cleanly rather than silently no-op'ing.
+  Future<Result<void>> cancel(String id, {required String patientId});
 
+  /// [staffId] must match the appointment's own clinician — a staff member
+  /// must not be able to change the status of a visit assigned to a
+  /// different clinician just by knowing its ID. After [transfer], the
+  /// appointment's staffId is the new clinician, who can then act on it.
   Future<Result<void>> updateStatus({
     required String id,
+    required String staffId,
     required AppointmentStatus status,
   });
 
-  Future<Result<void>> markCheckedIn(String id, DateTime at);
+  Future<Result<void>> markCheckedIn(
+    String id, {
+    required String staffId,
+    required DateTime at,
+  });
 
   /// "Call patient" — stamps `calledInAt`; the status is unchanged.
-  Future<Result<void>> markCalledIn(String id, DateTime at);
+  Future<Result<void>> markCalledIn(
+    String id, {
+    required String staffId,
+    required DateTime at,
+  });
 
   /// "Patient arrived" — stamps `checkedInAt` and moves the visit to
   /// [AppointmentStatus.inProgress].
-  Future<Result<void>> markArrived(String id, DateTime at);
+  Future<Result<void>> markArrived(
+    String id, {
+    required String staffId,
+    required DateTime at,
+  });
 
   /// "Complete consultation" — [AppointmentStatus.completed] plus the doctor's
   /// closing summary.
-  Future<Result<void>> completeVisit({required String id, String? outcomeNote});
+  Future<Result<void>> completeVisit({
+    required String id,
+    required String staffId,
+    String? outcomeNote,
+  });
 
   /// Creates an in-progress visit for a walk-in ticket — no slot picking, the
   /// patient is already here. Returns the new appointment.
@@ -127,8 +169,12 @@ abstract interface class AppointmentRepository {
   /// [AppointmentStatus.booked] so the receiving clinician re-accepts it, and
   /// the room number is recomputed for the new staff member's department
   /// (ported from the FirstSemMyHealth "transfer_appointment" action).
+  ///
+  /// [fromStaffId] must match the appointment's current clinician — the same
+  /// ownership guarantee as [updateStatus] and friends.
   Future<Result<Appointment>> transfer({
     required String id,
+    required String fromStaffId,
     required String toStaffId,
   });
 }

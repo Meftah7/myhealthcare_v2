@@ -1,8 +1,6 @@
 /// Secure storage for the LLM API key (P3-06). Never logged, never committed.
 ///
-/// A `--dart-define=GEMINI_API_KEY=...` value is used as a dev fallback when
-/// nothing is stored (handy for `flutter test` / CI), but the stored value
-/// always wins.
+/// Provider credentials are never compiled into the application binary.
 library;
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -14,7 +12,6 @@ class AiKeyStore {
   final FlutterSecureStorage _storage;
 
   static const _key = 'ai.apiKey';
-  static const _dartDefineKey = String.fromEnvironment('GEMINI_API_KEY');
 
   Future<String?> read() async {
     String? stored;
@@ -22,11 +19,11 @@ class AiKeyStore {
       stored = await _storage.read(key: _key);
     } catch (_) {
       // Secure storage can be unavailable (locked keystore, test harness with
-      // no plugin, …) — fall through to the dart-define / "no key" path.
+      // no plugin, …) — treat the key as unavailable.
       stored = null;
     }
     if (stored != null && stored.isNotEmpty) return stored;
-    return _dartDefineKey.isEmpty ? null : _dartDefineKey;
+    return null;
   }
 
   Future<bool> hasKey() async => (await read())?.isNotEmpty ?? false;

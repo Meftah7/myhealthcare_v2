@@ -75,10 +75,10 @@ class _MessageThreadScreenState extends ConsumerState<MessageThreadScreen> {
     setState(() => _sending = true);
     final result = await ref
         .read(messageActionsProvider)
-        .send(
-          patientId: widget.patientId,
-          staffId: widget.staffId,
-          fromStaff: widget.viewerIsStaff,
+        .sendAsCurrentUser(
+          counterpartId: widget.viewerIsStaff
+              ? widget.patientId
+              : widget.staffId,
           body: text,
         );
     if (!mounted) return;

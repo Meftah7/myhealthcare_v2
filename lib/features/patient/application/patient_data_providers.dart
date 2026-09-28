@@ -7,6 +7,7 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/di.dart';
+import '../../../core/failures.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -68,6 +69,22 @@ final patientAppointmentsProvider = FutureProvider<List<Appointment>>((
   final id = _requirePatient(ref);
   return _unwrap(await ref.watch(appointmentRepositoryProvider).forPatient(id));
 });
+
+/// One appointment from the signed-in patient's own list, by id — derived
+/// from [patientAppointmentsProvider] rather than a fresh query, and so also
+/// naturally scoped to the current patient (an id that isn't theirs is
+/// invisible here, the same as it not existing). Backs the appointment
+/// detail screen.
+final patientAppointmentByIdProvider =
+    Provider.family<AsyncValue<Appointment?>, String>((ref, id) {
+      final list = ref.watch(patientAppointmentsProvider);
+      return list.whenData((xs) {
+        for (final a in xs) {
+          if (a.id == id) return a;
+        }
+        return null;
+      });
+    });
 
 /// staffId → display name ("Dr …") + department id, for labelling appointments.
 final doctorDirectoryProvider = FutureProvider<Map<String, ({String name, String? departmentId})>>((
@@ -144,6 +161,27 @@ class FamilyMemberController {
     return result;
   }
 }
+
+class PatientProfileController {
+  PatientProfileController(this._ref);
+  final Ref _ref;
+
+  Future<Result<void>> update(Patient patient) async {
+    final id = _requirePatient(_ref);
+    if (patient.id != id) {
+      return const Err(AuthFailure('You can only update your own profile.'));
+    }
+    final result = await _ref.read(patientRepositoryProvider).updateProfile(
+      patient,
+    );
+    if (result case Ok()) _ref.invalidate(patientProfileProvider);
+    return result;
+  }
+}
+
+final patientProfileControllerProvider = Provider<PatientProfileController>(
+  PatientProfileController.new,
+);
 
 final familyMemberControllerProvider = Provider<FamilyMemberController>(
   FamilyMemberController.new,

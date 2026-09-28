@@ -2,6 +2,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -26,12 +27,12 @@ import '../features/admin/presentation/user_management_screen.dart';
 import '../features/ai_chat/presentation/care_navigator_overlay.dart';
 import '../features/ai_scribe/presentation/clinical_scribe_screen.dart';
 import '../features/ai_summary/presentation/ai_summary_screen.dart';
+import '../features/appointments/presentation/appointment_detail_screen.dart';
 import '../features/appointments/presentation/appointments_screen.dart';
 import '../features/auth/application/session.dart';
 import '../features/auth/presentation/forgot_password_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
-import '../features/auth/presentation/reset_password_screen.dart';
 import '../features/billing/presentation/payments_screen.dart';
 import '../features/booking/presentation/booking_screen.dart';
 import '../features/care/presentation/admin_home_visits_screen.dart';
@@ -98,7 +99,6 @@ abstract final class AppRoutes {
   static const login = '/login';
   static const register = '/register';
   static const forgotPassword = '/forgot-password';
-  static const resetPassword = '/reset-password';
 
   // Patient
   static const patientHome = '/patient/home';
@@ -108,6 +108,10 @@ abstract final class AppRoutes {
   static const patientNotifications = '/patient/home/notifications';
   static const patientAppointments = '/patient/appointments';
   static const patientBook = '/patient/appointments/book';
+
+  /// Appointment detail — pass the appointment id.
+  static String patientAppointmentDetail(String id) =>
+      '$patientAppointments/detail/$id';
   static const patientSummary = '/patient/summary';
   static const patientSettings = '/patient/settings';
   static const patientProfilePersonal = '/patient/settings/personal';
@@ -217,12 +221,6 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
         path: AppRoutes.forgotPassword,
         builder: (_, _) => const ForgotPasswordScreen(),
       ),
-      GoRoute(
-        path: AppRoutes.resetPassword,
-        builder: (_, state) => ResetPasswordScreen(
-          userId: state.uri.queryParameters['user'] ?? '',
-        ),
-      ),
       // The booking wizard is a focused full-screen flow over the shell — no
       // bottom nav while a multi-step task is in progress (DESIGN.md §6).
       GoRoute(
@@ -277,13 +275,16 @@ String? _guard(Ref ref, GoRouterState state) {
     AppRoutes.login,
     AppRoutes.register,
     AppRoutes.forgotPassword,
-    AppRoutes.resetPassword,
   };
   final onAuthScreen = publicAuth.contains(loc);
 
-  // Dataset still seeding / migrating, or the persisted session still loading
-  // → sit on the splash so nothing reads half-populated data.
-  final booting = ref.read(appBootstrapProvider).isLoading;
+  // Dataset still seeding/migrating (or failed to), or the persisted session
+  // still loading → sit on the splash so nothing reads half-populated data.
+  // A failed seed must hold here too: falling through to the login screen
+  // with zero accounts actually created would make every login — including
+  // every demo account — fail with "account not found" and no explanation.
+  final bootstrap = ref.read(appBootstrapProvider);
+  final booting = bootstrap.isLoading || bootstrap.hasError;
   if (booting || session.isRestoring) {
     return loc == onSplash ? null : onSplash;
   }
@@ -300,12 +301,76 @@ String? _guard(Ref ref, GoRouterState state) {
   return null;
 }
 
-class _SplashScreen extends StatelessWidget {
+class _SplashScreen extends ConsumerWidget {
   const _SplashScreen();
 
   @override
-  Widget build(BuildContext context) =>
-      const Scaffold(body: Center(child: CircularProgressIndicator()));
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bootstrap = ref.watch(appBootstrapProvider);
+    if (!bootstrap.hasError) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    // Seeding/migration failed (e.g. the browser's local storage refused to
+    // open) — say so and let the user retry, instead of silently continuing
+    // to a login screen backed by an empty database.
+    final t = AppLocalizations.of(context)!;
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.cloud_off_rounded,
+                size: 40,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                t.startupFailedTitle,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                t.startupFailedSubtitle,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 20),
+              FilledButton(
+                onPressed: () => ref.invalidate(appBootstrapProvider),
+                child: Text(t.tryAgain),
+              ),
+              const SizedBox(height: 12),
+              // Collapsed by default (this is patient-facing), but the raw
+              // exception is what actually lets a bug report be fixed —
+              // "something went wrong" alone taught us nothing last time.
+              if (kDebugMode) ExpansionTile(
+                title: Text(
+                  t.technicalDetailsLabel,
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: const EdgeInsets.only(bottom: 8),
+                children: [
+                  SelectableText(
+                    '${bootstrap.error}',
+                    textAlign: TextAlign.start,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontFamily: 'monospace',
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -404,6 +469,12 @@ StatefulShellRoute _patientShell() {
               GoRoute(
                 path: 'doctors',
                 builder: (_, _) => const VisitedDoctorsScreen(),
+              ),
+              GoRoute(
+                path: 'detail/:id',
+                builder: (_, state) => AppointmentDetailScreen(
+                  appointmentId: state.pathParameters['id']!,
+                ),
               ),
             ],
           ),

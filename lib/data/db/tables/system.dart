@@ -39,6 +39,14 @@ class AppSettings extends Table {
   /// Bumped by the seeder so re-seeds are detectable (P1-21).
   IntColumn get seedVersion => integer().withDefault(const Constant(0))();
 
+  /// Clinic-wide opening schedule — shared operational data, so it lives
+  /// here rather than in one device's SharedPreferences. Null until first
+  /// saved (the app then uses its built-in default: every day, 08:00-20:00).
+  /// Open days are ISO weekdays (1 = Monday), comma-separated.
+  TextColumn get clinicOpenDays => text().nullable()();
+  IntColumn get clinicOpenHour => integer().nullable()();
+  IntColumn get clinicCloseHour => integer().nullable()();
+
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 
   @override

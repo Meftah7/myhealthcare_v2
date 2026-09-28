@@ -23,6 +23,34 @@ abstract final class AppTheme {
   static ThemeData get dark =>
       _build(AppColors.dark, ClinicalStatusColors.dark, Brightness.dark);
 
+  /// High-contrast variants (Preferences → Accessibility): the same palette
+  /// with full-strength text and borders, for low-vision users for whom the
+  /// default hairline + tinted-surface separation is too subtle.
+  static ThemeData get lightHighContrast => _build(
+    _highContrast(AppColors.light, Brightness.light),
+    ClinicalStatusColors.light,
+    Brightness.light,
+  );
+
+  static ThemeData get darkHighContrast => _build(
+    _highContrast(AppColors.dark, Brightness.dark),
+    ClinicalStatusColors.dark,
+    Brightness.dark,
+  );
+
+  static ColorScheme _highContrast(ColorScheme s, Brightness b) {
+    final isLight = b == Brightness.light;
+    final ink = isLight ? Colors.black : Colors.white;
+    return s.copyWith(
+      onSurface: ink,
+      onSurfaceVariant: ink,
+      outline: ink,
+      outlineVariant: isLight
+          ? const Color(0xFF5A5F6B)
+          : const Color(0xFFB4B9C6),
+    );
+  }
+
   static ThemeData _build(
     ColorScheme scheme,
     ClinicalStatusColors status,

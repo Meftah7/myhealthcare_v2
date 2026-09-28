@@ -146,6 +146,42 @@ void main() {
     expect(still.status, isNot(InvoiceStatus.paid));
   });
 
+  test('paid and cancelled invoices cannot be reopened', () async {
+    final db = newTestDatabase();
+    addTearDown(db.close);
+    await Seeder(db).run();
+    final repo = BillingRepositoryImpl(db);
+    final pending = (await repo.all(status: InvoiceStatus.pending))
+        .valueOrNull!;
+    expect(pending.length, greaterThanOrEqualTo(2));
+
+    final paid = await repo.setStatus(
+      id: pending[0].id,
+      status: InvoiceStatus.paid,
+    );
+    expect(paid.isOk, isTrue);
+    expect(
+      (await repo.setStatus(
+        id: pending[0].id,
+        status: InvoiceStatus.cancelled,
+      )).isErr,
+      isTrue,
+    );
+
+    final cancelled = await repo.setStatus(
+      id: pending[1].id,
+      status: InvoiceStatus.cancelled,
+    );
+    expect(cancelled.isOk, isTrue);
+    expect(
+      (await repo.setStatus(
+        id: pending[1].id,
+        status: InvoiceStatus.paid,
+      )).isErr,
+      isTrue,
+    );
+  });
+
   group('card validation', () {
     late AppDatabaseHarness harness;
 
