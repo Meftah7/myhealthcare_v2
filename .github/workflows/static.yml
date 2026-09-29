@@ -28,8 +28,13 @@ jobs:
        run: dart run build_runner build --delete-conflicting-outputs
      - name: Build web release
        # base-href must match the repo name so asset paths resolve correctly
-       # under https://<user>.github.io/<repo>/
-       run: flutter build web --release --base-href "/myhealthcare_v2/"
+       # under https://<user>.github.io/<repo>/. --no-web-resources-cdn keeps
+       # CanvasKit bundled locally instead of fetched from gstatic.com, which
+       # the page's strict Content-Security-Policy (script-src 'self') blocks
+       # — without this flag the app loads its JS but never renders (blank
+       # white page, no catchable error since the CSP block happens before
+       # any Dart code runs).
+       run: flutter build web --release --base-href "/myhealthcare_v2/" --no-web-resources-cdn
      - name: Setup Pages
        uses: actions/configure-pages@v5
      - name: Upload artifact
