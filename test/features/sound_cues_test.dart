@@ -30,7 +30,10 @@ void main() {
       for (final s in PresenceStatus.values) s: AppSound.forPresence(s),
     };
     expect(cues[PresenceStatus.onDuty], AppSound.presenceOnDuty);
-    expect(cues[PresenceStatus.inConsultation], AppSound.presenceInConsultation);
+    expect(
+      cues[PresenceStatus.inConsultation],
+      AppSound.presenceInConsultation,
+    );
     expect(cues[PresenceStatus.onBreak], AppSound.presenceOnBreak);
     expect(cues[PresenceStatus.offShift], AppSound.presenceOffShift);
     // No two statuses share a sound.

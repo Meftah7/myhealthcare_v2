@@ -44,11 +44,32 @@ abstract class CareMessage with _$CareMessage {
     required String body,
     required DateTime sentAt,
     DateTime? readAt,
+
+    /// Who must answer a patient's message (the thread's clinician), and who
+    /// covers it while they are off duty. Null on staff replies.
+    String? queueOwnerStaffId,
+    String? coverageStaffId,
+
+    /// When a reply is due ([CareMessageQueue.responseWindow] after it was
+    /// sent). Null on staff replies.
+    DateTime? responseDueAt,
   }) = _CareMessage;
 
   const CareMessage._();
 
   bool get isRead => readAt != null;
+
+  bool isOverdueAt(DateTime now) {
+    final due = responseDueAt;
+    return !fromStaff && due != null && due.isBefore(now);
+  }
+}
+
+/// The clinic's messaging promise (Phase 4). Shown to patients as-is, so it
+/// must stay honest: a reply within one working day, never an emergency
+/// channel.
+abstract final class CareMessageQueue {
+  static const responseWindow = Duration(hours: 24);
 }
 
 /// A patient <-> doctor thread: the latest message plus unread counts. Built
@@ -79,6 +100,7 @@ abstract class HomeVisitRequest with _$HomeVisitRequest {
     String? assignedStaffId,
     String? decisionNote,
     DateTime? decidedAt,
+    @Default(1) int version,
   }) = _HomeVisitRequest;
 
   const HomeVisitRequest._();

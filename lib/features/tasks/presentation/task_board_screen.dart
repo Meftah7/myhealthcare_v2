@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -24,14 +25,9 @@ class TaskBoardScreen extends ConsumerWidget {
     final t = AppLocalizations.of(context)!;
     final tasks = ref.watch(staffTasksProvider);
     final weight = ref.watch(aiTaskWeightProvider).valueOrNull ?? 0.5;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(t.taskBoardTitle),
-        actions: [
-          _PrioritiseButton(),
-          const StaffTopActions(),
-        ],
-      ),
+    return AppScaffold(
+      title: t.taskBoardTitle,
+      actions: [_PrioritiseButton(), const StaffTopActions()],
       body: tasks.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
@@ -72,6 +68,7 @@ class TaskBoardScreen extends ConsumerWidget {
           );
         },
       ),
+      centerBody: false,
     );
   }
 }
@@ -129,68 +126,68 @@ class _TaskCard extends ConsumerWidget {
     return AppCard(
       padding: const EdgeInsets.all(Space.md),
       child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                _PriorityDot(priority),
-                const SizedBox(width: Space.xs),
-                Expanded(
-                  child: Text(task.title, style: theme.textTheme.titleSmall),
-                ),
-                PopupMenuButton<TaskStatus>(
-                  onSelected: (s) =>
-                      ref.read(staffOpsProvider).setTaskStatus(task.id, s),
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: TaskStatus.inProgress,
-                      child: Text(t.startAction),
-                    ),
-                    PopupMenuItem(
-                      value: TaskStatus.done,
-                      child: Text(t.completeAction),
-                    ),
-                    PopupMenuItem(
-                      value: TaskStatus.dismissed,
-                      child: Text(t.dismissAction),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: Space.xxs),
-            Wrap(
-              spacing: Space.xs,
-              runSpacing: Space.xxs,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                _Tag(label: _kindLabel(t, task.kind)),
-                _Tag(label: t.ruleScoreTag(task.ruleScore.toStringAsFixed(2))),
-                if (task.aiPriorityScore != null)
-                  _Tag(
-                    label: t.aiScoreTag(task.aiPriorityScore!.toStringAsFixed(2)),
-                    icon: Icons.auto_awesome,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _PriorityDot(priority),
+              const SizedBox(width: Space.xs),
+              Expanded(
+                child: Text(task.title, style: theme.textTheme.titleSmall),
+              ),
+              PopupMenuButton<TaskStatus>(
+                onSelected: (s) =>
+                    ref.read(staffOpsProvider).setTaskStatus(task.id, s),
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: TaskStatus.inProgress,
+                    child: Text(t.startAction),
                   ),
-                if (task.dueAt != null)
-                  _Tag(
-                    label: t.dueTag(fmtRelativeDay(task.dueAt!)),
-                    error: task.isOverdue,
+                  PopupMenuItem(
+                    value: TaskStatus.done,
+                    child: Text(t.completeAction),
                   ),
-                if (task.status == TaskStatus.inProgress)
-                  _Tag(label: t.taskStatusInProgress),
-              ],
-            ),
-            if (task.aiRationale != null) ...[
-              const SizedBox(height: Space.xs),
-              Text(
-                task.aiRationale!,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
+                  PopupMenuItem(
+                    value: TaskStatus.dismissed,
+                    child: Text(t.dismissAction),
+                  ),
+                ],
               ),
             ],
+          ),
+          const SizedBox(height: Space.xxs),
+          Wrap(
+            spacing: Space.xs,
+            runSpacing: Space.xxs,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              _Tag(label: _kindLabel(t, task.kind)),
+              _Tag(label: t.ruleScoreTag(task.ruleScore.toStringAsFixed(2))),
+              if (task.aiPriorityScore != null)
+                _Tag(
+                  label: t.aiScoreTag(task.aiPriorityScore!.toStringAsFixed(2)),
+                  icon: Icons.auto_awesome,
+                ),
+              if (task.dueAt != null)
+                _Tag(
+                  label: t.dueTag(fmtRelativeDay(task.dueAt!)),
+                  error: task.isOverdue,
+                ),
+              if (task.status == TaskStatus.inProgress)
+                _Tag(label: t.taskStatusInProgress),
+            ],
+          ),
+          if (task.aiRationale != null) ...[
+            const SizedBox(height: Space.xs),
+            Text(
+              task.aiRationale!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
           ],
-        ),
+        ],
+      ),
     );
   }
 }

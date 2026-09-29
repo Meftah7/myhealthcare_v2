@@ -1,15 +1,16 @@
 /// Sign-in screen (P2-02, redesign v2).
 library;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/di.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/session.dart';
@@ -26,6 +27,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _email = TextEditingController();
   final _password = TextEditingController();
+  final _emailFocus = FocusNode();
+  final _passwordFocus = FocusNode();
   bool _obscure = true;
   bool _busy = false;
   String? _error;
@@ -34,12 +37,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   void dispose() {
     _email.dispose();
     _password.dispose();
+    _emailFocus.dispose();
+    _passwordFocus.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
     if (_busy) return;
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      if (_email.text.trim().isEmpty) {
+        _emailFocus.requestFocus();
+      } else if (_password.text.isEmpty) {
+        _passwordFocus.requestFocus();
+      }
+      return;
+    }
     setState(() {
       _busy = true;
       _error = null;
@@ -50,7 +62,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!mounted) return;
     setState(() => _busy = false);
     if (result case Err(:final failure)) {
-      setState(() => _error = failure.message);
+      setState(
+        () => _error = describeFailure(
+          AppLocalizations.of(context)!,
+          failure,
+        ).message,
+      );
     }
     // On success the router redirect takes over.
   }
@@ -62,6 +79,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final t = AppLocalizations.of(context)!;
     final endedByInactivity = ref.watch(
       sessionProvider.select((s) => s.endedByInactivity),
+    );
+    final canResume = ref.watch(
+      sessionProvider.select((s) => s.resumeLocation != null),
     );
 
     final form = Form(
@@ -88,7 +108,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const SizedBox(width: Space.xs),
                   Expanded(
                     child: Text(
-                      t.sessionEndedNotice,
+                      canResume
+                          ? '${t.sessionEndedNotice} ${t.sessionResumeHint}'
+                          : t.sessionEndedNotice,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: scheme.onSurfaceVariant,
                       ),
@@ -101,6 +123,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ],
           TextFormField(
             controller: _email,
+            focusNode: _emailFocus,
             autofillHints: const [AutofillHints.username],
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.next,
@@ -117,6 +140,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           const SizedBox(height: Space.md),
           TextFormField(
             controller: _password,
+            focusNode: _passwordFocus,
             obscureText: _obscure,
             autofillHints: const [AutofillHints.password],
             textInputAction: TextInputAction.done,
@@ -172,8 +196,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             onPressed: _busy ? null : () => context.push(AppRoutes.register),
             child: Text(t.createPatientAccount),
           ),
-          // Demo credentials must never be included in a release UI.
-          if (kShowDemoAccounts) ...[
+          // Demo credentials belong to the explicit demo runtime only.
+          if (ref.watch(appModeProvider).isDemo) ...[
             const SizedBox(height: Space.lg),
             _DemoHint(
               onFill: (email) {
@@ -278,9 +302,6 @@ class _BrandLockup extends StatelessWidget {
     );
   }
 }
-
-/// See the `_DemoHint` call site.
-const bool kShowDemoAccounts = kDebugMode;
 
 class _DemoHint extends StatelessWidget {
   const _DemoHint({required this.onFill});

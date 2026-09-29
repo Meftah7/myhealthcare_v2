@@ -10,7 +10,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
+import '../../../core/data/contracts.dart';
+import '../../../core/failures.dart';
 import '../../../core/presentation/states.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/card_input.dart';
 import '../../../domain/entities/entities.dart';
@@ -48,6 +51,10 @@ class _WalletTopUpSheetState extends ConsumerState<_WalletTopUpSheet> {
   bool _initialisedSelection = false;
 
   bool _submitting = false;
+
+  /// One key per top-up attempt, kept across a retry after an unknown
+  /// outcome so a retry can never credit — or charge — twice.
+  IdempotencyKey _key = IdempotencyKey.generate();
   String? _error;
 
   @override
@@ -109,7 +116,9 @@ class _WalletTopUpSheetState extends ConsumerState<_WalletTopUpSheet> {
                     decimal: true,
                   ),
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                    FilteringTextInputFormatter.allow(
+                      RegExp(r'^\d*\.?\d{0,2}'),
+                    ),
                   ],
                   decoration: InputDecoration(
                     labelText: t.topUpAmountLabel,
@@ -157,7 +166,10 @@ class _WalletTopUpSheetState extends ConsumerState<_WalletTopUpSheet> {
                 ],
 
                 if (_usingSavedCard)
-                  _CvcOnlyField(controller: _cvc, brand: _brandForSelected(cards))
+                  _CvcOnlyField(
+                    controller: _cvc,
+                    brand: _brandForSelected(cards),
+                  )
                 else
                   _fullCardForm(theme),
 
@@ -243,9 +255,8 @@ class _WalletTopUpSheetState extends ConsumerState<_WalletTopUpSheet> {
           autocorrect: false,
           autofillHints: const [AutofillHints.creditCardName],
           decoration: InputDecoration(labelText: t.nameOnCardLabel),
-          validator: (v) => (v == null || v.trim().isEmpty)
-              ? t.enterNameOnCard
-              : null,
+          validator: (v) =>
+              (v == null || v.trim().isEmpty) ? t.enterNameOnCard : null,
         ),
         const SizedBox(height: Space.sm),
         TextFormField(
@@ -353,6 +364,7 @@ class _WalletTopUpSheetState extends ConsumerState<_WalletTopUpSheet> {
             amount: amount,
             cardId: _selectedCardId!,
             cvc: _cvc.text,
+            key: _key,
           );
     } else {
       if (!(_formKey.currentState?.validate() ?? false)) return;
@@ -370,6 +382,7 @@ class _WalletTopUpSheetState extends ConsumerState<_WalletTopUpSheet> {
               expiryYear: expiry.year,
               cvc: _cvc.text,
             ),
+            key: _key,
           );
     }
 
@@ -378,13 +391,24 @@ class _WalletTopUpSheetState extends ConsumerState<_WalletTopUpSheet> {
     switch (result) {
       case Ok():
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(t.walletToppedUpMessage)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(t.walletToppedUpMessage)));
+      case Err(failure: PaymentPendingFailure()):
+        // Unknown outcome: the balance is not credited until the provider
+        // confirms; the same key makes a retry safe.
+        setState(() {
+          _submitting = false;
+          _error = t.topUpPendingMessage;
+        });
       case Err(:final failure):
         setState(() {
           _submitting = false;
-          _error = failure.message;
+          _key = IdempotencyKey.generate();
+          _error = describeFailure(
+            AppLocalizations.of(context)!,
+            failure,
+          ).message;
         });
     }
   }
@@ -430,9 +454,7 @@ class _SavedCardRow extends StatelessWidget {
                 Icon(
                   Icons.credit_card,
                   size: 20,
-                  color: disabled
-                      ? scheme.onSurfaceVariant
-                      : scheme.onSurface,
+                  color: disabled ? scheme.onSurfaceVariant : scheme.onSurface,
                 ),
                 const SizedBox(width: Space.sm),
                 Expanded(
@@ -445,8 +467,12 @@ class _SavedCardRow extends StatelessWidget {
                       ),
                       Text(
                         card.isExpired
-                            ? AppLocalizations.of(context)!.cardExpiredOn(card.expiry)
-                            : AppLocalizations.of(context)!.cardExpiresOn(card.expiry),
+                            ? AppLocalizations.of(
+                                context,
+                              )!.cardExpiredOn(card.expiry)
+                            : AppLocalizations.of(
+                                context,
+                              )!.cardExpiresOn(card.expiry),
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: card.isExpired
                               ? theme.clinicalStatus.riskHigh.onContainer

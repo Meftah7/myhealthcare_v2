@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/paging_widgets.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../l10n/app_localizations.dart';
@@ -18,27 +20,27 @@ class AuditLogScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
     final entries = ref.watch(auditLogProvider);
+    final hasMore =
+        ref.watch(auditLogPageProvider).valueOrNull?.hasMore ?? false;
     // Read once here, on this widget's own context — not inside `itemBuilder`
     // below, whose `context` parameter shadows this one and won't reliably
     // rebuild already-realized rows on an in-session theme toggle otherwise.
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(t.auditLogTitle),
-        actions: [
-          IconButton(
-            tooltip: AppLocalizations.of(context)!.refreshTooltip,
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref.invalidate(auditLogProvider),
-          ),
-        ],
-      ),
+    return AppScaffold(
+      title: t.auditLogTitle,
+      actions: [
+        IconButton(
+          tooltip: AppLocalizations.of(context)!.refreshTooltip,
+          icon: const Icon(Icons.refresh),
+          onPressed: () => ref.invalidate(auditLogPageProvider),
+        ),
+      ],
       body: entries.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
           message: t.couldNotLoadAuditLog,
-          onRetry: () => ref.invalidate(auditLogProvider),
+          onRetry: () => ref.invalidate(auditLogPageProvider),
         ),
         data: (list) {
           if (list.isEmpty) {
@@ -59,9 +61,15 @@ class AuditLogScreen extends ConsumerWidget {
                   Space.md,
                   Space.xxl,
                 ),
-                itemCount: list.length,
+                itemCount: list.length + (hasMore ? 1 : 0),
                 separatorBuilder: (_, _) => const SizedBox(height: Space.xs),
                 itemBuilder: (context, i) {
+                  if (i == list.length) {
+                    return LoadMoreFooter(
+                      onLoadMore: () =>
+                          ref.read(auditLogPagesProvider.notifier).state++,
+                    );
+                  }
                   final e = list[i];
                   return AppCard(
                     padding: const EdgeInsets.all(Space.md),
@@ -106,6 +114,7 @@ class AuditLogScreen extends ConsumerWidget {
           );
         },
       ),
+      centerBody: false,
     );
   }
 }

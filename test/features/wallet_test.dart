@@ -31,8 +31,9 @@ void main() {
     await Seeder(db).run();
 
     final repo = BillingRepositoryImpl(db);
-    final patient = (await db.select(db.users).get())
-        .firstWhere((u) => u.role == UserRole.patient);
+    final patient = (await db.select(db.users).get()).firstWhere(
+      (u) => u.role == UserRole.patient,
+    );
     final cards = (await repo.cardsFor(patient.id)).valueOrNull!;
     expect(cards, hasLength(1));
     expect(cards.first.isDefault, isTrue);

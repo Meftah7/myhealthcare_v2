@@ -31,17 +31,20 @@ void main() {
     expect(cheap.hash.startsWith('1000:'), isTrue);
   });
 
-  test('verify rejects an out-of-range iteration count embedded in the hash', () {
-    const hasher = PasswordHasher();
-    // A tampered/corrupted row could embed an absurd count; verify() must
-    // reject it outright rather than actually running that many rounds.
-    expect(
-      hasher.verify('pw', hash: '999999999:AAAA=', salt: 'AAAA='),
-      isFalse,
-    );
-    expect(hasher.verify('pw', hash: '0:AAAA=', salt: 'AAAA='), isFalse);
-    expect(hasher.verify('pw', hash: '-5:AAAA=', salt: 'AAAA='), isFalse);
-  });
+  test(
+    'verify rejects an out-of-range iteration count embedded in the hash',
+    () {
+      const hasher = PasswordHasher();
+      // A tampered/corrupted row could embed an absurd count; verify() must
+      // reject it outright rather than actually running that many rounds.
+      expect(
+        hasher.verify('pw', hash: '999999999:AAAA=', salt: 'AAAA='),
+        isFalse,
+      );
+      expect(hasher.verify('pw', hash: '0:AAAA=', salt: 'AAAA='), isFalse);
+      expect(hasher.verify('pw', hash: '-5:AAAA=', salt: 'AAAA='), isFalse);
+    },
+  );
 
   test('rejects passwords larger than the hashing input limit', () {
     final oversized = 'a' * (PasswordHasher.maxPasswordBytes + 1);

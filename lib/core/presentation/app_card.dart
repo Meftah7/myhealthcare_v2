@@ -685,20 +685,27 @@ class InlineBanner extends StatelessWidget {
       BannerTone.error => (scheme.errorContainer, scheme.onErrorContainer),
       BannerTone.neutral => (scheme.surfaceContainerHighest, scheme.onSurface),
     };
-    return Container(
-      padding: const EdgeInsets.all(Space.sm),
-      decoration: BoxDecoration(color: bg, borderRadius: Radii.cardSmall),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: fg),
-          const SizedBox(width: Space.xs),
-          Expanded(
-            child: Text(
-              message,
-              style: theme.textTheme.bodyMedium?.copyWith(color: fg),
-            ),
+    return Semantics(
+      container: true,
+      liveRegion: tone == BannerTone.error,
+      label: message,
+      child: ExcludeSemantics(
+        child: Container(
+          padding: const EdgeInsets.all(Space.sm),
+          decoration: BoxDecoration(color: bg, borderRadius: Radii.cardSmall),
+          child: Row(
+            children: [
+              Icon(icon, size: 18, color: fg),
+              const SizedBox(width: Space.xs),
+              Expanded(
+                child: Text(
+                  message,
+                  style: theme.textTheme.bodyMedium?.copyWith(color: fg),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

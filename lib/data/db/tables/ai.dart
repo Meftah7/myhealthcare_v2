@@ -44,6 +44,11 @@ class StaffTasks extends Table {
   TextColumn get title => text().withLength(min: 1, max: 200)();
   TextColumn get kind => textEnum<TaskKind>()();
   DateTimeColumn get dueAt => dateTime().nullable()();
+  TextColumn get priority =>
+      textEnum<WorkPriority>().withDefault(const Constant('routine'))();
+  TextColumn get coverageStaffId =>
+      text().nullable().references(Users, #id, onDelete: KeyAction.setNull)();
+  DateTimeColumn get escalatedAt => dateTime().nullable()();
   TextColumn get status =>
       textEnum<TaskStatus>().withDefault(const Constant('open'))();
 
@@ -55,6 +60,9 @@ class StaffTasks extends Table {
   TextColumn get aiRationale => text().nullable()();
 
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  /// Optimistic-concurrency version (trigger-bumped, schema v19).
+  IntColumn get version => integer().withDefault(const Constant(1))();
 
   @override
   Set<Column<Object>> get primaryKey => {id};

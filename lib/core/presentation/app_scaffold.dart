@@ -55,7 +55,7 @@ class AppScaffold extends StatefulWidget {
     this.floatingActionButtonLocation,
     this.padding,
     this.maxContentWidth = Space.maxContentWidth,
-    this.stagger = true,
+    this.stagger = false,
     this.centerBody = true,
     super.key,
   }) : assert(

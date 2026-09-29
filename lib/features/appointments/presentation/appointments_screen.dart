@@ -16,6 +16,7 @@ import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -109,9 +110,8 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
                   const SizedBox(height: Space.sm),
                   Center(
                     child: TextButton(
-                      onPressed: () => setState(
-                        () => _visiblePast += _pageSize,
-                      ),
+                      onPressed: () =>
+                          setState(() => _visiblePast += _pageSize),
                       child: Text(t.showOlderVisitsAction(remaining)),
                     ),
                   ),
@@ -370,14 +370,20 @@ class _ApptActionsState extends ConsumerState<ApptActions> {
     setState(() => _busy = true);
     final result = await ref
         .read(appointmentRepositoryProvider)
-        .cancel(appt.id, patientId: appt.patientId);
+        .cancel(
+          appt.id,
+          patientId: appt.patientId,
+          expectedVersion: appt.version,
+        );
     if (!mounted) return;
     setState(() => _busy = false);
     switch (result) {
       case Ok():
         ref.invalidate(patientAppointmentsProvider);
       case Err(:final failure):
-        _showError(failure.message);
+        _showError(
+          describeFailure(AppLocalizations.of(context)!, failure).message,
+        );
     }
   }
 
@@ -407,6 +413,7 @@ class _ApptActionsState extends ConsumerState<ApptActions> {
           newStart: slot.start,
           newEnd: slot.start.add(appt.duration),
           enabledChannels: ref.read(notificationPrefsProvider).enabledChannels,
+          expectedVersion: appt.version,
         );
     if (!mounted) return;
     setState(() => _busy = false);
@@ -414,7 +421,9 @@ class _ApptActionsState extends ConsumerState<ApptActions> {
       case Ok():
         ref.invalidate(patientAppointmentsProvider);
       case Err(:final failure):
-        _showError(failure.message);
+        _showError(
+          describeFailure(AppLocalizations.of(context)!, failure).message,
+        );
     }
   }
 

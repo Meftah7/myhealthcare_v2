@@ -12,6 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -20,6 +21,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../patient/presentation/patient_top_actions.dart';
 import '../application/billing_providers.dart';
 import 'pay_invoice_sheet.dart';
+import 'payment_history.dart';
 import 'payment_methods_section.dart';
 import 'wallet_topup_sheet.dart';
 
@@ -40,6 +42,7 @@ class PaymentsScreen extends ConsumerWidget {
       onRefresh: () async {
         ref.invalidate(patientInvoicesProvider);
         ref.invalidate(walletBalanceProvider);
+        ref.invalidate(patientPaymentsProvider);
       },
       child: Center(
         child: ConstrainedBox(
@@ -50,12 +53,11 @@ class PaymentsScreen extends ConsumerWidget {
     );
 
     if (embedded) return body;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.paymentsTitle),
-        actions: const [PatientTopActions()],
-      ),
+    return AppScaffold(
+      title: AppLocalizations.of(context)!.paymentsTitle,
+      actions: const [PatientTopActions()],
       body: body,
+      centerBody: false,
     );
   }
 
@@ -95,6 +97,9 @@ class PaymentsScreen extends ConsumerWidget {
                 const SizedBox(height: Space.lg),
               ],
             ],
+            SectionHeader(t.paymentHistoryHeader, overline: true),
+            const _PaymentHistory(),
+            const SizedBox(height: Space.lg),
             const Divider(height: 1),
             const SizedBox(height: Space.lg),
             const PaymentMethodsSection(),
@@ -211,9 +216,7 @@ class _InvoiceGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (compact) {
-      return Column(
-        children: [for (final i in invoices) _InvoiceCard(i)],
-      );
+      return Column(children: [for (final i in invoices) _InvoiceCard(i)]);
     }
     return Column(
       children: [
@@ -245,6 +248,11 @@ class _InvoiceCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final t = AppLocalizations.of(context)!;
+    // A card payment for this bill was sent but not yet confirmed: it is
+    // neither paid nor payable again until the provider answers.
+    final confirming =
+        invoice.isPayable &&
+        ref.watch(invoicesAwaitingConfirmationProvider).contains(invoice.id);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: Space.xxs),
@@ -273,7 +281,7 @@ class _InvoiceCard extends ConsumerWidget {
                     ],
                   ),
                 ),
-                _InvoiceStatusChip(invoice),
+                _InvoiceStatusChip(invoice, confirming: confirming),
               ],
             ),
             if (invoice.notes != null) ...[
@@ -316,7 +324,25 @@ class _InvoiceCard extends ConsumerWidget {
                 ),
               ),
             ],
-            if (invoice.isPayable) ...[
+            if (confirming) ...[
+              const SizedBox(height: Space.sm),
+              Text(
+                t.paymentStillConfirming,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: Space.xs),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () =>
+                      ref.read(billingControllerProvider).reconcile(),
+                  icon: const Icon(Icons.sync),
+                  label: Text(t.checkPaymentStatusAction),
+                ),
+              ),
+            ] else if (invoice.isPayable) ...[
               const SizedBox(height: Space.sm),
               SizedBox(
                 width: double.infinity,
@@ -330,6 +356,37 @@ class _InvoiceCard extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Every payment, top-up and refund, newest first (the latest ten). A failed
+/// read says so rather than showing an empty history.
+class _PaymentHistory extends ConsumerWidget {
+  const _PaymentHistory();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
+    final payments = ref.watch(patientPaymentsProvider);
+    return payments.when(
+      loading: () => const LoadingSkeleton(height: 72),
+      error: (e, _) => InlineBanner.error(t.couldNotLoadPayments),
+      data: (list) => list.isEmpty
+          ? Text(
+              t.noPaymentsYet,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            )
+          : AppCard(
+              padding: const EdgeInsets.symmetric(horizontal: Space.md),
+              child: Column(
+                children: [
+                  for (final p in list.take(10)) PaymentHistoryTile(payment: p),
+                ],
+              ),
+            ),
     );
   }
 }
@@ -370,9 +427,10 @@ class _AmountRow extends StatelessWidget {
 }
 
 class _InvoiceStatusChip extends StatelessWidget {
-  const _InvoiceStatusChip(this.invoice);
+  const _InvoiceStatusChip(this.invoice, {this.confirming = false});
 
   final Invoice invoice;
+  final bool confirming;
 
   @override
   Widget build(BuildContext context) {
@@ -384,7 +442,11 @@ class _InvoiceStatusChip extends StatelessWidget {
         theme.clinicalStatus.riskLow.container,
         theme.clinicalStatus.riskLow.onContainer,
       ),
-      Invoice(status: InvoiceStatus.cancelled) => (
+      _ when confirming => (
+        scheme.tertiaryContainer,
+        scheme.onTertiaryContainer,
+      ),
+      Invoice(status: InvoiceStatus.cancelled || InvoiceStatus.refunded) => (
         scheme.surfaceContainerHighest,
         scheme.onSurfaceVariant,
       ),
@@ -394,11 +456,13 @@ class _InvoiceStatusChip extends StatelessWidget {
       ),
       _ => (scheme.primaryContainer, scheme.onPrimaryContainer),
     };
-    final label = invoiceStatusLabel(
-      context,
-      invoice.status,
-      overdue: invoice.isOverdue,
-    );
+    final label = confirming
+        ? AppLocalizations.of(context)!.paymentConfirmingChip
+        : invoiceStatusLabel(
+            context,
+            invoice.status,
+            overdue: invoice.isOverdue,
+          );
 
     return Container(
       padding: const EdgeInsets.symmetric(

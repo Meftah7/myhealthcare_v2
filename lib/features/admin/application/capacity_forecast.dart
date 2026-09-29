@@ -1,23 +1,12 @@
-/// Capacity forecast (Tier B) — a 7-day, per-weekday view of the clinic's
-/// busiest hours and where demand is likely to outrun capacity.
-///
-/// Ported from the FirstSemMyHealth `Ai/predictive_schedule.php`: the same
-/// weekday × hour aggregation and overflow flag, computed deterministically
-/// from appointment history. AI-enhanced narration is layered on when a key is
-/// configured, with the statistical result as the always-available fallback.
+/// Historical appointment demand compared with configured staff schedules.
 library;
 
-import 'dart:convert';
-
-import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/di.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
 import 'admin_providers.dart';
-import 'settings_providers.dart';
 
 bool get _ar => Intl.getCurrentLocale().startsWith('ar');
 
@@ -32,216 +21,186 @@ class DayForecast {
     required this.overflowRisk,
     required this.note,
   });
-
-  /// 1 = Monday … 7 = Sunday (Dart's `DateTime.weekday`).
   final int weekday;
   final String peakWindow;
   final int peakCount;
   final DemandLevel level;
   final bool overflowRisk;
   final String note;
-
   String get dayName => DateFormat('EEEE').format(DateTime(2024, 1, weekday));
 }
 
+class ForecastMetadata {
+  const ForecastMetadata({
+    required this.source,
+    required this.windowStart,
+    required this.windowEnd,
+    required this.exclusions,
+    required this.timezone,
+    required this.refreshedAt,
+  });
+  final String source;
+  final DateTime? windowStart;
+  final DateTime? windowEnd;
+  final String exclusions;
+  final String timezone;
+  final DateTime refreshedAt;
+
+  bool isStaleAt(DateTime now) =>
+      now.difference(refreshedAt) > const Duration(minutes: 15);
+}
+
+class DemandSourceRow {
+  const DemandSourceRow({
+    required this.appointmentId,
+    required this.staffId,
+    required this.slotStart,
+    required this.status,
+  });
+
+  final String appointmentId;
+  final String staffId;
+  final DateTime slotStart;
+  final AppointmentStatus status;
+}
+
 class CapacityForecast {
-  const CapacityForecast({required this.days, required this.aiNarrated});
-
+  const CapacityForecast({
+    required this.days,
+    required this.metadata,
+    required this.sourceRows,
+    this.aiNarrated = false,
+  });
   final List<DayForecast> days;
-
-  /// True when a live model wrote the notes (drives the disclaimer banner).
+  final ForecastMetadata metadata;
+  final List<DemandSourceRow> sourceRows;
   final bool aiNarrated;
 }
 
-/// Deterministic forecast from appointment history — the always-available base.
 CapacityForecast forecastFromHistory(
   List<Appointment> history, {
-  int overflowPerHour = 4,
+  Map<int, int> staffedSlotsPerHour = const {},
+  DateTime? refreshedAt,
 }) {
-  // weekday (1-7) → hour (0-23) → count
+  final included = history
+      .where((a) => a.status != AppointmentStatus.cancelled)
+      .toList();
   final grid = <int, Map<int, int>>{};
-  for (final a in history) {
-    if (a.status == AppointmentStatus.cancelled) continue;
-    final wd = a.slotStart.weekday;
-    final hr = a.slotStart.hour;
-    (grid[wd] ??= {})[hr] = ((grid[wd] ?? const {})[hr] ?? 0) + 1;
+  for (final appointment in included) {
+    final weekday = appointment.slotStart.weekday;
+    final hour = appointment.slotStart.hour;
+    (grid[weekday] ??= {}).update(hour, (v) => v + 1, ifAbsent: () => 1);
   }
-
-  // All bucket counts, for a relative Low / Moderate / High scale.
-  final allCounts = [for (final byHour in grid.values) ...byHour.values]
-    ..sort();
-  int percentile(double p) {
-    if (allCounts.isEmpty) return 0;
-    final idx = ((allCounts.length - 1) * p).round();
-    return allCounts[idx];
-  }
-
+  final counts = [for (final hours in grid.values) ...hours.values]..sort();
+  int percentile(double value) =>
+      counts.isEmpty ? 0 : counts[((counts.length - 1) * value).round()];
   final p50 = percentile(0.5);
   final p80 = percentile(0.8);
-
   final days = <DayForecast>[];
-  for (var wd = 1; wd <= 7; wd++) {
-    final byHour = grid[wd] ?? const <int, int>{};
-    if (byHour.isEmpty) {
+  for (var weekday = 1; weekday <= 7; weekday++) {
+    final hours = grid[weekday] ?? const <int, int>{};
+    if (hours.isEmpty) {
       days.add(
         DayForecast(
-          weekday: wd,
+          weekday: weekday,
           peakWindow: '—',
           peakCount: 0,
           level: DemandLevel.low,
           overflowRisk: false,
           note: _ar
-              ? 'لا يوجد سجل لهذا اليوم بعد.'
-              : 'No history for this day yet.',
+              ? 'لا يوجد سجل مواعيد لهذا اليوم بعد.'
+              : 'No appointment history for this day yet.',
         ),
       );
       continue;
     }
-    final peakHour = byHour.entries.reduce(
-      (a, b) => a.value >= b.value ? a : b,
-    );
-    final level = peakHour.value >= p80 && p80 > 0
+    final peak = hours.entries.reduce((a, b) => a.value >= b.value ? a : b);
+    final level = peak.value >= p80 && p80 > 0
         ? DemandLevel.high
-        : peakHour.value >= p50
+        : peak.value >= p50
         ? DemandLevel.moderate
         : DemandLevel.low;
-    final overflow =
-        peakHour.value >= overflowPerHour && level == DemandLevel.high;
+    final capacity = staffedSlotsPerHour[weekday];
+    final aboveCapacity =
+        capacity != null && capacity > 0 && peak.value > capacity;
     days.add(
       DayForecast(
-        weekday: wd,
-        peakWindow: '${_hh(peakHour.key)}–${_hh((peakHour.key + 1) % 24)}',
-        peakCount: peakHour.value,
+        weekday: weekday,
+        peakWindow: '${_hh(peak.key)}–${_hh((peak.key + 1) % 24)}',
+        peakCount: peak.value,
         level: level,
-        overflowRisk: overflow,
-        note: overflow
+        overflowRisk: aboveCapacity,
+        note: aboveCapacity
             ? (_ar
-                  ? 'بلغ الطلب هنا مستوى السعة القصوى أو تجاوزها — يُنصح بإضافة طبيب إضافي في هذه المناوبة.'
-                  : 'Peak demand has run at or above capacity here — consider an '
-                        'extra clinician on this shift.')
+                  ? 'تجاوز الطلب التاريخي سعة المواعيد المجدولة في هذه الساعة.'
+                  : 'Historical demand exceeded scheduled appointment capacity in this hour.')
             : level == DemandLevel.high
             ? (_ar
-                  ? 'من الفترات الأكثر ازدحاماً باستمرار؛ راقب قائمة الانتظار.'
-                  : 'Consistently one of the busier windows; watch the waitlist.')
-            : (_ar ? 'التغطية تبدو كافية.' : 'Coverage looks adequate.'),
+                  ? 'هذه من أكثر الفترات ازدحاماً في السجل.'
+                  : 'This is one of the busier windows in the historical record.')
+            : (_ar
+                  ? 'لا يُستنتج مستوى التغطية من الطلب وحده.'
+                  : 'No staffing conclusion is made from demand alone.'),
       ),
     );
   }
-  return CapacityForecast(days: days, aiNarrated: false);
+  final dates = included.map((a) => a.slotStart).toList()..sort();
+  return CapacityForecast(
+    days: days,
+    metadata: ForecastMetadata(
+      source: 'Appointment history and active staff schedule templates',
+      windowStart: dates.isEmpty ? null : dates.first,
+      windowEnd: dates.isEmpty ? null : dates.last,
+      exclusions: 'Cancelled appointments',
+      timezone: 'Clinic local time',
+      refreshedAt: refreshedAt ?? DateTime.now(),
+    ),
+    sourceRows: [
+      for (final appointment
+          in included..sort((a, b) => b.slotStart.compareTo(a.slotStart)))
+        DemandSourceRow(
+          appointmentId: appointment.id,
+          staffId: appointment.staffId,
+          slotStart: appointment.slotStart,
+          status: appointment.status,
+        ),
+    ],
+  );
 }
 
-String _hh(int h) => '${h.toString().padLeft(2, '0')}:00';
+String _hh(int hour) => '${hour.toString().padLeft(2, '0')}:00';
 
-/// The forecast for the admin dashboard — statistical, then AI-narrated when a
-/// key is set (the numbers never change; only the notes get richer).
+Map<int, int> scheduledHourlyCapacity(List<ScheduleTemplate> templates) {
+  final result = <int, int>{};
+  for (var weekday = 1; weekday <= 7; weekday++) {
+    final slotsByHour = <int, int>{};
+    for (final template in templates.where((t) => t.weekday == weekday)) {
+      for (
+        var minute = template.startMinutes;
+        minute < template.endMinutes;
+        minute += template.slotMinutes
+      ) {
+        slotsByHour.update(minute ~/ 60, (v) => v + 1, ifAbsent: () => 1);
+      }
+    }
+    if (slotsByHour.isNotEmpty) {
+      result[weekday] = slotsByHour.values.reduce((a, b) => a > b ? a : b);
+    }
+  }
+  return result;
+}
+
 final capacityForecastProvider = FutureProvider<CapacityForecast>((ref) async {
   final history = await ref.watch(allAppointmentsProvider.future);
-  final base = forecastFromHistory(history);
-
-  final settings = await ref.watch(appSettingsProvider.future);
-  final key = await ref.watch(aiKeyStoreProvider).read();
-  if (!settings.usesRealAi || key == null || key.isEmpty || base.days.isEmpty) {
-    return base;
-  }
-
-  try {
-    final notes = await _narrate(base, apiKey: key, model: settings.modelId);
-    if (notes.isEmpty) return base;
-    return CapacityForecast(
-      aiNarrated: true,
-      days: [
-        for (final d in base.days)
-          DayForecast(
-            weekday: d.weekday,
-            peakWindow: d.peakWindow,
-            peakCount: d.peakCount,
-            level: d.level,
-            overflowRisk: d.overflowRisk,
-            note: notes[d.weekday] ?? d.note,
-          ),
-      ],
+  final staff = await ref.watch(usersByRoleProvider(UserRole.staff).future);
+  final templates = <ScheduleTemplate>[];
+  for (final member in staff.where((u) => u.isActive)) {
+    templates.addAll(
+      await ref.watch(staffScheduleTemplatesProvider(member.id).future),
     );
-  } catch (_) {
-    return base;
   }
+  return forecastFromHistory(
+    history,
+    staffedSlotsPerHour: scheduledHourlyCapacity(templates),
+  );
 });
-
-Future<Map<int, String>> _narrate(
-  CapacityForecast base, {
-  required String apiKey,
-  required String model,
-}) async {
-  final dio = Dio(
-    BaseOptions(
-      baseUrl: 'https://generativelanguage.googleapis.com/v1beta',
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 30),
-    ),
-  );
-  final rows = [
-    for (final d in base.days)
-      {
-        'weekday': d.weekday,
-        'day': d.dayName,
-        'peak_window': d.peakWindow,
-        'peak_count': d.peakCount,
-        'level': d.level.name,
-        'overflow_risk': d.overflowRisk,
-      },
-  ];
-
-  final res = await dio.post<Map<String, dynamic>>(
-    '/models/$model:generateContent',
-    // Sent as a header, not a query parameter, so the key never lands
-    // in URL logs (proxies, crash reports, server access logs).
-    options: Options(headers: {'x-goog-api-key': apiKey}),
-    data: {
-      'systemInstruction': {
-        'parts': [
-          {
-            'text':
-                'You are a clinic operations analyst. For each weekday you are '
-                'given the busiest hour and how it compares to the clinic norm. '
-                'Return ONLY a JSON object mapping the weekday number (1-7) to a '
-                'one-sentence staffing note. Be concrete and calm; do not invent '
-                'numbers.'
-                '${_ar ? ' Write every note in Modern Standard Arabic.' : ''}',
-          },
-        ],
-      },
-      'contents': [
-        {
-          'role': 'user',
-          'parts': [
-            {'text': jsonEncode(rows)},
-          ],
-        },
-      ],
-      'generationConfig': {
-        'temperature': 0.3,
-        'responseMimeType': 'application/json',
-      },
-    },
-  );
-
-  final candidates = res.data?['candidates'];
-  final first = (candidates is List && candidates.isNotEmpty)
-      ? candidates.first
-      : null;
-  final content = first is Map ? first['content'] : null;
-  final parts = content is Map ? content['parts'] : null;
-  final part = (parts is List && parts.isNotEmpty) ? parts.first : null;
-  final raw = part is Map ? part['text'] : null;
-  if (raw is! String) return const {};
-
-  final start = raw.indexOf('{');
-  final end = raw.lastIndexOf('}');
-  if (start < 0 || end <= start) return const {};
-  final decoded = jsonDecode(raw.substring(start, end + 1));
-  if (decoded is! Map) return const {};
-  return {
-    for (final e in decoded.entries)
-      if (int.tryParse(e.key.toString()) != null && e.value is String)
-        int.parse(e.key.toString()): e.value as String,
-  };
-}

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -23,11 +24,10 @@ class MedicationsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final body = _body(context, ref);
     if (embedded) return body;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.quickActionMedications),
-      ),
+    return AppScaffold(
+      title: AppLocalizations.of(context)!.quickActionMedications,
       body: body,
+      centerBody: false,
     );
   }
 
@@ -41,41 +41,39 @@ class MedicationsScreen extends ConsumerWidget {
         onRetry: () => ref.invalidate(patientMedicationsProvider),
       ),
       data: (list) {
-          if (list.isEmpty) {
-            return EmptyState(
-              icon: Icons.medication_outlined,
-              message: t.noMedicationsOnRecord,
-            );
-          }
-          final active = list.where((m) => m.isCurrent).toList();
-          final past = list.where((m) => !m.isCurrent).toList();
-          return Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: Space.maxContentWidth,
-              ),
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(
-                  Space.md,
-                  Space.sm,
-                  Space.md,
-                  Space.xxl,
-                ),
-                children: [
-                  if (active.isNotEmpty) ...[
-                    SectionHeader(t.currentSectionLabel, overline: true),
-                    _group(active),
-                  ],
-                  if (past.isNotEmpty) ...[
-                    const SizedBox(height: Space.md),
-                    SectionHeader(t.pastSectionLabel, overline: true),
-                    _group(past),
-                  ],
-                ],
-              ),
-            ),
+        if (list.isEmpty) {
+          return EmptyState(
+            icon: Icons.medication_outlined,
+            message: t.noMedicationsOnRecord,
           );
-        },
+        }
+        final active = list.where((m) => m.isCurrent).toList();
+        final past = list.where((m) => !m.isCurrent).toList();
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: Space.maxContentWidth),
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(
+                Space.md,
+                Space.sm,
+                Space.md,
+                Space.xxl,
+              ),
+              children: [
+                if (active.isNotEmpty) ...[
+                  SectionHeader(t.currentSectionLabel, overline: true),
+                  _group(active),
+                ],
+                if (past.isNotEmpty) ...[
+                  const SizedBox(height: Space.md),
+                  SectionHeader(t.pastSectionLabel, overline: true),
+                  _group(past),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

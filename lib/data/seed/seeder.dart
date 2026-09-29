@@ -36,13 +36,14 @@ class SeedResult {
 }
 
 class Seeder {
-  Seeder(this._db, {int seed = 20260101})
+  Seeder(this._db, {int seed = 20260101, this.seedingEnabled = kDebugMode})
     : _rng = Random(seed),
       // Cheap work factor for the ~72 demo accounts — the hash string records
       // the count, so login (which reads it back) still verifies fine.
       _hasher = const PasswordHasher(iterations: 1000);
 
   final AppDatabase _db;
+  final bool seedingEnabled;
   final Random _rng;
   final PasswordHasher _hasher;
 
@@ -70,14 +71,14 @@ class Seeder {
 
   /// Runs the seeder unless the DB is already at [seedVersion] (or [force]).
   Future<SeedResult?> run({bool force = false}) async {
+    if (!seedingEnabled) {
+      throw StateError('Demo seeding is disabled in production mode.');
+    }
     final current = await _currentSeedVersion();
     if (!force && current == seedVersion) return null;
     if (!force && current != 0) {
       await _setSeedVersion(seedVersion);
       return null;
-    }
-    if (force && !kDebugMode) {
-      throw StateError('Forced demo seeding is disabled in release builds.');
     }
     return _db.transaction(() async {
       await _wipe();
@@ -89,8 +90,8 @@ class Seeder {
 
   /// P1-21: wipe all demo data and regenerate from scratch.
   Future<SeedResult> reset() async {
-    if (!kDebugMode) {
-      throw StateError('Demo reset is disabled in release builds.');
+    if (!seedingEnabled) {
+      throw StateError('Demo reset is disabled in production mode.');
     }
     return _db.transaction(() async {
       await _wipe();
@@ -119,6 +120,10 @@ class Seeder {
 
     await _seedFeedback(patients, staff);
     await _seedCareServices(patients, staff);
+    // Recent abnormal results are open, owned review work (Phase 4).
+    await _db.backfillResultReviews(
+      recentSince: _epoch.subtract(const Duration(days: 14)),
+    );
 
     return SeedResult(
       departments: deptIds.length,
@@ -628,9 +633,7 @@ class Seeder {
               patientId: p.id,
               departmentId: cardiology.departmentId,
               ticketTag: '$deptLetter-${i + 1}',
-              status: Value(
-                i == 0 ? WalkInStatus.waiting : WalkInStatus.done,
-              ),
+              status: Value(i == 0 ? WalkInStatus.waiting : WalkInStatus.done),
               reason: Value(
                 i == 0
                     ? 'Referred from Family Medicine for BP review'
@@ -839,6 +842,43 @@ class Seeder {
             ),
             paymentMethod: Value(settled ? 'Card ····4242' : null),
             notes: Value(_pick(_invoiceNotes)),
+          ),
+        );
+    if (!settled) return;
+    // A paid invoice always has the settled payment behind it (Phase 5).
+    final paidAt = issuedAt.add(const Duration(days: 3));
+    final invoiceId = 'inv_${p.id}_${visitAt.millisecondsSinceEpoch}';
+    await _db
+        .into(_db.paymentTransactions)
+        .insert(
+          PaymentTransactionsCompanion.insert(
+            id: 'ptx_seed_$invoiceId',
+            patientId: p.id,
+            invoiceId: Value(invoiceId),
+            kind: PaymentKind.invoiceCharge,
+            method: PaymentMethodKind.card,
+            status: const Value(PaymentStatus.settled),
+            amount: subtotal + taxAmount,
+            provider: 'simulated-card',
+            requestReference: 'seed_$invoiceId',
+            providerReference: Value('sim_ch_seed_$invoiceId'),
+            methodDescriptor: const Value('Card ····4242'),
+            createdAt: paidAt,
+            updatedAt: paidAt,
+            settledAt: Value(paidAt),
+          ),
+        );
+    // …and the simulated provider's record of it, so it can be refunded.
+    await _db
+        .into(_db.simulatedGatewayCharges)
+        .insert(
+          SimulatedGatewayChargesCompanion.insert(
+            reference: 'seed_$invoiceId',
+            providerReference: 'sim_ch_seed_$invoiceId',
+            operation: 'charge',
+            status: 'captured',
+            amountFils: ((subtotal + taxAmount) * 1000).round(),
+            createdAt: paidAt,
           ),
         );
   }
@@ -1141,8 +1181,30 @@ class Seeder {
   }
 
   Future<void> _wipe() async {
+    // A full demo-dataset reset is the one place the append-only audit log
+    // may be cleared: lift its delete guard, wipe, and reinstall it below.
+    await _db.customStatement(
+      'DROP TRIGGER IF EXISTS ${AppDatabase.auditNoDeleteTrigger}',
+    );
+    // The payment ledger is permanent for the same reason.
+    await _db.customStatement(
+      'DROP TRIGGER IF EXISTS ${AppDatabase.paymentNoDeleteTrigger}',
+    );
+    // So are signed notes and their amendments.
+    for (final trigger in AppDatabase.signedNoteDeleteTriggers) {
+      await _db.customStatement('DROP TRIGGER IF EXISTS $trigger');
+    }
     // Children first; app_settings kept (holds seedVersion).
     final tables = <TableInfo<Table, Object?>>[
+      _db.outboxEvents,
+      _db.idempotencyRecords,
+      _db.paymentTransactions,
+      _db.simulatedGatewayCharges,
+      _db.documentFiles,
+      _db.signedNoteAmendments,
+      _db.signedNotes,
+      _db.encounterDrafts,
+      _db.resultReviews,
       _db.labValues,
       _db.reminders,
       _db.riskFlags,
@@ -1169,6 +1231,7 @@ class Seeder {
     for (final t in tables) {
       await _db.delete(t).go();
     }
+    await _db.installIntegrityRules();
   }
 
   static const _bloodTypes = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'];

@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../domain/enums.dart';
 import '../../../l10n/app_localizations.dart';
@@ -66,7 +67,10 @@ class _FeedbackSheetState extends ConsumerState<_FeedbackSheet> {
       SnackBar(
         content: Text(switch (result) {
           Ok() => t.feedbackThanksMessage,
-          Err(:final failure) => failure.message,
+          Err(:final failure) => describeFailure(
+            AppLocalizations.of(context)!,
+            failure,
+          ).message,
         }),
       ),
     );

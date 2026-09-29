@@ -6,6 +6,7 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/data/contracts.dart';
 import '../../../core/di.dart';
 import '../../../core/failures.dart';
 import '../../../core/result.dart';
@@ -44,13 +45,27 @@ final chartPatientProvider = FutureProvider.family<Patient, String>((
   return _unwrap(await ref.watch(patientRepositoryProvider).byId(id));
 });
 
-final chartTimelineProvider =
-    FutureProvider.family<List<MedicalRecord>, String>((ref, id) async {
+/// Pages of a chart's timeline shown; "Load more" adds one.
+final chartTimelinePagesProvider = StateProvider.family<int, String>(
+  (ref, id) => 1,
+);
+
+/// A chart's timeline, paged — the source; invalidate this to reload.
+final chartTimelinePageProvider =
+    FutureProvider.family<Page<MedicalRecord>, String>((ref, id) async {
       await ref.watch(staffPatientAccessProvider(id).future);
-      return _unwrap(
-        await ref.watch(recordRepositoryProvider).timeline(id, limit: 500),
+      final repo = ref.watch(recordRepositoryProvider);
+      return loadPages(
+        ref.watch(chartTimelinePagesProvider(id)),
+        (page) async => _unwrap(await repo.timelinePage(id, page: page)),
       );
     });
+
+final chartTimelineProvider =
+    FutureProvider.family<List<MedicalRecord>, String>(
+      (ref, id) async =>
+          (await ref.watch(chartTimelinePageProvider(id).future)).items,
+    );
 
 final chartVitalsProvider = FutureProvider.family<List<Vitals>, String>((
   ref,
@@ -95,7 +110,7 @@ class ChartActions {
 
   void _refresh() {
     _ref
-      ..invalidate(chartTimelineProvider(_patientId))
+      ..invalidate(chartTimelinePageProvider(_patientId))
       ..invalidate(chartMedicationsProvider(_patientId))
       ..invalidate(chartFlagsProvider(_patientId))
       ..invalidate(unacknowledgedFlagsProvider);

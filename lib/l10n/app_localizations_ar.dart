@@ -551,7 +551,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get aiDisclaimer =>
-      'محتوى مُولّد بالذكاء الاصطناعي — للعلم فقط وليس استشارة طبية. يرجى التأكد مع طبيبك المعالج.';
+      'مسودة مولّدة بالذكاء الاصطناعي — يجب مراجعتها قبل الاستخدام. ليست استشارة طبية ولا تُعتمد تلقائياً كحقيقة سريرية.';
 
   @override
   String labReferenceSuffix(String reference) {
@@ -1562,13 +1562,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get feedbackThanksMessage => 'شكراً — تم إرسال ملاحظاتك إلى الفريق.';
 
   @override
-  String get nutritionTitle => 'التغذية';
+  String get nutritionTitle => 'تقديرات التغذية';
 
   @override
   String get calculatorSegment => 'الحاسبة';
 
   @override
-  String get mealPlanSegment => 'خطة الوجبات';
+  String get mealPlanSegment => 'توزيع نموذجي';
 
   @override
   String get foodsSegment => 'الأطعمة';
@@ -1631,7 +1631,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get weeklyRate10 => '1.0 كجم / أسبوع';
 
   @override
-  String get calculateTargetsButton => 'احسب الأهداف';
+  String get calculateTargetsButton => 'احسب التقدير';
 
   @override
   String get preferencesSection => 'التفضيلات';
@@ -2225,7 +2225,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get forgotPasswordBody =>
-      'أدخل البريد الإلكتروني أو الرقم الوطني المسجّل في حسابك وسننقلك لتعيين كلمة مرور جديدة.';
+      'أدخل البريد الإلكتروني أو الرقم الوطني المسجّل في حسابك. إذا كان مطابقًا، سنرسل رمزًا لمرة واحدة إلى بريدك لتعيين كلمة مرور جديدة.';
 
   @override
   String get emailOrNationalIdLabel => 'البريد الإلكتروني أو الرقم الوطني';
@@ -2602,7 +2602,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'الأرقام الرئيسية، عدم الحضور والاستخدام';
 
   @override
-  String get capacityForecastTitle => 'توقعات السعة';
+  String get capacityForecastTitle => 'الطلب التاريخي';
 
   @override
   String get capacityForecastSubtitle =>
@@ -2715,6 +2715,31 @@ class AppLocalizationsAr extends AppLocalizations {
       'تأتي توقعات مخاطر عدم الحضور من نموذج الانحدار اللوجستي غير المتصل (RQ2).';
 
   @override
+  String get operationalHealthHeader => 'الحالة التشغيلية (هذه الجلسة)';
+
+  @override
+  String get operationalHealthAllClear =>
+      'لم يتم تجاوز أي حد في هذه الجلسة. تُحفظ الإشارات في الذاكرة فقط وتُمسح عند إعادة تحميل التطبيق.';
+
+  @override
+  String get crashFreeSessionsLabel => 'جلسات بلا أعطال';
+
+  @override
+  String get operationalEventsLabel => 'الأحداث المسجلة';
+
+  @override
+  String operationalBreachTitle(String id, int observed) {
+    return '$id: $observed خلال الفترة';
+  }
+
+  @override
+  String get copyOperationalEvidence => 'نسخ الأدلة (JSON)';
+
+  @override
+  String get operationalEvidenceCopied =>
+      'تم نسخ الأدلة التشغيلية. لا تحتوي على بيانات مرضى.';
+
+  @override
   String get allAppointmentsTitle => 'المواعيد';
 
   @override
@@ -2746,7 +2771,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get demandLevelLow => 'خفيف';
 
   @override
-  String get overflowRiskLabel => 'خطر تجاوز السعة';
+  String get overflowRiskLabel => 'فوق السعة المجدولة';
 
   @override
   String get noHistoryYet => 'لا يوجد سجل بعد';
@@ -2920,11 +2945,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get pushChannelSubtitle =>
-      'تنبيهات على هذا الجهاز حتى عندما يكون التطبيق مغلقًا';
+      'تنبيهات المتصفح أثناء فتح MyHealth Care. التذكيرات التي يحين موعدها أثناء إغلاقه تظهر في صندوق الوارد عند عودتك.';
 
   @override
   String get inAppAlwaysOnNote =>
-      'الإشعارات داخل التطبيق مفعّلة دائمًا حتى لا يفوتك أي تذكير. هذا العرض التجريبي يحاكي إرسال الرسائل النصية والبريد الإلكتروني وإشعارات الدفع.';
+      'الإشعارات داخل التطبيق مفعّلة دائمًا، لذلك يصل التذكير دائمًا إلى صندوق الوارد. الإرسال عبر الرسائل النصية والبريد الإلكتروني غير متاح في هذا النموذج الأولي.';
 
   @override
   String get resetNotificationsTitle => 'إعادة ضبط الإشعارات';
@@ -2962,7 +2987,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get motionFull => 'كاملة';
 
   @override
-  String get pushLabel => 'إشعارات الدفع';
+  String get pushLabel => 'تنبيهات المتصفح';
 
   @override
   String showOlderVisitsAction(num count) {
@@ -2981,6 +3006,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get appointmentDetailTitle => 'تفاصيل الموعد';
+
+  @override
+  String appointmentTimeZone(String zone) {
+    return 'التوقيت المحلي ($zone)';
+  }
+
+  @override
+  String get appointmentCheckInInstructions =>
+      'احضر قبل الموعد بـ15 دقيقة ومعك إثبات الهوية. سجّل وصولك عند الغرفة الموضحة أعلاه.';
 
   @override
   String get appointmentNotFoundNote => 'تعذّر العثور على هذا الموعد';
@@ -3836,4 +3870,633 @@ class AppLocalizationsAr extends AppLocalizations {
   String idValueLabel(String value) {
     return 'هوية $value';
   }
+
+  @override
+  String get recoveryCodeSentTitle => 'تحقق من بريدك الإلكتروني';
+
+  @override
+  String get recoveryCodeSentBody =>
+      'إذا كان هذا يطابق حسابًا، فقد أرسلنا رمزًا من 6 أرقام إلى البريد الإلكتروني المسجّل. يعمل الرمز مرة واحدة وتنتهي صلاحيته خلال 10 دقائق.';
+
+  @override
+  String get recoveryCodeLabel => 'الرمز المكوّن من 6 أرقام';
+
+  @override
+  String get recoveryCodeRequired =>
+      'أدخل الرمز المكوّن من 6 أرقام من بريدك الإلكتروني.';
+
+  @override
+  String get recoveryConfirmPasswordLabel => 'تأكيد كلمة المرور الجديدة';
+
+  @override
+  String get recoveryResetButton => 'تعيين كلمة مرور جديدة';
+
+  @override
+  String get recoveryResendButton => 'إرسال رمز جديد';
+
+  @override
+  String get recoveryDoneTitle => 'تم تحديث كلمة المرور';
+
+  @override
+  String get recoveryDoneBody =>
+      'تم تغيير كلمة المرور وإلغاء أي رموز أخرى. سجّل الدخول بكلمة المرور الجديدة.';
+
+  @override
+  String get recoveryDemoInboxTitle => 'صندوق بريد تجريبي — بريد محاكى';
+
+  @override
+  String get recoveryDemoInboxBody =>
+      'لا تتوفر خدمة بريد في هذا الإصدار التجريبي. يظهر هنا الرمز الذي كان سيُرسل إلى بريد الحساب.';
+
+  @override
+  String recoveryDemoCodeFor(String sentTo, String code) {
+    return 'إلى $sentTo: $code';
+  }
+
+  @override
+  String get sessionResumeHint =>
+      'سجّل الدخول بالحساب نفسه لتكمل من حيث توقفت.';
+
+  @override
+  String get sessionWarningTitle => 'هل ما زلت هنا؟';
+
+  @override
+  String sessionWarningBody(String time) {
+    return 'حفاظًا على خصوصيتك سيتم تسجيل خروجك خلال $time.';
+  }
+
+  @override
+  String get staySignedIn => 'البقاء متصلاً';
+
+  @override
+  String get reauthTitle => 'أكّد هويتك';
+
+  @override
+  String get reauthBody => 'أدخل كلمة المرور للمتابعة في هذا التغيير.';
+
+  @override
+  String get accessDeniedTitle => 'ليس لديك صلاحية الوصول إلى هذا';
+
+  @override
+  String get accessDeniedBody =>
+      'هذا يخص حسابًا آخر، أو انتهت صلاحية وصولك إليه.';
+
+  @override
+  String get loadMore => 'تحميل المزيد';
+
+  @override
+  String updatedAgo(String time) {
+    return 'آخر تحديث $time';
+  }
+
+  @override
+  String get draftSaving => 'جارٍ حفظ المسودة…';
+
+  @override
+  String draftSavedAt(String time) {
+    return 'تم حفظ المسودة $time';
+  }
+
+  @override
+  String get draftSaveFailed => 'لم تُحفظ المسودة. نصك ما زال على هذه الشاشة.';
+
+  @override
+  String get draftConflict => 'تغيّرت هذه المسودة من شاشة أخرى.';
+
+  @override
+  String get retrySaveAction => 'إعادة الحفظ';
+
+  @override
+  String get loadSavedDraftAction => 'تحميل المسودة المحفوظة';
+
+  @override
+  String get draftRestoreFailed =>
+      'تعذّر تحميل المسودة المحفوظة. ما تكتبه يُحفظ كمسودة جديدة.';
+
+  @override
+  String get signingRequiresDoctor =>
+      'يوقّع الطبيب ويُكمل هذه الزيارة. مسودتك محفوظة له.';
+
+  @override
+  String get abnormalFlagUnknown => 'بلا نطاق';
+
+  @override
+  String get labValueUnknownRangeHint =>
+      'لم يُرفق نطاق مرجعي، لذلك لم يُحكم على هذه القيمة بأنها طبيعية أو غير طبيعية.';
+
+  @override
+  String get messageResponseExpectation =>
+      'يرد فريق رعايتك خلال يوم عمل واحد. ليست للحالات الطارئة: اتصل بـ 999 أو توجّه إلى أقرب قسم طوارئ.';
+
+  @override
+  String get resultsToReviewHeader => 'نتائج للمراجعة';
+
+  @override
+  String get noResultsToReview => 'لا توجد نتائج بانتظارك.';
+
+  @override
+  String get couldNotLoadResultReviews => 'تعذّر تحميل النتائج للمراجعة.';
+
+  @override
+  String resultReviewDue(String time) {
+    return 'مستحق $time';
+  }
+
+  @override
+  String resultReviewOverdue(String time) {
+    return 'متأخر منذ $time';
+  }
+
+  @override
+  String get resultReviewHeader => 'المراجعة السريرية';
+
+  @override
+  String get resultReviewStatusUnassigned => 'غير مُسند';
+
+  @override
+  String get resultReviewStatusAssigned => 'مُسند';
+
+  @override
+  String get resultReviewStatusInReview => 'قيد المراجعة';
+
+  @override
+  String get resultReviewStatusResolved => 'تمت المراجعة';
+
+  @override
+  String get resultReviewStatusEscalated => 'مُصعّد';
+
+  @override
+  String get workPriorityRoutine => 'روتيني';
+
+  @override
+  String get workPriorityPriority => 'أولوية';
+
+  @override
+  String get workPriorityUrgent => 'عاجل';
+
+  @override
+  String resultReviewOwner(String name) {
+    return 'المسؤول: $name';
+  }
+
+  @override
+  String resultReviewCoveredBy(String name) {
+    return 'بتغطية: $name';
+  }
+
+  @override
+  String get startReviewAction => 'بدء المراجعة';
+
+  @override
+  String get resolveReviewAction => 'تمت المراجعة';
+
+  @override
+  String get escalateReviewAction => 'تصعيد';
+
+  @override
+  String get reviewOutcomeLabel => 'النتيجة (ما تقرر)';
+
+  @override
+  String get escalateToLabel => 'التصعيد إلى';
+
+  @override
+  String get escalationReasonLabel => 'سبب التصعيد';
+
+  @override
+  String get resultReviewUpdated => 'تم تحديث مراجعة النتيجة.';
+
+  @override
+  String labVerifiedBy(String name) {
+    return 'تحقق منها $name';
+  }
+
+  @override
+  String get labUnverified => 'لم يتم التحقق بعد';
+
+  @override
+  String labSourceLabel(String source) {
+    return 'المصدر: $source';
+  }
+
+  @override
+  String get referralRequestStatusClarification => 'بحاجة إلى توضيح';
+
+  @override
+  String get referralRequestStatusAccepted => 'مقبول';
+
+  @override
+  String get referralRequestStatusArranged => 'تم الترتيب';
+
+  @override
+  String get referralRequestStatusClosed => 'مغلق';
+
+  @override
+  String get invoiceStatusRefunded => 'مُسترد';
+
+  @override
+  String get paymentPendingTitle => 'جارٍ تأكيد الدفع';
+
+  @override
+  String get checkPaymentStatusAction => 'التحقق من حالة الدفع';
+
+  @override
+  String get paymentStillConfirming =>
+      'ما زلنا ننتظر مزوّد الدفع. لم يُخصم منك مرتين، وتبقى الفاتورة غير مدفوعة حتى يتم التأكيد.';
+
+  @override
+  String get paymentReleasedMessage =>
+      'لم تتم عملية الدفع ولم يُخصم أي مبلغ. يمكنك المحاولة مرة أخرى.';
+
+  @override
+  String get paymentConfirmingChip => 'جارٍ تأكيد الدفع…';
+
+  @override
+  String get paymentHistoryHeader => 'سجل المدفوعات';
+
+  @override
+  String get couldNotLoadPayments => 'تعذّر تحميل سجل المدفوعات.';
+
+  @override
+  String get recordDeskPaymentAction => 'تسجيل دفعة في المكتب';
+
+  @override
+  String get receiptNumberLabel => 'رقم الإيصال';
+
+  @override
+  String get paymentNoteOptionalLabel => 'ملاحظة (اختياري)';
+
+  @override
+  String get deskPaymentRecorded => 'تم تسجيل الدفعة.';
+
+  @override
+  String get refundAction => 'استرداد';
+
+  @override
+  String get refundAmountLabel => 'المبلغ المسترد (د.ب)';
+
+  @override
+  String get refundReasonLabel => 'سبب الاسترداد';
+
+  @override
+  String get refundRecorded => 'تم الاسترداد.';
+
+  @override
+  String get reconcilePaymentsAction => 'مطابقة المدفوعات';
+
+  @override
+  String reconciledCount(int count) {
+    return 'تمت تسوية $count من المدفوعات غير المؤكدة.';
+  }
+
+  @override
+  String get paymentKindCharge => 'دفعة';
+
+  @override
+  String get paymentKindTopUp => 'شحن المحفظة';
+
+  @override
+  String get paymentKindRefund => 'استرداد';
+
+  @override
+  String get paymentStatusInitiated => 'قيد التأكيد';
+
+  @override
+  String get paymentStatusAuthorized => 'مصرّح';
+
+  @override
+  String get paymentStatusSettled => 'مكتمل';
+
+  @override
+  String get paymentStatusFailed => 'فشل — لم يُخصم';
+
+  @override
+  String get paymentStatusVoided => 'ملغى';
+
+  @override
+  String paymentReferenceLabel(String reference) {
+    return 'المرجع $reference';
+  }
+
+  @override
+  String get topUpPendingMessage =>
+      'لم نتمكن من تأكيد الشحن بعد. يتغير رصيدك فقط عند تأكيد المزوّد، ولن يُخصم منك مرتين.';
+
+  @override
+  String get channelNotAvailableInPrototype => 'غير متاح في هذا النموذج الأولي';
+
+  @override
+  String get alertsAllowed => 'تنبيهات المتصفح مسموح بها.';
+
+  @override
+  String get alertsNotRequested => 'لم يُطلب من هذا المتصفح عرض التنبيهات بعد.';
+
+  @override
+  String get allowAlertsAction => 'السماح بتنبيهات المتصفح';
+
+  @override
+  String get alertsBlocked =>
+      'التنبيهات محظورة في إعدادات المتصفح. تصلك التذكيرات في صندوق الوارد.';
+
+  @override
+  String get alertsUnsupported =>
+      'لا يمكن لهذا الجهاز عرض التنبيهات. تصلك التذكيرات في صندوق الوارد.';
+
+  @override
+  String get importForLabel => 'هذه الوثيقة تخص';
+
+  @override
+  String get importForMe => 'أنا';
+
+  @override
+  String get importIssuerLabel => 'صادرة عن';
+
+  @override
+  String get importIssuerHelper =>
+      'المختبر أو المستشفى أو العيادة التي أصدرتها';
+
+  @override
+  String get importIssuerRequired => 'اذكر الجهة التي أصدرت هذه الوثيقة.';
+
+  @override
+  String get importReviewNotice =>
+      'تُعلَّم الوثائق المستوردة بأنها \"لم يراجعها طبيب\" حتى يراجعها فريق رعايتك. يُحفظ الملف الأصلي مع السجل.';
+
+  @override
+  String get provenanceHeader => 'مصدر هذا السجل';
+
+  @override
+  String provenanceIssuer(String issuer) {
+    return 'صادرة عن: $issuer';
+  }
+
+  @override
+  String provenanceImportedOn(String date) {
+    return 'استُورد في $date';
+  }
+
+  @override
+  String provenanceFile(String name, String size) {
+    return 'الملف الأصلي: $name ($size)';
+  }
+
+  @override
+  String get importStatusPending => 'لم يراجعها طبيب بعد';
+
+  @override
+  String get importStatusReviewed => 'راجعها طبيب';
+
+  @override
+  String get importStatusRejected => 'تمت المراجعة — لم تُعتمد في سجلك السريري';
+
+  @override
+  String get openOriginalAction => 'فتح الملف الأصلي';
+
+  @override
+  String get exportRecordAction => 'تصدير بصيغة PDF';
+
+  @override
+  String get acceptImportAction => 'اعتماد الوثيقة';
+
+  @override
+  String get rejectImportAction => 'رفض';
+
+  @override
+  String get rejectImportReasonLabel => 'سبب عدم الاعتماد';
+
+  @override
+  String get importReviewSaved => 'تم حفظ مراجعة الوثيقة.';
+
+  @override
+  String get feedbackSessionExpired =>
+      'انتهت جلستك. سجّل الدخول مرة أخرى للمتابعة.';
+
+  @override
+  String get feedbackReauthRequired => 'أكّد كلمة المرور للمتابعة.';
+
+  @override
+  String get feedbackConflict =>
+      'قام شخص آخر بتغيير هذا أولًا. أعد التحميل لرؤية أحدث نسخة قبل المحاولة مرة أخرى.';
+
+  @override
+  String get feedbackOffline =>
+      'تعذّر الوصول إلى MyHealth Care. تحقق من اتصالك وحاول مرة أخرى.';
+
+  @override
+  String get feedbackUnexpected =>
+      'حدث خطأ ما. لم يتغير شيء؛ يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get reloadAction => 'إعادة التحميل';
+
+  @override
+  String get signInAgainAction => 'تسجيل الدخول مجددًا';
+
+  @override
+  String staleDataBanner(String time) {
+    return 'آخر تحديث $time. قد لا تكون محدّثة.';
+  }
+
+  @override
+  String get refreshFailedShowingPrevious =>
+      'تعذّر التحديث. نعرض ما تم تحميله سابقًا.';
+
+  @override
+  String get needsAttentionHeader => 'يحتاج إلى متابعة';
+
+  @override
+  String get attentionResultReviews => 'نتائج تحتاج إلى طبيب';
+
+  @override
+  String get attentionMessages => 'رسائل مرضى تجاوزت وقت الرد';
+
+  @override
+  String get attentionReferrals => 'إحالات مفتوحة';
+
+  @override
+  String get attentionPayments => 'مدفوعات للتأكيد أو الاسترداد';
+
+  @override
+  String get attentionDeliveries => 'إشعارات لم تُسلَّم';
+
+  @override
+  String get attentionOverdueInvoices => 'فواتير متأخرة';
+
+  @override
+  String get attentionPasswordResets => 'طلبات إعادة تعيين كلمة المرور';
+
+  @override
+  String get attentionHomeVisits => 'طلبات الزيارات المنزلية';
+
+  @override
+  String get attentionFeedback => 'بلاغات ملاحظات مفتوحة';
+
+  @override
+  String attentionPartUnassigned(int n) {
+    return '$n غير مُسند';
+  }
+
+  @override
+  String attentionPartOverdue(int n) {
+    return '$n متأخر';
+  }
+
+  @override
+  String attentionPartEscalated(int n) {
+    return '$n مُصعّد';
+  }
+
+  @override
+  String attentionPartUnowned(int n) {
+    return '$n بلا مسؤول';
+  }
+
+  @override
+  String attentionPartUnconfirmed(int n) {
+    return '$n غير مؤكد';
+  }
+
+  @override
+  String attentionPartNeedsRefund(int n) {
+    return '$n للاسترداد';
+  }
+
+  @override
+  String attentionPartFailed(int n) {
+    return '$n فشل';
+  }
+
+  @override
+  String attentionPartLate(int n) {
+    return '$n متأخر';
+  }
+
+  @override
+  String attentionOldest(String date) {
+    return 'بانتظار المتابعة منذ $date';
+  }
+
+  @override
+  String couldNotCheckQueue(String queue) {
+    return 'تعذّر التحقق: $queue';
+  }
+
+  @override
+  String checkedAndClear(String queues) {
+    return 'تم التحقق ولا شيء معلّق: $queues';
+  }
+
+  @override
+  String get workQueueTitle => 'أعمال تحتاج إلى متابعة';
+
+  @override
+  String get assignAction => 'إسناد';
+
+  @override
+  String get assignToLabel => 'إسناد إلى';
+
+  @override
+  String get assignedByAdminNote => 'أسندها مسؤول العيادة.';
+
+  @override
+  String get retryFailedDeliveriesAction => 'إعادة محاولة الإرسال الفاشل';
+
+  @override
+  String deliveriesRequeued(int n) {
+    return 'أُعيدت جدولة $n من الإرسالات.';
+  }
+
+  @override
+  String get nothingNeedsAttention => 'لا شيء هنا يحتاج إلى متابعة.';
+
+  @override
+  String messageReplyWasDue(String time) {
+    return 'كان الرد مستحقًا $time';
+  }
+
+  @override
+  String clinicianLabel(String name) {
+    return 'الطبيب: $name';
+  }
+
+  @override
+  String deliveryHealthSummary(int failed, int late) {
+    return '$failed فشلت بعد إعادة المحاولة · $late تذكيرات متأخرة أكثر من ساعة';
+  }
+
+  @override
+  String get awaitingReplyHeader => 'بانتظار ردك';
+
+  @override
+  String get noMessagesAwaiting => 'لا توجد رسائل مرضى بانتظارك.';
+
+  @override
+  String get couldNotLoadAwaiting => 'تعذّر تحميل الرسائل التي تنتظر الرد.';
+
+  @override
+  String coveringFor(String name) {
+    return 'بالنيابة عن $name';
+  }
+
+  @override
+  String replyBy(String time) {
+    return 'الرد قبل $time';
+  }
+
+  @override
+  String get needsYourAttentionHeader => 'يحتاج إلى انتباهك';
+
+  @override
+  String homeUnreadReplies(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ردود جديدة من فريق رعايتك',
+      one: 'رد جديد من فريق رعايتك',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String homeOverdueBill(String amount) {
+    return '$amount تجاوز تاريخ الاستحقاق';
+  }
+
+  @override
+  String homePaymentsConfirming(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count دفعات قيد التأكيد',
+      one: 'دفعة واحدة قيد التأكيد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeFamilyRequestsLabel => 'طلبات العائلة';
+
+  @override
+  String homeFamilyRequests(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'طلب $count أشخاص الارتباط بسجلك',
+      one: 'طلب شخص الارتباط بسجلك',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsDeviceScope => 'على هذا الجهاز';
+
+  @override
+  String get settingsDeviceScopeCaption =>
+      'تُحفظ في هذا المتصفح وتُستخدم لكل من يسجّل الدخول هنا.';
+
+  @override
+  String get settingsAccountScope => 'لحسابك';
+
+  @override
+  String get settingsAccountScopeCaption =>
+      'تُحفظ لك على هذا الجهاز. من يسجّل الدخول هنا غيرك يحتفظ باختياراته.';
 }

@@ -1,6 +1,9 @@
 /// Medical record, vitals and medication contracts (P1-11).
 library;
 
+import 'dart:typed_data';
+
+import '../../core/data/contracts.dart';
 import '../../core/result.dart';
 import '../entities/entities.dart';
 import '../enums.dart';
@@ -19,6 +22,8 @@ class NewRecord {
     this.extractedText,
     this.labValues = const [],
     this.uploadedByPatient = false,
+    this.sourceFile,
+    this.idempotencyKey,
   });
 
   final String patientId;
@@ -33,6 +38,37 @@ class NewRecord {
   final String? extractedText;
   final List<NewLabValue> labValues;
   final bool uploadedByPatient;
+
+  /// The original file for an import, stored with the record (Phase 5).
+  final NewSourceFile? sourceFile;
+
+  /// Reuse across retries of the same save: a retry returns the record the
+  /// first attempt created instead of filing it twice.
+  final IdempotencyKey? idempotencyKey;
+}
+
+/// An imported file, as picked. Stored in the database, fingerprinted, and
+/// only ever read back through [RecordRepository.sourceFile].
+class NewSourceFile {
+  const NewSourceFile({
+    required this.fileName,
+    required this.mimeType,
+    required this.bytes,
+  });
+
+  final String fileName;
+  final String mimeType;
+  final Uint8List bytes;
+
+  /// Largest accepted file.
+  static const maxBytes = 20 * 1024 * 1024;
+}
+
+/// A stored original, read back.
+class SourceFile {
+  const SourceFile({required this.document, required this.bytes});
+  final SourceDocument document;
+  final Uint8List bytes;
 }
 
 class NewLabValue {
@@ -42,13 +78,27 @@ class NewLabValue {
     this.unit,
     this.refLow,
     this.refHigh,
+    this.criticalLow,
+    this.criticalHigh,
+    this.source,
   });
 
   final String analyte;
   final double value;
   final String? unit;
+
+  /// Reference range. Leave both null when none was given: the value is then
+  /// stored as [AbnormalFlag.unknown], never assumed normal.
   final double? refLow;
   final double? refHigh;
+
+  /// Explicit critical limits from the issuing lab, when known. Without them
+  /// `LabRules` applies its documented demonstration heuristic.
+  final double? criticalLow;
+  final double? criticalHigh;
+
+  /// Where the value came from (e.g. "Clinic analyser", "Outside lab").
+  final String? source;
 }
 
 abstract interface class RecordRepository {
@@ -63,6 +113,15 @@ abstract interface class RecordRepository {
     String? textQuery,
   });
 
+  /// One page of the timeline, newest first, saying whether more exist — so
+  /// a long history shows "Load more" instead of being silently cut off.
+  Future<Result<Page<MedicalRecord>>> timelinePage(
+    String patientId, {
+    PageRequest page,
+    Set<RecordType>? types,
+    String? textQuery,
+  });
+
   Stream<List<MedicalRecord>> watchTimeline(String patientId, {int limit});
 
   /// Records a staff member authored, newest first — the staff "Records
@@ -71,7 +130,27 @@ abstract interface class RecordRepository {
 
   /// Adds a record and any attached lab values in one transaction. Computes
   /// each lab value's [AbnormalFlag] from its reference range.
+  ///
+  /// A patient import must name its issuer ([NewRecord.sourceFacility]);
+  /// its original file ([NewRecord.sourceFile]) is validated, fingerprinted
+  /// and stored in the same transaction, and the record starts
+  /// `pendingReview` until a clinician reviews it.
   Future<Result<MedicalRecord>> add(NewRecord record);
+
+  /// The original file behind an imported record. Authorized like the
+  /// record itself, and every read is audited.
+  Future<Result<SourceFile>> sourceFile(String recordId);
+
+  /// A clinician's decision on a patient import: [decision] is
+  /// `reviewed` (accepted into the clinical record) or `rejected` (with a
+  /// [note] saying why). Only a clinician with a care relationship, and only
+  /// once.
+  Future<Result<MedicalRecord>> reviewImport({
+    required String recordId,
+    required String staffId,
+    required ImportReviewStatus decision,
+    String? note,
+  });
 }
 
 abstract interface class VitalsRepository {

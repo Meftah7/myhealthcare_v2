@@ -45,6 +45,12 @@ class Users extends Table {
   /// (with a generic message) while this is in the future.
   DateTimeColumn get lockedUntil => dateTime().nullable()();
 
+  /// False for a dependent patient (a child, or an adult someone cares for)
+  /// who has a patient record but no login of their own. Sign-in and
+  /// recovery always refuse such a row; a guardian reaches it through a
+  /// proxy grant.
+  BoolColumn get hasLogin => boolean().withDefault(const Constant(true))();
+
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
@@ -94,6 +100,10 @@ class PatientProfiles extends Table {
   TextColumn get familyMembers => text()
       .map(const FamilyMemberListConverter())
       .withDefault(const Constant('[]'))();
+
+  /// Optimistic-concurrency version (trigger-bumped, schema v19): two
+  /// devices editing one profile can't silently overwrite each other.
+  IntColumn get version => integer().withDefault(const Constant(1))();
 
   @override
   Set<Column<Object>> get primaryKey => {userId};

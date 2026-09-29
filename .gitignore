@@ -67,3 +67,6 @@ tools/ml/__pycache__/
 
 # Editor settings (local only)
 .vscode/
+
+# Local browser/test profiles
+.tmp/

@@ -10,7 +10,6 @@ library;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -21,6 +20,7 @@ import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/enums.dart';
@@ -37,8 +37,9 @@ class AdminQuickActions extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
+    // Unknown counts (loading/failed) show the plain label, not "0".
     final feedback = ref.watch(openFeedbackCountProvider).valueOrNull ?? 0;
-    final homeVisits = ref.watch(openHomeVisitCountProvider);
+    final homeVisits = ref.watch(openHomeVisitCountProvider) ?? 0;
     final referrals = ref.watch(pendingReferralRequestCountProvider);
 
     final actions = <_QuickAction>[
@@ -88,7 +89,7 @@ class AdminQuickActions extends ConsumerWidget {
         label: t.newDepartmentAction,
         onTap: () => unawaited(showNewDepartmentDialog(context, ref)),
       ),
-      if (kDebugMode)
+      if (ref.watch(appModeProvider).isDemo)
         _QuickAction(
           icon: Icons.dataset_outlined,
           label: t.reseedDataAction,
@@ -287,7 +288,10 @@ class _BroadcastSheetState extends ConsumerState<_BroadcastSheet> {
       SnackBar(
         content: Text(switch (result) {
           Ok(:final value) => t.sentToCount(value),
-          Err(:final failure) => failure.message,
+          Err(:final failure) => describeFailure(
+            AppLocalizations.of(context)!,
+            failure,
+          ).message,
         }),
       ),
     );
@@ -306,7 +310,10 @@ class _BroadcastSheetState extends ConsumerState<_BroadcastSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(t.broadcastNotificationTitle, style: theme.textTheme.titleLarge),
+            Text(
+              t.broadcastNotificationTitle,
+              style: theme.textTheme.titleLarge,
+            ),
             const SizedBox(height: Space.md),
             DropdownButtonFormField<NotificationAudience>(
               initialValue: _audience,
@@ -426,7 +433,10 @@ class _CreateInvoiceSheetState extends ConsumerState<_CreateInvoiceSheet> {
           Ok(:final value) => t.invoiceRaisedSnackbar(
             value.totalAmount.toStringAsFixed(2),
           ),
-          Err(:final failure) => failure.message,
+          Err(:final failure) => describeFailure(
+            AppLocalizations.of(context)!,
+            failure,
+          ).message,
         }),
       ),
     );

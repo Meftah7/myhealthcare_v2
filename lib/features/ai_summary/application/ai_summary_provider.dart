@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/capabilities/capability_registry.dart';
 import '../../../core/di.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/ids.dart';
@@ -38,20 +39,26 @@ final aiServiceProvider = FutureProvider<AiService>((ref) async {
 
   final settings = await ref.watch(appSettingsProvider.future);
   final key = await ref.watch(aiKeyStoreProvider).read();
-  if (settings.usesRealAi && key != null) {
-    return FallbackAiService(
-      primary: GeminiAiService(apiKey: key, model: settings.modelId),
-      fallback: mock,
-    );
+  if (phase8CapabilityEnabled('live-clinical-ai') &&
+      settings.usesRealAi &&
+      key != null) {
+    final live = GeminiAiService(apiKey: key, model: settings.modelId);
+    return ref.watch(appModeProvider).isDemo
+        ? FallbackAiService(primary: live, fallback: mock)
+        : live;
   }
-  return mock;
+  return ref.watch(appModeProvider).isDemo
+      ? mock
+      : const UnavailableAiService();
 });
 
 /// True when the live provider is active (used to label the summary source).
 final aiUsingRealServiceProvider = FutureProvider<bool>((ref) async {
   final settings = await ref.watch(appSettingsProvider.future);
   final hasKey = await ref.watch(aiKeyPresentProvider.future);
-  return settings.usesRealAi && hasKey;
+  return phase8CapabilityEnabled('live-clinical-ai') &&
+      settings.usesRealAi &&
+      hasKey;
 });
 
 class AiSummaryController {

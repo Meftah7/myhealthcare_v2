@@ -1163,7 +1163,7 @@ abstract class AppLocalizations {
   /// No description provided for @aiDisclaimer.
   ///
   /// In en, this message translates to:
-  /// **'AI-generated — informational only, not medical advice. Verify with your clinician.'**
+  /// **'Draft AI output — verify it before use. It is not medical advice and is never committed as clinical truth automatically.'**
   String get aiDisclaimer;
 
   /// No description provided for @labReferenceSuffix.
@@ -2945,7 +2945,7 @@ abstract class AppLocalizations {
   /// No description provided for @nutritionTitle.
   ///
   /// In en, this message translates to:
-  /// **'Nutrition'**
+  /// **'Nutrition estimates'**
   String get nutritionTitle;
 
   /// No description provided for @calculatorSegment.
@@ -2957,7 +2957,7 @@ abstract class AppLocalizations {
   /// No description provided for @mealPlanSegment.
   ///
   /// In en, this message translates to:
-  /// **'Meal plan'**
+  /// **'Example split'**
   String get mealPlanSegment;
 
   /// No description provided for @foodsSegment.
@@ -3083,7 +3083,7 @@ abstract class AppLocalizations {
   /// No description provided for @calculateTargetsButton.
   ///
   /// In en, this message translates to:
-  /// **'Calculate targets'**
+  /// **'Calculate estimate'**
   String get calculateTargetsButton;
 
   /// No description provided for @preferencesSection.
@@ -3095,7 +3095,7 @@ abstract class AppLocalizations {
   /// No description provided for @macroSplitNote.
   ///
   /// In en, this message translates to:
-  /// **'The macro split used for your targets and your meal plan.'**
+  /// **'An estimated split, not a clinically prescribed target.'**
   String get macroSplitNote;
 
   /// No description provided for @presetBalanced.
@@ -4025,7 +4025,7 @@ abstract class AppLocalizations {
   /// No description provided for @forgotPasswordBody.
   ///
   /// In en, this message translates to:
-  /// **'Enter the email or national ID on your account and we’ll take you to set a new password.'**
+  /// **'Enter the email or national ID on your account. If it matches, we’ll email you a one-time code to set a new password.'**
   String get forgotPasswordBody;
 
   /// No description provided for @emailOrNationalIdLabel.
@@ -4715,7 +4715,7 @@ abstract class AppLocalizations {
   /// No description provided for @capacityForecastTitle.
   ///
   /// In en, this message translates to:
-  /// **'Capacity forecast'**
+  /// **'Historical demand'**
   String get capacityForecastTitle;
 
   /// No description provided for @capacityForecastSubtitle.
@@ -4922,6 +4922,48 @@ abstract class AppLocalizations {
   /// **'No-show risk predictions come from the offline logistic-regression model (RQ2).'**
   String get noShowRiskModelNote;
 
+  /// No description provided for @operationalHealthHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Operational health (this session)'**
+  String get operationalHealthHeader;
+
+  /// No description provided for @operationalHealthAllClear.
+  ///
+  /// In en, this message translates to:
+  /// **'No threshold breached in this session. Signals are kept in memory only and reset when the app reloads.'**
+  String get operationalHealthAllClear;
+
+  /// No description provided for @crashFreeSessionsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Crash-free sessions'**
+  String get crashFreeSessionsLabel;
+
+  /// No description provided for @operationalEventsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Events recorded'**
+  String get operationalEventsLabel;
+
+  /// No description provided for @operationalBreachTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{id}: {observed} in window'**
+  String operationalBreachTitle(String id, int observed);
+
+  /// No description provided for @copyOperationalEvidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy evidence (JSON)'**
+  String get copyOperationalEvidence;
+
+  /// No description provided for @operationalEvidenceCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Operational evidence copied. It contains no patient data.'**
+  String get operationalEvidenceCopied;
+
   /// No description provided for @allAppointmentsTitle.
   ///
   /// In en, this message translates to:
@@ -4961,7 +5003,7 @@ abstract class AppLocalizations {
   /// No description provided for @forecastExplainerNote.
   ///
   /// In en, this message translates to:
-  /// **'Busiest window per weekday, from appointment history. A flag means peak demand has been running at or above a single clinician’s hourly capacity.'**
+  /// **'Busiest window per weekday from appointment history. Capacity flags compare demand with active staff schedule templates; they are not predictions.'**
   String get forecastExplainerNote;
 
   /// No description provided for @demandLevelHigh.
@@ -4985,7 +5027,7 @@ abstract class AppLocalizations {
   /// No description provided for @overflowRiskLabel.
   ///
   /// In en, this message translates to:
-  /// **'Overflow risk'**
+  /// **'Above scheduled capacity'**
   String get overflowRiskLabel;
 
   /// No description provided for @noHistoryYet.
@@ -5291,13 +5333,13 @@ abstract class AppLocalizations {
   /// No description provided for @pushChannelSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Alerts on this device, even when the app is closed'**
+  /// **'Browser alerts while MyHealth Care is open. Reminders that fall due while it is closed appear in your inbox when you return.'**
   String get pushChannelSubtitle;
 
   /// No description provided for @inAppAlwaysOnNote.
   ///
   /// In en, this message translates to:
-  /// **'In-app notifications are always on, so you never miss a reminder. This demo simulates SMS, email and push delivery.'**
+  /// **'In-app notifications are always on, so a reminder always reaches your inbox. Text-message and email delivery are not available in this prototype.'**
   String get inAppAlwaysOnNote;
 
   /// No description provided for @resetNotificationsTitle.
@@ -5369,7 +5411,7 @@ abstract class AppLocalizations {
   /// No description provided for @pushLabel.
   ///
   /// In en, this message translates to:
-  /// **'Push notifications'**
+  /// **'Browser alerts'**
   String get pushLabel;
 
   /// No description provided for @showOlderVisitsAction.
@@ -5383,6 +5425,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Appointment details'**
   String get appointmentDetailTitle;
+
+  /// No description provided for @appointmentTimeZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Local time ({zone})'**
+  String appointmentTimeZone(String zone);
+
+  /// No description provided for @appointmentCheckInInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrive 15 minutes early and bring your identification. Check in at the room shown above.'**
+  String get appointmentCheckInInstructions;
 
   /// No description provided for @appointmentNotFoundNote.
   ///
@@ -6781,6 +6835,1032 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'ID {value}'**
   String idValueLabel(String value);
+
+  /// No description provided for @recoveryCodeSentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your email'**
+  String get recoveryCodeSentTitle;
+
+  /// No description provided for @recoveryCodeSentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'If that matches an account, we sent a 6-digit code to the email on file. It works once and expires in 10 minutes.'**
+  String get recoveryCodeSentBody;
+
+  /// No description provided for @recoveryCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'6-digit code'**
+  String get recoveryCodeLabel;
+
+  /// No description provided for @recoveryCodeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 6-digit code from your email.'**
+  String get recoveryCodeRequired;
+
+  /// No description provided for @recoveryConfirmPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm new password'**
+  String get recoveryConfirmPasswordLabel;
+
+  /// No description provided for @recoveryResetButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Set new password'**
+  String get recoveryResetButton;
+
+  /// No description provided for @recoveryResendButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a new code'**
+  String get recoveryResendButton;
+
+  /// No description provided for @recoveryDoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Password updated'**
+  String get recoveryDoneTitle;
+
+  /// No description provided for @recoveryDoneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your password was changed and any other codes were cancelled. Sign in with your new password.'**
+  String get recoveryDoneBody;
+
+  /// No description provided for @recoveryDemoInboxTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Demo inbox — simulated email'**
+  String get recoveryDemoInboxTitle;
+
+  /// No description provided for @recoveryDemoInboxBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This demo has no email service. A code that would be emailed to the account appears here instead.'**
+  String get recoveryDemoInboxBody;
+
+  /// No description provided for @recoveryDemoCodeFor.
+  ///
+  /// In en, this message translates to:
+  /// **'To {sentTo}: {code}'**
+  String recoveryDemoCodeFor(String sentTo, String code);
+
+  /// No description provided for @sessionResumeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with the same account to pick up where you left off.'**
+  String get sessionResumeHint;
+
+  /// No description provided for @sessionWarningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Still there?'**
+  String get sessionWarningTitle;
+
+  /// No description provided for @sessionWarningBody.
+  ///
+  /// In en, this message translates to:
+  /// **'For your privacy you’ll be signed out in {time}.'**
+  String sessionWarningBody(String time);
+
+  /// No description provided for @staySignedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Stay signed in'**
+  String get staySignedIn;
+
+  /// No description provided for @reauthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm it’s you'**
+  String get reauthTitle;
+
+  /// No description provided for @reauthBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password to continue with this change.'**
+  String get reauthBody;
+
+  /// No description provided for @accessDeniedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You don’t have access to this'**
+  String get accessDeniedTitle;
+
+  /// No description provided for @accessDeniedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This belongs to another account, or your access to it has ended.'**
+  String get accessDeniedBody;
+
+  /// No description provided for @loadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Load more'**
+  String get loadMore;
+
+  /// No description provided for @updatedAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {time}'**
+  String updatedAgo(String time);
+
+  /// No description provided for @draftSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving draft…'**
+  String get draftSaving;
+
+  /// No description provided for @draftSavedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft saved {time}'**
+  String draftSavedAt(String time);
+
+  /// No description provided for @draftSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft not saved. Your text is still on this screen.'**
+  String get draftSaveFailed;
+
+  /// No description provided for @draftConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'This draft was changed on another screen.'**
+  String get draftConflict;
+
+  /// No description provided for @retrySaveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry save'**
+  String get retrySaveAction;
+
+  /// No description provided for @loadSavedDraftAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Load saved draft'**
+  String get loadSavedDraftAction;
+
+  /// No description provided for @draftRestoreFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the saved draft. Anything you type is saved as a new draft.'**
+  String get draftRestoreFailed;
+
+  /// No description provided for @signingRequiresDoctor.
+  ///
+  /// In en, this message translates to:
+  /// **'A doctor signs and completes this visit. Your draft is saved for them.'**
+  String get signingRequiresDoctor;
+
+  /// No description provided for @abnormalFlagUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'No range'**
+  String get abnormalFlagUnknown;
+
+  /// No description provided for @labValueUnknownRangeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'No reference range was supplied, so this value has not been judged normal or abnormal.'**
+  String get labValueUnknownRangeHint;
+
+  /// No description provided for @messageResponseExpectation.
+  ///
+  /// In en, this message translates to:
+  /// **'Your care team replies within one working day. Not for emergencies: call 999 or go to the nearest emergency department.'**
+  String get messageResponseExpectation;
+
+  /// No description provided for @resultsToReviewHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Results to review'**
+  String get resultsToReviewHeader;
+
+  /// No description provided for @noResultsToReview.
+  ///
+  /// In en, this message translates to:
+  /// **'No results waiting for you.'**
+  String get noResultsToReview;
+
+  /// No description provided for @couldNotLoadResultReviews.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load results to review.'**
+  String get couldNotLoadResultReviews;
+
+  /// No description provided for @resultReviewDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Due {time}'**
+  String resultReviewDue(String time);
+
+  /// No description provided for @resultReviewOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue since {time}'**
+  String resultReviewOverdue(String time);
+
+  /// No description provided for @resultReviewHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Clinical review'**
+  String get resultReviewHeader;
+
+  /// No description provided for @resultReviewStatusUnassigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Unassigned'**
+  String get resultReviewStatusUnassigned;
+
+  /// No description provided for @resultReviewStatusAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned'**
+  String get resultReviewStatusAssigned;
+
+  /// No description provided for @resultReviewStatusInReview.
+  ///
+  /// In en, this message translates to:
+  /// **'In review'**
+  String get resultReviewStatusInReview;
+
+  /// No description provided for @resultReviewStatusResolved.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviewed'**
+  String get resultReviewStatusResolved;
+
+  /// No description provided for @resultReviewStatusEscalated.
+  ///
+  /// In en, this message translates to:
+  /// **'Escalated'**
+  String get resultReviewStatusEscalated;
+
+  /// No description provided for @workPriorityRoutine.
+  ///
+  /// In en, this message translates to:
+  /// **'Routine'**
+  String get workPriorityRoutine;
+
+  /// No description provided for @workPriorityPriority.
+  ///
+  /// In en, this message translates to:
+  /// **'Priority'**
+  String get workPriorityPriority;
+
+  /// No description provided for @workPriorityUrgent.
+  ///
+  /// In en, this message translates to:
+  /// **'Urgent'**
+  String get workPriorityUrgent;
+
+  /// No description provided for @resultReviewOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner: {name}'**
+  String resultReviewOwner(String name);
+
+  /// No description provided for @resultReviewCoveredBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Covered by: {name}'**
+  String resultReviewCoveredBy(String name);
+
+  /// No description provided for @startReviewAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Start review'**
+  String get startReviewAction;
+
+  /// No description provided for @resolveReviewAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark reviewed'**
+  String get resolveReviewAction;
+
+  /// No description provided for @escalateReviewAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Escalate'**
+  String get escalateReviewAction;
+
+  /// No description provided for @reviewOutcomeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Outcome (what was decided)'**
+  String get reviewOutcomeLabel;
+
+  /// No description provided for @escalateToLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Escalate to'**
+  String get escalateToLabel;
+
+  /// No description provided for @escalationReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Why it needs escalating'**
+  String get escalationReasonLabel;
+
+  /// No description provided for @resultReviewUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Result review updated.'**
+  String get resultReviewUpdated;
+
+  /// No description provided for @labVerifiedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified by {name}'**
+  String labVerifiedBy(String name);
+
+  /// No description provided for @labUnverified.
+  ///
+  /// In en, this message translates to:
+  /// **'Not yet verified'**
+  String get labUnverified;
+
+  /// No description provided for @labSourceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Source: {source}'**
+  String labSourceLabel(String source);
+
+  /// No description provided for @referralRequestStatusClarification.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs clarification'**
+  String get referralRequestStatusClarification;
+
+  /// No description provided for @referralRequestStatusAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get referralRequestStatusAccepted;
+
+  /// No description provided for @referralRequestStatusArranged.
+  ///
+  /// In en, this message translates to:
+  /// **'Arranged'**
+  String get referralRequestStatusArranged;
+
+  /// No description provided for @referralRequestStatusClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get referralRequestStatusClosed;
+
+  /// No description provided for @invoiceStatusRefunded.
+  ///
+  /// In en, this message translates to:
+  /// **'Refunded'**
+  String get invoiceStatusRefunded;
+
+  /// No description provided for @paymentPendingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirming your payment'**
+  String get paymentPendingTitle;
+
+  /// No description provided for @checkPaymentStatusAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Check payment status'**
+  String get checkPaymentStatusAction;
+
+  /// No description provided for @paymentStillConfirming.
+  ///
+  /// In en, this message translates to:
+  /// **'Still waiting for the payment provider. You have not been charged twice, and the bill stays unpaid until it is confirmed.'**
+  String get paymentStillConfirming;
+
+  /// No description provided for @paymentReleasedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The payment did not go through and nothing was charged. You can try again.'**
+  String get paymentReleasedMessage;
+
+  /// No description provided for @paymentConfirmingChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirming payment…'**
+  String get paymentConfirmingChip;
+
+  /// No description provided for @paymentHistoryHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment history'**
+  String get paymentHistoryHeader;
+
+  /// No description provided for @couldNotLoadPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load payment history.'**
+  String get couldNotLoadPayments;
+
+  /// No description provided for @recordDeskPaymentAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Record desk payment'**
+  String get recordDeskPaymentAction;
+
+  /// No description provided for @receiptNumberLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt number'**
+  String get receiptNumberLabel;
+
+  /// No description provided for @paymentNoteOptionalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get paymentNoteOptionalLabel;
+
+  /// No description provided for @deskPaymentRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment recorded.'**
+  String get deskPaymentRecorded;
+
+  /// No description provided for @refundAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund'**
+  String get refundAction;
+
+  /// No description provided for @refundAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount to refund (BD)'**
+  String get refundAmountLabel;
+
+  /// No description provided for @refundReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason for refund'**
+  String get refundReasonLabel;
+
+  /// No description provided for @refundRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund completed.'**
+  String get refundRecorded;
+
+  /// No description provided for @reconcilePaymentsAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconcile payments'**
+  String get reconcilePaymentsAction;
+
+  /// No description provided for @reconciledCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} unconfirmed payment(s) resolved.'**
+  String reconciledCount(int count);
+
+  /// No description provided for @paymentKindCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get paymentKindCharge;
+
+  /// No description provided for @paymentKindTopUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet top-up'**
+  String get paymentKindTopUp;
+
+  /// No description provided for @paymentKindRefund.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund'**
+  String get paymentKindRefund;
+
+  /// No description provided for @paymentStatusInitiated.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirming'**
+  String get paymentStatusInitiated;
+
+  /// No description provided for @paymentStatusAuthorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Authorised'**
+  String get paymentStatusAuthorized;
+
+  /// No description provided for @paymentStatusSettled.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get paymentStatusSettled;
+
+  /// No description provided for @paymentStatusFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed — not charged'**
+  String get paymentStatusFailed;
+
+  /// No description provided for @paymentStatusVoided.
+  ///
+  /// In en, this message translates to:
+  /// **'Voided'**
+  String get paymentStatusVoided;
+
+  /// No description provided for @paymentReferenceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Ref {reference}'**
+  String paymentReferenceLabel(String reference);
+
+  /// No description provided for @topUpPendingMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'We could not confirm this top-up yet. Your balance only changes once the provider confirms it, and you will not be charged twice.'**
+  String get topUpPendingMessage;
+
+  /// No description provided for @channelNotAvailableInPrototype.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available in this prototype'**
+  String get channelNotAvailableInPrototype;
+
+  /// No description provided for @alertsAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Browser alerts are allowed.'**
+  String get alertsAllowed;
+
+  /// No description provided for @alertsNotRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'This browser has not been asked to show alerts yet.'**
+  String get alertsNotRequested;
+
+  /// No description provided for @allowAlertsAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow browser alerts'**
+  String get allowAlertsAction;
+
+  /// No description provided for @alertsBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts are blocked in your browser settings. Reminders still arrive in your inbox.'**
+  String get alertsBlocked;
+
+  /// No description provided for @alertsUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'This device cannot show alerts. Reminders arrive in your inbox.'**
+  String get alertsUnsupported;
+
+  /// No description provided for @importForLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'This document is for'**
+  String get importForLabel;
+
+  /// No description provided for @importForMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Me'**
+  String get importForMe;
+
+  /// No description provided for @importIssuerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued by'**
+  String get importIssuerLabel;
+
+  /// No description provided for @importIssuerHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'The lab, hospital or clinic that produced it'**
+  String get importIssuerHelper;
+
+  /// No description provided for @importIssuerRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Say who issued this document.'**
+  String get importIssuerRequired;
+
+  /// No description provided for @importReviewNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported documents are marked \"not reviewed by a clinician\" until your care team reviews them. The original file is kept with the record.'**
+  String get importReviewNotice;
+
+  /// No description provided for @provenanceHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Where this came from'**
+  String get provenanceHeader;
+
+  /// No description provided for @provenanceIssuer.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued by: {issuer}'**
+  String provenanceIssuer(String issuer);
+
+  /// No description provided for @provenanceImportedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported {date}'**
+  String provenanceImportedOn(String date);
+
+  /// No description provided for @provenanceFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Original file: {name} ({size})'**
+  String provenanceFile(String name, String size);
+
+  /// No description provided for @importStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Not yet reviewed by a clinician'**
+  String get importStatusPending;
+
+  /// No description provided for @importStatusReviewed.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviewed by a clinician'**
+  String get importStatusReviewed;
+
+  /// No description provided for @importStatusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviewed — not accepted into your clinical record'**
+  String get importStatusRejected;
+
+  /// No description provided for @openOriginalAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Open original file'**
+  String get openOriginalAction;
+
+  /// No description provided for @exportRecordAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Export as PDF'**
+  String get exportRecordAction;
+
+  /// No description provided for @acceptImportAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept import'**
+  String get acceptImportAction;
+
+  /// No description provided for @rejectImportAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get rejectImportAction;
+
+  /// No description provided for @rejectImportReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Why it is not accepted'**
+  String get rejectImportReasonLabel;
+
+  /// No description provided for @importReviewSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Import review saved.'**
+  String get importReviewSaved;
+
+  /// No description provided for @feedbackSessionExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session has ended. Sign in again to continue.'**
+  String get feedbackSessionExpired;
+
+  /// No description provided for @feedbackReauthRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your password to continue.'**
+  String get feedbackReauthRequired;
+
+  /// No description provided for @feedbackConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone changed this first. Reload to see the latest before trying again.'**
+  String get feedbackConflict;
+
+  /// No description provided for @feedbackOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t reach MyHealth Care. Check your connection and try again.'**
+  String get feedbackOffline;
+
+  /// No description provided for @feedbackUnexpected.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Nothing was changed; please try again.'**
+  String get feedbackUnexpected;
+
+  /// No description provided for @reloadAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload'**
+  String get reloadAction;
+
+  /// No description provided for @signInAgainAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in again'**
+  String get signInAgainAction;
+
+  /// No description provided for @staleDataBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Last updated {time}. This may be out of date.'**
+  String staleDataBanner(String time);
+
+  /// No description provided for @refreshFailedShowingPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t refresh. Showing what loaded before.'**
+  String get refreshFailedShowingPrevious;
+
+  /// No description provided for @needsAttentionHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs attention'**
+  String get needsAttentionHeader;
+
+  /// No description provided for @attentionResultReviews.
+  ///
+  /// In en, this message translates to:
+  /// **'Results needing a clinician'**
+  String get attentionResultReviews;
+
+  /// No description provided for @attentionMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Patient messages past their reply time'**
+  String get attentionMessages;
+
+  /// No description provided for @attentionReferrals.
+  ///
+  /// In en, this message translates to:
+  /// **'Open referrals'**
+  String get attentionReferrals;
+
+  /// No description provided for @attentionPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Payments to confirm or refund'**
+  String get attentionPayments;
+
+  /// No description provided for @attentionDeliveries.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications not delivered'**
+  String get attentionDeliveries;
+
+  /// No description provided for @attentionOverdueInvoices.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue invoices'**
+  String get attentionOverdueInvoices;
+
+  /// No description provided for @attentionPasswordResets.
+  ///
+  /// In en, this message translates to:
+  /// **'Password reset requests'**
+  String get attentionPasswordResets;
+
+  /// No description provided for @attentionHomeVisits.
+  ///
+  /// In en, this message translates to:
+  /// **'Home-visit requests'**
+  String get attentionHomeVisits;
+
+  /// No description provided for @attentionFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Open feedback reports'**
+  String get attentionFeedback;
+
+  /// No description provided for @attentionPartUnassigned.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} unassigned'**
+  String attentionPartUnassigned(int n);
+
+  /// No description provided for @attentionPartOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} overdue'**
+  String attentionPartOverdue(int n);
+
+  /// No description provided for @attentionPartEscalated.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} escalated'**
+  String attentionPartEscalated(int n);
+
+  /// No description provided for @attentionPartUnowned.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} without an owner'**
+  String attentionPartUnowned(int n);
+
+  /// No description provided for @attentionPartUnconfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} unconfirmed'**
+  String attentionPartUnconfirmed(int n);
+
+  /// No description provided for @attentionPartNeedsRefund.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} to refund'**
+  String attentionPartNeedsRefund(int n);
+
+  /// No description provided for @attentionPartFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} failed'**
+  String attentionPartFailed(int n);
+
+  /// No description provided for @attentionPartLate.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} late'**
+  String attentionPartLate(int n);
+
+  /// No description provided for @attentionOldest.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting since {date}'**
+  String attentionOldest(String date);
+
+  /// No description provided for @couldNotCheckQueue.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t check: {queue}'**
+  String couldNotCheckQueue(String queue);
+
+  /// No description provided for @checkedAndClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked and clear: {queues}'**
+  String checkedAndClear(String queues);
+
+  /// No description provided for @workQueueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Work needing attention'**
+  String get workQueueTitle;
+
+  /// No description provided for @assignAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign'**
+  String get assignAction;
+
+  /// No description provided for @assignToLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign to'**
+  String get assignToLabel;
+
+  /// No description provided for @assignedByAdminNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned by the clinic administrator.'**
+  String get assignedByAdminNote;
+
+  /// No description provided for @retryFailedDeliveriesAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry failed deliveries'**
+  String get retryFailedDeliveriesAction;
+
+  /// No description provided for @deliveriesRequeued.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} deliveries queued again.'**
+  String deliveriesRequeued(int n);
+
+  /// No description provided for @nothingNeedsAttention.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here needs attention.'**
+  String get nothingNeedsAttention;
+
+  /// No description provided for @messageReplyWasDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply was due {time}'**
+  String messageReplyWasDue(String time);
+
+  /// No description provided for @clinicianLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Clinician: {name}'**
+  String clinicianLabel(String name);
+
+  /// No description provided for @deliveryHealthSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{failed} failed after retries · {late} reminders more than an hour late'**
+  String deliveryHealthSummary(int failed, int late);
+
+  /// No description provided for @awaitingReplyHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting your reply'**
+  String get awaitingReplyHeader;
+
+  /// No description provided for @noMessagesAwaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'No patient messages are waiting for you.'**
+  String get noMessagesAwaiting;
+
+  /// No description provided for @couldNotLoadAwaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load messages awaiting reply.'**
+  String get couldNotLoadAwaiting;
+
+  /// No description provided for @coveringFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Covering for {name}'**
+  String coveringFor(String name);
+
+  /// No description provided for @replyBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply by {time}'**
+  String replyBy(String time);
+
+  /// No description provided for @needsYourAttentionHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs your attention'**
+  String get needsYourAttentionHeader;
+
+  /// No description provided for @homeUnreadReplies.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 new reply from your care team} other{{count} new replies from your care team}}'**
+  String homeUnreadReplies(int count);
+
+  /// No description provided for @homeOverdueBill.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} is past its due date'**
+  String homeOverdueBill(String amount);
+
+  /// No description provided for @homePaymentsConfirming.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 payment is still being confirmed} other{{count} payments are still being confirmed}}'**
+  String homePaymentsConfirming(int count);
+
+  /// No description provided for @homeFamilyRequestsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Family requests'**
+  String get homeFamilyRequestsLabel;
+
+  /// No description provided for @homeFamilyRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 person asked to link to your record} other{{count} people asked to link to your record}}'**
+  String homeFamilyRequests(int count);
+
+  /// No description provided for @settingsDeviceScope.
+  ///
+  /// In en, this message translates to:
+  /// **'On this device'**
+  String get settingsDeviceScope;
+
+  /// No description provided for @settingsDeviceScopeCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved in this browser and used by anyone who signs in here.'**
+  String get settingsDeviceScopeCaption;
+
+  /// No description provided for @settingsAccountScope.
+  ///
+  /// In en, this message translates to:
+  /// **'For your account'**
+  String get settingsAccountScope;
+
+  /// No description provided for @settingsAccountScopeCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved for you on this device. Someone else signing in here keeps their own choices.'**
+  String get settingsAccountScopeCaption;
 }
 
 class _AppLocalizationsDelegate

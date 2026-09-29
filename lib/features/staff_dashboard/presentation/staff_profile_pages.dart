@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../l10n/app_localizations.dart';
@@ -30,8 +31,8 @@ class StaffSectionScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gutter = WindowSize.of(context).gutter;
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
+    return AppScaffold(
+      title: title,
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: Space.maxContentWidth),
@@ -41,6 +42,7 @@ class StaffSectionScaffold extends StatelessWidget {
           ),
         ),
       ),
+      centerBody: false,
     );
   }
 }

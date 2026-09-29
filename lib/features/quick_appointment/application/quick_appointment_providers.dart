@@ -65,21 +65,14 @@ class QuickAppointmentController {
             end: bestSlot.end,
             visitType: VisitType.urgentCare,
             departmentId: staffProfile.departmentId,
+            enabledReminderChannels: _ref
+                .read(notificationPrefsProvider)
+                .enabledChannels,
           ),
         ),
       );
 
       _ref.invalidate(patientAppointmentsProvider);
-      await _ref
-          .read(reminderSchedulerProvider)
-          .scheduleFor(
-            appointmentId: booked.id,
-            slotStart: booked.slotStart,
-            band: booked.riskBand ?? RiskBand.low,
-            enabledChannels: _ref
-                .read(notificationPrefsProvider)
-                .enabledChannels,
-          );
       await _ref
           .read(auditRepositoryProvider)
           .record(

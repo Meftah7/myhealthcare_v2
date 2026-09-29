@@ -2,9 +2,11 @@
 /// <-> doctor messaging, home-visit requests.
 library;
 
+import '../../core/data/contracts.dart';
 import '../../core/result.dart';
 import '../entities/entities.dart';
 import '../enums.dart';
+import 'notification_repository.dart';
 
 class NewSickLeave {
   const NewSickLeave({
@@ -47,12 +49,22 @@ abstract interface class CareMessageRepository {
     required String staffId,
   });
 
+  /// A retry with the same [idempotencyKey] returns the message already
+  /// sent instead of sending it twice. [notify] goes through the outbox, in
+  /// the same transaction as the message.
   Future<Result<CareMessage>> send({
     required String patientId,
     required String staffId,
     required bool fromStaff,
     required String body,
+    IdempotencyKey? idempotencyKey,
+    List<NewNotification> notify,
   });
+
+  /// Patient messages still waiting for a clinician's reply that [staffId]
+  /// owns or covers — oldest due first. With [staffId] null, every waiting
+  /// message (administrator oversight).
+  Future<Result<List<CareMessage>>> awaitingReply({String? staffId});
 
   /// Marks the counterpart's messages in a thread as read.
   Future<Result<void>> markRead({
@@ -82,11 +94,16 @@ abstract interface class HomeVisitRepository {
   Future<Result<List<HomeVisitRequest>>> forPatient(String patientId);
   Future<Result<List<HomeVisitRequest>>> all({HomeVisitStatus? status});
   Future<Result<HomeVisitRequest>> byId(String id);
-  Future<Result<HomeVisitRequest>> create(NewHomeVisitRequest request);
+  Future<Result<HomeVisitRequest>> create(
+    NewHomeVisitRequest request, {
+    IdempotencyKey? idempotencyKey,
+  });
 
   Future<Result<HomeVisitRequest>> decide({
     required String id,
     required HomeVisitStatus status,
+    int? expectedVersion,
+    List<NewNotification> notify,
     String? assignedStaffId,
     String? decisionNote,
   });
@@ -95,5 +112,6 @@ abstract interface class HomeVisitRepository {
   Future<Result<HomeVisitRequest>> cancel({
     required String id,
     required String patientId,
+    int? expectedVersion,
   });
 }

@@ -1,7 +1,7 @@
 /// The consultation page for one appointment. Reached from the schedule ticket
 /// sheet ("Patient arrived") or the department walk-in queue ("Start"), and
-/// re-openable to continue — the note and medications are held in an in-memory
-/// draft that survives leaving the page.
+/// re-openable to continue — the note and medications autosave to a draft in
+/// the database, so a crash, closed tab or sign-in timeout loses nothing.
 library;
 
 import 'dart:async';
@@ -18,10 +18,14 @@ import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
+import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../domain/identity/permissions.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../auth/application/session.dart';
 import '../application/consultation_providers.dart';
 
 class ConsultationScreen extends ConsumerStatefulWidget {
@@ -39,21 +43,39 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
   bool _busy = false;
   bool _seeded = false;
 
+  /// Autosave: typing restarts a short timer; one save runs at a time and a
+  /// change made during it is saved straight after, so saves never race
+  /// each other into a false conflict.
+  static const _saveDelay = Duration(milliseconds: 600);
+  Timer? _saveTimer;
+  bool _saving = false;
+  bool _saveAgain = false;
+  bool _restoreFailed = false;
+  DateTime? _savedAt;
+  late final ConsultationController _controller;
+
   String get _id => widget.appointmentId;
   ConsultationDraft get _draft => ref.read(consultationDraftProvider(_id));
 
   @override
   void initState() {
     super.initState();
-    // Seed the field from the draft once, then keep the draft in step.
+    _controller = ref.read(consultationControllerProvider(_id));
+    // Seed the field from the working copy, then restore the saved draft.
     final draft = ref.read(consultationDraftProvider(_id));
     _note.text = draft.note;
     _seeded = true;
     _note.addListener(_flushNote);
+    unawaited(_restoreDraft());
   }
 
   @override
   void dispose() {
+    // Leaving mid-typing still saves what was typed.
+    if (_saveTimer?.isActive ?? false) {
+      _saveTimer!.cancel();
+      unawaited(_controller.saveDraft(_draft));
+    }
     _note
       ..removeListener(_flushNote)
       ..dispose();
@@ -63,13 +85,65 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
 
   void _flushNote() {
     if (!_seeded) return;
-    ref.read(consultationDraftProvider(_id).notifier).state = _draft.copyWith(
-      note: _note.text,
-    );
+    _update(_draft.copyWith(note: _note.text));
   }
 
-  void _update(ConsultationDraft next) =>
-      ref.read(consultationDraftProvider(_id).notifier).state = next;
+  Future<void> _restoreDraft() async {
+    final result = await _controller.loadDraft();
+    if (!mounted) return;
+    switch (result) {
+      case Err():
+        setState(() => _restoreFailed = true);
+      case Ok(:final value):
+        final local = _draft;
+        // Something typed here that never reached the database wins over an
+        // empty saved copy; otherwise the saved draft is the truth.
+        if (local.version == null && !local.isEmpty && value.isEmpty) {
+          _schedulePersist();
+          return;
+        }
+        ref.read(consultationDraftProvider(_id).notifier).state = value;
+        _seeded = false;
+        _note.text = value.note;
+        _seeded = true;
+        setState(() => _restoreFailed = false);
+    }
+  }
+
+  void _update(ConsultationDraft next) {
+    ref.read(consultationDraftProvider(_id).notifier).state = next;
+    _schedulePersist();
+  }
+
+  void _schedulePersist() {
+    _saveTimer?.cancel();
+    _saveTimer = Timer(_saveDelay, () => unawaited(_persist()));
+  }
+
+  Future<void> _persist() async {
+    if (_saving) {
+      _saveAgain = true;
+      return;
+    }
+    _saving = true;
+    try {
+      do {
+        _saveAgain = false;
+        final result = await _controller.saveDraft(_draft);
+        if (!mounted) return;
+        if (result case Ok(:final value)) {
+          // Keep anything typed since; adopt the saved version.
+          ref.read(consultationDraftProvider(_id).notifier).state = _draft
+              .copyWith(version: value.version);
+          setState(() => _savedAt = DateTime.now());
+        } else {
+          break;
+        }
+      } while (_saveAgain);
+    } finally {
+      _saving = false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,8 +192,7 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
               children: [
                 patient.when(
                   loading: () => const LoadingSkeleton(height: 96),
-                  error: (e, _) =>
-                      InlineBanner.error(t.couldNotLoadThePatient),
+                  error: (e, _) => InlineBanner.error(t.couldNotLoadThePatient),
                   data: (p) => _PatientHeader(patient: p, appointment: a),
                 ),
                 const SizedBox(height: Space.md),
@@ -141,7 +214,9 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
     final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final draft = ref.watch(consultationDraftProvider(_id));
+    final saveState = ref.watch(consultationDraftSaveStateProvider(_id));
     final referral = ref.watch(consultationReferralProvider(_id));
+    final canSign = ref.watch(canProvider(Permission.signEncounter));
 
     return [
       SectionHeader(t.clinicalNoteHeader, overline: true, first: true),
@@ -153,6 +228,13 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
           hintText: t.historyExamHint,
           alignLabelWithHint: true,
         ),
+      ),
+      _DraftStatus(
+        state: saveState,
+        savedAt: _savedAt,
+        restoreFailed: _restoreFailed,
+        onRetry: () => unawaited(_persist()),
+        onReload: () => unawaited(_restoreDraft()),
       ),
       const SizedBox(height: Space.xs),
       Align(
@@ -245,16 +327,19 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
         ),
       ),
       const SizedBox(height: Space.md),
-      FilledButton(
-        onPressed: (_busy || draft.isEmpty) ? null : _complete,
-        child: _busy
-            ? const SizedBox.square(
-                dimension: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : Text(t.completeConsultationAction),
-      ),
-      if (draft.isEmpty)
+      if (!canSign)
+        InlineBanner.info(t.signingRequiresDoctor)
+      else
+        FilledButton(
+          onPressed: (_busy || draft.isEmpty) ? null : _complete,
+          child: _busy
+              ? const SizedBox.square(
+                  dimension: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Text(t.completeConsultationAction),
+        ),
+      if (canSign && draft.isEmpty)
         Padding(
           padding: const EdgeInsets.only(top: Space.xs),
           child: Text(
@@ -294,9 +379,7 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
       ),
     );
     if (edited == null) return;
-    _update(
-      _draft.copyWith(meds: [..._draft.meds]..[i] = edited),
-    );
+    _update(_draft.copyWith(meds: [..._draft.meds]..[i] = edited));
   }
 
   Future<void> _requestReferral() async {
@@ -324,6 +407,10 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
 
   Future<void> _complete() async {
     final t = AppLocalizations.of(context)!;
+    // Sign exactly what is saved: flush a pending autosave first.
+    _saveTimer?.cancel();
+    await _persist();
+    if (!mounted) return;
     final ok = await confirm(
       context,
       title: t.completeConsultationTitle,
@@ -361,12 +448,79 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
     setState(() => _busy = false);
     final message = switch (result) {
       Ok() => ok,
-      Err(:final failure) => failure.message,
+      Err(:final failure) => describeFailure(
+        AppLocalizations.of(context)!,
+        failure,
+      ).message,
     };
     if (message != null) {
       messenger.showSnackBar(SnackBar(content: Text(message)));
     }
     if (result.isOk && popOnOk && mounted) context.pop();
+  }
+}
+
+/// Where the draft stands: saving, saved at a time, or not saved — with a
+/// way out of each failure. The note stays on screen whatever happens.
+class _DraftStatus extends StatelessWidget {
+  const _DraftStatus({
+    required this.state,
+    required this.savedAt,
+    required this.restoreFailed,
+    required this.onRetry,
+    required this.onReload,
+  });
+
+  final DraftSaveState state;
+  final DateTime? savedAt;
+  final bool restoreFailed;
+  final VoidCallback onRetry;
+  final VoidCallback onReload;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final muted = theme.textTheme.labelSmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+    final error = theme.textTheme.labelSmall?.copyWith(
+      color: theme.colorScheme.error,
+    );
+    Widget line(String text, TextStyle? style, [Widget? action]) => Semantics(
+      liveRegion: true,
+      child: Row(
+        children: [
+          Expanded(child: Text(text, style: style)),
+          ?action,
+        ],
+      ),
+    );
+    if (restoreFailed && state != DraftSaveState.saved) {
+      return line(
+        t.draftRestoreFailed,
+        error,
+        TextButton(onPressed: onReload, child: Text(t.loadSavedDraftAction)),
+      );
+    }
+    return switch (state) {
+      DraftSaveState.idle => const SizedBox.shrink(),
+      DraftSaveState.saving => line(t.draftSaving, muted),
+      DraftSaveState.saved => line(
+        savedAt == null ? t.draftSaving : t.draftSavedAt(fmtTime(savedAt!)),
+        muted,
+      ),
+      DraftSaveState.failed => line(
+        t.draftSaveFailed,
+        error,
+        TextButton(onPressed: onRetry, child: Text(t.retrySaveAction)),
+      ),
+      DraftSaveState.conflict => line(
+        t.draftConflict,
+        error,
+        TextButton(onPressed: onReload, child: Text(t.loadSavedDraftAction)),
+      ),
+    };
   }
 }
 
@@ -427,13 +581,11 @@ class _PatientHeader extends StatelessWidget {
           ],
           if (patient.chronicConditions.isNotEmpty) ...[
             const SizedBox(height: Space.xs),
-            Wrap(
-              spacing: Space.xs,
-              runSpacing: Space.xxs,
-              children: [
-                for (final c in patient.chronicConditions)
-                  Chip(label: Text(c), visualDensity: VisualDensity.compact),
-              ],
+            Text(
+              patient.chronicConditions.join(' · '),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
             ),
           ],
           if (appointment.reasonText != null) ...[
@@ -648,9 +800,7 @@ class _AddMedicationSheetState extends State<_AddMedicationSheet> {
             const SizedBox(height: Space.sm),
             TextField(
               controller: _freq,
-              decoration: InputDecoration(
-                labelText: t.frequencyOptionalLabel,
-              ),
+              decoration: InputDecoration(labelText: t.frequencyOptionalLabel),
             ),
             const SizedBox(height: Space.lg),
             FilledButton(

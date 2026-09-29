@@ -10,6 +10,7 @@ import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/card_input.dart';
 import '../../../domain/entities/entities.dart';
@@ -236,7 +237,10 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
       case Err(:final failure):
         setState(() {
           _busy = false;
-          _error = failure.message;
+          _error = describeFailure(
+            AppLocalizations.of(context)!,
+            failure,
+          ).message;
         });
     }
   }

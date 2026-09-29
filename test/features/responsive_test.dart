@@ -30,12 +30,14 @@ Future<void> _signInPatient(
   required Size size,
   double textScale = 1,
   bool reduceMotion = false,
+  double keyboardInset = 0,
 }) => _signIn(
   tester,
   email: 'patient1@myhealth.demo',
   size: size,
   textScale: textScale,
   reduceMotion: reduceMotion,
+  keyboardInset: keyboardInset,
 );
 
 Future<void> _signIn(
@@ -44,6 +46,7 @@ Future<void> _signIn(
   required Size size,
   double textScale = 1,
   bool reduceMotion = false,
+  double keyboardInset = 0,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
@@ -68,6 +71,7 @@ Future<void> _signIn(
       data: MediaQueryData.fromView(tester.view).copyWith(
         textScaler: TextScaler.linear(textScale),
         disableAnimations: reduceMotion,
+        viewInsets: EdgeInsets.only(bottom: keyboardInset),
       ),
       child: ProviderScope(
         overrides: [
@@ -100,6 +104,46 @@ Future<void> _teardown(WidgetTester tester) async {
 }
 
 void main() {
+  group('Phase 7 supported viewport matrix', () {
+    const viewports = <Size>[
+      Size(320, 568),
+      Size(375, 667),
+      Size(430, 932),
+      Size(600, 800),
+      Size(840, 700),
+      Size(1024, 768),
+      Size(1440, 900),
+    ];
+    for (final size in viewports) {
+      testWidgets('${size.width.toInt()}×${size.height.toInt()} at 200%', (
+        tester,
+      ) async {
+        await _signInPatient(tester, size: size, textScale: 2);
+        expect(tester.takeException(), isNull);
+        expect(
+          find.byWidgetPredicate(
+            (widget) => widget is NavigationBar || widget is NavigationRail,
+          ),
+          findsOneWidget,
+        );
+        await _teardown(tester);
+      });
+    }
+
+    testWidgets('phone layout remains reachable with the keyboard open', (
+      tester,
+    ) async {
+      await _signInPatient(
+        tester,
+        size: const Size(375, 667),
+        keyboardInset: 280,
+      );
+      expect(tester.takeException(), isNull);
+      expect(find.byType(NavigationBar), findsOneWidget);
+      await _teardown(tester);
+    });
+  });
+
   group('navigation re-flows with the window size class', () {
     testWidgets('compact (<600) puts the bar at the bottom', (tester) async {
       await _signInPatient(tester, size: const Size(400, 900));

@@ -17,6 +17,7 @@ import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/date_input.dart';
 import '../../../core/utils/ids.dart';
@@ -142,9 +143,13 @@ class FamilyNetworkSection extends ConsumerWidget {
         .remove(member.id);
     if (!context.mounted) return;
     if (result case Err(:final failure)) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(failure.message)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            describeFailure(AppLocalizations.of(context)!, failure).message,
+          ),
+        ),
+      );
     }
   }
 }
@@ -181,10 +186,15 @@ class _FamilyMemberTile extends StatelessWidget {
       ),
       title: Row(
         children: [
-          Flexible(child: Text(member.fullName, overflow: TextOverflow.ellipsis)),
+          Flexible(
+            child: Text(member.fullName, overflow: TextOverflow.ellipsis),
+          ),
           const SizedBox(width: Space.xs),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: Space.xs, vertical: 2),
+            padding: const EdgeInsets.symmetric(
+              horizontal: Space.xs,
+              vertical: 2,
+            ),
             decoration: BoxDecoration(
               color: scheme.tertiaryContainer,
               borderRadius: Radii.pill,
@@ -280,7 +290,11 @@ class _FamilyMemberFormState extends ConsumerState<_FamilyMemberForm> {
 
   String _autoLastName(FamilyRelationship r) =>
       (r == FamilyRelationship.child || r == FamilyRelationship.sibling)
-      ? widget.patient.user.fullName.trim().split(RegExp(r'\s+')).skip(1).join(' ')
+      ? widget.patient.user.fullName
+            .trim()
+            .split(RegExp(r'\s+'))
+            .skip(1)
+            .join(' ')
       : '';
 
   void _onRelationshipChanged(FamilyRelationship? r) {
@@ -292,7 +306,8 @@ class _FamilyMemberFormState extends ConsumerState<_FamilyMemberForm> {
           _relationship == FamilyRelationship.child ||
           _relationship == FamilyRelationship.sibling;
       final isBlankOrAuto =
-          _lastName.text.isEmpty || _lastName.text == _autoLastName(_relationship);
+          _lastName.text.isEmpty ||
+          _lastName.text == _autoLastName(_relationship);
       _relationship = r;
       if (!_isEdit && (isBlankOrAuto || !wasAutoFillable)) {
         _lastName.text = _autoLastName(r);
@@ -341,9 +356,13 @@ class _FamilyMemberFormState extends ConsumerState<_FamilyMemberForm> {
       case Ok():
         Navigator.of(context).pop();
       case Err(:final failure):
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(failure.message)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              describeFailure(AppLocalizations.of(context)!, failure).message,
+            ),
+          ),
+        );
     }
   }
 
@@ -463,7 +482,9 @@ class _FamilyMemberFormState extends ConsumerState<_FamilyMemberForm> {
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : Text(_isEdit ? t.saveChangesAction : t.addFamilyMemberAction),
+                  : Text(
+                      _isEdit ? t.saveChangesAction : t.addFamilyMemberAction,
+                    ),
             ),
           ],
         ),

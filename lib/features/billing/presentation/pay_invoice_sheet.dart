@@ -19,6 +19,11 @@
 ///
 /// If the patient has saved cards they pick one and enter only its CVC;
 /// otherwise (or by choosing "a different card") they type a full card.
+///
+/// Phase 5: one idempotency key per attempt, reused if the patient retries
+/// after a lost answer, replaced only after a definite outcome. A payment
+/// whose outcome is unknown is shown as "Confirming", never as paid; the
+/// patient can check its status, which asks the provider and never charges.
 library;
 
 import 'package:flutter/material.dart';
@@ -26,10 +31,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
+import '../../../core/data/contracts.dart';
+import '../../../core/failures.dart';
 import '../../../core/presentation/states.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/card_input.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../domain/enums.dart';
 import '../../../domain/repositories/billing_repository.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../booking/application/appointment_confirmation.dart';
@@ -71,6 +80,14 @@ class _PayInvoiceSheetState extends ConsumerState<_PayInvoiceSheet> {
 
   bool _submitting = false;
   String? _error;
+
+  /// The current attempt. Kept across a retry after an unknown outcome so
+  /// the retry can never become a second charge.
+  IdempotencyKey _key = IdempotencyKey.generate();
+
+  /// Sent, but the provider's answer has not been confirmed.
+  bool _pending = false;
+  String? _pendingMessage;
 
   @override
   void dispose() {
@@ -192,10 +209,21 @@ class _PayInvoiceSheetState extends ConsumerState<_PayInvoiceSheet> {
                 if (_useWalletBalance)
                   const SizedBox.shrink()
                 else if (_usingSavedCard)
-                  _CvcOnlyField(controller: _cvc, brand: _brandForSelected(cards))
+                  _CvcOnlyField(
+                    controller: _cvc,
+                    brand: _brandForSelected(cards),
+                  )
                 else
                   _fullCardForm(theme),
 
+                if (_pending) ...[
+                  const SizedBox(height: Space.sm),
+                  _PendingBox(
+                    message: _pendingMessage ?? t.paymentStillConfirming,
+                    busy: _submitting,
+                    onCheck: _checkStatus,
+                  ),
+                ],
                 if (_error != null) ...[
                   const SizedBox(height: Space.sm),
                   Container(
@@ -245,7 +273,11 @@ class _PayInvoiceSheetState extends ConsumerState<_PayInvoiceSheet> {
                             width: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : Text(t.payAmountButton(money(widget.invoice.totalAmount))),
+                        : Text(
+                            t.payAmountButton(
+                              money(widget.invoice.totalAmount),
+                            ),
+                          ),
                   ),
                 ),
               ],
@@ -278,9 +310,8 @@ class _PayInvoiceSheetState extends ConsumerState<_PayInvoiceSheet> {
           autocorrect: false,
           autofillHints: const [AutofillHints.creditCardName],
           decoration: InputDecoration(labelText: t.nameOnCardLabel),
-          validator: (v) => (v == null || v.trim().isEmpty)
-              ? t.enterNameOnCard
-              : null,
+          validator: (v) =>
+              (v == null || v.trim().isEmpty) ? t.enterNameOnCard : null,
         ),
         const SizedBox(height: Space.sm),
         TextFormField(
@@ -375,7 +406,7 @@ class _PayInvoiceSheetState extends ConsumerState<_PayInvoiceSheet> {
       setState(() => _submitting = true);
       result = await ref
           .read(billingControllerProvider)
-          .payWithWallet(widget.invoice.id);
+          .payWithWallet(widget.invoice.id, key: _key);
     } else if (_usingSavedCard) {
       if (!RegExp(r'^\d{3,4}$').hasMatch(_cvc.text)) {
         setState(() => _error = t.enterSecurityCode);
@@ -388,6 +419,7 @@ class _PayInvoiceSheetState extends ConsumerState<_PayInvoiceSheet> {
             invoiceId: widget.invoice.id,
             cardId: _selectedCardId!,
             cvc: _cvc.text,
+            key: _key,
           );
     } else {
       if (!(_formKey.currentState?.validate() ?? false)) return;
@@ -405,6 +437,7 @@ class _PayInvoiceSheetState extends ConsumerState<_PayInvoiceSheet> {
               expiryYear: expiry.year,
               cvc: _cvc.text,
             ),
+            key: _key,
           );
     }
 
@@ -412,16 +445,125 @@ class _PayInvoiceSheetState extends ConsumerState<_PayInvoiceSheet> {
 
     switch (result) {
       case Ok():
-        ref
-            .read(appointmentConfirmationProvider.notifier)
-            .show(t.paymentReceived);
-        Navigator.of(context).pop();
+        _paid();
+      case Err(failure: final PaymentPendingFailure f):
+        // Unknown outcome: keep the key, so trying again can only complete
+        // this same payment.
+        setState(() {
+          _submitting = false;
+          _pending = true;
+          _pendingMessage = f.message;
+          _error = null;
+        });
+      case Err(:final failure):
+        // A definite answer (declined, invalid): the next try is a new
+        // attempt.
+        setState(() {
+          _submitting = false;
+          _pending = false;
+          _key = IdempotencyKey.generate();
+          _error = describeFailure(
+            AppLocalizations.of(context)!,
+            failure,
+          ).message;
+        });
+    }
+  }
+
+  void _paid() {
+    final t = AppLocalizations.of(context)!;
+    ref.read(appointmentConfirmationProvider.notifier).show(t.paymentReceived);
+    Navigator.of(context).pop();
+  }
+
+  /// Asks the provider what became of the attempt. Never charges.
+  Future<void> _checkStatus() async {
+    final t = AppLocalizations.of(context)!;
+    setState(() => _submitting = true);
+    final result = await ref
+        .read(billingControllerProvider)
+        .latestAttempt(widget.invoice.id);
+    if (!mounted) return;
+    switch (result) {
+      case Ok(:final value) when value?.status == PaymentStatus.settled:
+        _paid();
+      case Ok(:final value) when value != null && value.isInFlight:
+        setState(() {
+          _submitting = false;
+          _pendingMessage = t.paymentStillConfirming;
+        });
+      case Ok():
+        setState(() {
+          _submitting = false;
+          _pending = false;
+          _key = IdempotencyKey.generate();
+          _error = t.paymentReleasedMessage;
+        });
       case Err(:final failure):
         setState(() {
           _submitting = false;
-          _error = failure.message;
+          _error = describeFailure(
+            AppLocalizations.of(context)!,
+            failure,
+          ).message;
         });
     }
+  }
+}
+
+/// "Confirming your payment" — shown instead of success or failure while
+/// the provider's answer is unknown.
+class _PendingBox extends StatelessWidget {
+  const _PendingBox({
+    required this.message,
+    required this.busy,
+    required this.onCheck,
+  });
+
+  final String message;
+  final bool busy;
+  final VoidCallback onCheck;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final t = AppLocalizations.of(context)!;
+    return Semantics(
+      liveRegion: true,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(Space.sm),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.tertiaryContainer,
+          borderRadius: Radii.cardSmall,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              t.paymentPendingTitle,
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: theme.colorScheme.onTertiaryContainer,
+              ),
+            ),
+            const SizedBox(height: Space.xxs),
+            Text(
+              message,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onTertiaryContainer,
+              ),
+            ),
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: TextButton(
+                onPressed: busy ? null : onCheck,
+                child: Text(t.checkPaymentStatusAction),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -471,7 +613,10 @@ class _WalletBalanceRow extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(t.payWithWalletLabel, style: theme.textTheme.bodyMedium),
+                    Text(
+                      t.payWithWalletLabel,
+                      style: theme.textTheme.bodyMedium,
+                    ),
                     Text(
                       disabled
                           ? t.insufficientWalletBalanceHint
@@ -540,9 +685,7 @@ class _SavedCardRow extends StatelessWidget {
                 Icon(
                   Icons.credit_card,
                   size: 20,
-                  color: disabled
-                      ? scheme.onSurfaceVariant
-                      : scheme.onSurface,
+                  color: disabled ? scheme.onSurfaceVariant : scheme.onSurface,
                 ),
                 const SizedBox(width: Space.sm),
                 Expanded(
@@ -555,8 +698,12 @@ class _SavedCardRow extends StatelessWidget {
                       ),
                       Text(
                         card.isExpired
-                            ? AppLocalizations.of(context)!.cardExpiredOn(card.expiry)
-                            : AppLocalizations.of(context)!.cardExpiresOn(card.expiry),
+                            ? AppLocalizations.of(
+                                context,
+                              )!.cardExpiredOn(card.expiry)
+                            : AppLocalizations.of(
+                                context,
+                              )!.cardExpiresOn(card.expiry),
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: card.isExpired
                               ? theme.clinicalStatus.riskHigh.onContainer

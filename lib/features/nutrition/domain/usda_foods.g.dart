@@ -19,7 +19,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.6,
     sugar: 0,
     satFat: 0,
-    micros: {'Fiber': '0.0 g', 'Calcium': '158 mg', 'Iron': '0.1 mg', 'Potassium': '49.3 mg', 'Sodium': '59.2 mg'},
+    micros: {
+      'Fiber': '0.0 g',
+      'Calcium': '158 mg',
+      'Iron': '0.1 mg',
+      'Potassium': '49.3 mg',
+      'Sodium': '59.2 mg',
+    },
   ),
   NutritionFood(
     name: 'Almond milk, unsweetened, plain, shelf stable',
@@ -31,7 +37,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.2,
     sugar: 0,
     satFat: 0.1,
-    micros: {'Fiber': '0.0 g', 'Calcium': '173 mg', 'Iron': '0.3 mg', 'Potassium': '30.8 mg', 'Sodium': '59.6 mg'},
+    micros: {
+      'Fiber': '0.0 g',
+      'Calcium': '173 mg',
+      'Iron': '0.3 mg',
+      'Potassium': '30.8 mg',
+      'Sodium': '59.6 mg',
+    },
   ),
   NutritionFood(
     name: 'Oat milk, unsweetened, plain, refrigerated',
@@ -43,7 +55,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 2.8,
     sugar: 2.3,
     satFat: 0,
-    micros: {'Fiber': '0.0 g', 'Calcium': '148 mg', 'Iron': '0.3 mg', 'Potassium': '148 mg', 'Sodium': '42.0 mg'},
+    micros: {
+      'Fiber': '0.0 g',
+      'Calcium': '148 mg',
+      'Iron': '0.3 mg',
+      'Potassium': '148 mg',
+      'Sodium': '42.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Butter, stick, salted',
@@ -55,7 +73,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 82.2,
     sugar: 0.6,
     satFat: 45.6,
-    micros: {'Iron': '0.1 mg', 'Potassium': '23.0 mg', 'Sodium': '524 mg', 'Calcium': '21.0 mg'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Potassium': '23.0 mg',
+      'Sodium': '524 mg',
+      'Calcium': '21.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Butter, stick, unsalted',
@@ -67,7 +90,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 81.5,
     sugar: 0,
     satFat: 0,
-    micros: {'Calcium': '14.0 mg', 'Iron': '0.0 mg', 'Potassium': '19.0 mg', 'Sodium': '10.0 mg'},
+    micros: {
+      'Calcium': '14.0 mg',
+      'Iron': '0.0 mg',
+      'Potassium': '19.0 mg',
+      'Sodium': '10.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Buttermilk, low fat',
@@ -79,7 +107,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.1,
     sugar: 0,
     satFat: 0.6,
-    micros: {'Iron': '0.0 mg', 'Potassium': '158 mg', 'Sodium': '92.5 mg', 'Calcium': '120 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '158 mg',
+      'Sodium': '92.5 mg',
+      'Calcium': '120 mg',
+    },
   ),
   NutritionFood(
     name: 'Cheese, American, restaurant',
@@ -91,7 +124,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 31.1,
     sugar: 3.8,
     satFat: 17.7,
-    micros: {'Calcium': '508 mg', 'Iron': '0.2 mg', 'Potassium': '173 mg', 'Sodium': '1600.0 mg'},
+    micros: {
+      'Calcium': '508 mg',
+      'Iron': '0.2 mg',
+      'Potassium': '173 mg',
+      'Sodium': '1600.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Cheese, cheddar',
@@ -103,7 +141,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 34,
     sugar: 0.3,
     satFat: 19.2,
-    micros: {'Calcium': '707 mg', 'Potassium': '77.0 mg', 'Sodium': '654 mg', 'Iron': '0.2 mg'},
+    micros: {
+      'Calcium': '707 mg',
+      'Potassium': '77.0 mg',
+      'Sodium': '654 mg',
+      'Iron': '0.2 mg',
+    },
   ),
   NutritionFood(
     name: 'Cheese, cotija, solid',
@@ -115,7 +158,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 27.2,
     sugar: 0,
     satFat: 15.9,
-    micros: {'Iron': '0.0 mg', 'Potassium': '117 mg', 'Sodium': '1620.0 mg', 'Calcium': '700 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '117 mg',
+      'Sodium': '1620.0 mg',
+      'Calcium': '700 mg',
+    },
   ),
   NutritionFood(
     name: 'Cheese, cottage, lowfat, 2% milkfat',
@@ -127,7 +175,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 2.3,
     sugar: 4.1,
     satFat: 1.3,
-    micros: {'Calcium': '103 mg', 'Potassium': '120 mg', 'Iron': '0.1 mg', 'Sodium': '321 mg'},
+    micros: {
+      'Calcium': '103 mg',
+      'Potassium': '120 mg',
+      'Iron': '0.1 mg',
+      'Sodium': '321 mg',
+    },
   ),
   NutritionFood(
     name: 'Cheese, dry white, queso seco',
@@ -139,7 +192,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 24.3,
     sugar: 0.4,
     satFat: 13.7,
-    micros: {'Iron': '0.2 mg', 'Sodium': '1810.0 mg', 'Calcium': '661 mg', 'Potassium': '116 mg'},
+    micros: {
+      'Iron': '0.2 mg',
+      'Sodium': '1810.0 mg',
+      'Calcium': '661 mg',
+      'Potassium': '116 mg',
+    },
   ),
   NutritionFood(
     name: 'Cheese, feta, whole milk, crumbled',
@@ -151,7 +209,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 19.1,
     sugar: 1.6,
     satFat: 11.2,
-    micros: {'Iron': '0.1 mg', 'Potassium': '105 mg', 'Sodium': '1030.0 mg', 'Calcium': '371 mg'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Potassium': '105 mg',
+      'Sodium': '1030.0 mg',
+      'Calcium': '371 mg',
+    },
   ),
   NutritionFood(
     name: 'Cheese, monterey jack, solid',
@@ -163,7 +226,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 32.6,
     sugar: 0,
     satFat: 19.2,
-    micros: {'Iron': '0.0 mg', 'Potassium': '82.9 mg', 'Sodium': '662 mg', 'Calcium': '715 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '82.9 mg',
+      'Sodium': '662 mg',
+      'Calcium': '715 mg',
+    },
   ),
   NutritionFood(
     name: 'Cheese, mozzarella, low moisture, part-skim',
@@ -175,7 +243,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 20.4,
     sugar: 1.8,
     satFat: 11.7,
-    micros: {'Sodium': '699 mg', 'Iron': '0.2 mg', 'Calcium': '693 mg', 'Potassium': '116 mg'},
+    micros: {
+      'Sodium': '699 mg',
+      'Iron': '0.2 mg',
+      'Calcium': '693 mg',
+      'Potassium': '116 mg',
+    },
   ),
   NutritionFood(
     name: 'Cheese, oaxaca, solid',
@@ -187,7 +260,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 22.1,
     sugar: 0,
     satFat: 12.7,
-    micros: {'Iron': '0.0 mg', 'Potassium': '80.7 mg', 'Sodium': '734 mg', 'Calcium': '532 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '80.7 mg',
+      'Sodium': '734 mg',
+      'Calcium': '532 mg',
+    },
   ),
   NutritionFood(
     name: 'Cheese, parmesan, grated',
@@ -199,7 +277,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 28,
     sugar: 0.1,
     satFat: 15.5,
-    micros: {'Calcium': '884 mg', 'Potassium': '184 mg', 'Iron': '0.5 mg', 'Sodium': '1750.0 mg'},
+    micros: {
+      'Calcium': '884 mg',
+      'Potassium': '184 mg',
+      'Iron': '0.5 mg',
+      'Sodium': '1750.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Cheese, parmesan, grated, refrigerated',
@@ -211,10 +294,16 @@ const List<NutritionFood> usdaFoods = [
     fat: 29.5,
     sugar: 0.6,
     satFat: 17.2,
-    micros: {'Iron': '0.1 mg', 'Potassium': '74.0 mg', 'Sodium': '1050.0 mg', 'Calcium': '950 mg'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Potassium': '74.0 mg',
+      'Sodium': '1050.0 mg',
+      'Calcium': '950 mg',
+    },
   ),
   NutritionFood(
-    name: 'Cheese, pasteurized process cheese food or product, American, singles',
+    name:
+        'Cheese, pasteurized process cheese food or product, American, singles',
     category: 'Dairy & eggs',
     serving: '1.0 RACC (30.0g)',
     calories: 310,
@@ -223,7 +312,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 23.9,
     sugar: 0,
     satFat: 13.7,
-    micros: {'Iron': '1.3 mg', 'Potassium': '212 mg', 'Sodium': '1420.0 mg', 'Calcium': '1500.0 mg'},
+    micros: {
+      'Iron': '1.3 mg',
+      'Potassium': '212 mg',
+      'Sodium': '1420.0 mg',
+      'Calcium': '1500.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Cheese, pasteurized process, American, vitamin D fortified',
@@ -235,7 +329,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 30.6,
     sugar: 2.6,
     satFat: 18.1,
-    micros: {'Calcium': '866 mg', 'Potassium': '149 mg', 'Iron': '0.5 mg', 'Sodium': '1660.0 mg'},
+    micros: {
+      'Calcium': '866 mg',
+      'Potassium': '149 mg',
+      'Iron': '0.5 mg',
+      'Sodium': '1660.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Cheese, provolone, sliced',
@@ -247,7 +346,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 28.1,
     sugar: 0,
     satFat: 16.2,
-    micros: {'Iron': '0.0 mg', 'Potassium': '94.8 mg', 'Sodium': '601 mg', 'Calcium': '749 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '94.8 mg',
+      'Sodium': '601 mg',
+      'Calcium': '749 mg',
+    },
   ),
   NutritionFood(
     name: 'Cheese, queso fresco, solid',
@@ -259,7 +363,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 23.4,
     sugar: 0,
     satFat: 14,
-    micros: {'Iron': '0.0 mg', 'Potassium': '126 mg', 'Sodium': '626 mg', 'Calcium': '602 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '126 mg',
+      'Sodium': '626 mg',
+      'Calcium': '602 mg',
+    },
   ),
   NutritionFood(
     name: 'Cheese, ricotta, whole milk',
@@ -271,7 +380,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 11,
     sugar: 0,
     satFat: 7,
-    micros: {'Iron': '0.1 mg', 'Sodium': '105 mg', 'Calcium': '224 mg', 'Potassium': '230 mg'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Sodium': '105 mg',
+      'Calcium': '224 mg',
+      'Potassium': '230 mg',
+    },
   ),
   NutritionFood(
     name: 'Cheese, swiss',
@@ -283,7 +397,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 31,
     sugar: 0,
     satFat: 18.2,
-    micros: {'Calcium': '890 mg', 'Potassium': '71.0 mg', 'Iron': '0.1 mg', 'Sodium': '185 mg'},
+    micros: {
+      'Calcium': '890 mg',
+      'Potassium': '71.0 mg',
+      'Iron': '0.1 mg',
+      'Sodium': '185 mg',
+    },
   ),
   NutritionFood(
     name: 'Cottage cheese, full fat, large or small curd',
@@ -295,7 +414,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 4.2,
     sugar: 0,
     satFat: 2.6,
-    micros: {'Iron': '0.0 mg', 'Potassium': '124 mg', 'Sodium': '350 mg', 'Calcium': '88.3 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '124 mg',
+      'Sodium': '350 mg',
+      'Calcium': '88.3 mg',
+    },
   ),
   NutritionFood(
     name: 'Cream cheese, full fat, block',
@@ -307,7 +431,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 33.5,
     sugar: 0,
     satFat: 19.7,
-    micros: {'Iron': '0.0 mg', 'Potassium': '125 mg', 'Sodium': '368 mg', 'Calcium': '97.1 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '125 mg',
+      'Sodium': '368 mg',
+      'Calcium': '97.1 mg',
+    },
   ),
   NutritionFood(
     name: 'Cream, heavy',
@@ -319,7 +448,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 35.6,
     sugar: 0,
     satFat: 20.4,
-    micros: {'Iron': '0.0 mg', 'Potassium': '96.9 mg', 'Sodium': '20.6 mg', 'Calcium': '61.2 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '96.9 mg',
+      'Sodium': '20.6 mg',
+      'Calcium': '61.2 mg',
+    },
   ),
   NutritionFood(
     name: 'Cream, sour, full fat',
@@ -331,7 +465,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 18,
     sugar: 0,
     satFat: 10.7,
-    micros: {'Iron': '0.0 mg', 'Potassium': '154 mg', 'Sodium': '50.0 mg', 'Calcium': '107 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '154 mg',
+      'Sodium': '50.0 mg',
+      'Calcium': '107 mg',
+    },
   ),
   NutritionFood(
     name: 'Egg, white, dried',
@@ -343,7 +482,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.7,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Sodium': '1250.0 mg', 'Calcium': '104 mg', 'Potassium': '959 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Sodium': '1250.0 mg',
+      'Calcium': '104 mg',
+      'Potassium': '959 mg',
+    },
   ),
   NutritionFood(
     name: 'Egg, white, raw, frozen, pasteurized',
@@ -355,7 +499,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Potassium': '130 mg', 'Sodium': '144 mg', 'Calcium': '9.0 mg', 'Iron': '0.2 mg'},
+    micros: {
+      'Potassium': '130 mg',
+      'Sodium': '144 mg',
+      'Calcium': '9.0 mg',
+      'Iron': '0.2 mg',
+    },
   ),
   NutritionFood(
     name: 'Egg, whole, dried',
@@ -367,7 +516,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 39.8,
     sugar: 0,
     satFat: 0,
-    micros: {'Potassium': '468 mg', 'Iron': '7.0 mg', 'Sodium': '485 mg', 'Calcium': '220 mg'},
+    micros: {
+      'Potassium': '468 mg',
+      'Iron': '7.0 mg',
+      'Sodium': '485 mg',
+      'Calcium': '220 mg',
+    },
   ),
   NutritionFood(
     name: 'Egg, whole, raw, frozen, pasteurized',
@@ -379,7 +533,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 10.3,
     sugar: 0,
     satFat: 0,
-    micros: {'Potassium': '117 mg', 'Sodium': '121 mg', 'Iron': '1.8 mg', 'Calcium': '55.0 mg'},
+    micros: {
+      'Potassium': '117 mg',
+      'Sodium': '121 mg',
+      'Iron': '1.8 mg',
+      'Calcium': '55.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Egg, yolk, dried',
@@ -391,7 +550,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 55.5,
     sugar: 0,
     satFat: 0,
-    micros: {'Potassium': '231 mg', 'Calcium': '270 mg', 'Sodium': '149 mg', 'Iron': '9.3 mg'},
+    micros: {
+      'Potassium': '231 mg',
+      'Calcium': '270 mg',
+      'Sodium': '149 mg',
+      'Iron': '9.3 mg',
+    },
   ),
   NutritionFood(
     name: 'Egg, yolk, raw, frozen, pasteurized',
@@ -403,7 +567,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 25.1,
     sugar: 0,
     satFat: 0,
-    micros: {'Potassium': '102 mg', 'Calcium': '119 mg', 'Sodium': '66.0 mg', 'Iron': '4.1 mg'},
+    micros: {
+      'Potassium': '102 mg',
+      'Calcium': '119 mg',
+      'Sodium': '66.0 mg',
+      'Iron': '4.1 mg',
+    },
   ),
   NutritionFood(
     name: 'Eggs, Grade A, Large, egg white',
@@ -427,7 +596,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 10,
     sugar: 0.2,
     satFat: 3.2,
-    micros: {'Iron': '1.7 mg', 'Sodium': '129 mg', 'Calcium': '48.0 mg', 'Potassium': '132 mg', 'Fiber': '0.0 g'},
+    micros: {
+      'Iron': '1.7 mg',
+      'Sodium': '129 mg',
+      'Calcium': '48.0 mg',
+      'Potassium': '132 mg',
+      'Fiber': '0.0 g',
+    },
   ),
   NutritionFood(
     name: 'Eggs, Grade A, Large, egg yolk',
@@ -451,10 +626,16 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.9,
     sugar: 5,
     satFat: 0.6,
-    micros: {'Potassium': '159 mg', 'Sodium': '39.0 mg', 'Iron': '0.0 mg', 'Calcium': '126 mg'},
+    micros: {
+      'Potassium': '159 mg',
+      'Sodium': '39.0 mg',
+      'Iron': '0.0 mg',
+      'Calcium': '126 mg',
+    },
   ),
   NutritionFood(
-    name: 'Milk, nonfat, fluid, with added vitamin A and vitamin D (fat free or skim)',
+    name:
+        'Milk, nonfat, fluid, with added vitamin A and vitamin D (fat free or skim)',
     category: 'Dairy & eggs',
     serving: '1.0 cup (246.0g)',
     calories: 34,
@@ -463,10 +644,16 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.1,
     sugar: 5,
     satFat: 0,
-    micros: {'Sodium': '41.0 mg', 'Potassium': '167 mg', 'Calcium': '132 mg', 'Iron': '0.0 mg'},
+    micros: {
+      'Sodium': '41.0 mg',
+      'Potassium': '167 mg',
+      'Calcium': '132 mg',
+      'Iron': '0.0 mg',
+    },
   ),
   NutritionFood(
-    name: 'Milk, reduced fat, fluid, 2% milkfat, with added vitamin A and vitamin D',
+    name:
+        'Milk, reduced fat, fluid, 2% milkfat, with added vitamin A and vitamin D',
     category: 'Dairy & eggs',
     serving: '1.0 cup (245.0g)',
     calories: 50,
@@ -475,7 +662,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.9,
     sugar: 4.9,
     satFat: 1.1,
-    micros: {'Calcium': '126 mg', 'Potassium': '159 mg', 'Iron': '0.0 mg', 'Sodium': '39.0 mg'},
+    micros: {
+      'Calcium': '126 mg',
+      'Potassium': '159 mg',
+      'Iron': '0.0 mg',
+      'Sodium': '39.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Milk, whole, 3.25% milkfat, with added vitamin D',
@@ -487,7 +679,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 3.2,
     sugar: 4.8,
     satFat: 1.9,
-    micros: {'Iron': '0.0 mg', 'Sodium': '38.0 mg', 'Calcium': '123 mg', 'Potassium': '150 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Sodium': '38.0 mg',
+      'Calcium': '123 mg',
+      'Potassium': '150 mg',
+    },
   ),
   NutritionFood(
     name: 'Yogurt, Greek, plain, nonfat',
@@ -499,7 +696,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.4,
     sugar: 3.3,
     satFat: 0.1,
-    micros: {'Iron': '0.1 mg', 'Sodium': '36.0 mg', 'Calcium': '111 mg', 'Potassium': '141 mg'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Sodium': '36.0 mg',
+      'Calcium': '111 mg',
+      'Potassium': '141 mg',
+    },
   ),
   NutritionFood(
     name: 'Yogurt, Greek, plain, whole milk',
@@ -511,7 +713,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 4.4,
     sugar: 3.2,
     satFat: 2.4,
-    micros: {'Iron': '0.0 mg', 'Potassium': '147 mg', 'Sodium': '33.8 mg', 'Calcium': '111 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '147 mg',
+      'Sodium': '33.8 mg',
+      'Calcium': '111 mg',
+    },
   ),
   NutritionFood(
     name: 'Yogurt, Greek, strawberry, nonfat',
@@ -523,7 +730,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.1,
     sugar: 11.5,
     satFat: 0.1,
-    micros: {'Calcium': '97.0 mg', 'Potassium': '133 mg', 'Fiber': '0.6 g', 'Iron': '0.1 mg', 'Sodium': '32.0 mg', 'Vitamin C': '0.2 mg'},
+    micros: {
+      'Calcium': '97.0 mg',
+      'Potassium': '133 mg',
+      'Fiber': '0.6 g',
+      'Iron': '0.1 mg',
+      'Sodium': '32.0 mg',
+      'Vitamin C': '0.2 mg',
+    },
   ),
   NutritionFood(
     name: 'Yogurt, plain, nonfat',
@@ -535,7 +749,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.1,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '210 mg', 'Sodium': '51.5 mg', 'Calcium': '167 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '210 mg',
+      'Sodium': '51.5 mg',
+      'Calcium': '167 mg',
+    },
   ),
   NutritionFood(
     name: 'Yogurt, plain, whole milk',
@@ -547,7 +766,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 4.5,
     sugar: 4.1,
     satFat: 2.3,
-    micros: {'Iron': '0.0 mg', 'Potassium': '164 mg', 'Sodium': '41.8 mg', 'Calcium': '127 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '164 mg',
+      'Sodium': '41.8 mg',
+      'Calcium': '127 mg',
+    },
   ),
   NutritionFood(
     name: 'Oil, canola',
@@ -571,7 +795,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 99.1,
     sugar: 0,
     satFat: 82.5,
-    micros: {'Iron': '0.1 mg', 'Calcium': '1.0 mg', 'Potassium': '0.0 mg', 'Sodium': '0.0 mg'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Calcium': '1.0 mg',
+      'Potassium': '0.0 mg',
+      'Sodium': '0.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Oil, corn',
@@ -667,7 +896,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.3,
     sugar: 10.3,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '95.9 mg', 'Sodium': '4.9 mg', 'Vitamin C': '51.2 mg', 'Calcium': '7.1 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '95.9 mg',
+      'Sodium': '4.9 mg',
+      'Vitamin C': '51.2 mg',
+      'Calcium': '7.1 mg',
+    },
   ),
   NutritionFood(
     name: 'Apples, fuji, with skin, raw',
@@ -679,7 +914,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 13.3,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '104 mg', 'Sodium': '1.0 mg', 'Fiber': '2.1 g', 'Calcium': '6.0 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '104 mg',
+      'Sodium': '1.0 mg',
+      'Fiber': '2.1 g',
+      'Calcium': '6.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Apples, gala, with skin, raw',
@@ -691,7 +932,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.1,
     sugar: 11.8,
     satFat: 0,
-    micros: {'Iron': '0.1 mg', 'Potassium': '106 mg', 'Sodium': '0.3 mg', 'Fiber': '2.1 g', 'Calcium': '6.6 mg'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Potassium': '106 mg',
+      'Sodium': '0.3 mg',
+      'Fiber': '2.1 g',
+      'Calcium': '6.6 mg',
+    },
   ),
   NutritionFood(
     name: 'Apples, granny smith, with skin, raw',
@@ -703,7 +950,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.1,
     sugar: 10.7,
     satFat: 0,
-    micros: {'Iron': '0.1 mg', 'Potassium': '116 mg', 'Sodium': '0.0 mg', 'Fiber': '2.5 g', 'Calcium': '5.5 mg'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Potassium': '116 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '2.5 g',
+      'Calcium': '5.5 mg',
+    },
   ),
   NutritionFood(
     name: 'Apples, honeycrisp, with skin, raw',
@@ -715,7 +968,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.1,
     sugar: 12.4,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '98.0 mg', 'Sodium': '0.1 mg', 'Fiber': '1.7 g', 'Calcium': '3.9 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '98.0 mg',
+      'Sodium': '0.1 mg',
+      'Fiber': '1.7 g',
+      'Calcium': '3.9 mg',
+    },
   ),
   NutritionFood(
     name: 'Apples, red delicious, with skin, raw',
@@ -727,7 +986,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 12.2,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '95.3 mg', 'Sodium': '0.0 mg', 'Fiber': '2.0 g', 'Calcium': '4.7 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '95.3 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '2.0 g',
+      'Calcium': '4.7 mg',
+    },
   ),
   NutritionFood(
     name: 'Applesauce, unsweetened, with added vitamin C',
@@ -739,7 +1004,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 9.7,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '108 mg', 'Sodium': '0.5 mg', 'Vitamin C': '43.7 mg', 'Calcium': '3.8 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '108 mg',
+      'Sodium': '0.5 mg',
+      'Vitamin C': '43.7 mg',
+      'Calcium': '3.8 mg',
+    },
   ),
   NutritionFood(
     name: 'Apricot, with skin, raw',
@@ -751,7 +1022,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.4,
     sugar: 6.2,
     satFat: 0,
-    micros: {'Iron': '0.2 mg', 'Potassium': '231 mg', 'Sodium': '0.0 mg', 'Vitamin C': '3.1 mg', 'Fiber': '1.5 g', 'Calcium': '11.6 mg'},
+    micros: {
+      'Iron': '0.2 mg',
+      'Potassium': '231 mg',
+      'Sodium': '0.0 mg',
+      'Vitamin C': '3.1 mg',
+      'Fiber': '1.5 g',
+      'Calcium': '11.6 mg',
+    },
   ),
   NutritionFood(
     name: 'Avocado, Hass, peeled, raw',
@@ -763,7 +1041,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 20.3,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.6 mg', 'Potassium': '576 mg', 'Sodium': '0.0 mg', 'Vitamin C': '0.0 mg', 'Calcium': '14.5 mg'},
+    micros: {
+      'Iron': '0.6 mg',
+      'Potassium': '576 mg',
+      'Sodium': '0.0 mg',
+      'Vitamin C': '0.0 mg',
+      'Calcium': '14.5 mg',
+    },
   ),
   NutritionFood(
     name: 'Bananas, overripe, raw',
@@ -787,7 +1071,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.3,
     sugar: 15.8,
     satFat: 0,
-    micros: {'Vitamin C': '12.3 mg', 'Fiber': '1.7 g', 'Iron': '0.0 mg', 'Sodium': '0.0 mg', 'Calcium': '5.0 mg', 'Potassium': '326 mg'},
+    micros: {
+      'Vitamin C': '12.3 mg',
+      'Fiber': '1.7 g',
+      'Iron': '0.0 mg',
+      'Sodium': '0.0 mg',
+      'Calcium': '5.0 mg',
+      'Potassium': '326 mg',
+    },
   ),
   NutritionFood(
     name: 'Blackberries, raw',
@@ -799,7 +1090,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0,
     sugar: 6.5,
     satFat: 0,
-    micros: {'Iron': '0.2 mg', 'Potassium': '167 mg', 'Sodium': '1.6 mg', 'Vitamin C': '15.4 mg', 'Calcium': '15.4 mg', 'Fiber': '5.3 g'},
+    micros: {
+      'Iron': '0.2 mg',
+      'Potassium': '167 mg',
+      'Sodium': '1.6 mg',
+      'Vitamin C': '15.4 mg',
+      'Calcium': '15.4 mg',
+      'Fiber': '5.3 g',
+    },
   ),
   NutritionFood(
     name: 'Blueberries, raw',
@@ -811,7 +1109,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.3,
     sugar: 9.4,
     satFat: 0,
-    micros: {'Iron': '0.3 mg', 'Potassium': '85.6 mg', 'Sodium': '0.0 mg', 'Vitamin C': '8.1 mg', 'Calcium': '11.7 mg'},
+    micros: {
+      'Iron': '0.3 mg',
+      'Potassium': '85.6 mg',
+      'Sodium': '0.0 mg',
+      'Vitamin C': '8.1 mg',
+      'Calcium': '11.7 mg',
+    },
   ),
   NutritionFood(
     name: 'Cherries, sweet, dark red, raw',
@@ -823,7 +1127,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 13.9,
     satFat: 0,
-    micros: {'Iron': '0.1 mg', 'Potassium': '230 mg', 'Sodium': '0.0 mg', 'Vitamin C': '10.4 mg', 'Calcium': '12.3 mg'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Potassium': '230 mg',
+      'Sodium': '0.0 mg',
+      'Vitamin C': '10.4 mg',
+      'Calcium': '12.3 mg',
+    },
   ),
   NutritionFood(
     name: 'Cranberry juice, not fortified, from concentrate, shelf stable',
@@ -835,7 +1145,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.3,
     sugar: 3.4,
     satFat: 0,
-    micros: {'Iron': '0.1 mg', 'Potassium': '70.6 mg', 'Sodium': '6.3 mg', 'Vitamin C': '0.0 mg', 'Calcium': '6.6 mg'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Potassium': '70.6 mg',
+      'Sodium': '6.3 mg',
+      'Vitamin C': '0.0 mg',
+      'Calcium': '6.6 mg',
+    },
   ),
   NutritionFood(
     name: 'Figs, dried, uncooked',
@@ -847,10 +1163,18 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.9,
     sugar: 47.9,
     satFat: 0,
-    micros: {'Vitamin C': '1.2 mg', 'Fiber': '9.8 g', 'Iron': '2.0 mg', 'Sodium': '10.0 mg', 'Calcium': '162 mg', 'Potassium': '680 mg'},
+    micros: {
+      'Vitamin C': '1.2 mg',
+      'Fiber': '9.8 g',
+      'Iron': '2.0 mg',
+      'Sodium': '10.0 mg',
+      'Calcium': '162 mg',
+      'Potassium': '680 mg',
+    },
   ),
   NutritionFood(
-    name: 'Grape juice, purple, with added vitamin C, from concentrate, shelf stable',
+    name:
+        'Grape juice, purple, with added vitamin C, from concentrate, shelf stable',
     category: 'Fruits',
     serving: '100g',
     calories: 66,
@@ -859,10 +1183,17 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.3,
     sugar: 14,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '49.8 mg', 'Sodium': '4.0 mg', 'Vitamin C': '45.6 mg', 'Calcium': '9.7 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '49.8 mg',
+      'Sodium': '4.0 mg',
+      'Vitamin C': '45.6 mg',
+      'Calcium': '9.7 mg',
+    },
   ),
   NutritionFood(
-    name: 'Grape juice, white, with added vitamin C, from concentrate, shelf stable',
+    name:
+        'Grape juice, white, with added vitamin C, from concentrate, shelf stable',
     category: 'Fruits',
     serving: '100g',
     calories: 66,
@@ -871,10 +1202,17 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.3,
     sugar: 14.4,
     satFat: 0,
-    micros: {'Iron': '0.1 mg', 'Potassium': '49.0 mg', 'Sodium': '7.2 mg', 'Vitamin C': '55.2 mg', 'Calcium': '7.3 mg'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Potassium': '49.0 mg',
+      'Sodium': '7.2 mg',
+      'Vitamin C': '55.2 mg',
+      'Calcium': '7.3 mg',
+    },
   ),
   NutritionFood(
-    name: 'Grapefruit juice, red, not fortified, not from concentrate, refrigerated',
+    name:
+        'Grapefruit juice, red, not fortified, not from concentrate, refrigerated',
     category: 'Fruits',
     serving: '100g',
     calories: 42,
@@ -883,7 +1221,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.3,
     sugar: 7.1,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '128 mg', 'Sodium': '1.0 mg', 'Vitamin C': '24.1 mg', 'Calcium': '8.9 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '128 mg',
+      'Sodium': '1.0 mg',
+      'Vitamin C': '24.1 mg',
+      'Calcium': '8.9 mg',
+    },
   ),
   NutritionFood(
     name: 'Grapefruit juice, white, canned or bottled, unsweetened',
@@ -895,7 +1239,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.7,
     sugar: 7.7,
     satFat: 0,
-    micros: {'Vitamin C': '39.4 mg', 'Fiber': '0.2 g', 'Iron': '0.1 mg', 'Sodium': '1.0 mg', 'Calcium': '16.0 mg', 'Potassium': '141 mg'},
+    micros: {
+      'Vitamin C': '39.4 mg',
+      'Fiber': '0.2 g',
+      'Iron': '0.1 mg',
+      'Sodium': '1.0 mg',
+      'Calcium': '16.0 mg',
+      'Potassium': '141 mg',
+    },
   ),
   NutritionFood(
     name: 'Grapes, green, seedless, raw',
@@ -907,7 +1258,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 16.1,
     satFat: 0,
-    micros: {'Iron': '0.2 mg', 'Potassium': '218 mg', 'Sodium': '3.2 mg', 'Vitamin C': '3.0 mg', 'Calcium': '9.9 mg'},
+    micros: {
+      'Iron': '0.2 mg',
+      'Potassium': '218 mg',
+      'Sodium': '3.2 mg',
+      'Vitamin C': '3.0 mg',
+      'Calcium': '9.9 mg',
+    },
   ),
   NutritionFood(
     name: 'Grapes, red, seedless, raw',
@@ -919,7 +1276,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 17.3,
     satFat: 0,
-    micros: {'Iron': '0.2 mg', 'Potassium': '229 mg', 'Sodium': '7.0 mg', 'Vitamin C': '3.3 mg', 'Calcium': '10.2 mg'},
+    micros: {
+      'Iron': '0.2 mg',
+      'Potassium': '229 mg',
+      'Sodium': '7.0 mg',
+      'Vitamin C': '3.3 mg',
+      'Calcium': '10.2 mg',
+    },
   ),
   NutritionFood(
     name: 'Juice, pomegranate, from concentrate, shelf-stable',
@@ -931,7 +1294,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0,
     sugar: 13.3,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '166 mg', 'Sodium': '4.0 mg', 'Vitamin C': '0.0 mg', 'Calcium': '11.0 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '166 mg',
+      'Sodium': '4.0 mg',
+      'Vitamin C': '0.0 mg',
+      'Calcium': '11.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Juice, prune, shelf-stable',
@@ -943,7 +1312,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0,
     sugar: 14.8,
     satFat: 0,
-    micros: {'Iron': '0.4 mg', 'Potassium': '216 mg', 'Sodium': '10.3 mg', 'Vitamin C': '0.0 mg', 'Calcium': '16.2 mg'},
+    micros: {
+      'Iron': '0.4 mg',
+      'Potassium': '216 mg',
+      'Sodium': '10.3 mg',
+      'Vitamin C': '0.0 mg',
+      'Calcium': '16.2 mg',
+    },
   ),
   NutritionFood(
     name: 'Juice, tart cherry, from concentrate, shelf-stable',
@@ -955,7 +1330,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0,
     sugar: 10.9,
     satFat: 0,
-    micros: {'Iron': '0.2 mg', 'Potassium': '170 mg', 'Sodium': '1.4 mg', 'Vitamin C': '0.0 mg', 'Calcium': '16.2 mg'},
+    micros: {
+      'Iron': '0.2 mg',
+      'Potassium': '170 mg',
+      'Sodium': '1.4 mg',
+      'Vitamin C': '0.0 mg',
+      'Calcium': '16.2 mg',
+    },
   ),
   NutritionFood(
     name: 'Kiwifruit (kiwi), green, peeled, raw',
@@ -967,7 +1348,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.6,
     sugar: 8.6,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '302 mg', 'Sodium': '2.3 mg', 'Vitamin C': '58.8 mg', 'Fiber': '2.1 g', 'Calcium': '24.4 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '302 mg',
+      'Sodium': '2.3 mg',
+      'Vitamin C': '58.8 mg',
+      'Fiber': '2.1 g',
+      'Calcium': '24.4 mg',
+    },
   ),
   NutritionFood(
     name: 'Kiwifruit, green, raw',
@@ -979,7 +1367,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.4,
     sugar: 9,
     satFat: 0,
-    micros: {'Calcium': '35.0 mg', 'Iron': '0.2 mg', 'Potassium': '198 mg', 'Sodium': '5.0 mg', 'Vitamin C': '74.7 mg', 'Fiber': '3.0 g'},
+    micros: {
+      'Calcium': '35.0 mg',
+      'Iron': '0.2 mg',
+      'Potassium': '198 mg',
+      'Sodium': '5.0 mg',
+      'Vitamin C': '74.7 mg',
+      'Fiber': '3.0 g',
+    },
   ),
   NutritionFood(
     name: 'Mandarin, seedless, peeled, raw',
@@ -991,7 +1386,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.5,
     sugar: 9.1,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '167 mg', 'Sodium': '0.0 mg', 'Vitamin C': '21.2 mg', 'Fiber': '1.3 g', 'Calcium': '44.0 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '167 mg',
+      'Sodium': '0.0 mg',
+      'Vitamin C': '21.2 mg',
+      'Fiber': '1.3 g',
+      'Calcium': '44.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Mango, Ataulfo, peeled, raw',
@@ -1003,7 +1405,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.7,
     sugar: 11.1,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '204 mg', 'Sodium': '0.0 mg', 'Vitamin C': '168 mg', 'Fiber': '1.3 g', 'Calcium': '10.0 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '204 mg',
+      'Sodium': '0.0 mg',
+      'Vitamin C': '168 mg',
+      'Fiber': '1.3 g',
+      'Calcium': '10.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Mango, Tommy Atkins, peeled, raw',
@@ -1015,7 +1424,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.6,
     sugar: 10.7,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '165 mg', 'Sodium': '0.0 mg', 'Vitamin C': '25.5 mg', 'Fiber': '1.8 g', 'Calcium': '12.4 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '165 mg',
+      'Sodium': '0.0 mg',
+      'Vitamin C': '25.5 mg',
+      'Fiber': '1.8 g',
+      'Calcium': '12.4 mg',
+    },
   ),
   NutritionFood(
     name: 'Melons, cantaloupe, raw',
@@ -1027,7 +1443,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 7.9,
     satFat: 0,
-    micros: {'Sodium': '30.0 mg', 'Potassium': '157 mg', 'Vitamin C': '10.9 mg', 'Fiber': '0.8 g', 'Iron': '0.4 mg', 'Calcium': '9.0 mg'},
+    micros: {
+      'Sodium': '30.0 mg',
+      'Potassium': '157 mg',
+      'Vitamin C': '10.9 mg',
+      'Fiber': '0.8 g',
+      'Iron': '0.4 mg',
+      'Calcium': '9.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Melons, honeydew, raw',
@@ -1039,7 +1462,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 7,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '209 mg', 'Sodium': '21.2 mg', 'Vitamin C': '15.7 mg', 'Calcium': '6.6 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '209 mg',
+      'Sodium': '21.2 mg',
+      'Vitamin C': '15.7 mg',
+      'Calcium': '6.6 mg',
+    },
   ),
   NutritionFood(
     name: 'Nectarines, raw',
@@ -1051,7 +1480,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.3,
     sugar: 7.9,
     satFat: 0,
-    micros: {'Potassium': '131 mg', 'Sodium': '13.0 mg', 'Vitamin C': '2.9 mg', 'Calcium': '2.0 mg', 'Fiber': '1.5 g', 'Iron': '0.3 mg'},
+    micros: {
+      'Potassium': '131 mg',
+      'Sodium': '13.0 mg',
+      'Vitamin C': '2.9 mg',
+      'Calcium': '2.0 mg',
+      'Fiber': '1.5 g',
+      'Iron': '0.3 mg',
+    },
   ),
   NutritionFood(
     name: 'Olives, green, Manzanilla, stuffed with pimiento',
@@ -1063,10 +1499,18 @@ const List<NutritionFood> usdaFoods = [
     fat: 12.9,
     sugar: 0,
     satFat: 2.3,
-    micros: {'Potassium': '43.0 mg', 'Sodium': '1620.0 mg', 'Calcium': '121 mg', 'Iron': '0.3 mg', 'Fiber': '4.0 g', 'Vitamin C': '0.0 mg'},
+    micros: {
+      'Potassium': '43.0 mg',
+      'Sodium': '1620.0 mg',
+      'Calcium': '121 mg',
+      'Iron': '0.3 mg',
+      'Fiber': '4.0 g',
+      'Vitamin C': '0.0 mg',
+    },
   ),
   NutritionFood(
-    name: 'Orange juice, no pulp, not fortified, from concentrate, refrigerated',
+    name:
+        'Orange juice, no pulp, not fortified, from concentrate, refrigerated',
     category: 'Fruits',
     serving: '100g',
     calories: 47,
@@ -1075,10 +1519,17 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.3,
     sugar: 8.3,
     satFat: 0,
-    micros: {'Iron': '0.1 mg', 'Potassium': '180 mg', 'Sodium': '5.2 mg', 'Vitamin C': '26.9 mg', 'Calcium': '12.8 mg'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Potassium': '180 mg',
+      'Sodium': '5.2 mg',
+      'Vitamin C': '26.9 mg',
+      'Calcium': '12.8 mg',
+    },
   ),
   NutritionFood(
-    name: 'Orange juice, no pulp, not fortified, not from concentrate, refrigerated',
+    name:
+        'Orange juice, no pulp, not fortified, not from concentrate, refrigerated',
     category: 'Fruits',
     serving: '100g',
     calories: 47,
@@ -1087,7 +1538,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.4,
     sugar: 8.1,
     satFat: 0,
-    micros: {'Iron': '0.1 mg', 'Potassium': '183 mg', 'Sodium': '0.1 mg', 'Vitamin C': '30.5 mg', 'Calcium': '9.3 mg'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Potassium': '183 mg',
+      'Sodium': '0.1 mg',
+      'Vitamin C': '30.5 mg',
+      'Calcium': '9.3 mg',
+    },
   ),
   NutritionFood(
     name: 'Oranges, raw, navels',
@@ -1099,7 +1556,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.1,
     sugar: 8.6,
     satFat: 0,
-    micros: {'Fiber': '2.0 g', 'Iron': '0.3 mg', 'Sodium': '9.0 mg', 'Vitamin C': '59.1 mg', 'Calcium': '43.0 mg', 'Potassium': '166 mg'},
+    micros: {
+      'Fiber': '2.0 g',
+      'Iron': '0.3 mg',
+      'Sodium': '9.0 mg',
+      'Vitamin C': '59.1 mg',
+      'Calcium': '43.0 mg',
+      'Potassium': '166 mg',
+    },
   ),
   NutritionFood(
     name: 'Pawpaw, peeled, seeded, raw',
@@ -1111,7 +1575,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0,
     sugar: 14.1,
     satFat: 0,
-    micros: {'Iron': '0.1 mg', 'Potassium': '221 mg', 'Sodium': '0.4 mg', 'Vitamin C': '27.6 mg', 'Calcium': '9.9 mg', 'Fiber': '3.3 g'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Potassium': '221 mg',
+      'Sodium': '0.4 mg',
+      'Vitamin C': '27.6 mg',
+      'Calcium': '9.9 mg',
+      'Fiber': '3.3 g',
+    },
   ),
   NutritionFood(
     name: 'Peaches, yellow, raw',
@@ -1123,7 +1594,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.3,
     sugar: 8.4,
     satFat: 0,
-    micros: {'Potassium': '122 mg', 'Sodium': '13.0 mg', 'Vitamin C': '4.1 mg', 'Fiber': '1.5 g', 'Iron': '0.3 mg', 'Calcium': '4.0 mg'},
+    micros: {
+      'Potassium': '122 mg',
+      'Sodium': '13.0 mg',
+      'Vitamin C': '4.1 mg',
+      'Fiber': '1.5 g',
+      'Iron': '0.3 mg',
+      'Calcium': '4.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Pear, Anjou, green, with skin, raw',
@@ -1135,7 +1613,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.4,
     sugar: 7.8,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '122 mg', 'Sodium': '0.4 mg', 'Vitamin C': '5.5 mg', 'Fiber': '2.6 g', 'Calcium': '10.0 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '122 mg',
+      'Sodium': '0.4 mg',
+      'Vitamin C': '5.5 mg',
+      'Fiber': '2.6 g',
+      'Calcium': '10.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Pears, raw, bartlett',
@@ -1147,7 +1632,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 9.7,
     satFat: 0,
-    micros: {'Fiber': '3.1 g', 'Iron': '0.2 mg', 'Sodium': '7.0 mg', 'Vitamin C': '4.4 mg', 'Calcium': '8.0 mg', 'Potassium': '87.0 mg'},
+    micros: {
+      'Fiber': '3.1 g',
+      'Iron': '0.2 mg',
+      'Sodium': '7.0 mg',
+      'Vitamin C': '4.4 mg',
+      'Calcium': '8.0 mg',
+      'Potassium': '87.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Pineapple, raw',
@@ -1159,7 +1651,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 11.4,
     satFat: 0,
-    micros: {'Iron': '0.1 mg', 'Potassium': '137 mg', 'Sodium': '0.0 mg', 'Vitamin C': '58.6 mg', 'Fiber': '0.9 g', 'Calcium': '12.5 mg'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Potassium': '137 mg',
+      'Sodium': '0.0 mg',
+      'Vitamin C': '58.6 mg',
+      'Fiber': '0.9 g',
+      'Calcium': '12.5 mg',
+    },
   ),
   NutritionFood(
     name: 'Plantains, overripe, raw',
@@ -1171,7 +1670,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 1,
     sugar: 19.2,
     satFat: 0,
-    micros: {'Iron': '0.3 mg', 'Potassium': '408 mg', 'Sodium': '0.0 mg', 'Vitamin C': '19.1 mg', 'Fiber': '1.8 g', 'Calcium': '3.9 mg'},
+    micros: {
+      'Iron': '0.3 mg',
+      'Potassium': '408 mg',
+      'Sodium': '0.0 mg',
+      'Vitamin C': '19.1 mg',
+      'Fiber': '1.8 g',
+      'Calcium': '3.9 mg',
+    },
   ),
   NutritionFood(
     name: 'Plantains, ripe, raw',
@@ -1183,7 +1689,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.9,
     sugar: 14.2,
     satFat: 0,
-    micros: {'Iron': '0.3 mg', 'Potassium': '396 mg', 'Sodium': '0.0 mg', 'Vitamin C': '20.1 mg', 'Fiber': '2.1 g', 'Calcium': '3.8 mg'},
+    micros: {
+      'Iron': '0.3 mg',
+      'Potassium': '396 mg',
+      'Sodium': '0.0 mg',
+      'Vitamin C': '20.1 mg',
+      'Fiber': '2.1 g',
+      'Calcium': '3.8 mg',
+    },
   ),
   NutritionFood(
     name: 'Plantains, underripe, raw',
@@ -1195,7 +1708,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.7,
     sugar: 2.4,
     satFat: 0,
-    micros: {'Iron': '0.3 mg', 'Potassium': '406 mg', 'Sodium': '0.0 mg', 'Vitamin C': '18.5 mg', 'Fiber': '2.5 g', 'Calcium': '4.8 mg'},
+    micros: {
+      'Iron': '0.3 mg',
+      'Potassium': '406 mg',
+      'Sodium': '0.0 mg',
+      'Vitamin C': '18.5 mg',
+      'Fiber': '2.5 g',
+      'Calcium': '4.8 mg',
+    },
   ),
   NutritionFood(
     name: 'Plum, black, with skin, raw',
@@ -1207,7 +1727,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.3,
     sugar: 8,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '186 mg', 'Sodium': '0.0 mg', 'Vitamin C': '1.8 mg', 'Fiber': '1.4 g', 'Calcium': '4.0 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '186 mg',
+      'Sodium': '0.0 mg',
+      'Vitamin C': '1.8 mg',
+      'Fiber': '1.4 g',
+      'Calcium': '4.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Raspberries, raw',
@@ -1219,7 +1746,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 2.7,
     satFat: 0,
-    micros: {'Iron': '0.5 mg', 'Potassium': '156 mg', 'Sodium': '0.0 mg', 'Vitamin C': '23.0 mg', 'Calcium': '16.4 mg'},
+    micros: {
+      'Iron': '0.5 mg',
+      'Potassium': '156 mg',
+      'Sodium': '0.0 mg',
+      'Vitamin C': '23.0 mg',
+      'Calcium': '16.4 mg',
+    },
   ),
   NutritionFood(
     name: 'Strawberries, raw',
@@ -1231,7 +1764,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 4.9,
     satFat: 0,
-    micros: {'Iron': '0.3 mg', 'Potassium': '161 mg', 'Sodium': '0.0 mg', 'Vitamin C': '59.6 mg', 'Calcium': '16.9 mg'},
+    micros: {
+      'Iron': '0.3 mg',
+      'Potassium': '161 mg',
+      'Sodium': '0.0 mg',
+      'Vitamin C': '59.6 mg',
+      'Calcium': '16.9 mg',
+    },
   ),
   NutritionFood(
     name: 'Watermelon, seedless, flesh only, raw',
@@ -1243,7 +1782,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0,
     sugar: 7.2,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '117 mg', 'Sodium': '0.0 mg', 'Vitamin C': '6.5 mg', 'Calcium': '7.9 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '117 mg',
+      'Sodium': '0.0 mg',
+      'Vitamin C': '6.5 mg',
+      'Calcium': '7.9 mg',
+    },
   ),
   NutritionFood(
     name: 'Watermelon, seedless, rind only, raw',
@@ -1255,7 +1800,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.1,
     sugar: 2.2,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '272 mg', 'Sodium': '3.8 mg', 'Vitamin C': '7.1 mg', 'Fiber': '1.5 g', 'Calcium': '16.9 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '272 mg',
+      'Sodium': '3.8 mg',
+      'Vitamin C': '7.1 mg',
+      'Fiber': '1.5 g',
+      'Calcium': '16.9 mg',
+    },
   ),
   NutritionFood(
     name: 'Buckwheat, whole grain',
@@ -1267,7 +1819,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 3,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '2.4 mg', 'Potassium': '414 mg', 'Sodium': '0.0 mg', 'Fiber': '4.0 g', 'Calcium': '13.6 mg'},
+    micros: {
+      'Iron': '2.4 mg',
+      'Potassium': '414 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '4.0 g',
+      'Calcium': '13.6 mg',
+    },
   ),
   NutritionFood(
     name: 'Bulgur, dry, raw',
@@ -1279,7 +1837,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 2.4,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '2.6 mg', 'Potassium': '358 mg', 'Sodium': '2.2 mg', 'Fiber': '11.7 g', 'Calcium': '34.1 mg'},
+    micros: {
+      'Iron': '2.6 mg',
+      'Potassium': '358 mg',
+      'Sodium': '2.2 mg',
+      'Fiber': '11.7 g',
+      'Calcium': '34.1 mg',
+    },
   ),
   NutritionFood(
     name: 'Chia seeds, dry, raw',
@@ -1291,7 +1855,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 32.9,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '6.0 mg', 'Potassium': '642 mg', 'Sodium': '0.0 mg', 'Calcium': '595 mg'},
+    micros: {
+      'Iron': '6.0 mg',
+      'Potassium': '642 mg',
+      'Sodium': '0.0 mg',
+      'Calcium': '595 mg',
+    },
   ),
   NutritionFood(
     name: 'Cookies, oatmeal, soft, with raisins',
@@ -1303,7 +1872,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 14.3,
     sugar: 34.8,
     satFat: 4.8,
-    micros: {'Calcium': '29.0 mg', 'Iron': '2.3 mg', 'Potassium': '245 mg', 'Sodium': '314 mg', 'Fiber': '3.3 g'},
+    micros: {
+      'Calcium': '29.0 mg',
+      'Iron': '2.3 mg',
+      'Potassium': '245 mg',
+      'Sodium': '314 mg',
+      'Fiber': '3.3 g',
+    },
   ),
   NutritionFood(
     name: 'Corn flour, masa harina, white or yellow, dry, raw',
@@ -1315,7 +1890,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 4.3,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '1.7 mg', 'Potassium': '277 mg', 'Sodium': '2.7 mg', 'Fiber': '7.0 g', 'Calcium': '112 mg'},
+    micros: {
+      'Iron': '1.7 mg',
+      'Potassium': '277 mg',
+      'Sodium': '2.7 mg',
+      'Fiber': '7.0 g',
+      'Calcium': '112 mg',
+    },
   ),
   NutritionFood(
     name: 'Einkorn, grain, dry, raw',
@@ -1327,7 +1908,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 3.8,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '3.7 mg', 'Potassium': '432 mg', 'Sodium': '0.0 mg', 'Fiber': '8.9 g', 'Calcium': '41.4 mg'},
+    micros: {
+      'Iron': '3.7 mg',
+      'Potassium': '432 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '8.9 g',
+      'Calcium': '41.4 mg',
+    },
   ),
   NutritionFood(
     name: 'Farro, pearled, dry, raw',
@@ -1339,7 +1926,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 3.1,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '3.2 mg', 'Potassium': '385 mg', 'Sodium': '0.8 mg', 'Fiber': '7.3 g', 'Calcium': '25.9 mg'},
+    micros: {
+      'Iron': '3.2 mg',
+      'Potassium': '385 mg',
+      'Sodium': '0.8 mg',
+      'Fiber': '7.3 g',
+      'Calcium': '25.9 mg',
+    },
   ),
   NutritionFood(
     name: 'Flour, 00',
@@ -1351,7 +1944,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.5,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '1.0 mg', 'Potassium': '136 mg', 'Sodium': '0.0 mg', 'Fiber': '2.7 g', 'Calcium': '18.7 mg'},
+    micros: {
+      'Iron': '1.0 mg',
+      'Potassium': '136 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '2.7 g',
+      'Calcium': '18.7 mg',
+    },
   ),
   NutritionFood(
     name: 'Flour, amaranth',
@@ -1363,7 +1962,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 6.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '7.6 mg', 'Potassium': '396 mg', 'Sodium': '0.0 mg', 'Fiber': '7.2 g', 'Calcium': '135 mg'},
+    micros: {
+      'Iron': '7.6 mg',
+      'Potassium': '396 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '7.2 g',
+      'Calcium': '135 mg',
+    },
   ),
   NutritionFood(
     name: 'Flour, barley',
@@ -1375,7 +1980,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 2.5,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '3.3 mg', 'Potassium': '367 mg', 'Sodium': '20.3 mg', 'Fiber': '12.8 g', 'Calcium': '35.6 mg'},
+    micros: {
+      'Iron': '3.3 mg',
+      'Potassium': '367 mg',
+      'Sodium': '20.3 mg',
+      'Fiber': '12.8 g',
+      'Calcium': '35.6 mg',
+    },
   ),
   NutritionFood(
     name: 'Flour, bread, white, enriched, unbleached',
@@ -1387,7 +1998,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.6,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '5.5 mg', 'Sodium': '3.0 mg', 'Calcium': '19.0 mg', 'Potassium': '127 mg'},
+    micros: {
+      'Iron': '5.5 mg',
+      'Sodium': '3.0 mg',
+      'Calcium': '19.0 mg',
+      'Potassium': '127 mg',
+    },
   ),
   NutritionFood(
     name: 'Flour, buckwheat',
@@ -1399,7 +2015,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 2.5,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '3.8 mg', 'Potassium': '378 mg', 'Sodium': '0.0 mg', 'Fiber': '10.4 g', 'Calcium': '30.6 mg'},
+    micros: {
+      'Iron': '3.8 mg',
+      'Potassium': '378 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '10.4 g',
+      'Calcium': '30.6 mg',
+    },
   ),
   NutritionFood(
     name: 'Flour, corn, yellow, fine meal, enriched',
@@ -1411,7 +2033,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.7,
     sugar: 1,
     satFat: 0,
-    micros: {'Calcium': '0.0 mg', 'Iron': '4.4 mg', 'Potassium': '144 mg', 'Sodium': '0.0 mg', 'Fiber': '4.3 g'},
+    micros: {
+      'Calcium': '0.0 mg',
+      'Iron': '4.4 mg',
+      'Potassium': '144 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '4.3 g',
+    },
   ),
   NutritionFood(
     name: 'Flour, oat, whole grain',
@@ -1423,7 +2051,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 6.3,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '4.0 mg', 'Potassium': '373 mg', 'Sodium': '3.6 mg', 'Fiber': '10.5 g', 'Calcium': '42.8 mg'},
+    micros: {
+      'Iron': '4.0 mg',
+      'Potassium': '373 mg',
+      'Sodium': '3.6 mg',
+      'Fiber': '10.5 g',
+      'Calcium': '42.8 mg',
+    },
   ),
   NutritionFood(
     name: 'Flour, pastry, unenriched, unbleached',
@@ -1435,7 +2069,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.6,
     sugar: 0,
     satFat: 0,
-    micros: {'Calcium': '17.0 mg', 'Iron': '0.9 mg', 'Potassium': '142 mg', 'Sodium': '1.0 mg'},
+    micros: {
+      'Calcium': '17.0 mg',
+      'Iron': '0.9 mg',
+      'Potassium': '142 mg',
+      'Sodium': '1.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Flour, quinoa',
@@ -1447,7 +2086,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 6.6,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '4.5 mg', 'Potassium': '551 mg', 'Sodium': '6.3 mg', 'Fiber': '6.3 g', 'Calcium': '37.6 mg'},
+    micros: {
+      'Iron': '4.5 mg',
+      'Potassium': '551 mg',
+      'Sodium': '6.3 mg',
+      'Fiber': '6.3 g',
+      'Calcium': '37.6 mg',
+    },
   ),
   NutritionFood(
     name: 'Flour, rice, brown',
@@ -1459,7 +2104,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 3.9,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '1.5 mg', 'Sodium': '1.0 mg', 'Calcium': '10.0 mg', 'Potassium': '265 mg'},
+    micros: {
+      'Iron': '1.5 mg',
+      'Sodium': '1.0 mg',
+      'Calcium': '10.0 mg',
+      'Potassium': '265 mg',
+    },
   ),
   NutritionFood(
     name: 'Flour, rice, glutinous',
@@ -1471,7 +2121,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Calcium': '10.0 mg', 'Iron': '0.3 mg', 'Potassium': '80.0 mg', 'Sodium': '6.0 mg'},
+    micros: {
+      'Calcium': '10.0 mg',
+      'Iron': '0.3 mg',
+      'Potassium': '80.0 mg',
+      'Sodium': '6.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Flour, rice, white, unenriched',
@@ -1483,7 +2138,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.3,
     sugar: 0,
     satFat: 0,
-    micros: {'Calcium': '6.0 mg', 'Potassium': '75.0 mg', 'Fiber': '0.5 g', 'Iron': '0.2 mg', 'Sodium': '5.0 mg'},
+    micros: {
+      'Calcium': '6.0 mg',
+      'Potassium': '75.0 mg',
+      'Fiber': '0.5 g',
+      'Iron': '0.2 mg',
+      'Sodium': '5.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Flour, rye',
@@ -1495,7 +2156,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.9,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '2.5 mg', 'Potassium': '434 mg', 'Sodium': '0.0 mg', 'Fiber': '13.7 g', 'Calcium': '32.2 mg'},
+    micros: {
+      'Iron': '2.5 mg',
+      'Potassium': '434 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '13.7 g',
+      'Calcium': '32.2 mg',
+    },
   ),
   NutritionFood(
     name: 'Flour, semolina, coarse and semi-coarse',
@@ -1507,7 +2174,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.6,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '1.6 mg', 'Potassium': '174 mg', 'Sodium': '0.0 mg', 'Fiber': '3.2 g', 'Calcium': '17.2 mg'},
+    micros: {
+      'Iron': '1.6 mg',
+      'Potassium': '174 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '3.2 g',
+      'Calcium': '17.2 mg',
+    },
   ),
   NutritionFood(
     name: 'Flour, semolina, fine',
@@ -1519,7 +2192,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.8,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '2.4 mg', 'Potassium': '208 mg', 'Sodium': '0.4 mg', 'Fiber': '3.7 g', 'Calcium': '19.8 mg'},
+    micros: {
+      'Iron': '2.4 mg',
+      'Potassium': '208 mg',
+      'Sodium': '0.4 mg',
+      'Fiber': '3.7 g',
+      'Calcium': '19.8 mg',
+    },
   ),
   NutritionFood(
     name: 'Flour, sorghum',
@@ -1531,7 +2210,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 3.6,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '3.7 mg', 'Potassium': '335 mg', 'Sodium': '0.0 mg', 'Fiber': '6.0 g', 'Calcium': '11.4 mg'},
+    micros: {
+      'Iron': '3.7 mg',
+      'Potassium': '335 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '6.0 g',
+      'Calcium': '11.4 mg',
+    },
   ),
   NutritionFood(
     name: 'Flour, spelt, whole grain',
@@ -1543,7 +2228,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 2.5,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '3.8 mg', 'Potassium': '350 mg', 'Sodium': '0.0 mg', 'Fiber': '9.3 g', 'Calcium': '30.0 mg'},
+    micros: {
+      'Iron': '3.8 mg',
+      'Potassium': '350 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '9.3 g',
+      'Calcium': '30.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Flour, wheat, all-purpose, enriched, bleached',
@@ -1555,7 +2246,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.5,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '5.6 mg', 'Sodium': '2.0 mg', 'Calcium': '19.0 mg', 'Potassium': '136 mg'},
+    micros: {
+      'Iron': '5.6 mg',
+      'Sodium': '2.0 mg',
+      'Calcium': '19.0 mg',
+      'Potassium': '136 mg',
+    },
   ),
   NutritionFood(
     name: 'Flour, wheat, all-purpose, enriched, unbleached',
@@ -1567,7 +2263,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.5,
     sugar: 0,
     satFat: 0,
-    micros: {'Calcium': '21.0 mg', 'Potassium': '135 mg', 'Iron': '5.4 mg', 'Sodium': '4.0 mg'},
+    micros: {
+      'Calcium': '21.0 mg',
+      'Potassium': '135 mg',
+      'Iron': '5.4 mg',
+      'Sodium': '4.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Flour, wheat, all-purpose, unenriched, unbleached',
@@ -1579,7 +2280,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.7,
     sugar: 0,
     satFat: 0,
-    micros: {'Calcium': '22.0 mg', 'Potassium': '150 mg', 'Fiber': '3.0 g', 'Iron': '1.2 mg', 'Sodium': '2.0 mg'},
+    micros: {
+      'Calcium': '22.0 mg',
+      'Potassium': '150 mg',
+      'Fiber': '3.0 g',
+      'Iron': '1.2 mg',
+      'Sodium': '2.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Flour, whole wheat, unenriched',
@@ -1591,7 +2298,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 2.7,
     sugar: 0,
     satFat: 0,
-    micros: {'Calcium': '38.0 mg', 'Potassium': '376 mg', 'Fiber': '10.6 g', 'Iron': '3.9 mg', 'Sodium': '3.0 mg'},
+    micros: {
+      'Calcium': '38.0 mg',
+      'Potassium': '376 mg',
+      'Fiber': '10.6 g',
+      'Iron': '3.9 mg',
+      'Sodium': '3.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Fonio, grain, dry, raw',
@@ -1603,7 +2316,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.7,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '2.7 mg', 'Potassium': '43.8 mg', 'Sodium': '3.0 mg', 'Fiber': '2.2 g', 'Calcium': '11.6 mg'},
+    micros: {
+      'Iron': '2.7 mg',
+      'Potassium': '43.8 mg',
+      'Sodium': '3.0 mg',
+      'Fiber': '2.2 g',
+      'Calcium': '11.6 mg',
+    },
   ),
   NutritionFood(
     name: 'Khorasan, grain, dry, raw',
@@ -1615,7 +2334,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 2.8,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '3.9 mg', 'Potassium': '450 mg', 'Sodium': '3.9 mg', 'Fiber': '10.5 g', 'Calcium': '24.1 mg'},
+    micros: {
+      'Iron': '3.9 mg',
+      'Potassium': '450 mg',
+      'Sodium': '3.9 mg',
+      'Fiber': '10.5 g',
+      'Calcium': '24.1 mg',
+    },
   ),
   NutritionFood(
     name: 'Millet, whole grain',
@@ -1627,7 +2352,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 4.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '2.5 mg', 'Potassium': '214 mg', 'Sodium': '0.0 mg', 'Fiber': '2.6 g', 'Calcium': '9.1 mg'},
+    micros: {
+      'Iron': '2.5 mg',
+      'Potassium': '214 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '2.6 g',
+      'Calcium': '9.1 mg',
+    },
   ),
   NutritionFood(
     name: 'Oats, whole grain, rolled, old fashioned',
@@ -1639,7 +2370,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 5.9,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '4.3 mg', 'Potassium': '350 mg', 'Sodium': '0.7 mg', 'Calcium': '45.5 mg'},
+    micros: {
+      'Iron': '4.3 mg',
+      'Potassium': '350 mg',
+      'Sodium': '0.7 mg',
+      'Calcium': '45.5 mg',
+    },
   ),
   NutritionFood(
     name: 'Oats, whole grain, steel cut',
@@ -1651,7 +2387,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 5.8,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '3.8 mg', 'Potassium': '376 mg', 'Sodium': '0.3 mg', 'Calcium': '51.3 mg'},
+    micros: {
+      'Iron': '3.8 mg',
+      'Potassium': '376 mg',
+      'Sodium': '0.3 mg',
+      'Calcium': '51.3 mg',
+    },
   ),
   NutritionFood(
     name: 'Rice, black, unenriched, raw',
@@ -1663,7 +2404,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 3.4,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '1.1 mg', 'Potassium': '256 mg', 'Sodium': '0.0 mg', 'Fiber': '4.2 g', 'Calcium': '14.4 mg'},
+    micros: {
+      'Iron': '1.1 mg',
+      'Potassium': '256 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '4.2 g',
+      'Calcium': '14.4 mg',
+    },
   ),
   NutritionFood(
     name: 'Rice, brown, long grain, unenriched, raw',
@@ -1675,7 +2422,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 3.3,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '1.2 mg', 'Potassium': '250 mg', 'Sodium': '0.0 mg', 'Fiber': '3.0 g', 'Calcium': '8.1 mg'},
+    micros: {
+      'Iron': '1.2 mg',
+      'Potassium': '250 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '3.0 g',
+      'Calcium': '8.1 mg',
+    },
   ),
   NutritionFood(
     name: 'Rice, red, unenriched, dry, raw',
@@ -1687,7 +2440,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 3.4,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '1.2 mg', 'Potassium': '245 mg', 'Sodium': '0.4 mg', 'Fiber': '4.2 g', 'Calcium': '9.2 mg'},
+    micros: {
+      'Iron': '1.2 mg',
+      'Potassium': '245 mg',
+      'Sodium': '0.4 mg',
+      'Fiber': '4.2 g',
+      'Calcium': '9.2 mg',
+    },
   ),
   NutritionFood(
     name: 'Rice, white, long grain, unenriched, raw',
@@ -1699,7 +2458,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 1,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.1 mg', 'Potassium': '82.3 mg', 'Sodium': '0.5 mg', 'Fiber': '0.1 g', 'Calcium': '4.5 mg'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Potassium': '82.3 mg',
+      'Sodium': '0.5 mg',
+      'Fiber': '0.1 g',
+      'Calcium': '4.5 mg',
+    },
   ),
   NutritionFood(
     name: 'Sorghum bran, white, unenriched, dry, raw',
@@ -1711,7 +2476,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 9.3,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '14.2 mg', 'Potassium': '852 mg', 'Sodium': '2.9 mg', 'Fiber': '35.0 g', 'Calcium': '61.7 mg'},
+    micros: {
+      'Iron': '14.2 mg',
+      'Potassium': '852 mg',
+      'Sodium': '2.9 mg',
+      'Fiber': '35.0 g',
+      'Calcium': '61.7 mg',
+    },
   ),
   NutritionFood(
     name: 'Sorghum flour, white, pearled, unenriched, dry, raw',
@@ -1723,7 +2494,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 3.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '2.2 mg', 'Potassium': '274 mg', 'Sodium': '0.0 mg', 'Fiber': '3.3 g', 'Calcium': '7.9 mg'},
+    micros: {
+      'Iron': '2.2 mg',
+      'Potassium': '274 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '3.3 g',
+      'Calcium': '7.9 mg',
+    },
   ),
   NutritionFood(
     name: 'Sorghum grain, white, pearled, unenriched, dry, raw',
@@ -1735,7 +2512,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 3.3,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '2.0 mg', 'Potassium': '274 mg', 'Sodium': '0.0 mg', 'Fiber': '3.9 g', 'Calcium': '7.5 mg'},
+    micros: {
+      'Iron': '2.0 mg',
+      'Potassium': '274 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '3.9 g',
+      'Calcium': '7.5 mg',
+    },
   ),
   NutritionFood(
     name: 'Sorghum, whole grain, white, dry, raw',
@@ -1747,7 +2530,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 4.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '3.9 mg', 'Potassium': '367 mg', 'Sodium': '0.3 mg', 'Fiber': '8.3 g', 'Calcium': '14.9 mg'},
+    micros: {
+      'Iron': '3.9 mg',
+      'Potassium': '367 mg',
+      'Sodium': '0.3 mg',
+      'Fiber': '8.3 g',
+      'Calcium': '14.9 mg',
+    },
   ),
   NutritionFood(
     name: 'Wild rice, dry, raw',
@@ -1759,7 +2548,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.7,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '1.5 mg', 'Potassium': '299 mg', 'Sodium': '1.0 mg', 'Fiber': '4.3 g', 'Calcium': '8.0 mg'},
+    micros: {
+      'Iron': '1.5 mg',
+      'Potassium': '299 mg',
+      'Sodium': '1.0 mg',
+      'Fiber': '4.3 g',
+      'Calcium': '8.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Beans, Dry, Black (0% moisture)',
@@ -1771,7 +2566,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.4,
     sugar: 0,
     satFat: 0,
-    micros: {'Fiber': '4.2 g', 'Calcium': '191 mg', 'Iron': '5.3 mg', 'Potassium': '1540.0 mg'},
+    micros: {
+      'Fiber': '4.2 g',
+      'Calcium': '191 mg',
+      'Iron': '5.3 mg',
+      'Potassium': '1540.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Beans, Dry, Brown (0% moisture)',
@@ -1783,7 +2583,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.1,
     sugar: 0,
     satFat: 0,
-    micros: {'Fiber': '4.1 g', 'Calcium': '158 mg', 'Iron': '4.7 mg', 'Potassium': '1580.0 mg'},
+    micros: {
+      'Fiber': '4.1 g',
+      'Calcium': '158 mg',
+      'Iron': '4.7 mg',
+      'Potassium': '1580.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Beans, Dry, Carioca (0% moisture)',
@@ -1795,7 +2600,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.4,
     sugar: 0,
     satFat: 0,
-    micros: {'Fiber': '4.5 g', 'Calcium': '194 mg', 'Potassium': '1390.0 mg', 'Iron': '5.9 mg'},
+    micros: {
+      'Fiber': '4.5 g',
+      'Calcium': '194 mg',
+      'Potassium': '1390.0 mg',
+      'Iron': '5.9 mg',
+    },
   ),
   NutritionFood(
     name: 'Beans, Dry, Cranberry (0% moisture)',
@@ -1807,7 +2617,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Fiber': '4.3 g', 'Calcium': '152 mg', 'Iron': '5.3 mg', 'Potassium': '1340.0 mg'},
+    micros: {
+      'Fiber': '4.3 g',
+      'Calcium': '152 mg',
+      'Iron': '5.3 mg',
+      'Potassium': '1340.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Beans, Dry, Dark Red Kidney (0% moisture)',
@@ -1819,7 +2634,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.3,
     sugar: 0,
     satFat: 0,
-    micros: {'Fiber': '4.3 g', 'Calcium': '98.0 mg', 'Iron': '6.6 mg', 'Potassium': '1490.0 mg'},
+    micros: {
+      'Fiber': '4.3 g',
+      'Calcium': '98.0 mg',
+      'Iron': '6.6 mg',
+      'Potassium': '1490.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Beans, Dry, Flor de Mayo (0% moisture)',
@@ -1831,7 +2651,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.9,
     sugar: 0,
     satFat: 0,
-    micros: {'Fiber': '4.0 g', 'Calcium': '180 mg', 'Iron': '4.5 mg', 'Potassium': '1490.0 mg'},
+    micros: {
+      'Fiber': '4.0 g',
+      'Calcium': '180 mg',
+      'Iron': '4.5 mg',
+      'Potassium': '1490.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Beans, Dry, Great Northern (0% moisture)',
@@ -1843,7 +2668,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Fiber': '4.3 g', 'Calcium': '192 mg', 'Iron': '5.5 mg', 'Potassium': '1520.0 mg'},
+    micros: {
+      'Fiber': '4.3 g',
+      'Calcium': '192 mg',
+      'Iron': '5.5 mg',
+      'Potassium': '1520.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Beans, Dry, Light Red Kidney (0% moisture)',
@@ -1855,7 +2685,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1,
     sugar: 0,
     satFat: 0,
-    micros: {'Fiber': '4.5 g', 'Calcium': '103 mg', 'Iron': '7.0 mg', 'Potassium': '1540.0 mg'},
+    micros: {
+      'Fiber': '4.5 g',
+      'Calcium': '103 mg',
+      'Iron': '7.0 mg',
+      'Potassium': '1540.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Beans, Dry, Light Tan (0% moisture)',
@@ -1867,7 +2702,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.3,
     sugar: 0,
     satFat: 0,
-    micros: {'Fiber': '4.3 g', 'Calcium': '98.0 mg', 'Iron': '7.3 mg', 'Potassium': '1230.0 mg'},
+    micros: {
+      'Fiber': '4.3 g',
+      'Calcium': '98.0 mg',
+      'Iron': '7.3 mg',
+      'Potassium': '1230.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Beans, Dry, Medium Red (0% moisture)',
@@ -1879,7 +2719,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1,
     sugar: 0,
     satFat: 0,
-    micros: {'Fiber': '4.3 g', 'Calcium': '193 mg', 'Iron': '6.3 mg', 'Potassium': '1490.0 mg'},
+    micros: {
+      'Fiber': '4.3 g',
+      'Calcium': '193 mg',
+      'Iron': '6.3 mg',
+      'Potassium': '1490.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Beans, Dry, Navy (0% moisture)',
@@ -1891,7 +2736,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.5,
     sugar: 0,
     satFat: 0,
-    micros: {'Fiber': '4.3 g', 'Calcium': '229 mg', 'Iron': '5.3 mg', 'Potassium': '1470.0 mg'},
+    micros: {
+      'Fiber': '4.3 g',
+      'Calcium': '229 mg',
+      'Iron': '5.3 mg',
+      'Potassium': '1470.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Beans, Dry, Pink (0% moisture)',
@@ -1903,7 +2753,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Fiber': '4.1 g', 'Calcium': '137 mg', 'Iron': '5.5 mg', 'Potassium': '1490.0 mg'},
+    micros: {
+      'Fiber': '4.1 g',
+      'Calcium': '137 mg',
+      'Iron': '5.5 mg',
+      'Potassium': '1490.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Beans, Dry, Pinto (0% moisture)',
@@ -1915,7 +2770,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Fiber': '4.1 g', 'Calcium': '161 mg', 'Iron': '5.4 mg', 'Potassium': '1510.0 mg'},
+    micros: {
+      'Fiber': '4.1 g',
+      'Calcium': '161 mg',
+      'Iron': '5.4 mg',
+      'Potassium': '1510.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Beans, Dry, Red (0% moisture)',
@@ -1927,7 +2787,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Fiber': '4.0 g', 'Calcium': '148 mg', 'Iron': '5.0 mg', 'Potassium': '1540.0 mg'},
+    micros: {
+      'Fiber': '4.0 g',
+      'Calcium': '148 mg',
+      'Iron': '5.0 mg',
+      'Potassium': '1540.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Beans, Dry, Small Red (0% moisture)',
@@ -1939,7 +2804,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.3,
     sugar: 0,
     satFat: 0,
-    micros: {'Fiber': '4.1 g', 'Calcium': '149 mg', 'Iron': '5.0 mg', 'Potassium': '1520.0 mg'},
+    micros: {
+      'Fiber': '4.1 g',
+      'Calcium': '149 mg',
+      'Iron': '5.0 mg',
+      'Potassium': '1520.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Beans, Dry, Small White (0% moisture)',
@@ -1951,7 +2821,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.3,
     sugar: 0,
     satFat: 0,
-    micros: {'Fiber': '4.3 g', 'Calcium': '236 mg', 'Iron': '4.9 mg', 'Potassium': '1540.0 mg'},
+    micros: {
+      'Fiber': '4.3 g',
+      'Calcium': '236 mg',
+      'Iron': '4.9 mg',
+      'Potassium': '1540.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Beans, Dry, Tan (0% moisture)',
@@ -1963,7 +2838,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.1,
     sugar: 0,
     satFat: 0,
-    micros: {'Fiber': '4.4 g', 'Calcium': '178 mg', 'Iron': '5.8 mg', 'Potassium': '1620.0 mg'},
+    micros: {
+      'Fiber': '4.4 g',
+      'Calcium': '178 mg',
+      'Iron': '5.8 mg',
+      'Potassium': '1620.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Beans, black, canned, sodium added, drained and rinsed',
@@ -1975,7 +2855,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.3,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '1.7 mg', 'Potassium': '253 mg', 'Sodium': '218 mg', 'Calcium': '43.3 mg'},
+    micros: {
+      'Iron': '1.7 mg',
+      'Potassium': '253 mg',
+      'Sodium': '218 mg',
+      'Calcium': '43.3 mg',
+    },
   ),
   NutritionFood(
     name: 'Beans, cannellini, canned, sodium added, drained and rinsed',
@@ -1987,7 +2872,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '1.4 mg', 'Potassium': '203 mg', 'Sodium': '164 mg', 'Calcium': '69.2 mg'},
+    micros: {
+      'Iron': '1.4 mg',
+      'Potassium': '203 mg',
+      'Sodium': '164 mg',
+      'Calcium': '69.2 mg',
+    },
   ),
   NutritionFood(
     name: 'Beans, cannellini, dry',
@@ -1999,7 +2889,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 2.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '6.7 mg', 'Potassium': '1420.0 mg', 'Sodium': '0.0 mg', 'Calcium': '143 mg'},
+    micros: {
+      'Iron': '6.7 mg',
+      'Potassium': '1420.0 mg',
+      'Sodium': '0.0 mg',
+      'Calcium': '143 mg',
+    },
   ),
   NutritionFood(
     name: 'Beans, great northern, canned, sodium added, drained and rinsed',
@@ -2011,10 +2906,16 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.3,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '1.4 mg', 'Potassium': '213 mg', 'Sodium': '223 mg', 'Calcium': '67.2 mg'},
+    micros: {
+      'Iron': '1.4 mg',
+      'Potassium': '213 mg',
+      'Sodium': '223 mg',
+      'Calcium': '67.2 mg',
+    },
   ),
   NutritionFood(
-    name: 'Beans, kidney, dark red, canned, sodium added, sugar added, drained and rinsed',
+    name:
+        'Beans, kidney, dark red, canned, sodium added, sugar added, drained and rinsed',
     category: 'Legumes',
     serving: '1.0 RACC (130.0g)',
     calories: 127,
@@ -2023,10 +2924,16 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.3,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '1.4 mg', 'Potassium': '227 mg', 'Sodium': '172 mg', 'Calcium': '56.9 mg'},
+    micros: {
+      'Iron': '1.4 mg',
+      'Potassium': '227 mg',
+      'Sodium': '172 mg',
+      'Calcium': '56.9 mg',
+    },
   ),
   NutritionFood(
-    name: 'Beans, kidney, light red, canned, sodium added, sugar added, drained and rinsed',
+    name:
+        'Beans, kidney, light red, canned, sodium added, sugar added, drained and rinsed',
     category: 'Legumes',
     serving: '1.0 RACC (130.0g)',
     calories: 126,
@@ -2035,7 +2942,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.3,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '1.3 mg', 'Potassium': '209 mg', 'Sodium': '158 mg', 'Calcium': '60.2 mg'},
+    micros: {
+      'Iron': '1.3 mg',
+      'Potassium': '209 mg',
+      'Sodium': '158 mg',
+      'Calcium': '60.2 mg',
+    },
   ),
   NutritionFood(
     name: 'Beans, navy, canned, sodium added, drained and rinsed',
@@ -2047,7 +2959,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.4,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '1.6 mg', 'Potassium': '184 mg', 'Sodium': '190 mg', 'Calcium': '63.9 mg'},
+    micros: {
+      'Iron': '1.6 mg',
+      'Potassium': '184 mg',
+      'Sodium': '190 mg',
+      'Calcium': '63.9 mg',
+    },
   ),
   NutritionFood(
     name: 'Beans, pinto, canned, sodium added, drained and rinsed',
@@ -2059,7 +2976,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.3,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '1.3 mg', 'Potassium': '210 mg', 'Sodium': '202 mg', 'Calcium': '55.2 mg'},
+    micros: {
+      'Iron': '1.3 mg',
+      'Potassium': '210 mg',
+      'Sodium': '202 mg',
+      'Calcium': '55.2 mg',
+    },
   ),
   NutritionFood(
     name: 'Blackeye pea, canned, sodium added, drained and rinsed',
@@ -2071,7 +2993,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.3,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '1.1 mg', 'Potassium': '138 mg', 'Sodium': '227 mg', 'Calcium': '27.8 mg'},
+    micros: {
+      'Iron': '1.1 mg',
+      'Potassium': '138 mg',
+      'Sodium': '227 mg',
+      'Calcium': '27.8 mg',
+    },
   ),
   NutritionFood(
     name: 'Blackeye pea, dry',
@@ -2083,10 +3010,16 @@ const List<NutritionFood> usdaFoods = [
     fat: 2.4,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '5.9 mg', 'Potassium': '1240.0 mg', 'Sodium': '3.5 mg', 'Calcium': '71.4 mg'},
+    micros: {
+      'Iron': '5.9 mg',
+      'Potassium': '1240.0 mg',
+      'Sodium': '3.5 mg',
+      'Calcium': '71.4 mg',
+    },
   ),
   NutritionFood(
-    name: 'Chickpeas (garbanzo beans, bengal gram), canned, sodium added, drained and rinsed',
+    name:
+        'Chickpeas (garbanzo beans, bengal gram), canned, sodium added, drained and rinsed',
     category: 'Legumes',
     serving: '1.0 RACC (130.0g)',
     calories: 137,
@@ -2095,7 +3028,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 3.1,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '1.0 mg', 'Potassium': '137 mg', 'Sodium': '202 mg', 'Calcium': '40.5 mg'},
+    micros: {
+      'Iron': '1.0 mg',
+      'Potassium': '137 mg',
+      'Sodium': '202 mg',
+      'Calcium': '40.5 mg',
+    },
   ),
   NutritionFood(
     name: 'Chickpeas, (garbanzo beans, bengal gram), dry',
@@ -2107,7 +3045,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 6.3,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '5.1 mg', 'Potassium': '1070.0 mg', 'Sodium': '8.8 mg', 'Calcium': '111 mg'},
+    micros: {
+      'Iron': '5.1 mg',
+      'Potassium': '1070.0 mg',
+      'Sodium': '8.8 mg',
+      'Calcium': '111 mg',
+    },
   ),
   NutritionFood(
     name: 'Flour, soy, defatted',
@@ -2119,7 +3062,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 3.3,
     sugar: 0,
     satFat: 0,
-    micros: {'Calcium': '338 mg', 'Iron': '7.3 mg', 'Potassium': '2480.0 mg', 'Sodium': '2.0 mg'},
+    micros: {
+      'Calcium': '338 mg',
+      'Iron': '7.3 mg',
+      'Potassium': '2480.0 mg',
+      'Sodium': '2.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Flour, soy, full-fat',
@@ -2131,7 +3079,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 20.7,
     sugar: 0,
     satFat: 0,
-    micros: {'Calcium': '258 mg', 'Potassium': '1860.0 mg', 'Iron': '9.5 mg', 'Sodium': '2.0 mg'},
+    micros: {
+      'Calcium': '258 mg',
+      'Potassium': '1860.0 mg',
+      'Iron': '9.5 mg',
+      'Sodium': '2.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Hummus, commercial',
@@ -2143,7 +3096,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 17.1,
     sugar: 0.3,
     satFat: 2.2,
-    micros: {'Vitamin C': '0.0 mg', 'Fiber': '5.4 g', 'Iron': '2.4 mg', 'Sodium': '438 mg', 'Calcium': '41.0 mg', 'Potassium': '289 mg'},
+    micros: {
+      'Vitamin C': '0.0 mg',
+      'Fiber': '5.4 g',
+      'Iron': '2.4 mg',
+      'Sodium': '438 mg',
+      'Calcium': '41.0 mg',
+      'Potassium': '289 mg',
+    },
   ),
   NutritionFood(
     name: 'Lentils, dry',
@@ -2155,7 +3115,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.9,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '7.2 mg', 'Potassium': '949 mg', 'Sodium': '0.0 mg', 'Calcium': '61.8 mg'},
+    micros: {
+      'Iron': '7.2 mg',
+      'Potassium': '949 mg',
+      'Sodium': '0.0 mg',
+      'Calcium': '61.8 mg',
+    },
   ),
   NutritionFood(
     name: 'Peanut butter, creamy',
@@ -2167,7 +3132,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 49.4,
     sugar: 0,
     satFat: 8.4,
-    micros: {'Fiber': '6.3 g', 'Calcium': '49.8 mg', 'Iron': '1.9 mg', 'Potassium': '654 mg', 'Sodium': '221 mg'},
+    micros: {
+      'Fiber': '6.3 g',
+      'Calcium': '49.8 mg',
+      'Iron': '1.9 mg',
+      'Potassium': '654 mg',
+      'Sodium': '221 mg',
+    },
   ),
   NutritionFood(
     name: 'Peanuts, raw',
@@ -2179,7 +3150,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 43.3,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '1.6 mg', 'Potassium': '636 mg', 'Sodium': '1.5 mg', 'Fiber': '8.0 g', 'Calcium': '49.1 mg'},
+    micros: {
+      'Iron': '1.6 mg',
+      'Potassium': '636 mg',
+      'Sodium': '1.5 mg',
+      'Fiber': '8.0 g',
+      'Calcium': '49.1 mg',
+    },
   ),
   NutritionFood(
     name: 'Soy milk, sweetened, plain, refrigerated',
@@ -2191,7 +3168,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 2,
     sugar: 0,
     satFat: 0,
-    micros: {'Fiber': '0.0 g', 'Calcium': '155 mg', 'Iron': '0.4 mg', 'Potassium': '118 mg', 'Sodium': '39.4 mg'},
+    micros: {
+      'Fiber': '0.0 g',
+      'Calcium': '155 mg',
+      'Iron': '0.4 mg',
+      'Potassium': '118 mg',
+      'Sodium': '39.4 mg',
+    },
   ),
   NutritionFood(
     name: 'Soy milk, unsweetened, plain, shelf stable',
@@ -2203,7 +3186,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 2.1,
     sugar: 0.6,
     satFat: 0.3,
-    micros: {'Fiber': '0.0 g', 'Calcium': '101 mg', 'Iron': '0.5 mg', 'Potassium': '158 mg', 'Sodium': '34.3 mg'},
+    micros: {
+      'Fiber': '0.0 g',
+      'Calcium': '101 mg',
+      'Iron': '0.5 mg',
+      'Potassium': '158 mg',
+      'Sodium': '34.3 mg',
+    },
   ),
   NutritionFood(
     name: 'Beef, chuck, roast, boneless, choice, raw',
@@ -2215,7 +3204,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 17.8,
     sugar: 0,
     satFat: 6.3,
-    micros: {'Iron': '2.1 mg', 'Potassium': '281 mg', 'Sodium': '48.4 mg', 'Calcium': '4.6 mg'},
+    micros: {
+      'Iron': '2.1 mg',
+      'Potassium': '281 mg',
+      'Sodium': '48.4 mg',
+      'Calcium': '4.6 mg',
+    },
   ),
   NutritionFood(
     name: 'Beef, flank, steak, boneless, choice, raw',
@@ -2227,7 +3221,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 9.4,
     sugar: 0,
     satFat: 3.5,
-    micros: {'Iron': '1.8 mg', 'Potassium': '332 mg', 'Sodium': '51.3 mg', 'Calcium': '3.8 mg'},
+    micros: {
+      'Iron': '1.8 mg',
+      'Potassium': '332 mg',
+      'Sodium': '51.3 mg',
+      'Calcium': '3.8 mg',
+    },
   ),
   NutritionFood(
     name: 'Beef, ground, 80% lean meat / 20% fat, raw',
@@ -2239,7 +3238,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 19.4,
     sugar: 0,
     satFat: 6.8,
-    micros: {'Iron': '2.0 mg', 'Potassium': '273 mg', 'Sodium': '54.9 mg', 'Calcium': '6.9 mg'},
+    micros: {
+      'Iron': '2.0 mg',
+      'Potassium': '273 mg',
+      'Sodium': '54.9 mg',
+      'Calcium': '6.9 mg',
+    },
   ),
   NutritionFood(
     name: 'Beef, ground, 90% lean meat / 10% fat, raw',
@@ -2251,10 +3255,16 @@ const List<NutritionFood> usdaFoods = [
     fat: 12.8,
     sugar: 0,
     satFat: 5,
-    micros: {'Iron': '2.1 mg', 'Potassium': '281 mg', 'Sodium': '61.6 mg', 'Calcium': '7.1 mg'},
+    micros: {
+      'Iron': '2.1 mg',
+      'Potassium': '281 mg',
+      'Sodium': '61.6 mg',
+      'Calcium': '7.1 mg',
+    },
   ),
   NutritionFood(
-    name: 'Beef, loin, tenderloin roast, separable lean only, boneless, trimmed to 0" fat, select, cooked, roasted',
+    name:
+        'Beef, loin, tenderloin roast, separable lean only, boneless, trimmed to 0" fat, select, cooked, roasted',
     category: 'Meat',
     serving: '1.0 roast (462.0g)',
     calories: 168,
@@ -2263,10 +3273,16 @@ const List<NutritionFood> usdaFoods = [
     fat: 6.4,
     sugar: 0,
     satFat: 2.5,
-    micros: {'Calcium': '13.0 mg', 'Potassium': '352 mg', 'Iron': '3.0 mg', 'Sodium': '54.0 mg'},
+    micros: {
+      'Calcium': '13.0 mg',
+      'Potassium': '352 mg',
+      'Iron': '3.0 mg',
+      'Sodium': '54.0 mg',
+    },
   ),
   NutritionFood(
-    name: 'Beef, loin, top loin steak, boneless, lip-on, separable lean only, trimmed to 1/8" fat, choice, raw',
+    name:
+        'Beef, loin, top loin steak, boneless, lip-on, separable lean only, trimmed to 1/8" fat, choice, raw',
     category: 'Meat',
     serving: '100g',
     calories: 149,
@@ -2275,7 +3291,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 6.4,
     sugar: 0,
     satFat: 2.6,
-    micros: {'Calcium': '15.0 mg', 'Potassium': '282 mg', 'Iron': '1.9 mg', 'Sodium': '45.0 mg'},
+    micros: {
+      'Calcium': '15.0 mg',
+      'Potassium': '282 mg',
+      'Iron': '1.9 mg',
+      'Sodium': '45.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Beef, ribeye, steak, boneless, choice, raw',
@@ -2287,10 +3308,16 @@ const List<NutritionFood> usdaFoods = [
     fat: 20,
     sugar: 0,
     satFat: 8,
-    micros: {'Iron': '1.6 mg', 'Potassium': '288 mg', 'Sodium': '42.5 mg', 'Calcium': '4.2 mg'},
+    micros: {
+      'Iron': '1.6 mg',
+      'Potassium': '288 mg',
+      'Sodium': '42.5 mg',
+      'Calcium': '4.2 mg',
+    },
   ),
   NutritionFood(
-    name: 'Beef, round, eye of round roast, boneless, separable lean only, trimmed to 0" fat, select, raw',
+    name:
+        'Beef, round, eye of round roast, boneless, separable lean only, trimmed to 0" fat, select, raw',
     category: 'Meat',
     serving: '1.0 roast (690.0g)',
     calories: 116,
@@ -2299,10 +3326,16 @@ const List<NutritionFood> usdaFoods = [
     fat: 2.5,
     sugar: 0,
     satFat: 1,
-    micros: {'Iron': '1.4 mg', 'Sodium': '50.0 mg', 'Calcium': '13.0 mg', 'Potassium': '312 mg'},
+    micros: {
+      'Iron': '1.4 mg',
+      'Sodium': '50.0 mg',
+      'Calcium': '13.0 mg',
+      'Potassium': '312 mg',
+    },
   ),
   NutritionFood(
-    name: 'Beef, round, top round roast, boneless, separable lean only, trimmed to 0" fat, select, raw',
+    name:
+        'Beef, round, top round roast, boneless, separable lean only, trimmed to 0" fat, select, raw',
     category: 'Meat',
     serving: '1.0 roast (788.0g)',
     calories: 116,
@@ -2311,7 +3344,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 2.4,
     sugar: 0,
     satFat: 0.9,
-    micros: {'Calcium': '13.0 mg', 'Potassium': '316 mg', 'Iron': '2.3 mg', 'Sodium': '55.0 mg'},
+    micros: {
+      'Calcium': '13.0 mg',
+      'Potassium': '316 mg',
+      'Iron': '2.3 mg',
+      'Sodium': '55.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Beef, round, top round, boneless, choice, raw',
@@ -2323,7 +3361,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 5.7,
     sugar: 0,
     satFat: 1.7,
-    micros: {'Iron': '1.9 mg', 'Potassium': '352 mg', 'Sodium': '45.5 mg', 'Calcium': '4.1 mg'},
+    micros: {
+      'Iron': '1.9 mg',
+      'Potassium': '352 mg',
+      'Sodium': '45.5 mg',
+      'Calcium': '4.1 mg',
+    },
   ),
   NutritionFood(
     name: 'Beef, short loin (NY strip steak), raw',
@@ -2335,10 +3378,16 @@ const List<NutritionFood> usdaFoods = [
     fat: 11.5,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '1.6 mg', 'Potassium': '323 mg', 'Sodium': '43.1 mg', 'Calcium': '5.0 mg'},
+    micros: {
+      'Iron': '1.6 mg',
+      'Potassium': '323 mg',
+      'Sodium': '43.1 mg',
+      'Calcium': '5.0 mg',
+    },
   ),
   NutritionFood(
-    name: 'Beef, short loin, porterhouse steak, separable lean only, trimmed to 1/8" fat, select, raw',
+    name:
+        'Beef, short loin, porterhouse steak, separable lean only, trimmed to 1/8" fat, select, raw',
     category: 'Meat',
     serving: '1.0 steak (525.0g)',
     calories: 138,
@@ -2347,10 +3396,16 @@ const List<NutritionFood> usdaFoods = [
     fat: 5.3,
     sugar: 0,
     satFat: 2.1,
-    micros: {'Calcium': '19.0 mg', 'Potassium': '266 mg', 'Iron': '2.3 mg', 'Sodium': '43.0 mg'},
+    micros: {
+      'Calcium': '19.0 mg',
+      'Potassium': '266 mg',
+      'Iron': '2.3 mg',
+      'Sodium': '43.0 mg',
+    },
   ),
   NutritionFood(
-    name: 'Beef, short loin, t-bone steak, bone-in, separable lean only, trimmed to 1/8" fat, choice, cooked, grilled',
+    name:
+        'Beef, short loin, t-bone steak, bone-in, separable lean only, trimmed to 1/8" fat, choice, cooked, grilled',
     category: 'Meat',
     serving: '1.0 steak (360.0g)',
     calories: 212,
@@ -2359,7 +3414,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 11.4,
     sugar: 0,
     satFat: 4.7,
-    micros: {'Iron': '3.5 mg', 'Sodium': '67.0 mg', 'Calcium': '19.0 mg', 'Potassium': '283 mg'},
+    micros: {
+      'Iron': '3.5 mg',
+      'Sodium': '67.0 mg',
+      'Calcium': '19.0 mg',
+      'Potassium': '283 mg',
+    },
   ),
   NutritionFood(
     name: 'Beef, top sirloin steak, raw',
@@ -2371,7 +3431,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 5.7,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '2.2 mg', 'Potassium': '349 mg', 'Sodium': '42.8 mg', 'Calcium': '3.7 mg'},
+    micros: {
+      'Iron': '2.2 mg',
+      'Potassium': '349 mg',
+      'Sodium': '42.8 mg',
+      'Calcium': '3.7 mg',
+    },
   ),
   NutritionFood(
     name: 'Beef, tenderloin steak, raw',
@@ -2383,7 +3448,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 6.5,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '2.5 mg', 'Potassium': '345 mg', 'Sodium': '44.8 mg', 'Calcium': '4.1 mg'},
+    micros: {
+      'Iron': '2.5 mg',
+      'Potassium': '345 mg',
+      'Sodium': '44.8 mg',
+      'Calcium': '4.1 mg',
+    },
   ),
   NutritionFood(
     name: 'Bison, ground, raw',
@@ -2395,7 +3465,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 8.9,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '2.2 mg', 'Potassium': '301 mg', 'Sodium': '55.7 mg', 'Calcium': '6.8 mg'},
+    micros: {
+      'Iron': '2.2 mg',
+      'Potassium': '301 mg',
+      'Sodium': '55.7 mg',
+      'Calcium': '6.8 mg',
+    },
   ),
   NutritionFood(
     name: 'Frankfurter, beef, unheated',
@@ -2407,7 +3482,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 28,
     sugar: 1.3,
     satFat: 11.4,
-    micros: {'Calcium': '15.0 mg', 'Potassium': '343 mg', 'Iron': '1.1 mg', 'Sodium': '872 mg'},
+    micros: {
+      'Calcium': '15.0 mg',
+      'Potassium': '343 mg',
+      'Iron': '1.1 mg',
+      'Sodium': '872 mg',
+    },
   ),
   NutritionFood(
     name: 'Ham, sliced, pre-packaged, deli meat (96%fat free, water added)',
@@ -2419,7 +3499,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 3.7,
     sugar: 0,
     satFat: 1.1,
-    micros: {'Iron': '0.6 mg', 'Sodium': '1040.0 mg', 'Potassium': '425 mg', 'Calcium': '5.0 mg'},
+    micros: {
+      'Iron': '0.6 mg',
+      'Sodium': '1040.0 mg',
+      'Potassium': '425 mg',
+      'Calcium': '5.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Ham, sliced, restaurant',
@@ -2431,7 +3516,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 3.7,
     sugar: 2.2,
     satFat: 1.2,
-    micros: {'Calcium': '6.0 mg', 'Iron': '0.9 mg', 'Potassium': '484 mg', 'Sodium': '1030.0 mg'},
+    micros: {
+      'Calcium': '6.0 mg',
+      'Iron': '0.9 mg',
+      'Potassium': '484 mg',
+      'Sodium': '1030.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Lamb, ground, raw',
@@ -2443,7 +3533,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 18.6,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '1.6 mg', 'Potassium': '272 mg', 'Sodium': '53.4 mg', 'Calcium': '6.6 mg'},
+    micros: {
+      'Iron': '1.6 mg',
+      'Potassium': '272 mg',
+      'Sodium': '53.4 mg',
+      'Calcium': '6.6 mg',
+    },
   ),
   NutritionFood(
     name: 'Pork, belly, with skin, raw',
@@ -2455,7 +3550,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 35.8,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.4 mg', 'Potassium': '208 mg', 'Sodium': '49.7 mg', 'Calcium': '4.2 mg'},
+    micros: {
+      'Iron': '0.4 mg',
+      'Potassium': '208 mg',
+      'Sodium': '49.7 mg',
+      'Calcium': '4.2 mg',
+    },
   ),
   NutritionFood(
     name: 'Pork, chop, center cut, raw',
@@ -2467,7 +3567,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 5.5,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.4 mg', 'Potassium': '366 mg', 'Sodium': '39.3 mg', 'Calcium': '4.1 mg'},
+    micros: {
+      'Iron': '0.4 mg',
+      'Potassium': '366 mg',
+      'Sodium': '39.3 mg',
+      'Calcium': '4.1 mg',
+    },
   ),
   NutritionFood(
     name: 'Pork, cured, bacon, cooked, restaurant',
@@ -2479,7 +3584,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 36.5,
     sugar: 3.1,
     satFat: 12.6,
-    micros: {'Calcium': '13.0 mg', 'Iron': '1.3 mg', 'Potassium': '557 mg', 'Sodium': '1830.0 mg'},
+    micros: {
+      'Calcium': '13.0 mg',
+      'Iron': '1.3 mg',
+      'Potassium': '557 mg',
+      'Sodium': '1830.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Pork, ground, raw',
@@ -2491,7 +3601,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 17.5,
     sugar: 0,
     satFat: 6.3,
-    micros: {'Iron': '0.8 mg', 'Potassium': '318 mg', 'Sodium': '53.6 mg', 'Calcium': '5.9 mg'},
+    micros: {
+      'Iron': '0.8 mg',
+      'Potassium': '318 mg',
+      'Sodium': '53.6 mg',
+      'Calcium': '5.9 mg',
+    },
   ),
   NutritionFood(
     name: 'Pork, loin, boneless, raw',
@@ -2503,7 +3618,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 9.5,
     sugar: 0,
     satFat: 3.3,
-    micros: {'Iron': '0.5 mg', 'Potassium': '361 mg', 'Sodium': '40.2 mg', 'Calcium': '4.1 mg'},
+    micros: {
+      'Iron': '0.5 mg',
+      'Potassium': '361 mg',
+      'Sodium': '40.2 mg',
+      'Calcium': '4.1 mg',
+    },
   ),
   NutritionFood(
     name: 'Pork, loin, tenderloin, boneless, raw',
@@ -2515,7 +3635,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 3.9,
     sugar: 0,
     satFat: 0.9,
-    micros: {'Iron': '0.9 mg', 'Potassium': '397 mg', 'Sodium': '41.4 mg', 'Calcium': '4.5 mg'},
+    micros: {
+      'Iron': '0.9 mg',
+      'Potassium': '397 mg',
+      'Sodium': '41.4 mg',
+      'Calcium': '4.5 mg',
+    },
   ),
   NutritionFood(
     name: 'Sausage, Italian, pork, mild, cooked, pan-fried',
@@ -2527,7 +3652,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 26.2,
     sugar: 1.5,
     satFat: 9.2,
-    micros: {'Calcium': '12.0 mg', 'Potassium': '310 mg', 'Iron': '1.3 mg', 'Sodium': '766 mg'},
+    micros: {
+      'Calcium': '12.0 mg',
+      'Potassium': '310 mg',
+      'Iron': '1.3 mg',
+      'Sodium': '766 mg',
+    },
   ),
   NutritionFood(
     name: 'Sausage, breakfast sausage, beef, pre-cooked, unprepared',
@@ -2539,7 +3669,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 28.7,
     sugar: 1,
     satFat: 11.3,
-    micros: {'Calcium': '35.0 mg', 'Potassium': '263 mg', 'Vitamin C': '19.2 mg', 'Iron': '1.6 mg', 'Sodium': '866 mg'},
+    micros: {
+      'Calcium': '35.0 mg',
+      'Potassium': '263 mg',
+      'Vitamin C': '19.2 mg',
+      'Iron': '1.6 mg',
+      'Sodium': '866 mg',
+    },
   ),
   NutritionFood(
     name: 'Sausage, pork, chorizo, link or ground, cooked, pan-fried',
@@ -2551,7 +3687,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 28.1,
     sugar: 0,
     satFat: 9.4,
-    micros: {'Calcium': '37.0 mg', 'Iron': '2.3 mg', 'Potassium': '435 mg', 'Sodium': '983 mg'},
+    micros: {
+      'Calcium': '37.0 mg',
+      'Iron': '2.3 mg',
+      'Potassium': '435 mg',
+      'Sodium': '983 mg',
+    },
   ),
   NutritionFood(
     name: 'Sausage, turkey, breakfast links, mild, raw',
@@ -2563,7 +3704,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 10.4,
     sugar: 0,
     satFat: 2.5,
-    micros: {'Iron': '1.2 mg', 'Sodium': '599 mg', 'Calcium': '32.0 mg', 'Potassium': '310 mg'},
+    micros: {
+      'Iron': '1.2 mg',
+      'Sodium': '599 mg',
+      'Calcium': '32.0 mg',
+      'Potassium': '310 mg',
+    },
   ),
   NutritionFood(
     name: 'Almond butter, creamy',
@@ -2575,7 +3721,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 53,
     sugar: 0,
     satFat: 4.2,
-    micros: {'Fiber': '9.7 g', 'Calcium': '264 mg', 'Iron': '4.1 mg', 'Potassium': '745 mg', 'Sodium': '1.0 mg'},
+    micros: {
+      'Fiber': '9.7 g',
+      'Calcium': '264 mg',
+      'Iron': '4.1 mg',
+      'Potassium': '745 mg',
+      'Sodium': '1.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Flaxseed, ground',
@@ -2587,7 +3739,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 37.3,
     sugar: 0,
     satFat: 3.3,
-    micros: {'Fiber': '23.1 g', 'Calcium': '230 mg', 'Iron': '5.8 mg', 'Potassium': '793 mg', 'Sodium': '36.7 mg'},
+    micros: {
+      'Fiber': '23.1 g',
+      'Calcium': '230 mg',
+      'Iron': '5.8 mg',
+      'Potassium': '793 mg',
+      'Sodium': '36.7 mg',
+    },
   ),
   NutritionFood(
     name: 'Flour, almond',
@@ -2599,7 +3757,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 50.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '3.2 mg', 'Potassium': '667 mg', 'Sodium': '0.9 mg', 'Fiber': '9.3 g', 'Calcium': '232 mg'},
+    micros: {
+      'Iron': '3.2 mg',
+      'Potassium': '667 mg',
+      'Sodium': '0.9 mg',
+      'Fiber': '9.3 g',
+      'Calcium': '232 mg',
+    },
   ),
   NutritionFood(
     name: 'Flour, chestnut',
@@ -2611,7 +3775,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 4.6,
     sugar: 0,
     satFat: 0.7,
-    micros: {'Iron': '1.6 mg', 'Potassium': '1030.0 mg', 'Sodium': '0.0 mg', 'Vitamin C': '4.0 mg', 'Fiber': '8.7 g', 'Calcium': '55.8 mg'},
+    micros: {
+      'Iron': '1.6 mg',
+      'Potassium': '1030.0 mg',
+      'Sodium': '0.0 mg',
+      'Vitamin C': '4.0 mg',
+      'Fiber': '8.7 g',
+      'Calcium': '55.8 mg',
+    },
   ),
   NutritionFood(
     name: 'Flour, coconut',
@@ -2623,7 +3794,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 15.3,
     sugar: 0,
     satFat: 14,
-    micros: {'Iron': '8.0 mg', 'Potassium': '2090.0 mg', 'Sodium': '46.9 mg', 'Fiber': '34.2 g', 'Calcium': '36.0 mg'},
+    micros: {
+      'Iron': '8.0 mg',
+      'Potassium': '2090.0 mg',
+      'Sodium': '46.9 mg',
+      'Fiber': '34.2 g',
+      'Calcium': '36.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Nuts, almonds, dry roasted, with salt added',
@@ -2635,7 +3812,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 57.8,
     sugar: 4.2,
     satFat: 4.6,
-    micros: {'Vitamin C': '0.0 mg', 'Calcium': '273 mg', 'Potassium': '684 mg', 'Iron': '3.2 mg', 'Fiber': '11.0 g', 'Sodium': '256 mg'},
+    micros: {
+      'Vitamin C': '0.0 mg',
+      'Calcium': '273 mg',
+      'Potassium': '684 mg',
+      'Iron': '3.2 mg',
+      'Fiber': '11.0 g',
+      'Sodium': '256 mg',
+    },
   ),
   NutritionFood(
     name: 'Nuts, almonds, whole, raw',
@@ -2647,7 +3831,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 51.1,
     sugar: 0,
     satFat: 3.8,
-    micros: {'Iron': '3.7 mg', 'Potassium': '733 mg', 'Sodium': '0.0 mg', 'Fiber': '10.8 g', 'Calcium': '254 mg'},
+    micros: {
+      'Iron': '3.7 mg',
+      'Potassium': '733 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '10.8 g',
+      'Calcium': '254 mg',
+    },
   ),
   NutritionFood(
     name: 'Nuts, brazilnuts, raw',
@@ -2659,7 +3849,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 57.4,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '2.5 mg', 'Potassium': '592 mg', 'Sodium': '0.0 mg', 'Fiber': '6.0 g', 'Calcium': '168 mg'},
+    micros: {
+      'Iron': '2.5 mg',
+      'Potassium': '592 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '6.0 g',
+      'Calcium': '168 mg',
+    },
   ),
   NutritionFood(
     name: 'Nuts, cashew nuts, raw',
@@ -2671,7 +3867,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 38.9,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '6.0 mg', 'Potassium': '638 mg', 'Sodium': '4.8 mg', 'Fiber': '4.1 g', 'Calcium': '42.0 mg'},
+    micros: {
+      'Iron': '6.0 mg',
+      'Potassium': '638 mg',
+      'Sodium': '4.8 mg',
+      'Fiber': '4.1 g',
+      'Calcium': '42.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Nuts, hazelnuts or filberts, raw',
@@ -2683,7 +3885,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 53.5,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '3.5 mg', 'Potassium': '636 mg', 'Sodium': '0.0 mg', 'Fiber': '8.4 g', 'Calcium': '135 mg'},
+    micros: {
+      'Iron': '3.5 mg',
+      'Potassium': '636 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '8.4 g',
+      'Calcium': '135 mg',
+    },
   ),
   NutritionFood(
     name: 'Nuts, macadamia nuts, raw',
@@ -2695,7 +3903,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 64.9,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '1.9 mg', 'Potassium': '373 mg', 'Sodium': '0.0 mg', 'Fiber': '7.6 g', 'Calcium': '52.7 mg'},
+    micros: {
+      'Iron': '1.9 mg',
+      'Potassium': '373 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '7.6 g',
+      'Calcium': '52.7 mg',
+    },
   ),
   NutritionFood(
     name: 'Nuts, pecans, halves, raw',
@@ -2707,7 +3921,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 73.3,
     sugar: 0,
     satFat: 6.5,
-    micros: {'Iron': '2.4 mg', 'Potassium': '360 mg', 'Sodium': '0.0 mg', 'Fiber': '5.8 g', 'Calcium': '54.8 mg'},
+    micros: {
+      'Iron': '2.4 mg',
+      'Potassium': '360 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '5.8 g',
+      'Calcium': '54.8 mg',
+    },
   ),
   NutritionFood(
     name: 'Nuts, pine nuts, raw',
@@ -2719,7 +3939,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 61.3,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '5.4 mg', 'Potassium': '655 mg', 'Sodium': '0.0 mg', 'Fiber': '3.9 g', 'Calcium': '8.7 mg'},
+    micros: {
+      'Iron': '5.4 mg',
+      'Potassium': '655 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '3.9 g',
+      'Calcium': '8.7 mg',
+    },
   ),
   NutritionFood(
     name: 'Nuts, pistachio nuts, raw',
@@ -2731,7 +3957,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 45,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '3.5 mg', 'Potassium': '947 mg', 'Sodium': '0.0 mg', 'Fiber': '7.0 g', 'Calcium': '117 mg'},
+    micros: {
+      'Iron': '3.5 mg',
+      'Potassium': '947 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '7.0 g',
+      'Calcium': '117 mg',
+    },
   ),
   NutritionFood(
     name: 'Nuts, walnuts, English, halves, raw',
@@ -2743,7 +3975,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 69.7,
     sugar: 0,
     satFat: 6,
-    micros: {'Iron': '2.2 mg', 'Potassium': '424 mg', 'Sodium': '0.0 mg', 'Fiber': '5.2 g', 'Calcium': '88.3 mg'},
+    micros: {
+      'Iron': '2.2 mg',
+      'Potassium': '424 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '5.2 g',
+      'Calcium': '88.3 mg',
+    },
   ),
   NutritionFood(
     name: 'Seeds, pumpkin seeds (pepitas), raw',
@@ -2755,7 +3993,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 40,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '8.4 mg', 'Potassium': '691 mg', 'Sodium': '0.0 mg', 'Fiber': '5.1 g', 'Calcium': '37.4 mg'},
+    micros: {
+      'Iron': '8.4 mg',
+      'Potassium': '691 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '5.1 g',
+      'Calcium': '37.4 mg',
+    },
   ),
   NutritionFood(
     name: 'Seeds, sunflower seed kernels, dry roasted, with salt added',
@@ -2767,7 +4011,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 56.1,
     sugar: 3.1,
     satFat: 5.4,
-    micros: {'Fiber': '10.3 g', 'Sodium': '532 mg', 'Calcium': '78.0 mg', 'Potassium': '689 mg', 'Vitamin C': '0.0 mg', 'Iron': '5.2 mg'},
+    micros: {
+      'Fiber': '10.3 g',
+      'Sodium': '532 mg',
+      'Calcium': '78.0 mg',
+      'Potassium': '689 mg',
+      'Vitamin C': '0.0 mg',
+      'Iron': '5.2 mg',
+    },
   ),
   NutritionFood(
     name: 'Seeds, sunflower seed, kernel, raw',
@@ -2779,7 +4030,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 48.4,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '4.4 mg', 'Potassium': '657 mg', 'Sodium': '0.0 mg', 'Fiber': '7.2 g', 'Calcium': '116 mg'},
+    micros: {
+      'Iron': '4.4 mg',
+      'Potassium': '657 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '7.2 g',
+      'Calcium': '116 mg',
+    },
   ),
   NutritionFood(
     name: 'Sesame butter, creamy',
@@ -2791,7 +4048,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 62.4,
     sugar: 0,
     satFat: 9,
-    micros: {'Fiber': '8.4 g', 'Calcium': '116 mg', 'Iron': '7.0 mg', 'Potassium': '408 mg', 'Sodium': '63.6 mg'},
+    micros: {
+      'Fiber': '8.4 g',
+      'Calcium': '116 mg',
+      'Iron': '7.0 mg',
+      'Potassium': '408 mg',
+      'Sodium': '63.6 mg',
+    },
   ),
   NutritionFood(
     name: 'Mustard, prepared, yellow',
@@ -2803,7 +4066,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 3.4,
     sugar: 1.4,
     satFat: 0.3,
-    micros: {'Vitamin C': '0.4 mg', 'Fiber': '4.3 g', 'Iron': '1.6 mg', 'Sodium': '1100.0 mg', 'Calcium': '63.0 mg', 'Potassium': '150 mg'},
+    micros: {
+      'Vitamin C': '0.4 mg',
+      'Fiber': '4.3 g',
+      'Iron': '1.6 mg',
+      'Sodium': '1100.0 mg',
+      'Calcium': '63.0 mg',
+      'Potassium': '150 mg',
+    },
   ),
   NutritionFood(
     name: 'Salt, table, iodized',
@@ -2815,7 +4085,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Sodium': '38700.0 mg', 'Calcium': '50.0 mg', 'Potassium': '2.0 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Sodium': '38700.0 mg',
+      'Calcium': '50.0 mg',
+      'Potassium': '2.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Chicken, breast, boneless, skinless, raw',
@@ -2827,7 +4102,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.9,
     sugar: 0,
     satFat: 0.3,
-    micros: {'Iron': '0.4 mg', 'Potassium': '330 mg', 'Sodium': '65.8 mg', 'Calcium': '3.9 mg'},
+    micros: {
+      'Iron': '0.4 mg',
+      'Potassium': '330 mg',
+      'Sodium': '65.8 mg',
+      'Calcium': '3.9 mg',
+    },
   ),
   NutritionFood(
     name: 'Chicken, breast, meat and skin, raw',
@@ -2839,10 +4119,16 @@ const List<NutritionFood> usdaFoods = [
     fat: 4.8,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.4 mg', 'Potassium': '332 mg', 'Sodium': '48.1 mg', 'Calcium': '6.9 mg'},
+    micros: {
+      'Iron': '0.4 mg',
+      'Potassium': '332 mg',
+      'Sodium': '48.1 mg',
+      'Calcium': '6.9 mg',
+    },
   ),
   NutritionFood(
-    name: 'Chicken, broiler or fryers, breast, skinless, boneless, meat only, cooked, braised',
+    name:
+        'Chicken, broiler or fryers, breast, skinless, boneless, meat only, cooked, braised',
     category: 'Poultry',
     serving: '1.0 piece (174.0g)',
     calories: 157,
@@ -2851,7 +4137,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 3.2,
     sugar: 0,
     satFat: 1,
-    micros: {'Calcium': '6.0 mg', 'Potassium': '343 mg', 'Iron': '0.5 mg', 'Sodium': '47.0 mg'},
+    micros: {
+      'Calcium': '6.0 mg',
+      'Potassium': '343 mg',
+      'Iron': '0.5 mg',
+      'Sodium': '47.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Chicken, broilers or fryers, drumstick, meat only, cooked, braised',
@@ -2863,7 +4154,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 6,
     sugar: 0,
     satFat: 1.6,
-    micros: {'Iron': '0.9 mg', 'Sodium': '117 mg', 'Calcium': '12.0 mg', 'Potassium': '239 mg'},
+    micros: {
+      'Iron': '0.9 mg',
+      'Sodium': '117 mg',
+      'Calcium': '12.0 mg',
+      'Potassium': '239 mg',
+    },
   ),
   NutritionFood(
     name: 'Chicken, drumstick, meat and skin, raw',
@@ -2875,7 +4171,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 5.9,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.7 mg', 'Potassium': '244 mg', 'Sodium': '91.0 mg', 'Calcium': '8.3 mg'},
+    micros: {
+      'Iron': '0.7 mg',
+      'Potassium': '244 mg',
+      'Sodium': '91.0 mg',
+      'Calcium': '8.3 mg',
+    },
   ),
   NutritionFood(
     name: 'Chicken, ground, with additives, raw',
@@ -2887,7 +4188,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 7.2,
     sugar: 0,
     satFat: 1.6,
-    micros: {'Iron': '0.6 mg', 'Potassium': '302 mg', 'Sodium': '63.0 mg', 'Calcium': '5.8 mg'},
+    micros: {
+      'Iron': '0.6 mg',
+      'Potassium': '302 mg',
+      'Sodium': '63.0 mg',
+      'Calcium': '5.8 mg',
+    },
   ),
   NutritionFood(
     name: 'Chicken, thigh, boneless, skinless, raw',
@@ -2899,7 +4205,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 7.9,
     sugar: 0,
     satFat: 1.7,
-    micros: {'Iron': '0.6 mg', 'Potassium': '272 mg', 'Sodium': '62.3 mg', 'Calcium': '5.7 mg'},
+    micros: {
+      'Iron': '0.6 mg',
+      'Potassium': '272 mg',
+      'Sodium': '62.3 mg',
+      'Calcium': '5.7 mg',
+    },
   ),
   NutritionFood(
     name: 'Chicken, thigh, meat and skin, raw',
@@ -2911,7 +4222,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 13.4,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.6 mg', 'Potassium': '246 mg', 'Sodium': '63.6 mg', 'Calcium': '5.7 mg'},
+    micros: {
+      'Iron': '0.6 mg',
+      'Potassium': '246 mg',
+      'Sodium': '63.6 mg',
+      'Calcium': '5.7 mg',
+    },
   ),
   NutritionFood(
     name: 'Chicken, wing, meat and skin, raw',
@@ -2923,7 +4239,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 10.6,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.5 mg', 'Potassium': '194 mg', 'Sodium': '84.1 mg', 'Calcium': '13.6 mg'},
+    micros: {
+      'Iron': '0.5 mg',
+      'Potassium': '194 mg',
+      'Sodium': '84.1 mg',
+      'Calcium': '13.6 mg',
+    },
   ),
   NutritionFood(
     name: 'Turkey, ground, 93% lean, 7% fat, pan-broiled crumbles',
@@ -2935,7 +4256,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 11.6,
     sugar: 0,
     satFat: 3,
-    micros: {'Calcium': '31.0 mg', 'Potassium': '304 mg', 'Iron': '1.6 mg', 'Sodium': '90.0 mg'},
+    micros: {
+      'Calcium': '31.0 mg',
+      'Potassium': '304 mg',
+      'Iron': '1.6 mg',
+      'Sodium': '90.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Turkey, ground, 93% lean/ 7% fat, raw',
@@ -2947,7 +4273,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 9.6,
     sugar: 0,
     satFat: 2.3,
-    micros: {'Iron': '1.1 mg', 'Potassium': '246 mg', 'Sodium': '80.2 mg', 'Calcium': '23.6 mg'},
+    micros: {
+      'Iron': '1.1 mg',
+      'Potassium': '246 mg',
+      'Sodium': '80.2 mg',
+      'Calcium': '23.6 mg',
+    },
   ),
   NutritionFood(
     name: 'Restaurant, Chinese, fried rice, without meat',
@@ -2959,7 +4290,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 3.2,
     sugar: 0.6,
     satFat: 0.5,
-    micros: {'Calcium': '11.0 mg', 'Potassium': '69.0 mg', 'Sodium': '361 mg', 'Iron': '0.5 mg'},
+    micros: {
+      'Calcium': '11.0 mg',
+      'Potassium': '69.0 mg',
+      'Sodium': '361 mg',
+      'Iron': '0.5 mg',
+    },
   ),
   NutritionFood(
     name: 'Restaurant, Chinese, sweet and sour pork',
@@ -2971,7 +4307,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 13.6,
     sugar: 10.3,
     satFat: 2.7,
-    micros: {'Fiber': '1.0 g', 'Iron': '3.1 mg', 'Sodium': '304 mg', 'Vitamin C': '2.3 mg', 'Calcium': '46.0 mg', 'Potassium': '152 mg'},
+    micros: {
+      'Fiber': '1.0 g',
+      'Iron': '3.1 mg',
+      'Sodium': '304 mg',
+      'Vitamin C': '2.3 mg',
+      'Calcium': '46.0 mg',
+      'Potassium': '152 mg',
+    },
   ),
   NutritionFood(
     name: 'Restaurant, Latino, pupusas con frijoles (pupusas, bean)',
@@ -2983,7 +4326,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 9,
     sugar: 1.3,
     satFat: 2.2,
-    micros: {'Fiber': '5.8 g', 'Iron': '1.5 mg', 'Sodium': '305 mg', 'Calcium': '51.0 mg', 'Potassium': '305 mg'},
+    micros: {
+      'Fiber': '5.8 g',
+      'Iron': '1.5 mg',
+      'Sodium': '305 mg',
+      'Calcium': '51.0 mg',
+      'Potassium': '305 mg',
+    },
   ),
   NutritionFood(
     name: 'Restaurant, Latino, tamale, pork',
@@ -2995,7 +4344,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 9,
     sugar: 0.5,
     satFat: 2.7,
-    micros: {'Fiber': '2.4 g', 'Iron': '0.9 mg', 'Sodium': '473 mg', 'Calcium': '75.0 mg', 'Potassium': '152 mg'},
+    micros: {
+      'Fiber': '2.4 g',
+      'Iron': '0.9 mg',
+      'Sodium': '473 mg',
+      'Calcium': '75.0 mg',
+      'Potassium': '152 mg',
+    },
   ),
   NutritionFood(
     name: 'Sauce, pasta, spaghetti/marinara, ready-to-serve',
@@ -3007,7 +4362,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.5,
     sugar: 5.5,
     satFat: 0.2,
-    micros: {'Fiber': '1.8 g', 'Calcium': '27.0 mg', 'Potassium': '319 mg', 'Iron': '0.8 mg', 'Sodium': '419 mg'},
+    micros: {
+      'Fiber': '1.8 g',
+      'Calcium': '27.0 mg',
+      'Potassium': '319 mg',
+      'Iron': '0.8 mg',
+      'Sodium': '419 mg',
+    },
   ),
   NutritionFood(
     name: 'Sauce, salsa, ready-to-serve',
@@ -3019,7 +4380,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 3.8,
     satFat: 0,
-    micros: {'Sodium': '656 mg', 'Iron': '0.4 mg', 'Potassium': '258 mg', 'Calcium': '28.0 mg', 'Fiber': '1.8 g'},
+    micros: {
+      'Sodium': '656 mg',
+      'Iron': '0.4 mg',
+      'Potassium': '258 mg',
+      'Calcium': '28.0 mg',
+      'Fiber': '1.8 g',
+    },
   ),
   NutritionFood(
     name: 'Anchovies, canned in olive oil, with salt, drained',
@@ -3031,7 +4398,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 9.8,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '2.7 mg', 'Potassium': '298 mg', 'Sodium': '5400.0 mg', 'Calcium': '240 mg'},
+    micros: {
+      'Iron': '2.7 mg',
+      'Potassium': '298 mg',
+      'Sodium': '5400.0 mg',
+      'Calcium': '240 mg',
+    },
   ),
   NutritionFood(
     name: 'Cod, Pacific or Alaskan, frozen, wild caught',
@@ -3043,7 +4415,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '192 mg', 'Sodium': '354 mg', 'Calcium': '9.0 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '192 mg',
+      'Sodium': '354 mg',
+      'Calcium': '9.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Crustaceans, crab, blue swimming, lump, pasteurized, refrigerated',
@@ -3055,7 +4432,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.8,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.6 mg', 'Potassium': '235 mg', 'Sodium': '331 mg', 'Calcium': '111 mg'},
+    micros: {
+      'Iron': '0.6 mg',
+      'Potassium': '235 mg',
+      'Sodium': '331 mg',
+      'Calcium': '111 mg',
+    },
   ),
   NutritionFood(
     name: 'Crustaceans, shrimp, farm raised, raw',
@@ -3067,7 +4449,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.8,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.5 mg', 'Potassium': '146 mg', 'Sodium': '475 mg', 'Calcium': '64.6 mg'},
+    micros: {
+      'Iron': '0.5 mg',
+      'Potassium': '146 mg',
+      'Sodium': '475 mg',
+      'Calcium': '64.6 mg',
+    },
   ),
   NutritionFood(
     name: 'Fish, catfish, farm raised, raw',
@@ -3079,7 +4466,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 7.3,
     sugar: 0,
     satFat: 1.6,
-    micros: {'Iron': '0.0 mg', 'Potassium': '292 mg', 'Sodium': '60.5 mg', 'Calcium': '7.8 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '292 mg',
+      'Sodium': '60.5 mg',
+      'Calcium': '7.8 mg',
+    },
   ),
   NutritionFood(
     name: 'Fish, cod, Atlantic, wild caught, raw',
@@ -3091,7 +4483,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.7,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.1 mg', 'Potassium': '245 mg', 'Sodium': '299 mg', 'Calcium': '6.6 mg'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Potassium': '245 mg',
+      'Sodium': '299 mg',
+      'Calcium': '6.6 mg',
+    },
   ),
   NutritionFood(
     name: 'Fish, haddock, raw',
@@ -3103,7 +4500,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.5,
     sugar: 0,
     satFat: 0.1,
-    micros: {'Calcium': '11.0 mg', 'Potassium': '286 mg', 'Iron': '0.2 mg', 'Sodium': '213 mg'},
+    micros: {
+      'Calcium': '11.0 mg',
+      'Potassium': '286 mg',
+      'Iron': '0.2 mg',
+      'Sodium': '213 mg',
+    },
   ),
   NutritionFood(
     name: 'Fish, pollock, raw',
@@ -3115,7 +4517,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.4,
     sugar: 0,
     satFat: 0.1,
-    micros: {'Calcium': '15.0 mg', 'Potassium': '160 mg', 'Iron': '0.2 mg', 'Sodium': '333 mg', 'Vitamin C': '0.0 mg'},
+    micros: {
+      'Calcium': '15.0 mg',
+      'Potassium': '160 mg',
+      'Iron': '0.2 mg',
+      'Sodium': '333 mg',
+      'Vitamin C': '0.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Fish, salmon, Atlantic, farm raised, raw',
@@ -3127,7 +4535,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 13.1,
     sugar: 0,
     satFat: 2.3,
-    micros: {'Iron': '0.3 mg', 'Potassium': '378 mg', 'Sodium': '49.5 mg', 'Calcium': '9.4 mg'},
+    micros: {
+      'Iron': '0.3 mg',
+      'Potassium': '378 mg',
+      'Sodium': '49.5 mg',
+      'Calcium': '9.4 mg',
+    },
   ),
   NutritionFood(
     name: 'Fish, salmon, sockeye, wild caught, raw',
@@ -3139,7 +4552,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 4.9,
     sugar: 0,
     satFat: 0.7,
-    micros: {'Iron': '0.4 mg', 'Potassium': '330 mg', 'Sodium': '53.3 mg', 'Calcium': '14.8 mg'},
+    micros: {
+      'Iron': '0.4 mg',
+      'Potassium': '330 mg',
+      'Sodium': '53.3 mg',
+      'Calcium': '14.8 mg',
+    },
   ),
   NutritionFood(
     name: 'Fish, tilapia, farm raised, raw',
@@ -3151,7 +4569,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 2.5,
     sugar: 0,
     satFat: 0.6,
-    micros: {'Iron': '0.0 mg', 'Potassium': '342 mg', 'Sodium': '93.7 mg', 'Calcium': '8.6 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '342 mg',
+      'Sodium': '93.7 mg',
+      'Calcium': '8.6 mg',
+    },
   ),
   NutritionFood(
     name: 'Fish, tuna, light, canned in water, drained solids',
@@ -3163,7 +4586,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.9,
     sugar: 0,
     satFat: 0.2,
-    micros: {'Calcium': '18.0 mg', 'Potassium': '176 mg', 'Iron': '1.7 mg', 'Sodium': '219 mg'},
+    micros: {
+      'Calcium': '18.0 mg',
+      'Potassium': '176 mg',
+      'Iron': '1.7 mg',
+      'Sodium': '219 mg',
+    },
   ),
   NutritionFood(
     name: 'Halibut, frozen, wild caught',
@@ -3175,7 +4603,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.6,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '430 mg', 'Sodium': '108 mg', 'Calcium': '4.1 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '430 mg',
+      'Sodium': '108 mg',
+      'Calcium': '4.1 mg',
+    },
   ),
   NutritionFood(
     name: 'Lobster, tail only, frozen, wild caught',
@@ -3187,7 +4620,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.4,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.2 mg', 'Potassium': '213 mg', 'Sodium': '509 mg', 'Calcium': '71.6 mg'},
+    micros: {
+      'Iron': '0.2 mg',
+      'Potassium': '213 mg',
+      'Sodium': '509 mg',
+      'Calcium': '71.6 mg',
+    },
   ),
   NutritionFood(
     name: 'Mahi mahi, frozen, wild caught',
@@ -3199,7 +4637,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.4,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.1 mg', 'Potassium': '408 mg', 'Sodium': '51.9 mg', 'Calcium': '6.0 mg'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Potassium': '408 mg',
+      'Sodium': '51.9 mg',
+      'Calcium': '6.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Scallops, bay, Patagonian, frozen, wild caught',
@@ -3211,7 +4654,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.4,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.2 mg', 'Potassium': '292 mg', 'Sodium': '252 mg', 'Calcium': '14.0 mg'},
+    micros: {
+      'Iron': '0.2 mg',
+      'Potassium': '292 mg',
+      'Sodium': '252 mg',
+      'Calcium': '14.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Scallops, sea, frozen, wild caught',
@@ -3223,7 +4671,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.5,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.2 mg', 'Potassium': '245 mg', 'Sodium': '313 mg', 'Calcium': '10.5 mg'},
+    micros: {
+      'Iron': '0.2 mg',
+      'Potassium': '245 mg',
+      'Sodium': '313 mg',
+      'Calcium': '10.5 mg',
+    },
   ),
   NutritionFood(
     name: 'Sea bass, Chilean, frozen, wild caught',
@@ -3235,7 +4688,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 16.6,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '236 mg', 'Sodium': '109 mg', 'Calcium': '6.8 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '236 mg',
+      'Sodium': '109 mg',
+      'Calcium': '6.8 mg',
+    },
   ),
   NutritionFood(
     name: 'Snapper, frozen, wild caught',
@@ -3247,7 +4705,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.6,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.2 mg', 'Potassium': '349 mg', 'Sodium': '93.1 mg', 'Calcium': '13.9 mg'},
+    micros: {
+      'Iron': '0.2 mg',
+      'Potassium': '349 mg',
+      'Sodium': '93.1 mg',
+      'Calcium': '13.9 mg',
+    },
   ),
   NutritionFood(
     name: 'Snow crab, legs only, frozen',
@@ -3259,7 +4722,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.3,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.3 mg', 'Potassium': '193 mg', 'Sodium': '728 mg', 'Calcium': '97.8 mg'},
+    micros: {
+      'Iron': '0.3 mg',
+      'Potassium': '193 mg',
+      'Sodium': '728 mg',
+      'Calcium': '97.8 mg',
+    },
   ),
   NutritionFood(
     name: 'Squid (calamari), frozen, tubes only',
@@ -3271,7 +4739,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.6,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '9.5 mg', 'Sodium': '272 mg', 'Calcium': '10.6 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '9.5 mg',
+      'Sodium': '272 mg',
+      'Calcium': '10.6 mg',
+    },
   ),
   NutritionFood(
     name: 'Swordfish, frozen, wild caught',
@@ -3283,7 +4756,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 8.1,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.1 mg', 'Potassium': '414 mg', 'Sodium': '56.9 mg', 'Calcium': '3.6 mg'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Potassium': '414 mg',
+      'Sodium': '56.9 mg',
+      'Calcium': '3.6 mg',
+    },
   ),
   NutritionFood(
     name: 'Tuna, ahi or yellowfin, frozen, wild caught',
@@ -3295,7 +4773,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.4,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.6 mg', 'Potassium': '420 mg', 'Sodium': '94.4 mg', 'Calcium': '3.2 mg'},
+    micros: {
+      'Iron': '0.6 mg',
+      'Potassium': '420 mg',
+      'Sodium': '94.4 mg',
+      'Calcium': '3.2 mg',
+    },
   ),
   NutritionFood(
     name: 'Sugars, granulated',
@@ -3307,7 +4790,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.3,
     sugar: 99.8,
     satFat: 0,
-    micros: {'Iron': '0.1 mg', 'Sodium': '1.0 mg', 'Calcium': '1.0 mg', 'Potassium': '2.0 mg'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Sodium': '1.0 mg',
+      'Calcium': '1.0 mg',
+      'Potassium': '2.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Arugula, baby, raw',
@@ -3319,7 +4807,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.3,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '1.4 mg', 'Potassium': '407 mg', 'Sodium': '86.9 mg', 'Vitamin C': '101 mg', 'Fiber': '2.3 g', 'Calcium': '204 mg'},
+    micros: {
+      'Iron': '1.4 mg',
+      'Potassium': '407 mg',
+      'Sodium': '86.9 mg',
+      'Vitamin C': '101 mg',
+      'Fiber': '2.3 g',
+      'Calcium': '204 mg',
+    },
   ),
   NutritionFood(
     name: 'Asparagus, green, raw',
@@ -3331,7 +4826,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.4 mg', 'Potassium': '278 mg', 'Sodium': '2.5 mg', 'Vitamin C': '9.2 mg', 'Fiber': '1.9 g', 'Calcium': '20.6 mg'},
+    micros: {
+      'Iron': '0.4 mg',
+      'Potassium': '278 mg',
+      'Sodium': '2.5 mg',
+      'Vitamin C': '9.2 mg',
+      'Fiber': '1.9 g',
+      'Calcium': '20.6 mg',
+    },
   ),
   NutritionFood(
     name: 'Beans, snap, green, canned, regular pack, drained solids',
@@ -3343,7 +4845,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.4,
     sugar: 1.3,
     satFat: 0,
-    micros: {'Calcium': '36.0 mg', 'Sodium': '282 mg', 'Iron': '0.8 mg', 'Potassium': '97.0 mg'},
+    micros: {
+      'Calcium': '36.0 mg',
+      'Sodium': '282 mg',
+      'Iron': '0.8 mg',
+      'Potassium': '97.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Beans, snap, green, raw',
@@ -3355,7 +4862,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.3,
     sugar: 2.3,
     satFat: 0,
-    micros: {'Iron': '0.7 mg', 'Potassium': '290 mg', 'Sodium': '0.0 mg', 'Fiber': '3.0 g', 'Calcium': '40.0 mg'},
+    micros: {
+      'Iron': '0.7 mg',
+      'Potassium': '290 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '3.0 g',
+      'Calcium': '40.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Beet greens, raw',
@@ -3367,7 +4880,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.1,
     sugar: 0.9,
     satFat: 0,
-    micros: {'Iron': '3.2 mg', 'Potassium': '369 mg', 'Sodium': '280 mg', 'Vitamin C': '8.6 mg', 'Fiber': '2.6 g', 'Calcium': '72.8 mg'},
+    micros: {
+      'Iron': '3.2 mg',
+      'Potassium': '369 mg',
+      'Sodium': '280 mg',
+      'Vitamin C': '8.6 mg',
+      'Fiber': '2.6 g',
+      'Calcium': '72.8 mg',
+    },
   ),
   NutritionFood(
     name: 'Beets, raw',
@@ -3379,7 +4899,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.3,
     sugar: 5.1,
     satFat: 0,
-    micros: {'Iron': '0.4 mg', 'Potassium': '342 mg', 'Sodium': '112 mg', 'Fiber': '3.1 g', 'Calcium': '13.8 mg', 'Vitamin C': '4.6 mg'},
+    micros: {
+      'Iron': '0.4 mg',
+      'Potassium': '342 mg',
+      'Sodium': '112 mg',
+      'Fiber': '3.1 g',
+      'Calcium': '13.8 mg',
+      'Vitamin C': '4.6 mg',
+    },
   ),
   NutritionFood(
     name: 'Broccoli, raw',
@@ -3391,7 +4918,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.3,
     sugar: 1.4,
     satFat: 0,
-    micros: {'Calcium': '46.0 mg', 'Potassium': '303 mg', 'Fiber': '2.4 g', 'Iron': '0.7 mg', 'Sodium': '36.0 mg', 'Vitamin C': '91.3 mg'},
+    micros: {
+      'Calcium': '46.0 mg',
+      'Potassium': '303 mg',
+      'Fiber': '2.4 g',
+      'Iron': '0.7 mg',
+      'Sodium': '36.0 mg',
+      'Vitamin C': '91.3 mg',
+    },
   ),
   NutritionFood(
     name: 'Brussels sprouts, raw',
@@ -3403,7 +4937,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.6,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.7 mg', 'Potassium': '477 mg', 'Sodium': '25.7 mg', 'Fiber': '4.8 g', 'Calcium': '38.6 mg', 'Vitamin C': '143 mg'},
+    micros: {
+      'Iron': '0.7 mg',
+      'Potassium': '477 mg',
+      'Sodium': '25.7 mg',
+      'Fiber': '4.8 g',
+      'Calcium': '38.6 mg',
+      'Vitamin C': '143 mg',
+    },
   ),
   NutritionFood(
     name: 'Cabbage, bok choy, raw',
@@ -3415,7 +4956,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.4 mg', 'Potassium': '228 mg', 'Sodium': '14.3 mg', 'Fiber': '1.3 g', 'Calcium': '61.9 mg', 'Vitamin C': '30.3 mg'},
+    micros: {
+      'Iron': '0.4 mg',
+      'Potassium': '228 mg',
+      'Sodium': '14.3 mg',
+      'Fiber': '1.3 g',
+      'Calcium': '61.9 mg',
+      'Vitamin C': '30.3 mg',
+    },
   ),
   NutritionFood(
     name: 'Cabbage, green, raw',
@@ -3427,7 +4975,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.1 mg', 'Potassium': '207 mg', 'Sodium': '16.1 mg', 'Vitamin C': '40.3 mg', 'Calcium': '41.8 mg'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Potassium': '207 mg',
+      'Sodium': '16.1 mg',
+      'Vitamin C': '40.3 mg',
+      'Calcium': '41.8 mg',
+    },
   ),
   NutritionFood(
     name: 'Cabbage, napa, leaf, destemmed, raw',
@@ -3439,7 +4993,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0,
     sugar: 2.8,
     satFat: 0,
-    micros: {'Iron': '0.3 mg', 'Potassium': '235 mg', 'Sodium': '12.6 mg', 'Calcium': '35.0 mg', 'Fiber': '1.2 g'},
+    micros: {
+      'Iron': '0.3 mg',
+      'Potassium': '235 mg',
+      'Sodium': '12.6 mg',
+      'Calcium': '35.0 mg',
+      'Fiber': '1.2 g',
+    },
   ),
   NutritionFood(
     name: 'Cabbage, red, raw',
@@ -3451,7 +5011,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '269 mg', 'Sodium': '11.7 mg', 'Vitamin C': '53.9 mg', 'Calcium': '31.0 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '269 mg',
+      'Sodium': '11.7 mg',
+      'Vitamin C': '53.9 mg',
+      'Calcium': '31.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Carrots, baby, raw',
@@ -3463,7 +5029,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.1,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.1 mg', 'Potassium': '237 mg', 'Sodium': '62.7 mg', 'Fiber': '2.7 g', 'Calcium': '42.2 mg'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Potassium': '237 mg',
+      'Sodium': '62.7 mg',
+      'Fiber': '2.7 g',
+      'Calcium': '42.2 mg',
+    },
   ),
   NutritionFood(
     name: 'Carrots, frozen, unprepared',
@@ -3475,7 +5047,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.5,
     sugar: 4.2,
     satFat: 0,
-    micros: {'Calcium': '33.0 mg', 'Potassium': '210 mg', 'Fiber': '3.2 g', 'Iron': '0.4 mg', 'Sodium': '66.0 mg', 'Vitamin C': '2.2 mg'},
+    micros: {
+      'Calcium': '33.0 mg',
+      'Potassium': '210 mg',
+      'Fiber': '3.2 g',
+      'Iron': '0.4 mg',
+      'Sodium': '66.0 mg',
+      'Vitamin C': '2.2 mg',
+    },
   ),
   NutritionFood(
     name: 'Carrots, mature, raw',
@@ -3487,7 +5066,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.4,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.1 mg', 'Potassium': '280 mg', 'Sodium': '86.6 mg', 'Fiber': '3.1 g', 'Calcium': '30.5 mg'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Potassium': '280 mg',
+      'Sodium': '86.6 mg',
+      'Fiber': '3.1 g',
+      'Calcium': '30.5 mg',
+    },
   ),
   NutritionFood(
     name: 'Cauliflower, raw',
@@ -3499,7 +5084,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.3 mg', 'Potassium': '274 mg', 'Sodium': '20.0 mg', 'Fiber': '1.9 g', 'Calcium': '20.4 mg', 'Vitamin C': '67.1 mg'},
+    micros: {
+      'Iron': '0.3 mg',
+      'Potassium': '274 mg',
+      'Sodium': '20.0 mg',
+      'Fiber': '1.9 g',
+      'Calcium': '20.4 mg',
+      'Vitamin C': '67.1 mg',
+    },
   ),
   NutritionFood(
     name: 'Celery, raw',
@@ -3511,7 +5103,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '265 mg', 'Sodium': '97.2 mg', 'Calcium': '46.3 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '265 mg',
+      'Sodium': '97.2 mg',
+      'Calcium': '46.3 mg',
+    },
   ),
   NutritionFood(
     name: 'Collards, raw',
@@ -3523,7 +5120,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.8,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.8 mg', 'Potassium': '410 mg', 'Sodium': '18.4 mg', 'Fiber': '3.8 g', 'Calcium': '276 mg', 'Vitamin C': '89.4 mg'},
+    micros: {
+      'Iron': '0.8 mg',
+      'Potassium': '410 mg',
+      'Sodium': '18.4 mg',
+      'Fiber': '3.8 g',
+      'Calcium': '276 mg',
+      'Vitamin C': '89.4 mg',
+    },
   ),
   NutritionFood(
     name: 'Corn, sweet, yellow and white kernels,  fresh, raw',
@@ -3535,7 +5139,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.6,
     sugar: 7.4,
     satFat: 0,
-    micros: {'Iron': '0.4 mg', 'Potassium': '237 mg', 'Sodium': '0.0 mg', 'Fiber': '2.4 g', 'Calcium': '0.7 mg'},
+    micros: {
+      'Iron': '0.4 mg',
+      'Potassium': '237 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '2.4 g',
+      'Calcium': '0.7 mg',
+    },
   ),
   NutritionFood(
     name: 'Cucumber, with peel, raw',
@@ -3547,7 +5157,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '170 mg', 'Sodium': '1.5 mg', 'Calcium': '16.3 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '170 mg',
+      'Sodium': '1.5 mg',
+      'Calcium': '16.3 mg',
+    },
   ),
   NutritionFood(
     name: 'Eggplant, raw',
@@ -3559,7 +5174,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.1,
     sugar: 2.4,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '222 mg', 'Sodium': '0.4 mg', 'Fiber': '2.5 g', 'Calcium': '11.1 mg', 'Vitamin C': '0.8 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '222 mg',
+      'Sodium': '0.4 mg',
+      'Fiber': '2.5 g',
+      'Calcium': '11.1 mg',
+      'Vitamin C': '0.8 mg',
+    },
   ),
   NutritionFood(
     name: 'Fennel, bulb, raw',
@@ -3571,7 +5193,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.1,
     sugar: 3.2,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '332 mg', 'Sodium': '49.0 mg', 'Vitamin C': '14.7 mg', 'Fiber': '2.0 g', 'Calcium': '41.3 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '332 mg',
+      'Sodium': '49.0 mg',
+      'Vitamin C': '14.7 mg',
+      'Fiber': '2.0 g',
+      'Calcium': '41.3 mg',
+    },
   ),
   NutritionFood(
     name: 'Flour, cassava',
@@ -3583,7 +5212,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.5,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '4.0 mg', 'Potassium': '198 mg', 'Sodium': '13.1 mg', 'Fiber': '4.8 g', 'Calcium': '74.6 mg'},
+    micros: {
+      'Iron': '4.0 mg',
+      'Potassium': '198 mg',
+      'Sodium': '13.1 mg',
+      'Fiber': '4.8 g',
+      'Calcium': '74.6 mg',
+    },
   ),
   NutritionFood(
     name: 'Flour, potato',
@@ -3595,7 +5230,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 1,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '12.0 mg', 'Potassium': '1270.0 mg', 'Sodium': '47.7 mg', 'Fiber': '5.4 g', 'Calcium': '44.1 mg'},
+    micros: {
+      'Iron': '12.0 mg',
+      'Potassium': '1270.0 mg',
+      'Sodium': '47.7 mg',
+      'Fiber': '5.4 g',
+      'Calcium': '44.1 mg',
+    },
   ),
   NutritionFood(
     name: 'Garlic, raw',
@@ -3619,7 +5260,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0,
     sugar: 2.6,
     satFat: 0,
-    micros: {'Iron': '1.0 mg', 'Potassium': '232 mg', 'Sodium': '9.9 mg', 'Calcium': '59.4 mg', 'Fiber': '2.3 g'},
+    micros: {
+      'Iron': '1.0 mg',
+      'Potassium': '232 mg',
+      'Sodium': '9.9 mg',
+      'Calcium': '59.4 mg',
+      'Fiber': '2.3 g',
+    },
   ),
   NutritionFood(
     name: 'Kale, frozen, cooked, boiled, drained, without salt',
@@ -3631,7 +5278,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.2,
     sugar: 1.1,
     satFat: 0,
-    micros: {'Calcium': '150 mg', 'Potassium': '144 mg', 'Iron': '0.8 mg', 'Sodium': '16.0 mg', 'Vitamin C': '17.8 mg'},
+    micros: {
+      'Calcium': '150 mg',
+      'Potassium': '144 mg',
+      'Iron': '0.8 mg',
+      'Sodium': '16.0 mg',
+      'Vitamin C': '17.8 mg',
+    },
   ),
   NutritionFood(
     name: 'Kale, raw',
@@ -3643,7 +5296,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.5,
     sugar: 0.8,
     satFat: 0,
-    micros: {'Vitamin C': '93.4 mg', 'Fiber': '4.1 g', 'Iron': '1.6 mg', 'Sodium': '53.0 mg', 'Calcium': '254 mg', 'Potassium': '348 mg'},
+    micros: {
+      'Vitamin C': '93.4 mg',
+      'Fiber': '4.1 g',
+      'Iron': '1.6 mg',
+      'Sodium': '53.0 mg',
+      'Calcium': '254 mg',
+      'Potassium': '348 mg',
+    },
   ),
   NutritionFood(
     name: 'Ketchup, restaurant',
@@ -3655,7 +5315,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.6,
     sugar: 21.8,
     satFat: 0,
-    micros: {'Calcium': '14.0 mg', 'Iron': '0.4 mg', 'Potassium': '249 mg', 'Sodium': '949 mg'},
+    micros: {
+      'Calcium': '14.0 mg',
+      'Iron': '0.4 mg',
+      'Potassium': '249 mg',
+      'Sodium': '949 mg',
+    },
   ),
   NutritionFood(
     name: 'Leeks, bulb and greens, root removed, raw',
@@ -3667,7 +5332,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0,
     sugar: 3.1,
     satFat: 0,
-    micros: {'Iron': '0.8 mg', 'Potassium': '319 mg', 'Sodium': '17.7 mg', 'Calcium': '51.4 mg', 'Fiber': '3.0 g'},
+    micros: {
+      'Iron': '0.8 mg',
+      'Potassium': '319 mg',
+      'Sodium': '17.7 mg',
+      'Calcium': '51.4 mg',
+      'Fiber': '3.0 g',
+    },
   ),
   NutritionFood(
     name: 'Lettuce, cos or romaine, raw',
@@ -3679,7 +5350,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.3,
     sugar: 1.2,
     satFat: 0,
-    micros: {'Vitamin C': '4.6 mg', 'Calcium': '35.0 mg', 'Potassium': '253 mg', 'Fiber': '1.8 g', 'Iron': '0.9 mg'},
+    micros: {
+      'Vitamin C': '4.6 mg',
+      'Calcium': '35.0 mg',
+      'Potassium': '253 mg',
+      'Fiber': '1.8 g',
+      'Iron': '0.9 mg',
+    },
   ),
   NutritionFood(
     name: 'Lettuce, iceberg, raw',
@@ -3691,7 +5368,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.1,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '139 mg', 'Sodium': '16.1 mg', 'Calcium': '14.2 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '139 mg',
+      'Sodium': '16.1 mg',
+      'Calcium': '14.2 mg',
+    },
   ),
   NutritionFood(
     name: 'Lettuce, leaf, green, raw',
@@ -3703,7 +5385,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.3 mg', 'Potassium': '277 mg', 'Sodium': '28.9 mg', 'Vitamin C': '15.2 mg', 'Calcium': '39.8 mg'},
+    micros: {
+      'Iron': '0.3 mg',
+      'Potassium': '277 mg',
+      'Sodium': '28.9 mg',
+      'Vitamin C': '15.2 mg',
+      'Calcium': '39.8 mg',
+    },
   ),
   NutritionFood(
     name: 'Lettuce, leaf, red, raw',
@@ -3715,7 +5403,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.1,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.4 mg', 'Potassium': '321 mg', 'Sodium': '24.9 mg', 'Vitamin C': '9.3 mg', 'Calcium': '42.6 mg'},
+    micros: {
+      'Iron': '0.4 mg',
+      'Potassium': '321 mg',
+      'Sodium': '24.9 mg',
+      'Vitamin C': '9.3 mg',
+      'Calcium': '42.6 mg',
+    },
   ),
   NutritionFood(
     name: 'Lettuce, romaine, green, raw',
@@ -3727,7 +5421,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.1,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.3 mg', 'Potassium': '260 mg', 'Sodium': '23.0 mg', 'Calcium': '27.6 mg'},
+    micros: {
+      'Iron': '0.3 mg',
+      'Potassium': '260 mg',
+      'Sodium': '23.0 mg',
+      'Calcium': '27.6 mg',
+    },
   ),
   NutritionFood(
     name: 'Mushroom, beech',
@@ -3739,7 +5438,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.4,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.7 mg', 'Potassium': '376 mg', 'Sodium': '0.9 mg', 'Calcium': '0.4 mg', 'Fiber': '3.1 g'},
+    micros: {
+      'Iron': '0.7 mg',
+      'Potassium': '376 mg',
+      'Sodium': '0.9 mg',
+      'Calcium': '0.4 mg',
+      'Fiber': '3.1 g',
+    },
   ),
   NutritionFood(
     name: 'Mushroom, crimini',
@@ -3751,7 +5456,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.3 mg', 'Potassium': '380 mg', 'Sodium': '4.6 mg', 'Calcium': '4.1 mg', 'Fiber': '1.8 g'},
+    micros: {
+      'Iron': '0.3 mg',
+      'Potassium': '380 mg',
+      'Sodium': '4.6 mg',
+      'Calcium': '4.1 mg',
+      'Fiber': '1.8 g',
+    },
   ),
   NutritionFood(
     name: 'Mushroom, enoki',
@@ -3763,7 +5474,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '1.3 mg', 'Potassium': '402 mg', 'Sodium': '0.4 mg', 'Calcium': '1.4 mg', 'Fiber': '2.9 g'},
+    micros: {
+      'Iron': '1.3 mg',
+      'Potassium': '402 mg',
+      'Sodium': '0.4 mg',
+      'Calcium': '1.4 mg',
+      'Fiber': '2.9 g',
+    },
   ),
   NutritionFood(
     name: 'Mushroom, king oyster',
@@ -3775,7 +5492,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.3,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.3 mg', 'Potassium': '294 mg', 'Sodium': '0.8 mg', 'Calcium': '0.0 mg', 'Fiber': '3.0 g'},
+    micros: {
+      'Iron': '0.3 mg',
+      'Potassium': '294 mg',
+      'Sodium': '0.8 mg',
+      'Calcium': '0.0 mg',
+      'Fiber': '3.0 g',
+    },
   ),
   NutritionFood(
     name: 'Mushroom, lion\'s mane',
@@ -3787,7 +5510,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.3,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.7 mg', 'Potassium': '443 mg', 'Sodium': '0.3 mg', 'Calcium': '0.0 mg', 'Fiber': '4.4 g'},
+    micros: {
+      'Iron': '0.7 mg',
+      'Potassium': '443 mg',
+      'Sodium': '0.3 mg',
+      'Calcium': '0.0 mg',
+      'Fiber': '4.4 g',
+    },
   ),
   NutritionFood(
     name: 'Mushroom, maitake',
@@ -3799,7 +5528,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.3,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.2 mg', 'Potassium': '260 mg', 'Sodium': '0.3 mg', 'Calcium': '0.0 mg', 'Fiber': '3.1 g'},
+    micros: {
+      'Iron': '0.2 mg',
+      'Potassium': '260 mg',
+      'Sodium': '0.3 mg',
+      'Calcium': '0.0 mg',
+      'Fiber': '3.1 g',
+    },
   ),
   NutritionFood(
     name: 'Mushroom, oyster',
@@ -3811,7 +5546,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.7 mg', 'Potassium': '282 mg', 'Sodium': '1.1 mg', 'Calcium': '0.0 mg', 'Fiber': '2.9 g'},
+    micros: {
+      'Iron': '0.7 mg',
+      'Potassium': '282 mg',
+      'Sodium': '1.1 mg',
+      'Calcium': '0.0 mg',
+      'Fiber': '2.9 g',
+    },
   ),
   NutritionFood(
     name: 'Mushroom, pioppini',
@@ -3823,7 +5564,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.5 mg', 'Potassium': '392 mg', 'Sodium': '0.0 mg', 'Calcium': '0.0 mg', 'Fiber': '2.8 g'},
+    micros: {
+      'Iron': '0.5 mg',
+      'Potassium': '392 mg',
+      'Sodium': '0.0 mg',
+      'Calcium': '0.0 mg',
+      'Fiber': '2.8 g',
+    },
   ),
   NutritionFood(
     name: 'Mushroom, portabella',
@@ -3835,7 +5582,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.3,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.1 mg', 'Potassium': '349 mg', 'Sodium': '5.3 mg', 'Calcium': '3.2 mg', 'Fiber': '1.9 g'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Potassium': '349 mg',
+      'Sodium': '5.3 mg',
+      'Calcium': '3.2 mg',
+      'Fiber': '1.9 g',
+    },
   ),
   NutritionFood(
     name: 'Mushrooms, shiitake',
@@ -3847,7 +5600,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.1 mg', 'Potassium': '243 mg', 'Sodium': '0.9 mg', 'Calcium': '0.8 mg', 'Fiber': '4.2 g'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Potassium': '243 mg',
+      'Sodium': '0.9 mg',
+      'Calcium': '0.8 mg',
+      'Fiber': '4.2 g',
+    },
   ),
   NutritionFood(
     name: 'Mushrooms, white button',
@@ -3859,7 +5618,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.4,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.2 mg', 'Potassium': '373 mg', 'Sodium': '6.4 mg', 'Calcium': '5.5 mg', 'Fiber': '1.7 g'},
+    micros: {
+      'Iron': '0.2 mg',
+      'Potassium': '373 mg',
+      'Sodium': '6.4 mg',
+      'Calcium': '5.5 mg',
+      'Fiber': '1.7 g',
+    },
   ),
   NutritionFood(
     name: 'Onion rings, breaded, par fried, frozen, prepared, heated in oven',
@@ -3871,7 +5636,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 14.4,
     sugar: 4.5,
     satFat: 2.1,
-    micros: {'Potassium': '135 mg', 'Vitamin C': '1.6 mg', 'Sodium': '374 mg', 'Fiber': '2.4 g', 'Iron': '1.1 mg', 'Calcium': '28.0 mg'},
+    micros: {
+      'Potassium': '135 mg',
+      'Vitamin C': '1.6 mg',
+      'Sodium': '374 mg',
+      'Fiber': '2.4 g',
+      'Iron': '1.1 mg',
+      'Calcium': '28.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Onions, red, raw',
@@ -3883,7 +5655,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.1,
     sugar: 5.8,
     satFat: 0,
-    micros: {'Fiber': '2.2 g', 'Potassium': '197 mg', 'Calcium': '17.0 mg', 'Iron': '0.2 mg', 'Sodium': '1.0 mg', 'Vitamin C': '8.1 mg'},
+    micros: {
+      'Fiber': '2.2 g',
+      'Potassium': '197 mg',
+      'Calcium': '17.0 mg',
+      'Iron': '0.2 mg',
+      'Sodium': '1.0 mg',
+      'Vitamin C': '8.1 mg',
+    },
   ),
   NutritionFood(
     name: 'Onions, white, raw',
@@ -3895,7 +5674,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.1,
     sugar: 5.8,
     satFat: 0,
-    micros: {'Fiber': '1.2 g', 'Calcium': '21.0 mg', 'Iron': '0.1 mg', 'Potassium': '141 mg', 'Sodium': '2.0 mg'},
+    micros: {
+      'Fiber': '1.2 g',
+      'Calcium': '21.0 mg',
+      'Iron': '0.1 mg',
+      'Potassium': '141 mg',
+      'Sodium': '2.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Onions, yellow, raw',
@@ -3907,7 +5692,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.1,
     sugar: 5.8,
     satFat: 0,
-    micros: {'Fiber': '1.9 g', 'Potassium': '182 mg', 'Calcium': '15.0 mg', 'Iron': '0.3 mg', 'Sodium': '1.0 mg', 'Vitamin C': '8.2 mg'},
+    micros: {
+      'Fiber': '1.9 g',
+      'Potassium': '182 mg',
+      'Calcium': '15.0 mg',
+      'Iron': '0.3 mg',
+      'Sodium': '1.0 mg',
+      'Vitamin C': '8.2 mg',
+    },
   ),
   NutritionFood(
     name: 'Parsnips, raw',
@@ -3919,10 +5711,18 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.5,
     sugar: 10.5,
     satFat: 0,
-    micros: {'Iron': '0.5 mg', 'Potassium': '493 mg', 'Sodium': '0.5 mg', 'Vitamin C': '11.8 mg', 'Fiber': '5.3 g', 'Calcium': '44.2 mg'},
+    micros: {
+      'Iron': '0.5 mg',
+      'Potassium': '493 mg',
+      'Sodium': '0.5 mg',
+      'Vitamin C': '11.8 mg',
+      'Fiber': '5.3 g',
+      'Calcium': '44.2 mg',
+    },
   ),
   NutritionFood(
-    name: 'Peas, green, sweet, canned, sodium added, sugar added, drained and rinsed',
+    name:
+        'Peas, green, sweet, canned, sodium added, sugar added, drained and rinsed',
     category: 'Vegetables',
     serving: '1.0 RACC (130.0g)',
     calories: 80,
@@ -3931,7 +5731,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 1.1,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '1.1 mg', 'Potassium': '109 mg', 'Sodium': '207 mg', 'Calcium': '28.2 mg'},
+    micros: {
+      'Iron': '1.1 mg',
+      'Potassium': '109 mg',
+      'Sodium': '207 mg',
+      'Calcium': '28.2 mg',
+    },
   ),
   NutritionFood(
     name: 'Peppers, banana or Hungarian wax, seeded, raw',
@@ -3943,7 +5748,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.1,
     sugar: 2.7,
     satFat: 0,
-    micros: {'Iron': '0.2 mg', 'Potassium': '177 mg', 'Sodium': '0.0 mg', 'Vitamin C': '112 mg', 'Fiber': '1.8 g', 'Calcium': '9.8 mg'},
+    micros: {
+      'Iron': '0.2 mg',
+      'Potassium': '177 mg',
+      'Sodium': '0.0 mg',
+      'Vitamin C': '112 mg',
+      'Fiber': '1.8 g',
+      'Calcium': '9.8 mg',
+    },
   ),
   NutritionFood(
     name: 'Peppers, bell, green, raw',
@@ -3955,7 +5767,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.1,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.2 mg', 'Potassium': '163 mg', 'Sodium': '0.0 mg', 'Vitamin C': '99.5 mg', 'Fiber': '0.9 g', 'Calcium': '7.5 mg'},
+    micros: {
+      'Iron': '0.2 mg',
+      'Potassium': '163 mg',
+      'Sodium': '0.0 mg',
+      'Vitamin C': '99.5 mg',
+      'Fiber': '0.9 g',
+      'Calcium': '7.5 mg',
+    },
   ),
   NutritionFood(
     name: 'Peppers, bell, orange, raw',
@@ -3967,7 +5786,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.4 mg', 'Potassium': '201 mg', 'Sodium': '0.0 mg', 'Vitamin C': '158 mg', 'Fiber': '1.0 g', 'Calcium': '4.9 mg'},
+    micros: {
+      'Iron': '0.4 mg',
+      'Potassium': '201 mg',
+      'Sodium': '0.0 mg',
+      'Vitamin C': '158 mg',
+      'Fiber': '1.0 g',
+      'Calcium': '4.9 mg',
+    },
   ),
   NutritionFood(
     name: 'Peppers, bell, red, raw',
@@ -3979,7 +5805,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.1,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.4 mg', 'Potassium': '213 mg', 'Sodium': '0.0 mg', 'Vitamin C': '142 mg', 'Fiber': '1.2 g', 'Calcium': '6.4 mg'},
+    micros: {
+      'Iron': '0.4 mg',
+      'Potassium': '213 mg',
+      'Sodium': '0.0 mg',
+      'Vitamin C': '142 mg',
+      'Fiber': '1.2 g',
+      'Calcium': '6.4 mg',
+    },
   ),
   NutritionFood(
     name: 'Peppers, bell, yellow, raw',
@@ -3991,7 +5824,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.1,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.4 mg', 'Potassium': '197 mg', 'Sodium': '0.0 mg', 'Vitamin C': '139 mg', 'Fiber': '1.1 g', 'Calcium': '6.7 mg'},
+    micros: {
+      'Iron': '0.4 mg',
+      'Potassium': '197 mg',
+      'Sodium': '0.0 mg',
+      'Vitamin C': '139 mg',
+      'Fiber': '1.1 g',
+      'Calcium': '6.7 mg',
+    },
   ),
   NutritionFood(
     name: 'Peppers, jalapeno, seeded, raw',
@@ -4003,7 +5843,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.1,
     sugar: 2.7,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '167 mg', 'Sodium': '0.0 mg', 'Vitamin C': '89.9 mg', 'Fiber': '1.7 g', 'Calcium': '10.1 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '167 mg',
+      'Sodium': '0.0 mg',
+      'Vitamin C': '89.9 mg',
+      'Fiber': '1.7 g',
+      'Calcium': '10.1 mg',
+    },
   ),
   NutritionFood(
     name: 'Peppers, poblano, seeded, raw',
@@ -4015,7 +5862,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 2.7,
     satFat: 0,
-    micros: {'Iron': '0.1 mg', 'Potassium': '192 mg', 'Sodium': '0.0 mg', 'Vitamin C': '128 mg', 'Fiber': '2.1 g', 'Calcium': '8.4 mg'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Potassium': '192 mg',
+      'Sodium': '0.0 mg',
+      'Vitamin C': '128 mg',
+      'Fiber': '2.1 g',
+      'Calcium': '8.4 mg',
+    },
   ),
   NutritionFood(
     name: 'Peppers, serrano, seeded, raw',
@@ -4027,7 +5881,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.1,
     sugar: 2.5,
     satFat: 0,
-    micros: {'Iron': '0.1 mg', 'Potassium': '224 mg', 'Sodium': '0.0 mg', 'Vitamin C': '94.6 mg', 'Fiber': '2.5 g', 'Calcium': '12.9 mg'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Potassium': '224 mg',
+      'Sodium': '0.0 mg',
+      'Vitamin C': '94.6 mg',
+      'Fiber': '2.5 g',
+      'Calcium': '12.9 mg',
+    },
   ),
   NutritionFood(
     name: 'Pickles, cucumber, dill or kosher dill',
@@ -4039,7 +5900,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.4,
     sugar: 1.3,
     satFat: 0,
-    micros: {'Sodium': '808 mg', 'Calcium': '54.0 mg', 'Potassium': '112 mg', 'Fiber': '1.0 g', 'Iron': '0.2 mg', 'Vitamin C': '2.1 mg'},
+    micros: {
+      'Sodium': '808 mg',
+      'Calcium': '54.0 mg',
+      'Potassium': '112 mg',
+      'Fiber': '1.0 g',
+      'Iron': '0.2 mg',
+      'Vitamin C': '2.1 mg',
+    },
   ),
   NutritionFood(
     name: 'Potatoes, gold, without skin, raw',
@@ -4051,7 +5919,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.3,
     sugar: 0.6,
     satFat: 0,
-    micros: {'Iron': '0.4 mg', 'Potassium': '446 mg', 'Sodium': '2.2 mg', 'Vitamin C': '23.3 mg', 'Calcium': '5.9 mg'},
+    micros: {
+      'Iron': '0.4 mg',
+      'Potassium': '446 mg',
+      'Sodium': '2.2 mg',
+      'Vitamin C': '23.3 mg',
+      'Calcium': '5.9 mg',
+    },
   ),
   NutritionFood(
     name: 'Potatoes, red, without skin, raw',
@@ -4063,7 +5937,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 0.7,
     satFat: 0,
-    micros: {'Iron': '0.4 mg', 'Potassium': '472 mg', 'Sodium': '2.9 mg', 'Vitamin C': '21.3 mg', 'Calcium': '5.1 mg'},
+    micros: {
+      'Iron': '0.4 mg',
+      'Potassium': '472 mg',
+      'Sodium': '2.9 mg',
+      'Vitamin C': '21.3 mg',
+      'Calcium': '5.1 mg',
+    },
   ),
   NutritionFood(
     name: 'Potatoes, russet, without skin, raw',
@@ -4075,7 +5955,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.4,
     sugar: 0.5,
     satFat: 0,
-    micros: {'Iron': '0.4 mg', 'Potassium': '450 mg', 'Sodium': '2.7 mg', 'Vitamin C': '10.9 mg', 'Calcium': '7.8 mg'},
+    micros: {
+      'Iron': '0.4 mg',
+      'Potassium': '450 mg',
+      'Sodium': '2.7 mg',
+      'Vitamin C': '10.9 mg',
+      'Calcium': '7.8 mg',
+    },
   ),
   NutritionFood(
     name: 'Radicchio, raw',
@@ -4087,7 +5973,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.1,
     sugar: 2.2,
     satFat: 0,
-    micros: {'Iron': '0.4 mg', 'Potassium': '335 mg', 'Sodium': '8.1 mg', 'Vitamin C': '6.2 mg', 'Fiber': '2.1 g', 'Calcium': '30.9 mg'},
+    micros: {
+      'Iron': '0.4 mg',
+      'Potassium': '335 mg',
+      'Sodium': '8.1 mg',
+      'Vitamin C': '6.2 mg',
+      'Fiber': '2.1 g',
+      'Calcium': '30.9 mg',
+    },
   ),
   NutritionFood(
     name: 'Radishes, red, raw',
@@ -4099,7 +5992,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.1,
     sugar: 2.6,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '198 mg', 'Sodium': '51.2 mg', 'Vitamin C': '17.8 mg', 'Fiber': '1.3 g', 'Calcium': '21.5 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '198 mg',
+      'Sodium': '51.2 mg',
+      'Vitamin C': '17.8 mg',
+      'Fiber': '1.3 g',
+      'Calcium': '21.5 mg',
+    },
   ),
   NutritionFood(
     name: 'Rutabaga, peeled, raw',
@@ -4111,7 +6011,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0,
     sugar: 6,
     satFat: 0,
-    micros: {'Iron': '0.1 mg', 'Potassium': '267 mg', 'Sodium': '4.6 mg', 'Calcium': '42.0 mg', 'Fiber': '2.9 g'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Potassium': '267 mg',
+      'Sodium': '4.6 mg',
+      'Calcium': '42.0 mg',
+      'Fiber': '2.9 g',
+    },
   ),
   NutritionFood(
     name: 'Shallots, bulb, peeled, root removed, raw',
@@ -4123,7 +6029,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0,
     sugar: 4.3,
     satFat: 0,
-    micros: {'Iron': '0.3 mg', 'Potassium': '252 mg', 'Sodium': '3.6 mg', 'Calcium': '26.1 mg', 'Fiber': '2.2 g'},
+    micros: {
+      'Iron': '0.3 mg',
+      'Potassium': '252 mg',
+      'Sodium': '3.6 mg',
+      'Calcium': '26.1 mg',
+      'Fiber': '2.2 g',
+    },
   ),
   NutritionFood(
     name: 'Spinach, baby',
@@ -4135,7 +6047,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.6,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '1.3 mg', 'Potassium': '582 mg', 'Sodium': '111 mg', 'Vitamin C': '26.5 mg', 'Fiber': '1.6 g', 'Calcium': '68.4 mg'},
+    micros: {
+      'Iron': '1.3 mg',
+      'Potassium': '582 mg',
+      'Sodium': '111 mg',
+      'Vitamin C': '26.5 mg',
+      'Fiber': '1.6 g',
+      'Calcium': '68.4 mg',
+    },
   ),
   NutritionFood(
     name: 'Spinach, mature',
@@ -4147,7 +6066,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.6,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '1.1 mg', 'Potassium': '460 mg', 'Sodium': '107 mg', 'Vitamin C': '30.3 mg', 'Fiber': '1.6 g', 'Calcium': '66.6 mg'},
+    micros: {
+      'Iron': '1.1 mg',
+      'Potassium': '460 mg',
+      'Sodium': '107 mg',
+      'Vitamin C': '30.3 mg',
+      'Fiber': '1.6 g',
+      'Calcium': '66.6 mg',
+    },
   ),
   NutritionFood(
     name: 'Squash, pie pumpkin, peeled, seeded, raw',
@@ -4159,7 +6085,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0,
     sugar: 4.1,
     satFat: 0,
-    micros: {'Iron': '0.1 mg', 'Potassium': '472 mg', 'Sodium': '0.3 mg', 'Vitamin C': '10.1 mg', 'Calcium': '16.4 mg', 'Fiber': '2.3 g'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Potassium': '472 mg',
+      'Sodium': '0.3 mg',
+      'Vitamin C': '10.1 mg',
+      'Calcium': '16.4 mg',
+      'Fiber': '2.3 g',
+    },
   ),
   NutritionFood(
     name: 'Squash, spaghetti, peeled, seeded, raw',
@@ -4171,7 +6104,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0,
     sugar: 4,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '267 mg', 'Sodium': '0.3 mg', 'Vitamin C': '5.5 mg', 'Calcium': '16.6 mg', 'Fiber': '1.4 g'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '267 mg',
+      'Sodium': '0.3 mg',
+      'Vitamin C': '5.5 mg',
+      'Calcium': '16.6 mg',
+      'Fiber': '1.4 g',
+    },
   ),
   NutritionFood(
     name: 'Squash, summer, green, zucchini, includes skin, raw',
@@ -4183,7 +6123,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.2 mg', 'Potassium': '226 mg', 'Sodium': '0.0 mg', 'Fiber': '0.8 g', 'Calcium': '20.8 mg', 'Vitamin C': '15.0 mg'},
+    micros: {
+      'Iron': '0.2 mg',
+      'Potassium': '226 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '0.8 g',
+      'Calcium': '20.8 mg',
+      'Vitamin C': '15.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Squash, summer, yellow, includes skin, raw',
@@ -4195,7 +6142,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.1,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.1 mg', 'Potassium': '220 mg', 'Sodium': '0.0 mg', 'Fiber': '1.0 g', 'Calcium': '22.7 mg', 'Vitamin C': '17.0 mg'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Potassium': '220 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '1.0 g',
+      'Calcium': '22.7 mg',
+      'Vitamin C': '17.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Squash, winter, acorn, raw',
@@ -4207,7 +6161,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.3 mg', 'Potassium': '332 mg', 'Sodium': '0.0 mg', 'Fiber': '2.6 g', 'Calcium': '24.8 mg', 'Vitamin C': '7.0 mg'},
+    micros: {
+      'Iron': '0.3 mg',
+      'Potassium': '332 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '2.6 g',
+      'Calcium': '24.8 mg',
+      'Vitamin C': '7.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Squash, winter, butternut, raw',
@@ -4219,7 +6180,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.2 mg', 'Potassium': '329 mg', 'Sodium': '0.0 mg', 'Fiber': '2.0 g', 'Calcium': '21.7 mg', 'Vitamin C': '7.6 mg'},
+    micros: {
+      'Iron': '0.2 mg',
+      'Potassium': '329 mg',
+      'Sodium': '0.0 mg',
+      'Fiber': '2.0 g',
+      'Calcium': '21.7 mg',
+      'Vitamin C': '7.6 mg',
+    },
   ),
   NutritionFood(
     name: 'Sweet potatoes, orange flesh, without skin, raw',
@@ -4231,7 +6199,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.4,
     sugar: 6.1,
     satFat: 0,
-    micros: {'Iron': '0.4 mg', 'Potassium': '486 mg', 'Sodium': '0.0 mg', 'Vitamin C': '14.8 mg', 'Calcium': '22.3 mg'},
+    micros: {
+      'Iron': '0.4 mg',
+      'Potassium': '486 mg',
+      'Sodium': '0.0 mg',
+      'Vitamin C': '14.8 mg',
+      'Calcium': '22.3 mg',
+    },
   ),
   NutritionFood(
     name: 'Tomatillos, dehusked, raw',
@@ -4243,10 +6217,18 @@ const List<NutritionFood> usdaFoods = [
     fat: 0,
     sugar: 2.9,
     satFat: 0,
-    micros: {'Iron': '0.2 mg', 'Potassium': '239 mg', 'Sodium': '0.3 mg', 'Vitamin C': '2.2 mg', 'Calcium': '7.1 mg', 'Fiber': '1.7 g'},
+    micros: {
+      'Iron': '0.2 mg',
+      'Potassium': '239 mg',
+      'Sodium': '0.3 mg',
+      'Vitamin C': '2.2 mg',
+      'Calcium': '7.1 mg',
+      'Fiber': '1.7 g',
+    },
   ),
   NutritionFood(
-    name: 'Tomato juice, with added ingredients, from concentrate, shelf stable',
+    name:
+        'Tomato juice, with added ingredients, from concentrate, shelf stable',
     category: 'Vegetables',
     serving: '100g',
     calories: 24,
@@ -4255,7 +6237,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.3,
     sugar: 2.6,
     satFat: 0,
-    micros: {'Iron': '0.3 mg', 'Potassium': '198 mg', 'Sodium': '236 mg', 'Vitamin C': '49.8 mg', 'Calcium': '9.7 mg'},
+    micros: {
+      'Iron': '0.3 mg',
+      'Potassium': '198 mg',
+      'Sodium': '236 mg',
+      'Vitamin C': '49.8 mg',
+      'Calcium': '9.7 mg',
+    },
   ),
   NutritionFood(
     name: 'Tomato, paste, canned, without salt added',
@@ -4267,7 +6255,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.7,
     sugar: 11.7,
     satFat: 0,
-    micros: {'Iron': '3.2 mg', 'Potassium': '972 mg', 'Sodium': '61.2 mg', 'Fiber': '4.7 g', 'Calcium': '36.8 mg', 'Vitamin C': '18.4 mg'},
+    micros: {
+      'Iron': '3.2 mg',
+      'Potassium': '972 mg',
+      'Sodium': '61.2 mg',
+      'Fiber': '4.7 g',
+      'Calcium': '36.8 mg',
+      'Vitamin C': '18.4 mg',
+    },
   ),
   NutritionFood(
     name: 'Tomato, puree, canned',
@@ -4279,7 +6274,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.3,
     sugar: 4.3,
     satFat: 0,
-    micros: {'Iron': '1.2 mg', 'Potassium': '416 mg', 'Sodium': '29.4 mg', 'Fiber': '2.0 g', 'Calcium': '17.6 mg', 'Vitamin C': '10.4 mg'},
+    micros: {
+      'Iron': '1.2 mg',
+      'Potassium': '416 mg',
+      'Sodium': '29.4 mg',
+      'Fiber': '2.0 g',
+      'Calcium': '17.6 mg',
+      'Vitamin C': '10.4 mg',
+    },
   ),
   NutritionFood(
     name: 'Tomato, roma',
@@ -4291,7 +6293,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.4,
     sugar: 0,
     satFat: 0,
-    micros: {'Iron': '0.1 mg', 'Potassium': '193 mg', 'Sodium': '0.0 mg', 'Vitamin C': '17.8 mg', 'Fiber': '1.0 g', 'Calcium': '10.0 mg'},
+    micros: {
+      'Iron': '0.1 mg',
+      'Potassium': '193 mg',
+      'Sodium': '0.0 mg',
+      'Vitamin C': '17.8 mg',
+      'Fiber': '1.0 g',
+      'Calcium': '10.0 mg',
+    },
   ),
   NutritionFood(
     name: 'Tomato, sauce, canned, with salt added',
@@ -4303,7 +6312,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.4,
     sugar: 3.5,
     satFat: 0,
-    micros: {'Iron': '1.1 mg', 'Potassium': '356 mg', 'Sodium': '417 mg', 'Fiber': '1.6 g', 'Calcium': '17.1 mg', 'Vitamin C': '9.2 mg'},
+    micros: {
+      'Iron': '1.1 mg',
+      'Potassium': '356 mg',
+      'Sodium': '417 mg',
+      'Fiber': '1.6 g',
+      'Calcium': '17.1 mg',
+      'Vitamin C': '9.2 mg',
+    },
   ),
   NutritionFood(
     name: 'Tomatoes, canned, red, ripe, diced',
@@ -4315,7 +6331,12 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.5,
     sugar: 3,
     satFat: 0,
-    micros: {'Calcium': '30.0 mg', 'Iron': '0.6 mg', 'Potassium': '198 mg', 'Sodium': '125 mg'},
+    micros: {
+      'Calcium': '30.0 mg',
+      'Iron': '0.6 mg',
+      'Potassium': '198 mg',
+      'Sodium': '125 mg',
+    },
   ),
   NutritionFood(
     name: 'Tomatoes, crushed, canned',
@@ -4327,7 +6348,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.4,
     sugar: 3.7,
     satFat: 0,
-    micros: {'Iron': '2.3 mg', 'Potassium': '346 mg', 'Sodium': '140 mg', 'Fiber': '1.9 g', 'Calcium': '19.2 mg', 'Vitamin C': '9.1 mg'},
+    micros: {
+      'Iron': '2.3 mg',
+      'Potassium': '346 mg',
+      'Sodium': '140 mg',
+      'Fiber': '1.9 g',
+      'Calcium': '19.2 mg',
+      'Vitamin C': '9.1 mg',
+    },
   ),
   NutritionFood(
     name: 'Tomatoes, grape, raw',
@@ -4339,7 +6367,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.6,
     sugar: 0,
     satFat: 0,
-    micros: {'Vitamin C': '27.2 mg', 'Calcium': '11.0 mg', 'Iron': '0.3 mg', 'Potassium': '260 mg', 'Sodium': '6.0 mg', 'Fiber': '2.1 g'},
+    micros: {
+      'Vitamin C': '27.2 mg',
+      'Calcium': '11.0 mg',
+      'Iron': '0.3 mg',
+      'Potassium': '260 mg',
+      'Sodium': '6.0 mg',
+      'Fiber': '2.1 g',
+    },
   ),
   NutritionFood(
     name: 'Tomatoes, whole, canned, solids and liquids, with salt added',
@@ -4351,7 +6386,14 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.2,
     sugar: 2.6,
     satFat: 0,
-    micros: {'Iron': '0.9 mg', 'Potassium': '203 mg', 'Sodium': '112 mg', 'Fiber': '0.9 g', 'Calcium': '19.8 mg', 'Vitamin C': '7.7 mg'},
+    micros: {
+      'Iron': '0.9 mg',
+      'Potassium': '203 mg',
+      'Sodium': '112 mg',
+      'Fiber': '0.9 g',
+      'Calcium': '19.8 mg',
+      'Vitamin C': '7.7 mg',
+    },
   ),
   NutritionFood(
     name: 'Turnips, raw',
@@ -4363,6 +6405,13 @@ const List<NutritionFood> usdaFoods = [
     fat: 0.1,
     sugar: 5.1,
     satFat: 0,
-    micros: {'Iron': '0.0 mg', 'Potassium': '262 mg', 'Sodium': '12.8 mg', 'Vitamin C': '26.8 mg', 'Fiber': '1.9 g', 'Calcium': '32.7 mg'},
+    micros: {
+      'Iron': '0.0 mg',
+      'Potassium': '262 mg',
+      'Sodium': '12.8 mg',
+      'Vitamin C': '26.8 mg',
+      'Fiber': '1.9 g',
+      'Calcium': '32.7 mg',
+    },
   ),
 ];

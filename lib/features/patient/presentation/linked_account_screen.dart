@@ -14,6 +14,7 @@ import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/confirm_dialog.dart';
+import '../../../core/presentation/paging_widgets.dart';
 import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
@@ -53,7 +54,7 @@ class _LinkedAccountScreenState extends ConsumerState<LinkedAccountScreen> {
       onRefresh: () async {
         ref
           ..invalidate(linkedAppointmentsProvider(widget.ownerPatientId))
-          ..invalidate(linkedTimelineProvider(widget.ownerPatientId))
+          ..invalidate(linkedTimelinePageProvider(widget.ownerPatientId))
           ..invalidate(linkedVitalsProvider(widget.ownerPatientId))
           ..invalidate(linkedMedicationsProvider(widget.ownerPatientId));
       },
@@ -113,7 +114,8 @@ class _AppointmentsView extends ConsumerWidget {
       loading: () => const SkeletonList(lines: 4),
       error: (e, _) => ErrorStateView(
         message: t.couldNotLoadAppointments,
-        onRetry: () => ref.invalidate(linkedAppointmentsProvider(ownerPatientId)),
+        onRetry: () =>
+            ref.invalidate(linkedAppointmentsProvider(ownerPatientId)),
       ),
       data: (list) {
         final upcoming = list.where((a) => a.isUpcoming).toList()
@@ -150,14 +152,18 @@ class _AppointmentsView extends ConsumerWidget {
             if (upcoming.isEmpty)
               _EmptyNote(t.nothingBookedNote)
             else
-              CardColumns(children: [for (final a in upcoming) card(a, upcoming: true)]),
+              CardColumns(
+                children: [for (final a in upcoming) card(a, upcoming: true)],
+              ),
             const SizedBox(height: Space.md),
             SectionHeader(t.historyCount(past.length), overline: true),
             if (past.isEmpty)
               _EmptyNote(t.noPastVisitsNote)
             else
               CardColumns(
-                children: [for (final a in past.take(40)) card(a, upcoming: false)],
+                children: [
+                  for (final a in past.take(40)) card(a, upcoming: false),
+                ],
               ),
           ],
         );
@@ -203,7 +209,11 @@ class _LinkedApptCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final t = AppLocalizations.of(context)!;
-    final meta = [visitTypeLabel(appt.visitType), ?doctor, ?department].join('  ·  ');
+    final meta = [
+      visitTypeLabel(appt.visitType),
+      ?doctor,
+      ?department,
+    ].join('  ·  ');
 
     return AppCard(
       padding: const EdgeInsets.all(Space.md),
@@ -311,7 +321,9 @@ class _LinkedApptCard extends ConsumerWidget {
     final base = appt.slotStart.isAfter(now) ? appt.slotStart : today;
     final date = await showDatePicker(
       context: context,
-      initialDate: isClinicDay(base, schedule) ? base : nextClinicDay(today, schedule),
+      initialDate: isClinicDay(base, schedule)
+          ? base
+          : nextClinicDay(today, schedule),
       firstDate: today,
       lastDate: today.add(const Duration(days: 60)),
       selectableDayPredicate: (d) => isClinicDay(d, schedule),
@@ -391,7 +403,10 @@ class _HealthView extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(fmtDate(latest.recordedAt), style: theme.textTheme.labelMedium),
+                  Text(
+                    fmtDate(latest.recordedAt),
+                    style: theme.textTheme.labelMedium,
+                  ),
                   const SizedBox(height: Space.xxs),
                   Text(parts.join('  ·  '), style: theme.textTheme.bodyMedium),
                 ],
@@ -417,7 +432,10 @@ class _HealthView extends ConsumerWidget {
                     subtitle: [m.dose, m.frequency].whereType<String>().isEmpty
                         ? null
                         : Text(
-                            [m.dose, m.frequency].whereType<String>().join('  ·  '),
+                            [
+                              m.dose,
+                              m.frequency,
+                            ].whereType<String>().join('  ·  '),
                           ),
                   ),
               ],
@@ -430,13 +448,14 @@ class _HealthView extends ConsumerWidget {
           loading: () => const SkeletonList(lines: 3),
           error: (e, _) => ErrorStateView(
             message: t.couldNotLoadRecords,
-            onRetry: () => ref.invalidate(linkedTimelineProvider(ownerPatientId)),
+            onRetry: () =>
+                ref.invalidate(linkedTimelinePageProvider(ownerPatientId)),
           ),
           data: (list) {
             if (list.isEmpty) return _EmptyNote(t.noRecordsYet);
             return Column(
               children: [
-                for (final r in list.take(30))
+                for (final r in list)
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.description_outlined),
@@ -444,6 +463,19 @@ class _HealthView extends ConsumerWidget {
                     subtitle: Text(
                       '${r.recordType.label(context)}  ·  ${fmtDate(r.occurredAt)}',
                     ),
+                  ),
+                // Older records beyond this page: offered, never cut off.
+                if (ref
+                        .watch(linkedTimelinePageProvider(ownerPatientId))
+                        .valueOrNull
+                        ?.hasMore ??
+                    false)
+                  LoadMoreFooter(
+                    onLoadMore: () => ref
+                        .read(
+                          linkedTimelinePagesProvider(ownerPatientId).notifier,
+                        )
+                        .state++,
                   ),
               ],
             );

@@ -17,6 +17,7 @@ import '../../../core/di.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/clinic_hours.dart';
 import '../../../core/utils/format.dart';
@@ -242,7 +243,7 @@ class _BookingForSelector extends ConsumerWidget {
     final theme = Theme.of(context);
     final t = AppLocalizations.of(context)!;
     final draft = ref.watch(bookingDraftProvider);
-    final notifier = ref.read(bookingDraftProvider.notifier);
+    final selector = ref.read(bookingSubjectSelectorProvider);
     final selected = draft.bookedForName;
 
     return Padding(
@@ -271,16 +272,28 @@ class _BookingForSelector extends ConsumerWidget {
                 ChoiceChip(
                   label: Text(t.myself),
                   selected: selected == null,
-                  onSelected: (_) =>
-                      notifier.state = draft.copyWith(bookedForName: null),
+                  onSelected: (_) => selector.selectSelf(),
                 ),
                 for (final m in members)
                   ChoiceChip(
                     label: Text(m.fullName),
                     selected: selected == m.fullName,
-                    onSelected: (_) => notifier.state = draft.copyWith(
-                      bookedForName: m.fullName,
-                    ),
+                    onSelected: (_) async {
+                      final messenger = ScaffoldMessenger.of(context);
+                      final r = await selector.selectMember(m);
+                      if (r case Err(:final failure)) {
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              describeFailure(
+                                AppLocalizations.of(context)!,
+                                failure,
+                              ).message,
+                            ),
+                          ),
+                        );
+                      }
+                    },
                   ),
               ],
             ),
@@ -482,7 +495,7 @@ class _DoctorPicker extends ConsumerWidget {
     );
   }
 
-  static Future<DateTime> _earliestAvailableDate(
+  static Future<DateTime?> _earliestAvailableDate(
     WidgetRef ref,
     String staffId,
   ) async {
@@ -494,7 +507,7 @@ class _DoctorPicker extends ConsumerWidget {
       final result = await repo.openSlots(staffId, day);
       if (result case Ok(:final value) when value.isNotEmpty) return day;
     }
-    return start;
+    return null;
   }
 }
 
@@ -770,7 +783,7 @@ class _SlotList extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  RiskBadge(best.band),
+                  if (best.hasRiskEstimate) RiskBadge(best.band),
                 ],
               ),
             ),
@@ -831,18 +844,22 @@ class _SlotList extends ConsumerWidget {
     final result = await ref.read(bookingControllerProvider).confirm(s);
     if (!context.mounted) return;
     switch (result) {
-      case Ok():
+      case Ok(:final value):
         ref.read(bookingDraftProvider.notifier).state =
             const BookingRequestDraft();
         ref
             .read(appointmentConfirmationProvider.notifier)
             .show(AppLocalizations.of(context)!.appointmentBooked);
         if (!context.mounted) return;
-        context.go(AppRoutes.patientHome);
+        context.go(AppRoutes.patientAppointmentDetail(value.id));
       case Err(:final failure):
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(failure.message)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              describeFailure(AppLocalizations.of(context)!, failure).message,
+            ),
+          ),
+        );
     }
   }
 }
@@ -864,7 +881,9 @@ class _TimeChip extends StatelessWidget {
     };
     return ActionChip(
       onPressed: onTap,
-      avatar: Icon(Icons.circle, size: 10, color: dot),
+      avatar: slot.hasRiskEstimate
+          ? Icon(Icons.circle, size: 10, color: dot)
+          : const Icon(Icons.schedule_outlined, size: 16),
       label: Text(fmtTime(slot.slot.start)),
     );
   }
@@ -905,6 +924,10 @@ class _ReviewSheet extends StatelessWidget {
               value:
                   '${fmtRelativeDay(slot.slot.start)}, '
                   '${fmtDate(slot.slot.start)} · ${fmtTime(slot.slot.start)}',
+            ),
+            _Row(
+              label: t.appointmentTimeZone(slot.slot.start.timeZoneName),
+              value: slot.slot.start.timeZoneOffset.toString(),
             ),
             if (department != null)
               _Row(label: t.stepDepartment, value: department!),

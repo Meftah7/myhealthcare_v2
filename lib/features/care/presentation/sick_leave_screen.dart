@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -26,11 +27,9 @@ class SickLeaveScreen extends ConsumerWidget {
     final certs = ref.watch(patientSickLeaveProvider);
     final doctors = ref.watch(doctorDirectoryProvider).valueOrNull ?? const {};
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(t.quickActionSickLeave),
-        actions: const [PatientTopActions()],
-      ),
+    return AppScaffold(
+      title: t.quickActionSickLeave,
+      actions: const [PatientTopActions()],
       body: certs.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
@@ -67,6 +66,7 @@ class SickLeaveScreen extends ConsumerWidget {
           );
         },
       ),
+      centerBody: false,
     );
   }
 }
@@ -90,10 +90,7 @@ class _CertCard extends ConsumerWidget {
           Row(
             children: [
               Expanded(
-                child: Text(
-                  cert.diagnosis,
-                  style: theme.textTheme.titleMedium,
-                ),
+                child: Text(cert.diagnosis, style: theme.textTheme.titleMedium),
               ),
               if (cert.isActive)
                 Container(

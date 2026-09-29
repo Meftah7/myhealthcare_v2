@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -24,8 +25,8 @@ class StaffDirectoryScreen extends ConsumerWidget {
     final directory = ref.watch(staffDirectoryProvider);
     final gutter = WindowSize.of(context).gutter;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(t.staffDirectoryTitle)),
+    return AppScaffold(
+      title: t.staffDirectoryTitle,
       body: directory.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
@@ -69,6 +70,7 @@ class StaffDirectoryScreen extends ConsumerWidget {
           );
         },
       ),
+      centerBody: false,
     );
   }
 }

@@ -66,12 +66,12 @@ void main() {
     await passMfa(tester);
     await _settle(tester);
 
-    // New section order: greeting, quick appointment, Your health, then
-    // Upcoming appointments, then Quick actions.
+    // Phase 6 priority order: the next appointment is the anchor, above the
+    // health figures and the quick actions.
     final health = tester.getTopLeft(find.text('YOUR HEALTH')).dy;
     final upcoming = tester.getTopLeft(find.text('UPCOMING APPOINTMENTS')).dy;
     final quick = tester.getTopLeft(find.text('QUICK ACTIONS')).dy;
-    expect(health, lessThan(upcoming));
+    expect(upcoming, lessThan(health));
     expect(upcoming, lessThan(quick));
 
     // The carousel shows a well-formed ticket number and a room.

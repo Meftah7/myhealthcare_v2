@@ -8,18 +8,40 @@ import '../../core/result.dart';
 import '../../core/utils/ids.dart';
 import '../../domain/entities/entities.dart';
 import '../../domain/enums.dart';
+import '../../domain/identity/permissions.dart';
 import '../../domain/repositories/family_link_repository.dart';
+import '../../services/auth/access_policy.dart';
 import '../db/app_database.dart';
 import 'mappers.dart';
 
 class FamilyLinkRepositoryImpl implements FamilyLinkRepository {
-  FamilyLinkRepositoryImpl(this._db);
+  FamilyLinkRepositoryImpl(this._db, {AccessPolicy? access})
+    : _access = access ?? AccessPolicy.unenforced(_db);
 
   final AppDatabase _db;
+  final AccessPolicy _access;
+
+  /// Every call names the account it is made for; it must be the signed-in
+  /// patient's own.
+  Future<void> _asSelf(String accountId, {String? entityId}) async {
+    final p = await _access.assertActor(
+      accountId,
+      entityType: 'family_link',
+      entityId: entityId,
+    );
+    if (p != null) {
+      await _access.require(
+        Permission.manageProxyGrants,
+        entityType: 'family_link',
+        entityId: entityId,
+      );
+    }
+  }
 
   @override
   Future<Result<List<FamilyLink>>> incomingRequests(String ownerPatientId) {
     return Result.guardAsync(() async {
+      await _asSelf(ownerPatientId);
       final rows =
           await (_db.select(_db.familyLinks)..where(
                 (l) =>
@@ -34,6 +56,7 @@ class FamilyLinkRepositoryImpl implements FamilyLinkRepository {
   @override
   Future<Result<List<FamilyLink>>> outgoingRequests(String viewerPatientId) {
     return Result.guardAsync(() async {
+      await _asSelf(viewerPatientId);
       final rows =
           await (_db.select(_db.familyLinks)..where(
                 (l) =>
@@ -48,6 +71,7 @@ class FamilyLinkRepositoryImpl implements FamilyLinkRepository {
   @override
   Future<Result<List<FamilyLink>>> linkedAccounts(String viewerPatientId) {
     return Result.guardAsync(() async {
+      await _asSelf(viewerPatientId);
       final rows =
           await (_db.select(_db.familyLinks)..where(
                 (l) =>
@@ -62,6 +86,7 @@ class FamilyLinkRepositoryImpl implements FamilyLinkRepository {
   @override
   Future<Result<List<FamilyLink>>> viewersOfMe(String ownerPatientId) {
     return Result.guardAsync(() async {
+      await _asSelf(ownerPatientId);
       final rows =
           await (_db.select(_db.familyLinks)..where(
                 (l) =>
@@ -79,6 +104,7 @@ class FamilyLinkRepositoryImpl implements FamilyLinkRepository {
     required String ownerPatientId,
   }) {
     return Result.guardAsync(() async {
+      await _asSelf(viewerPatientId);
       final row =
           await (_db.select(_db.familyLinks)..where(
                 (l) =>
@@ -100,8 +126,17 @@ class FamilyLinkRepositoryImpl implements FamilyLinkRepository {
     required FamilyLinkPermission permission,
   }) {
     return Result.guardAsync(() async {
+      await _asSelf(viewerPatientId);
       if (ownerPatientId == viewerPatientId) {
         throw const ValidationFailure("You can't link to your own account.");
+      }
+      // A dependent has no login to accept with; their guardian's grant is
+      // created when the dependent is added, not requested.
+      final owner = await (_db.select(
+        _db.users,
+      )..where((u) => u.id.equals(ownerPatientId))).getSingleOrNull();
+      if (owner == null || !owner.hasLogin || !owner.isActive) {
+        throw const NotFoundFailure('No account to link with.');
       }
       final existing =
           await (_db.select(_db.familyLinks)..where(
@@ -161,6 +196,7 @@ class FamilyLinkRepositoryImpl implements FamilyLinkRepository {
     required String actingPatientId,
   }) {
     return Result.guardAsync(() async {
+      await _asSelf(actingPatientId, entityId: linkId);
       final row = await (_db.select(
         _db.familyLinks,
       )..where((l) => l.id.equals(linkId))).getSingleOrNull();
@@ -180,6 +216,13 @@ class FamilyLinkRepositoryImpl implements FamilyLinkRepository {
           respondedAt: Value(DateTime.now()),
         ),
       );
+      await _access.audit(
+        'proxy.grant.accepted',
+        entityType: 'family_link',
+        entityId: linkId,
+        subjectPatientId: row.ownerPatientId,
+        detail: row.permission.name,
+      );
       final updated = await (_db.select(
         _db.familyLinks,
       )..where((l) => l.id.equals(linkId))).getSingle();
@@ -193,6 +236,7 @@ class FamilyLinkRepositoryImpl implements FamilyLinkRepository {
     required String actingPatientId,
   }) {
     return Result.guardAsync(() async {
+      await _asSelf(actingPatientId, entityId: linkId);
       final row = await (_db.select(
         _db.familyLinks,
       )..where((l) => l.id.equals(linkId))).getSingleOrNull();
@@ -213,6 +257,7 @@ class FamilyLinkRepositoryImpl implements FamilyLinkRepository {
     required String actingPatientId,
   }) {
     return Result.guardAsync(() async {
+      await _asSelf(actingPatientId, entityId: linkId);
       final row = await (_db.select(
         _db.familyLinks,
       )..where((l) => l.id.equals(linkId))).getSingleOrNull();
@@ -221,9 +266,26 @@ class FamilyLinkRepositoryImpl implements FamilyLinkRepository {
           row.viewerPatientId != actingPatientId) {
         throw const NotFoundFailure('Link not found.');
       }
+      final owner = await (_db.select(
+        _db.users,
+      )..where((u) => u.id.equals(row.ownerPatientId))).getSingleOrNull();
+      if (owner != null && !owner.hasLogin) {
+        throw const ValidationFailure(
+          'A dependent stays linked to their guardian. Remove them from your '
+          'family list instead.',
+        );
+      }
       await (_db.delete(
         _db.familyLinks,
       )..where((l) => l.id.equals(linkId))).go();
+      // Revocation takes effect on the next repository call: every read and
+      // write re-checks the grant.
+      await _access.audit(
+        'proxy.grant.revoked',
+        entityType: 'family_link',
+        entityId: linkId,
+        subjectPatientId: row.ownerPatientId,
+      );
     });
   }
 }

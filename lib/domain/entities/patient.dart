@@ -15,6 +15,9 @@ abstract class Patient with _$Patient {
     @Default([]) List<String> allergies,
     @Default([]) List<String> chronicConditions,
     String? emergencyContact,
+
+    /// Version of the health profile; pass back as `expectedVersion`.
+    @Default(1) int profileVersion,
   }) = _Patient;
 
   const Patient._();

@@ -15,6 +15,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/capabilities/capability_registry.dart';
 import '../../../core/di.dart';
 import '../../../core/failures.dart';
 import '../../../core/result.dart';
@@ -101,16 +102,37 @@ covered in the dictation, use "Not provided."; output valid JSON only.''';
       return const Err(ValidationFailure('Enter some notes to structure.'));
     }
 
+    final allowOffline = _ref.read(appModeProvider).isDemo;
     ScribeDraft draft;
     try {
       final settings = await _ref.read(appSettingsProvider.future);
       final key = await _ref.read(aiKeyStoreProvider).read();
-      if (!settings.usesRealAi || key == null || key.isEmpty) {
+      if (!phase8CapabilityEnabled('live-clinical-ai') ||
+          !settings.usesRealAi ||
+          key == null ||
+          key.isEmpty) {
+        if (!allowOffline) {
+          return const Err(
+            AiFailure('AI is unavailable until a live provider is configured.'),
+          );
+        }
         draft = ScribeDraft.offline(text);
       } else {
         draft = await _ask(text, apiKey: key, model: settings.modelId);
+        if (!allowOffline && !draft.usedAi) {
+          return const Err(AiFailure('The live AI response was not usable.'));
+        }
       }
-    } catch (_) {
+    } catch (error, stackTrace) {
+      if (!allowOffline) {
+        return Err(
+          AiFailure(
+            'The live AI service is unavailable. Please try again later.',
+            cause: error,
+            stackTrace: stackTrace,
+          ),
+        );
+      }
       draft = ScribeDraft.offline(text);
     }
     unawaited(
@@ -120,7 +142,8 @@ covered in the dictation, use "Not provided."; output valid JSON only.''';
             feature: AiFeature.clinicalScribe,
             usedLiveModel: draft.usedAi,
             userId: _ref.read(currentUserProvider)?.id,
-            summary: text.length > 80 ? '${text.substring(0, 80)}…' : text,
+            // Only its size is kept (see AiUsageRepositoryImpl.analyticsSummary).
+            summary: text,
           ),
     );
     return Ok(draft);

@@ -552,7 +552,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiDisclaimer =>
-      'AI-generated — informational only, not medical advice. Verify with your clinician.';
+      'Draft AI output — verify it before use. It is not medical advice and is never committed as clinical truth automatically.';
 
   @override
   String labReferenceSuffix(String reference) {
@@ -1560,13 +1560,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Thanks — your feedback was sent to the team.';
 
   @override
-  String get nutritionTitle => 'Nutrition';
+  String get nutritionTitle => 'Nutrition estimates';
 
   @override
   String get calculatorSegment => 'Calculator';
 
   @override
-  String get mealPlanSegment => 'Meal plan';
+  String get mealPlanSegment => 'Example split';
 
   @override
   String get foodsSegment => 'Foods';
@@ -1629,14 +1629,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weeklyRate10 => '1.0 kg / week';
 
   @override
-  String get calculateTargetsButton => 'Calculate targets';
+  String get calculateTargetsButton => 'Calculate estimate';
 
   @override
   String get preferencesSection => 'Preferences';
 
   @override
   String get macroSplitNote =>
-      'The macro split used for your targets and your meal plan.';
+      'An estimated split, not a clinically prescribed target.';
 
   @override
   String get presetBalanced => 'Balanced';
@@ -2199,7 +2199,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get forgotPasswordBody =>
-      'Enter the email or national ID on your account and we’ll take you to set a new password.';
+      'Enter the email or national ID on your account. If it matches, we’ll email you a one-time code to set a new password.';
 
   @override
   String get emailOrNationalIdLabel => 'Email or national ID';
@@ -2572,7 +2572,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Headline counts, no-show and utilisation';
 
   @override
-  String get capacityForecastTitle => 'Capacity forecast';
+  String get capacityForecastTitle => 'Historical demand';
 
   @override
   String get capacityForecastSubtitle =>
@@ -2686,6 +2686,31 @@ class AppLocalizationsEn extends AppLocalizations {
       'No-show risk predictions come from the offline logistic-regression model (RQ2).';
 
   @override
+  String get operationalHealthHeader => 'Operational health (this session)';
+
+  @override
+  String get operationalHealthAllClear =>
+      'No threshold breached in this session. Signals are kept in memory only and reset when the app reloads.';
+
+  @override
+  String get crashFreeSessionsLabel => 'Crash-free sessions';
+
+  @override
+  String get operationalEventsLabel => 'Events recorded';
+
+  @override
+  String operationalBreachTitle(String id, int observed) {
+    return '$id: $observed in window';
+  }
+
+  @override
+  String get copyOperationalEvidence => 'Copy evidence (JSON)';
+
+  @override
+  String get operationalEvidenceCopied =>
+      'Operational evidence copied. It contains no patient data.';
+
+  @override
   String get allAppointmentsTitle => 'Appointments';
 
   @override
@@ -2705,7 +2730,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get forecastExplainerNote =>
-      'Busiest window per weekday, from appointment history. A flag means peak demand has been running at or above a single clinician’s hourly capacity.';
+      'Busiest window per weekday from appointment history. Capacity flags compare demand with active staff schedule templates; they are not predictions.';
 
   @override
   String get demandLevelHigh => 'High demand';
@@ -2717,7 +2742,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get demandLevelLow => 'Light';
 
   @override
-  String get overflowRiskLabel => 'Overflow risk';
+  String get overflowRiskLabel => 'Above scheduled capacity';
 
   @override
   String get noHistoryYet => 'No history yet';
@@ -2889,11 +2914,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pushChannelSubtitle =>
-      'Alerts on this device, even when the app is closed';
+      'Browser alerts while MyHealth Care is open. Reminders that fall due while it is closed appear in your inbox when you return.';
 
   @override
   String get inAppAlwaysOnNote =>
-      'In-app notifications are always on, so you never miss a reminder. This demo simulates SMS, email and push delivery.';
+      'In-app notifications are always on, so a reminder always reaches your inbox. Text-message and email delivery are not available in this prototype.';
 
   @override
   String get resetNotificationsTitle => 'Reset notifications';
@@ -2931,7 +2956,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get motionFull => 'Full';
 
   @override
-  String get pushLabel => 'Push notifications';
+  String get pushLabel => 'Browser alerts';
 
   @override
   String showOlderVisitsAction(num count) {
@@ -2946,6 +2971,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appointmentDetailTitle => 'Appointment details';
+
+  @override
+  String appointmentTimeZone(String zone) {
+    return 'Local time ($zone)';
+  }
+
+  @override
+  String get appointmentCheckInInstructions =>
+      'Arrive 15 minutes early and bring your identification. Check in at the room shown above.';
 
   @override
   String get appointmentNotFoundNote => 'This appointment could not be found';
@@ -3774,4 +3808,636 @@ class AppLocalizationsEn extends AppLocalizations {
   String idValueLabel(String value) {
     return 'ID $value';
   }
+
+  @override
+  String get recoveryCodeSentTitle => 'Check your email';
+
+  @override
+  String get recoveryCodeSentBody =>
+      'If that matches an account, we sent a 6-digit code to the email on file. It works once and expires in 10 minutes.';
+
+  @override
+  String get recoveryCodeLabel => '6-digit code';
+
+  @override
+  String get recoveryCodeRequired => 'Enter the 6-digit code from your email.';
+
+  @override
+  String get recoveryConfirmPasswordLabel => 'Confirm new password';
+
+  @override
+  String get recoveryResetButton => 'Set new password';
+
+  @override
+  String get recoveryResendButton => 'Send a new code';
+
+  @override
+  String get recoveryDoneTitle => 'Password updated';
+
+  @override
+  String get recoveryDoneBody =>
+      'Your password was changed and any other codes were cancelled. Sign in with your new password.';
+
+  @override
+  String get recoveryDemoInboxTitle => 'Demo inbox — simulated email';
+
+  @override
+  String get recoveryDemoInboxBody =>
+      'This demo has no email service. A code that would be emailed to the account appears here instead.';
+
+  @override
+  String recoveryDemoCodeFor(String sentTo, String code) {
+    return 'To $sentTo: $code';
+  }
+
+  @override
+  String get sessionResumeHint =>
+      'Sign in with the same account to pick up where you left off.';
+
+  @override
+  String get sessionWarningTitle => 'Still there?';
+
+  @override
+  String sessionWarningBody(String time) {
+    return 'For your privacy you’ll be signed out in $time.';
+  }
+
+  @override
+  String get staySignedIn => 'Stay signed in';
+
+  @override
+  String get reauthTitle => 'Confirm it’s you';
+
+  @override
+  String get reauthBody => 'Enter your password to continue with this change.';
+
+  @override
+  String get accessDeniedTitle => 'You don’t have access to this';
+
+  @override
+  String get accessDeniedBody =>
+      'This belongs to another account, or your access to it has ended.';
+
+  @override
+  String get loadMore => 'Load more';
+
+  @override
+  String updatedAgo(String time) {
+    return 'Updated $time';
+  }
+
+  @override
+  String get draftSaving => 'Saving draft…';
+
+  @override
+  String draftSavedAt(String time) {
+    return 'Draft saved $time';
+  }
+
+  @override
+  String get draftSaveFailed =>
+      'Draft not saved. Your text is still on this screen.';
+
+  @override
+  String get draftConflict => 'This draft was changed on another screen.';
+
+  @override
+  String get retrySaveAction => 'Retry save';
+
+  @override
+  String get loadSavedDraftAction => 'Load saved draft';
+
+  @override
+  String get draftRestoreFailed =>
+      'Couldn\'t load the saved draft. Anything you type is saved as a new draft.';
+
+  @override
+  String get signingRequiresDoctor =>
+      'A doctor signs and completes this visit. Your draft is saved for them.';
+
+  @override
+  String get abnormalFlagUnknown => 'No range';
+
+  @override
+  String get labValueUnknownRangeHint =>
+      'No reference range was supplied, so this value has not been judged normal or abnormal.';
+
+  @override
+  String get messageResponseExpectation =>
+      'Your care team replies within one working day. Not for emergencies: call 999 or go to the nearest emergency department.';
+
+  @override
+  String get resultsToReviewHeader => 'Results to review';
+
+  @override
+  String get noResultsToReview => 'No results waiting for you.';
+
+  @override
+  String get couldNotLoadResultReviews => 'Couldn\'t load results to review.';
+
+  @override
+  String resultReviewDue(String time) {
+    return 'Due $time';
+  }
+
+  @override
+  String resultReviewOverdue(String time) {
+    return 'Overdue since $time';
+  }
+
+  @override
+  String get resultReviewHeader => 'Clinical review';
+
+  @override
+  String get resultReviewStatusUnassigned => 'Unassigned';
+
+  @override
+  String get resultReviewStatusAssigned => 'Assigned';
+
+  @override
+  String get resultReviewStatusInReview => 'In review';
+
+  @override
+  String get resultReviewStatusResolved => 'Reviewed';
+
+  @override
+  String get resultReviewStatusEscalated => 'Escalated';
+
+  @override
+  String get workPriorityRoutine => 'Routine';
+
+  @override
+  String get workPriorityPriority => 'Priority';
+
+  @override
+  String get workPriorityUrgent => 'Urgent';
+
+  @override
+  String resultReviewOwner(String name) {
+    return 'Owner: $name';
+  }
+
+  @override
+  String resultReviewCoveredBy(String name) {
+    return 'Covered by: $name';
+  }
+
+  @override
+  String get startReviewAction => 'Start review';
+
+  @override
+  String get resolveReviewAction => 'Mark reviewed';
+
+  @override
+  String get escalateReviewAction => 'Escalate';
+
+  @override
+  String get reviewOutcomeLabel => 'Outcome (what was decided)';
+
+  @override
+  String get escalateToLabel => 'Escalate to';
+
+  @override
+  String get escalationReasonLabel => 'Why it needs escalating';
+
+  @override
+  String get resultReviewUpdated => 'Result review updated.';
+
+  @override
+  String labVerifiedBy(String name) {
+    return 'Verified by $name';
+  }
+
+  @override
+  String get labUnverified => 'Not yet verified';
+
+  @override
+  String labSourceLabel(String source) {
+    return 'Source: $source';
+  }
+
+  @override
+  String get referralRequestStatusClarification => 'Needs clarification';
+
+  @override
+  String get referralRequestStatusAccepted => 'Accepted';
+
+  @override
+  String get referralRequestStatusArranged => 'Arranged';
+
+  @override
+  String get referralRequestStatusClosed => 'Closed';
+
+  @override
+  String get invoiceStatusRefunded => 'Refunded';
+
+  @override
+  String get paymentPendingTitle => 'Confirming your payment';
+
+  @override
+  String get checkPaymentStatusAction => 'Check payment status';
+
+  @override
+  String get paymentStillConfirming =>
+      'Still waiting for the payment provider. You have not been charged twice, and the bill stays unpaid until it is confirmed.';
+
+  @override
+  String get paymentReleasedMessage =>
+      'The payment did not go through and nothing was charged. You can try again.';
+
+  @override
+  String get paymentConfirmingChip => 'Confirming payment…';
+
+  @override
+  String get paymentHistoryHeader => 'Payment history';
+
+  @override
+  String get couldNotLoadPayments => 'Couldn\'t load payment history.';
+
+  @override
+  String get recordDeskPaymentAction => 'Record desk payment';
+
+  @override
+  String get receiptNumberLabel => 'Receipt number';
+
+  @override
+  String get paymentNoteOptionalLabel => 'Note (optional)';
+
+  @override
+  String get deskPaymentRecorded => 'Payment recorded.';
+
+  @override
+  String get refundAction => 'Refund';
+
+  @override
+  String get refundAmountLabel => 'Amount to refund (BD)';
+
+  @override
+  String get refundReasonLabel => 'Reason for refund';
+
+  @override
+  String get refundRecorded => 'Refund completed.';
+
+  @override
+  String get reconcilePaymentsAction => 'Reconcile payments';
+
+  @override
+  String reconciledCount(int count) {
+    return '$count unconfirmed payment(s) resolved.';
+  }
+
+  @override
+  String get paymentKindCharge => 'Payment';
+
+  @override
+  String get paymentKindTopUp => 'Wallet top-up';
+
+  @override
+  String get paymentKindRefund => 'Refund';
+
+  @override
+  String get paymentStatusInitiated => 'Confirming';
+
+  @override
+  String get paymentStatusAuthorized => 'Authorised';
+
+  @override
+  String get paymentStatusSettled => 'Completed';
+
+  @override
+  String get paymentStatusFailed => 'Failed — not charged';
+
+  @override
+  String get paymentStatusVoided => 'Voided';
+
+  @override
+  String paymentReferenceLabel(String reference) {
+    return 'Ref $reference';
+  }
+
+  @override
+  String get topUpPendingMessage =>
+      'We could not confirm this top-up yet. Your balance only changes once the provider confirms it, and you will not be charged twice.';
+
+  @override
+  String get channelNotAvailableInPrototype =>
+      'Not available in this prototype';
+
+  @override
+  String get alertsAllowed => 'Browser alerts are allowed.';
+
+  @override
+  String get alertsNotRequested =>
+      'This browser has not been asked to show alerts yet.';
+
+  @override
+  String get allowAlertsAction => 'Allow browser alerts';
+
+  @override
+  String get alertsBlocked =>
+      'Alerts are blocked in your browser settings. Reminders still arrive in your inbox.';
+
+  @override
+  String get alertsUnsupported =>
+      'This device cannot show alerts. Reminders arrive in your inbox.';
+
+  @override
+  String get importForLabel => 'This document is for';
+
+  @override
+  String get importForMe => 'Me';
+
+  @override
+  String get importIssuerLabel => 'Issued by';
+
+  @override
+  String get importIssuerHelper =>
+      'The lab, hospital or clinic that produced it';
+
+  @override
+  String get importIssuerRequired => 'Say who issued this document.';
+
+  @override
+  String get importReviewNotice =>
+      'Imported documents are marked \"not reviewed by a clinician\" until your care team reviews them. The original file is kept with the record.';
+
+  @override
+  String get provenanceHeader => 'Where this came from';
+
+  @override
+  String provenanceIssuer(String issuer) {
+    return 'Issued by: $issuer';
+  }
+
+  @override
+  String provenanceImportedOn(String date) {
+    return 'Imported $date';
+  }
+
+  @override
+  String provenanceFile(String name, String size) {
+    return 'Original file: $name ($size)';
+  }
+
+  @override
+  String get importStatusPending => 'Not yet reviewed by a clinician';
+
+  @override
+  String get importStatusReviewed => 'Reviewed by a clinician';
+
+  @override
+  String get importStatusRejected =>
+      'Reviewed — not accepted into your clinical record';
+
+  @override
+  String get openOriginalAction => 'Open original file';
+
+  @override
+  String get exportRecordAction => 'Export as PDF';
+
+  @override
+  String get acceptImportAction => 'Accept import';
+
+  @override
+  String get rejectImportAction => 'Reject';
+
+  @override
+  String get rejectImportReasonLabel => 'Why it is not accepted';
+
+  @override
+  String get importReviewSaved => 'Import review saved.';
+
+  @override
+  String get feedbackSessionExpired =>
+      'Your session has ended. Sign in again to continue.';
+
+  @override
+  String get feedbackReauthRequired => 'Confirm your password to continue.';
+
+  @override
+  String get feedbackConflict =>
+      'Someone changed this first. Reload to see the latest before trying again.';
+
+  @override
+  String get feedbackOffline =>
+      'Couldn\'t reach MyHealth Care. Check your connection and try again.';
+
+  @override
+  String get feedbackUnexpected =>
+      'Something went wrong. Nothing was changed; please try again.';
+
+  @override
+  String get reloadAction => 'Reload';
+
+  @override
+  String get signInAgainAction => 'Sign in again';
+
+  @override
+  String staleDataBanner(String time) {
+    return 'Last updated $time. This may be out of date.';
+  }
+
+  @override
+  String get refreshFailedShowingPrevious =>
+      'Couldn\'t refresh. Showing what loaded before.';
+
+  @override
+  String get needsAttentionHeader => 'Needs attention';
+
+  @override
+  String get attentionResultReviews => 'Results needing a clinician';
+
+  @override
+  String get attentionMessages => 'Patient messages past their reply time';
+
+  @override
+  String get attentionReferrals => 'Open referrals';
+
+  @override
+  String get attentionPayments => 'Payments to confirm or refund';
+
+  @override
+  String get attentionDeliveries => 'Notifications not delivered';
+
+  @override
+  String get attentionOverdueInvoices => 'Overdue invoices';
+
+  @override
+  String get attentionPasswordResets => 'Password reset requests';
+
+  @override
+  String get attentionHomeVisits => 'Home-visit requests';
+
+  @override
+  String get attentionFeedback => 'Open feedback reports';
+
+  @override
+  String attentionPartUnassigned(int n) {
+    return '$n unassigned';
+  }
+
+  @override
+  String attentionPartOverdue(int n) {
+    return '$n overdue';
+  }
+
+  @override
+  String attentionPartEscalated(int n) {
+    return '$n escalated';
+  }
+
+  @override
+  String attentionPartUnowned(int n) {
+    return '$n without an owner';
+  }
+
+  @override
+  String attentionPartUnconfirmed(int n) {
+    return '$n unconfirmed';
+  }
+
+  @override
+  String attentionPartNeedsRefund(int n) {
+    return '$n to refund';
+  }
+
+  @override
+  String attentionPartFailed(int n) {
+    return '$n failed';
+  }
+
+  @override
+  String attentionPartLate(int n) {
+    return '$n late';
+  }
+
+  @override
+  String attentionOldest(String date) {
+    return 'Waiting since $date';
+  }
+
+  @override
+  String couldNotCheckQueue(String queue) {
+    return 'Couldn\'t check: $queue';
+  }
+
+  @override
+  String checkedAndClear(String queues) {
+    return 'Checked and clear: $queues';
+  }
+
+  @override
+  String get workQueueTitle => 'Work needing attention';
+
+  @override
+  String get assignAction => 'Assign';
+
+  @override
+  String get assignToLabel => 'Assign to';
+
+  @override
+  String get assignedByAdminNote => 'Assigned by the clinic administrator.';
+
+  @override
+  String get retryFailedDeliveriesAction => 'Retry failed deliveries';
+
+  @override
+  String deliveriesRequeued(int n) {
+    return '$n deliveries queued again.';
+  }
+
+  @override
+  String get nothingNeedsAttention => 'Nothing here needs attention.';
+
+  @override
+  String messageReplyWasDue(String time) {
+    return 'Reply was due $time';
+  }
+
+  @override
+  String clinicianLabel(String name) {
+    return 'Clinician: $name';
+  }
+
+  @override
+  String deliveryHealthSummary(int failed, int late) {
+    return '$failed failed after retries · $late reminders more than an hour late';
+  }
+
+  @override
+  String get awaitingReplyHeader => 'Awaiting your reply';
+
+  @override
+  String get noMessagesAwaiting => 'No patient messages are waiting for you.';
+
+  @override
+  String get couldNotLoadAwaiting => 'Couldn\'t load messages awaiting reply.';
+
+  @override
+  String coveringFor(String name) {
+    return 'Covering for $name';
+  }
+
+  @override
+  String replyBy(String time) {
+    return 'Reply by $time';
+  }
+
+  @override
+  String get needsYourAttentionHeader => 'Needs your attention';
+
+  @override
+  String homeUnreadReplies(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count new replies from your care team',
+      one: '1 new reply from your care team',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String homeOverdueBill(String amount) {
+    return '$amount is past its due date';
+  }
+
+  @override
+  String homePaymentsConfirming(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count payments are still being confirmed',
+      one: '1 payment is still being confirmed',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeFamilyRequestsLabel => 'Family requests';
+
+  @override
+  String homeFamilyRequests(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count people asked to link to your record',
+      one: '1 person asked to link to your record',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsDeviceScope => 'On this device';
+
+  @override
+  String get settingsDeviceScopeCaption =>
+      'Saved in this browser and used by anyone who signs in here.';
+
+  @override
+  String get settingsAccountScope => 'For your account';
+
+  @override
+  String get settingsAccountScopeCaption =>
+      'Saved for you on this device. Someone else signing in here keeps their own choices.';
 }

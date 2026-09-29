@@ -4,19 +4,24 @@ library;
 
 import 'package:drift/drift.dart';
 
+import '../../core/data/contracts.dart';
 import '../../core/failures.dart';
 import '../../core/result.dart';
 import '../../core/utils/ids.dart';
 import '../../domain/entities/entities.dart';
 import '../../domain/enums.dart';
+import '../../domain/identity/permissions.dart';
 import '../../domain/repositories/system_repository.dart';
+import '../../services/auth/access_policy.dart';
 import '../db/app_database.dart';
 import 'mappers.dart';
 
 class AuditRepositoryImpl implements AuditRepository {
-  AuditRepositoryImpl(this._db);
+  AuditRepositoryImpl(this._db, {AccessPolicy? access})
+    : _access = access ?? AccessPolicy.unenforced(_db);
 
   final AppDatabase _db;
+  final AccessPolicy _access;
 
   @override
   Future<Result<void>> record({
@@ -27,6 +32,16 @@ class AuditRepositoryImpl implements AuditRepository {
     String? detail,
   }) {
     return Result.guardAsync(() async {
+      // When enforced, the actor is whoever is signed in — a caller-supplied
+      // actor is kept only as a note if it disagrees.
+      var actor = actorUserId;
+      var note = detail;
+      if (_access.isEnforced) {
+        actor = _access.actingAccountId;
+        if (actorUserId != null && actorUserId != actor) {
+          note = [?detail, 'claimed actor: $actorUserId'].join(' · ');
+        }
+      }
       await _db
           .into(_db.auditLog)
           .insert(
@@ -35,19 +50,47 @@ class AuditRepositoryImpl implements AuditRepository {
               action: action,
               entityType: entityType,
               entityId: Value(entityId),
-              actorUserId: Value(actorUserId),
-              detail: Value(detail),
+              actorUserId: Value(actor),
+              detail: Value(note),
             ),
           );
     });
   }
 
   @override
-  Future<Result<List<AuditEntry>>> query(AuditQuery query) {
+  Future<Result<List<AuditEntry>>> query(AuditQuery query) async =>
+      (await queryPage(
+        query,
+        page: PageRequest(size: query.limit.clamp(1, PageLimits.maxSize)),
+      )).map((p) => p.items);
+
+  @override
+  Future<Result<Page<AuditEntry>>> queryPage(
+    AuditQuery query, {
+    PageRequest page = const PageRequest(),
+  }) {
     return Result.guardAsync(() async {
+      // Anyone may read their own trail; the whole log is for auditors —
+      // and reading it is itself recorded (protected access log).
+      final own = query.actorUserId;
+      if (own != null) {
+        await _access.selfOrAdmin(
+          own,
+          Permission.readAuditLog,
+          entityType: 'audit',
+        );
+      } else {
+        await _access.require(Permission.readAuditLog, entityType: 'audit');
+        if (page.offset == 0 && _access.isEnforced) {
+          await _access.audit('audit.viewed', entityType: 'audit');
+        }
+      }
       final q = _db.select(_db.auditLog)
-        ..orderBy([(a) => OrderingTerm.desc(a.at)])
-        ..limit(query.limit);
+        ..orderBy([
+          (a) => OrderingTerm.desc(a.at),
+          (a) => OrderingTerm.desc(a.id),
+        ])
+        ..limit(page.size + 1, offset: page.offset);
       if (query.actorUserId != null) {
         q.where((a) => a.actorUserId.equals(query.actorUserId!));
       }
@@ -64,15 +107,25 @@ class AuditRepositoryImpl implements AuditRepository {
         q.where((a) => a.at.isSmallerOrEqualValue(query.to!));
       }
       final rows = await q.get();
-      return rows.map((r) => r.toEntity()).toList();
+      final hasMore = rows.length > page.size;
+      return Page(
+        items: [
+          for (final r in hasMore ? rows.sublist(0, page.size) : rows)
+            r.toEntity(),
+        ],
+        offset: page.offset,
+        hasMore: hasMore,
+      );
     });
   }
 }
 
 class SettingsRepositoryImpl implements SettingsRepository {
-  SettingsRepositoryImpl(this._db);
+  SettingsRepositoryImpl(this._db, {AccessPolicy? access})
+    : _access = access ?? AccessPolicy.unenforced(_db);
 
   final AppDatabase _db;
+  final AccessPolicy _access;
 
   static const _defaults = AppSettingsCompanion(id: Value(1));
 
@@ -125,15 +178,14 @@ class SettingsRepositoryImpl implements SettingsRepository {
     required int closeHour,
   }) {
     return Result.guardAsync(() async {
+      await _access.require(Permission.manageSettings, entityType: 'settings');
       if (openHour < 0 || closeHour > 24 || openHour >= closeHour) {
         throw const ValidationFailure(
           'Opening time must be before closing time.',
         );
       }
       await _ensureRow();
-      await (_db.update(
-        _db.appSettings,
-      )..where((r) => r.id.equals(1))).write(
+      await (_db.update(_db.appSettings)..where((r) => r.id.equals(1))).write(
         AppSettingsCompanion(
           clinicOpenDays: Value((openDays.toList()..sort()).join(',')),
           clinicOpenHour: Value(openHour),
@@ -146,6 +198,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
   @override
   Future<Result<void>> update(AppSettings s) {
     return Result.guardAsync(() async {
+      await _access.require(Permission.manageSettings, entityType: 'settings');
       await _ensureRow();
       await (_db.update(_db.appSettings)..where((r) => r.id.equals(1))).write(
         AppSettingsCompanion(
@@ -161,9 +214,11 @@ class SettingsRepositoryImpl implements SettingsRepository {
 }
 
 class FeedbackRepositoryImpl implements FeedbackRepository {
-  FeedbackRepositoryImpl(this._db);
+  FeedbackRepositoryImpl(this._db, {AccessPolicy? access})
+    : _access = access ?? AccessPolicy.unenforced(_db);
 
   final AppDatabase _db;
+  final AccessPolicy _access;
 
   @override
   Future<Result<void>> submit({
@@ -172,6 +227,9 @@ class FeedbackRepositoryImpl implements FeedbackRepository {
     String? reporterId,
   }) {
     return Result.guardAsync(() async {
+      if (reporterId != null) {
+        await _access.assertActor(reporterId, entityType: 'feedback');
+      }
       await _db
           .into(_db.feedbacks)
           .insert(
@@ -188,6 +246,10 @@ class FeedbackRepositoryImpl implements FeedbackRepository {
   @override
   Future<Result<List<UserFeedback>>> all({FeedbackStatus? status}) {
     return Result.guardAsync(() async {
+      await _access.require(
+        Permission.viewOperationalReports,
+        entityType: 'feedback',
+      );
       final q = _db.select(_db.feedbacks)
         ..orderBy([(f) => OrderingTerm.desc(f.createdAt)]);
       if (status != null) q.where((f) => f.status.equalsValue(status));
@@ -219,6 +281,18 @@ class FeedbackRepositoryImpl implements FeedbackRepository {
     String? adminId,
   }) {
     return Result.guardAsync(() async {
+      await _access.require(
+        Permission.viewOperationalReports,
+        entityType: 'feedback',
+        entityId: id,
+      );
+      if (adminId != null) {
+        await _access.assertActor(
+          adminId,
+          entityType: 'feedback',
+          entityId: id,
+        );
+      }
       final resolving = status == FeedbackStatus.resolved;
       await (_db.update(_db.feedbacks)..where((f) => f.id.equals(id))).write(
         FeedbacksCompanion(
@@ -232,9 +306,11 @@ class FeedbackRepositoryImpl implements FeedbackRepository {
 }
 
 class AiUsageRepositoryImpl implements AiUsageRepository {
-  AiUsageRepositoryImpl(this._db);
+  AiUsageRepositoryImpl(this._db, {AccessPolicy? access})
+    : _access = access ?? AccessPolicy.unenforced(_db);
 
   final AppDatabase _db;
+  final AccessPolicy _access;
 
   @override
   Future<Result<void>> log({
@@ -244,6 +320,9 @@ class AiUsageRepositoryImpl implements AiUsageRepository {
     String? summary,
   }) {
     return Result.guardAsync(() async {
+      if (userId != null) {
+        await _access.assertActor(userId, entityType: 'ai_usage');
+      }
       await _db
           .into(_db.aiUsageLog)
           .insert(
@@ -252,9 +331,53 @@ class AiUsageRepositoryImpl implements AiUsageRepository {
               feature: feature,
               usedLiveModel: Value(usedLiveModel),
               userId: Value(userId),
-              summary: Value(summary),
+              summary: Value(analyticsSummary(feature, summary)),
             ),
           );
+    });
+  }
+
+  /// The usage log is operational analytics, not a clinical record: it
+  /// never stores what was typed or dictated, or whose chart it was — only
+  /// the feature and the input size. Enforced here so no caller can leak
+  /// health text into it.
+  static String analyticsSummary(AiFeature feature, String? input) {
+    final label = switch (feature) {
+      AiFeature.careNavigator => 'Care Navigator question',
+      AiFeature.clinicalScribe => 'Clinical scribe draft',
+      AiFeature.patientSummary => 'Record summary',
+    };
+    final size = input?.length ?? 0;
+    return size == 0 ? label : '$label · $size characters';
+  }
+
+  @override
+  Future<Result<Page<AiUsageEntry>>> recentPage({
+    AiFeature? feature,
+    PageRequest page = const PageRequest(),
+  }) {
+    return Result.guardAsync(() async {
+      await _access.require(
+        Permission.viewOperationalReports,
+        entityType: 'ai_usage',
+      );
+      final q = _db.select(_db.aiUsageLog)
+        ..orderBy([
+          (l) => OrderingTerm.desc(l.at),
+          (l) => OrderingTerm.desc(l.id),
+        ])
+        ..limit(page.size + 1, offset: page.offset);
+      if (feature != null) q.where((l) => l.feature.equalsValue(feature));
+      final rows = await q.get();
+      final hasMore = rows.length > page.size;
+      return Page(
+        items: [
+          for (final r in hasMore ? rows.sublist(0, page.size) : rows)
+            r.toEntity(),
+        ],
+        offset: page.offset,
+        hasMore: hasMore,
+      );
     });
   }
 
@@ -264,6 +387,10 @@ class AiUsageRepositoryImpl implements AiUsageRepository {
     int limit = 100,
   }) {
     return Result.guardAsync(() async {
+      await _access.require(
+        Permission.viewOperationalReports,
+        entityType: 'ai_usage',
+      );
       final q = _db.select(_db.aiUsageLog)
         ..orderBy([(l) => OrderingTerm.desc(l.at)])
         ..limit(limit);

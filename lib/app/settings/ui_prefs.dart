@@ -166,9 +166,7 @@ class LocaleController extends Notifier<Locale?> {
   void _syncIntlDefaultLocale(Locale? locale) {
     final languageCode =
         locale?.languageCode ??
-        (PlatformDispatcher.instance.locale.languageCode == 'ar'
-            ? 'ar'
-            : 'en');
+        (PlatformDispatcher.instance.locale.languageCode == 'ar' ? 'ar' : 'en');
     intl.Intl.defaultLocale = languageCode;
   }
 }
@@ -228,10 +226,9 @@ class TextScaleController extends Notifier<TextScaleLevel> {
   Future<void> reset() => set(TextScaleLevel.medium);
 }
 
-final textScaleProvider =
-    NotifierProvider<TextScaleController, TextScaleLevel>(
-      TextScaleController.new,
-    );
+final textScaleProvider = NotifierProvider<TextScaleController, TextScaleLevel>(
+  TextScaleController.new,
+);
 
 // --- sound cues ---------------------------------------------------------
 
@@ -260,10 +257,9 @@ class SoundsEnabledController extends Notifier<bool> {
   Future<void> reset() => set(enabled: true);
 }
 
-final soundsEnabledProvider =
-    NotifierProvider<SoundsEnabledController, bool>(
-      SoundsEnabledController.new,
-    );
+final soundsEnabledProvider = NotifierProvider<SoundsEnabledController, bool>(
+  SoundsEnabledController.new,
+);
 
 // --- high contrast ---------------------------------------------------------
 
@@ -488,12 +484,15 @@ class ClinicSchedule {
   final int openHour;
   final int closeHour;
 
-  ClinicSchedule copyWith({Set<int>? openDays, int? openHour, int? closeHour}) =>
-      ClinicSchedule(
-        openDays: openDays ?? this.openDays,
-        openHour: openHour ?? this.openHour,
-        closeHour: closeHour ?? this.closeHour,
-      );
+  ClinicSchedule copyWith({
+    Set<int>? openDays,
+    int? openHour,
+    int? closeHour,
+  }) => ClinicSchedule(
+    openDays: openDays ?? this.openDays,
+    openHour: openHour ?? this.openHour,
+    closeHour: closeHour ?? this.closeHour,
+  );
 }
 
 class ClinicScheduleController extends Notifier<ClinicSchedule> {
@@ -520,14 +519,15 @@ class ClinicScheduleController extends Notifier<ClinicSchedule> {
       ref,
       previous: previous,
       apply: (v) => state = v,
-      write: () async => (await ref
-              .read(settingsRepositoryProvider)
-              .setClinicSchedule(
-                openDays: schedule.openDays,
-                openHour: schedule.openHour,
-                closeHour: schedule.closeHour,
-              ))
-          .isOk,
+      write: () async =>
+          (await ref
+                  .read(settingsRepositoryProvider)
+                  .setClinicSchedule(
+                    openDays: schedule.openDays,
+                    openHour: schedule.openHour,
+                    closeHour: schedule.closeHour,
+                  ))
+              .isOk,
     );
     if (saved) await _cache(schedule);
   }

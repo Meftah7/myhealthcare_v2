@@ -1,6 +1,7 @@
 /// Patient + department contracts (P1-11).
 library;
 
+import '../../core/data/contracts.dart';
 import '../../core/result.dart';
 import '../entities/entities.dart';
 
@@ -26,6 +27,10 @@ abstract interface class PatientRepository {
 
   Future<Result<List<Patient>>> all({int limit, int offset});
 
+  /// The patient directory one page at a time, name order; [query] filters
+  /// by name / national ID / phone when non-empty.
+  Future<Result<Page<Patient>>> directoryPage({String query, PageRequest page});
+
   Future<Result<void>> updateProfile(Patient patient);
 
   /// Linked family members (redesign v2 patient dashboard: Family Network).
@@ -39,6 +44,14 @@ abstract interface class PatientRepository {
   );
 
   Future<Result<void>> removeFamilyMember(String patientId, String memberId);
+
+  /// The patient record for household member [memberId] of [guardianId],
+  /// created on first use: a patient with no login of their own, linked to
+  /// the guardian by a *manage* proxy grant. Returns its patient id.
+  Future<Result<String>> ensureDependentRecord({
+    required String guardianId,
+    required String memberId,
+  });
 }
 
 abstract interface class DepartmentRepository {

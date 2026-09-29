@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/audio/app_sounds.dart';
+import '../../../core/data/contracts.dart';
 import '../../../core/di.dart';
 import '../../../core/result.dart';
 import '../../../domain/entities/entities.dart';
@@ -124,12 +125,31 @@ final staffPanelProvider = FutureProvider<List<Patient>>((ref) async {
 /// Free-text patient search backing the staff patient list (P5-06).
 final patientSearchQueryProvider = StateProvider<String>((ref) => '');
 
-final patientSearchResultsProvider = FutureProvider<List<Patient>>((ref) async {
-  final q = ref.watch(patientSearchQueryProvider).trim();
-  final repo = ref.watch(patientRepositoryProvider);
-  if (q.isEmpty) return _unwrap(await repo.all(limit: 200));
-  return _unwrap(await repo.search(q, limit: 50));
+/// How many pages of the directory are shown; back to one on a new search.
+final patientSearchPagesProvider = StateProvider<int>((ref) {
+  ref.watch(patientSearchQueryProvider);
+  return 1;
 });
+
+/// The directory (or search results), paged — the list says when more
+/// exist and offers "Load more" instead of silently stopping at a cap.
+final patientSearchPageProvider = FutureProvider<Page<Patient>>((ref) async {
+  final q = ref.watch(patientSearchQueryProvider).trim();
+  final pages = ref.watch(patientSearchPagesProvider);
+  final repo = ref.watch(patientRepositoryProvider);
+  var request = const PageRequest();
+  Page<Patient>? all;
+  for (var i = 0; i < pages; i++, request = request.next) {
+    final page = _unwrap(await repo.directoryPage(query: q, page: request));
+    all = all == null ? page : all.append(page);
+    if (!page.hasMore) break;
+  }
+  return all!;
+});
+
+final patientSearchResultsProvider = FutureProvider<List<Patient>>(
+  (ref) async => (await ref.watch(patientSearchPageProvider.future)).items,
+);
 
 /// Patient lookup for the quick-action pickers (note / prescribe / lab /
 /// transfer). Keyed on the raw query so each picker dialog owns its own state.
@@ -137,8 +157,19 @@ final patientPickerResultsProvider =
     FutureProvider.family<List<Patient>, String>((ref, query) async {
       final repo = ref.watch(patientRepositoryProvider);
       final q = query.trim();
-      if (q.isEmpty) return _unwrap(await repo.all(limit: 30));
-      return _unwrap(await repo.search(q, limit: 30));
+      final candidates = q.isEmpty
+          ? _unwrap(await repo.all(limit: 30))
+          : _unwrap(await repo.search(q, limit: 30));
+      final staffId = _staffId(ref);
+      final appointments = _unwrap(
+        await ref
+            .watch(appointmentRepositoryProvider)
+            .forStaffInRange(staffId, DateTime(2000), DateTime(2100)),
+      );
+      final assignedPatientIds = appointments.map((a) => a.patientId).toSet();
+      return candidates
+          .where((patient) => assignedPatientIds.contains(patient.id))
+          .toList();
     });
 
 final unacknowledgedFlagsProvider = FutureProvider<List<RiskFlag>>((ref) async {
@@ -158,6 +189,13 @@ final departmentWalkInsProvider = FutureProvider<List<WalkInTicket>>((
         .watch(walkInTicketRepositoryProvider)
         .forDepartment(deptId, openOnly: true),
   );
+});
+
+/// When the walk-in queue last finished loading — shown as "Updated …" so a
+/// clinician can tell how current it is. Refreshing keeps their place.
+final departmentWalkInsFetchedAtProvider = Provider<DateTime?>((ref) {
+  final queue = ref.watch(departmentWalkInsProvider);
+  return queue.hasValue && !queue.isLoading ? DateTime.now() : null;
 });
 
 final staffTasksProvider = FutureProvider<List<StaffTask>>((ref) async {
@@ -221,6 +259,7 @@ class StaffOps {
         staffId: staffId,
         score: score,
         rationale: rationale,
+        expectedVersion: task.version,
       );
     }
     _ref.invalidate(staffTasksProvider);
@@ -236,11 +275,20 @@ class StaffOps {
       ..invalidate(staffTasksProvider);
   }
 
-  Future<void> setTaskStatus(String taskId, TaskStatus status) async {
+  Future<void> setTaskStatus(
+    String taskId,
+    TaskStatus status, {
+    int? expectedVersion,
+  }) async {
     final staffId = _ref.read(currentUserProvider)!.id;
     await _ref
         .read(taskRepositoryProvider)
-        .setStatus(id: taskId, staffId: staffId, status: status);
+        .setStatus(
+          id: taskId,
+          staffId: staffId,
+          status: status,
+          expectedVersion: expectedVersion,
+        );
     _ref.invalidate(staffTasksProvider);
   }
 
@@ -316,22 +364,33 @@ class StaffOps {
   Future<Result<String>> startWalkIn(WalkInTicket ticket) async {
     final me = _ref.read(currentUserProvider)!.id;
     return Result.guardAsync(() async {
-      final visit = _unwrap(
-        await _ref
-            .read(appointmentRepositoryProvider)
-            .openWalkInVisit(
-              patientId: ticket.patientId,
-              staffId: me,
-              departmentId: ticket.departmentId,
-              ticketTag: ticket.ticketTag,
-              reasonText: ticket.reason,
-            ),
-      );
-      _unwrap(
-        await _ref
-            .read(walkInTicketRepositoryProvider)
-            .claim(id: ticket.id, doctorId: me, resultAppointmentId: visit.id),
-      );
+      // One transaction: if another clinician claimed the ticket first, the
+      // claim fails with a conflict and the visit opened for it is rolled
+      // back too — never two visits for one walk-in.
+      final visit = await _ref.read(appDatabaseProvider).transaction(() async {
+        final visit = _unwrap(
+          await _ref
+              .read(appointmentRepositoryProvider)
+              .openWalkInVisit(
+                patientId: ticket.patientId,
+                staffId: me,
+                departmentId: ticket.departmentId,
+                ticketTag: ticket.ticketTag,
+                reasonText: ticket.reason,
+              ),
+        );
+        _unwrap(
+          await _ref
+              .read(walkInTicketRepositoryProvider)
+              .claim(
+                id: ticket.id,
+                doctorId: me,
+                resultAppointmentId: visit.id,
+                expectedVersion: ticket.version,
+              ),
+        );
+        return visit;
+      });
       await _ref
           .read(auditRepositoryProvider)
           .record(
@@ -438,10 +497,7 @@ class ScheduleCallLog extends Notifier<Map<String, ScheduleCallEntry>> {
 
   void bump(String appointmentId) {
     final prior = state[appointmentId]?.count ?? 0;
-    state = {
-      ...state,
-      appointmentId: (count: prior + 1, at: DateTime.now()),
-    };
+    state = {...state, appointmentId: (count: prior + 1, at: DateTime.now())};
   }
 }
 

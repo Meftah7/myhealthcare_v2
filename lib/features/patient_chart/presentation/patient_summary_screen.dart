@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
 import '../../../core/utils/format.dart';
@@ -25,24 +26,22 @@ class PatientSummaryScreen extends ConsumerWidget {
     final patient = ref.watch(chartPatientProvider(patientId));
     final summary = ref.watch(chartPatientSummaryProvider(patientId));
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          patient.valueOrNull == null
-              ? 'AI summary'
-              : 'Summary · ${patient.valueOrNull!.fullName}',
-        ),
-        actions: [
-          IconButton(
-            tooltip: 'Regenerate',
-            icon: const Icon(Icons.refresh),
-            onPressed: summary.isLoading
-                ? null
-                : () => ref.invalidate(chartPatientSummaryProvider(patientId)),
-          ),
-          const StaffTopActions(),
-        ],
+    return AppScaffold(
+      titleWidget: Text(
+        patient.valueOrNull == null
+            ? 'AI summary'
+            : 'Summary · ${patient.valueOrNull!.fullName}',
       ),
+      actions: [
+        IconButton(
+          tooltip: 'Regenerate',
+          icon: const Icon(Icons.refresh),
+          onPressed: summary.isLoading
+              ? null
+              : () => ref.invalidate(chartPatientSummaryProvider(patientId)),
+        ),
+        const StaffTopActions(),
+      ],
       body: Column(
         children: [
           const AiDisclaimerBanner(),
@@ -87,10 +86,7 @@ class PatientSummaryScreen extends ConsumerWidget {
                         ),
                       ),
                       if (s.redFlags.isNotEmpty) ...[
-                        const SectionHeader(
-                          'Things to check',
-                          overline: true,
-                        ),
+                        const SectionHeader('Things to check', overline: true),
                         AppCard(
                           padding: const EdgeInsets.all(Space.md),
                           child: Column(
@@ -164,6 +160,7 @@ class PatientSummaryScreen extends ConsumerWidget {
           ),
         ],
       ),
+      centerBody: false,
     );
   }
 

@@ -21,9 +21,18 @@ abstract class ReferralRequest with _$ReferralRequest {
     String? decidedByAdminId,
     String? decisionNote,
     DateTime? decidedAt,
+    String? ownerStaffId,
+    String? coverageStaffId,
+    DateTime? dueAt,
+    @Default(WorkPriority.routine) WorkPriority priority,
+    String? handoverNote,
+    @Default(1) int version,
   }) = _ReferralRequest;
 
   const ReferralRequest._();
 
-  bool get isPending => status == ReferralRequestStatus.pending;
+  bool get isPending =>
+      status != ReferralRequestStatus.actioned &&
+      status != ReferralRequestStatus.rejected &&
+      status != ReferralRequestStatus.closed;
 }

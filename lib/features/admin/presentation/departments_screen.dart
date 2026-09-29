@@ -10,8 +10,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../l10n/app_localizations.dart';
@@ -39,11 +41,9 @@ class DepartmentsScreen extends ConsumerWidget {
     // instead of leaving already-drawn rows on the old theme's colors.
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(t.departmentsLabel),
-        actions: const [AdminTopActions()],
-      ),
+    return AppScaffold(
+      title: t.departmentsLabel,
+      actions: const [AdminTopActions()],
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _edit(context, ref, null),
         icon: const Icon(Icons.add),
@@ -143,6 +143,7 @@ class DepartmentsScreen extends ConsumerWidget {
           );
         },
       ),
+      centerBody: false,
     );
   }
 
@@ -163,7 +164,13 @@ class DepartmentsScreen extends ConsumerWidget {
     if (!ok) return;
     final r = await ref.read(adminActionsProvider).deleteDepartment(d.id);
     if (r case Err(:final failure)) {
-      messenger.showSnackBar(SnackBar(content: Text(failure.message)));
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            describeFailure(AppLocalizations.of(context)!, failure).message,
+          ),
+        ),
+      );
     } else {
       messenger.showSnackBar(
         SnackBar(content: Text(t.itemDeletedSnackbar(d.name))),
@@ -223,7 +230,14 @@ class DepartmentsScreen extends ConsumerWidget {
               navigator.pop();
               if (r case Err(:final failure)) {
                 messenger.showSnackBar(
-                  SnackBar(content: Text(failure.message)),
+                  SnackBar(
+                    content: Text(
+                      describeFailure(
+                        AppLocalizations.of(context)!,
+                        failure,
+                      ).message,
+                    ),
+                  ),
                 );
               }
             },

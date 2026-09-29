@@ -94,11 +94,11 @@ class AppointmentDetailScreen extends ConsumerWidget {
                   _DetailRow(t.doctorLabel, doctorName ?? t.none),
                   _DetailRow(t.departmentLabel, departmentName ?? t.none),
                   _DetailRow(t.roomNumber(appt.roomNumber ?? t.none), null),
+                  _DetailRow(t.ticketLabel(appt.ticketTag ?? t.none), null),
                   _DetailRow(
-                    t.ticketLabel(appt.ticketTag ?? t.none),
-                    null,
+                    t.visitTypeFieldLabel,
+                    visitTypeLabel(appt.visitType),
                   ),
-                  _DetailRow(t.visitTypeFieldLabel, visitTypeLabel(appt.visitType)),
                   if (appt.reasonText != null &&
                       appt.reasonText!.trim().isNotEmpty)
                     _DetailRow(t.reasonOptionalLabel, appt.reasonText!),
@@ -106,14 +106,31 @@ class AppointmentDetailScreen extends ConsumerWidget {
                 ],
               ),
             ),
+            const SizedBox(height: Space.sm),
+            AppCard(
+              padding: const EdgeInsets.all(Space.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    t.appointmentCheckInInstructions,
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: Space.xs),
+                  Text(
+                    t.inAppAlwaysOnNote,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: Space.md),
             OutlinedButton.icon(
               onPressed: () => _exportToCalendar(
                 context,
-                title: [
-                  t.visitTypeFieldLabel,
-                  ?doctorName,
-                ].join(' — '),
+                title: [t.visitTypeFieldLabel, ?doctorName].join(' — '),
                 start: appt.slotStart,
                 end: appt.slotEnd,
                 location: departmentName,

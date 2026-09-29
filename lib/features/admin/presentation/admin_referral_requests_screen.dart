@@ -10,7 +10,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/paging_widgets.dart';
 import '../../../core/presentation/states.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -33,6 +35,17 @@ class AdminReferralRequestsScreen extends ConsumerWidget {
     return AppScaffold(
       title: t.referralRequestsTitle,
       actions: const [AdminTopActions()],
+      // How current the queue is, with an explicit refresh.
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(48),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: Space.md),
+          child: QueueFreshness(
+            value: queue,
+            onRefresh: () => ref.invalidate(pendingReferralRequestsProvider),
+          ),
+        ),
+      ),
       onRefresh: () async => ref.invalidate(pendingReferralRequestsProvider),
       body: queue.when(
         loading: () => const SkeletonList(),
@@ -155,7 +168,10 @@ class _RequestCard extends ConsumerWidget {
       SnackBar(
         content: Text(switch (result) {
           Ok() => t.patientReferredSnackbar(patientName),
-          Err(:final failure) => failure.message,
+          Err(:final failure) => describeFailure(
+            AppLocalizations.of(context)!,
+            failure,
+          ).message,
         }),
       ),
     );

@@ -28,6 +28,5 @@ abstract class FamilyLink with _$FamilyLink {
   const FamilyLink._();
 
   bool get isAccepted => status == FamilyLinkStatus.accepted;
-  bool get canManage =>
-      isAccepted && permission == FamilyLinkPermission.manage;
+  bool get canManage => isAccepted && permission == FamilyLinkPermission.manage;
 }

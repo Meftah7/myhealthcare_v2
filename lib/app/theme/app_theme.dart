@@ -84,10 +84,11 @@ abstract final class AppTheme {
         ? scheme.surfaceContainerLowest
         : scheme.surfaceContainerLow;
 
-    OutlineInputBorder fieldBorder(Color c, [double w = 1]) => OutlineInputBorder(
-      borderRadius: Radii.field,
-      borderSide: BorderSide(color: c, width: w),
-    );
+    OutlineInputBorder fieldBorder(Color c, [double w = 1]) =>
+        OutlineInputBorder(
+          borderRadius: Radii.field,
+          borderSide: BorderSide(color: c, width: w),
+        );
 
     return ThemeData(
       colorScheme: scheme,
@@ -277,7 +278,9 @@ abstract final class AppTheme {
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: scheme.inverseSurface,
-        contentTextStyle: text.bodyMedium?.copyWith(color: scheme.onInverseSurface),
+        contentTextStyle: text.bodyMedium?.copyWith(
+          color: scheme.onInverseSurface,
+        ),
         actionTextColor: scheme.inversePrimary,
         elevation: 3,
         shape: const RoundedRectangleBorder(borderRadius: Radii.cardSmall),
@@ -351,11 +354,7 @@ abstract final class AppTheme {
         textStyle: text.bodySmall?.copyWith(color: scheme.onInverseSurface),
       ),
 
-      dividerTheme: DividerThemeData(
-        color: hairline,
-        thickness: 1,
-        space: 1,
-      ),
+      dividerTheme: DividerThemeData(color: hairline, thickness: 1, space: 1),
 
       progressIndicatorTheme: ProgressIndicatorThemeData(
         color: scheme.primary,

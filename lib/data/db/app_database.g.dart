@@ -443,6 +443,21 @@ class $UsersTable extends Users with TableInfo<$UsersTable, UserRow> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _hasLoginMeta = const VerificationMeta(
+    'hasLogin',
+  );
+  @override
+  late final GeneratedColumn<bool> hasLogin = GeneratedColumn<bool>(
+    'has_login',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("has_login" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -460,6 +475,7 @@ class $UsersTable extends Users with TableInfo<$UsersTable, UserRow> {
     createdAt,
     failedLoginAttempts,
     lockedUntil,
+    hasLogin,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -570,6 +586,12 @@ class $UsersTable extends Users with TableInfo<$UsersTable, UserRow> {
         ),
       );
     }
+    if (data.containsKey('has_login')) {
+      context.handle(
+        _hasLoginMeta,
+        hasLogin.isAcceptableOrUnknown(data['has_login']!, _hasLoginMeta),
+      );
+    }
     return context;
   }
 
@@ -643,6 +665,10 @@ class $UsersTable extends Users with TableInfo<$UsersTable, UserRow> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}locked_until'],
       ),
+      hasLogin: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}has_login'],
+      )!,
     );
   }
 
@@ -685,6 +711,12 @@ class UserRow extends DataClass implements Insertable<UserRow> {
   /// Set once [failedLoginAttempts] crosses the threshold; login is refused
   /// (with a generic message) while this is in the future.
   final DateTime? lockedUntil;
+
+  /// False for a dependent patient (a child, or an adult someone cares for)
+  /// who has a patient record but no login of their own. Sign-in and
+  /// recovery always refuse such a row; a guardian reaches it through a
+  /// proxy grant.
+  final bool hasLogin;
   const UserRow({
     required this.id,
     required this.role,
@@ -701,6 +733,7 @@ class UserRow extends DataClass implements Insertable<UserRow> {
     required this.createdAt,
     required this.failedLoginAttempts,
     this.lockedUntil,
+    required this.hasLogin,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -736,6 +769,7 @@ class UserRow extends DataClass implements Insertable<UserRow> {
     if (!nullToAbsent || lockedUntil != null) {
       map['locked_until'] = Variable<DateTime>(lockedUntil);
     }
+    map['has_login'] = Variable<bool>(hasLogin);
     return map;
   }
 
@@ -766,6 +800,7 @@ class UserRow extends DataClass implements Insertable<UserRow> {
       lockedUntil: lockedUntil == null && nullToAbsent
           ? const Value.absent()
           : Value(lockedUntil),
+      hasLogin: Value(hasLogin),
     );
   }
 
@@ -796,6 +831,7 @@ class UserRow extends DataClass implements Insertable<UserRow> {
         json['failedLoginAttempts'],
       ),
       lockedUntil: serializer.fromJson<DateTime?>(json['lockedUntil']),
+      hasLogin: serializer.fromJson<bool>(json['hasLogin']),
     );
   }
   @override
@@ -821,6 +857,7 @@ class UserRow extends DataClass implements Insertable<UserRow> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'failedLoginAttempts': serializer.toJson<int>(failedLoginAttempts),
       'lockedUntil': serializer.toJson<DateTime?>(lockedUntil),
+      'hasLogin': serializer.toJson<bool>(hasLogin),
     };
   }
 
@@ -840,6 +877,7 @@ class UserRow extends DataClass implements Insertable<UserRow> {
     DateTime? createdAt,
     int? failedLoginAttempts,
     Value<DateTime?> lockedUntil = const Value.absent(),
+    bool? hasLogin,
   }) => UserRow(
     id: id ?? this.id,
     role: role ?? this.role,
@@ -856,6 +894,7 @@ class UserRow extends DataClass implements Insertable<UserRow> {
     createdAt: createdAt ?? this.createdAt,
     failedLoginAttempts: failedLoginAttempts ?? this.failedLoginAttempts,
     lockedUntil: lockedUntil.present ? lockedUntil.value : this.lockedUntil,
+    hasLogin: hasLogin ?? this.hasLogin,
   );
   UserRow copyWithCompanion(UsersCompanion data) {
     return UserRow(
@@ -886,6 +925,7 @@ class UserRow extends DataClass implements Insertable<UserRow> {
       lockedUntil: data.lockedUntil.present
           ? data.lockedUntil.value
           : this.lockedUntil,
+      hasLogin: data.hasLogin.present ? data.hasLogin.value : this.hasLogin,
     );
   }
 
@@ -906,7 +946,8 @@ class UserRow extends DataClass implements Insertable<UserRow> {
           ..write('isActive: $isActive, ')
           ..write('createdAt: $createdAt, ')
           ..write('failedLoginAttempts: $failedLoginAttempts, ')
-          ..write('lockedUntil: $lockedUntil')
+          ..write('lockedUntil: $lockedUntil, ')
+          ..write('hasLogin: $hasLogin')
           ..write(')'))
         .toString();
   }
@@ -928,6 +969,7 @@ class UserRow extends DataClass implements Insertable<UserRow> {
     createdAt,
     failedLoginAttempts,
     lockedUntil,
+    hasLogin,
   );
   @override
   bool operator ==(Object other) =>
@@ -947,7 +989,8 @@ class UserRow extends DataClass implements Insertable<UserRow> {
           other.isActive == this.isActive &&
           other.createdAt == this.createdAt &&
           other.failedLoginAttempts == this.failedLoginAttempts &&
-          other.lockedUntil == this.lockedUntil);
+          other.lockedUntil == this.lockedUntil &&
+          other.hasLogin == this.hasLogin);
 }
 
 class UsersCompanion extends UpdateCompanion<UserRow> {
@@ -966,6 +1009,7 @@ class UsersCompanion extends UpdateCompanion<UserRow> {
   final Value<DateTime> createdAt;
   final Value<int> failedLoginAttempts;
   final Value<DateTime?> lockedUntil;
+  final Value<bool> hasLogin;
   final Value<int> rowid;
   const UsersCompanion({
     this.id = const Value.absent(),
@@ -983,6 +1027,7 @@ class UsersCompanion extends UpdateCompanion<UserRow> {
     this.createdAt = const Value.absent(),
     this.failedLoginAttempts = const Value.absent(),
     this.lockedUntil = const Value.absent(),
+    this.hasLogin = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   UsersCompanion.insert({
@@ -1001,6 +1046,7 @@ class UsersCompanion extends UpdateCompanion<UserRow> {
     this.createdAt = const Value.absent(),
     this.failedLoginAttempts = const Value.absent(),
     this.lockedUntil = const Value.absent(),
+    this.hasLogin = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        role = Value(role),
@@ -1024,6 +1070,7 @@ class UsersCompanion extends UpdateCompanion<UserRow> {
     Expression<DateTime>? createdAt,
     Expression<int>? failedLoginAttempts,
     Expression<DateTime>? lockedUntil,
+    Expression<bool>? hasLogin,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1043,6 +1090,7 @@ class UsersCompanion extends UpdateCompanion<UserRow> {
       if (failedLoginAttempts != null)
         'failed_login_attempts': failedLoginAttempts,
       if (lockedUntil != null) 'locked_until': lockedUntil,
+      if (hasLogin != null) 'has_login': hasLogin,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1063,6 +1111,7 @@ class UsersCompanion extends UpdateCompanion<UserRow> {
     Value<DateTime>? createdAt,
     Value<int>? failedLoginAttempts,
     Value<DateTime?>? lockedUntil,
+    Value<bool>? hasLogin,
     Value<int>? rowid,
   }) {
     return UsersCompanion(
@@ -1081,6 +1130,7 @@ class UsersCompanion extends UpdateCompanion<UserRow> {
       createdAt: createdAt ?? this.createdAt,
       failedLoginAttempts: failedLoginAttempts ?? this.failedLoginAttempts,
       lockedUntil: lockedUntil ?? this.lockedUntil,
+      hasLogin: hasLogin ?? this.hasLogin,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1137,6 +1187,9 @@ class UsersCompanion extends UpdateCompanion<UserRow> {
     if (lockedUntil.present) {
       map['locked_until'] = Variable<DateTime>(lockedUntil.value);
     }
+    if (hasLogin.present) {
+      map['has_login'] = Variable<bool>(hasLogin.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1161,6 +1214,7 @@ class UsersCompanion extends UpdateCompanion<UserRow> {
           ..write('createdAt: $createdAt, ')
           ..write('failedLoginAttempts: $failedLoginAttempts, ')
           ..write('lockedUntil: $lockedUntil, ')
+          ..write('hasLogin: $hasLogin, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1243,6 +1297,18 @@ class $PatientProfilesTable extends PatientProfiles
       ).withConverter<List<FamilyMember>>(
         $PatientProfilesTable.$converterfamilyMembers,
       );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     userId,
@@ -1251,6 +1317,7 @@ class $PatientProfilesTable extends PatientProfiles
     chronicConditions,
     emergencyContact,
     familyMembers,
+    version,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1285,6 +1352,12 @@ class $PatientProfilesTable extends PatientProfiles
           data['emergency_contact']!,
           _emergencyContactMeta,
         ),
+      );
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
       );
     }
     return context;
@@ -1327,6 +1400,10 @@ class $PatientProfilesTable extends PatientProfiles
           data['${effectivePrefix}family_members'],
         )!,
       ),
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
     );
   }
 
@@ -1354,6 +1431,10 @@ class PatientProfileRow extends DataClass
   /// Linked family members (redesign v2 patient dashboard: Family Network).
   /// The whole list round-trips as one JSON blob — no table of its own.
   final List<FamilyMember> familyMembers;
+
+  /// Optimistic-concurrency version (trigger-bumped, schema v19): two
+  /// devices editing one profile can't silently overwrite each other.
+  final int version;
   const PatientProfileRow({
     required this.userId,
     this.bloodType,
@@ -1361,6 +1442,7 @@ class PatientProfileRow extends DataClass
     required this.chronicConditions,
     this.emergencyContact,
     required this.familyMembers,
+    required this.version,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1389,6 +1471,7 @@ class PatientProfileRow extends DataClass
         $PatientProfilesTable.$converterfamilyMembers.toSql(familyMembers),
       );
     }
+    map['version'] = Variable<int>(version);
     return map;
   }
 
@@ -1404,6 +1487,7 @@ class PatientProfileRow extends DataClass
           ? const Value.absent()
           : Value(emergencyContact),
       familyMembers: Value(familyMembers),
+      version: Value(version),
     );
   }
 
@@ -1423,6 +1507,7 @@ class PatientProfileRow extends DataClass
       familyMembers: serializer.fromJson<List<FamilyMember>>(
         json['familyMembers'],
       ),
+      version: serializer.fromJson<int>(json['version']),
     );
   }
   @override
@@ -1435,6 +1520,7 @@ class PatientProfileRow extends DataClass
       'chronicConditions': serializer.toJson<List<String>>(chronicConditions),
       'emergencyContact': serializer.toJson<String?>(emergencyContact),
       'familyMembers': serializer.toJson<List<FamilyMember>>(familyMembers),
+      'version': serializer.toJson<int>(version),
     };
   }
 
@@ -1445,6 +1531,7 @@ class PatientProfileRow extends DataClass
     List<String>? chronicConditions,
     Value<String?> emergencyContact = const Value.absent(),
     List<FamilyMember>? familyMembers,
+    int? version,
   }) => PatientProfileRow(
     userId: userId ?? this.userId,
     bloodType: bloodType.present ? bloodType.value : this.bloodType,
@@ -1454,6 +1541,7 @@ class PatientProfileRow extends DataClass
         ? emergencyContact.value
         : this.emergencyContact,
     familyMembers: familyMembers ?? this.familyMembers,
+    version: version ?? this.version,
   );
   PatientProfileRow copyWithCompanion(PatientProfilesCompanion data) {
     return PatientProfileRow(
@@ -1469,6 +1557,7 @@ class PatientProfileRow extends DataClass
       familyMembers: data.familyMembers.present
           ? data.familyMembers.value
           : this.familyMembers,
+      version: data.version.present ? data.version.value : this.version,
     );
   }
 
@@ -1480,7 +1569,8 @@ class PatientProfileRow extends DataClass
           ..write('allergies: $allergies, ')
           ..write('chronicConditions: $chronicConditions, ')
           ..write('emergencyContact: $emergencyContact, ')
-          ..write('familyMembers: $familyMembers')
+          ..write('familyMembers: $familyMembers, ')
+          ..write('version: $version')
           ..write(')'))
         .toString();
   }
@@ -1493,6 +1583,7 @@ class PatientProfileRow extends DataClass
     chronicConditions,
     emergencyContact,
     familyMembers,
+    version,
   );
   @override
   bool operator ==(Object other) =>
@@ -1503,7 +1594,8 @@ class PatientProfileRow extends DataClass
           other.allergies == this.allergies &&
           other.chronicConditions == this.chronicConditions &&
           other.emergencyContact == this.emergencyContact &&
-          other.familyMembers == this.familyMembers);
+          other.familyMembers == this.familyMembers &&
+          other.version == this.version);
 }
 
 class PatientProfilesCompanion extends UpdateCompanion<PatientProfileRow> {
@@ -1513,6 +1605,7 @@ class PatientProfilesCompanion extends UpdateCompanion<PatientProfileRow> {
   final Value<List<String>> chronicConditions;
   final Value<String?> emergencyContact;
   final Value<List<FamilyMember>> familyMembers;
+  final Value<int> version;
   final Value<int> rowid;
   const PatientProfilesCompanion({
     this.userId = const Value.absent(),
@@ -1521,6 +1614,7 @@ class PatientProfilesCompanion extends UpdateCompanion<PatientProfileRow> {
     this.chronicConditions = const Value.absent(),
     this.emergencyContact = const Value.absent(),
     this.familyMembers = const Value.absent(),
+    this.version = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   PatientProfilesCompanion.insert({
@@ -1530,6 +1624,7 @@ class PatientProfilesCompanion extends UpdateCompanion<PatientProfileRow> {
     this.chronicConditions = const Value.absent(),
     this.emergencyContact = const Value.absent(),
     this.familyMembers = const Value.absent(),
+    this.version = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : userId = Value(userId);
   static Insertable<PatientProfileRow> custom({
@@ -1539,6 +1634,7 @@ class PatientProfilesCompanion extends UpdateCompanion<PatientProfileRow> {
     Expression<String>? chronicConditions,
     Expression<String>? emergencyContact,
     Expression<String>? familyMembers,
+    Expression<int>? version,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1548,6 +1644,7 @@ class PatientProfilesCompanion extends UpdateCompanion<PatientProfileRow> {
       if (chronicConditions != null) 'chronic_conditions': chronicConditions,
       if (emergencyContact != null) 'emergency_contact': emergencyContact,
       if (familyMembers != null) 'family_members': familyMembers,
+      if (version != null) 'version': version,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1559,6 +1656,7 @@ class PatientProfilesCompanion extends UpdateCompanion<PatientProfileRow> {
     Value<List<String>>? chronicConditions,
     Value<String?>? emergencyContact,
     Value<List<FamilyMember>>? familyMembers,
+    Value<int>? version,
     Value<int>? rowid,
   }) {
     return PatientProfilesCompanion(
@@ -1568,6 +1666,7 @@ class PatientProfilesCompanion extends UpdateCompanion<PatientProfileRow> {
       chronicConditions: chronicConditions ?? this.chronicConditions,
       emergencyContact: emergencyContact ?? this.emergencyContact,
       familyMembers: familyMembers ?? this.familyMembers,
+      version: version ?? this.version,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1603,6 +1702,9 @@ class PatientProfilesCompanion extends UpdateCompanion<PatientProfileRow> {
         ),
       );
     }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1618,6 +1720,7 @@ class PatientProfilesCompanion extends UpdateCompanion<PatientProfileRow> {
           ..write('chronicConditions: $chronicConditions, ')
           ..write('emergencyContact: $emergencyContact, ')
           ..write('familyMembers: $familyMembers, ')
+          ..write('version: $version, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2571,6 +2674,1699 @@ class PasswordResetRequestsCompanion
   }
 }
 
+class $AccountRecoveryTokensTable extends AccountRecoveryTokens
+    with TableInfo<$AccountRecoveryTokensTable, AccountRecoveryTokenRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AccountRecoveryTokensTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _codeHashMeta = const VerificationMeta(
+    'codeHash',
+  );
+  @override
+  late final GeneratedColumn<String> codeHash = GeneratedColumn<String>(
+    'code_hash',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _codeSaltMeta = const VerificationMeta(
+    'codeSalt',
+  );
+  @override
+  late final GeneratedColumn<String> codeSalt = GeneratedColumn<String>(
+    'code_salt',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sentToMeta = const VerificationMeta('sentTo');
+  @override
+  late final GeneratedColumn<String> sentTo = GeneratedColumn<String>(
+    'sent_to',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _expiresAtMeta = const VerificationMeta(
+    'expiresAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> expiresAt = GeneratedColumn<DateTime>(
+    'expires_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _failedAttemptsMeta = const VerificationMeta(
+    'failedAttempts',
+  );
+  @override
+  late final GeneratedColumn<int> failedAttempts = GeneratedColumn<int>(
+    'failed_attempts',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _consumedAtMeta = const VerificationMeta(
+    'consumedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> consumedAt = GeneratedColumn<DateTime>(
+    'consumed_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _invalidatedAtMeta = const VerificationMeta(
+    'invalidatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> invalidatedAt =
+      GeneratedColumn<DateTime>(
+        'invalidated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    userId,
+    codeHash,
+    codeSalt,
+    sentTo,
+    createdAt,
+    expiresAt,
+    failedAttempts,
+    consumedAt,
+    invalidatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'account_recovery_tokens';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AccountRecoveryTokenRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('code_hash')) {
+      context.handle(
+        _codeHashMeta,
+        codeHash.isAcceptableOrUnknown(data['code_hash']!, _codeHashMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_codeHashMeta);
+    }
+    if (data.containsKey('code_salt')) {
+      context.handle(
+        _codeSaltMeta,
+        codeSalt.isAcceptableOrUnknown(data['code_salt']!, _codeSaltMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_codeSaltMeta);
+    }
+    if (data.containsKey('sent_to')) {
+      context.handle(
+        _sentToMeta,
+        sentTo.isAcceptableOrUnknown(data['sent_to']!, _sentToMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sentToMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('expires_at')) {
+      context.handle(
+        _expiresAtMeta,
+        expiresAt.isAcceptableOrUnknown(data['expires_at']!, _expiresAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_expiresAtMeta);
+    }
+    if (data.containsKey('failed_attempts')) {
+      context.handle(
+        _failedAttemptsMeta,
+        failedAttempts.isAcceptableOrUnknown(
+          data['failed_attempts']!,
+          _failedAttemptsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('consumed_at')) {
+      context.handle(
+        _consumedAtMeta,
+        consumedAt.isAcceptableOrUnknown(data['consumed_at']!, _consumedAtMeta),
+      );
+    }
+    if (data.containsKey('invalidated_at')) {
+      context.handle(
+        _invalidatedAtMeta,
+        invalidatedAt.isAcceptableOrUnknown(
+          data['invalidated_at']!,
+          _invalidatedAtMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AccountRecoveryTokenRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AccountRecoveryTokenRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      codeHash: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}code_hash'],
+      )!,
+      codeSalt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}code_salt'],
+      )!,
+      sentTo: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sent_to'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      expiresAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}expires_at'],
+      )!,
+      failedAttempts: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}failed_attempts'],
+      )!,
+      consumedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}consumed_at'],
+      ),
+      invalidatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}invalidated_at'],
+      ),
+    );
+  }
+
+  @override
+  $AccountRecoveryTokensTable createAlias(String alias) {
+    return $AccountRecoveryTokensTable(attachedDatabase, alias);
+  }
+}
+
+class AccountRecoveryTokenRow extends DataClass
+    implements Insertable<AccountRecoveryTokenRow> {
+  final String id;
+  final String userId;
+  final String codeHash;
+  final String codeSalt;
+
+  /// Where the code was sent, masked (e.g. `p***@myhealth.demo`).
+  final String sentTo;
+  final DateTime createdAt;
+  final DateTime expiresAt;
+  final int failedAttempts;
+  final DateTime? consumedAt;
+  final DateTime? invalidatedAt;
+  const AccountRecoveryTokenRow({
+    required this.id,
+    required this.userId,
+    required this.codeHash,
+    required this.codeSalt,
+    required this.sentTo,
+    required this.createdAt,
+    required this.expiresAt,
+    required this.failedAttempts,
+    this.consumedAt,
+    this.invalidatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['user_id'] = Variable<String>(userId);
+    map['code_hash'] = Variable<String>(codeHash);
+    map['code_salt'] = Variable<String>(codeSalt);
+    map['sent_to'] = Variable<String>(sentTo);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['expires_at'] = Variable<DateTime>(expiresAt);
+    map['failed_attempts'] = Variable<int>(failedAttempts);
+    if (!nullToAbsent || consumedAt != null) {
+      map['consumed_at'] = Variable<DateTime>(consumedAt);
+    }
+    if (!nullToAbsent || invalidatedAt != null) {
+      map['invalidated_at'] = Variable<DateTime>(invalidatedAt);
+    }
+    return map;
+  }
+
+  AccountRecoveryTokensCompanion toCompanion(bool nullToAbsent) {
+    return AccountRecoveryTokensCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      codeHash: Value(codeHash),
+      codeSalt: Value(codeSalt),
+      sentTo: Value(sentTo),
+      createdAt: Value(createdAt),
+      expiresAt: Value(expiresAt),
+      failedAttempts: Value(failedAttempts),
+      consumedAt: consumedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(consumedAt),
+      invalidatedAt: invalidatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(invalidatedAt),
+    );
+  }
+
+  factory AccountRecoveryTokenRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AccountRecoveryTokenRow(
+      id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String>(json['userId']),
+      codeHash: serializer.fromJson<String>(json['codeHash']),
+      codeSalt: serializer.fromJson<String>(json['codeSalt']),
+      sentTo: serializer.fromJson<String>(json['sentTo']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      expiresAt: serializer.fromJson<DateTime>(json['expiresAt']),
+      failedAttempts: serializer.fromJson<int>(json['failedAttempts']),
+      consumedAt: serializer.fromJson<DateTime?>(json['consumedAt']),
+      invalidatedAt: serializer.fromJson<DateTime?>(json['invalidatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String>(userId),
+      'codeHash': serializer.toJson<String>(codeHash),
+      'codeSalt': serializer.toJson<String>(codeSalt),
+      'sentTo': serializer.toJson<String>(sentTo),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'expiresAt': serializer.toJson<DateTime>(expiresAt),
+      'failedAttempts': serializer.toJson<int>(failedAttempts),
+      'consumedAt': serializer.toJson<DateTime?>(consumedAt),
+      'invalidatedAt': serializer.toJson<DateTime?>(invalidatedAt),
+    };
+  }
+
+  AccountRecoveryTokenRow copyWith({
+    String? id,
+    String? userId,
+    String? codeHash,
+    String? codeSalt,
+    String? sentTo,
+    DateTime? createdAt,
+    DateTime? expiresAt,
+    int? failedAttempts,
+    Value<DateTime?> consumedAt = const Value.absent(),
+    Value<DateTime?> invalidatedAt = const Value.absent(),
+  }) => AccountRecoveryTokenRow(
+    id: id ?? this.id,
+    userId: userId ?? this.userId,
+    codeHash: codeHash ?? this.codeHash,
+    codeSalt: codeSalt ?? this.codeSalt,
+    sentTo: sentTo ?? this.sentTo,
+    createdAt: createdAt ?? this.createdAt,
+    expiresAt: expiresAt ?? this.expiresAt,
+    failedAttempts: failedAttempts ?? this.failedAttempts,
+    consumedAt: consumedAt.present ? consumedAt.value : this.consumedAt,
+    invalidatedAt: invalidatedAt.present
+        ? invalidatedAt.value
+        : this.invalidatedAt,
+  );
+  AccountRecoveryTokenRow copyWithCompanion(
+    AccountRecoveryTokensCompanion data,
+  ) {
+    return AccountRecoveryTokenRow(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      codeHash: data.codeHash.present ? data.codeHash.value : this.codeHash,
+      codeSalt: data.codeSalt.present ? data.codeSalt.value : this.codeSalt,
+      sentTo: data.sentTo.present ? data.sentTo.value : this.sentTo,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      expiresAt: data.expiresAt.present ? data.expiresAt.value : this.expiresAt,
+      failedAttempts: data.failedAttempts.present
+          ? data.failedAttempts.value
+          : this.failedAttempts,
+      consumedAt: data.consumedAt.present
+          ? data.consumedAt.value
+          : this.consumedAt,
+      invalidatedAt: data.invalidatedAt.present
+          ? data.invalidatedAt.value
+          : this.invalidatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AccountRecoveryTokenRow(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('codeHash: $codeHash, ')
+          ..write('codeSalt: $codeSalt, ')
+          ..write('sentTo: $sentTo, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('failedAttempts: $failedAttempts, ')
+          ..write('consumedAt: $consumedAt, ')
+          ..write('invalidatedAt: $invalidatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    userId,
+    codeHash,
+    codeSalt,
+    sentTo,
+    createdAt,
+    expiresAt,
+    failedAttempts,
+    consumedAt,
+    invalidatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AccountRecoveryTokenRow &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.codeHash == this.codeHash &&
+          other.codeSalt == this.codeSalt &&
+          other.sentTo == this.sentTo &&
+          other.createdAt == this.createdAt &&
+          other.expiresAt == this.expiresAt &&
+          other.failedAttempts == this.failedAttempts &&
+          other.consumedAt == this.consumedAt &&
+          other.invalidatedAt == this.invalidatedAt);
+}
+
+class AccountRecoveryTokensCompanion
+    extends UpdateCompanion<AccountRecoveryTokenRow> {
+  final Value<String> id;
+  final Value<String> userId;
+  final Value<String> codeHash;
+  final Value<String> codeSalt;
+  final Value<String> sentTo;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> expiresAt;
+  final Value<int> failedAttempts;
+  final Value<DateTime?> consumedAt;
+  final Value<DateTime?> invalidatedAt;
+  final Value<int> rowid;
+  const AccountRecoveryTokensCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.codeHash = const Value.absent(),
+    this.codeSalt = const Value.absent(),
+    this.sentTo = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.expiresAt = const Value.absent(),
+    this.failedAttempts = const Value.absent(),
+    this.consumedAt = const Value.absent(),
+    this.invalidatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AccountRecoveryTokensCompanion.insert({
+    required String id,
+    required String userId,
+    required String codeHash,
+    required String codeSalt,
+    required String sentTo,
+    required DateTime createdAt,
+    required DateTime expiresAt,
+    this.failedAttempts = const Value.absent(),
+    this.consumedAt = const Value.absent(),
+    this.invalidatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       userId = Value(userId),
+       codeHash = Value(codeHash),
+       codeSalt = Value(codeSalt),
+       sentTo = Value(sentTo),
+       createdAt = Value(createdAt),
+       expiresAt = Value(expiresAt);
+  static Insertable<AccountRecoveryTokenRow> custom({
+    Expression<String>? id,
+    Expression<String>? userId,
+    Expression<String>? codeHash,
+    Expression<String>? codeSalt,
+    Expression<String>? sentTo,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? expiresAt,
+    Expression<int>? failedAttempts,
+    Expression<DateTime>? consumedAt,
+    Expression<DateTime>? invalidatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (codeHash != null) 'code_hash': codeHash,
+      if (codeSalt != null) 'code_salt': codeSalt,
+      if (sentTo != null) 'sent_to': sentTo,
+      if (createdAt != null) 'created_at': createdAt,
+      if (expiresAt != null) 'expires_at': expiresAt,
+      if (failedAttempts != null) 'failed_attempts': failedAttempts,
+      if (consumedAt != null) 'consumed_at': consumedAt,
+      if (invalidatedAt != null) 'invalidated_at': invalidatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AccountRecoveryTokensCompanion copyWith({
+    Value<String>? id,
+    Value<String>? userId,
+    Value<String>? codeHash,
+    Value<String>? codeSalt,
+    Value<String>? sentTo,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? expiresAt,
+    Value<int>? failedAttempts,
+    Value<DateTime?>? consumedAt,
+    Value<DateTime?>? invalidatedAt,
+    Value<int>? rowid,
+  }) {
+    return AccountRecoveryTokensCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      codeHash: codeHash ?? this.codeHash,
+      codeSalt: codeSalt ?? this.codeSalt,
+      sentTo: sentTo ?? this.sentTo,
+      createdAt: createdAt ?? this.createdAt,
+      expiresAt: expiresAt ?? this.expiresAt,
+      failedAttempts: failedAttempts ?? this.failedAttempts,
+      consumedAt: consumedAt ?? this.consumedAt,
+      invalidatedAt: invalidatedAt ?? this.invalidatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (codeHash.present) {
+      map['code_hash'] = Variable<String>(codeHash.value);
+    }
+    if (codeSalt.present) {
+      map['code_salt'] = Variable<String>(codeSalt.value);
+    }
+    if (sentTo.present) {
+      map['sent_to'] = Variable<String>(sentTo.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (expiresAt.present) {
+      map['expires_at'] = Variable<DateTime>(expiresAt.value);
+    }
+    if (failedAttempts.present) {
+      map['failed_attempts'] = Variable<int>(failedAttempts.value);
+    }
+    if (consumedAt.present) {
+      map['consumed_at'] = Variable<DateTime>(consumedAt.value);
+    }
+    if (invalidatedAt.present) {
+      map['invalidated_at'] = Variable<DateTime>(invalidatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AccountRecoveryTokensCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('codeHash: $codeHash, ')
+          ..write('codeSalt: $codeSalt, ')
+          ..write('sentTo: $sentTo, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('failedAttempts: $failedAttempts, ')
+          ..write('consumedAt: $consumedAt, ')
+          ..write('invalidatedAt: $invalidatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CareTeamAssignmentsTable extends CareTeamAssignments
+    with TableInfo<$CareTeamAssignmentsTable, CareTeamAssignmentRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CareTeamAssignmentsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _patientIdMeta = const VerificationMeta(
+    'patientId',
+  );
+  @override
+  late final GeneratedColumn<String> patientId = GeneratedColumn<String>(
+    'patient_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _staffIdMeta = const VerificationMeta(
+    'staffId',
+  );
+  @override
+  late final GeneratedColumn<String> staffId = GeneratedColumn<String>(
+    'staff_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE CASCADE',
+    ),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<CareTeamRole, String> role =
+      GeneratedColumn<String>(
+        'role',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<CareTeamRole>($CareTeamAssignmentsTable.$converterrole);
+  static const VerificationMeta _assignedAtMeta = const VerificationMeta(
+    'assignedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> assignedAt = GeneratedColumn<DateTime>(
+    'assigned_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _assignedByMeta = const VerificationMeta(
+    'assignedBy',
+  );
+  @override
+  late final GeneratedColumn<String> assignedBy = GeneratedColumn<String>(
+    'assigned_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _endedAtMeta = const VerificationMeta(
+    'endedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> endedAt = GeneratedColumn<DateTime>(
+    'ended_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    patientId,
+    staffId,
+    role,
+    assignedAt,
+    assignedBy,
+    endedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'care_team_assignments';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CareTeamAssignmentRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('patient_id')) {
+      context.handle(
+        _patientIdMeta,
+        patientId.isAcceptableOrUnknown(data['patient_id']!, _patientIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_patientIdMeta);
+    }
+    if (data.containsKey('staff_id')) {
+      context.handle(
+        _staffIdMeta,
+        staffId.isAcceptableOrUnknown(data['staff_id']!, _staffIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_staffIdMeta);
+    }
+    if (data.containsKey('assigned_at')) {
+      context.handle(
+        _assignedAtMeta,
+        assignedAt.isAcceptableOrUnknown(data['assigned_at']!, _assignedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_assignedAtMeta);
+    }
+    if (data.containsKey('assigned_by')) {
+      context.handle(
+        _assignedByMeta,
+        assignedBy.isAcceptableOrUnknown(data['assigned_by']!, _assignedByMeta),
+      );
+    }
+    if (data.containsKey('ended_at')) {
+      context.handle(
+        _endedAtMeta,
+        endedAt.isAcceptableOrUnknown(data['ended_at']!, _endedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CareTeamAssignmentRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CareTeamAssignmentRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      patientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}patient_id'],
+      )!,
+      staffId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}staff_id'],
+      )!,
+      role: $CareTeamAssignmentsTable.$converterrole.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}role'],
+        )!,
+      ),
+      assignedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}assigned_at'],
+      )!,
+      assignedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}assigned_by'],
+      ),
+      endedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}ended_at'],
+      ),
+    );
+  }
+
+  @override
+  $CareTeamAssignmentsTable createAlias(String alias) {
+    return $CareTeamAssignmentsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<CareTeamRole, String, String> $converterrole =
+      const EnumNameConverter<CareTeamRole>(CareTeamRole.values);
+}
+
+class CareTeamAssignmentRow extends DataClass
+    implements Insertable<CareTeamAssignmentRow> {
+  final String id;
+  final String patientId;
+  final String staffId;
+  final CareTeamRole role;
+  final DateTime assignedAt;
+  final String? assignedBy;
+  final DateTime? endedAt;
+  const CareTeamAssignmentRow({
+    required this.id,
+    required this.patientId,
+    required this.staffId,
+    required this.role,
+    required this.assignedAt,
+    this.assignedBy,
+    this.endedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['patient_id'] = Variable<String>(patientId);
+    map['staff_id'] = Variable<String>(staffId);
+    {
+      map['role'] = Variable<String>(
+        $CareTeamAssignmentsTable.$converterrole.toSql(role),
+      );
+    }
+    map['assigned_at'] = Variable<DateTime>(assignedAt);
+    if (!nullToAbsent || assignedBy != null) {
+      map['assigned_by'] = Variable<String>(assignedBy);
+    }
+    if (!nullToAbsent || endedAt != null) {
+      map['ended_at'] = Variable<DateTime>(endedAt);
+    }
+    return map;
+  }
+
+  CareTeamAssignmentsCompanion toCompanion(bool nullToAbsent) {
+    return CareTeamAssignmentsCompanion(
+      id: Value(id),
+      patientId: Value(patientId),
+      staffId: Value(staffId),
+      role: Value(role),
+      assignedAt: Value(assignedAt),
+      assignedBy: assignedBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(assignedBy),
+      endedAt: endedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(endedAt),
+    );
+  }
+
+  factory CareTeamAssignmentRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CareTeamAssignmentRow(
+      id: serializer.fromJson<String>(json['id']),
+      patientId: serializer.fromJson<String>(json['patientId']),
+      staffId: serializer.fromJson<String>(json['staffId']),
+      role: $CareTeamAssignmentsTable.$converterrole.fromJson(
+        serializer.fromJson<String>(json['role']),
+      ),
+      assignedAt: serializer.fromJson<DateTime>(json['assignedAt']),
+      assignedBy: serializer.fromJson<String?>(json['assignedBy']),
+      endedAt: serializer.fromJson<DateTime?>(json['endedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'patientId': serializer.toJson<String>(patientId),
+      'staffId': serializer.toJson<String>(staffId),
+      'role': serializer.toJson<String>(
+        $CareTeamAssignmentsTable.$converterrole.toJson(role),
+      ),
+      'assignedAt': serializer.toJson<DateTime>(assignedAt),
+      'assignedBy': serializer.toJson<String?>(assignedBy),
+      'endedAt': serializer.toJson<DateTime?>(endedAt),
+    };
+  }
+
+  CareTeamAssignmentRow copyWith({
+    String? id,
+    String? patientId,
+    String? staffId,
+    CareTeamRole? role,
+    DateTime? assignedAt,
+    Value<String?> assignedBy = const Value.absent(),
+    Value<DateTime?> endedAt = const Value.absent(),
+  }) => CareTeamAssignmentRow(
+    id: id ?? this.id,
+    patientId: patientId ?? this.patientId,
+    staffId: staffId ?? this.staffId,
+    role: role ?? this.role,
+    assignedAt: assignedAt ?? this.assignedAt,
+    assignedBy: assignedBy.present ? assignedBy.value : this.assignedBy,
+    endedAt: endedAt.present ? endedAt.value : this.endedAt,
+  );
+  CareTeamAssignmentRow copyWithCompanion(CareTeamAssignmentsCompanion data) {
+    return CareTeamAssignmentRow(
+      id: data.id.present ? data.id.value : this.id,
+      patientId: data.patientId.present ? data.patientId.value : this.patientId,
+      staffId: data.staffId.present ? data.staffId.value : this.staffId,
+      role: data.role.present ? data.role.value : this.role,
+      assignedAt: data.assignedAt.present
+          ? data.assignedAt.value
+          : this.assignedAt,
+      assignedBy: data.assignedBy.present
+          ? data.assignedBy.value
+          : this.assignedBy,
+      endedAt: data.endedAt.present ? data.endedAt.value : this.endedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CareTeamAssignmentRow(')
+          ..write('id: $id, ')
+          ..write('patientId: $patientId, ')
+          ..write('staffId: $staffId, ')
+          ..write('role: $role, ')
+          ..write('assignedAt: $assignedAt, ')
+          ..write('assignedBy: $assignedBy, ')
+          ..write('endedAt: $endedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    patientId,
+    staffId,
+    role,
+    assignedAt,
+    assignedBy,
+    endedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CareTeamAssignmentRow &&
+          other.id == this.id &&
+          other.patientId == this.patientId &&
+          other.staffId == this.staffId &&
+          other.role == this.role &&
+          other.assignedAt == this.assignedAt &&
+          other.assignedBy == this.assignedBy &&
+          other.endedAt == this.endedAt);
+}
+
+class CareTeamAssignmentsCompanion
+    extends UpdateCompanion<CareTeamAssignmentRow> {
+  final Value<String> id;
+  final Value<String> patientId;
+  final Value<String> staffId;
+  final Value<CareTeamRole> role;
+  final Value<DateTime> assignedAt;
+  final Value<String?> assignedBy;
+  final Value<DateTime?> endedAt;
+  final Value<int> rowid;
+  const CareTeamAssignmentsCompanion({
+    this.id = const Value.absent(),
+    this.patientId = const Value.absent(),
+    this.staffId = const Value.absent(),
+    this.role = const Value.absent(),
+    this.assignedAt = const Value.absent(),
+    this.assignedBy = const Value.absent(),
+    this.endedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CareTeamAssignmentsCompanion.insert({
+    required String id,
+    required String patientId,
+    required String staffId,
+    required CareTeamRole role,
+    required DateTime assignedAt,
+    this.assignedBy = const Value.absent(),
+    this.endedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       patientId = Value(patientId),
+       staffId = Value(staffId),
+       role = Value(role),
+       assignedAt = Value(assignedAt);
+  static Insertable<CareTeamAssignmentRow> custom({
+    Expression<String>? id,
+    Expression<String>? patientId,
+    Expression<String>? staffId,
+    Expression<String>? role,
+    Expression<DateTime>? assignedAt,
+    Expression<String>? assignedBy,
+    Expression<DateTime>? endedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (patientId != null) 'patient_id': patientId,
+      if (staffId != null) 'staff_id': staffId,
+      if (role != null) 'role': role,
+      if (assignedAt != null) 'assigned_at': assignedAt,
+      if (assignedBy != null) 'assigned_by': assignedBy,
+      if (endedAt != null) 'ended_at': endedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CareTeamAssignmentsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? patientId,
+    Value<String>? staffId,
+    Value<CareTeamRole>? role,
+    Value<DateTime>? assignedAt,
+    Value<String?>? assignedBy,
+    Value<DateTime?>? endedAt,
+    Value<int>? rowid,
+  }) {
+    return CareTeamAssignmentsCompanion(
+      id: id ?? this.id,
+      patientId: patientId ?? this.patientId,
+      staffId: staffId ?? this.staffId,
+      role: role ?? this.role,
+      assignedAt: assignedAt ?? this.assignedAt,
+      assignedBy: assignedBy ?? this.assignedBy,
+      endedAt: endedAt ?? this.endedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (patientId.present) {
+      map['patient_id'] = Variable<String>(patientId.value);
+    }
+    if (staffId.present) {
+      map['staff_id'] = Variable<String>(staffId.value);
+    }
+    if (role.present) {
+      map['role'] = Variable<String>(
+        $CareTeamAssignmentsTable.$converterrole.toSql(role.value),
+      );
+    }
+    if (assignedAt.present) {
+      map['assigned_at'] = Variable<DateTime>(assignedAt.value);
+    }
+    if (assignedBy.present) {
+      map['assigned_by'] = Variable<String>(assignedBy.value);
+    }
+    if (endedAt.present) {
+      map['ended_at'] = Variable<DateTime>(endedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CareTeamAssignmentsCompanion(')
+          ..write('id: $id, ')
+          ..write('patientId: $patientId, ')
+          ..write('staffId: $staffId, ')
+          ..write('role: $role, ')
+          ..write('assignedAt: $assignedAt, ')
+          ..write('assignedBy: $assignedBy, ')
+          ..write('endedAt: $endedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $StaffCredentialsTable extends StaffCredentials
+    with TableInfo<$StaffCredentialsTable, StaffCredentialRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StaffCredentialsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _staffIdMeta = const VerificationMeta(
+    'staffId',
+  );
+  @override
+  late final GeneratedColumn<String> staffId = GeneratedColumn<String>(
+    'staff_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE CASCADE',
+    ),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<CredentialKind, String> kind =
+      GeneratedColumn<String>(
+        'kind',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<CredentialKind>($StaffCredentialsTable.$converterkind);
+  static const VerificationMeta _identifierMeta = const VerificationMeta(
+    'identifier',
+  );
+  @override
+  late final GeneratedColumn<String> identifier = GeneratedColumn<String>(
+    'identifier',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _issuerMeta = const VerificationMeta('issuer');
+  @override
+  late final GeneratedColumn<String> issuer = GeneratedColumn<String>(
+    'issuer',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _recordedAtMeta = const VerificationMeta(
+    'recordedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> recordedAt = GeneratedColumn<DateTime>(
+    'recorded_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _validUntilMeta = const VerificationMeta(
+    'validUntil',
+  );
+  @override
+  late final GeneratedColumn<DateTime> validUntil = GeneratedColumn<DateTime>(
+    'valid_until',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _verifiedAtMeta = const VerificationMeta(
+    'verifiedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> verifiedAt = GeneratedColumn<DateTime>(
+    'verified_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _revokedAtMeta = const VerificationMeta(
+    'revokedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> revokedAt = GeneratedColumn<DateTime>(
+    'revoked_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    staffId,
+    kind,
+    identifier,
+    issuer,
+    recordedAt,
+    validUntil,
+    verifiedAt,
+    revokedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'staff_credentials';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<StaffCredentialRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('staff_id')) {
+      context.handle(
+        _staffIdMeta,
+        staffId.isAcceptableOrUnknown(data['staff_id']!, _staffIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_staffIdMeta);
+    }
+    if (data.containsKey('identifier')) {
+      context.handle(
+        _identifierMeta,
+        identifier.isAcceptableOrUnknown(data['identifier']!, _identifierMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_identifierMeta);
+    }
+    if (data.containsKey('issuer')) {
+      context.handle(
+        _issuerMeta,
+        issuer.isAcceptableOrUnknown(data['issuer']!, _issuerMeta),
+      );
+    }
+    if (data.containsKey('recorded_at')) {
+      context.handle(
+        _recordedAtMeta,
+        recordedAt.isAcceptableOrUnknown(data['recorded_at']!, _recordedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_recordedAtMeta);
+    }
+    if (data.containsKey('valid_until')) {
+      context.handle(
+        _validUntilMeta,
+        validUntil.isAcceptableOrUnknown(data['valid_until']!, _validUntilMeta),
+      );
+    }
+    if (data.containsKey('verified_at')) {
+      context.handle(
+        _verifiedAtMeta,
+        verifiedAt.isAcceptableOrUnknown(data['verified_at']!, _verifiedAtMeta),
+      );
+    }
+    if (data.containsKey('revoked_at')) {
+      context.handle(
+        _revokedAtMeta,
+        revokedAt.isAcceptableOrUnknown(data['revoked_at']!, _revokedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  StaffCredentialRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StaffCredentialRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      staffId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}staff_id'],
+      )!,
+      kind: $StaffCredentialsTable.$converterkind.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}kind'],
+        )!,
+      ),
+      identifier: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}identifier'],
+      )!,
+      issuer: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}issuer'],
+      ),
+      recordedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}recorded_at'],
+      )!,
+      validUntil: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}valid_until'],
+      ),
+      verifiedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}verified_at'],
+      ),
+      revokedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}revoked_at'],
+      ),
+    );
+  }
+
+  @override
+  $StaffCredentialsTable createAlias(String alias) {
+    return $StaffCredentialsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<CredentialKind, String, String> $converterkind =
+      const EnumNameConverter<CredentialKind>(CredentialKind.values);
+}
+
+class StaffCredentialRow extends DataClass
+    implements Insertable<StaffCredentialRow> {
+  final String id;
+  final String staffId;
+  final CredentialKind kind;
+  final String identifier;
+  final String? issuer;
+  final DateTime recordedAt;
+  final DateTime? validUntil;
+  final DateTime? verifiedAt;
+  final DateTime? revokedAt;
+  const StaffCredentialRow({
+    required this.id,
+    required this.staffId,
+    required this.kind,
+    required this.identifier,
+    this.issuer,
+    required this.recordedAt,
+    this.validUntil,
+    this.verifiedAt,
+    this.revokedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['staff_id'] = Variable<String>(staffId);
+    {
+      map['kind'] = Variable<String>(
+        $StaffCredentialsTable.$converterkind.toSql(kind),
+      );
+    }
+    map['identifier'] = Variable<String>(identifier);
+    if (!nullToAbsent || issuer != null) {
+      map['issuer'] = Variable<String>(issuer);
+    }
+    map['recorded_at'] = Variable<DateTime>(recordedAt);
+    if (!nullToAbsent || validUntil != null) {
+      map['valid_until'] = Variable<DateTime>(validUntil);
+    }
+    if (!nullToAbsent || verifiedAt != null) {
+      map['verified_at'] = Variable<DateTime>(verifiedAt);
+    }
+    if (!nullToAbsent || revokedAt != null) {
+      map['revoked_at'] = Variable<DateTime>(revokedAt);
+    }
+    return map;
+  }
+
+  StaffCredentialsCompanion toCompanion(bool nullToAbsent) {
+    return StaffCredentialsCompanion(
+      id: Value(id),
+      staffId: Value(staffId),
+      kind: Value(kind),
+      identifier: Value(identifier),
+      issuer: issuer == null && nullToAbsent
+          ? const Value.absent()
+          : Value(issuer),
+      recordedAt: Value(recordedAt),
+      validUntil: validUntil == null && nullToAbsent
+          ? const Value.absent()
+          : Value(validUntil),
+      verifiedAt: verifiedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(verifiedAt),
+      revokedAt: revokedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(revokedAt),
+    );
+  }
+
+  factory StaffCredentialRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StaffCredentialRow(
+      id: serializer.fromJson<String>(json['id']),
+      staffId: serializer.fromJson<String>(json['staffId']),
+      kind: $StaffCredentialsTable.$converterkind.fromJson(
+        serializer.fromJson<String>(json['kind']),
+      ),
+      identifier: serializer.fromJson<String>(json['identifier']),
+      issuer: serializer.fromJson<String?>(json['issuer']),
+      recordedAt: serializer.fromJson<DateTime>(json['recordedAt']),
+      validUntil: serializer.fromJson<DateTime?>(json['validUntil']),
+      verifiedAt: serializer.fromJson<DateTime?>(json['verifiedAt']),
+      revokedAt: serializer.fromJson<DateTime?>(json['revokedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'staffId': serializer.toJson<String>(staffId),
+      'kind': serializer.toJson<String>(
+        $StaffCredentialsTable.$converterkind.toJson(kind),
+      ),
+      'identifier': serializer.toJson<String>(identifier),
+      'issuer': serializer.toJson<String?>(issuer),
+      'recordedAt': serializer.toJson<DateTime>(recordedAt),
+      'validUntil': serializer.toJson<DateTime?>(validUntil),
+      'verifiedAt': serializer.toJson<DateTime?>(verifiedAt),
+      'revokedAt': serializer.toJson<DateTime?>(revokedAt),
+    };
+  }
+
+  StaffCredentialRow copyWith({
+    String? id,
+    String? staffId,
+    CredentialKind? kind,
+    String? identifier,
+    Value<String?> issuer = const Value.absent(),
+    DateTime? recordedAt,
+    Value<DateTime?> validUntil = const Value.absent(),
+    Value<DateTime?> verifiedAt = const Value.absent(),
+    Value<DateTime?> revokedAt = const Value.absent(),
+  }) => StaffCredentialRow(
+    id: id ?? this.id,
+    staffId: staffId ?? this.staffId,
+    kind: kind ?? this.kind,
+    identifier: identifier ?? this.identifier,
+    issuer: issuer.present ? issuer.value : this.issuer,
+    recordedAt: recordedAt ?? this.recordedAt,
+    validUntil: validUntil.present ? validUntil.value : this.validUntil,
+    verifiedAt: verifiedAt.present ? verifiedAt.value : this.verifiedAt,
+    revokedAt: revokedAt.present ? revokedAt.value : this.revokedAt,
+  );
+  StaffCredentialRow copyWithCompanion(StaffCredentialsCompanion data) {
+    return StaffCredentialRow(
+      id: data.id.present ? data.id.value : this.id,
+      staffId: data.staffId.present ? data.staffId.value : this.staffId,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      identifier: data.identifier.present
+          ? data.identifier.value
+          : this.identifier,
+      issuer: data.issuer.present ? data.issuer.value : this.issuer,
+      recordedAt: data.recordedAt.present
+          ? data.recordedAt.value
+          : this.recordedAt,
+      validUntil: data.validUntil.present
+          ? data.validUntil.value
+          : this.validUntil,
+      verifiedAt: data.verifiedAt.present
+          ? data.verifiedAt.value
+          : this.verifiedAt,
+      revokedAt: data.revokedAt.present ? data.revokedAt.value : this.revokedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StaffCredentialRow(')
+          ..write('id: $id, ')
+          ..write('staffId: $staffId, ')
+          ..write('kind: $kind, ')
+          ..write('identifier: $identifier, ')
+          ..write('issuer: $issuer, ')
+          ..write('recordedAt: $recordedAt, ')
+          ..write('validUntil: $validUntil, ')
+          ..write('verifiedAt: $verifiedAt, ')
+          ..write('revokedAt: $revokedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    staffId,
+    kind,
+    identifier,
+    issuer,
+    recordedAt,
+    validUntil,
+    verifiedAt,
+    revokedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StaffCredentialRow &&
+          other.id == this.id &&
+          other.staffId == this.staffId &&
+          other.kind == this.kind &&
+          other.identifier == this.identifier &&
+          other.issuer == this.issuer &&
+          other.recordedAt == this.recordedAt &&
+          other.validUntil == this.validUntil &&
+          other.verifiedAt == this.verifiedAt &&
+          other.revokedAt == this.revokedAt);
+}
+
+class StaffCredentialsCompanion extends UpdateCompanion<StaffCredentialRow> {
+  final Value<String> id;
+  final Value<String> staffId;
+  final Value<CredentialKind> kind;
+  final Value<String> identifier;
+  final Value<String?> issuer;
+  final Value<DateTime> recordedAt;
+  final Value<DateTime?> validUntil;
+  final Value<DateTime?> verifiedAt;
+  final Value<DateTime?> revokedAt;
+  final Value<int> rowid;
+  const StaffCredentialsCompanion({
+    this.id = const Value.absent(),
+    this.staffId = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.identifier = const Value.absent(),
+    this.issuer = const Value.absent(),
+    this.recordedAt = const Value.absent(),
+    this.validUntil = const Value.absent(),
+    this.verifiedAt = const Value.absent(),
+    this.revokedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  StaffCredentialsCompanion.insert({
+    required String id,
+    required String staffId,
+    required CredentialKind kind,
+    required String identifier,
+    this.issuer = const Value.absent(),
+    required DateTime recordedAt,
+    this.validUntil = const Value.absent(),
+    this.verifiedAt = const Value.absent(),
+    this.revokedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       staffId = Value(staffId),
+       kind = Value(kind),
+       identifier = Value(identifier),
+       recordedAt = Value(recordedAt);
+  static Insertable<StaffCredentialRow> custom({
+    Expression<String>? id,
+    Expression<String>? staffId,
+    Expression<String>? kind,
+    Expression<String>? identifier,
+    Expression<String>? issuer,
+    Expression<DateTime>? recordedAt,
+    Expression<DateTime>? validUntil,
+    Expression<DateTime>? verifiedAt,
+    Expression<DateTime>? revokedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (staffId != null) 'staff_id': staffId,
+      if (kind != null) 'kind': kind,
+      if (identifier != null) 'identifier': identifier,
+      if (issuer != null) 'issuer': issuer,
+      if (recordedAt != null) 'recorded_at': recordedAt,
+      if (validUntil != null) 'valid_until': validUntil,
+      if (verifiedAt != null) 'verified_at': verifiedAt,
+      if (revokedAt != null) 'revoked_at': revokedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  StaffCredentialsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? staffId,
+    Value<CredentialKind>? kind,
+    Value<String>? identifier,
+    Value<String?>? issuer,
+    Value<DateTime>? recordedAt,
+    Value<DateTime?>? validUntil,
+    Value<DateTime?>? verifiedAt,
+    Value<DateTime?>? revokedAt,
+    Value<int>? rowid,
+  }) {
+    return StaffCredentialsCompanion(
+      id: id ?? this.id,
+      staffId: staffId ?? this.staffId,
+      kind: kind ?? this.kind,
+      identifier: identifier ?? this.identifier,
+      issuer: issuer ?? this.issuer,
+      recordedAt: recordedAt ?? this.recordedAt,
+      validUntil: validUntil ?? this.validUntil,
+      verifiedAt: verifiedAt ?? this.verifiedAt,
+      revokedAt: revokedAt ?? this.revokedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (staffId.present) {
+      map['staff_id'] = Variable<String>(staffId.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(
+        $StaffCredentialsTable.$converterkind.toSql(kind.value),
+      );
+    }
+    if (identifier.present) {
+      map['identifier'] = Variable<String>(identifier.value);
+    }
+    if (issuer.present) {
+      map['issuer'] = Variable<String>(issuer.value);
+    }
+    if (recordedAt.present) {
+      map['recorded_at'] = Variable<DateTime>(recordedAt.value);
+    }
+    if (validUntil.present) {
+      map['valid_until'] = Variable<DateTime>(validUntil.value);
+    }
+    if (verifiedAt.present) {
+      map['verified_at'] = Variable<DateTime>(verifiedAt.value);
+    }
+    if (revokedAt.present) {
+      map['revoked_at'] = Variable<DateTime>(revokedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StaffCredentialsCompanion(')
+          ..write('id: $id, ')
+          ..write('staffId: $staffId, ')
+          ..write('kind: $kind, ')
+          ..write('identifier: $identifier, ')
+          ..write('issuer: $issuer, ')
+          ..write('recordedAt: $recordedAt, ')
+          ..write('validUntil: $validUntil, ')
+          ..write('verifiedAt: $verifiedAt, ')
+          ..write('revokedAt: $revokedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $ScheduleTemplatesTable extends ScheduleTemplates
     with TableInfo<$ScheduleTemplatesTable, ScheduleTemplateRow> {
   @override
@@ -2999,6 +4795,421 @@ class ScheduleTemplatesCompanion extends UpdateCompanion<ScheduleTemplateRow> {
   }
 }
 
+class $AvailabilityExceptionsTable extends AvailabilityExceptions
+    with TableInfo<$AvailabilityExceptionsTable, AvailabilityExceptionRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AvailabilityExceptionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _staffIdMeta = const VerificationMeta(
+    'staffId',
+  );
+  @override
+  late final GeneratedColumn<String> staffId = GeneratedColumn<String>(
+    'staff_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _startsAtMeta = const VerificationMeta(
+    'startsAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> startsAt = GeneratedColumn<DateTime>(
+    'starts_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _endsAtMeta = const VerificationMeta('endsAt');
+  @override
+  late final GeneratedColumn<DateTime> endsAt = GeneratedColumn<DateTime>(
+    'ends_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _reasonMeta = const VerificationMeta('reason');
+  @override
+  late final GeneratedColumn<String> reason = GeneratedColumn<String>(
+    'reason',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    staffId,
+    startsAt,
+    endsAt,
+    reason,
+    version,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'availability_exceptions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AvailabilityExceptionRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('staff_id')) {
+      context.handle(
+        _staffIdMeta,
+        staffId.isAcceptableOrUnknown(data['staff_id']!, _staffIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_staffIdMeta);
+    }
+    if (data.containsKey('starts_at')) {
+      context.handle(
+        _startsAtMeta,
+        startsAt.isAcceptableOrUnknown(data['starts_at']!, _startsAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_startsAtMeta);
+    }
+    if (data.containsKey('ends_at')) {
+      context.handle(
+        _endsAtMeta,
+        endsAt.isAcceptableOrUnknown(data['ends_at']!, _endsAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_endsAtMeta);
+    }
+    if (data.containsKey('reason')) {
+      context.handle(
+        _reasonMeta,
+        reason.isAcceptableOrUnknown(data['reason']!, _reasonMeta),
+      );
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AvailabilityExceptionRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AvailabilityExceptionRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      staffId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}staff_id'],
+      )!,
+      startsAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}starts_at'],
+      )!,
+      endsAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}ends_at'],
+      )!,
+      reason: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reason'],
+      ),
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+    );
+  }
+
+  @override
+  $AvailabilityExceptionsTable createAlias(String alias) {
+    return $AvailabilityExceptionsTable(attachedDatabase, alias);
+  }
+}
+
+class AvailabilityExceptionRow extends DataClass
+    implements Insertable<AvailabilityExceptionRow> {
+  final String id;
+  final String staffId;
+  final DateTime startsAt;
+  final DateTime endsAt;
+  final String? reason;
+  final int version;
+  const AvailabilityExceptionRow({
+    required this.id,
+    required this.staffId,
+    required this.startsAt,
+    required this.endsAt,
+    this.reason,
+    required this.version,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['staff_id'] = Variable<String>(staffId);
+    map['starts_at'] = Variable<DateTime>(startsAt);
+    map['ends_at'] = Variable<DateTime>(endsAt);
+    if (!nullToAbsent || reason != null) {
+      map['reason'] = Variable<String>(reason);
+    }
+    map['version'] = Variable<int>(version);
+    return map;
+  }
+
+  AvailabilityExceptionsCompanion toCompanion(bool nullToAbsent) {
+    return AvailabilityExceptionsCompanion(
+      id: Value(id),
+      staffId: Value(staffId),
+      startsAt: Value(startsAt),
+      endsAt: Value(endsAt),
+      reason: reason == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reason),
+      version: Value(version),
+    );
+  }
+
+  factory AvailabilityExceptionRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AvailabilityExceptionRow(
+      id: serializer.fromJson<String>(json['id']),
+      staffId: serializer.fromJson<String>(json['staffId']),
+      startsAt: serializer.fromJson<DateTime>(json['startsAt']),
+      endsAt: serializer.fromJson<DateTime>(json['endsAt']),
+      reason: serializer.fromJson<String?>(json['reason']),
+      version: serializer.fromJson<int>(json['version']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'staffId': serializer.toJson<String>(staffId),
+      'startsAt': serializer.toJson<DateTime>(startsAt),
+      'endsAt': serializer.toJson<DateTime>(endsAt),
+      'reason': serializer.toJson<String?>(reason),
+      'version': serializer.toJson<int>(version),
+    };
+  }
+
+  AvailabilityExceptionRow copyWith({
+    String? id,
+    String? staffId,
+    DateTime? startsAt,
+    DateTime? endsAt,
+    Value<String?> reason = const Value.absent(),
+    int? version,
+  }) => AvailabilityExceptionRow(
+    id: id ?? this.id,
+    staffId: staffId ?? this.staffId,
+    startsAt: startsAt ?? this.startsAt,
+    endsAt: endsAt ?? this.endsAt,
+    reason: reason.present ? reason.value : this.reason,
+    version: version ?? this.version,
+  );
+  AvailabilityExceptionRow copyWithCompanion(
+    AvailabilityExceptionsCompanion data,
+  ) {
+    return AvailabilityExceptionRow(
+      id: data.id.present ? data.id.value : this.id,
+      staffId: data.staffId.present ? data.staffId.value : this.staffId,
+      startsAt: data.startsAt.present ? data.startsAt.value : this.startsAt,
+      endsAt: data.endsAt.present ? data.endsAt.value : this.endsAt,
+      reason: data.reason.present ? data.reason.value : this.reason,
+      version: data.version.present ? data.version.value : this.version,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AvailabilityExceptionRow(')
+          ..write('id: $id, ')
+          ..write('staffId: $staffId, ')
+          ..write('startsAt: $startsAt, ')
+          ..write('endsAt: $endsAt, ')
+          ..write('reason: $reason, ')
+          ..write('version: $version')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, staffId, startsAt, endsAt, reason, version);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AvailabilityExceptionRow &&
+          other.id == this.id &&
+          other.staffId == this.staffId &&
+          other.startsAt == this.startsAt &&
+          other.endsAt == this.endsAt &&
+          other.reason == this.reason &&
+          other.version == this.version);
+}
+
+class AvailabilityExceptionsCompanion
+    extends UpdateCompanion<AvailabilityExceptionRow> {
+  final Value<String> id;
+  final Value<String> staffId;
+  final Value<DateTime> startsAt;
+  final Value<DateTime> endsAt;
+  final Value<String?> reason;
+  final Value<int> version;
+  final Value<int> rowid;
+  const AvailabilityExceptionsCompanion({
+    this.id = const Value.absent(),
+    this.staffId = const Value.absent(),
+    this.startsAt = const Value.absent(),
+    this.endsAt = const Value.absent(),
+    this.reason = const Value.absent(),
+    this.version = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AvailabilityExceptionsCompanion.insert({
+    required String id,
+    required String staffId,
+    required DateTime startsAt,
+    required DateTime endsAt,
+    this.reason = const Value.absent(),
+    this.version = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       staffId = Value(staffId),
+       startsAt = Value(startsAt),
+       endsAt = Value(endsAt);
+  static Insertable<AvailabilityExceptionRow> custom({
+    Expression<String>? id,
+    Expression<String>? staffId,
+    Expression<DateTime>? startsAt,
+    Expression<DateTime>? endsAt,
+    Expression<String>? reason,
+    Expression<int>? version,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (staffId != null) 'staff_id': staffId,
+      if (startsAt != null) 'starts_at': startsAt,
+      if (endsAt != null) 'ends_at': endsAt,
+      if (reason != null) 'reason': reason,
+      if (version != null) 'version': version,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AvailabilityExceptionsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? staffId,
+    Value<DateTime>? startsAt,
+    Value<DateTime>? endsAt,
+    Value<String?>? reason,
+    Value<int>? version,
+    Value<int>? rowid,
+  }) {
+    return AvailabilityExceptionsCompanion(
+      id: id ?? this.id,
+      staffId: staffId ?? this.staffId,
+      startsAt: startsAt ?? this.startsAt,
+      endsAt: endsAt ?? this.endsAt,
+      reason: reason ?? this.reason,
+      version: version ?? this.version,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (staffId.present) {
+      map['staff_id'] = Variable<String>(staffId.value);
+    }
+    if (startsAt.present) {
+      map['starts_at'] = Variable<DateTime>(startsAt.value);
+    }
+    if (endsAt.present) {
+      map['ends_at'] = Variable<DateTime>(endsAt.value);
+    }
+    if (reason.present) {
+      map['reason'] = Variable<String>(reason.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AvailabilityExceptionsCompanion(')
+          ..write('id: $id, ')
+          ..write('staffId: $staffId, ')
+          ..write('startsAt: $startsAt, ')
+          ..write('endsAt: $endsAt, ')
+          ..write('reason: $reason, ')
+          ..write('version: $version, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $AppointmentsTable extends Appointments
     with TableInfo<$AppointmentsTable, AppointmentRow> {
   @override
@@ -3218,6 +5429,30 @@ class $AppointmentsTable extends Appointments
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _bookedByAccountIdMeta = const VerificationMeta(
+    'bookedByAccountId',
+  );
+  @override
+  late final GeneratedColumn<String> bookedByAccountId =
+      GeneratedColumn<String>(
+        'booked_by_account_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -3239,6 +5474,8 @@ class $AppointmentsTable extends Appointments
     ticketTag,
     roomNumber,
     bookedForName,
+    bookedByAccountId,
+    version,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3376,6 +5613,21 @@ class $AppointmentsTable extends Appointments
         ),
       );
     }
+    if (data.containsKey('booked_by_account_id')) {
+      context.handle(
+        _bookedByAccountIdMeta,
+        bookedByAccountId.isAcceptableOrUnknown(
+          data['booked_by_account_id']!,
+          _bookedByAccountIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
     return context;
   }
 
@@ -3467,6 +5719,14 @@ class $AppointmentsTable extends Appointments
         DriftSqlType.string,
         data['${effectivePrefix}booked_for_name'],
       ),
+      bookedByAccountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}booked_by_account_id'],
+      ),
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
     );
   }
 
@@ -3526,6 +5786,16 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
   /// The linked family member this visit is for, when the account holder booked
   /// on someone else's behalf. Null = the account holder's own visit.
   final String? bookedForName;
+
+  /// The signed-in account that made the booking. Differs from [patientId]
+  /// when a guardian or proxy booked for someone else. Null on rows from
+  /// before this was tracked.
+  final String? bookedByAccountId;
+
+  /// Optimistic-concurrency version, bumped on every update by a database
+  /// trigger (schema v19) so no write path can forget. A write naming a
+  /// stale version is refused with a conflict.
+  final int version;
   const AppointmentRow({
     required this.id,
     required this.patientId,
@@ -3546,6 +5816,8 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
     this.ticketTag,
     this.roomNumber,
     this.bookedForName,
+    this.bookedByAccountId,
+    required this.version,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -3599,6 +5871,10 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
     if (!nullToAbsent || bookedForName != null) {
       map['booked_for_name'] = Variable<String>(bookedForName);
     }
+    if (!nullToAbsent || bookedByAccountId != null) {
+      map['booked_by_account_id'] = Variable<String>(bookedByAccountId);
+    }
+    map['version'] = Variable<int>(version);
     return map;
   }
 
@@ -3643,6 +5919,10 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
       bookedForName: bookedForName == null && nullToAbsent
           ? const Value.absent()
           : Value(bookedForName),
+      bookedByAccountId: bookedByAccountId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bookedByAccountId),
+      version: Value(version),
     );
   }
 
@@ -3677,6 +5957,10 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
       ticketTag: serializer.fromJson<String?>(json['ticketTag']),
       roomNumber: serializer.fromJson<String?>(json['roomNumber']),
       bookedForName: serializer.fromJson<String?>(json['bookedForName']),
+      bookedByAccountId: serializer.fromJson<String?>(
+        json['bookedByAccountId'],
+      ),
+      version: serializer.fromJson<int>(json['version']),
     );
   }
   @override
@@ -3708,6 +5992,8 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
       'ticketTag': serializer.toJson<String?>(ticketTag),
       'roomNumber': serializer.toJson<String?>(roomNumber),
       'bookedForName': serializer.toJson<String?>(bookedForName),
+      'bookedByAccountId': serializer.toJson<String?>(bookedByAccountId),
+      'version': serializer.toJson<int>(version),
     };
   }
 
@@ -3731,6 +6017,8 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
     Value<String?> ticketTag = const Value.absent(),
     Value<String?> roomNumber = const Value.absent(),
     Value<String?> bookedForName = const Value.absent(),
+    Value<String?> bookedByAccountId = const Value.absent(),
+    int? version,
   }) => AppointmentRow(
     id: id ?? this.id,
     patientId: patientId ?? this.patientId,
@@ -3753,6 +6041,10 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
     bookedForName: bookedForName.present
         ? bookedForName.value
         : this.bookedForName,
+    bookedByAccountId: bookedByAccountId.present
+        ? bookedByAccountId.value
+        : this.bookedByAccountId,
+    version: version ?? this.version,
   );
   AppointmentRow copyWithCompanion(AppointmentsCompanion data) {
     return AppointmentRow(
@@ -3793,6 +6085,10 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
       bookedForName: data.bookedForName.present
           ? data.bookedForName.value
           : this.bookedForName,
+      bookedByAccountId: data.bookedByAccountId.present
+          ? data.bookedByAccountId.value
+          : this.bookedByAccountId,
+      version: data.version.present ? data.version.value : this.version,
     );
   }
 
@@ -3817,13 +6113,15 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
           ..write('outcomeNote: $outcomeNote, ')
           ..write('ticketTag: $ticketTag, ')
           ..write('roomNumber: $roomNumber, ')
-          ..write('bookedForName: $bookedForName')
+          ..write('bookedForName: $bookedForName, ')
+          ..write('bookedByAccountId: $bookedByAccountId, ')
+          ..write('version: $version')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     id,
     patientId,
     staffId,
@@ -3843,7 +6141,9 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
     ticketTag,
     roomNumber,
     bookedForName,
-  );
+    bookedByAccountId,
+    version,
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3866,7 +6166,9 @@ class AppointmentRow extends DataClass implements Insertable<AppointmentRow> {
           other.outcomeNote == this.outcomeNote &&
           other.ticketTag == this.ticketTag &&
           other.roomNumber == this.roomNumber &&
-          other.bookedForName == this.bookedForName);
+          other.bookedForName == this.bookedForName &&
+          other.bookedByAccountId == this.bookedByAccountId &&
+          other.version == this.version);
 }
 
 class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
@@ -3889,6 +6191,8 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
   final Value<String?> ticketTag;
   final Value<String?> roomNumber;
   final Value<String?> bookedForName;
+  final Value<String?> bookedByAccountId;
+  final Value<int> version;
   final Value<int> rowid;
   const AppointmentsCompanion({
     this.id = const Value.absent(),
@@ -3910,6 +6214,8 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
     this.ticketTag = const Value.absent(),
     this.roomNumber = const Value.absent(),
     this.bookedForName = const Value.absent(),
+    this.bookedByAccountId = const Value.absent(),
+    this.version = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   AppointmentsCompanion.insert({
@@ -3932,6 +6238,8 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
     this.ticketTag = const Value.absent(),
     this.roomNumber = const Value.absent(),
     this.bookedForName = const Value.absent(),
+    this.bookedByAccountId = const Value.absent(),
+    this.version = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        patientId = Value(patientId),
@@ -3959,6 +6267,8 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
     Expression<String>? ticketTag,
     Expression<String>? roomNumber,
     Expression<String>? bookedForName,
+    Expression<String>? bookedByAccountId,
+    Expression<int>? version,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -3981,6 +6291,8 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
       if (ticketTag != null) 'ticket_tag': ticketTag,
       if (roomNumber != null) 'room_number': roomNumber,
       if (bookedForName != null) 'booked_for_name': bookedForName,
+      if (bookedByAccountId != null) 'booked_by_account_id': bookedByAccountId,
+      if (version != null) 'version': version,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -4005,6 +6317,8 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
     Value<String?>? ticketTag,
     Value<String?>? roomNumber,
     Value<String?>? bookedForName,
+    Value<String?>? bookedByAccountId,
+    Value<int>? version,
     Value<int>? rowid,
   }) {
     return AppointmentsCompanion(
@@ -4027,6 +6341,8 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
       ticketTag: ticketTag ?? this.ticketTag,
       roomNumber: roomNumber ?? this.roomNumber,
       bookedForName: bookedForName ?? this.bookedForName,
+      bookedByAccountId: bookedByAccountId ?? this.bookedByAccountId,
+      version: version ?? this.version,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -4097,6 +6413,12 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
     if (bookedForName.present) {
       map['booked_for_name'] = Variable<String>(bookedForName.value);
     }
+    if (bookedByAccountId.present) {
+      map['booked_by_account_id'] = Variable<String>(bookedByAccountId.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -4125,6 +6447,8 @@ class AppointmentsCompanion extends UpdateCompanion<AppointmentRow> {
           ..write('ticketTag: $ticketTag, ')
           ..write('roomNumber: $roomNumber, ')
           ..write('bookedForName: $bookedForName, ')
+          ..write('bookedByAccountId: $bookedByAccountId, ')
+          ..write('version: $version, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -4190,6 +6514,54 @@ class $RemindersTable extends Reminders
         requiredDuringInsert: false,
         defaultValue: const Constant('standard'),
       ).withConverter<ReminderKind>($RemindersTable.$converterkind);
+  @override
+  late final GeneratedColumnWithTypeConverter<ReminderDeliveryStatus, String>
+  deliveryStatus =
+      GeneratedColumn<String>(
+        'delivery_status',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('queued'),
+      ).withConverter<ReminderDeliveryStatus>(
+        $RemindersTable.$converterdeliveryStatus,
+      );
+  static const VerificationMeta _deliveryAttemptsMeta = const VerificationMeta(
+    'deliveryAttempts',
+  );
+  @override
+  late final GeneratedColumn<int> deliveryAttempts = GeneratedColumn<int>(
+    'delivery_attempts',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _lastErrorMeta = const VerificationMeta(
+    'lastError',
+  );
+  @override
+  late final GeneratedColumn<String> lastError = GeneratedColumn<String>(
+    'last_error',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _nextAttemptAtMeta = const VerificationMeta(
+    'nextAttemptAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> nextAttemptAt =
+      GeneratedColumn<DateTime>(
+        'next_attempt_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _sentAtMeta = const VerificationMeta('sentAt');
   @override
   late final GeneratedColumn<DateTime> sentAt = GeneratedColumn<DateTime>(
@@ -4221,6 +6593,10 @@ class $RemindersTable extends Reminders
     scheduledFor,
     channel,
     kind,
+    deliveryStatus,
+    deliveryAttempts,
+    lastError,
+    nextAttemptAt,
     sentAt,
     acknowledged,
   ];
@@ -4262,6 +6638,30 @@ class $RemindersTable extends Reminders
       );
     } else if (isInserting) {
       context.missing(_scheduledForMeta);
+    }
+    if (data.containsKey('delivery_attempts')) {
+      context.handle(
+        _deliveryAttemptsMeta,
+        deliveryAttempts.isAcceptableOrUnknown(
+          data['delivery_attempts']!,
+          _deliveryAttemptsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_error')) {
+      context.handle(
+        _lastErrorMeta,
+        lastError.isAcceptableOrUnknown(data['last_error']!, _lastErrorMeta),
+      );
+    }
+    if (data.containsKey('next_attempt_at')) {
+      context.handle(
+        _nextAttemptAtMeta,
+        nextAttemptAt.isAcceptableOrUnknown(
+          data['next_attempt_at']!,
+          _nextAttemptAtMeta,
+        ),
+      );
     }
     if (data.containsKey('sent_at')) {
       context.handle(
@@ -4311,6 +6711,24 @@ class $RemindersTable extends Reminders
           data['${effectivePrefix}kind'],
         )!,
       ),
+      deliveryStatus: $RemindersTable.$converterdeliveryStatus.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}delivery_status'],
+        )!,
+      ),
+      deliveryAttempts: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}delivery_attempts'],
+      )!,
+      lastError: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_error'],
+      ),
+      nextAttemptAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}next_attempt_at'],
+      ),
       sentAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}sent_at'],
@@ -4331,6 +6749,10 @@ class $RemindersTable extends Reminders
       const EnumNameConverter<ReminderChannel>(ReminderChannel.values);
   static JsonTypeConverter2<ReminderKind, String, String> $converterkind =
       const EnumNameConverter<ReminderKind>(ReminderKind.values);
+  static JsonTypeConverter2<ReminderDeliveryStatus, String, String>
+  $converterdeliveryStatus = const EnumNameConverter<ReminderDeliveryStatus>(
+    ReminderDeliveryStatus.values,
+  );
 }
 
 class ReminderRow extends DataClass implements Insertable<ReminderRow> {
@@ -4339,6 +6761,13 @@ class ReminderRow extends DataClass implements Insertable<ReminderRow> {
   final DateTime scheduledFor;
   final ReminderChannel channel;
   final ReminderKind kind;
+  final ReminderDeliveryStatus deliveryStatus;
+  final int deliveryAttempts;
+  final String? lastError;
+
+  /// Earliest retry after a transient delivery failure (schema v24). Null
+  /// means "as soon as it is due".
+  final DateTime? nextAttemptAt;
   final DateTime? sentAt;
   final bool acknowledged;
   const ReminderRow({
@@ -4347,6 +6776,10 @@ class ReminderRow extends DataClass implements Insertable<ReminderRow> {
     required this.scheduledFor,
     required this.channel,
     required this.kind,
+    required this.deliveryStatus,
+    required this.deliveryAttempts,
+    this.lastError,
+    this.nextAttemptAt,
     this.sentAt,
     required this.acknowledged,
   });
@@ -4366,6 +6799,18 @@ class ReminderRow extends DataClass implements Insertable<ReminderRow> {
         $RemindersTable.$converterkind.toSql(kind),
       );
     }
+    {
+      map['delivery_status'] = Variable<String>(
+        $RemindersTable.$converterdeliveryStatus.toSql(deliveryStatus),
+      );
+    }
+    map['delivery_attempts'] = Variable<int>(deliveryAttempts);
+    if (!nullToAbsent || lastError != null) {
+      map['last_error'] = Variable<String>(lastError);
+    }
+    if (!nullToAbsent || nextAttemptAt != null) {
+      map['next_attempt_at'] = Variable<DateTime>(nextAttemptAt);
+    }
     if (!nullToAbsent || sentAt != null) {
       map['sent_at'] = Variable<DateTime>(sentAt);
     }
@@ -4380,6 +6825,14 @@ class ReminderRow extends DataClass implements Insertable<ReminderRow> {
       scheduledFor: Value(scheduledFor),
       channel: Value(channel),
       kind: Value(kind),
+      deliveryStatus: Value(deliveryStatus),
+      deliveryAttempts: Value(deliveryAttempts),
+      lastError: lastError == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastError),
+      nextAttemptAt: nextAttemptAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nextAttemptAt),
       sentAt: sentAt == null && nullToAbsent
           ? const Value.absent()
           : Value(sentAt),
@@ -4402,6 +6855,12 @@ class ReminderRow extends DataClass implements Insertable<ReminderRow> {
       kind: $RemindersTable.$converterkind.fromJson(
         serializer.fromJson<String>(json['kind']),
       ),
+      deliveryStatus: $RemindersTable.$converterdeliveryStatus.fromJson(
+        serializer.fromJson<String>(json['deliveryStatus']),
+      ),
+      deliveryAttempts: serializer.fromJson<int>(json['deliveryAttempts']),
+      lastError: serializer.fromJson<String?>(json['lastError']),
+      nextAttemptAt: serializer.fromJson<DateTime?>(json['nextAttemptAt']),
       sentAt: serializer.fromJson<DateTime?>(json['sentAt']),
       acknowledged: serializer.fromJson<bool>(json['acknowledged']),
     );
@@ -4419,6 +6878,12 @@ class ReminderRow extends DataClass implements Insertable<ReminderRow> {
       'kind': serializer.toJson<String>(
         $RemindersTable.$converterkind.toJson(kind),
       ),
+      'deliveryStatus': serializer.toJson<String>(
+        $RemindersTable.$converterdeliveryStatus.toJson(deliveryStatus),
+      ),
+      'deliveryAttempts': serializer.toJson<int>(deliveryAttempts),
+      'lastError': serializer.toJson<String?>(lastError),
+      'nextAttemptAt': serializer.toJson<DateTime?>(nextAttemptAt),
       'sentAt': serializer.toJson<DateTime?>(sentAt),
       'acknowledged': serializer.toJson<bool>(acknowledged),
     };
@@ -4430,6 +6895,10 @@ class ReminderRow extends DataClass implements Insertable<ReminderRow> {
     DateTime? scheduledFor,
     ReminderChannel? channel,
     ReminderKind? kind,
+    ReminderDeliveryStatus? deliveryStatus,
+    int? deliveryAttempts,
+    Value<String?> lastError = const Value.absent(),
+    Value<DateTime?> nextAttemptAt = const Value.absent(),
     Value<DateTime?> sentAt = const Value.absent(),
     bool? acknowledged,
   }) => ReminderRow(
@@ -4438,6 +6907,12 @@ class ReminderRow extends DataClass implements Insertable<ReminderRow> {
     scheduledFor: scheduledFor ?? this.scheduledFor,
     channel: channel ?? this.channel,
     kind: kind ?? this.kind,
+    deliveryStatus: deliveryStatus ?? this.deliveryStatus,
+    deliveryAttempts: deliveryAttempts ?? this.deliveryAttempts,
+    lastError: lastError.present ? lastError.value : this.lastError,
+    nextAttemptAt: nextAttemptAt.present
+        ? nextAttemptAt.value
+        : this.nextAttemptAt,
     sentAt: sentAt.present ? sentAt.value : this.sentAt,
     acknowledged: acknowledged ?? this.acknowledged,
   );
@@ -4452,6 +6927,16 @@ class ReminderRow extends DataClass implements Insertable<ReminderRow> {
           : this.scheduledFor,
       channel: data.channel.present ? data.channel.value : this.channel,
       kind: data.kind.present ? data.kind.value : this.kind,
+      deliveryStatus: data.deliveryStatus.present
+          ? data.deliveryStatus.value
+          : this.deliveryStatus,
+      deliveryAttempts: data.deliveryAttempts.present
+          ? data.deliveryAttempts.value
+          : this.deliveryAttempts,
+      lastError: data.lastError.present ? data.lastError.value : this.lastError,
+      nextAttemptAt: data.nextAttemptAt.present
+          ? data.nextAttemptAt.value
+          : this.nextAttemptAt,
       sentAt: data.sentAt.present ? data.sentAt.value : this.sentAt,
       acknowledged: data.acknowledged.present
           ? data.acknowledged.value
@@ -4467,6 +6952,10 @@ class ReminderRow extends DataClass implements Insertable<ReminderRow> {
           ..write('scheduledFor: $scheduledFor, ')
           ..write('channel: $channel, ')
           ..write('kind: $kind, ')
+          ..write('deliveryStatus: $deliveryStatus, ')
+          ..write('deliveryAttempts: $deliveryAttempts, ')
+          ..write('lastError: $lastError, ')
+          ..write('nextAttemptAt: $nextAttemptAt, ')
           ..write('sentAt: $sentAt, ')
           ..write('acknowledged: $acknowledged')
           ..write(')'))
@@ -4480,6 +6969,10 @@ class ReminderRow extends DataClass implements Insertable<ReminderRow> {
     scheduledFor,
     channel,
     kind,
+    deliveryStatus,
+    deliveryAttempts,
+    lastError,
+    nextAttemptAt,
     sentAt,
     acknowledged,
   );
@@ -4492,6 +6985,10 @@ class ReminderRow extends DataClass implements Insertable<ReminderRow> {
           other.scheduledFor == this.scheduledFor &&
           other.channel == this.channel &&
           other.kind == this.kind &&
+          other.deliveryStatus == this.deliveryStatus &&
+          other.deliveryAttempts == this.deliveryAttempts &&
+          other.lastError == this.lastError &&
+          other.nextAttemptAt == this.nextAttemptAt &&
           other.sentAt == this.sentAt &&
           other.acknowledged == this.acknowledged);
 }
@@ -4502,6 +6999,10 @@ class RemindersCompanion extends UpdateCompanion<ReminderRow> {
   final Value<DateTime> scheduledFor;
   final Value<ReminderChannel> channel;
   final Value<ReminderKind> kind;
+  final Value<ReminderDeliveryStatus> deliveryStatus;
+  final Value<int> deliveryAttempts;
+  final Value<String?> lastError;
+  final Value<DateTime?> nextAttemptAt;
   final Value<DateTime?> sentAt;
   final Value<bool> acknowledged;
   final Value<int> rowid;
@@ -4511,6 +7012,10 @@ class RemindersCompanion extends UpdateCompanion<ReminderRow> {
     this.scheduledFor = const Value.absent(),
     this.channel = const Value.absent(),
     this.kind = const Value.absent(),
+    this.deliveryStatus = const Value.absent(),
+    this.deliveryAttempts = const Value.absent(),
+    this.lastError = const Value.absent(),
+    this.nextAttemptAt = const Value.absent(),
     this.sentAt = const Value.absent(),
     this.acknowledged = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -4521,6 +7026,10 @@ class RemindersCompanion extends UpdateCompanion<ReminderRow> {
     required DateTime scheduledFor,
     required ReminderChannel channel,
     this.kind = const Value.absent(),
+    this.deliveryStatus = const Value.absent(),
+    this.deliveryAttempts = const Value.absent(),
+    this.lastError = const Value.absent(),
+    this.nextAttemptAt = const Value.absent(),
     this.sentAt = const Value.absent(),
     this.acknowledged = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -4534,6 +7043,10 @@ class RemindersCompanion extends UpdateCompanion<ReminderRow> {
     Expression<DateTime>? scheduledFor,
     Expression<String>? channel,
     Expression<String>? kind,
+    Expression<String>? deliveryStatus,
+    Expression<int>? deliveryAttempts,
+    Expression<String>? lastError,
+    Expression<DateTime>? nextAttemptAt,
     Expression<DateTime>? sentAt,
     Expression<bool>? acknowledged,
     Expression<int>? rowid,
@@ -4544,6 +7057,10 @@ class RemindersCompanion extends UpdateCompanion<ReminderRow> {
       if (scheduledFor != null) 'scheduled_for': scheduledFor,
       if (channel != null) 'channel': channel,
       if (kind != null) 'kind': kind,
+      if (deliveryStatus != null) 'delivery_status': deliveryStatus,
+      if (deliveryAttempts != null) 'delivery_attempts': deliveryAttempts,
+      if (lastError != null) 'last_error': lastError,
+      if (nextAttemptAt != null) 'next_attempt_at': nextAttemptAt,
       if (sentAt != null) 'sent_at': sentAt,
       if (acknowledged != null) 'acknowledged': acknowledged,
       if (rowid != null) 'rowid': rowid,
@@ -4556,6 +7073,10 @@ class RemindersCompanion extends UpdateCompanion<ReminderRow> {
     Value<DateTime>? scheduledFor,
     Value<ReminderChannel>? channel,
     Value<ReminderKind>? kind,
+    Value<ReminderDeliveryStatus>? deliveryStatus,
+    Value<int>? deliveryAttempts,
+    Value<String?>? lastError,
+    Value<DateTime?>? nextAttemptAt,
     Value<DateTime?>? sentAt,
     Value<bool>? acknowledged,
     Value<int>? rowid,
@@ -4566,6 +7087,10 @@ class RemindersCompanion extends UpdateCompanion<ReminderRow> {
       scheduledFor: scheduledFor ?? this.scheduledFor,
       channel: channel ?? this.channel,
       kind: kind ?? this.kind,
+      deliveryStatus: deliveryStatus ?? this.deliveryStatus,
+      deliveryAttempts: deliveryAttempts ?? this.deliveryAttempts,
+      lastError: lastError ?? this.lastError,
+      nextAttemptAt: nextAttemptAt ?? this.nextAttemptAt,
       sentAt: sentAt ?? this.sentAt,
       acknowledged: acknowledged ?? this.acknowledged,
       rowid: rowid ?? this.rowid,
@@ -4594,6 +7119,20 @@ class RemindersCompanion extends UpdateCompanion<ReminderRow> {
         $RemindersTable.$converterkind.toSql(kind.value),
       );
     }
+    if (deliveryStatus.present) {
+      map['delivery_status'] = Variable<String>(
+        $RemindersTable.$converterdeliveryStatus.toSql(deliveryStatus.value),
+      );
+    }
+    if (deliveryAttempts.present) {
+      map['delivery_attempts'] = Variable<int>(deliveryAttempts.value);
+    }
+    if (lastError.present) {
+      map['last_error'] = Variable<String>(lastError.value);
+    }
+    if (nextAttemptAt.present) {
+      map['next_attempt_at'] = Variable<DateTime>(nextAttemptAt.value);
+    }
     if (sentAt.present) {
       map['sent_at'] = Variable<DateTime>(sentAt.value);
     }
@@ -4614,6 +7153,10 @@ class RemindersCompanion extends UpdateCompanion<ReminderRow> {
           ..write('scheduledFor: $scheduledFor, ')
           ..write('channel: $channel, ')
           ..write('kind: $kind, ')
+          ..write('deliveryStatus: $deliveryStatus, ')
+          ..write('deliveryAttempts: $deliveryAttempts, ')
+          ..write('lastError: $lastError, ')
+          ..write('nextAttemptAt: $nextAttemptAt, ')
           ..write('sentAt: $sentAt, ')
           ..write('acknowledged: $acknowledged, ')
           ..write('rowid: $rowid')
@@ -4769,6 +7312,17 @@ class $MedicalRecordsTable extends MedicalRecords
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _createdByAccountIdMeta =
+      const VerificationMeta('createdByAccountId');
+  @override
+  late final GeneratedColumn<String> createdByAccountId =
+      GeneratedColumn<String>(
+        'created_by_account_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -4780,6 +7334,56 @@ class $MedicalRecordsTable extends MedicalRecords
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<ImportReviewStatus, String>
+  reviewStatus =
+      GeneratedColumn<String>(
+        'review_status',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('notRequired'),
+      ).withConverter<ImportReviewStatus>(
+        $MedicalRecordsTable.$converterreviewStatus,
+      );
+  static const VerificationMeta _reviewedByStaffIdMeta = const VerificationMeta(
+    'reviewedByStaffId',
+  );
+  @override
+  late final GeneratedColumn<String> reviewedByStaffId =
+      GeneratedColumn<String>(
+        'reviewed_by_staff_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES users (id)',
+        ),
+      );
+  static const VerificationMeta _reviewedAtMeta = const VerificationMeta(
+    'reviewedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> reviewedAt = GeneratedColumn<DateTime>(
+    'reviewed_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _reviewNoteMeta = const VerificationMeta(
+    'reviewNote',
+  );
+  @override
+  late final GeneratedColumn<String> reviewNote = GeneratedColumn<String>(
+    'review_note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -4795,7 +7399,12 @@ class $MedicalRecordsTable extends MedicalRecords
     attachmentPath,
     extractedText,
     uploadedByPatient,
+    createdByAccountId,
     createdAt,
+    reviewStatus,
+    reviewedByStaffId,
+    reviewedAt,
+    reviewNote,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4898,10 +7507,40 @@ class $MedicalRecordsTable extends MedicalRecords
         ),
       );
     }
+    if (data.containsKey('created_by_account_id')) {
+      context.handle(
+        _createdByAccountIdMeta,
+        createdByAccountId.isAcceptableOrUnknown(
+          data['created_by_account_id']!,
+          _createdByAccountIdMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
         createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('reviewed_by_staff_id')) {
+      context.handle(
+        _reviewedByStaffIdMeta,
+        reviewedByStaffId.isAcceptableOrUnknown(
+          data['reviewed_by_staff_id']!,
+          _reviewedByStaffIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('reviewed_at')) {
+      context.handle(
+        _reviewedAtMeta,
+        reviewedAt.isAcceptableOrUnknown(data['reviewed_at']!, _reviewedAtMeta),
+      );
+    }
+    if (data.containsKey('review_note')) {
+      context.handle(
+        _reviewNoteMeta,
+        reviewNote.isAcceptableOrUnknown(data['review_note']!, _reviewNoteMeta),
       );
     }
     return context;
@@ -4963,10 +7602,32 @@ class $MedicalRecordsTable extends MedicalRecords
         DriftSqlType.bool,
         data['${effectivePrefix}uploaded_by_patient'],
       )!,
+      createdByAccountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_by_account_id'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
       )!,
+      reviewStatus: $MedicalRecordsTable.$converterreviewStatus.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}review_status'],
+        )!,
+      ),
+      reviewedByStaffId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reviewed_by_staff_id'],
+      ),
+      reviewedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}reviewed_at'],
+      ),
+      reviewNote: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}review_note'],
+      ),
     );
   }
 
@@ -4977,6 +7638,10 @@ class $MedicalRecordsTable extends MedicalRecords
 
   static JsonTypeConverter2<RecordType, String, String> $converterrecordType =
       const EnumNameConverter<RecordType>(RecordType.values);
+  static JsonTypeConverter2<ImportReviewStatus, String, String>
+  $converterreviewStatus = const EnumNameConverter<ImportReviewStatus>(
+    ImportReviewStatus.values,
+  );
 }
 
 class MedicalRecordRow extends DataClass
@@ -5006,7 +7671,18 @@ class MedicalRecordRow extends DataClass
   /// True when the patient imported this themselves. Such a record has not
   /// been reviewed by a clinician and must never read as a clinic result.
   final bool uploadedByPatient;
+
+  /// The signed-in account that created the record (a clinician, the
+  /// patient, or a proxy uploading for them). Null on older rows.
+  final String? createdByAccountId;
   final DateTime createdAt;
+
+  /// Whether a clinician has reviewed a patient import. Clinic-authored
+  /// records are `notRequired`. Stored by name.
+  final ImportReviewStatus reviewStatus;
+  final String? reviewedByStaffId;
+  final DateTime? reviewedAt;
+  final String? reviewNote;
   const MedicalRecordRow({
     required this.id,
     required this.patientId,
@@ -5020,7 +7696,12 @@ class MedicalRecordRow extends DataClass
     this.attachmentPath,
     this.extractedText,
     required this.uploadedByPatient,
+    this.createdByAccountId,
     required this.createdAt,
+    required this.reviewStatus,
+    this.reviewedByStaffId,
+    this.reviewedAt,
+    this.reviewNote,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -5053,7 +7734,24 @@ class MedicalRecordRow extends DataClass
       map['extracted_text'] = Variable<String>(extractedText);
     }
     map['uploaded_by_patient'] = Variable<bool>(uploadedByPatient);
+    if (!nullToAbsent || createdByAccountId != null) {
+      map['created_by_account_id'] = Variable<String>(createdByAccountId);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
+    {
+      map['review_status'] = Variable<String>(
+        $MedicalRecordsTable.$converterreviewStatus.toSql(reviewStatus),
+      );
+    }
+    if (!nullToAbsent || reviewedByStaffId != null) {
+      map['reviewed_by_staff_id'] = Variable<String>(reviewedByStaffId);
+    }
+    if (!nullToAbsent || reviewedAt != null) {
+      map['reviewed_at'] = Variable<DateTime>(reviewedAt);
+    }
+    if (!nullToAbsent || reviewNote != null) {
+      map['review_note'] = Variable<String>(reviewNote);
+    }
     return map;
   }
 
@@ -5081,7 +7779,20 @@ class MedicalRecordRow extends DataClass
           ? const Value.absent()
           : Value(extractedText),
       uploadedByPatient: Value(uploadedByPatient),
+      createdByAccountId: createdByAccountId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdByAccountId),
       createdAt: Value(createdAt),
+      reviewStatus: Value(reviewStatus),
+      reviewedByStaffId: reviewedByStaffId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reviewedByStaffId),
+      reviewedAt: reviewedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reviewedAt),
+      reviewNote: reviewNote == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reviewNote),
     );
   }
 
@@ -5105,7 +7816,18 @@ class MedicalRecordRow extends DataClass
       attachmentPath: serializer.fromJson<String?>(json['attachmentPath']),
       extractedText: serializer.fromJson<String?>(json['extractedText']),
       uploadedByPatient: serializer.fromJson<bool>(json['uploadedByPatient']),
+      createdByAccountId: serializer.fromJson<String?>(
+        json['createdByAccountId'],
+      ),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      reviewStatus: $MedicalRecordsTable.$converterreviewStatus.fromJson(
+        serializer.fromJson<String>(json['reviewStatus']),
+      ),
+      reviewedByStaffId: serializer.fromJson<String?>(
+        json['reviewedByStaffId'],
+      ),
+      reviewedAt: serializer.fromJson<DateTime?>(json['reviewedAt']),
+      reviewNote: serializer.fromJson<String?>(json['reviewNote']),
     );
   }
   @override
@@ -5126,7 +7848,14 @@ class MedicalRecordRow extends DataClass
       'attachmentPath': serializer.toJson<String?>(attachmentPath),
       'extractedText': serializer.toJson<String?>(extractedText),
       'uploadedByPatient': serializer.toJson<bool>(uploadedByPatient),
+      'createdByAccountId': serializer.toJson<String?>(createdByAccountId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'reviewStatus': serializer.toJson<String>(
+        $MedicalRecordsTable.$converterreviewStatus.toJson(reviewStatus),
+      ),
+      'reviewedByStaffId': serializer.toJson<String?>(reviewedByStaffId),
+      'reviewedAt': serializer.toJson<DateTime?>(reviewedAt),
+      'reviewNote': serializer.toJson<String?>(reviewNote),
     };
   }
 
@@ -5143,7 +7872,12 @@ class MedicalRecordRow extends DataClass
     Value<String?> attachmentPath = const Value.absent(),
     Value<String?> extractedText = const Value.absent(),
     bool? uploadedByPatient,
+    Value<String?> createdByAccountId = const Value.absent(),
     DateTime? createdAt,
+    ImportReviewStatus? reviewStatus,
+    Value<String?> reviewedByStaffId = const Value.absent(),
+    Value<DateTime?> reviewedAt = const Value.absent(),
+    Value<String?> reviewNote = const Value.absent(),
   }) => MedicalRecordRow(
     id: id ?? this.id,
     patientId: patientId ?? this.patientId,
@@ -5167,7 +7901,16 @@ class MedicalRecordRow extends DataClass
         ? extractedText.value
         : this.extractedText,
     uploadedByPatient: uploadedByPatient ?? this.uploadedByPatient,
+    createdByAccountId: createdByAccountId.present
+        ? createdByAccountId.value
+        : this.createdByAccountId,
     createdAt: createdAt ?? this.createdAt,
+    reviewStatus: reviewStatus ?? this.reviewStatus,
+    reviewedByStaffId: reviewedByStaffId.present
+        ? reviewedByStaffId.value
+        : this.reviewedByStaffId,
+    reviewedAt: reviewedAt.present ? reviewedAt.value : this.reviewedAt,
+    reviewNote: reviewNote.present ? reviewNote.value : this.reviewNote,
   );
   MedicalRecordRow copyWithCompanion(MedicalRecordsCompanion data) {
     return MedicalRecordRow(
@@ -5199,7 +7942,22 @@ class MedicalRecordRow extends DataClass
       uploadedByPatient: data.uploadedByPatient.present
           ? data.uploadedByPatient.value
           : this.uploadedByPatient,
+      createdByAccountId: data.createdByAccountId.present
+          ? data.createdByAccountId.value
+          : this.createdByAccountId,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      reviewStatus: data.reviewStatus.present
+          ? data.reviewStatus.value
+          : this.reviewStatus,
+      reviewedByStaffId: data.reviewedByStaffId.present
+          ? data.reviewedByStaffId.value
+          : this.reviewedByStaffId,
+      reviewedAt: data.reviewedAt.present
+          ? data.reviewedAt.value
+          : this.reviewedAt,
+      reviewNote: data.reviewNote.present
+          ? data.reviewNote.value
+          : this.reviewNote,
     );
   }
 
@@ -5218,7 +7976,12 @@ class MedicalRecordRow extends DataClass
           ..write('attachmentPath: $attachmentPath, ')
           ..write('extractedText: $extractedText, ')
           ..write('uploadedByPatient: $uploadedByPatient, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdByAccountId: $createdByAccountId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('reviewStatus: $reviewStatus, ')
+          ..write('reviewedByStaffId: $reviewedByStaffId, ')
+          ..write('reviewedAt: $reviewedAt, ')
+          ..write('reviewNote: $reviewNote')
           ..write(')'))
         .toString();
   }
@@ -5237,7 +8000,12 @@ class MedicalRecordRow extends DataClass
     attachmentPath,
     extractedText,
     uploadedByPatient,
+    createdByAccountId,
     createdAt,
+    reviewStatus,
+    reviewedByStaffId,
+    reviewedAt,
+    reviewNote,
   );
   @override
   bool operator ==(Object other) =>
@@ -5255,7 +8023,12 @@ class MedicalRecordRow extends DataClass
           other.attachmentPath == this.attachmentPath &&
           other.extractedText == this.extractedText &&
           other.uploadedByPatient == this.uploadedByPatient &&
-          other.createdAt == this.createdAt);
+          other.createdByAccountId == this.createdByAccountId &&
+          other.createdAt == this.createdAt &&
+          other.reviewStatus == this.reviewStatus &&
+          other.reviewedByStaffId == this.reviewedByStaffId &&
+          other.reviewedAt == this.reviewedAt &&
+          other.reviewNote == this.reviewNote);
 }
 
 class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
@@ -5271,7 +8044,12 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
   final Value<String?> attachmentPath;
   final Value<String?> extractedText;
   final Value<bool> uploadedByPatient;
+  final Value<String?> createdByAccountId;
   final Value<DateTime> createdAt;
+  final Value<ImportReviewStatus> reviewStatus;
+  final Value<String?> reviewedByStaffId;
+  final Value<DateTime?> reviewedAt;
+  final Value<String?> reviewNote;
   final Value<int> rowid;
   const MedicalRecordsCompanion({
     this.id = const Value.absent(),
@@ -5286,7 +8064,12 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
     this.attachmentPath = const Value.absent(),
     this.extractedText = const Value.absent(),
     this.uploadedByPatient = const Value.absent(),
+    this.createdByAccountId = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.reviewStatus = const Value.absent(),
+    this.reviewedByStaffId = const Value.absent(),
+    this.reviewedAt = const Value.absent(),
+    this.reviewNote = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   MedicalRecordsCompanion.insert({
@@ -5302,7 +8085,12 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
     this.attachmentPath = const Value.absent(),
     this.extractedText = const Value.absent(),
     this.uploadedByPatient = const Value.absent(),
+    this.createdByAccountId = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.reviewStatus = const Value.absent(),
+    this.reviewedByStaffId = const Value.absent(),
+    this.reviewedAt = const Value.absent(),
+    this.reviewNote = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        patientId = Value(patientId),
@@ -5322,7 +8110,12 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
     Expression<String>? attachmentPath,
     Expression<String>? extractedText,
     Expression<bool>? uploadedByPatient,
+    Expression<String>? createdByAccountId,
     Expression<DateTime>? createdAt,
+    Expression<String>? reviewStatus,
+    Expression<String>? reviewedByStaffId,
+    Expression<DateTime>? reviewedAt,
+    Expression<String>? reviewNote,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -5338,7 +8131,13 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
       if (attachmentPath != null) 'attachment_path': attachmentPath,
       if (extractedText != null) 'extracted_text': extractedText,
       if (uploadedByPatient != null) 'uploaded_by_patient': uploadedByPatient,
+      if (createdByAccountId != null)
+        'created_by_account_id': createdByAccountId,
       if (createdAt != null) 'created_at': createdAt,
+      if (reviewStatus != null) 'review_status': reviewStatus,
+      if (reviewedByStaffId != null) 'reviewed_by_staff_id': reviewedByStaffId,
+      if (reviewedAt != null) 'reviewed_at': reviewedAt,
+      if (reviewNote != null) 'review_note': reviewNote,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -5356,7 +8155,12 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
     Value<String?>? attachmentPath,
     Value<String?>? extractedText,
     Value<bool>? uploadedByPatient,
+    Value<String?>? createdByAccountId,
     Value<DateTime>? createdAt,
+    Value<ImportReviewStatus>? reviewStatus,
+    Value<String?>? reviewedByStaffId,
+    Value<DateTime?>? reviewedAt,
+    Value<String?>? reviewNote,
     Value<int>? rowid,
   }) {
     return MedicalRecordsCompanion(
@@ -5372,7 +8176,12 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
       attachmentPath: attachmentPath ?? this.attachmentPath,
       extractedText: extractedText ?? this.extractedText,
       uploadedByPatient: uploadedByPatient ?? this.uploadedByPatient,
+      createdByAccountId: createdByAccountId ?? this.createdByAccountId,
       createdAt: createdAt ?? this.createdAt,
+      reviewStatus: reviewStatus ?? this.reviewStatus,
+      reviewedByStaffId: reviewedByStaffId ?? this.reviewedByStaffId,
+      reviewedAt: reviewedAt ?? this.reviewedAt,
+      reviewNote: reviewNote ?? this.reviewNote,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -5418,8 +8227,25 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
     if (uploadedByPatient.present) {
       map['uploaded_by_patient'] = Variable<bool>(uploadedByPatient.value);
     }
+    if (createdByAccountId.present) {
+      map['created_by_account_id'] = Variable<String>(createdByAccountId.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (reviewStatus.present) {
+      map['review_status'] = Variable<String>(
+        $MedicalRecordsTable.$converterreviewStatus.toSql(reviewStatus.value),
+      );
+    }
+    if (reviewedByStaffId.present) {
+      map['reviewed_by_staff_id'] = Variable<String>(reviewedByStaffId.value);
+    }
+    if (reviewedAt.present) {
+      map['reviewed_at'] = Variable<DateTime>(reviewedAt.value);
+    }
+    if (reviewNote.present) {
+      map['review_note'] = Variable<String>(reviewNote.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -5442,7 +8268,12 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
           ..write('attachmentPath: $attachmentPath, ')
           ..write('extractedText: $extractedText, ')
           ..write('uploadedByPatient: $uploadedByPatient, ')
+          ..write('createdByAccountId: $createdByAccountId, ')
           ..write('createdAt: $createdAt, ')
+          ..write('reviewStatus: $reviewStatus, ')
+          ..write('reviewedByStaffId: $reviewedByStaffId, ')
+          ..write('reviewedAt: $reviewedAt, ')
+          ..write('reviewNote: $reviewNote, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -5537,6 +8368,65 @@ class $LabValuesTable extends LabValues
     requiredDuringInsert: false,
     defaultValue: const Constant('normal'),
   ).withConverter<AbnormalFlag>($LabValuesTable.$converterabnormalFlag);
+  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
+  @override
+  late final GeneratedColumn<String> source = GeneratedColumn<String>(
+    'source',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _provenanceMeta = const VerificationMeta(
+    'provenance',
+  );
+  @override
+  late final GeneratedColumn<String> provenance = GeneratedColumn<String>(
+    'provenance',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<VerificationStatus, String>
+  verificationStatus =
+      GeneratedColumn<String>(
+        'verification_status',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('unverified'),
+      ).withConverter<VerificationStatus>(
+        $LabValuesTable.$converterverificationStatus,
+      );
+  static const VerificationMeta _verifiedByStaffIdMeta = const VerificationMeta(
+    'verifiedByStaffId',
+  );
+  @override
+  late final GeneratedColumn<String> verifiedByStaffId =
+      GeneratedColumn<String>(
+        'verified_by_staff_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES users (id) ON DELETE SET NULL',
+        ),
+      );
+  static const VerificationMeta _verifiedAtMeta = const VerificationMeta(
+    'verifiedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> verifiedAt = GeneratedColumn<DateTime>(
+    'verified_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -5547,6 +8437,11 @@ class $LabValuesTable extends LabValues
     refLow,
     refHigh,
     abnormalFlag,
+    source,
+    provenance,
+    verificationStatus,
+    verifiedByStaffId,
+    verifiedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -5607,6 +8502,33 @@ class $LabValuesTable extends LabValues
         refHigh.isAcceptableOrUnknown(data['ref_high']!, _refHighMeta),
       );
     }
+    if (data.containsKey('source')) {
+      context.handle(
+        _sourceMeta,
+        source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
+      );
+    }
+    if (data.containsKey('provenance')) {
+      context.handle(
+        _provenanceMeta,
+        provenance.isAcceptableOrUnknown(data['provenance']!, _provenanceMeta),
+      );
+    }
+    if (data.containsKey('verified_by_staff_id')) {
+      context.handle(
+        _verifiedByStaffIdMeta,
+        verifiedByStaffId.isAcceptableOrUnknown(
+          data['verified_by_staff_id']!,
+          _verifiedByStaffIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('verified_at')) {
+      context.handle(
+        _verifiedAtMeta,
+        verifiedAt.isAcceptableOrUnknown(data['verified_at']!, _verifiedAtMeta),
+      );
+    }
     return context;
   }
 
@@ -5650,6 +8572,28 @@ class $LabValuesTable extends LabValues
           data['${effectivePrefix}abnormal_flag'],
         )!,
       ),
+      source: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source'],
+      ),
+      provenance: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}provenance'],
+      ),
+      verificationStatus: $LabValuesTable.$converterverificationStatus.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}verification_status'],
+        )!,
+      ),
+      verifiedByStaffId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}verified_by_staff_id'],
+      ),
+      verifiedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}verified_at'],
+      ),
     );
   }
 
@@ -5662,6 +8606,10 @@ class $LabValuesTable extends LabValues
   $converterabnormalFlag = const EnumNameConverter<AbnormalFlag>(
     AbnormalFlag.values,
   );
+  static JsonTypeConverter2<VerificationStatus, String, String>
+  $converterverificationStatus = const EnumNameConverter<VerificationStatus>(
+    VerificationStatus.values,
+  );
 }
 
 class LabValueRow extends DataClass implements Insertable<LabValueRow> {
@@ -5673,6 +8621,11 @@ class LabValueRow extends DataClass implements Insertable<LabValueRow> {
   final double? refLow;
   final double? refHigh;
   final AbnormalFlag abnormalFlag;
+  final String? source;
+  final String? provenance;
+  final VerificationStatus verificationStatus;
+  final String? verifiedByStaffId;
+  final DateTime? verifiedAt;
   const LabValueRow({
     required this.id,
     required this.recordId,
@@ -5682,6 +8635,11 @@ class LabValueRow extends DataClass implements Insertable<LabValueRow> {
     this.refLow,
     this.refHigh,
     required this.abnormalFlag,
+    this.source,
+    this.provenance,
+    required this.verificationStatus,
+    this.verifiedByStaffId,
+    this.verifiedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -5704,6 +8662,23 @@ class LabValueRow extends DataClass implements Insertable<LabValueRow> {
         $LabValuesTable.$converterabnormalFlag.toSql(abnormalFlag),
       );
     }
+    if (!nullToAbsent || source != null) {
+      map['source'] = Variable<String>(source);
+    }
+    if (!nullToAbsent || provenance != null) {
+      map['provenance'] = Variable<String>(provenance);
+    }
+    {
+      map['verification_status'] = Variable<String>(
+        $LabValuesTable.$converterverificationStatus.toSql(verificationStatus),
+      );
+    }
+    if (!nullToAbsent || verifiedByStaffId != null) {
+      map['verified_by_staff_id'] = Variable<String>(verifiedByStaffId);
+    }
+    if (!nullToAbsent || verifiedAt != null) {
+      map['verified_at'] = Variable<DateTime>(verifiedAt);
+    }
     return map;
   }
 
@@ -5721,6 +8696,19 @@ class LabValueRow extends DataClass implements Insertable<LabValueRow> {
           ? const Value.absent()
           : Value(refHigh),
       abnormalFlag: Value(abnormalFlag),
+      source: source == null && nullToAbsent
+          ? const Value.absent()
+          : Value(source),
+      provenance: provenance == null && nullToAbsent
+          ? const Value.absent()
+          : Value(provenance),
+      verificationStatus: Value(verificationStatus),
+      verifiedByStaffId: verifiedByStaffId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(verifiedByStaffId),
+      verifiedAt: verifiedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(verifiedAt),
     );
   }
 
@@ -5740,6 +8728,15 @@ class LabValueRow extends DataClass implements Insertable<LabValueRow> {
       abnormalFlag: $LabValuesTable.$converterabnormalFlag.fromJson(
         serializer.fromJson<String>(json['abnormalFlag']),
       ),
+      source: serializer.fromJson<String?>(json['source']),
+      provenance: serializer.fromJson<String?>(json['provenance']),
+      verificationStatus: $LabValuesTable.$converterverificationStatus.fromJson(
+        serializer.fromJson<String>(json['verificationStatus']),
+      ),
+      verifiedByStaffId: serializer.fromJson<String?>(
+        json['verifiedByStaffId'],
+      ),
+      verifiedAt: serializer.fromJson<DateTime?>(json['verifiedAt']),
     );
   }
   @override
@@ -5756,6 +8753,13 @@ class LabValueRow extends DataClass implements Insertable<LabValueRow> {
       'abnormalFlag': serializer.toJson<String>(
         $LabValuesTable.$converterabnormalFlag.toJson(abnormalFlag),
       ),
+      'source': serializer.toJson<String?>(source),
+      'provenance': serializer.toJson<String?>(provenance),
+      'verificationStatus': serializer.toJson<String>(
+        $LabValuesTable.$converterverificationStatus.toJson(verificationStatus),
+      ),
+      'verifiedByStaffId': serializer.toJson<String?>(verifiedByStaffId),
+      'verifiedAt': serializer.toJson<DateTime?>(verifiedAt),
     };
   }
 
@@ -5768,6 +8772,11 @@ class LabValueRow extends DataClass implements Insertable<LabValueRow> {
     Value<double?> refLow = const Value.absent(),
     Value<double?> refHigh = const Value.absent(),
     AbnormalFlag? abnormalFlag,
+    Value<String?> source = const Value.absent(),
+    Value<String?> provenance = const Value.absent(),
+    VerificationStatus? verificationStatus,
+    Value<String?> verifiedByStaffId = const Value.absent(),
+    Value<DateTime?> verifiedAt = const Value.absent(),
   }) => LabValueRow(
     id: id ?? this.id,
     recordId: recordId ?? this.recordId,
@@ -5777,6 +8786,13 @@ class LabValueRow extends DataClass implements Insertable<LabValueRow> {
     refLow: refLow.present ? refLow.value : this.refLow,
     refHigh: refHigh.present ? refHigh.value : this.refHigh,
     abnormalFlag: abnormalFlag ?? this.abnormalFlag,
+    source: source.present ? source.value : this.source,
+    provenance: provenance.present ? provenance.value : this.provenance,
+    verificationStatus: verificationStatus ?? this.verificationStatus,
+    verifiedByStaffId: verifiedByStaffId.present
+        ? verifiedByStaffId.value
+        : this.verifiedByStaffId,
+    verifiedAt: verifiedAt.present ? verifiedAt.value : this.verifiedAt,
   );
   LabValueRow copyWithCompanion(LabValuesCompanion data) {
     return LabValueRow(
@@ -5790,6 +8806,19 @@ class LabValueRow extends DataClass implements Insertable<LabValueRow> {
       abnormalFlag: data.abnormalFlag.present
           ? data.abnormalFlag.value
           : this.abnormalFlag,
+      source: data.source.present ? data.source.value : this.source,
+      provenance: data.provenance.present
+          ? data.provenance.value
+          : this.provenance,
+      verificationStatus: data.verificationStatus.present
+          ? data.verificationStatus.value
+          : this.verificationStatus,
+      verifiedByStaffId: data.verifiedByStaffId.present
+          ? data.verifiedByStaffId.value
+          : this.verifiedByStaffId,
+      verifiedAt: data.verifiedAt.present
+          ? data.verifiedAt.value
+          : this.verifiedAt,
     );
   }
 
@@ -5803,7 +8832,12 @@ class LabValueRow extends DataClass implements Insertable<LabValueRow> {
           ..write('unit: $unit, ')
           ..write('refLow: $refLow, ')
           ..write('refHigh: $refHigh, ')
-          ..write('abnormalFlag: $abnormalFlag')
+          ..write('abnormalFlag: $abnormalFlag, ')
+          ..write('source: $source, ')
+          ..write('provenance: $provenance, ')
+          ..write('verificationStatus: $verificationStatus, ')
+          ..write('verifiedByStaffId: $verifiedByStaffId, ')
+          ..write('verifiedAt: $verifiedAt')
           ..write(')'))
         .toString();
   }
@@ -5818,6 +8852,11 @@ class LabValueRow extends DataClass implements Insertable<LabValueRow> {
     refLow,
     refHigh,
     abnormalFlag,
+    source,
+    provenance,
+    verificationStatus,
+    verifiedByStaffId,
+    verifiedAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -5830,7 +8869,12 @@ class LabValueRow extends DataClass implements Insertable<LabValueRow> {
           other.unit == this.unit &&
           other.refLow == this.refLow &&
           other.refHigh == this.refHigh &&
-          other.abnormalFlag == this.abnormalFlag);
+          other.abnormalFlag == this.abnormalFlag &&
+          other.source == this.source &&
+          other.provenance == this.provenance &&
+          other.verificationStatus == this.verificationStatus &&
+          other.verifiedByStaffId == this.verifiedByStaffId &&
+          other.verifiedAt == this.verifiedAt);
 }
 
 class LabValuesCompanion extends UpdateCompanion<LabValueRow> {
@@ -5842,6 +8886,11 @@ class LabValuesCompanion extends UpdateCompanion<LabValueRow> {
   final Value<double?> refLow;
   final Value<double?> refHigh;
   final Value<AbnormalFlag> abnormalFlag;
+  final Value<String?> source;
+  final Value<String?> provenance;
+  final Value<VerificationStatus> verificationStatus;
+  final Value<String?> verifiedByStaffId;
+  final Value<DateTime?> verifiedAt;
   final Value<int> rowid;
   const LabValuesCompanion({
     this.id = const Value.absent(),
@@ -5852,6 +8901,11 @@ class LabValuesCompanion extends UpdateCompanion<LabValueRow> {
     this.refLow = const Value.absent(),
     this.refHigh = const Value.absent(),
     this.abnormalFlag = const Value.absent(),
+    this.source = const Value.absent(),
+    this.provenance = const Value.absent(),
+    this.verificationStatus = const Value.absent(),
+    this.verifiedByStaffId = const Value.absent(),
+    this.verifiedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   LabValuesCompanion.insert({
@@ -5863,6 +8917,11 @@ class LabValuesCompanion extends UpdateCompanion<LabValueRow> {
     this.refLow = const Value.absent(),
     this.refHigh = const Value.absent(),
     this.abnormalFlag = const Value.absent(),
+    this.source = const Value.absent(),
+    this.provenance = const Value.absent(),
+    this.verificationStatus = const Value.absent(),
+    this.verifiedByStaffId = const Value.absent(),
+    this.verifiedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        recordId = Value(recordId),
@@ -5877,6 +8936,11 @@ class LabValuesCompanion extends UpdateCompanion<LabValueRow> {
     Expression<double>? refLow,
     Expression<double>? refHigh,
     Expression<String>? abnormalFlag,
+    Expression<String>? source,
+    Expression<String>? provenance,
+    Expression<String>? verificationStatus,
+    Expression<String>? verifiedByStaffId,
+    Expression<DateTime>? verifiedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -5888,6 +8952,11 @@ class LabValuesCompanion extends UpdateCompanion<LabValueRow> {
       if (refLow != null) 'ref_low': refLow,
       if (refHigh != null) 'ref_high': refHigh,
       if (abnormalFlag != null) 'abnormal_flag': abnormalFlag,
+      if (source != null) 'source': source,
+      if (provenance != null) 'provenance': provenance,
+      if (verificationStatus != null) 'verification_status': verificationStatus,
+      if (verifiedByStaffId != null) 'verified_by_staff_id': verifiedByStaffId,
+      if (verifiedAt != null) 'verified_at': verifiedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -5901,6 +8970,11 @@ class LabValuesCompanion extends UpdateCompanion<LabValueRow> {
     Value<double?>? refLow,
     Value<double?>? refHigh,
     Value<AbnormalFlag>? abnormalFlag,
+    Value<String?>? source,
+    Value<String?>? provenance,
+    Value<VerificationStatus>? verificationStatus,
+    Value<String?>? verifiedByStaffId,
+    Value<DateTime?>? verifiedAt,
     Value<int>? rowid,
   }) {
     return LabValuesCompanion(
@@ -5912,6 +8986,11 @@ class LabValuesCompanion extends UpdateCompanion<LabValueRow> {
       refLow: refLow ?? this.refLow,
       refHigh: refHigh ?? this.refHigh,
       abnormalFlag: abnormalFlag ?? this.abnormalFlag,
+      source: source ?? this.source,
+      provenance: provenance ?? this.provenance,
+      verificationStatus: verificationStatus ?? this.verificationStatus,
+      verifiedByStaffId: verifiedByStaffId ?? this.verifiedByStaffId,
+      verifiedAt: verifiedAt ?? this.verifiedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -5945,6 +9024,25 @@ class LabValuesCompanion extends UpdateCompanion<LabValueRow> {
         $LabValuesTable.$converterabnormalFlag.toSql(abnormalFlag.value),
       );
     }
+    if (source.present) {
+      map['source'] = Variable<String>(source.value);
+    }
+    if (provenance.present) {
+      map['provenance'] = Variable<String>(provenance.value);
+    }
+    if (verificationStatus.present) {
+      map['verification_status'] = Variable<String>(
+        $LabValuesTable.$converterverificationStatus.toSql(
+          verificationStatus.value,
+        ),
+      );
+    }
+    if (verifiedByStaffId.present) {
+      map['verified_by_staff_id'] = Variable<String>(verifiedByStaffId.value);
+    }
+    if (verifiedAt.present) {
+      map['verified_at'] = Variable<DateTime>(verifiedAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -5962,6 +9060,824 @@ class LabValuesCompanion extends UpdateCompanion<LabValueRow> {
           ..write('refLow: $refLow, ')
           ..write('refHigh: $refHigh, ')
           ..write('abnormalFlag: $abnormalFlag, ')
+          ..write('source: $source, ')
+          ..write('provenance: $provenance, ')
+          ..write('verificationStatus: $verificationStatus, ')
+          ..write('verifiedByStaffId: $verifiedByStaffId, ')
+          ..write('verifiedAt: $verifiedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ResultReviewsTable extends ResultReviews
+    with TableInfo<$ResultReviewsTable, ResultReviewRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ResultReviewsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _recordIdMeta = const VerificationMeta(
+    'recordId',
+  );
+  @override
+  late final GeneratedColumn<String> recordId = GeneratedColumn<String>(
+    'record_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES medical_records (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _ownerStaffIdMeta = const VerificationMeta(
+    'ownerStaffId',
+  );
+  @override
+  late final GeneratedColumn<String> ownerStaffId = GeneratedColumn<String>(
+    'owner_staff_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE SET NULL',
+    ),
+  );
+  static const VerificationMeta _coverageStaffIdMeta = const VerificationMeta(
+    'coverageStaffId',
+  );
+  @override
+  late final GeneratedColumn<String> coverageStaffId = GeneratedColumn<String>(
+    'coverage_staff_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE SET NULL',
+    ),
+  );
+  static const VerificationMeta _dueAtMeta = const VerificationMeta('dueAt');
+  @override
+  late final GeneratedColumn<DateTime> dueAt = GeneratedColumn<DateTime>(
+    'due_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<WorkPriority, String> priority =
+      GeneratedColumn<String>(
+        'priority',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('routine'),
+      ).withConverter<WorkPriority>($ResultReviewsTable.$converterpriority);
+  @override
+  late final GeneratedColumnWithTypeConverter<ResultReviewStatus, String>
+  status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('unassigned'),
+  ).withConverter<ResultReviewStatus>($ResultReviewsTable.$converterstatus);
+  static const VerificationMeta _escalationNoteMeta = const VerificationMeta(
+    'escalationNote',
+  );
+  @override
+  late final GeneratedColumn<String> escalationNote = GeneratedColumn<String>(
+    'escalation_note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _resolvedAtMeta = const VerificationMeta(
+    'resolvedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> resolvedAt = GeneratedColumn<DateTime>(
+    'resolved_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _resolvedByStaffIdMeta = const VerificationMeta(
+    'resolvedByStaffId',
+  );
+  @override
+  late final GeneratedColumn<String> resolvedByStaffId =
+      GeneratedColumn<String>(
+        'resolved_by_staff_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES users (id) ON DELETE SET NULL',
+        ),
+      );
+  static const VerificationMeta _resolutionNoteMeta = const VerificationMeta(
+    'resolutionNote',
+  );
+  @override
+  late final GeneratedColumn<String> resolutionNote = GeneratedColumn<String>(
+    'resolution_note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    recordId,
+    ownerStaffId,
+    coverageStaffId,
+    dueAt,
+    priority,
+    status,
+    escalationNote,
+    resolvedAt,
+    resolvedByStaffId,
+    resolutionNote,
+    createdAt,
+    version,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'result_reviews';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ResultReviewRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('record_id')) {
+      context.handle(
+        _recordIdMeta,
+        recordId.isAcceptableOrUnknown(data['record_id']!, _recordIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_recordIdMeta);
+    }
+    if (data.containsKey('owner_staff_id')) {
+      context.handle(
+        _ownerStaffIdMeta,
+        ownerStaffId.isAcceptableOrUnknown(
+          data['owner_staff_id']!,
+          _ownerStaffIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('coverage_staff_id')) {
+      context.handle(
+        _coverageStaffIdMeta,
+        coverageStaffId.isAcceptableOrUnknown(
+          data['coverage_staff_id']!,
+          _coverageStaffIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('due_at')) {
+      context.handle(
+        _dueAtMeta,
+        dueAt.isAcceptableOrUnknown(data['due_at']!, _dueAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dueAtMeta);
+    }
+    if (data.containsKey('escalation_note')) {
+      context.handle(
+        _escalationNoteMeta,
+        escalationNote.isAcceptableOrUnknown(
+          data['escalation_note']!,
+          _escalationNoteMeta,
+        ),
+      );
+    }
+    if (data.containsKey('resolved_at')) {
+      context.handle(
+        _resolvedAtMeta,
+        resolvedAt.isAcceptableOrUnknown(data['resolved_at']!, _resolvedAtMeta),
+      );
+    }
+    if (data.containsKey('resolved_by_staff_id')) {
+      context.handle(
+        _resolvedByStaffIdMeta,
+        resolvedByStaffId.isAcceptableOrUnknown(
+          data['resolved_by_staff_id']!,
+          _resolvedByStaffIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('resolution_note')) {
+      context.handle(
+        _resolutionNoteMeta,
+        resolutionNote.isAcceptableOrUnknown(
+          data['resolution_note']!,
+          _resolutionNoteMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ResultReviewRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ResultReviewRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      recordId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}record_id'],
+      )!,
+      ownerStaffId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner_staff_id'],
+      ),
+      coverageStaffId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}coverage_staff_id'],
+      ),
+      dueAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}due_at'],
+      )!,
+      priority: $ResultReviewsTable.$converterpriority.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}priority'],
+        )!,
+      ),
+      status: $ResultReviewsTable.$converterstatus.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}status'],
+        )!,
+      ),
+      escalationNote: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}escalation_note'],
+      ),
+      resolvedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}resolved_at'],
+      ),
+      resolvedByStaffId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}resolved_by_staff_id'],
+      ),
+      resolutionNote: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}resolution_note'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+    );
+  }
+
+  @override
+  $ResultReviewsTable createAlias(String alias) {
+    return $ResultReviewsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<WorkPriority, String, String> $converterpriority =
+      const EnumNameConverter<WorkPriority>(WorkPriority.values);
+  static JsonTypeConverter2<ResultReviewStatus, String, String>
+  $converterstatus = const EnumNameConverter<ResultReviewStatus>(
+    ResultReviewStatus.values,
+  );
+}
+
+class ResultReviewRow extends DataClass implements Insertable<ResultReviewRow> {
+  final String id;
+  final String recordId;
+  final String? ownerStaffId;
+  final String? coverageStaffId;
+  final DateTime dueAt;
+  final WorkPriority priority;
+  final ResultReviewStatus status;
+  final String? escalationNote;
+  final DateTime? resolvedAt;
+  final String? resolvedByStaffId;
+  final String? resolutionNote;
+  final DateTime createdAt;
+  final int version;
+  const ResultReviewRow({
+    required this.id,
+    required this.recordId,
+    this.ownerStaffId,
+    this.coverageStaffId,
+    required this.dueAt,
+    required this.priority,
+    required this.status,
+    this.escalationNote,
+    this.resolvedAt,
+    this.resolvedByStaffId,
+    this.resolutionNote,
+    required this.createdAt,
+    required this.version,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['record_id'] = Variable<String>(recordId);
+    if (!nullToAbsent || ownerStaffId != null) {
+      map['owner_staff_id'] = Variable<String>(ownerStaffId);
+    }
+    if (!nullToAbsent || coverageStaffId != null) {
+      map['coverage_staff_id'] = Variable<String>(coverageStaffId);
+    }
+    map['due_at'] = Variable<DateTime>(dueAt);
+    {
+      map['priority'] = Variable<String>(
+        $ResultReviewsTable.$converterpriority.toSql(priority),
+      );
+    }
+    {
+      map['status'] = Variable<String>(
+        $ResultReviewsTable.$converterstatus.toSql(status),
+      );
+    }
+    if (!nullToAbsent || escalationNote != null) {
+      map['escalation_note'] = Variable<String>(escalationNote);
+    }
+    if (!nullToAbsent || resolvedAt != null) {
+      map['resolved_at'] = Variable<DateTime>(resolvedAt);
+    }
+    if (!nullToAbsent || resolvedByStaffId != null) {
+      map['resolved_by_staff_id'] = Variable<String>(resolvedByStaffId);
+    }
+    if (!nullToAbsent || resolutionNote != null) {
+      map['resolution_note'] = Variable<String>(resolutionNote);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['version'] = Variable<int>(version);
+    return map;
+  }
+
+  ResultReviewsCompanion toCompanion(bool nullToAbsent) {
+    return ResultReviewsCompanion(
+      id: Value(id),
+      recordId: Value(recordId),
+      ownerStaffId: ownerStaffId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ownerStaffId),
+      coverageStaffId: coverageStaffId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(coverageStaffId),
+      dueAt: Value(dueAt),
+      priority: Value(priority),
+      status: Value(status),
+      escalationNote: escalationNote == null && nullToAbsent
+          ? const Value.absent()
+          : Value(escalationNote),
+      resolvedAt: resolvedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(resolvedAt),
+      resolvedByStaffId: resolvedByStaffId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(resolvedByStaffId),
+      resolutionNote: resolutionNote == null && nullToAbsent
+          ? const Value.absent()
+          : Value(resolutionNote),
+      createdAt: Value(createdAt),
+      version: Value(version),
+    );
+  }
+
+  factory ResultReviewRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ResultReviewRow(
+      id: serializer.fromJson<String>(json['id']),
+      recordId: serializer.fromJson<String>(json['recordId']),
+      ownerStaffId: serializer.fromJson<String?>(json['ownerStaffId']),
+      coverageStaffId: serializer.fromJson<String?>(json['coverageStaffId']),
+      dueAt: serializer.fromJson<DateTime>(json['dueAt']),
+      priority: $ResultReviewsTable.$converterpriority.fromJson(
+        serializer.fromJson<String>(json['priority']),
+      ),
+      status: $ResultReviewsTable.$converterstatus.fromJson(
+        serializer.fromJson<String>(json['status']),
+      ),
+      escalationNote: serializer.fromJson<String?>(json['escalationNote']),
+      resolvedAt: serializer.fromJson<DateTime?>(json['resolvedAt']),
+      resolvedByStaffId: serializer.fromJson<String?>(
+        json['resolvedByStaffId'],
+      ),
+      resolutionNote: serializer.fromJson<String?>(json['resolutionNote']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      version: serializer.fromJson<int>(json['version']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'recordId': serializer.toJson<String>(recordId),
+      'ownerStaffId': serializer.toJson<String?>(ownerStaffId),
+      'coverageStaffId': serializer.toJson<String?>(coverageStaffId),
+      'dueAt': serializer.toJson<DateTime>(dueAt),
+      'priority': serializer.toJson<String>(
+        $ResultReviewsTable.$converterpriority.toJson(priority),
+      ),
+      'status': serializer.toJson<String>(
+        $ResultReviewsTable.$converterstatus.toJson(status),
+      ),
+      'escalationNote': serializer.toJson<String?>(escalationNote),
+      'resolvedAt': serializer.toJson<DateTime?>(resolvedAt),
+      'resolvedByStaffId': serializer.toJson<String?>(resolvedByStaffId),
+      'resolutionNote': serializer.toJson<String?>(resolutionNote),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'version': serializer.toJson<int>(version),
+    };
+  }
+
+  ResultReviewRow copyWith({
+    String? id,
+    String? recordId,
+    Value<String?> ownerStaffId = const Value.absent(),
+    Value<String?> coverageStaffId = const Value.absent(),
+    DateTime? dueAt,
+    WorkPriority? priority,
+    ResultReviewStatus? status,
+    Value<String?> escalationNote = const Value.absent(),
+    Value<DateTime?> resolvedAt = const Value.absent(),
+    Value<String?> resolvedByStaffId = const Value.absent(),
+    Value<String?> resolutionNote = const Value.absent(),
+    DateTime? createdAt,
+    int? version,
+  }) => ResultReviewRow(
+    id: id ?? this.id,
+    recordId: recordId ?? this.recordId,
+    ownerStaffId: ownerStaffId.present ? ownerStaffId.value : this.ownerStaffId,
+    coverageStaffId: coverageStaffId.present
+        ? coverageStaffId.value
+        : this.coverageStaffId,
+    dueAt: dueAt ?? this.dueAt,
+    priority: priority ?? this.priority,
+    status: status ?? this.status,
+    escalationNote: escalationNote.present
+        ? escalationNote.value
+        : this.escalationNote,
+    resolvedAt: resolvedAt.present ? resolvedAt.value : this.resolvedAt,
+    resolvedByStaffId: resolvedByStaffId.present
+        ? resolvedByStaffId.value
+        : this.resolvedByStaffId,
+    resolutionNote: resolutionNote.present
+        ? resolutionNote.value
+        : this.resolutionNote,
+    createdAt: createdAt ?? this.createdAt,
+    version: version ?? this.version,
+  );
+  ResultReviewRow copyWithCompanion(ResultReviewsCompanion data) {
+    return ResultReviewRow(
+      id: data.id.present ? data.id.value : this.id,
+      recordId: data.recordId.present ? data.recordId.value : this.recordId,
+      ownerStaffId: data.ownerStaffId.present
+          ? data.ownerStaffId.value
+          : this.ownerStaffId,
+      coverageStaffId: data.coverageStaffId.present
+          ? data.coverageStaffId.value
+          : this.coverageStaffId,
+      dueAt: data.dueAt.present ? data.dueAt.value : this.dueAt,
+      priority: data.priority.present ? data.priority.value : this.priority,
+      status: data.status.present ? data.status.value : this.status,
+      escalationNote: data.escalationNote.present
+          ? data.escalationNote.value
+          : this.escalationNote,
+      resolvedAt: data.resolvedAt.present
+          ? data.resolvedAt.value
+          : this.resolvedAt,
+      resolvedByStaffId: data.resolvedByStaffId.present
+          ? data.resolvedByStaffId.value
+          : this.resolvedByStaffId,
+      resolutionNote: data.resolutionNote.present
+          ? data.resolutionNote.value
+          : this.resolutionNote,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      version: data.version.present ? data.version.value : this.version,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ResultReviewRow(')
+          ..write('id: $id, ')
+          ..write('recordId: $recordId, ')
+          ..write('ownerStaffId: $ownerStaffId, ')
+          ..write('coverageStaffId: $coverageStaffId, ')
+          ..write('dueAt: $dueAt, ')
+          ..write('priority: $priority, ')
+          ..write('status: $status, ')
+          ..write('escalationNote: $escalationNote, ')
+          ..write('resolvedAt: $resolvedAt, ')
+          ..write('resolvedByStaffId: $resolvedByStaffId, ')
+          ..write('resolutionNote: $resolutionNote, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('version: $version')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    recordId,
+    ownerStaffId,
+    coverageStaffId,
+    dueAt,
+    priority,
+    status,
+    escalationNote,
+    resolvedAt,
+    resolvedByStaffId,
+    resolutionNote,
+    createdAt,
+    version,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ResultReviewRow &&
+          other.id == this.id &&
+          other.recordId == this.recordId &&
+          other.ownerStaffId == this.ownerStaffId &&
+          other.coverageStaffId == this.coverageStaffId &&
+          other.dueAt == this.dueAt &&
+          other.priority == this.priority &&
+          other.status == this.status &&
+          other.escalationNote == this.escalationNote &&
+          other.resolvedAt == this.resolvedAt &&
+          other.resolvedByStaffId == this.resolvedByStaffId &&
+          other.resolutionNote == this.resolutionNote &&
+          other.createdAt == this.createdAt &&
+          other.version == this.version);
+}
+
+class ResultReviewsCompanion extends UpdateCompanion<ResultReviewRow> {
+  final Value<String> id;
+  final Value<String> recordId;
+  final Value<String?> ownerStaffId;
+  final Value<String?> coverageStaffId;
+  final Value<DateTime> dueAt;
+  final Value<WorkPriority> priority;
+  final Value<ResultReviewStatus> status;
+  final Value<String?> escalationNote;
+  final Value<DateTime?> resolvedAt;
+  final Value<String?> resolvedByStaffId;
+  final Value<String?> resolutionNote;
+  final Value<DateTime> createdAt;
+  final Value<int> version;
+  final Value<int> rowid;
+  const ResultReviewsCompanion({
+    this.id = const Value.absent(),
+    this.recordId = const Value.absent(),
+    this.ownerStaffId = const Value.absent(),
+    this.coverageStaffId = const Value.absent(),
+    this.dueAt = const Value.absent(),
+    this.priority = const Value.absent(),
+    this.status = const Value.absent(),
+    this.escalationNote = const Value.absent(),
+    this.resolvedAt = const Value.absent(),
+    this.resolvedByStaffId = const Value.absent(),
+    this.resolutionNote = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.version = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ResultReviewsCompanion.insert({
+    required String id,
+    required String recordId,
+    this.ownerStaffId = const Value.absent(),
+    this.coverageStaffId = const Value.absent(),
+    required DateTime dueAt,
+    this.priority = const Value.absent(),
+    this.status = const Value.absent(),
+    this.escalationNote = const Value.absent(),
+    this.resolvedAt = const Value.absent(),
+    this.resolvedByStaffId = const Value.absent(),
+    this.resolutionNote = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.version = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       recordId = Value(recordId),
+       dueAt = Value(dueAt);
+  static Insertable<ResultReviewRow> custom({
+    Expression<String>? id,
+    Expression<String>? recordId,
+    Expression<String>? ownerStaffId,
+    Expression<String>? coverageStaffId,
+    Expression<DateTime>? dueAt,
+    Expression<String>? priority,
+    Expression<String>? status,
+    Expression<String>? escalationNote,
+    Expression<DateTime>? resolvedAt,
+    Expression<String>? resolvedByStaffId,
+    Expression<String>? resolutionNote,
+    Expression<DateTime>? createdAt,
+    Expression<int>? version,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (recordId != null) 'record_id': recordId,
+      if (ownerStaffId != null) 'owner_staff_id': ownerStaffId,
+      if (coverageStaffId != null) 'coverage_staff_id': coverageStaffId,
+      if (dueAt != null) 'due_at': dueAt,
+      if (priority != null) 'priority': priority,
+      if (status != null) 'status': status,
+      if (escalationNote != null) 'escalation_note': escalationNote,
+      if (resolvedAt != null) 'resolved_at': resolvedAt,
+      if (resolvedByStaffId != null) 'resolved_by_staff_id': resolvedByStaffId,
+      if (resolutionNote != null) 'resolution_note': resolutionNote,
+      if (createdAt != null) 'created_at': createdAt,
+      if (version != null) 'version': version,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ResultReviewsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? recordId,
+    Value<String?>? ownerStaffId,
+    Value<String?>? coverageStaffId,
+    Value<DateTime>? dueAt,
+    Value<WorkPriority>? priority,
+    Value<ResultReviewStatus>? status,
+    Value<String?>? escalationNote,
+    Value<DateTime?>? resolvedAt,
+    Value<String?>? resolvedByStaffId,
+    Value<String?>? resolutionNote,
+    Value<DateTime>? createdAt,
+    Value<int>? version,
+    Value<int>? rowid,
+  }) {
+    return ResultReviewsCompanion(
+      id: id ?? this.id,
+      recordId: recordId ?? this.recordId,
+      ownerStaffId: ownerStaffId ?? this.ownerStaffId,
+      coverageStaffId: coverageStaffId ?? this.coverageStaffId,
+      dueAt: dueAt ?? this.dueAt,
+      priority: priority ?? this.priority,
+      status: status ?? this.status,
+      escalationNote: escalationNote ?? this.escalationNote,
+      resolvedAt: resolvedAt ?? this.resolvedAt,
+      resolvedByStaffId: resolvedByStaffId ?? this.resolvedByStaffId,
+      resolutionNote: resolutionNote ?? this.resolutionNote,
+      createdAt: createdAt ?? this.createdAt,
+      version: version ?? this.version,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (recordId.present) {
+      map['record_id'] = Variable<String>(recordId.value);
+    }
+    if (ownerStaffId.present) {
+      map['owner_staff_id'] = Variable<String>(ownerStaffId.value);
+    }
+    if (coverageStaffId.present) {
+      map['coverage_staff_id'] = Variable<String>(coverageStaffId.value);
+    }
+    if (dueAt.present) {
+      map['due_at'] = Variable<DateTime>(dueAt.value);
+    }
+    if (priority.present) {
+      map['priority'] = Variable<String>(
+        $ResultReviewsTable.$converterpriority.toSql(priority.value),
+      );
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(
+        $ResultReviewsTable.$converterstatus.toSql(status.value),
+      );
+    }
+    if (escalationNote.present) {
+      map['escalation_note'] = Variable<String>(escalationNote.value);
+    }
+    if (resolvedAt.present) {
+      map['resolved_at'] = Variable<DateTime>(resolvedAt.value);
+    }
+    if (resolvedByStaffId.present) {
+      map['resolved_by_staff_id'] = Variable<String>(resolvedByStaffId.value);
+    }
+    if (resolutionNote.present) {
+      map['resolution_note'] = Variable<String>(resolutionNote.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ResultReviewsCompanion(')
+          ..write('id: $id, ')
+          ..write('recordId: $recordId, ')
+          ..write('ownerStaffId: $ownerStaffId, ')
+          ..write('coverageStaffId: $coverageStaffId, ')
+          ..write('dueAt: $dueAt, ')
+          ..write('priority: $priority, ')
+          ..write('status: $status, ')
+          ..write('escalationNote: $escalationNote, ')
+          ..write('resolvedAt: $resolvedAt, ')
+          ..write('resolvedByStaffId: $resolvedByStaffId, ')
+          ..write('resolutionNote: $resolutionNote, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('version: $version, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -7329,6 +11245,1911 @@ class MedicationsCompanion extends UpdateCompanion<MedicationRow> {
   }
 }
 
+class $EncounterDraftsTable extends EncounterDrafts
+    with TableInfo<$EncounterDraftsTable, EncounterDraftRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $EncounterDraftsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _appointmentIdMeta = const VerificationMeta(
+    'appointmentId',
+  );
+  @override
+  late final GeneratedColumn<String> appointmentId = GeneratedColumn<String>(
+    'appointment_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES appointments (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _patientIdMeta = const VerificationMeta(
+    'patientId',
+  );
+  @override
+  late final GeneratedColumn<String> patientId = GeneratedColumn<String>(
+    'patient_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _authorStaffIdMeta = const VerificationMeta(
+    'authorStaffId',
+  );
+  @override
+  late final GeneratedColumn<String> authorStaffId = GeneratedColumn<String>(
+    'author_staff_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _medicationsJsonMeta = const VerificationMeta(
+    'medicationsJson',
+  );
+  @override
+  late final GeneratedColumn<String> medicationsJson = GeneratedColumn<String>(
+    'medications_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
+  static const VerificationMeta _referralRequestedMeta = const VerificationMeta(
+    'referralRequested',
+  );
+  @override
+  late final GeneratedColumn<bool> referralRequested = GeneratedColumn<bool>(
+    'referral_requested',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("referral_requested" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    appointmentId,
+    patientId,
+    authorStaffId,
+    note,
+    medicationsJson,
+    referralRequested,
+    version,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'encounter_drafts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<EncounterDraftRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('appointment_id')) {
+      context.handle(
+        _appointmentIdMeta,
+        appointmentId.isAcceptableOrUnknown(
+          data['appointment_id']!,
+          _appointmentIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_appointmentIdMeta);
+    }
+    if (data.containsKey('patient_id')) {
+      context.handle(
+        _patientIdMeta,
+        patientId.isAcceptableOrUnknown(data['patient_id']!, _patientIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_patientIdMeta);
+    }
+    if (data.containsKey('author_staff_id')) {
+      context.handle(
+        _authorStaffIdMeta,
+        authorStaffId.isAcceptableOrUnknown(
+          data['author_staff_id']!,
+          _authorStaffIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_authorStaffIdMeta);
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('medications_json')) {
+      context.handle(
+        _medicationsJsonMeta,
+        medicationsJson.isAcceptableOrUnknown(
+          data['medications_json']!,
+          _medicationsJsonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('referral_requested')) {
+      context.handle(
+        _referralRequestedMeta,
+        referralRequested.isAcceptableOrUnknown(
+          data['referral_requested']!,
+          _referralRequestedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {appointmentId};
+  @override
+  EncounterDraftRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return EncounterDraftRow(
+      appointmentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}appointment_id'],
+      )!,
+      patientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}patient_id'],
+      )!,
+      authorStaffId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}author_staff_id'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      )!,
+      medicationsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}medications_json'],
+      )!,
+      referralRequested: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}referral_requested'],
+      )!,
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $EncounterDraftsTable createAlias(String alias) {
+    return $EncounterDraftsTable(attachedDatabase, alias);
+  }
+}
+
+class EncounterDraftRow extends DataClass
+    implements Insertable<EncounterDraftRow> {
+  final String appointmentId;
+  final String patientId;
+  final String authorStaffId;
+  final String note;
+  final String medicationsJson;
+  final bool referralRequested;
+  final int version;
+  final DateTime updatedAt;
+  const EncounterDraftRow({
+    required this.appointmentId,
+    required this.patientId,
+    required this.authorStaffId,
+    required this.note,
+    required this.medicationsJson,
+    required this.referralRequested,
+    required this.version,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['appointment_id'] = Variable<String>(appointmentId);
+    map['patient_id'] = Variable<String>(patientId);
+    map['author_staff_id'] = Variable<String>(authorStaffId);
+    map['note'] = Variable<String>(note);
+    map['medications_json'] = Variable<String>(medicationsJson);
+    map['referral_requested'] = Variable<bool>(referralRequested);
+    map['version'] = Variable<int>(version);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  EncounterDraftsCompanion toCompanion(bool nullToAbsent) {
+    return EncounterDraftsCompanion(
+      appointmentId: Value(appointmentId),
+      patientId: Value(patientId),
+      authorStaffId: Value(authorStaffId),
+      note: Value(note),
+      medicationsJson: Value(medicationsJson),
+      referralRequested: Value(referralRequested),
+      version: Value(version),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory EncounterDraftRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return EncounterDraftRow(
+      appointmentId: serializer.fromJson<String>(json['appointmentId']),
+      patientId: serializer.fromJson<String>(json['patientId']),
+      authorStaffId: serializer.fromJson<String>(json['authorStaffId']),
+      note: serializer.fromJson<String>(json['note']),
+      medicationsJson: serializer.fromJson<String>(json['medicationsJson']),
+      referralRequested: serializer.fromJson<bool>(json['referralRequested']),
+      version: serializer.fromJson<int>(json['version']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'appointmentId': serializer.toJson<String>(appointmentId),
+      'patientId': serializer.toJson<String>(patientId),
+      'authorStaffId': serializer.toJson<String>(authorStaffId),
+      'note': serializer.toJson<String>(note),
+      'medicationsJson': serializer.toJson<String>(medicationsJson),
+      'referralRequested': serializer.toJson<bool>(referralRequested),
+      'version': serializer.toJson<int>(version),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  EncounterDraftRow copyWith({
+    String? appointmentId,
+    String? patientId,
+    String? authorStaffId,
+    String? note,
+    String? medicationsJson,
+    bool? referralRequested,
+    int? version,
+    DateTime? updatedAt,
+  }) => EncounterDraftRow(
+    appointmentId: appointmentId ?? this.appointmentId,
+    patientId: patientId ?? this.patientId,
+    authorStaffId: authorStaffId ?? this.authorStaffId,
+    note: note ?? this.note,
+    medicationsJson: medicationsJson ?? this.medicationsJson,
+    referralRequested: referralRequested ?? this.referralRequested,
+    version: version ?? this.version,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  EncounterDraftRow copyWithCompanion(EncounterDraftsCompanion data) {
+    return EncounterDraftRow(
+      appointmentId: data.appointmentId.present
+          ? data.appointmentId.value
+          : this.appointmentId,
+      patientId: data.patientId.present ? data.patientId.value : this.patientId,
+      authorStaffId: data.authorStaffId.present
+          ? data.authorStaffId.value
+          : this.authorStaffId,
+      note: data.note.present ? data.note.value : this.note,
+      medicationsJson: data.medicationsJson.present
+          ? data.medicationsJson.value
+          : this.medicationsJson,
+      referralRequested: data.referralRequested.present
+          ? data.referralRequested.value
+          : this.referralRequested,
+      version: data.version.present ? data.version.value : this.version,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EncounterDraftRow(')
+          ..write('appointmentId: $appointmentId, ')
+          ..write('patientId: $patientId, ')
+          ..write('authorStaffId: $authorStaffId, ')
+          ..write('note: $note, ')
+          ..write('medicationsJson: $medicationsJson, ')
+          ..write('referralRequested: $referralRequested, ')
+          ..write('version: $version, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    appointmentId,
+    patientId,
+    authorStaffId,
+    note,
+    medicationsJson,
+    referralRequested,
+    version,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is EncounterDraftRow &&
+          other.appointmentId == this.appointmentId &&
+          other.patientId == this.patientId &&
+          other.authorStaffId == this.authorStaffId &&
+          other.note == this.note &&
+          other.medicationsJson == this.medicationsJson &&
+          other.referralRequested == this.referralRequested &&
+          other.version == this.version &&
+          other.updatedAt == this.updatedAt);
+}
+
+class EncounterDraftsCompanion extends UpdateCompanion<EncounterDraftRow> {
+  final Value<String> appointmentId;
+  final Value<String> patientId;
+  final Value<String> authorStaffId;
+  final Value<String> note;
+  final Value<String> medicationsJson;
+  final Value<bool> referralRequested;
+  final Value<int> version;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const EncounterDraftsCompanion({
+    this.appointmentId = const Value.absent(),
+    this.patientId = const Value.absent(),
+    this.authorStaffId = const Value.absent(),
+    this.note = const Value.absent(),
+    this.medicationsJson = const Value.absent(),
+    this.referralRequested = const Value.absent(),
+    this.version = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  EncounterDraftsCompanion.insert({
+    required String appointmentId,
+    required String patientId,
+    required String authorStaffId,
+    this.note = const Value.absent(),
+    this.medicationsJson = const Value.absent(),
+    this.referralRequested = const Value.absent(),
+    this.version = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : appointmentId = Value(appointmentId),
+       patientId = Value(patientId),
+       authorStaffId = Value(authorStaffId);
+  static Insertable<EncounterDraftRow> custom({
+    Expression<String>? appointmentId,
+    Expression<String>? patientId,
+    Expression<String>? authorStaffId,
+    Expression<String>? note,
+    Expression<String>? medicationsJson,
+    Expression<bool>? referralRequested,
+    Expression<int>? version,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (appointmentId != null) 'appointment_id': appointmentId,
+      if (patientId != null) 'patient_id': patientId,
+      if (authorStaffId != null) 'author_staff_id': authorStaffId,
+      if (note != null) 'note': note,
+      if (medicationsJson != null) 'medications_json': medicationsJson,
+      if (referralRequested != null) 'referral_requested': referralRequested,
+      if (version != null) 'version': version,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  EncounterDraftsCompanion copyWith({
+    Value<String>? appointmentId,
+    Value<String>? patientId,
+    Value<String>? authorStaffId,
+    Value<String>? note,
+    Value<String>? medicationsJson,
+    Value<bool>? referralRequested,
+    Value<int>? version,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return EncounterDraftsCompanion(
+      appointmentId: appointmentId ?? this.appointmentId,
+      patientId: patientId ?? this.patientId,
+      authorStaffId: authorStaffId ?? this.authorStaffId,
+      note: note ?? this.note,
+      medicationsJson: medicationsJson ?? this.medicationsJson,
+      referralRequested: referralRequested ?? this.referralRequested,
+      version: version ?? this.version,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (appointmentId.present) {
+      map['appointment_id'] = Variable<String>(appointmentId.value);
+    }
+    if (patientId.present) {
+      map['patient_id'] = Variable<String>(patientId.value);
+    }
+    if (authorStaffId.present) {
+      map['author_staff_id'] = Variable<String>(authorStaffId.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (medicationsJson.present) {
+      map['medications_json'] = Variable<String>(medicationsJson.value);
+    }
+    if (referralRequested.present) {
+      map['referral_requested'] = Variable<bool>(referralRequested.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EncounterDraftsCompanion(')
+          ..write('appointmentId: $appointmentId, ')
+          ..write('patientId: $patientId, ')
+          ..write('authorStaffId: $authorStaffId, ')
+          ..write('note: $note, ')
+          ..write('medicationsJson: $medicationsJson, ')
+          ..write('referralRequested: $referralRequested, ')
+          ..write('version: $version, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SignedNotesTable extends SignedNotes
+    with TableInfo<$SignedNotesTable, SignedNoteRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SignedNotesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _appointmentIdMeta = const VerificationMeta(
+    'appointmentId',
+  );
+  @override
+  late final GeneratedColumn<String> appointmentId = GeneratedColumn<String>(
+    'appointment_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'UNIQUE REFERENCES appointments (id)',
+    ),
+  );
+  static const VerificationMeta _patientIdMeta = const VerificationMeta(
+    'patientId',
+  );
+  @override
+  late final GeneratedColumn<String> patientId = GeneratedColumn<String>(
+    'patient_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _authorStaffIdMeta = const VerificationMeta(
+    'authorStaffId',
+  );
+  @override
+  late final GeneratedColumn<String> authorStaffId = GeneratedColumn<String>(
+    'author_staff_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+    'body',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _signedAtMeta = const VerificationMeta(
+    'signedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> signedAt = GeneratedColumn<DateTime>(
+    'signed_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    appointmentId,
+    patientId,
+    authorStaffId,
+    body,
+    signedAt,
+    version,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'signed_notes';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SignedNoteRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('appointment_id')) {
+      context.handle(
+        _appointmentIdMeta,
+        appointmentId.isAcceptableOrUnknown(
+          data['appointment_id']!,
+          _appointmentIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_appointmentIdMeta);
+    }
+    if (data.containsKey('patient_id')) {
+      context.handle(
+        _patientIdMeta,
+        patientId.isAcceptableOrUnknown(data['patient_id']!, _patientIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_patientIdMeta);
+    }
+    if (data.containsKey('author_staff_id')) {
+      context.handle(
+        _authorStaffIdMeta,
+        authorStaffId.isAcceptableOrUnknown(
+          data['author_staff_id']!,
+          _authorStaffIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_authorStaffIdMeta);
+    }
+    if (data.containsKey('body')) {
+      context.handle(
+        _bodyMeta,
+        body.isAcceptableOrUnknown(data['body']!, _bodyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bodyMeta);
+    }
+    if (data.containsKey('signed_at')) {
+      context.handle(
+        _signedAtMeta,
+        signedAt.isAcceptableOrUnknown(data['signed_at']!, _signedAtMeta),
+      );
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SignedNoteRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SignedNoteRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      appointmentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}appointment_id'],
+      )!,
+      patientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}patient_id'],
+      )!,
+      authorStaffId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}author_staff_id'],
+      )!,
+      body: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}body'],
+      )!,
+      signedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}signed_at'],
+      )!,
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+    );
+  }
+
+  @override
+  $SignedNotesTable createAlias(String alias) {
+    return $SignedNotesTable(attachedDatabase, alias);
+  }
+}
+
+class SignedNoteRow extends DataClass implements Insertable<SignedNoteRow> {
+  final String id;
+  final String appointmentId;
+  final String patientId;
+  final String authorStaffId;
+  final String body;
+  final DateTime signedAt;
+  final int version;
+  const SignedNoteRow({
+    required this.id,
+    required this.appointmentId,
+    required this.patientId,
+    required this.authorStaffId,
+    required this.body,
+    required this.signedAt,
+    required this.version,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['appointment_id'] = Variable<String>(appointmentId);
+    map['patient_id'] = Variable<String>(patientId);
+    map['author_staff_id'] = Variable<String>(authorStaffId);
+    map['body'] = Variable<String>(body);
+    map['signed_at'] = Variable<DateTime>(signedAt);
+    map['version'] = Variable<int>(version);
+    return map;
+  }
+
+  SignedNotesCompanion toCompanion(bool nullToAbsent) {
+    return SignedNotesCompanion(
+      id: Value(id),
+      appointmentId: Value(appointmentId),
+      patientId: Value(patientId),
+      authorStaffId: Value(authorStaffId),
+      body: Value(body),
+      signedAt: Value(signedAt),
+      version: Value(version),
+    );
+  }
+
+  factory SignedNoteRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SignedNoteRow(
+      id: serializer.fromJson<String>(json['id']),
+      appointmentId: serializer.fromJson<String>(json['appointmentId']),
+      patientId: serializer.fromJson<String>(json['patientId']),
+      authorStaffId: serializer.fromJson<String>(json['authorStaffId']),
+      body: serializer.fromJson<String>(json['body']),
+      signedAt: serializer.fromJson<DateTime>(json['signedAt']),
+      version: serializer.fromJson<int>(json['version']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'appointmentId': serializer.toJson<String>(appointmentId),
+      'patientId': serializer.toJson<String>(patientId),
+      'authorStaffId': serializer.toJson<String>(authorStaffId),
+      'body': serializer.toJson<String>(body),
+      'signedAt': serializer.toJson<DateTime>(signedAt),
+      'version': serializer.toJson<int>(version),
+    };
+  }
+
+  SignedNoteRow copyWith({
+    String? id,
+    String? appointmentId,
+    String? patientId,
+    String? authorStaffId,
+    String? body,
+    DateTime? signedAt,
+    int? version,
+  }) => SignedNoteRow(
+    id: id ?? this.id,
+    appointmentId: appointmentId ?? this.appointmentId,
+    patientId: patientId ?? this.patientId,
+    authorStaffId: authorStaffId ?? this.authorStaffId,
+    body: body ?? this.body,
+    signedAt: signedAt ?? this.signedAt,
+    version: version ?? this.version,
+  );
+  SignedNoteRow copyWithCompanion(SignedNotesCompanion data) {
+    return SignedNoteRow(
+      id: data.id.present ? data.id.value : this.id,
+      appointmentId: data.appointmentId.present
+          ? data.appointmentId.value
+          : this.appointmentId,
+      patientId: data.patientId.present ? data.patientId.value : this.patientId,
+      authorStaffId: data.authorStaffId.present
+          ? data.authorStaffId.value
+          : this.authorStaffId,
+      body: data.body.present ? data.body.value : this.body,
+      signedAt: data.signedAt.present ? data.signedAt.value : this.signedAt,
+      version: data.version.present ? data.version.value : this.version,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SignedNoteRow(')
+          ..write('id: $id, ')
+          ..write('appointmentId: $appointmentId, ')
+          ..write('patientId: $patientId, ')
+          ..write('authorStaffId: $authorStaffId, ')
+          ..write('body: $body, ')
+          ..write('signedAt: $signedAt, ')
+          ..write('version: $version')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    appointmentId,
+    patientId,
+    authorStaffId,
+    body,
+    signedAt,
+    version,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SignedNoteRow &&
+          other.id == this.id &&
+          other.appointmentId == this.appointmentId &&
+          other.patientId == this.patientId &&
+          other.authorStaffId == this.authorStaffId &&
+          other.body == this.body &&
+          other.signedAt == this.signedAt &&
+          other.version == this.version);
+}
+
+class SignedNotesCompanion extends UpdateCompanion<SignedNoteRow> {
+  final Value<String> id;
+  final Value<String> appointmentId;
+  final Value<String> patientId;
+  final Value<String> authorStaffId;
+  final Value<String> body;
+  final Value<DateTime> signedAt;
+  final Value<int> version;
+  final Value<int> rowid;
+  const SignedNotesCompanion({
+    this.id = const Value.absent(),
+    this.appointmentId = const Value.absent(),
+    this.patientId = const Value.absent(),
+    this.authorStaffId = const Value.absent(),
+    this.body = const Value.absent(),
+    this.signedAt = const Value.absent(),
+    this.version = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SignedNotesCompanion.insert({
+    required String id,
+    required String appointmentId,
+    required String patientId,
+    required String authorStaffId,
+    required String body,
+    this.signedAt = const Value.absent(),
+    this.version = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       appointmentId = Value(appointmentId),
+       patientId = Value(patientId),
+       authorStaffId = Value(authorStaffId),
+       body = Value(body);
+  static Insertable<SignedNoteRow> custom({
+    Expression<String>? id,
+    Expression<String>? appointmentId,
+    Expression<String>? patientId,
+    Expression<String>? authorStaffId,
+    Expression<String>? body,
+    Expression<DateTime>? signedAt,
+    Expression<int>? version,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (appointmentId != null) 'appointment_id': appointmentId,
+      if (patientId != null) 'patient_id': patientId,
+      if (authorStaffId != null) 'author_staff_id': authorStaffId,
+      if (body != null) 'body': body,
+      if (signedAt != null) 'signed_at': signedAt,
+      if (version != null) 'version': version,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SignedNotesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? appointmentId,
+    Value<String>? patientId,
+    Value<String>? authorStaffId,
+    Value<String>? body,
+    Value<DateTime>? signedAt,
+    Value<int>? version,
+    Value<int>? rowid,
+  }) {
+    return SignedNotesCompanion(
+      id: id ?? this.id,
+      appointmentId: appointmentId ?? this.appointmentId,
+      patientId: patientId ?? this.patientId,
+      authorStaffId: authorStaffId ?? this.authorStaffId,
+      body: body ?? this.body,
+      signedAt: signedAt ?? this.signedAt,
+      version: version ?? this.version,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (appointmentId.present) {
+      map['appointment_id'] = Variable<String>(appointmentId.value);
+    }
+    if (patientId.present) {
+      map['patient_id'] = Variable<String>(patientId.value);
+    }
+    if (authorStaffId.present) {
+      map['author_staff_id'] = Variable<String>(authorStaffId.value);
+    }
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (signedAt.present) {
+      map['signed_at'] = Variable<DateTime>(signedAt.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SignedNotesCompanion(')
+          ..write('id: $id, ')
+          ..write('appointmentId: $appointmentId, ')
+          ..write('patientId: $patientId, ')
+          ..write('authorStaffId: $authorStaffId, ')
+          ..write('body: $body, ')
+          ..write('signedAt: $signedAt, ')
+          ..write('version: $version, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SignedNoteAmendmentsTable extends SignedNoteAmendments
+    with TableInfo<$SignedNoteAmendmentsTable, SignedNoteAmendmentRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SignedNoteAmendmentsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _signedNoteIdMeta = const VerificationMeta(
+    'signedNoteId',
+  );
+  @override
+  late final GeneratedColumn<String> signedNoteId = GeneratedColumn<String>(
+    'signed_note_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES signed_notes (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _authorStaffIdMeta = const VerificationMeta(
+    'authorStaffId',
+  );
+  @override
+  late final GeneratedColumn<String> authorStaffId = GeneratedColumn<String>(
+    'author_staff_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+    'body',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _amendedAtMeta = const VerificationMeta(
+    'amendedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> amendedAt = GeneratedColumn<DateTime>(
+    'amended_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    signedNoteId,
+    authorStaffId,
+    body,
+    amendedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'signed_note_amendments';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SignedNoteAmendmentRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('signed_note_id')) {
+      context.handle(
+        _signedNoteIdMeta,
+        signedNoteId.isAcceptableOrUnknown(
+          data['signed_note_id']!,
+          _signedNoteIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_signedNoteIdMeta);
+    }
+    if (data.containsKey('author_staff_id')) {
+      context.handle(
+        _authorStaffIdMeta,
+        authorStaffId.isAcceptableOrUnknown(
+          data['author_staff_id']!,
+          _authorStaffIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_authorStaffIdMeta);
+    }
+    if (data.containsKey('body')) {
+      context.handle(
+        _bodyMeta,
+        body.isAcceptableOrUnknown(data['body']!, _bodyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bodyMeta);
+    }
+    if (data.containsKey('amended_at')) {
+      context.handle(
+        _amendedAtMeta,
+        amendedAt.isAcceptableOrUnknown(data['amended_at']!, _amendedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SignedNoteAmendmentRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SignedNoteAmendmentRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      signedNoteId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}signed_note_id'],
+      )!,
+      authorStaffId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}author_staff_id'],
+      )!,
+      body: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}body'],
+      )!,
+      amendedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}amended_at'],
+      )!,
+    );
+  }
+
+  @override
+  $SignedNoteAmendmentsTable createAlias(String alias) {
+    return $SignedNoteAmendmentsTable(attachedDatabase, alias);
+  }
+}
+
+class SignedNoteAmendmentRow extends DataClass
+    implements Insertable<SignedNoteAmendmentRow> {
+  final String id;
+  final String signedNoteId;
+  final String authorStaffId;
+  final String body;
+  final DateTime amendedAt;
+  const SignedNoteAmendmentRow({
+    required this.id,
+    required this.signedNoteId,
+    required this.authorStaffId,
+    required this.body,
+    required this.amendedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['signed_note_id'] = Variable<String>(signedNoteId);
+    map['author_staff_id'] = Variable<String>(authorStaffId);
+    map['body'] = Variable<String>(body);
+    map['amended_at'] = Variable<DateTime>(amendedAt);
+    return map;
+  }
+
+  SignedNoteAmendmentsCompanion toCompanion(bool nullToAbsent) {
+    return SignedNoteAmendmentsCompanion(
+      id: Value(id),
+      signedNoteId: Value(signedNoteId),
+      authorStaffId: Value(authorStaffId),
+      body: Value(body),
+      amendedAt: Value(amendedAt),
+    );
+  }
+
+  factory SignedNoteAmendmentRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SignedNoteAmendmentRow(
+      id: serializer.fromJson<String>(json['id']),
+      signedNoteId: serializer.fromJson<String>(json['signedNoteId']),
+      authorStaffId: serializer.fromJson<String>(json['authorStaffId']),
+      body: serializer.fromJson<String>(json['body']),
+      amendedAt: serializer.fromJson<DateTime>(json['amendedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'signedNoteId': serializer.toJson<String>(signedNoteId),
+      'authorStaffId': serializer.toJson<String>(authorStaffId),
+      'body': serializer.toJson<String>(body),
+      'amendedAt': serializer.toJson<DateTime>(amendedAt),
+    };
+  }
+
+  SignedNoteAmendmentRow copyWith({
+    String? id,
+    String? signedNoteId,
+    String? authorStaffId,
+    String? body,
+    DateTime? amendedAt,
+  }) => SignedNoteAmendmentRow(
+    id: id ?? this.id,
+    signedNoteId: signedNoteId ?? this.signedNoteId,
+    authorStaffId: authorStaffId ?? this.authorStaffId,
+    body: body ?? this.body,
+    amendedAt: amendedAt ?? this.amendedAt,
+  );
+  SignedNoteAmendmentRow copyWithCompanion(SignedNoteAmendmentsCompanion data) {
+    return SignedNoteAmendmentRow(
+      id: data.id.present ? data.id.value : this.id,
+      signedNoteId: data.signedNoteId.present
+          ? data.signedNoteId.value
+          : this.signedNoteId,
+      authorStaffId: data.authorStaffId.present
+          ? data.authorStaffId.value
+          : this.authorStaffId,
+      body: data.body.present ? data.body.value : this.body,
+      amendedAt: data.amendedAt.present ? data.amendedAt.value : this.amendedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SignedNoteAmendmentRow(')
+          ..write('id: $id, ')
+          ..write('signedNoteId: $signedNoteId, ')
+          ..write('authorStaffId: $authorStaffId, ')
+          ..write('body: $body, ')
+          ..write('amendedAt: $amendedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, signedNoteId, authorStaffId, body, amendedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SignedNoteAmendmentRow &&
+          other.id == this.id &&
+          other.signedNoteId == this.signedNoteId &&
+          other.authorStaffId == this.authorStaffId &&
+          other.body == this.body &&
+          other.amendedAt == this.amendedAt);
+}
+
+class SignedNoteAmendmentsCompanion
+    extends UpdateCompanion<SignedNoteAmendmentRow> {
+  final Value<String> id;
+  final Value<String> signedNoteId;
+  final Value<String> authorStaffId;
+  final Value<String> body;
+  final Value<DateTime> amendedAt;
+  final Value<int> rowid;
+  const SignedNoteAmendmentsCompanion({
+    this.id = const Value.absent(),
+    this.signedNoteId = const Value.absent(),
+    this.authorStaffId = const Value.absent(),
+    this.body = const Value.absent(),
+    this.amendedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SignedNoteAmendmentsCompanion.insert({
+    required String id,
+    required String signedNoteId,
+    required String authorStaffId,
+    required String body,
+    this.amendedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       signedNoteId = Value(signedNoteId),
+       authorStaffId = Value(authorStaffId),
+       body = Value(body);
+  static Insertable<SignedNoteAmendmentRow> custom({
+    Expression<String>? id,
+    Expression<String>? signedNoteId,
+    Expression<String>? authorStaffId,
+    Expression<String>? body,
+    Expression<DateTime>? amendedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (signedNoteId != null) 'signed_note_id': signedNoteId,
+      if (authorStaffId != null) 'author_staff_id': authorStaffId,
+      if (body != null) 'body': body,
+      if (amendedAt != null) 'amended_at': amendedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SignedNoteAmendmentsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? signedNoteId,
+    Value<String>? authorStaffId,
+    Value<String>? body,
+    Value<DateTime>? amendedAt,
+    Value<int>? rowid,
+  }) {
+    return SignedNoteAmendmentsCompanion(
+      id: id ?? this.id,
+      signedNoteId: signedNoteId ?? this.signedNoteId,
+      authorStaffId: authorStaffId ?? this.authorStaffId,
+      body: body ?? this.body,
+      amendedAt: amendedAt ?? this.amendedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (signedNoteId.present) {
+      map['signed_note_id'] = Variable<String>(signedNoteId.value);
+    }
+    if (authorStaffId.present) {
+      map['author_staff_id'] = Variable<String>(authorStaffId.value);
+    }
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (amendedAt.present) {
+      map['amended_at'] = Variable<DateTime>(amendedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SignedNoteAmendmentsCompanion(')
+          ..write('id: $id, ')
+          ..write('signedNoteId: $signedNoteId, ')
+          ..write('authorStaffId: $authorStaffId, ')
+          ..write('body: $body, ')
+          ..write('amendedAt: $amendedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DocumentFilesTable extends DocumentFiles
+    with TableInfo<$DocumentFilesTable, DocumentFileRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DocumentFilesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _recordIdMeta = const VerificationMeta(
+    'recordId',
+  );
+  @override
+  late final GeneratedColumn<String> recordId = GeneratedColumn<String>(
+    'record_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'UNIQUE REFERENCES medical_records (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _fileNameMeta = const VerificationMeta(
+    'fileName',
+  );
+  @override
+  late final GeneratedColumn<String> fileName = GeneratedColumn<String>(
+    'file_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _mimeTypeMeta = const VerificationMeta(
+    'mimeType',
+  );
+  @override
+  late final GeneratedColumn<String> mimeType = GeneratedColumn<String>(
+    'mime_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sizeBytesMeta = const VerificationMeta(
+    'sizeBytes',
+  );
+  @override
+  late final GeneratedColumn<int> sizeBytes = GeneratedColumn<int>(
+    'size_bytes',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sha256Meta = const VerificationMeta('sha256');
+  @override
+  late final GeneratedColumn<String> sha256 = GeneratedColumn<String>(
+    'sha256',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bytesMeta = const VerificationMeta('bytes');
+  @override
+  late final GeneratedColumn<Uint8List> bytes = GeneratedColumn<Uint8List>(
+    'bytes',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _storedAtMeta = const VerificationMeta(
+    'storedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> storedAt = GeneratedColumn<DateTime>(
+    'stored_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    recordId,
+    fileName,
+    mimeType,
+    sizeBytes,
+    sha256,
+    bytes,
+    storedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'document_files';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DocumentFileRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('record_id')) {
+      context.handle(
+        _recordIdMeta,
+        recordId.isAcceptableOrUnknown(data['record_id']!, _recordIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_recordIdMeta);
+    }
+    if (data.containsKey('file_name')) {
+      context.handle(
+        _fileNameMeta,
+        fileName.isAcceptableOrUnknown(data['file_name']!, _fileNameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_fileNameMeta);
+    }
+    if (data.containsKey('mime_type')) {
+      context.handle(
+        _mimeTypeMeta,
+        mimeType.isAcceptableOrUnknown(data['mime_type']!, _mimeTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_mimeTypeMeta);
+    }
+    if (data.containsKey('size_bytes')) {
+      context.handle(
+        _sizeBytesMeta,
+        sizeBytes.isAcceptableOrUnknown(data['size_bytes']!, _sizeBytesMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sizeBytesMeta);
+    }
+    if (data.containsKey('sha256')) {
+      context.handle(
+        _sha256Meta,
+        sha256.isAcceptableOrUnknown(data['sha256']!, _sha256Meta),
+      );
+    } else if (isInserting) {
+      context.missing(_sha256Meta);
+    }
+    if (data.containsKey('bytes')) {
+      context.handle(
+        _bytesMeta,
+        bytes.isAcceptableOrUnknown(data['bytes']!, _bytesMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bytesMeta);
+    }
+    if (data.containsKey('stored_at')) {
+      context.handle(
+        _storedAtMeta,
+        storedAt.isAcceptableOrUnknown(data['stored_at']!, _storedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_storedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DocumentFileRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DocumentFileRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      recordId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}record_id'],
+      )!,
+      fileName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}file_name'],
+      )!,
+      mimeType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mime_type'],
+      )!,
+      sizeBytes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}size_bytes'],
+      )!,
+      sha256: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sha256'],
+      )!,
+      bytes: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}bytes'],
+      )!,
+      storedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}stored_at'],
+      )!,
+    );
+  }
+
+  @override
+  $DocumentFilesTable createAlias(String alias) {
+    return $DocumentFilesTable(attachedDatabase, alias);
+  }
+}
+
+class DocumentFileRow extends DataClass implements Insertable<DocumentFileRow> {
+  final String id;
+  final String recordId;
+  final String fileName;
+  final String mimeType;
+  final int sizeBytes;
+
+  /// Hex SHA-256 of [bytes] — proves the file shown is the one imported.
+  final String sha256;
+  final Uint8List bytes;
+  final DateTime storedAt;
+  const DocumentFileRow({
+    required this.id,
+    required this.recordId,
+    required this.fileName,
+    required this.mimeType,
+    required this.sizeBytes,
+    required this.sha256,
+    required this.bytes,
+    required this.storedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['record_id'] = Variable<String>(recordId);
+    map['file_name'] = Variable<String>(fileName);
+    map['mime_type'] = Variable<String>(mimeType);
+    map['size_bytes'] = Variable<int>(sizeBytes);
+    map['sha256'] = Variable<String>(sha256);
+    map['bytes'] = Variable<Uint8List>(bytes);
+    map['stored_at'] = Variable<DateTime>(storedAt);
+    return map;
+  }
+
+  DocumentFilesCompanion toCompanion(bool nullToAbsent) {
+    return DocumentFilesCompanion(
+      id: Value(id),
+      recordId: Value(recordId),
+      fileName: Value(fileName),
+      mimeType: Value(mimeType),
+      sizeBytes: Value(sizeBytes),
+      sha256: Value(sha256),
+      bytes: Value(bytes),
+      storedAt: Value(storedAt),
+    );
+  }
+
+  factory DocumentFileRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DocumentFileRow(
+      id: serializer.fromJson<String>(json['id']),
+      recordId: serializer.fromJson<String>(json['recordId']),
+      fileName: serializer.fromJson<String>(json['fileName']),
+      mimeType: serializer.fromJson<String>(json['mimeType']),
+      sizeBytes: serializer.fromJson<int>(json['sizeBytes']),
+      sha256: serializer.fromJson<String>(json['sha256']),
+      bytes: serializer.fromJson<Uint8List>(json['bytes']),
+      storedAt: serializer.fromJson<DateTime>(json['storedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'recordId': serializer.toJson<String>(recordId),
+      'fileName': serializer.toJson<String>(fileName),
+      'mimeType': serializer.toJson<String>(mimeType),
+      'sizeBytes': serializer.toJson<int>(sizeBytes),
+      'sha256': serializer.toJson<String>(sha256),
+      'bytes': serializer.toJson<Uint8List>(bytes),
+      'storedAt': serializer.toJson<DateTime>(storedAt),
+    };
+  }
+
+  DocumentFileRow copyWith({
+    String? id,
+    String? recordId,
+    String? fileName,
+    String? mimeType,
+    int? sizeBytes,
+    String? sha256,
+    Uint8List? bytes,
+    DateTime? storedAt,
+  }) => DocumentFileRow(
+    id: id ?? this.id,
+    recordId: recordId ?? this.recordId,
+    fileName: fileName ?? this.fileName,
+    mimeType: mimeType ?? this.mimeType,
+    sizeBytes: sizeBytes ?? this.sizeBytes,
+    sha256: sha256 ?? this.sha256,
+    bytes: bytes ?? this.bytes,
+    storedAt: storedAt ?? this.storedAt,
+  );
+  DocumentFileRow copyWithCompanion(DocumentFilesCompanion data) {
+    return DocumentFileRow(
+      id: data.id.present ? data.id.value : this.id,
+      recordId: data.recordId.present ? data.recordId.value : this.recordId,
+      fileName: data.fileName.present ? data.fileName.value : this.fileName,
+      mimeType: data.mimeType.present ? data.mimeType.value : this.mimeType,
+      sizeBytes: data.sizeBytes.present ? data.sizeBytes.value : this.sizeBytes,
+      sha256: data.sha256.present ? data.sha256.value : this.sha256,
+      bytes: data.bytes.present ? data.bytes.value : this.bytes,
+      storedAt: data.storedAt.present ? data.storedAt.value : this.storedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DocumentFileRow(')
+          ..write('id: $id, ')
+          ..write('recordId: $recordId, ')
+          ..write('fileName: $fileName, ')
+          ..write('mimeType: $mimeType, ')
+          ..write('sizeBytes: $sizeBytes, ')
+          ..write('sha256: $sha256, ')
+          ..write('bytes: $bytes, ')
+          ..write('storedAt: $storedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    recordId,
+    fileName,
+    mimeType,
+    sizeBytes,
+    sha256,
+    $driftBlobEquality.hash(bytes),
+    storedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DocumentFileRow &&
+          other.id == this.id &&
+          other.recordId == this.recordId &&
+          other.fileName == this.fileName &&
+          other.mimeType == this.mimeType &&
+          other.sizeBytes == this.sizeBytes &&
+          other.sha256 == this.sha256 &&
+          $driftBlobEquality.equals(other.bytes, this.bytes) &&
+          other.storedAt == this.storedAt);
+}
+
+class DocumentFilesCompanion extends UpdateCompanion<DocumentFileRow> {
+  final Value<String> id;
+  final Value<String> recordId;
+  final Value<String> fileName;
+  final Value<String> mimeType;
+  final Value<int> sizeBytes;
+  final Value<String> sha256;
+  final Value<Uint8List> bytes;
+  final Value<DateTime> storedAt;
+  final Value<int> rowid;
+  const DocumentFilesCompanion({
+    this.id = const Value.absent(),
+    this.recordId = const Value.absent(),
+    this.fileName = const Value.absent(),
+    this.mimeType = const Value.absent(),
+    this.sizeBytes = const Value.absent(),
+    this.sha256 = const Value.absent(),
+    this.bytes = const Value.absent(),
+    this.storedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DocumentFilesCompanion.insert({
+    required String id,
+    required String recordId,
+    required String fileName,
+    required String mimeType,
+    required int sizeBytes,
+    required String sha256,
+    required Uint8List bytes,
+    required DateTime storedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       recordId = Value(recordId),
+       fileName = Value(fileName),
+       mimeType = Value(mimeType),
+       sizeBytes = Value(sizeBytes),
+       sha256 = Value(sha256),
+       bytes = Value(bytes),
+       storedAt = Value(storedAt);
+  static Insertable<DocumentFileRow> custom({
+    Expression<String>? id,
+    Expression<String>? recordId,
+    Expression<String>? fileName,
+    Expression<String>? mimeType,
+    Expression<int>? sizeBytes,
+    Expression<String>? sha256,
+    Expression<Uint8List>? bytes,
+    Expression<DateTime>? storedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (recordId != null) 'record_id': recordId,
+      if (fileName != null) 'file_name': fileName,
+      if (mimeType != null) 'mime_type': mimeType,
+      if (sizeBytes != null) 'size_bytes': sizeBytes,
+      if (sha256 != null) 'sha256': sha256,
+      if (bytes != null) 'bytes': bytes,
+      if (storedAt != null) 'stored_at': storedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DocumentFilesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? recordId,
+    Value<String>? fileName,
+    Value<String>? mimeType,
+    Value<int>? sizeBytes,
+    Value<String>? sha256,
+    Value<Uint8List>? bytes,
+    Value<DateTime>? storedAt,
+    Value<int>? rowid,
+  }) {
+    return DocumentFilesCompanion(
+      id: id ?? this.id,
+      recordId: recordId ?? this.recordId,
+      fileName: fileName ?? this.fileName,
+      mimeType: mimeType ?? this.mimeType,
+      sizeBytes: sizeBytes ?? this.sizeBytes,
+      sha256: sha256 ?? this.sha256,
+      bytes: bytes ?? this.bytes,
+      storedAt: storedAt ?? this.storedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (recordId.present) {
+      map['record_id'] = Variable<String>(recordId.value);
+    }
+    if (fileName.present) {
+      map['file_name'] = Variable<String>(fileName.value);
+    }
+    if (mimeType.present) {
+      map['mime_type'] = Variable<String>(mimeType.value);
+    }
+    if (sizeBytes.present) {
+      map['size_bytes'] = Variable<int>(sizeBytes.value);
+    }
+    if (sha256.present) {
+      map['sha256'] = Variable<String>(sha256.value);
+    }
+    if (bytes.present) {
+      map['bytes'] = Variable<Uint8List>(bytes.value);
+    }
+    if (storedAt.present) {
+      map['stored_at'] = Variable<DateTime>(storedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DocumentFilesCompanion(')
+          ..write('id: $id, ')
+          ..write('recordId: $recordId, ')
+          ..write('fileName: $fileName, ')
+          ..write('mimeType: $mimeType, ')
+          ..write('sizeBytes: $sizeBytes, ')
+          ..write('sha256: $sha256, ')
+          ..write('bytes: $bytes, ')
+          ..write('storedAt: $storedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $AiSummariesTable extends AiSummaries
     with TableInfo<$AiSummariesTable, AiSummaryRow> {
   @override
@@ -8040,6 +13861,41 @@ class $StaffTasksTable extends StaffTasks
     requiredDuringInsert: false,
   );
   @override
+  late final GeneratedColumnWithTypeConverter<WorkPriority, String> priority =
+      GeneratedColumn<String>(
+        'priority',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('routine'),
+      ).withConverter<WorkPriority>($StaffTasksTable.$converterpriority);
+  static const VerificationMeta _coverageStaffIdMeta = const VerificationMeta(
+    'coverageStaffId',
+  );
+  @override
+  late final GeneratedColumn<String> coverageStaffId = GeneratedColumn<String>(
+    'coverage_staff_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE SET NULL',
+    ),
+  );
+  static const VerificationMeta _escalatedAtMeta = const VerificationMeta(
+    'escalatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> escalatedAt = GeneratedColumn<DateTime>(
+    'escalated_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
   late final GeneratedColumnWithTypeConverter<TaskStatus, String> status =
       GeneratedColumn<String>(
         'status',
@@ -8095,6 +13951,18 @@ class $StaffTasksTable extends StaffTasks
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -8103,11 +13971,15 @@ class $StaffTasksTable extends StaffTasks
     title,
     kind,
     dueAt,
+    priority,
+    coverageStaffId,
+    escalatedAt,
     status,
     ruleScore,
     aiPriorityScore,
     aiRationale,
     createdAt,
+    version,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -8154,6 +14026,24 @@ class $StaffTasksTable extends StaffTasks
         dueAt.isAcceptableOrUnknown(data['due_at']!, _dueAtMeta),
       );
     }
+    if (data.containsKey('coverage_staff_id')) {
+      context.handle(
+        _coverageStaffIdMeta,
+        coverageStaffId.isAcceptableOrUnknown(
+          data['coverage_staff_id']!,
+          _coverageStaffIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('escalated_at')) {
+      context.handle(
+        _escalatedAtMeta,
+        escalatedAt.isAcceptableOrUnknown(
+          data['escalated_at']!,
+          _escalatedAtMeta,
+        ),
+      );
+    }
     if (data.containsKey('rule_score')) {
       context.handle(
         _ruleScoreMeta,
@@ -8182,6 +14072,12 @@ class $StaffTasksTable extends StaffTasks
       context.handle(
         _createdAtMeta,
         createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
       );
     }
     return context;
@@ -8219,6 +14115,20 @@ class $StaffTasksTable extends StaffTasks
         DriftSqlType.dateTime,
         data['${effectivePrefix}due_at'],
       ),
+      priority: $StaffTasksTable.$converterpriority.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}priority'],
+        )!,
+      ),
+      coverageStaffId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}coverage_staff_id'],
+      ),
+      escalatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}escalated_at'],
+      ),
       status: $StaffTasksTable.$converterstatus.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -8241,6 +14151,10 @@ class $StaffTasksTable extends StaffTasks
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
       )!,
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
     );
   }
 
@@ -8251,6 +14165,8 @@ class $StaffTasksTable extends StaffTasks
 
   static JsonTypeConverter2<TaskKind, String, String> $converterkind =
       const EnumNameConverter<TaskKind>(TaskKind.values);
+  static JsonTypeConverter2<WorkPriority, String, String> $converterpriority =
+      const EnumNameConverter<WorkPriority>(WorkPriority.values);
   static JsonTypeConverter2<TaskStatus, String, String> $converterstatus =
       const EnumNameConverter<TaskStatus>(TaskStatus.values);
 }
@@ -8262,6 +14178,9 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
   final String title;
   final TaskKind kind;
   final DateTime? dueAt;
+  final WorkPriority priority;
+  final String? coverageStaffId;
+  final DateTime? escalatedAt;
   final TaskStatus status;
 
   /// Deterministic rule score (P5-03) — always present.
@@ -8271,6 +14190,9 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
   final double? aiPriorityScore;
   final String? aiRationale;
   final DateTime createdAt;
+
+  /// Optimistic-concurrency version (trigger-bumped, schema v19).
+  final int version;
   const StaffTaskRow({
     required this.id,
     required this.staffId,
@@ -8278,11 +14200,15 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
     required this.title,
     required this.kind,
     this.dueAt,
+    required this.priority,
+    this.coverageStaffId,
+    this.escalatedAt,
     required this.status,
     required this.ruleScore,
     this.aiPriorityScore,
     this.aiRationale,
     required this.createdAt,
+    required this.version,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -8302,6 +14228,17 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
       map['due_at'] = Variable<DateTime>(dueAt);
     }
     {
+      map['priority'] = Variable<String>(
+        $StaffTasksTable.$converterpriority.toSql(priority),
+      );
+    }
+    if (!nullToAbsent || coverageStaffId != null) {
+      map['coverage_staff_id'] = Variable<String>(coverageStaffId);
+    }
+    if (!nullToAbsent || escalatedAt != null) {
+      map['escalated_at'] = Variable<DateTime>(escalatedAt);
+    }
+    {
       map['status'] = Variable<String>(
         $StaffTasksTable.$converterstatus.toSql(status),
       );
@@ -8314,6 +14251,7 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
       map['ai_rationale'] = Variable<String>(aiRationale);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
+    map['version'] = Variable<int>(version);
     return map;
   }
 
@@ -8329,6 +14267,13 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
       dueAt: dueAt == null && nullToAbsent
           ? const Value.absent()
           : Value(dueAt),
+      priority: Value(priority),
+      coverageStaffId: coverageStaffId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(coverageStaffId),
+      escalatedAt: escalatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(escalatedAt),
       status: Value(status),
       ruleScore: Value(ruleScore),
       aiPriorityScore: aiPriorityScore == null && nullToAbsent
@@ -8338,6 +14283,7 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
           ? const Value.absent()
           : Value(aiRationale),
       createdAt: Value(createdAt),
+      version: Value(version),
     );
   }
 
@@ -8355,6 +14301,11 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
         serializer.fromJson<String>(json['kind']),
       ),
       dueAt: serializer.fromJson<DateTime?>(json['dueAt']),
+      priority: $StaffTasksTable.$converterpriority.fromJson(
+        serializer.fromJson<String>(json['priority']),
+      ),
+      coverageStaffId: serializer.fromJson<String?>(json['coverageStaffId']),
+      escalatedAt: serializer.fromJson<DateTime?>(json['escalatedAt']),
       status: $StaffTasksTable.$converterstatus.fromJson(
         serializer.fromJson<String>(json['status']),
       ),
@@ -8362,6 +14313,7 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
       aiPriorityScore: serializer.fromJson<double?>(json['aiPriorityScore']),
       aiRationale: serializer.fromJson<String?>(json['aiRationale']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      version: serializer.fromJson<int>(json['version']),
     );
   }
   @override
@@ -8376,6 +14328,11 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
         $StaffTasksTable.$converterkind.toJson(kind),
       ),
       'dueAt': serializer.toJson<DateTime?>(dueAt),
+      'priority': serializer.toJson<String>(
+        $StaffTasksTable.$converterpriority.toJson(priority),
+      ),
+      'coverageStaffId': serializer.toJson<String?>(coverageStaffId),
+      'escalatedAt': serializer.toJson<DateTime?>(escalatedAt),
       'status': serializer.toJson<String>(
         $StaffTasksTable.$converterstatus.toJson(status),
       ),
@@ -8383,6 +14340,7 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
       'aiPriorityScore': serializer.toJson<double?>(aiPriorityScore),
       'aiRationale': serializer.toJson<String?>(aiRationale),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'version': serializer.toJson<int>(version),
     };
   }
 
@@ -8393,11 +14351,15 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
     String? title,
     TaskKind? kind,
     Value<DateTime?> dueAt = const Value.absent(),
+    WorkPriority? priority,
+    Value<String?> coverageStaffId = const Value.absent(),
+    Value<DateTime?> escalatedAt = const Value.absent(),
     TaskStatus? status,
     double? ruleScore,
     Value<double?> aiPriorityScore = const Value.absent(),
     Value<String?> aiRationale = const Value.absent(),
     DateTime? createdAt,
+    int? version,
   }) => StaffTaskRow(
     id: id ?? this.id,
     staffId: staffId ?? this.staffId,
@@ -8405,6 +14367,11 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
     title: title ?? this.title,
     kind: kind ?? this.kind,
     dueAt: dueAt.present ? dueAt.value : this.dueAt,
+    priority: priority ?? this.priority,
+    coverageStaffId: coverageStaffId.present
+        ? coverageStaffId.value
+        : this.coverageStaffId,
+    escalatedAt: escalatedAt.present ? escalatedAt.value : this.escalatedAt,
     status: status ?? this.status,
     ruleScore: ruleScore ?? this.ruleScore,
     aiPriorityScore: aiPriorityScore.present
@@ -8412,6 +14379,7 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
         : this.aiPriorityScore,
     aiRationale: aiRationale.present ? aiRationale.value : this.aiRationale,
     createdAt: createdAt ?? this.createdAt,
+    version: version ?? this.version,
   );
   StaffTaskRow copyWithCompanion(StaffTasksCompanion data) {
     return StaffTaskRow(
@@ -8421,6 +14389,13 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
       title: data.title.present ? data.title.value : this.title,
       kind: data.kind.present ? data.kind.value : this.kind,
       dueAt: data.dueAt.present ? data.dueAt.value : this.dueAt,
+      priority: data.priority.present ? data.priority.value : this.priority,
+      coverageStaffId: data.coverageStaffId.present
+          ? data.coverageStaffId.value
+          : this.coverageStaffId,
+      escalatedAt: data.escalatedAt.present
+          ? data.escalatedAt.value
+          : this.escalatedAt,
       status: data.status.present ? data.status.value : this.status,
       ruleScore: data.ruleScore.present ? data.ruleScore.value : this.ruleScore,
       aiPriorityScore: data.aiPriorityScore.present
@@ -8430,6 +14405,7 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
           ? data.aiRationale.value
           : this.aiRationale,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      version: data.version.present ? data.version.value : this.version,
     );
   }
 
@@ -8442,11 +14418,15 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
           ..write('title: $title, ')
           ..write('kind: $kind, ')
           ..write('dueAt: $dueAt, ')
+          ..write('priority: $priority, ')
+          ..write('coverageStaffId: $coverageStaffId, ')
+          ..write('escalatedAt: $escalatedAt, ')
           ..write('status: $status, ')
           ..write('ruleScore: $ruleScore, ')
           ..write('aiPriorityScore: $aiPriorityScore, ')
           ..write('aiRationale: $aiRationale, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('version: $version')
           ..write(')'))
         .toString();
   }
@@ -8459,11 +14439,15 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
     title,
     kind,
     dueAt,
+    priority,
+    coverageStaffId,
+    escalatedAt,
     status,
     ruleScore,
     aiPriorityScore,
     aiRationale,
     createdAt,
+    version,
   );
   @override
   bool operator ==(Object other) =>
@@ -8475,11 +14459,15 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
           other.title == this.title &&
           other.kind == this.kind &&
           other.dueAt == this.dueAt &&
+          other.priority == this.priority &&
+          other.coverageStaffId == this.coverageStaffId &&
+          other.escalatedAt == this.escalatedAt &&
           other.status == this.status &&
           other.ruleScore == this.ruleScore &&
           other.aiPriorityScore == this.aiPriorityScore &&
           other.aiRationale == this.aiRationale &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.version == this.version);
 }
 
 class StaffTasksCompanion extends UpdateCompanion<StaffTaskRow> {
@@ -8489,11 +14477,15 @@ class StaffTasksCompanion extends UpdateCompanion<StaffTaskRow> {
   final Value<String> title;
   final Value<TaskKind> kind;
   final Value<DateTime?> dueAt;
+  final Value<WorkPriority> priority;
+  final Value<String?> coverageStaffId;
+  final Value<DateTime?> escalatedAt;
   final Value<TaskStatus> status;
   final Value<double> ruleScore;
   final Value<double?> aiPriorityScore;
   final Value<String?> aiRationale;
   final Value<DateTime> createdAt;
+  final Value<int> version;
   final Value<int> rowid;
   const StaffTasksCompanion({
     this.id = const Value.absent(),
@@ -8502,11 +14494,15 @@ class StaffTasksCompanion extends UpdateCompanion<StaffTaskRow> {
     this.title = const Value.absent(),
     this.kind = const Value.absent(),
     this.dueAt = const Value.absent(),
+    this.priority = const Value.absent(),
+    this.coverageStaffId = const Value.absent(),
+    this.escalatedAt = const Value.absent(),
     this.status = const Value.absent(),
     this.ruleScore = const Value.absent(),
     this.aiPriorityScore = const Value.absent(),
     this.aiRationale = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.version = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   StaffTasksCompanion.insert({
@@ -8516,11 +14512,15 @@ class StaffTasksCompanion extends UpdateCompanion<StaffTaskRow> {
     required String title,
     required TaskKind kind,
     this.dueAt = const Value.absent(),
+    this.priority = const Value.absent(),
+    this.coverageStaffId = const Value.absent(),
+    this.escalatedAt = const Value.absent(),
     this.status = const Value.absent(),
     this.ruleScore = const Value.absent(),
     this.aiPriorityScore = const Value.absent(),
     this.aiRationale = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.version = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        staffId = Value(staffId),
@@ -8533,11 +14533,15 @@ class StaffTasksCompanion extends UpdateCompanion<StaffTaskRow> {
     Expression<String>? title,
     Expression<String>? kind,
     Expression<DateTime>? dueAt,
+    Expression<String>? priority,
+    Expression<String>? coverageStaffId,
+    Expression<DateTime>? escalatedAt,
     Expression<String>? status,
     Expression<double>? ruleScore,
     Expression<double>? aiPriorityScore,
     Expression<String>? aiRationale,
     Expression<DateTime>? createdAt,
+    Expression<int>? version,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -8547,11 +14551,15 @@ class StaffTasksCompanion extends UpdateCompanion<StaffTaskRow> {
       if (title != null) 'title': title,
       if (kind != null) 'kind': kind,
       if (dueAt != null) 'due_at': dueAt,
+      if (priority != null) 'priority': priority,
+      if (coverageStaffId != null) 'coverage_staff_id': coverageStaffId,
+      if (escalatedAt != null) 'escalated_at': escalatedAt,
       if (status != null) 'status': status,
       if (ruleScore != null) 'rule_score': ruleScore,
       if (aiPriorityScore != null) 'ai_priority_score': aiPriorityScore,
       if (aiRationale != null) 'ai_rationale': aiRationale,
       if (createdAt != null) 'created_at': createdAt,
+      if (version != null) 'version': version,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -8563,11 +14571,15 @@ class StaffTasksCompanion extends UpdateCompanion<StaffTaskRow> {
     Value<String>? title,
     Value<TaskKind>? kind,
     Value<DateTime?>? dueAt,
+    Value<WorkPriority>? priority,
+    Value<String?>? coverageStaffId,
+    Value<DateTime?>? escalatedAt,
     Value<TaskStatus>? status,
     Value<double>? ruleScore,
     Value<double?>? aiPriorityScore,
     Value<String?>? aiRationale,
     Value<DateTime>? createdAt,
+    Value<int>? version,
     Value<int>? rowid,
   }) {
     return StaffTasksCompanion(
@@ -8577,11 +14589,15 @@ class StaffTasksCompanion extends UpdateCompanion<StaffTaskRow> {
       title: title ?? this.title,
       kind: kind ?? this.kind,
       dueAt: dueAt ?? this.dueAt,
+      priority: priority ?? this.priority,
+      coverageStaffId: coverageStaffId ?? this.coverageStaffId,
+      escalatedAt: escalatedAt ?? this.escalatedAt,
       status: status ?? this.status,
       ruleScore: ruleScore ?? this.ruleScore,
       aiPriorityScore: aiPriorityScore ?? this.aiPriorityScore,
       aiRationale: aiRationale ?? this.aiRationale,
       createdAt: createdAt ?? this.createdAt,
+      version: version ?? this.version,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -8609,6 +14625,17 @@ class StaffTasksCompanion extends UpdateCompanion<StaffTaskRow> {
     if (dueAt.present) {
       map['due_at'] = Variable<DateTime>(dueAt.value);
     }
+    if (priority.present) {
+      map['priority'] = Variable<String>(
+        $StaffTasksTable.$converterpriority.toSql(priority.value),
+      );
+    }
+    if (coverageStaffId.present) {
+      map['coverage_staff_id'] = Variable<String>(coverageStaffId.value);
+    }
+    if (escalatedAt.present) {
+      map['escalated_at'] = Variable<DateTime>(escalatedAt.value);
+    }
     if (status.present) {
       map['status'] = Variable<String>(
         $StaffTasksTable.$converterstatus.toSql(status.value),
@@ -8626,6 +14653,9 @@ class StaffTasksCompanion extends UpdateCompanion<StaffTaskRow> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -8641,11 +14671,15 @@ class StaffTasksCompanion extends UpdateCompanion<StaffTaskRow> {
           ..write('title: $title, ')
           ..write('kind: $kind, ')
           ..write('dueAt: $dueAt, ')
+          ..write('priority: $priority, ')
+          ..write('coverageStaffId: $coverageStaffId, ')
+          ..write('escalatedAt: $escalatedAt, ')
           ..write('status: $status, ')
           ..write('ruleScore: $ruleScore, ')
           ..write('aiPriorityScore: $aiPriorityScore, ')
           ..write('aiRationale: $aiRationale, ')
           ..write('createdAt: $createdAt, ')
+          ..write('version: $version, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -9451,6 +15485,29 @@ class $InvoicesTable extends Invoices
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _paidByAccountIdMeta = const VerificationMeta(
+    'paidByAccountId',
+  );
+  @override
+  late final GeneratedColumn<String> paidByAccountId = GeneratedColumn<String>(
+    'paid_by_account_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -9466,6 +15523,8 @@ class $InvoicesTable extends Invoices
     paidAt,
     paymentMethod,
     notes,
+    paidByAccountId,
+    version,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -9561,6 +15620,21 @@ class $InvoicesTable extends Invoices
         notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
       );
     }
+    if (data.containsKey('paid_by_account_id')) {
+      context.handle(
+        _paidByAccountIdMeta,
+        paidByAccountId.isAcceptableOrUnknown(
+          data['paid_by_account_id']!,
+          _paidByAccountIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
     return context;
   }
 
@@ -9624,6 +15698,14 @@ class $InvoicesTable extends Invoices
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
       ),
+      paidByAccountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}paid_by_account_id'],
+      ),
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
     );
   }
 
@@ -9657,6 +15739,12 @@ class InvoiceRow extends DataClass implements Insertable<InvoiceRow> {
   /// Masked descriptor only — the full card number is never stored.
   final String? paymentMethod;
   final String? notes;
+
+  /// The signed-in account that paid (the patient or a proxy).
+  final String? paidByAccountId;
+
+  /// Optimistic-concurrency version (trigger-bumped, schema v19).
+  final int version;
   const InvoiceRow({
     required this.id,
     required this.patientId,
@@ -9671,6 +15759,8 @@ class InvoiceRow extends DataClass implements Insertable<InvoiceRow> {
     this.paidAt,
     this.paymentMethod,
     this.notes,
+    this.paidByAccountId,
+    required this.version,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -9702,6 +15792,10 @@ class InvoiceRow extends DataClass implements Insertable<InvoiceRow> {
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
     }
+    if (!nullToAbsent || paidByAccountId != null) {
+      map['paid_by_account_id'] = Variable<String>(paidByAccountId);
+    }
+    map['version'] = Variable<int>(version);
     return map;
   }
 
@@ -9730,6 +15824,10 @@ class InvoiceRow extends DataClass implements Insertable<InvoiceRow> {
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
+      paidByAccountId: paidByAccountId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(paidByAccountId),
+      version: Value(version),
     );
   }
 
@@ -9754,6 +15852,8 @@ class InvoiceRow extends DataClass implements Insertable<InvoiceRow> {
       paidAt: serializer.fromJson<DateTime?>(json['paidAt']),
       paymentMethod: serializer.fromJson<String?>(json['paymentMethod']),
       notes: serializer.fromJson<String?>(json['notes']),
+      paidByAccountId: serializer.fromJson<String?>(json['paidByAccountId']),
+      version: serializer.fromJson<int>(json['version']),
     );
   }
   @override
@@ -9775,6 +15875,8 @@ class InvoiceRow extends DataClass implements Insertable<InvoiceRow> {
       'paidAt': serializer.toJson<DateTime?>(paidAt),
       'paymentMethod': serializer.toJson<String?>(paymentMethod),
       'notes': serializer.toJson<String?>(notes),
+      'paidByAccountId': serializer.toJson<String?>(paidByAccountId),
+      'version': serializer.toJson<int>(version),
     };
   }
 
@@ -9792,6 +15894,8 @@ class InvoiceRow extends DataClass implements Insertable<InvoiceRow> {
     Value<DateTime?> paidAt = const Value.absent(),
     Value<String?> paymentMethod = const Value.absent(),
     Value<String?> notes = const Value.absent(),
+    Value<String?> paidByAccountId = const Value.absent(),
+    int? version,
   }) => InvoiceRow(
     id: id ?? this.id,
     patientId: patientId ?? this.patientId,
@@ -9810,6 +15914,10 @@ class InvoiceRow extends DataClass implements Insertable<InvoiceRow> {
         ? paymentMethod.value
         : this.paymentMethod,
     notes: notes.present ? notes.value : this.notes,
+    paidByAccountId: paidByAccountId.present
+        ? paidByAccountId.value
+        : this.paidByAccountId,
+    version: version ?? this.version,
   );
   InvoiceRow copyWithCompanion(InvoicesCompanion data) {
     return InvoiceRow(
@@ -9832,6 +15940,10 @@ class InvoiceRow extends DataClass implements Insertable<InvoiceRow> {
           ? data.paymentMethod.value
           : this.paymentMethod,
       notes: data.notes.present ? data.notes.value : this.notes,
+      paidByAccountId: data.paidByAccountId.present
+          ? data.paidByAccountId.value
+          : this.paidByAccountId,
+      version: data.version.present ? data.version.value : this.version,
     );
   }
 
@@ -9850,7 +15962,9 @@ class InvoiceRow extends DataClass implements Insertable<InvoiceRow> {
           ..write('dueDate: $dueDate, ')
           ..write('paidAt: $paidAt, ')
           ..write('paymentMethod: $paymentMethod, ')
-          ..write('notes: $notes')
+          ..write('notes: $notes, ')
+          ..write('paidByAccountId: $paidByAccountId, ')
+          ..write('version: $version')
           ..write(')'))
         .toString();
   }
@@ -9870,6 +15984,8 @@ class InvoiceRow extends DataClass implements Insertable<InvoiceRow> {
     paidAt,
     paymentMethod,
     notes,
+    paidByAccountId,
+    version,
   );
   @override
   bool operator ==(Object other) =>
@@ -9887,7 +16003,9 @@ class InvoiceRow extends DataClass implements Insertable<InvoiceRow> {
           other.dueDate == this.dueDate &&
           other.paidAt == this.paidAt &&
           other.paymentMethod == this.paymentMethod &&
-          other.notes == this.notes);
+          other.notes == this.notes &&
+          other.paidByAccountId == this.paidByAccountId &&
+          other.version == this.version);
 }
 
 class InvoicesCompanion extends UpdateCompanion<InvoiceRow> {
@@ -9904,6 +16022,8 @@ class InvoicesCompanion extends UpdateCompanion<InvoiceRow> {
   final Value<DateTime?> paidAt;
   final Value<String?> paymentMethod;
   final Value<String?> notes;
+  final Value<String?> paidByAccountId;
+  final Value<int> version;
   final Value<int> rowid;
   const InvoicesCompanion({
     this.id = const Value.absent(),
@@ -9919,6 +16039,8 @@ class InvoicesCompanion extends UpdateCompanion<InvoiceRow> {
     this.paidAt = const Value.absent(),
     this.paymentMethod = const Value.absent(),
     this.notes = const Value.absent(),
+    this.paidByAccountId = const Value.absent(),
+    this.version = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   InvoicesCompanion.insert({
@@ -9935,6 +16057,8 @@ class InvoicesCompanion extends UpdateCompanion<InvoiceRow> {
     this.paidAt = const Value.absent(),
     this.paymentMethod = const Value.absent(),
     this.notes = const Value.absent(),
+    this.paidByAccountId = const Value.absent(),
+    this.version = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        patientId = Value(patientId);
@@ -9952,6 +16076,8 @@ class InvoicesCompanion extends UpdateCompanion<InvoiceRow> {
     Expression<DateTime>? paidAt,
     Expression<String>? paymentMethod,
     Expression<String>? notes,
+    Expression<String>? paidByAccountId,
+    Expression<int>? version,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -9968,6 +16094,8 @@ class InvoicesCompanion extends UpdateCompanion<InvoiceRow> {
       if (paidAt != null) 'paid_at': paidAt,
       if (paymentMethod != null) 'payment_method': paymentMethod,
       if (notes != null) 'notes': notes,
+      if (paidByAccountId != null) 'paid_by_account_id': paidByAccountId,
+      if (version != null) 'version': version,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -9986,6 +16114,8 @@ class InvoicesCompanion extends UpdateCompanion<InvoiceRow> {
     Value<DateTime?>? paidAt,
     Value<String?>? paymentMethod,
     Value<String?>? notes,
+    Value<String?>? paidByAccountId,
+    Value<int>? version,
     Value<int>? rowid,
   }) {
     return InvoicesCompanion(
@@ -10002,6 +16132,8 @@ class InvoicesCompanion extends UpdateCompanion<InvoiceRow> {
       paidAt: paidAt ?? this.paidAt,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       notes: notes ?? this.notes,
+      paidByAccountId: paidByAccountId ?? this.paidByAccountId,
+      version: version ?? this.version,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -10050,6 +16182,12 @@ class InvoicesCompanion extends UpdateCompanion<InvoiceRow> {
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
+    if (paidByAccountId.present) {
+      map['paid_by_account_id'] = Variable<String>(paidByAccountId.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -10072,6 +16210,8 @@ class InvoicesCompanion extends UpdateCompanion<InvoiceRow> {
           ..write('paidAt: $paidAt, ')
           ..write('paymentMethod: $paymentMethod, ')
           ..write('notes: $notes, ')
+          ..write('paidByAccountId: $paidByAccountId, ')
+          ..write('version: $version, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -10723,6 +16863,17 @@ class $WalletTransactionsTable extends WalletTransactions
       'REFERENCES invoices (id) ON DELETE SET NULL',
     ),
   );
+  static const VerificationMeta _actorAccountIdMeta = const VerificationMeta(
+    'actorAccountId',
+  );
+  @override
+  late final GeneratedColumn<String> actorAccountId = GeneratedColumn<String>(
+    'actor_account_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -10743,6 +16894,7 @@ class $WalletTransactionsTable extends WalletTransactions
     amount,
     method,
     invoiceId,
+    actorAccountId,
     createdAt,
   ];
   @override
@@ -10790,6 +16942,15 @@ class $WalletTransactionsTable extends WalletTransactions
         invoiceId.isAcceptableOrUnknown(data['invoice_id']!, _invoiceIdMeta),
       );
     }
+    if (data.containsKey('actor_account_id')) {
+      context.handle(
+        _actorAccountIdMeta,
+        actorAccountId.isAcceptableOrUnknown(
+          data['actor_account_id']!,
+          _actorAccountIdMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -10831,6 +16992,10 @@ class $WalletTransactionsTable extends WalletTransactions
         DriftSqlType.string,
         data['${effectivePrefix}invoice_id'],
       ),
+      actorAccountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}actor_account_id'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -10863,6 +17028,9 @@ class WalletTransactionRow extends DataClass
 
   /// The invoice a redemption paid toward, null for a top-up.
   final String? invoiceId;
+
+  /// The signed-in account that moved the money (the patient or a proxy).
+  final String? actorAccountId;
   final DateTime createdAt;
   const WalletTransactionRow({
     required this.id,
@@ -10871,6 +17039,7 @@ class WalletTransactionRow extends DataClass
     required this.amount,
     this.method,
     this.invoiceId,
+    this.actorAccountId,
     required this.createdAt,
   });
   @override
@@ -10890,6 +17059,9 @@ class WalletTransactionRow extends DataClass
     if (!nullToAbsent || invoiceId != null) {
       map['invoice_id'] = Variable<String>(invoiceId);
     }
+    if (!nullToAbsent || actorAccountId != null) {
+      map['actor_account_id'] = Variable<String>(actorAccountId);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -10906,6 +17078,9 @@ class WalletTransactionRow extends DataClass
       invoiceId: invoiceId == null && nullToAbsent
           ? const Value.absent()
           : Value(invoiceId),
+      actorAccountId: actorAccountId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(actorAccountId),
       createdAt: Value(createdAt),
     );
   }
@@ -10924,6 +17099,7 @@ class WalletTransactionRow extends DataClass
       amount: serializer.fromJson<double>(json['amount']),
       method: serializer.fromJson<String?>(json['method']),
       invoiceId: serializer.fromJson<String?>(json['invoiceId']),
+      actorAccountId: serializer.fromJson<String?>(json['actorAccountId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -10939,6 +17115,7 @@ class WalletTransactionRow extends DataClass
       'amount': serializer.toJson<double>(amount),
       'method': serializer.toJson<String?>(method),
       'invoiceId': serializer.toJson<String?>(invoiceId),
+      'actorAccountId': serializer.toJson<String?>(actorAccountId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -10950,6 +17127,7 @@ class WalletTransactionRow extends DataClass
     double? amount,
     Value<String?> method = const Value.absent(),
     Value<String?> invoiceId = const Value.absent(),
+    Value<String?> actorAccountId = const Value.absent(),
     DateTime? createdAt,
   }) => WalletTransactionRow(
     id: id ?? this.id,
@@ -10958,6 +17136,9 @@ class WalletTransactionRow extends DataClass
     amount: amount ?? this.amount,
     method: method.present ? method.value : this.method,
     invoiceId: invoiceId.present ? invoiceId.value : this.invoiceId,
+    actorAccountId: actorAccountId.present
+        ? actorAccountId.value
+        : this.actorAccountId,
     createdAt: createdAt ?? this.createdAt,
   );
   WalletTransactionRow copyWithCompanion(WalletTransactionsCompanion data) {
@@ -10968,6 +17149,9 @@ class WalletTransactionRow extends DataClass
       amount: data.amount.present ? data.amount.value : this.amount,
       method: data.method.present ? data.method.value : this.method,
       invoiceId: data.invoiceId.present ? data.invoiceId.value : this.invoiceId,
+      actorAccountId: data.actorAccountId.present
+          ? data.actorAccountId.value
+          : this.actorAccountId,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -10981,14 +17165,23 @@ class WalletTransactionRow extends DataClass
           ..write('amount: $amount, ')
           ..write('method: $method, ')
           ..write('invoiceId: $invoiceId, ')
+          ..write('actorAccountId: $actorAccountId, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, patientId, type, amount, method, invoiceId, createdAt);
+  int get hashCode => Object.hash(
+    id,
+    patientId,
+    type,
+    amount,
+    method,
+    invoiceId,
+    actorAccountId,
+    createdAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -10999,6 +17192,7 @@ class WalletTransactionRow extends DataClass
           other.amount == this.amount &&
           other.method == this.method &&
           other.invoiceId == this.invoiceId &&
+          other.actorAccountId == this.actorAccountId &&
           other.createdAt == this.createdAt);
 }
 
@@ -11010,6 +17204,7 @@ class WalletTransactionsCompanion
   final Value<double> amount;
   final Value<String?> method;
   final Value<String?> invoiceId;
+  final Value<String?> actorAccountId;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
   const WalletTransactionsCompanion({
@@ -11019,6 +17214,7 @@ class WalletTransactionsCompanion
     this.amount = const Value.absent(),
     this.method = const Value.absent(),
     this.invoiceId = const Value.absent(),
+    this.actorAccountId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -11029,6 +17225,7 @@ class WalletTransactionsCompanion
     required double amount,
     this.method = const Value.absent(),
     this.invoiceId = const Value.absent(),
+    this.actorAccountId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -11042,6 +17239,7 @@ class WalletTransactionsCompanion
     Expression<double>? amount,
     Expression<String>? method,
     Expression<String>? invoiceId,
+    Expression<String>? actorAccountId,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
   }) {
@@ -11052,6 +17250,7 @@ class WalletTransactionsCompanion
       if (amount != null) 'amount': amount,
       if (method != null) 'method': method,
       if (invoiceId != null) 'invoice_id': invoiceId,
+      if (actorAccountId != null) 'actor_account_id': actorAccountId,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -11064,6 +17263,7 @@ class WalletTransactionsCompanion
     Value<double>? amount,
     Value<String?>? method,
     Value<String?>? invoiceId,
+    Value<String?>? actorAccountId,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
   }) {
@@ -11074,6 +17274,7 @@ class WalletTransactionsCompanion
       amount: amount ?? this.amount,
       method: method ?? this.method,
       invoiceId: invoiceId ?? this.invoiceId,
+      actorAccountId: actorAccountId ?? this.actorAccountId,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
     );
@@ -11102,6 +17303,9 @@ class WalletTransactionsCompanion
     if (invoiceId.present) {
       map['invoice_id'] = Variable<String>(invoiceId.value);
     }
+    if (actorAccountId.present) {
+      map['actor_account_id'] = Variable<String>(actorAccountId.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -11120,6 +17324,1710 @@ class WalletTransactionsCompanion
           ..write('amount: $amount, ')
           ..write('method: $method, ')
           ..write('invoiceId: $invoiceId, ')
+          ..write('actorAccountId: $actorAccountId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PaymentTransactionsTable extends PaymentTransactions
+    with TableInfo<$PaymentTransactionsTable, PaymentTransactionRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PaymentTransactionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _patientIdMeta = const VerificationMeta(
+    'patientId',
+  );
+  @override
+  late final GeneratedColumn<String> patientId = GeneratedColumn<String>(
+    'patient_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _invoiceIdMeta = const VerificationMeta(
+    'invoiceId',
+  );
+  @override
+  late final GeneratedColumn<String> invoiceId = GeneratedColumn<String>(
+    'invoice_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES invoices (id) ON DELETE SET NULL',
+    ),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<PaymentKind, String> kind =
+      GeneratedColumn<String>(
+        'kind',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<PaymentKind>($PaymentTransactionsTable.$converterkind);
+  @override
+  late final GeneratedColumnWithTypeConverter<PaymentMethodKind, String>
+  method =
+      GeneratedColumn<String>(
+        'method',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<PaymentMethodKind>(
+        $PaymentTransactionsTable.$convertermethod,
+      );
+  @override
+  late final GeneratedColumnWithTypeConverter<PaymentStatus, String> status =
+      GeneratedColumn<String>(
+        'status',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('initiated'),
+      ).withConverter<PaymentStatus>(
+        $PaymentTransactionsTable.$converterstatus,
+      );
+  static const VerificationMeta _amountMeta = const VerificationMeta('amount');
+  @override
+  late final GeneratedColumn<double> amount = GeneratedColumn<double>(
+    'amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _providerMeta = const VerificationMeta(
+    'provider',
+  );
+  @override
+  late final GeneratedColumn<String> provider = GeneratedColumn<String>(
+    'provider',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _requestReferenceMeta = const VerificationMeta(
+    'requestReference',
+  );
+  @override
+  late final GeneratedColumn<String> requestReference = GeneratedColumn<String>(
+    'request_reference',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _providerReferenceMeta = const VerificationMeta(
+    'providerReference',
+  );
+  @override
+  late final GeneratedColumn<String> providerReference =
+      GeneratedColumn<String>(
+        'provider_reference',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _methodDescriptorMeta = const VerificationMeta(
+    'methodDescriptor',
+  );
+  @override
+  late final GeneratedColumn<String> methodDescriptor = GeneratedColumn<String>(
+    'method_descriptor',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _refundOfIdMeta = const VerificationMeta(
+    'refundOfId',
+  );
+  @override
+  late final GeneratedColumn<String> refundOfId = GeneratedColumn<String>(
+    'refund_of_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _reasonMeta = const VerificationMeta('reason');
+  @override
+  late final GeneratedColumn<String> reason = GeneratedColumn<String>(
+    'reason',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _failureReasonMeta = const VerificationMeta(
+    'failureReason',
+  );
+  @override
+  late final GeneratedColumn<String> failureReason = GeneratedColumn<String>(
+    'failure_reason',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _actorAccountIdMeta = const VerificationMeta(
+    'actorAccountId',
+  );
+  @override
+  late final GeneratedColumn<String> actorAccountId = GeneratedColumn<String>(
+    'actor_account_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _settledAtMeta = const VerificationMeta(
+    'settledAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> settledAt = GeneratedColumn<DateTime>(
+    'settled_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _reconciledAtMeta = const VerificationMeta(
+    'reconciledAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> reconciledAt = GeneratedColumn<DateTime>(
+    'reconciled_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    patientId,
+    invoiceId,
+    kind,
+    method,
+    status,
+    amount,
+    provider,
+    requestReference,
+    providerReference,
+    methodDescriptor,
+    refundOfId,
+    reason,
+    failureReason,
+    actorAccountId,
+    createdAt,
+    updatedAt,
+    settledAt,
+    reconciledAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'payment_transactions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PaymentTransactionRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('patient_id')) {
+      context.handle(
+        _patientIdMeta,
+        patientId.isAcceptableOrUnknown(data['patient_id']!, _patientIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_patientIdMeta);
+    }
+    if (data.containsKey('invoice_id')) {
+      context.handle(
+        _invoiceIdMeta,
+        invoiceId.isAcceptableOrUnknown(data['invoice_id']!, _invoiceIdMeta),
+      );
+    }
+    if (data.containsKey('amount')) {
+      context.handle(
+        _amountMeta,
+        amount.isAcceptableOrUnknown(data['amount']!, _amountMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMeta);
+    }
+    if (data.containsKey('provider')) {
+      context.handle(
+        _providerMeta,
+        provider.isAcceptableOrUnknown(data['provider']!, _providerMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_providerMeta);
+    }
+    if (data.containsKey('request_reference')) {
+      context.handle(
+        _requestReferenceMeta,
+        requestReference.isAcceptableOrUnknown(
+          data['request_reference']!,
+          _requestReferenceMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_requestReferenceMeta);
+    }
+    if (data.containsKey('provider_reference')) {
+      context.handle(
+        _providerReferenceMeta,
+        providerReference.isAcceptableOrUnknown(
+          data['provider_reference']!,
+          _providerReferenceMeta,
+        ),
+      );
+    }
+    if (data.containsKey('method_descriptor')) {
+      context.handle(
+        _methodDescriptorMeta,
+        methodDescriptor.isAcceptableOrUnknown(
+          data['method_descriptor']!,
+          _methodDescriptorMeta,
+        ),
+      );
+    }
+    if (data.containsKey('refund_of_id')) {
+      context.handle(
+        _refundOfIdMeta,
+        refundOfId.isAcceptableOrUnknown(
+          data['refund_of_id']!,
+          _refundOfIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('reason')) {
+      context.handle(
+        _reasonMeta,
+        reason.isAcceptableOrUnknown(data['reason']!, _reasonMeta),
+      );
+    }
+    if (data.containsKey('failure_reason')) {
+      context.handle(
+        _failureReasonMeta,
+        failureReason.isAcceptableOrUnknown(
+          data['failure_reason']!,
+          _failureReasonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('actor_account_id')) {
+      context.handle(
+        _actorAccountIdMeta,
+        actorAccountId.isAcceptableOrUnknown(
+          data['actor_account_id']!,
+          _actorAccountIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('settled_at')) {
+      context.handle(
+        _settledAtMeta,
+        settledAt.isAcceptableOrUnknown(data['settled_at']!, _settledAtMeta),
+      );
+    }
+    if (data.containsKey('reconciled_at')) {
+      context.handle(
+        _reconciledAtMeta,
+        reconciledAt.isAcceptableOrUnknown(
+          data['reconciled_at']!,
+          _reconciledAtMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PaymentTransactionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PaymentTransactionRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      patientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}patient_id'],
+      )!,
+      invoiceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}invoice_id'],
+      ),
+      kind: $PaymentTransactionsTable.$converterkind.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}kind'],
+        )!,
+      ),
+      method: $PaymentTransactionsTable.$convertermethod.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}method'],
+        )!,
+      ),
+      status: $PaymentTransactionsTable.$converterstatus.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}status'],
+        )!,
+      ),
+      amount: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}amount'],
+      )!,
+      provider: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}provider'],
+      )!,
+      requestReference: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}request_reference'],
+      )!,
+      providerReference: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}provider_reference'],
+      ),
+      methodDescriptor: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}method_descriptor'],
+      ),
+      refundOfId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}refund_of_id'],
+      ),
+      reason: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reason'],
+      ),
+      failureReason: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}failure_reason'],
+      ),
+      actorAccountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}actor_account_id'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      settledAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}settled_at'],
+      ),
+      reconciledAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}reconciled_at'],
+      ),
+    );
+  }
+
+  @override
+  $PaymentTransactionsTable createAlias(String alias) {
+    return $PaymentTransactionsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<PaymentKind, String, String> $converterkind =
+      const EnumNameConverter<PaymentKind>(PaymentKind.values);
+  static JsonTypeConverter2<PaymentMethodKind, String, String>
+  $convertermethod = const EnumNameConverter<PaymentMethodKind>(
+    PaymentMethodKind.values,
+  );
+  static JsonTypeConverter2<PaymentStatus, String, String> $converterstatus =
+      const EnumNameConverter<PaymentStatus>(PaymentStatus.values);
+}
+
+class PaymentTransactionRow extends DataClass
+    implements Insertable<PaymentTransactionRow> {
+  final String id;
+  final String patientId;
+
+  /// The bill this pays or refunds; null for a wallet top-up.
+  final String? invoiceId;
+  final PaymentKind kind;
+  final PaymentMethodKind method;
+  final PaymentStatus status;
+
+  /// Always positive, in BHD (three decimals).
+  final double amount;
+
+  /// Who processed it: `simulated-card`, `wallet`, `offline`.
+  final String provider;
+
+  /// Our reference for this attempt, sent to the provider as its idempotency
+  /// key. Re-sending it can never charge twice.
+  final String requestReference;
+
+  /// The provider's own reference once it has one (charge/refund id, or the
+  /// desk receipt number for an offline payment).
+  final String? providerReference;
+
+  /// Masked descriptor only ("Visa ····4242", "Wallet balance").
+  final String? methodDescriptor;
+
+  /// For a refund: the settled charge it returns money from.
+  final String? refundOfId;
+
+  /// Why a refund or offline payment was recorded (staff-entered).
+  final String? reason;
+
+  /// Decline or failure code — never card data.
+  final String? failureReason;
+  final String? actorAccountId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? settledAt;
+
+  /// Last time reconciliation compared this row with the provider.
+  final DateTime? reconciledAt;
+  const PaymentTransactionRow({
+    required this.id,
+    required this.patientId,
+    this.invoiceId,
+    required this.kind,
+    required this.method,
+    required this.status,
+    required this.amount,
+    required this.provider,
+    required this.requestReference,
+    this.providerReference,
+    this.methodDescriptor,
+    this.refundOfId,
+    this.reason,
+    this.failureReason,
+    this.actorAccountId,
+    required this.createdAt,
+    required this.updatedAt,
+    this.settledAt,
+    this.reconciledAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['patient_id'] = Variable<String>(patientId);
+    if (!nullToAbsent || invoiceId != null) {
+      map['invoice_id'] = Variable<String>(invoiceId);
+    }
+    {
+      map['kind'] = Variable<String>(
+        $PaymentTransactionsTable.$converterkind.toSql(kind),
+      );
+    }
+    {
+      map['method'] = Variable<String>(
+        $PaymentTransactionsTable.$convertermethod.toSql(method),
+      );
+    }
+    {
+      map['status'] = Variable<String>(
+        $PaymentTransactionsTable.$converterstatus.toSql(status),
+      );
+    }
+    map['amount'] = Variable<double>(amount);
+    map['provider'] = Variable<String>(provider);
+    map['request_reference'] = Variable<String>(requestReference);
+    if (!nullToAbsent || providerReference != null) {
+      map['provider_reference'] = Variable<String>(providerReference);
+    }
+    if (!nullToAbsent || methodDescriptor != null) {
+      map['method_descriptor'] = Variable<String>(methodDescriptor);
+    }
+    if (!nullToAbsent || refundOfId != null) {
+      map['refund_of_id'] = Variable<String>(refundOfId);
+    }
+    if (!nullToAbsent || reason != null) {
+      map['reason'] = Variable<String>(reason);
+    }
+    if (!nullToAbsent || failureReason != null) {
+      map['failure_reason'] = Variable<String>(failureReason);
+    }
+    if (!nullToAbsent || actorAccountId != null) {
+      map['actor_account_id'] = Variable<String>(actorAccountId);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || settledAt != null) {
+      map['settled_at'] = Variable<DateTime>(settledAt);
+    }
+    if (!nullToAbsent || reconciledAt != null) {
+      map['reconciled_at'] = Variable<DateTime>(reconciledAt);
+    }
+    return map;
+  }
+
+  PaymentTransactionsCompanion toCompanion(bool nullToAbsent) {
+    return PaymentTransactionsCompanion(
+      id: Value(id),
+      patientId: Value(patientId),
+      invoiceId: invoiceId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(invoiceId),
+      kind: Value(kind),
+      method: Value(method),
+      status: Value(status),
+      amount: Value(amount),
+      provider: Value(provider),
+      requestReference: Value(requestReference),
+      providerReference: providerReference == null && nullToAbsent
+          ? const Value.absent()
+          : Value(providerReference),
+      methodDescriptor: methodDescriptor == null && nullToAbsent
+          ? const Value.absent()
+          : Value(methodDescriptor),
+      refundOfId: refundOfId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(refundOfId),
+      reason: reason == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reason),
+      failureReason: failureReason == null && nullToAbsent
+          ? const Value.absent()
+          : Value(failureReason),
+      actorAccountId: actorAccountId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(actorAccountId),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      settledAt: settledAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(settledAt),
+      reconciledAt: reconciledAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reconciledAt),
+    );
+  }
+
+  factory PaymentTransactionRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PaymentTransactionRow(
+      id: serializer.fromJson<String>(json['id']),
+      patientId: serializer.fromJson<String>(json['patientId']),
+      invoiceId: serializer.fromJson<String?>(json['invoiceId']),
+      kind: $PaymentTransactionsTable.$converterkind.fromJson(
+        serializer.fromJson<String>(json['kind']),
+      ),
+      method: $PaymentTransactionsTable.$convertermethod.fromJson(
+        serializer.fromJson<String>(json['method']),
+      ),
+      status: $PaymentTransactionsTable.$converterstatus.fromJson(
+        serializer.fromJson<String>(json['status']),
+      ),
+      amount: serializer.fromJson<double>(json['amount']),
+      provider: serializer.fromJson<String>(json['provider']),
+      requestReference: serializer.fromJson<String>(json['requestReference']),
+      providerReference: serializer.fromJson<String?>(
+        json['providerReference'],
+      ),
+      methodDescriptor: serializer.fromJson<String?>(json['methodDescriptor']),
+      refundOfId: serializer.fromJson<String?>(json['refundOfId']),
+      reason: serializer.fromJson<String?>(json['reason']),
+      failureReason: serializer.fromJson<String?>(json['failureReason']),
+      actorAccountId: serializer.fromJson<String?>(json['actorAccountId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      settledAt: serializer.fromJson<DateTime?>(json['settledAt']),
+      reconciledAt: serializer.fromJson<DateTime?>(json['reconciledAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'patientId': serializer.toJson<String>(patientId),
+      'invoiceId': serializer.toJson<String?>(invoiceId),
+      'kind': serializer.toJson<String>(
+        $PaymentTransactionsTable.$converterkind.toJson(kind),
+      ),
+      'method': serializer.toJson<String>(
+        $PaymentTransactionsTable.$convertermethod.toJson(method),
+      ),
+      'status': serializer.toJson<String>(
+        $PaymentTransactionsTable.$converterstatus.toJson(status),
+      ),
+      'amount': serializer.toJson<double>(amount),
+      'provider': serializer.toJson<String>(provider),
+      'requestReference': serializer.toJson<String>(requestReference),
+      'providerReference': serializer.toJson<String?>(providerReference),
+      'methodDescriptor': serializer.toJson<String?>(methodDescriptor),
+      'refundOfId': serializer.toJson<String?>(refundOfId),
+      'reason': serializer.toJson<String?>(reason),
+      'failureReason': serializer.toJson<String?>(failureReason),
+      'actorAccountId': serializer.toJson<String?>(actorAccountId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'settledAt': serializer.toJson<DateTime?>(settledAt),
+      'reconciledAt': serializer.toJson<DateTime?>(reconciledAt),
+    };
+  }
+
+  PaymentTransactionRow copyWith({
+    String? id,
+    String? patientId,
+    Value<String?> invoiceId = const Value.absent(),
+    PaymentKind? kind,
+    PaymentMethodKind? method,
+    PaymentStatus? status,
+    double? amount,
+    String? provider,
+    String? requestReference,
+    Value<String?> providerReference = const Value.absent(),
+    Value<String?> methodDescriptor = const Value.absent(),
+    Value<String?> refundOfId = const Value.absent(),
+    Value<String?> reason = const Value.absent(),
+    Value<String?> failureReason = const Value.absent(),
+    Value<String?> actorAccountId = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> settledAt = const Value.absent(),
+    Value<DateTime?> reconciledAt = const Value.absent(),
+  }) => PaymentTransactionRow(
+    id: id ?? this.id,
+    patientId: patientId ?? this.patientId,
+    invoiceId: invoiceId.present ? invoiceId.value : this.invoiceId,
+    kind: kind ?? this.kind,
+    method: method ?? this.method,
+    status: status ?? this.status,
+    amount: amount ?? this.amount,
+    provider: provider ?? this.provider,
+    requestReference: requestReference ?? this.requestReference,
+    providerReference: providerReference.present
+        ? providerReference.value
+        : this.providerReference,
+    methodDescriptor: methodDescriptor.present
+        ? methodDescriptor.value
+        : this.methodDescriptor,
+    refundOfId: refundOfId.present ? refundOfId.value : this.refundOfId,
+    reason: reason.present ? reason.value : this.reason,
+    failureReason: failureReason.present
+        ? failureReason.value
+        : this.failureReason,
+    actorAccountId: actorAccountId.present
+        ? actorAccountId.value
+        : this.actorAccountId,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    settledAt: settledAt.present ? settledAt.value : this.settledAt,
+    reconciledAt: reconciledAt.present ? reconciledAt.value : this.reconciledAt,
+  );
+  PaymentTransactionRow copyWithCompanion(PaymentTransactionsCompanion data) {
+    return PaymentTransactionRow(
+      id: data.id.present ? data.id.value : this.id,
+      patientId: data.patientId.present ? data.patientId.value : this.patientId,
+      invoiceId: data.invoiceId.present ? data.invoiceId.value : this.invoiceId,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      method: data.method.present ? data.method.value : this.method,
+      status: data.status.present ? data.status.value : this.status,
+      amount: data.amount.present ? data.amount.value : this.amount,
+      provider: data.provider.present ? data.provider.value : this.provider,
+      requestReference: data.requestReference.present
+          ? data.requestReference.value
+          : this.requestReference,
+      providerReference: data.providerReference.present
+          ? data.providerReference.value
+          : this.providerReference,
+      methodDescriptor: data.methodDescriptor.present
+          ? data.methodDescriptor.value
+          : this.methodDescriptor,
+      refundOfId: data.refundOfId.present
+          ? data.refundOfId.value
+          : this.refundOfId,
+      reason: data.reason.present ? data.reason.value : this.reason,
+      failureReason: data.failureReason.present
+          ? data.failureReason.value
+          : this.failureReason,
+      actorAccountId: data.actorAccountId.present
+          ? data.actorAccountId.value
+          : this.actorAccountId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      settledAt: data.settledAt.present ? data.settledAt.value : this.settledAt,
+      reconciledAt: data.reconciledAt.present
+          ? data.reconciledAt.value
+          : this.reconciledAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PaymentTransactionRow(')
+          ..write('id: $id, ')
+          ..write('patientId: $patientId, ')
+          ..write('invoiceId: $invoiceId, ')
+          ..write('kind: $kind, ')
+          ..write('method: $method, ')
+          ..write('status: $status, ')
+          ..write('amount: $amount, ')
+          ..write('provider: $provider, ')
+          ..write('requestReference: $requestReference, ')
+          ..write('providerReference: $providerReference, ')
+          ..write('methodDescriptor: $methodDescriptor, ')
+          ..write('refundOfId: $refundOfId, ')
+          ..write('reason: $reason, ')
+          ..write('failureReason: $failureReason, ')
+          ..write('actorAccountId: $actorAccountId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('settledAt: $settledAt, ')
+          ..write('reconciledAt: $reconciledAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    patientId,
+    invoiceId,
+    kind,
+    method,
+    status,
+    amount,
+    provider,
+    requestReference,
+    providerReference,
+    methodDescriptor,
+    refundOfId,
+    reason,
+    failureReason,
+    actorAccountId,
+    createdAt,
+    updatedAt,
+    settledAt,
+    reconciledAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PaymentTransactionRow &&
+          other.id == this.id &&
+          other.patientId == this.patientId &&
+          other.invoiceId == this.invoiceId &&
+          other.kind == this.kind &&
+          other.method == this.method &&
+          other.status == this.status &&
+          other.amount == this.amount &&
+          other.provider == this.provider &&
+          other.requestReference == this.requestReference &&
+          other.providerReference == this.providerReference &&
+          other.methodDescriptor == this.methodDescriptor &&
+          other.refundOfId == this.refundOfId &&
+          other.reason == this.reason &&
+          other.failureReason == this.failureReason &&
+          other.actorAccountId == this.actorAccountId &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.settledAt == this.settledAt &&
+          other.reconciledAt == this.reconciledAt);
+}
+
+class PaymentTransactionsCompanion
+    extends UpdateCompanion<PaymentTransactionRow> {
+  final Value<String> id;
+  final Value<String> patientId;
+  final Value<String?> invoiceId;
+  final Value<PaymentKind> kind;
+  final Value<PaymentMethodKind> method;
+  final Value<PaymentStatus> status;
+  final Value<double> amount;
+  final Value<String> provider;
+  final Value<String> requestReference;
+  final Value<String?> providerReference;
+  final Value<String?> methodDescriptor;
+  final Value<String?> refundOfId;
+  final Value<String?> reason;
+  final Value<String?> failureReason;
+  final Value<String?> actorAccountId;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> settledAt;
+  final Value<DateTime?> reconciledAt;
+  final Value<int> rowid;
+  const PaymentTransactionsCompanion({
+    this.id = const Value.absent(),
+    this.patientId = const Value.absent(),
+    this.invoiceId = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.method = const Value.absent(),
+    this.status = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.provider = const Value.absent(),
+    this.requestReference = const Value.absent(),
+    this.providerReference = const Value.absent(),
+    this.methodDescriptor = const Value.absent(),
+    this.refundOfId = const Value.absent(),
+    this.reason = const Value.absent(),
+    this.failureReason = const Value.absent(),
+    this.actorAccountId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.settledAt = const Value.absent(),
+    this.reconciledAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PaymentTransactionsCompanion.insert({
+    required String id,
+    required String patientId,
+    this.invoiceId = const Value.absent(),
+    required PaymentKind kind,
+    required PaymentMethodKind method,
+    this.status = const Value.absent(),
+    required double amount,
+    required String provider,
+    required String requestReference,
+    this.providerReference = const Value.absent(),
+    this.methodDescriptor = const Value.absent(),
+    this.refundOfId = const Value.absent(),
+    this.reason = const Value.absent(),
+    this.failureReason = const Value.absent(),
+    this.actorAccountId = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.settledAt = const Value.absent(),
+    this.reconciledAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       patientId = Value(patientId),
+       kind = Value(kind),
+       method = Value(method),
+       amount = Value(amount),
+       provider = Value(provider),
+       requestReference = Value(requestReference),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<PaymentTransactionRow> custom({
+    Expression<String>? id,
+    Expression<String>? patientId,
+    Expression<String>? invoiceId,
+    Expression<String>? kind,
+    Expression<String>? method,
+    Expression<String>? status,
+    Expression<double>? amount,
+    Expression<String>? provider,
+    Expression<String>? requestReference,
+    Expression<String>? providerReference,
+    Expression<String>? methodDescriptor,
+    Expression<String>? refundOfId,
+    Expression<String>? reason,
+    Expression<String>? failureReason,
+    Expression<String>? actorAccountId,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? settledAt,
+    Expression<DateTime>? reconciledAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (patientId != null) 'patient_id': patientId,
+      if (invoiceId != null) 'invoice_id': invoiceId,
+      if (kind != null) 'kind': kind,
+      if (method != null) 'method': method,
+      if (status != null) 'status': status,
+      if (amount != null) 'amount': amount,
+      if (provider != null) 'provider': provider,
+      if (requestReference != null) 'request_reference': requestReference,
+      if (providerReference != null) 'provider_reference': providerReference,
+      if (methodDescriptor != null) 'method_descriptor': methodDescriptor,
+      if (refundOfId != null) 'refund_of_id': refundOfId,
+      if (reason != null) 'reason': reason,
+      if (failureReason != null) 'failure_reason': failureReason,
+      if (actorAccountId != null) 'actor_account_id': actorAccountId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (settledAt != null) 'settled_at': settledAt,
+      if (reconciledAt != null) 'reconciled_at': reconciledAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PaymentTransactionsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? patientId,
+    Value<String?>? invoiceId,
+    Value<PaymentKind>? kind,
+    Value<PaymentMethodKind>? method,
+    Value<PaymentStatus>? status,
+    Value<double>? amount,
+    Value<String>? provider,
+    Value<String>? requestReference,
+    Value<String?>? providerReference,
+    Value<String?>? methodDescriptor,
+    Value<String?>? refundOfId,
+    Value<String?>? reason,
+    Value<String?>? failureReason,
+    Value<String?>? actorAccountId,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? settledAt,
+    Value<DateTime?>? reconciledAt,
+    Value<int>? rowid,
+  }) {
+    return PaymentTransactionsCompanion(
+      id: id ?? this.id,
+      patientId: patientId ?? this.patientId,
+      invoiceId: invoiceId ?? this.invoiceId,
+      kind: kind ?? this.kind,
+      method: method ?? this.method,
+      status: status ?? this.status,
+      amount: amount ?? this.amount,
+      provider: provider ?? this.provider,
+      requestReference: requestReference ?? this.requestReference,
+      providerReference: providerReference ?? this.providerReference,
+      methodDescriptor: methodDescriptor ?? this.methodDescriptor,
+      refundOfId: refundOfId ?? this.refundOfId,
+      reason: reason ?? this.reason,
+      failureReason: failureReason ?? this.failureReason,
+      actorAccountId: actorAccountId ?? this.actorAccountId,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      settledAt: settledAt ?? this.settledAt,
+      reconciledAt: reconciledAt ?? this.reconciledAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (patientId.present) {
+      map['patient_id'] = Variable<String>(patientId.value);
+    }
+    if (invoiceId.present) {
+      map['invoice_id'] = Variable<String>(invoiceId.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(
+        $PaymentTransactionsTable.$converterkind.toSql(kind.value),
+      );
+    }
+    if (method.present) {
+      map['method'] = Variable<String>(
+        $PaymentTransactionsTable.$convertermethod.toSql(method.value),
+      );
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(
+        $PaymentTransactionsTable.$converterstatus.toSql(status.value),
+      );
+    }
+    if (amount.present) {
+      map['amount'] = Variable<double>(amount.value);
+    }
+    if (provider.present) {
+      map['provider'] = Variable<String>(provider.value);
+    }
+    if (requestReference.present) {
+      map['request_reference'] = Variable<String>(requestReference.value);
+    }
+    if (providerReference.present) {
+      map['provider_reference'] = Variable<String>(providerReference.value);
+    }
+    if (methodDescriptor.present) {
+      map['method_descriptor'] = Variable<String>(methodDescriptor.value);
+    }
+    if (refundOfId.present) {
+      map['refund_of_id'] = Variable<String>(refundOfId.value);
+    }
+    if (reason.present) {
+      map['reason'] = Variable<String>(reason.value);
+    }
+    if (failureReason.present) {
+      map['failure_reason'] = Variable<String>(failureReason.value);
+    }
+    if (actorAccountId.present) {
+      map['actor_account_id'] = Variable<String>(actorAccountId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (settledAt.present) {
+      map['settled_at'] = Variable<DateTime>(settledAt.value);
+    }
+    if (reconciledAt.present) {
+      map['reconciled_at'] = Variable<DateTime>(reconciledAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PaymentTransactionsCompanion(')
+          ..write('id: $id, ')
+          ..write('patientId: $patientId, ')
+          ..write('invoiceId: $invoiceId, ')
+          ..write('kind: $kind, ')
+          ..write('method: $method, ')
+          ..write('status: $status, ')
+          ..write('amount: $amount, ')
+          ..write('provider: $provider, ')
+          ..write('requestReference: $requestReference, ')
+          ..write('providerReference: $providerReference, ')
+          ..write('methodDescriptor: $methodDescriptor, ')
+          ..write('refundOfId: $refundOfId, ')
+          ..write('reason: $reason, ')
+          ..write('failureReason: $failureReason, ')
+          ..write('actorAccountId: $actorAccountId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('settledAt: $settledAt, ')
+          ..write('reconciledAt: $reconciledAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SimulatedGatewayChargesTable extends SimulatedGatewayCharges
+    with TableInfo<$SimulatedGatewayChargesTable, SimulatedGatewayChargeRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SimulatedGatewayChargesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _referenceMeta = const VerificationMeta(
+    'reference',
+  );
+  @override
+  late final GeneratedColumn<String> reference = GeneratedColumn<String>(
+    'reference',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _providerReferenceMeta = const VerificationMeta(
+    'providerReference',
+  );
+  @override
+  late final GeneratedColumn<String> providerReference =
+      GeneratedColumn<String>(
+        'provider_reference',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _operationMeta = const VerificationMeta(
+    'operation',
+  );
+  @override
+  late final GeneratedColumn<String> operation = GeneratedColumn<String>(
+    'operation',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _amountFilsMeta = const VerificationMeta(
+    'amountFils',
+  );
+  @override
+  late final GeneratedColumn<int> amountFils = GeneratedColumn<int>(
+    'amount_fils',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _declineCodeMeta = const VerificationMeta(
+    'declineCode',
+  );
+  @override
+  late final GeneratedColumn<String> declineCode = GeneratedColumn<String>(
+    'decline_code',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _parentProviderReferenceMeta =
+      const VerificationMeta('parentProviderReference');
+  @override
+  late final GeneratedColumn<String> parentProviderReference =
+      GeneratedColumn<String>(
+        'parent_provider_reference',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    reference,
+    providerReference,
+    operation,
+    status,
+    amountFils,
+    declineCode,
+    parentProviderReference,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'simulated_gateway_charges';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SimulatedGatewayChargeRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('reference')) {
+      context.handle(
+        _referenceMeta,
+        reference.isAcceptableOrUnknown(data['reference']!, _referenceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_referenceMeta);
+    }
+    if (data.containsKey('provider_reference')) {
+      context.handle(
+        _providerReferenceMeta,
+        providerReference.isAcceptableOrUnknown(
+          data['provider_reference']!,
+          _providerReferenceMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_providerReferenceMeta);
+    }
+    if (data.containsKey('operation')) {
+      context.handle(
+        _operationMeta,
+        operation.isAcceptableOrUnknown(data['operation']!, _operationMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_operationMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    if (data.containsKey('amount_fils')) {
+      context.handle(
+        _amountFilsMeta,
+        amountFils.isAcceptableOrUnknown(data['amount_fils']!, _amountFilsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_amountFilsMeta);
+    }
+    if (data.containsKey('decline_code')) {
+      context.handle(
+        _declineCodeMeta,
+        declineCode.isAcceptableOrUnknown(
+          data['decline_code']!,
+          _declineCodeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('parent_provider_reference')) {
+      context.handle(
+        _parentProviderReferenceMeta,
+        parentProviderReference.isAcceptableOrUnknown(
+          data['parent_provider_reference']!,
+          _parentProviderReferenceMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {reference};
+  @override
+  SimulatedGatewayChargeRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SimulatedGatewayChargeRow(
+      reference: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reference'],
+      )!,
+      providerReference: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}provider_reference'],
+      )!,
+      operation: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}operation'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      amountFils: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount_fils'],
+      )!,
+      declineCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}decline_code'],
+      ),
+      parentProviderReference: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}parent_provider_reference'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $SimulatedGatewayChargesTable createAlias(String alias) {
+    return $SimulatedGatewayChargesTable(attachedDatabase, alias);
+  }
+}
+
+class SimulatedGatewayChargeRow extends DataClass
+    implements Insertable<SimulatedGatewayChargeRow> {
+  /// The app's request reference — the provider's idempotency key.
+  final String reference;
+  final String providerReference;
+
+  /// `charge` or `refund`.
+  final String operation;
+
+  /// `captured`, `declined` or `refunded`.
+  final String status;
+  final int amountFils;
+  final String? declineCode;
+
+  /// For a refund: the provider reference of the charge it returns.
+  final String? parentProviderReference;
+  final DateTime createdAt;
+  const SimulatedGatewayChargeRow({
+    required this.reference,
+    required this.providerReference,
+    required this.operation,
+    required this.status,
+    required this.amountFils,
+    this.declineCode,
+    this.parentProviderReference,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['reference'] = Variable<String>(reference);
+    map['provider_reference'] = Variable<String>(providerReference);
+    map['operation'] = Variable<String>(operation);
+    map['status'] = Variable<String>(status);
+    map['amount_fils'] = Variable<int>(amountFils);
+    if (!nullToAbsent || declineCode != null) {
+      map['decline_code'] = Variable<String>(declineCode);
+    }
+    if (!nullToAbsent || parentProviderReference != null) {
+      map['parent_provider_reference'] = Variable<String>(
+        parentProviderReference,
+      );
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  SimulatedGatewayChargesCompanion toCompanion(bool nullToAbsent) {
+    return SimulatedGatewayChargesCompanion(
+      reference: Value(reference),
+      providerReference: Value(providerReference),
+      operation: Value(operation),
+      status: Value(status),
+      amountFils: Value(amountFils),
+      declineCode: declineCode == null && nullToAbsent
+          ? const Value.absent()
+          : Value(declineCode),
+      parentProviderReference: parentProviderReference == null && nullToAbsent
+          ? const Value.absent()
+          : Value(parentProviderReference),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory SimulatedGatewayChargeRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SimulatedGatewayChargeRow(
+      reference: serializer.fromJson<String>(json['reference']),
+      providerReference: serializer.fromJson<String>(json['providerReference']),
+      operation: serializer.fromJson<String>(json['operation']),
+      status: serializer.fromJson<String>(json['status']),
+      amountFils: serializer.fromJson<int>(json['amountFils']),
+      declineCode: serializer.fromJson<String?>(json['declineCode']),
+      parentProviderReference: serializer.fromJson<String?>(
+        json['parentProviderReference'],
+      ),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'reference': serializer.toJson<String>(reference),
+      'providerReference': serializer.toJson<String>(providerReference),
+      'operation': serializer.toJson<String>(operation),
+      'status': serializer.toJson<String>(status),
+      'amountFils': serializer.toJson<int>(amountFils),
+      'declineCode': serializer.toJson<String?>(declineCode),
+      'parentProviderReference': serializer.toJson<String?>(
+        parentProviderReference,
+      ),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  SimulatedGatewayChargeRow copyWith({
+    String? reference,
+    String? providerReference,
+    String? operation,
+    String? status,
+    int? amountFils,
+    Value<String?> declineCode = const Value.absent(),
+    Value<String?> parentProviderReference = const Value.absent(),
+    DateTime? createdAt,
+  }) => SimulatedGatewayChargeRow(
+    reference: reference ?? this.reference,
+    providerReference: providerReference ?? this.providerReference,
+    operation: operation ?? this.operation,
+    status: status ?? this.status,
+    amountFils: amountFils ?? this.amountFils,
+    declineCode: declineCode.present ? declineCode.value : this.declineCode,
+    parentProviderReference: parentProviderReference.present
+        ? parentProviderReference.value
+        : this.parentProviderReference,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  SimulatedGatewayChargeRow copyWithCompanion(
+    SimulatedGatewayChargesCompanion data,
+  ) {
+    return SimulatedGatewayChargeRow(
+      reference: data.reference.present ? data.reference.value : this.reference,
+      providerReference: data.providerReference.present
+          ? data.providerReference.value
+          : this.providerReference,
+      operation: data.operation.present ? data.operation.value : this.operation,
+      status: data.status.present ? data.status.value : this.status,
+      amountFils: data.amountFils.present
+          ? data.amountFils.value
+          : this.amountFils,
+      declineCode: data.declineCode.present
+          ? data.declineCode.value
+          : this.declineCode,
+      parentProviderReference: data.parentProviderReference.present
+          ? data.parentProviderReference.value
+          : this.parentProviderReference,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SimulatedGatewayChargeRow(')
+          ..write('reference: $reference, ')
+          ..write('providerReference: $providerReference, ')
+          ..write('operation: $operation, ')
+          ..write('status: $status, ')
+          ..write('amountFils: $amountFils, ')
+          ..write('declineCode: $declineCode, ')
+          ..write('parentProviderReference: $parentProviderReference, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    reference,
+    providerReference,
+    operation,
+    status,
+    amountFils,
+    declineCode,
+    parentProviderReference,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SimulatedGatewayChargeRow &&
+          other.reference == this.reference &&
+          other.providerReference == this.providerReference &&
+          other.operation == this.operation &&
+          other.status == this.status &&
+          other.amountFils == this.amountFils &&
+          other.declineCode == this.declineCode &&
+          other.parentProviderReference == this.parentProviderReference &&
+          other.createdAt == this.createdAt);
+}
+
+class SimulatedGatewayChargesCompanion
+    extends UpdateCompanion<SimulatedGatewayChargeRow> {
+  final Value<String> reference;
+  final Value<String> providerReference;
+  final Value<String> operation;
+  final Value<String> status;
+  final Value<int> amountFils;
+  final Value<String?> declineCode;
+  final Value<String?> parentProviderReference;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const SimulatedGatewayChargesCompanion({
+    this.reference = const Value.absent(),
+    this.providerReference = const Value.absent(),
+    this.operation = const Value.absent(),
+    this.status = const Value.absent(),
+    this.amountFils = const Value.absent(),
+    this.declineCode = const Value.absent(),
+    this.parentProviderReference = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SimulatedGatewayChargesCompanion.insert({
+    required String reference,
+    required String providerReference,
+    required String operation,
+    required String status,
+    required int amountFils,
+    this.declineCode = const Value.absent(),
+    this.parentProviderReference = const Value.absent(),
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : reference = Value(reference),
+       providerReference = Value(providerReference),
+       operation = Value(operation),
+       status = Value(status),
+       amountFils = Value(amountFils),
+       createdAt = Value(createdAt);
+  static Insertable<SimulatedGatewayChargeRow> custom({
+    Expression<String>? reference,
+    Expression<String>? providerReference,
+    Expression<String>? operation,
+    Expression<String>? status,
+    Expression<int>? amountFils,
+    Expression<String>? declineCode,
+    Expression<String>? parentProviderReference,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (reference != null) 'reference': reference,
+      if (providerReference != null) 'provider_reference': providerReference,
+      if (operation != null) 'operation': operation,
+      if (status != null) 'status': status,
+      if (amountFils != null) 'amount_fils': amountFils,
+      if (declineCode != null) 'decline_code': declineCode,
+      if (parentProviderReference != null)
+        'parent_provider_reference': parentProviderReference,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SimulatedGatewayChargesCompanion copyWith({
+    Value<String>? reference,
+    Value<String>? providerReference,
+    Value<String>? operation,
+    Value<String>? status,
+    Value<int>? amountFils,
+    Value<String?>? declineCode,
+    Value<String?>? parentProviderReference,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return SimulatedGatewayChargesCompanion(
+      reference: reference ?? this.reference,
+      providerReference: providerReference ?? this.providerReference,
+      operation: operation ?? this.operation,
+      status: status ?? this.status,
+      amountFils: amountFils ?? this.amountFils,
+      declineCode: declineCode ?? this.declineCode,
+      parentProviderReference:
+          parentProviderReference ?? this.parentProviderReference,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (reference.present) {
+      map['reference'] = Variable<String>(reference.value);
+    }
+    if (providerReference.present) {
+      map['provider_reference'] = Variable<String>(providerReference.value);
+    }
+    if (operation.present) {
+      map['operation'] = Variable<String>(operation.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (amountFils.present) {
+      map['amount_fils'] = Variable<int>(amountFils.value);
+    }
+    if (declineCode.present) {
+      map['decline_code'] = Variable<String>(declineCode.value);
+    }
+    if (parentProviderReference.present) {
+      map['parent_provider_reference'] = Variable<String>(
+        parentProviderReference.value,
+      );
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SimulatedGatewayChargesCompanion(')
+          ..write('reference: $reference, ')
+          ..write('providerReference: $providerReference, ')
+          ..write('operation: $operation, ')
+          ..write('status: $status, ')
+          ..write('amountFils: $amountFils, ')
+          ..write('declineCode: $declineCode, ')
+          ..write('parentProviderReference: $parentProviderReference, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -11720,6 +19628,17 @@ class $NotificationsTable extends Notifications
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _sourceEventIdMeta = const VerificationMeta(
+    'sourceEventId',
+  );
+  @override
+  late final GeneratedColumn<String> sourceEventId = GeneratedColumn<String>(
+    'source_event_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -11730,6 +19649,7 @@ class $NotificationsTable extends Notifications
     deepLink,
     createdAt,
     readAt,
+    sourceEventId,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -11793,6 +19713,15 @@ class $NotificationsTable extends Notifications
         readAt.isAcceptableOrUnknown(data['read_at']!, _readAtMeta),
       );
     }
+    if (data.containsKey('source_event_id')) {
+      context.handle(
+        _sourceEventIdMeta,
+        sourceEventId.isAcceptableOrUnknown(
+          data['source_event_id']!,
+          _sourceEventIdMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -11836,6 +19765,10 @@ class $NotificationsTable extends Notifications
         DriftSqlType.dateTime,
         data['${effectivePrefix}read_at'],
       ),
+      sourceEventId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_event_id'],
+      ),
     );
   }
 
@@ -11864,6 +19797,11 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
 
   /// Null until the recipient opens it.
   final DateTime? readAt;
+
+  /// The outbox event that delivered this row, when it came through the
+  /// outbox. Unique (a partial index, schema v19), so a redelivered event can
+  /// never notify twice.
+  final String? sourceEventId;
   const NotificationRow({
     required this.id,
     required this.recipientId,
@@ -11873,6 +19811,7 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
     this.deepLink,
     required this.createdAt,
     this.readAt,
+    this.sourceEventId,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -11893,6 +19832,9 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
     if (!nullToAbsent || readAt != null) {
       map['read_at'] = Variable<DateTime>(readAt);
     }
+    if (!nullToAbsent || sourceEventId != null) {
+      map['source_event_id'] = Variable<String>(sourceEventId);
+    }
     return map;
   }
 
@@ -11910,6 +19852,9 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
       readAt: readAt == null && nullToAbsent
           ? const Value.absent()
           : Value(readAt),
+      sourceEventId: sourceEventId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sourceEventId),
     );
   }
 
@@ -11929,6 +19874,7 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
       deepLink: serializer.fromJson<String?>(json['deepLink']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       readAt: serializer.fromJson<DateTime?>(json['readAt']),
+      sourceEventId: serializer.fromJson<String?>(json['sourceEventId']),
     );
   }
   @override
@@ -11945,6 +19891,7 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
       'deepLink': serializer.toJson<String?>(deepLink),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'readAt': serializer.toJson<DateTime?>(readAt),
+      'sourceEventId': serializer.toJson<String?>(sourceEventId),
     };
   }
 
@@ -11957,6 +19904,7 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
     Value<String?> deepLink = const Value.absent(),
     DateTime? createdAt,
     Value<DateTime?> readAt = const Value.absent(),
+    Value<String?> sourceEventId = const Value.absent(),
   }) => NotificationRow(
     id: id ?? this.id,
     recipientId: recipientId ?? this.recipientId,
@@ -11966,6 +19914,9 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
     deepLink: deepLink.present ? deepLink.value : this.deepLink,
     createdAt: createdAt ?? this.createdAt,
     readAt: readAt.present ? readAt.value : this.readAt,
+    sourceEventId: sourceEventId.present
+        ? sourceEventId.value
+        : this.sourceEventId,
   );
   NotificationRow copyWithCompanion(NotificationsCompanion data) {
     return NotificationRow(
@@ -11979,6 +19930,9 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
       deepLink: data.deepLink.present ? data.deepLink.value : this.deepLink,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       readAt: data.readAt.present ? data.readAt.value : this.readAt,
+      sourceEventId: data.sourceEventId.present
+          ? data.sourceEventId.value
+          : this.sourceEventId,
     );
   }
 
@@ -11992,7 +19946,8 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
           ..write('body: $body, ')
           ..write('deepLink: $deepLink, ')
           ..write('createdAt: $createdAt, ')
-          ..write('readAt: $readAt')
+          ..write('readAt: $readAt, ')
+          ..write('sourceEventId: $sourceEventId')
           ..write(')'))
         .toString();
   }
@@ -12007,6 +19962,7 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
     deepLink,
     createdAt,
     readAt,
+    sourceEventId,
   );
   @override
   bool operator ==(Object other) =>
@@ -12019,7 +19975,8 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
           other.body == this.body &&
           other.deepLink == this.deepLink &&
           other.createdAt == this.createdAt &&
-          other.readAt == this.readAt);
+          other.readAt == this.readAt &&
+          other.sourceEventId == this.sourceEventId);
 }
 
 class NotificationsCompanion extends UpdateCompanion<NotificationRow> {
@@ -12031,6 +19988,7 @@ class NotificationsCompanion extends UpdateCompanion<NotificationRow> {
   final Value<String?> deepLink;
   final Value<DateTime> createdAt;
   final Value<DateTime?> readAt;
+  final Value<String?> sourceEventId;
   final Value<int> rowid;
   const NotificationsCompanion({
     this.id = const Value.absent(),
@@ -12041,6 +19999,7 @@ class NotificationsCompanion extends UpdateCompanion<NotificationRow> {
     this.deepLink = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.readAt = const Value.absent(),
+    this.sourceEventId = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   NotificationsCompanion.insert({
@@ -12052,6 +20011,7 @@ class NotificationsCompanion extends UpdateCompanion<NotificationRow> {
     this.deepLink = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.readAt = const Value.absent(),
+    this.sourceEventId = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        recipientId = Value(recipientId),
@@ -12067,6 +20027,7 @@ class NotificationsCompanion extends UpdateCompanion<NotificationRow> {
     Expression<String>? deepLink,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? readAt,
+    Expression<String>? sourceEventId,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -12078,6 +20039,7 @@ class NotificationsCompanion extends UpdateCompanion<NotificationRow> {
       if (deepLink != null) 'deep_link': deepLink,
       if (createdAt != null) 'created_at': createdAt,
       if (readAt != null) 'read_at': readAt,
+      if (sourceEventId != null) 'source_event_id': sourceEventId,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -12091,6 +20053,7 @@ class NotificationsCompanion extends UpdateCompanion<NotificationRow> {
     Value<String?>? deepLink,
     Value<DateTime>? createdAt,
     Value<DateTime?>? readAt,
+    Value<String?>? sourceEventId,
     Value<int>? rowid,
   }) {
     return NotificationsCompanion(
@@ -12102,6 +20065,7 @@ class NotificationsCompanion extends UpdateCompanion<NotificationRow> {
       deepLink: deepLink ?? this.deepLink,
       createdAt: createdAt ?? this.createdAt,
       readAt: readAt ?? this.readAt,
+      sourceEventId: sourceEventId ?? this.sourceEventId,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -12135,6 +20099,9 @@ class NotificationsCompanion extends UpdateCompanion<NotificationRow> {
     if (readAt.present) {
       map['read_at'] = Variable<DateTime>(readAt.value);
     }
+    if (sourceEventId.present) {
+      map['source_event_id'] = Variable<String>(sourceEventId.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -12152,6 +20119,7 @@ class NotificationsCompanion extends UpdateCompanion<NotificationRow> {
           ..write('deepLink: $deepLink, ')
           ..write('createdAt: $createdAt, ')
           ..write('readAt: $readAt, ')
+          ..write('sourceEventId: $sourceEventId, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -12830,6 +20798,58 @@ class $CareMessagesTable extends CareMessages
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _senderAccountIdMeta = const VerificationMeta(
+    'senderAccountId',
+  );
+  @override
+  late final GeneratedColumn<String> senderAccountId = GeneratedColumn<String>(
+    'sender_account_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _queueOwnerStaffIdMeta = const VerificationMeta(
+    'queueOwnerStaffId',
+  );
+  @override
+  late final GeneratedColumn<String> queueOwnerStaffId =
+      GeneratedColumn<String>(
+        'queue_owner_staff_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES users (id) ON DELETE SET NULL',
+        ),
+      );
+  static const VerificationMeta _coverageStaffIdMeta = const VerificationMeta(
+    'coverageStaffId',
+  );
+  @override
+  late final GeneratedColumn<String> coverageStaffId = GeneratedColumn<String>(
+    'coverage_staff_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE SET NULL',
+    ),
+  );
+  static const VerificationMeta _responseDueAtMeta = const VerificationMeta(
+    'responseDueAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> responseDueAt =
+      GeneratedColumn<DateTime>(
+        'response_due_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -12839,6 +20859,10 @@ class $CareMessagesTable extends CareMessages
     body,
     sentAt,
     readAt,
+    senderAccountId,
+    queueOwnerStaffId,
+    coverageStaffId,
+    responseDueAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -12901,6 +20925,42 @@ class $CareMessagesTable extends CareMessages
         readAt.isAcceptableOrUnknown(data['read_at']!, _readAtMeta),
       );
     }
+    if (data.containsKey('sender_account_id')) {
+      context.handle(
+        _senderAccountIdMeta,
+        senderAccountId.isAcceptableOrUnknown(
+          data['sender_account_id']!,
+          _senderAccountIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('queue_owner_staff_id')) {
+      context.handle(
+        _queueOwnerStaffIdMeta,
+        queueOwnerStaffId.isAcceptableOrUnknown(
+          data['queue_owner_staff_id']!,
+          _queueOwnerStaffIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('coverage_staff_id')) {
+      context.handle(
+        _coverageStaffIdMeta,
+        coverageStaffId.isAcceptableOrUnknown(
+          data['coverage_staff_id']!,
+          _coverageStaffIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('response_due_at')) {
+      context.handle(
+        _responseDueAtMeta,
+        responseDueAt.isAcceptableOrUnknown(
+          data['response_due_at']!,
+          _responseDueAtMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -12938,6 +20998,22 @@ class $CareMessagesTable extends CareMessages
         DriftSqlType.dateTime,
         data['${effectivePrefix}read_at'],
       ),
+      senderAccountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sender_account_id'],
+      ),
+      queueOwnerStaffId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}queue_owner_staff_id'],
+      ),
+      coverageStaffId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}coverage_staff_id'],
+      ),
+      responseDueAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}response_due_at'],
+      ),
     );
   }
 
@@ -12957,6 +21033,13 @@ class CareMessageRow extends DataClass implements Insertable<CareMessageRow> {
   final String body;
   final DateTime sentAt;
   final DateTime? readAt;
+
+  /// The signed-in account that wrote it — the doctor, the patient, or a
+  /// proxy writing for the patient.
+  final String? senderAccountId;
+  final String? queueOwnerStaffId;
+  final String? coverageStaffId;
+  final DateTime? responseDueAt;
   const CareMessageRow({
     required this.id,
     required this.patientId,
@@ -12965,6 +21048,10 @@ class CareMessageRow extends DataClass implements Insertable<CareMessageRow> {
     required this.body,
     required this.sentAt,
     this.readAt,
+    this.senderAccountId,
+    this.queueOwnerStaffId,
+    this.coverageStaffId,
+    this.responseDueAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -12977,6 +21064,18 @@ class CareMessageRow extends DataClass implements Insertable<CareMessageRow> {
     map['sent_at'] = Variable<DateTime>(sentAt);
     if (!nullToAbsent || readAt != null) {
       map['read_at'] = Variable<DateTime>(readAt);
+    }
+    if (!nullToAbsent || senderAccountId != null) {
+      map['sender_account_id'] = Variable<String>(senderAccountId);
+    }
+    if (!nullToAbsent || queueOwnerStaffId != null) {
+      map['queue_owner_staff_id'] = Variable<String>(queueOwnerStaffId);
+    }
+    if (!nullToAbsent || coverageStaffId != null) {
+      map['coverage_staff_id'] = Variable<String>(coverageStaffId);
+    }
+    if (!nullToAbsent || responseDueAt != null) {
+      map['response_due_at'] = Variable<DateTime>(responseDueAt);
     }
     return map;
   }
@@ -12992,6 +21091,18 @@ class CareMessageRow extends DataClass implements Insertable<CareMessageRow> {
       readAt: readAt == null && nullToAbsent
           ? const Value.absent()
           : Value(readAt),
+      senderAccountId: senderAccountId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(senderAccountId),
+      queueOwnerStaffId: queueOwnerStaffId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(queueOwnerStaffId),
+      coverageStaffId: coverageStaffId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(coverageStaffId),
+      responseDueAt: responseDueAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(responseDueAt),
     );
   }
 
@@ -13008,6 +21119,12 @@ class CareMessageRow extends DataClass implements Insertable<CareMessageRow> {
       body: serializer.fromJson<String>(json['body']),
       sentAt: serializer.fromJson<DateTime>(json['sentAt']),
       readAt: serializer.fromJson<DateTime?>(json['readAt']),
+      senderAccountId: serializer.fromJson<String?>(json['senderAccountId']),
+      queueOwnerStaffId: serializer.fromJson<String?>(
+        json['queueOwnerStaffId'],
+      ),
+      coverageStaffId: serializer.fromJson<String?>(json['coverageStaffId']),
+      responseDueAt: serializer.fromJson<DateTime?>(json['responseDueAt']),
     );
   }
   @override
@@ -13021,6 +21138,10 @@ class CareMessageRow extends DataClass implements Insertable<CareMessageRow> {
       'body': serializer.toJson<String>(body),
       'sentAt': serializer.toJson<DateTime>(sentAt),
       'readAt': serializer.toJson<DateTime?>(readAt),
+      'senderAccountId': serializer.toJson<String?>(senderAccountId),
+      'queueOwnerStaffId': serializer.toJson<String?>(queueOwnerStaffId),
+      'coverageStaffId': serializer.toJson<String?>(coverageStaffId),
+      'responseDueAt': serializer.toJson<DateTime?>(responseDueAt),
     };
   }
 
@@ -13032,6 +21153,10 @@ class CareMessageRow extends DataClass implements Insertable<CareMessageRow> {
     String? body,
     DateTime? sentAt,
     Value<DateTime?> readAt = const Value.absent(),
+    Value<String?> senderAccountId = const Value.absent(),
+    Value<String?> queueOwnerStaffId = const Value.absent(),
+    Value<String?> coverageStaffId = const Value.absent(),
+    Value<DateTime?> responseDueAt = const Value.absent(),
   }) => CareMessageRow(
     id: id ?? this.id,
     patientId: patientId ?? this.patientId,
@@ -13040,6 +21165,18 @@ class CareMessageRow extends DataClass implements Insertable<CareMessageRow> {
     body: body ?? this.body,
     sentAt: sentAt ?? this.sentAt,
     readAt: readAt.present ? readAt.value : this.readAt,
+    senderAccountId: senderAccountId.present
+        ? senderAccountId.value
+        : this.senderAccountId,
+    queueOwnerStaffId: queueOwnerStaffId.present
+        ? queueOwnerStaffId.value
+        : this.queueOwnerStaffId,
+    coverageStaffId: coverageStaffId.present
+        ? coverageStaffId.value
+        : this.coverageStaffId,
+    responseDueAt: responseDueAt.present
+        ? responseDueAt.value
+        : this.responseDueAt,
   );
   CareMessageRow copyWithCompanion(CareMessagesCompanion data) {
     return CareMessageRow(
@@ -13050,6 +21187,18 @@ class CareMessageRow extends DataClass implements Insertable<CareMessageRow> {
       body: data.body.present ? data.body.value : this.body,
       sentAt: data.sentAt.present ? data.sentAt.value : this.sentAt,
       readAt: data.readAt.present ? data.readAt.value : this.readAt,
+      senderAccountId: data.senderAccountId.present
+          ? data.senderAccountId.value
+          : this.senderAccountId,
+      queueOwnerStaffId: data.queueOwnerStaffId.present
+          ? data.queueOwnerStaffId.value
+          : this.queueOwnerStaffId,
+      coverageStaffId: data.coverageStaffId.present
+          ? data.coverageStaffId.value
+          : this.coverageStaffId,
+      responseDueAt: data.responseDueAt.present
+          ? data.responseDueAt.value
+          : this.responseDueAt,
     );
   }
 
@@ -13062,14 +21211,29 @@ class CareMessageRow extends DataClass implements Insertable<CareMessageRow> {
           ..write('fromStaff: $fromStaff, ')
           ..write('body: $body, ')
           ..write('sentAt: $sentAt, ')
-          ..write('readAt: $readAt')
+          ..write('readAt: $readAt, ')
+          ..write('senderAccountId: $senderAccountId, ')
+          ..write('queueOwnerStaffId: $queueOwnerStaffId, ')
+          ..write('coverageStaffId: $coverageStaffId, ')
+          ..write('responseDueAt: $responseDueAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, patientId, staffId, fromStaff, body, sentAt, readAt);
+  int get hashCode => Object.hash(
+    id,
+    patientId,
+    staffId,
+    fromStaff,
+    body,
+    sentAt,
+    readAt,
+    senderAccountId,
+    queueOwnerStaffId,
+    coverageStaffId,
+    responseDueAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -13080,7 +21244,11 @@ class CareMessageRow extends DataClass implements Insertable<CareMessageRow> {
           other.fromStaff == this.fromStaff &&
           other.body == this.body &&
           other.sentAt == this.sentAt &&
-          other.readAt == this.readAt);
+          other.readAt == this.readAt &&
+          other.senderAccountId == this.senderAccountId &&
+          other.queueOwnerStaffId == this.queueOwnerStaffId &&
+          other.coverageStaffId == this.coverageStaffId &&
+          other.responseDueAt == this.responseDueAt);
 }
 
 class CareMessagesCompanion extends UpdateCompanion<CareMessageRow> {
@@ -13091,6 +21259,10 @@ class CareMessagesCompanion extends UpdateCompanion<CareMessageRow> {
   final Value<String> body;
   final Value<DateTime> sentAt;
   final Value<DateTime?> readAt;
+  final Value<String?> senderAccountId;
+  final Value<String?> queueOwnerStaffId;
+  final Value<String?> coverageStaffId;
+  final Value<DateTime?> responseDueAt;
   final Value<int> rowid;
   const CareMessagesCompanion({
     this.id = const Value.absent(),
@@ -13100,6 +21272,10 @@ class CareMessagesCompanion extends UpdateCompanion<CareMessageRow> {
     this.body = const Value.absent(),
     this.sentAt = const Value.absent(),
     this.readAt = const Value.absent(),
+    this.senderAccountId = const Value.absent(),
+    this.queueOwnerStaffId = const Value.absent(),
+    this.coverageStaffId = const Value.absent(),
+    this.responseDueAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   CareMessagesCompanion.insert({
@@ -13110,6 +21286,10 @@ class CareMessagesCompanion extends UpdateCompanion<CareMessageRow> {
     required String body,
     this.sentAt = const Value.absent(),
     this.readAt = const Value.absent(),
+    this.senderAccountId = const Value.absent(),
+    this.queueOwnerStaffId = const Value.absent(),
+    this.coverageStaffId = const Value.absent(),
+    this.responseDueAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        patientId = Value(patientId),
@@ -13124,6 +21304,10 @@ class CareMessagesCompanion extends UpdateCompanion<CareMessageRow> {
     Expression<String>? body,
     Expression<DateTime>? sentAt,
     Expression<DateTime>? readAt,
+    Expression<String>? senderAccountId,
+    Expression<String>? queueOwnerStaffId,
+    Expression<String>? coverageStaffId,
+    Expression<DateTime>? responseDueAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -13134,6 +21318,10 @@ class CareMessagesCompanion extends UpdateCompanion<CareMessageRow> {
       if (body != null) 'body': body,
       if (sentAt != null) 'sent_at': sentAt,
       if (readAt != null) 'read_at': readAt,
+      if (senderAccountId != null) 'sender_account_id': senderAccountId,
+      if (queueOwnerStaffId != null) 'queue_owner_staff_id': queueOwnerStaffId,
+      if (coverageStaffId != null) 'coverage_staff_id': coverageStaffId,
+      if (responseDueAt != null) 'response_due_at': responseDueAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -13146,6 +21334,10 @@ class CareMessagesCompanion extends UpdateCompanion<CareMessageRow> {
     Value<String>? body,
     Value<DateTime>? sentAt,
     Value<DateTime?>? readAt,
+    Value<String?>? senderAccountId,
+    Value<String?>? queueOwnerStaffId,
+    Value<String?>? coverageStaffId,
+    Value<DateTime?>? responseDueAt,
     Value<int>? rowid,
   }) {
     return CareMessagesCompanion(
@@ -13156,6 +21348,10 @@ class CareMessagesCompanion extends UpdateCompanion<CareMessageRow> {
       body: body ?? this.body,
       sentAt: sentAt ?? this.sentAt,
       readAt: readAt ?? this.readAt,
+      senderAccountId: senderAccountId ?? this.senderAccountId,
+      queueOwnerStaffId: queueOwnerStaffId ?? this.queueOwnerStaffId,
+      coverageStaffId: coverageStaffId ?? this.coverageStaffId,
+      responseDueAt: responseDueAt ?? this.responseDueAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -13184,6 +21380,18 @@ class CareMessagesCompanion extends UpdateCompanion<CareMessageRow> {
     if (readAt.present) {
       map['read_at'] = Variable<DateTime>(readAt.value);
     }
+    if (senderAccountId.present) {
+      map['sender_account_id'] = Variable<String>(senderAccountId.value);
+    }
+    if (queueOwnerStaffId.present) {
+      map['queue_owner_staff_id'] = Variable<String>(queueOwnerStaffId.value);
+    }
+    if (coverageStaffId.present) {
+      map['coverage_staff_id'] = Variable<String>(coverageStaffId.value);
+    }
+    if (responseDueAt.present) {
+      map['response_due_at'] = Variable<DateTime>(responseDueAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -13200,6 +21408,10 @@ class CareMessagesCompanion extends UpdateCompanion<CareMessageRow> {
           ..write('body: $body, ')
           ..write('sentAt: $sentAt, ')
           ..write('readAt: $readAt, ')
+          ..write('senderAccountId: $senderAccountId, ')
+          ..write('queueOwnerStaffId: $queueOwnerStaffId, ')
+          ..write('coverageStaffId: $coverageStaffId, ')
+          ..write('responseDueAt: $responseDueAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -13351,6 +21563,29 @@ class $HomeVisitRequestsTable extends HomeVisitRequests
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _requestedByAccountIdMeta =
+      const VerificationMeta('requestedByAccountId');
+  @override
+  late final GeneratedColumn<String> requestedByAccountId =
+      GeneratedColumn<String>(
+        'requested_by_account_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -13364,6 +21599,8 @@ class $HomeVisitRequestsTable extends HomeVisitRequests
     decisionNote,
     createdAt,
     decidedAt,
+    requestedByAccountId,
+    version,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -13459,6 +21696,21 @@ class $HomeVisitRequestsTable extends HomeVisitRequests
         decidedAt.isAcceptableOrUnknown(data['decided_at']!, _decidedAtMeta),
       );
     }
+    if (data.containsKey('requested_by_account_id')) {
+      context.handle(
+        _requestedByAccountIdMeta,
+        requestedByAccountId.isAcceptableOrUnknown(
+          data['requested_by_account_id']!,
+          _requestedByAccountIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
     return context;
   }
 
@@ -13514,6 +21766,14 @@ class $HomeVisitRequestsTable extends HomeVisitRequests
         DriftSqlType.dateTime,
         data['${effectivePrefix}decided_at'],
       ),
+      requestedByAccountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}requested_by_account_id'],
+      ),
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
     );
   }
 
@@ -13540,6 +21800,12 @@ class HomeVisitRow extends DataClass implements Insertable<HomeVisitRow> {
   final String? decisionNote;
   final DateTime createdAt;
   final DateTime? decidedAt;
+
+  /// The signed-in account that asked for the visit (patient or proxy).
+  final String? requestedByAccountId;
+
+  /// Optimistic-concurrency version (trigger-bumped, schema v19).
+  final int version;
   const HomeVisitRow({
     required this.id,
     required this.patientId,
@@ -13552,6 +21818,8 @@ class HomeVisitRow extends DataClass implements Insertable<HomeVisitRow> {
     this.decisionNote,
     required this.createdAt,
     this.decidedAt,
+    this.requestedByAccountId,
+    required this.version,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -13579,6 +21847,10 @@ class HomeVisitRow extends DataClass implements Insertable<HomeVisitRow> {
     if (!nullToAbsent || decidedAt != null) {
       map['decided_at'] = Variable<DateTime>(decidedAt);
     }
+    if (!nullToAbsent || requestedByAccountId != null) {
+      map['requested_by_account_id'] = Variable<String>(requestedByAccountId);
+    }
+    map['version'] = Variable<int>(version);
     return map;
   }
 
@@ -13603,6 +21875,10 @@ class HomeVisitRow extends DataClass implements Insertable<HomeVisitRow> {
       decidedAt: decidedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(decidedAt),
+      requestedByAccountId: requestedByAccountId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(requestedByAccountId),
+      version: Value(version),
     );
   }
 
@@ -13625,6 +21901,10 @@ class HomeVisitRow extends DataClass implements Insertable<HomeVisitRow> {
       decisionNote: serializer.fromJson<String?>(json['decisionNote']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       decidedAt: serializer.fromJson<DateTime?>(json['decidedAt']),
+      requestedByAccountId: serializer.fromJson<String?>(
+        json['requestedByAccountId'],
+      ),
+      version: serializer.fromJson<int>(json['version']),
     );
   }
   @override
@@ -13644,6 +21924,8 @@ class HomeVisitRow extends DataClass implements Insertable<HomeVisitRow> {
       'decisionNote': serializer.toJson<String?>(decisionNote),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'decidedAt': serializer.toJson<DateTime?>(decidedAt),
+      'requestedByAccountId': serializer.toJson<String?>(requestedByAccountId),
+      'version': serializer.toJson<int>(version),
     };
   }
 
@@ -13659,6 +21941,8 @@ class HomeVisitRow extends DataClass implements Insertable<HomeVisitRow> {
     Value<String?> decisionNote = const Value.absent(),
     DateTime? createdAt,
     Value<DateTime?> decidedAt = const Value.absent(),
+    Value<String?> requestedByAccountId = const Value.absent(),
+    int? version,
   }) => HomeVisitRow(
     id: id ?? this.id,
     patientId: patientId ?? this.patientId,
@@ -13673,6 +21957,10 @@ class HomeVisitRow extends DataClass implements Insertable<HomeVisitRow> {
     decisionNote: decisionNote.present ? decisionNote.value : this.decisionNote,
     createdAt: createdAt ?? this.createdAt,
     decidedAt: decidedAt.present ? decidedAt.value : this.decidedAt,
+    requestedByAccountId: requestedByAccountId.present
+        ? requestedByAccountId.value
+        : this.requestedByAccountId,
+    version: version ?? this.version,
   );
   HomeVisitRow copyWithCompanion(HomeVisitRequestsCompanion data) {
     return HomeVisitRow(
@@ -13699,6 +21987,10 @@ class HomeVisitRow extends DataClass implements Insertable<HomeVisitRow> {
           : this.decisionNote,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       decidedAt: data.decidedAt.present ? data.decidedAt.value : this.decidedAt,
+      requestedByAccountId: data.requestedByAccountId.present
+          ? data.requestedByAccountId.value
+          : this.requestedByAccountId,
+      version: data.version.present ? data.version.value : this.version,
     );
   }
 
@@ -13715,7 +22007,9 @@ class HomeVisitRow extends DataClass implements Insertable<HomeVisitRow> {
           ..write('assignedStaffId: $assignedStaffId, ')
           ..write('decisionNote: $decisionNote, ')
           ..write('createdAt: $createdAt, ')
-          ..write('decidedAt: $decidedAt')
+          ..write('decidedAt: $decidedAt, ')
+          ..write('requestedByAccountId: $requestedByAccountId, ')
+          ..write('version: $version')
           ..write(')'))
         .toString();
   }
@@ -13733,6 +22027,8 @@ class HomeVisitRow extends DataClass implements Insertable<HomeVisitRow> {
     decisionNote,
     createdAt,
     decidedAt,
+    requestedByAccountId,
+    version,
   );
   @override
   bool operator ==(Object other) =>
@@ -13748,7 +22044,9 @@ class HomeVisitRow extends DataClass implements Insertable<HomeVisitRow> {
           other.assignedStaffId == this.assignedStaffId &&
           other.decisionNote == this.decisionNote &&
           other.createdAt == this.createdAt &&
-          other.decidedAt == this.decidedAt);
+          other.decidedAt == this.decidedAt &&
+          other.requestedByAccountId == this.requestedByAccountId &&
+          other.version == this.version);
 }
 
 class HomeVisitRequestsCompanion extends UpdateCompanion<HomeVisitRow> {
@@ -13763,6 +22061,8 @@ class HomeVisitRequestsCompanion extends UpdateCompanion<HomeVisitRow> {
   final Value<String?> decisionNote;
   final Value<DateTime> createdAt;
   final Value<DateTime?> decidedAt;
+  final Value<String?> requestedByAccountId;
+  final Value<int> version;
   final Value<int> rowid;
   const HomeVisitRequestsCompanion({
     this.id = const Value.absent(),
@@ -13776,6 +22076,8 @@ class HomeVisitRequestsCompanion extends UpdateCompanion<HomeVisitRow> {
     this.decisionNote = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.decidedAt = const Value.absent(),
+    this.requestedByAccountId = const Value.absent(),
+    this.version = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   HomeVisitRequestsCompanion.insert({
@@ -13790,6 +22092,8 @@ class HomeVisitRequestsCompanion extends UpdateCompanion<HomeVisitRow> {
     this.decisionNote = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.decidedAt = const Value.absent(),
+    this.requestedByAccountId = const Value.absent(),
+    this.version = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        patientId = Value(patientId),
@@ -13808,6 +22112,8 @@ class HomeVisitRequestsCompanion extends UpdateCompanion<HomeVisitRow> {
     Expression<String>? decisionNote,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? decidedAt,
+    Expression<String>? requestedByAccountId,
+    Expression<int>? version,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -13822,6 +22128,9 @@ class HomeVisitRequestsCompanion extends UpdateCompanion<HomeVisitRow> {
       if (decisionNote != null) 'decision_note': decisionNote,
       if (createdAt != null) 'created_at': createdAt,
       if (decidedAt != null) 'decided_at': decidedAt,
+      if (requestedByAccountId != null)
+        'requested_by_account_id': requestedByAccountId,
+      if (version != null) 'version': version,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -13838,6 +22147,8 @@ class HomeVisitRequestsCompanion extends UpdateCompanion<HomeVisitRow> {
     Value<String?>? decisionNote,
     Value<DateTime>? createdAt,
     Value<DateTime?>? decidedAt,
+    Value<String?>? requestedByAccountId,
+    Value<int>? version,
     Value<int>? rowid,
   }) {
     return HomeVisitRequestsCompanion(
@@ -13852,6 +22163,8 @@ class HomeVisitRequestsCompanion extends UpdateCompanion<HomeVisitRow> {
       decisionNote: decisionNote ?? this.decisionNote,
       createdAt: createdAt ?? this.createdAt,
       decidedAt: decidedAt ?? this.decidedAt,
+      requestedByAccountId: requestedByAccountId ?? this.requestedByAccountId,
+      version: version ?? this.version,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -13894,6 +22207,14 @@ class HomeVisitRequestsCompanion extends UpdateCompanion<HomeVisitRow> {
     if (decidedAt.present) {
       map['decided_at'] = Variable<DateTime>(decidedAt.value);
     }
+    if (requestedByAccountId.present) {
+      map['requested_by_account_id'] = Variable<String>(
+        requestedByAccountId.value,
+      );
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -13914,6 +22235,8 @@ class HomeVisitRequestsCompanion extends UpdateCompanion<HomeVisitRow> {
           ..write('decisionNote: $decisionNote, ')
           ..write('createdAt: $createdAt, ')
           ..write('decidedAt: $decidedAt, ')
+          ..write('requestedByAccountId: $requestedByAccountId, ')
+          ..write('version: $version, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -14072,6 +22395,18 @@ class $WalkInTicketsTable extends WalkInTickets
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -14086,6 +22421,7 @@ class $WalkInTicketsTable extends WalkInTickets
     resultAppointmentId,
     createdAt,
     resolvedAt,
+    version,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -14187,6 +22523,12 @@ class $WalkInTicketsTable extends WalkInTickets
         resolvedAt.isAcceptableOrUnknown(data['resolved_at']!, _resolvedAtMeta),
       );
     }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
     return context;
   }
 
@@ -14246,6 +22588,10 @@ class $WalkInTicketsTable extends WalkInTickets
         DriftSqlType.dateTime,
         data['${effectivePrefix}resolved_at'],
       ),
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
     );
   }
 
@@ -14281,6 +22627,10 @@ class WalkInRow extends DataClass implements Insertable<WalkInRow> {
   final String? resultAppointmentId;
   final DateTime createdAt;
   final DateTime? resolvedAt;
+
+  /// Optimistic-concurrency version (trigger-bumped, schema v19). Two
+  /// clinicians claiming one ticket race on this.
+  final int version;
   const WalkInRow({
     required this.id,
     required this.patientId,
@@ -14294,6 +22644,7 @@ class WalkInRow extends DataClass implements Insertable<WalkInRow> {
     this.resultAppointmentId,
     required this.createdAt,
     this.resolvedAt,
+    required this.version,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -14324,6 +22675,7 @@ class WalkInRow extends DataClass implements Insertable<WalkInRow> {
     if (!nullToAbsent || resolvedAt != null) {
       map['resolved_at'] = Variable<DateTime>(resolvedAt);
     }
+    map['version'] = Variable<int>(version);
     return map;
   }
 
@@ -14351,6 +22703,7 @@ class WalkInRow extends DataClass implements Insertable<WalkInRow> {
       resolvedAt: resolvedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(resolvedAt),
+      version: Value(version),
     );
   }
 
@@ -14378,6 +22731,7 @@ class WalkInRow extends DataClass implements Insertable<WalkInRow> {
       ),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       resolvedAt: serializer.fromJson<DateTime?>(json['resolvedAt']),
+      version: serializer.fromJson<int>(json['version']),
     );
   }
   @override
@@ -14398,6 +22752,7 @@ class WalkInRow extends DataClass implements Insertable<WalkInRow> {
       'resultAppointmentId': serializer.toJson<String?>(resultAppointmentId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'resolvedAt': serializer.toJson<DateTime?>(resolvedAt),
+      'version': serializer.toJson<int>(version),
     };
   }
 
@@ -14414,6 +22769,7 @@ class WalkInRow extends DataClass implements Insertable<WalkInRow> {
     Value<String?> resultAppointmentId = const Value.absent(),
     DateTime? createdAt,
     Value<DateTime?> resolvedAt = const Value.absent(),
+    int? version,
   }) => WalkInRow(
     id: id ?? this.id,
     patientId: patientId ?? this.patientId,
@@ -14433,6 +22789,7 @@ class WalkInRow extends DataClass implements Insertable<WalkInRow> {
         : this.resultAppointmentId,
     createdAt: createdAt ?? this.createdAt,
     resolvedAt: resolvedAt.present ? resolvedAt.value : this.resolvedAt,
+    version: version ?? this.version,
   );
   WalkInRow copyWithCompanion(WalkInTicketsCompanion data) {
     return WalkInRow(
@@ -14460,6 +22817,7 @@ class WalkInRow extends DataClass implements Insertable<WalkInRow> {
       resolvedAt: data.resolvedAt.present
           ? data.resolvedAt.value
           : this.resolvedAt,
+      version: data.version.present ? data.version.value : this.version,
     );
   }
 
@@ -14477,7 +22835,8 @@ class WalkInRow extends DataClass implements Insertable<WalkInRow> {
           ..write('claimedByStaffId: $claimedByStaffId, ')
           ..write('resultAppointmentId: $resultAppointmentId, ')
           ..write('createdAt: $createdAt, ')
-          ..write('resolvedAt: $resolvedAt')
+          ..write('resolvedAt: $resolvedAt, ')
+          ..write('version: $version')
           ..write(')'))
         .toString();
   }
@@ -14496,6 +22855,7 @@ class WalkInRow extends DataClass implements Insertable<WalkInRow> {
     resultAppointmentId,
     createdAt,
     resolvedAt,
+    version,
   );
   @override
   bool operator ==(Object other) =>
@@ -14512,7 +22872,8 @@ class WalkInRow extends DataClass implements Insertable<WalkInRow> {
           other.claimedByStaffId == this.claimedByStaffId &&
           other.resultAppointmentId == this.resultAppointmentId &&
           other.createdAt == this.createdAt &&
-          other.resolvedAt == this.resolvedAt);
+          other.resolvedAt == this.resolvedAt &&
+          other.version == this.version);
 }
 
 class WalkInTicketsCompanion extends UpdateCompanion<WalkInRow> {
@@ -14528,6 +22889,7 @@ class WalkInTicketsCompanion extends UpdateCompanion<WalkInRow> {
   final Value<String?> resultAppointmentId;
   final Value<DateTime> createdAt;
   final Value<DateTime?> resolvedAt;
+  final Value<int> version;
   final Value<int> rowid;
   const WalkInTicketsCompanion({
     this.id = const Value.absent(),
@@ -14542,6 +22904,7 @@ class WalkInTicketsCompanion extends UpdateCompanion<WalkInRow> {
     this.resultAppointmentId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.resolvedAt = const Value.absent(),
+    this.version = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   WalkInTicketsCompanion.insert({
@@ -14557,6 +22920,7 @@ class WalkInTicketsCompanion extends UpdateCompanion<WalkInRow> {
     this.resultAppointmentId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.resolvedAt = const Value.absent(),
+    this.version = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        patientId = Value(patientId),
@@ -14576,6 +22940,7 @@ class WalkInTicketsCompanion extends UpdateCompanion<WalkInRow> {
     Expression<String>? resultAppointmentId,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? resolvedAt,
+    Expression<int>? version,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -14593,6 +22958,7 @@ class WalkInTicketsCompanion extends UpdateCompanion<WalkInRow> {
         'result_appointment_id': resultAppointmentId,
       if (createdAt != null) 'created_at': createdAt,
       if (resolvedAt != null) 'resolved_at': resolvedAt,
+      if (version != null) 'version': version,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -14610,6 +22976,7 @@ class WalkInTicketsCompanion extends UpdateCompanion<WalkInRow> {
     Value<String?>? resultAppointmentId,
     Value<DateTime>? createdAt,
     Value<DateTime?>? resolvedAt,
+    Value<int>? version,
     Value<int>? rowid,
   }) {
     return WalkInTicketsCompanion(
@@ -14625,6 +22992,7 @@ class WalkInTicketsCompanion extends UpdateCompanion<WalkInRow> {
       resultAppointmentId: resultAppointmentId ?? this.resultAppointmentId,
       createdAt: createdAt ?? this.createdAt,
       resolvedAt: resolvedAt ?? this.resolvedAt,
+      version: version ?? this.version,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -14674,6 +23042,9 @@ class WalkInTicketsCompanion extends UpdateCompanion<WalkInRow> {
     if (resolvedAt.present) {
       map['resolved_at'] = Variable<DateTime>(resolvedAt.value);
     }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -14695,6 +23066,7 @@ class WalkInTicketsCompanion extends UpdateCompanion<WalkInRow> {
           ..write('resultAppointmentId: $resultAppointmentId, ')
           ..write('createdAt: $createdAt, ')
           ..write('resolvedAt: $resolvedAt, ')
+          ..write('version: $version, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -14832,6 +23204,76 @@ class $ReferralRequestsTable extends ReferralRequests
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _ownerStaffIdMeta = const VerificationMeta(
+    'ownerStaffId',
+  );
+  @override
+  late final GeneratedColumn<String> ownerStaffId = GeneratedColumn<String>(
+    'owner_staff_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE SET NULL',
+    ),
+  );
+  static const VerificationMeta _coverageStaffIdMeta = const VerificationMeta(
+    'coverageStaffId',
+  );
+  @override
+  late final GeneratedColumn<String> coverageStaffId = GeneratedColumn<String>(
+    'coverage_staff_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE SET NULL',
+    ),
+  );
+  static const VerificationMeta _dueAtMeta = const VerificationMeta('dueAt');
+  @override
+  late final GeneratedColumn<DateTime> dueAt = GeneratedColumn<DateTime>(
+    'due_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<WorkPriority, String> priority =
+      GeneratedColumn<String>(
+        'priority',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('routine'),
+      ).withConverter<WorkPriority>($ReferralRequestsTable.$converterpriority);
+  static const VerificationMeta _handoverNoteMeta = const VerificationMeta(
+    'handoverNote',
+  );
+  @override
+  late final GeneratedColumn<String> handoverNote = GeneratedColumn<String>(
+    'handover_note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -14844,6 +23286,12 @@ class $ReferralRequestsTable extends ReferralRequests
     decisionNote,
     decidedAt,
     createdAt,
+    ownerStaffId,
+    coverageStaffId,
+    dueAt,
+    priority,
+    handoverNote,
+    version,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -14928,6 +23376,45 @@ class $ReferralRequestsTable extends ReferralRequests
         createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
       );
     }
+    if (data.containsKey('owner_staff_id')) {
+      context.handle(
+        _ownerStaffIdMeta,
+        ownerStaffId.isAcceptableOrUnknown(
+          data['owner_staff_id']!,
+          _ownerStaffIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('coverage_staff_id')) {
+      context.handle(
+        _coverageStaffIdMeta,
+        coverageStaffId.isAcceptableOrUnknown(
+          data['coverage_staff_id']!,
+          _coverageStaffIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('due_at')) {
+      context.handle(
+        _dueAtMeta,
+        dueAt.isAcceptableOrUnknown(data['due_at']!, _dueAtMeta),
+      );
+    }
+    if (data.containsKey('handover_note')) {
+      context.handle(
+        _handoverNoteMeta,
+        handoverNote.isAcceptableOrUnknown(
+          data['handover_note']!,
+          _handoverNoteMeta,
+        ),
+      );
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
     return context;
   }
 
@@ -14979,6 +23466,32 @@ class $ReferralRequestsTable extends ReferralRequests
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
       )!,
+      ownerStaffId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner_staff_id'],
+      ),
+      coverageStaffId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}coverage_staff_id'],
+      ),
+      dueAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}due_at'],
+      ),
+      priority: $ReferralRequestsTable.$converterpriority.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}priority'],
+        )!,
+      ),
+      handoverNote: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}handover_note'],
+      ),
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
     );
   }
 
@@ -14991,6 +23504,8 @@ class $ReferralRequestsTable extends ReferralRequests
   $converterstatus = const EnumNameConverter<ReferralRequestStatus>(
     ReferralRequestStatus.values,
   );
+  static JsonTypeConverter2<WorkPriority, String, String> $converterpriority =
+      const EnumNameConverter<WorkPriority>(WorkPriority.values);
 }
 
 class ReferralRequestRow extends DataClass
@@ -15005,6 +23520,14 @@ class ReferralRequestRow extends DataClass
   final String? decisionNote;
   final DateTime? decidedAt;
   final DateTime createdAt;
+  final String? ownerStaffId;
+  final String? coverageStaffId;
+  final DateTime? dueAt;
+  final WorkPriority priority;
+  final String? handoverNote;
+
+  /// Optimistic-concurrency version (trigger-bumped, schema v19).
+  final int version;
   const ReferralRequestRow({
     required this.id,
     required this.patientId,
@@ -15016,6 +23539,12 @@ class ReferralRequestRow extends DataClass
     this.decisionNote,
     this.decidedAt,
     required this.createdAt,
+    this.ownerStaffId,
+    this.coverageStaffId,
+    this.dueAt,
+    required this.priority,
+    this.handoverNote,
+    required this.version,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -15042,6 +23571,24 @@ class ReferralRequestRow extends DataClass
       map['decided_at'] = Variable<DateTime>(decidedAt);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || ownerStaffId != null) {
+      map['owner_staff_id'] = Variable<String>(ownerStaffId);
+    }
+    if (!nullToAbsent || coverageStaffId != null) {
+      map['coverage_staff_id'] = Variable<String>(coverageStaffId);
+    }
+    if (!nullToAbsent || dueAt != null) {
+      map['due_at'] = Variable<DateTime>(dueAt);
+    }
+    {
+      map['priority'] = Variable<String>(
+        $ReferralRequestsTable.$converterpriority.toSql(priority),
+      );
+    }
+    if (!nullToAbsent || handoverNote != null) {
+      map['handover_note'] = Variable<String>(handoverNote);
+    }
+    map['version'] = Variable<int>(version);
     return map;
   }
 
@@ -15065,6 +23612,20 @@ class ReferralRequestRow extends DataClass
           ? const Value.absent()
           : Value(decidedAt),
       createdAt: Value(createdAt),
+      ownerStaffId: ownerStaffId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ownerStaffId),
+      coverageStaffId: coverageStaffId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(coverageStaffId),
+      dueAt: dueAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dueAt),
+      priority: Value(priority),
+      handoverNote: handoverNote == null && nullToAbsent
+          ? const Value.absent()
+          : Value(handoverNote),
+      version: Value(version),
     );
   }
 
@@ -15088,6 +23649,14 @@ class ReferralRequestRow extends DataClass
       decisionNote: serializer.fromJson<String?>(json['decisionNote']),
       decidedAt: serializer.fromJson<DateTime?>(json['decidedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      ownerStaffId: serializer.fromJson<String?>(json['ownerStaffId']),
+      coverageStaffId: serializer.fromJson<String?>(json['coverageStaffId']),
+      dueAt: serializer.fromJson<DateTime?>(json['dueAt']),
+      priority: $ReferralRequestsTable.$converterpriority.fromJson(
+        serializer.fromJson<String>(json['priority']),
+      ),
+      handoverNote: serializer.fromJson<String?>(json['handoverNote']),
+      version: serializer.fromJson<int>(json['version']),
     );
   }
   @override
@@ -15106,6 +23675,14 @@ class ReferralRequestRow extends DataClass
       'decisionNote': serializer.toJson<String?>(decisionNote),
       'decidedAt': serializer.toJson<DateTime?>(decidedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'ownerStaffId': serializer.toJson<String?>(ownerStaffId),
+      'coverageStaffId': serializer.toJson<String?>(coverageStaffId),
+      'dueAt': serializer.toJson<DateTime?>(dueAt),
+      'priority': serializer.toJson<String>(
+        $ReferralRequestsTable.$converterpriority.toJson(priority),
+      ),
+      'handoverNote': serializer.toJson<String?>(handoverNote),
+      'version': serializer.toJson<int>(version),
     };
   }
 
@@ -15120,6 +23697,12 @@ class ReferralRequestRow extends DataClass
     Value<String?> decisionNote = const Value.absent(),
     Value<DateTime?> decidedAt = const Value.absent(),
     DateTime? createdAt,
+    Value<String?> ownerStaffId = const Value.absent(),
+    Value<String?> coverageStaffId = const Value.absent(),
+    Value<DateTime?> dueAt = const Value.absent(),
+    WorkPriority? priority,
+    Value<String?> handoverNote = const Value.absent(),
+    int? version,
   }) => ReferralRequestRow(
     id: id ?? this.id,
     patientId: patientId ?? this.patientId,
@@ -15135,6 +23718,14 @@ class ReferralRequestRow extends DataClass
     decisionNote: decisionNote.present ? decisionNote.value : this.decisionNote,
     decidedAt: decidedAt.present ? decidedAt.value : this.decidedAt,
     createdAt: createdAt ?? this.createdAt,
+    ownerStaffId: ownerStaffId.present ? ownerStaffId.value : this.ownerStaffId,
+    coverageStaffId: coverageStaffId.present
+        ? coverageStaffId.value
+        : this.coverageStaffId,
+    dueAt: dueAt.present ? dueAt.value : this.dueAt,
+    priority: priority ?? this.priority,
+    handoverNote: handoverNote.present ? handoverNote.value : this.handoverNote,
+    version: version ?? this.version,
   );
   ReferralRequestRow copyWithCompanion(ReferralRequestsCompanion data) {
     return ReferralRequestRow(
@@ -15156,6 +23747,18 @@ class ReferralRequestRow extends DataClass
           : this.decisionNote,
       decidedAt: data.decidedAt.present ? data.decidedAt.value : this.decidedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      ownerStaffId: data.ownerStaffId.present
+          ? data.ownerStaffId.value
+          : this.ownerStaffId,
+      coverageStaffId: data.coverageStaffId.present
+          ? data.coverageStaffId.value
+          : this.coverageStaffId,
+      dueAt: data.dueAt.present ? data.dueAt.value : this.dueAt,
+      priority: data.priority.present ? data.priority.value : this.priority,
+      handoverNote: data.handoverNote.present
+          ? data.handoverNote.value
+          : this.handoverNote,
+      version: data.version.present ? data.version.value : this.version,
     );
   }
 
@@ -15171,7 +23774,13 @@ class ReferralRequestRow extends DataClass
           ..write('decidedByAdminId: $decidedByAdminId, ')
           ..write('decisionNote: $decisionNote, ')
           ..write('decidedAt: $decidedAt, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('ownerStaffId: $ownerStaffId, ')
+          ..write('coverageStaffId: $coverageStaffId, ')
+          ..write('dueAt: $dueAt, ')
+          ..write('priority: $priority, ')
+          ..write('handoverNote: $handoverNote, ')
+          ..write('version: $version')
           ..write(')'))
         .toString();
   }
@@ -15188,6 +23797,12 @@ class ReferralRequestRow extends DataClass
     decisionNote,
     decidedAt,
     createdAt,
+    ownerStaffId,
+    coverageStaffId,
+    dueAt,
+    priority,
+    handoverNote,
+    version,
   );
   @override
   bool operator ==(Object other) =>
@@ -15202,7 +23817,13 @@ class ReferralRequestRow extends DataClass
           other.decidedByAdminId == this.decidedByAdminId &&
           other.decisionNote == this.decisionNote &&
           other.decidedAt == this.decidedAt &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.ownerStaffId == this.ownerStaffId &&
+          other.coverageStaffId == this.coverageStaffId &&
+          other.dueAt == this.dueAt &&
+          other.priority == this.priority &&
+          other.handoverNote == this.handoverNote &&
+          other.version == this.version);
 }
 
 class ReferralRequestsCompanion extends UpdateCompanion<ReferralRequestRow> {
@@ -15216,6 +23837,12 @@ class ReferralRequestsCompanion extends UpdateCompanion<ReferralRequestRow> {
   final Value<String?> decisionNote;
   final Value<DateTime?> decidedAt;
   final Value<DateTime> createdAt;
+  final Value<String?> ownerStaffId;
+  final Value<String?> coverageStaffId;
+  final Value<DateTime?> dueAt;
+  final Value<WorkPriority> priority;
+  final Value<String?> handoverNote;
+  final Value<int> version;
   final Value<int> rowid;
   const ReferralRequestsCompanion({
     this.id = const Value.absent(),
@@ -15228,6 +23855,12 @@ class ReferralRequestsCompanion extends UpdateCompanion<ReferralRequestRow> {
     this.decisionNote = const Value.absent(),
     this.decidedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.ownerStaffId = const Value.absent(),
+    this.coverageStaffId = const Value.absent(),
+    this.dueAt = const Value.absent(),
+    this.priority = const Value.absent(),
+    this.handoverNote = const Value.absent(),
+    this.version = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ReferralRequestsCompanion.insert({
@@ -15241,6 +23874,12 @@ class ReferralRequestsCompanion extends UpdateCompanion<ReferralRequestRow> {
     this.decisionNote = const Value.absent(),
     this.decidedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.ownerStaffId = const Value.absent(),
+    this.coverageStaffId = const Value.absent(),
+    this.dueAt = const Value.absent(),
+    this.priority = const Value.absent(),
+    this.handoverNote = const Value.absent(),
+    this.version = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        patientId = Value(patientId),
@@ -15257,6 +23896,12 @@ class ReferralRequestsCompanion extends UpdateCompanion<ReferralRequestRow> {
     Expression<String>? decisionNote,
     Expression<DateTime>? decidedAt,
     Expression<DateTime>? createdAt,
+    Expression<String>? ownerStaffId,
+    Expression<String>? coverageStaffId,
+    Expression<DateTime>? dueAt,
+    Expression<String>? priority,
+    Expression<String>? handoverNote,
+    Expression<int>? version,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -15271,6 +23916,12 @@ class ReferralRequestsCompanion extends UpdateCompanion<ReferralRequestRow> {
       if (decisionNote != null) 'decision_note': decisionNote,
       if (decidedAt != null) 'decided_at': decidedAt,
       if (createdAt != null) 'created_at': createdAt,
+      if (ownerStaffId != null) 'owner_staff_id': ownerStaffId,
+      if (coverageStaffId != null) 'coverage_staff_id': coverageStaffId,
+      if (dueAt != null) 'due_at': dueAt,
+      if (priority != null) 'priority': priority,
+      if (handoverNote != null) 'handover_note': handoverNote,
+      if (version != null) 'version': version,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -15286,6 +23937,12 @@ class ReferralRequestsCompanion extends UpdateCompanion<ReferralRequestRow> {
     Value<String?>? decisionNote,
     Value<DateTime?>? decidedAt,
     Value<DateTime>? createdAt,
+    Value<String?>? ownerStaffId,
+    Value<String?>? coverageStaffId,
+    Value<DateTime?>? dueAt,
+    Value<WorkPriority>? priority,
+    Value<String?>? handoverNote,
+    Value<int>? version,
     Value<int>? rowid,
   }) {
     return ReferralRequestsCompanion(
@@ -15299,6 +23956,12 @@ class ReferralRequestsCompanion extends UpdateCompanion<ReferralRequestRow> {
       decisionNote: decisionNote ?? this.decisionNote,
       decidedAt: decidedAt ?? this.decidedAt,
       createdAt: createdAt ?? this.createdAt,
+      ownerStaffId: ownerStaffId ?? this.ownerStaffId,
+      coverageStaffId: coverageStaffId ?? this.coverageStaffId,
+      dueAt: dueAt ?? this.dueAt,
+      priority: priority ?? this.priority,
+      handoverNote: handoverNote ?? this.handoverNote,
+      version: version ?? this.version,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -15338,6 +24001,26 @@ class ReferralRequestsCompanion extends UpdateCompanion<ReferralRequestRow> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (ownerStaffId.present) {
+      map['owner_staff_id'] = Variable<String>(ownerStaffId.value);
+    }
+    if (coverageStaffId.present) {
+      map['coverage_staff_id'] = Variable<String>(coverageStaffId.value);
+    }
+    if (dueAt.present) {
+      map['due_at'] = Variable<DateTime>(dueAt.value);
+    }
+    if (priority.present) {
+      map['priority'] = Variable<String>(
+        $ReferralRequestsTable.$converterpriority.toSql(priority.value),
+      );
+    }
+    if (handoverNote.present) {
+      map['handover_note'] = Variable<String>(handoverNote.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -15357,6 +24040,12 @@ class ReferralRequestsCompanion extends UpdateCompanion<ReferralRequestRow> {
           ..write('decisionNote: $decisionNote, ')
           ..write('decidedAt: $decidedAt, ')
           ..write('createdAt: $createdAt, ')
+          ..write('ownerStaffId: $ownerStaffId, ')
+          ..write('coverageStaffId: $coverageStaffId, ')
+          ..write('dueAt: $dueAt, ')
+          ..write('priority: $priority, ')
+          ..write('handoverNote: $handoverNote, ')
+          ..write('version: $version, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -15432,6 +24121,17 @@ class $AuditLogTable extends AuditLog
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _subjectPatientIdMeta = const VerificationMeta(
+    'subjectPatientId',
+  );
+  @override
+  late final GeneratedColumn<String> subjectPatientId = GeneratedColumn<String>(
+    'subject_patient_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _atMeta = const VerificationMeta('at');
   @override
   late final GeneratedColumn<DateTime> at = GeneratedColumn<DateTime>(
@@ -15450,6 +24150,7 @@ class $AuditLogTable extends AuditLog
     entityType,
     entityId,
     detail,
+    subjectPatientId,
     at,
   ];
   @override
@@ -15506,6 +24207,15 @@ class $AuditLogTable extends AuditLog
         detail.isAcceptableOrUnknown(data['detail']!, _detailMeta),
       );
     }
+    if (data.containsKey('subject_patient_id')) {
+      context.handle(
+        _subjectPatientIdMeta,
+        subjectPatientId.isAcceptableOrUnknown(
+          data['subject_patient_id']!,
+          _subjectPatientIdMeta,
+        ),
+      );
+    }
     if (data.containsKey('at')) {
       context.handle(_atMeta, at.isAcceptableOrUnknown(data['at']!, _atMeta));
     }
@@ -15542,6 +24252,10 @@ class $AuditLogTable extends AuditLog
         DriftSqlType.string,
         data['${effectivePrefix}detail'],
       ),
+      subjectPatientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}subject_patient_id'],
+      ),
       at: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}at'],
@@ -15562,6 +24276,10 @@ class AuditLogRow extends DataClass implements Insertable<AuditLogRow> {
   final String entityType;
   final String? entityId;
   final String? detail;
+
+  /// The patient whose data the action touched, when that differs from (or
+  /// is not implied by) the actor — e.g. a proxy acting for a dependent.
+  final String? subjectPatientId;
   final DateTime at;
   const AuditLogRow({
     required this.id,
@@ -15570,6 +24288,7 @@ class AuditLogRow extends DataClass implements Insertable<AuditLogRow> {
     required this.entityType,
     this.entityId,
     this.detail,
+    this.subjectPatientId,
     required this.at,
   });
   @override
@@ -15586,6 +24305,9 @@ class AuditLogRow extends DataClass implements Insertable<AuditLogRow> {
     }
     if (!nullToAbsent || detail != null) {
       map['detail'] = Variable<String>(detail);
+    }
+    if (!nullToAbsent || subjectPatientId != null) {
+      map['subject_patient_id'] = Variable<String>(subjectPatientId);
     }
     map['at'] = Variable<DateTime>(at);
     return map;
@@ -15605,6 +24327,9 @@ class AuditLogRow extends DataClass implements Insertable<AuditLogRow> {
       detail: detail == null && nullToAbsent
           ? const Value.absent()
           : Value(detail),
+      subjectPatientId: subjectPatientId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(subjectPatientId),
       at: Value(at),
     );
   }
@@ -15621,6 +24346,7 @@ class AuditLogRow extends DataClass implements Insertable<AuditLogRow> {
       entityType: serializer.fromJson<String>(json['entityType']),
       entityId: serializer.fromJson<String?>(json['entityId']),
       detail: serializer.fromJson<String?>(json['detail']),
+      subjectPatientId: serializer.fromJson<String?>(json['subjectPatientId']),
       at: serializer.fromJson<DateTime>(json['at']),
     );
   }
@@ -15634,6 +24360,7 @@ class AuditLogRow extends DataClass implements Insertable<AuditLogRow> {
       'entityType': serializer.toJson<String>(entityType),
       'entityId': serializer.toJson<String?>(entityId),
       'detail': serializer.toJson<String?>(detail),
+      'subjectPatientId': serializer.toJson<String?>(subjectPatientId),
       'at': serializer.toJson<DateTime>(at),
     };
   }
@@ -15645,6 +24372,7 @@ class AuditLogRow extends DataClass implements Insertable<AuditLogRow> {
     String? entityType,
     Value<String?> entityId = const Value.absent(),
     Value<String?> detail = const Value.absent(),
+    Value<String?> subjectPatientId = const Value.absent(),
     DateTime? at,
   }) => AuditLogRow(
     id: id ?? this.id,
@@ -15653,6 +24381,9 @@ class AuditLogRow extends DataClass implements Insertable<AuditLogRow> {
     entityType: entityType ?? this.entityType,
     entityId: entityId.present ? entityId.value : this.entityId,
     detail: detail.present ? detail.value : this.detail,
+    subjectPatientId: subjectPatientId.present
+        ? subjectPatientId.value
+        : this.subjectPatientId,
     at: at ?? this.at,
   );
   AuditLogRow copyWithCompanion(AuditLogCompanion data) {
@@ -15667,6 +24398,9 @@ class AuditLogRow extends DataClass implements Insertable<AuditLogRow> {
           : this.entityType,
       entityId: data.entityId.present ? data.entityId.value : this.entityId,
       detail: data.detail.present ? data.detail.value : this.detail,
+      subjectPatientId: data.subjectPatientId.present
+          ? data.subjectPatientId.value
+          : this.subjectPatientId,
       at: data.at.present ? data.at.value : this.at,
     );
   }
@@ -15680,14 +24414,23 @@ class AuditLogRow extends DataClass implements Insertable<AuditLogRow> {
           ..write('entityType: $entityType, ')
           ..write('entityId: $entityId, ')
           ..write('detail: $detail, ')
+          ..write('subjectPatientId: $subjectPatientId, ')
           ..write('at: $at')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, actorUserId, action, entityType, entityId, detail, at);
+  int get hashCode => Object.hash(
+    id,
+    actorUserId,
+    action,
+    entityType,
+    entityId,
+    detail,
+    subjectPatientId,
+    at,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -15698,6 +24441,7 @@ class AuditLogRow extends DataClass implements Insertable<AuditLogRow> {
           other.entityType == this.entityType &&
           other.entityId == this.entityId &&
           other.detail == this.detail &&
+          other.subjectPatientId == this.subjectPatientId &&
           other.at == this.at);
 }
 
@@ -15708,6 +24452,7 @@ class AuditLogCompanion extends UpdateCompanion<AuditLogRow> {
   final Value<String> entityType;
   final Value<String?> entityId;
   final Value<String?> detail;
+  final Value<String?> subjectPatientId;
   final Value<DateTime> at;
   final Value<int> rowid;
   const AuditLogCompanion({
@@ -15717,6 +24462,7 @@ class AuditLogCompanion extends UpdateCompanion<AuditLogRow> {
     this.entityType = const Value.absent(),
     this.entityId = const Value.absent(),
     this.detail = const Value.absent(),
+    this.subjectPatientId = const Value.absent(),
     this.at = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -15727,6 +24473,7 @@ class AuditLogCompanion extends UpdateCompanion<AuditLogRow> {
     required String entityType,
     this.entityId = const Value.absent(),
     this.detail = const Value.absent(),
+    this.subjectPatientId = const Value.absent(),
     this.at = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -15739,6 +24486,7 @@ class AuditLogCompanion extends UpdateCompanion<AuditLogRow> {
     Expression<String>? entityType,
     Expression<String>? entityId,
     Expression<String>? detail,
+    Expression<String>? subjectPatientId,
     Expression<DateTime>? at,
     Expression<int>? rowid,
   }) {
@@ -15749,6 +24497,7 @@ class AuditLogCompanion extends UpdateCompanion<AuditLogRow> {
       if (entityType != null) 'entity_type': entityType,
       if (entityId != null) 'entity_id': entityId,
       if (detail != null) 'detail': detail,
+      if (subjectPatientId != null) 'subject_patient_id': subjectPatientId,
       if (at != null) 'at': at,
       if (rowid != null) 'rowid': rowid,
     });
@@ -15761,6 +24510,7 @@ class AuditLogCompanion extends UpdateCompanion<AuditLogRow> {
     Value<String>? entityType,
     Value<String?>? entityId,
     Value<String?>? detail,
+    Value<String?>? subjectPatientId,
     Value<DateTime>? at,
     Value<int>? rowid,
   }) {
@@ -15771,6 +24521,7 @@ class AuditLogCompanion extends UpdateCompanion<AuditLogRow> {
       entityType: entityType ?? this.entityType,
       entityId: entityId ?? this.entityId,
       detail: detail ?? this.detail,
+      subjectPatientId: subjectPatientId ?? this.subjectPatientId,
       at: at ?? this.at,
       rowid: rowid ?? this.rowid,
     );
@@ -15797,6 +24548,9 @@ class AuditLogCompanion extends UpdateCompanion<AuditLogRow> {
     if (detail.present) {
       map['detail'] = Variable<String>(detail.value);
     }
+    if (subjectPatientId.present) {
+      map['subject_patient_id'] = Variable<String>(subjectPatientId.value);
+    }
     if (at.present) {
       map['at'] = Variable<DateTime>(at.value);
     }
@@ -15815,6 +24569,7 @@ class AuditLogCompanion extends UpdateCompanion<AuditLogRow> {
           ..write('entityType: $entityType, ')
           ..write('entityId: $entityId, ')
           ..write('detail: $detail, ')
+          ..write('subjectPatientId: $subjectPatientId, ')
           ..write('at: $at, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -17414,6 +26169,968 @@ class AiUsageLogCompanion extends UpdateCompanion<AiUsageRow> {
   }
 }
 
+class $IdempotencyRecordsTable extends IdempotencyRecords
+    with TableInfo<$IdempotencyRecordsTable, IdempotencyRecordRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $IdempotencyRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _keyMeta = const VerificationMeta('key');
+  @override
+  late final GeneratedColumn<String> key = GeneratedColumn<String>(
+    'key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _scopeMeta = const VerificationMeta('scope');
+  @override
+  late final GeneratedColumn<String> scope = GeneratedColumn<String>(
+    'scope',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _actorAccountIdMeta = const VerificationMeta(
+    'actorAccountId',
+  );
+  @override
+  late final GeneratedColumn<String> actorAccountId = GeneratedColumn<String>(
+    'actor_account_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _resultRefMeta = const VerificationMeta(
+    'resultRef',
+  );
+  @override
+  late final GeneratedColumn<String> resultRef = GeneratedColumn<String>(
+    'result_ref',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    key,
+    scope,
+    actorAccountId,
+    resultRef,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'idempotency_records';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<IdempotencyRecordRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('key')) {
+      context.handle(
+        _keyMeta,
+        key.isAcceptableOrUnknown(data['key']!, _keyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_keyMeta);
+    }
+    if (data.containsKey('scope')) {
+      context.handle(
+        _scopeMeta,
+        scope.isAcceptableOrUnknown(data['scope']!, _scopeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_scopeMeta);
+    }
+    if (data.containsKey('actor_account_id')) {
+      context.handle(
+        _actorAccountIdMeta,
+        actorAccountId.isAcceptableOrUnknown(
+          data['actor_account_id']!,
+          _actorAccountIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('result_ref')) {
+      context.handle(
+        _resultRefMeta,
+        resultRef.isAcceptableOrUnknown(data['result_ref']!, _resultRefMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_resultRefMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {key};
+  @override
+  IdempotencyRecordRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return IdempotencyRecordRow(
+      key: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}key'],
+      )!,
+      scope: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope'],
+      )!,
+      actorAccountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}actor_account_id'],
+      ),
+      resultRef: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}result_ref'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $IdempotencyRecordsTable createAlias(String alias) {
+    return $IdempotencyRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class IdempotencyRecordRow extends DataClass
+    implements Insertable<IdempotencyRecordRow> {
+  final String key;
+
+  /// What kind of mutation used the key (`appointment.book`,
+  /// `billing.pay`…). Reusing a key for a different mutation is refused.
+  final String scope;
+
+  /// The signed-in account that made the request. A key is never honoured
+  /// for a different account.
+  final String? actorAccountId;
+
+  /// Id of the object the mutation produced or changed, returned on retry.
+  final String resultRef;
+  final DateTime createdAt;
+  const IdempotencyRecordRow({
+    required this.key,
+    required this.scope,
+    this.actorAccountId,
+    required this.resultRef,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['key'] = Variable<String>(key);
+    map['scope'] = Variable<String>(scope);
+    if (!nullToAbsent || actorAccountId != null) {
+      map['actor_account_id'] = Variable<String>(actorAccountId);
+    }
+    map['result_ref'] = Variable<String>(resultRef);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  IdempotencyRecordsCompanion toCompanion(bool nullToAbsent) {
+    return IdempotencyRecordsCompanion(
+      key: Value(key),
+      scope: Value(scope),
+      actorAccountId: actorAccountId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(actorAccountId),
+      resultRef: Value(resultRef),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory IdempotencyRecordRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return IdempotencyRecordRow(
+      key: serializer.fromJson<String>(json['key']),
+      scope: serializer.fromJson<String>(json['scope']),
+      actorAccountId: serializer.fromJson<String?>(json['actorAccountId']),
+      resultRef: serializer.fromJson<String>(json['resultRef']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'key': serializer.toJson<String>(key),
+      'scope': serializer.toJson<String>(scope),
+      'actorAccountId': serializer.toJson<String?>(actorAccountId),
+      'resultRef': serializer.toJson<String>(resultRef),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  IdempotencyRecordRow copyWith({
+    String? key,
+    String? scope,
+    Value<String?> actorAccountId = const Value.absent(),
+    String? resultRef,
+    DateTime? createdAt,
+  }) => IdempotencyRecordRow(
+    key: key ?? this.key,
+    scope: scope ?? this.scope,
+    actorAccountId: actorAccountId.present
+        ? actorAccountId.value
+        : this.actorAccountId,
+    resultRef: resultRef ?? this.resultRef,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  IdempotencyRecordRow copyWithCompanion(IdempotencyRecordsCompanion data) {
+    return IdempotencyRecordRow(
+      key: data.key.present ? data.key.value : this.key,
+      scope: data.scope.present ? data.scope.value : this.scope,
+      actorAccountId: data.actorAccountId.present
+          ? data.actorAccountId.value
+          : this.actorAccountId,
+      resultRef: data.resultRef.present ? data.resultRef.value : this.resultRef,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('IdempotencyRecordRow(')
+          ..write('key: $key, ')
+          ..write('scope: $scope, ')
+          ..write('actorAccountId: $actorAccountId, ')
+          ..write('resultRef: $resultRef, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(key, scope, actorAccountId, resultRef, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is IdempotencyRecordRow &&
+          other.key == this.key &&
+          other.scope == this.scope &&
+          other.actorAccountId == this.actorAccountId &&
+          other.resultRef == this.resultRef &&
+          other.createdAt == this.createdAt);
+}
+
+class IdempotencyRecordsCompanion
+    extends UpdateCompanion<IdempotencyRecordRow> {
+  final Value<String> key;
+  final Value<String> scope;
+  final Value<String?> actorAccountId;
+  final Value<String> resultRef;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const IdempotencyRecordsCompanion({
+    this.key = const Value.absent(),
+    this.scope = const Value.absent(),
+    this.actorAccountId = const Value.absent(),
+    this.resultRef = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  IdempotencyRecordsCompanion.insert({
+    required String key,
+    required String scope,
+    this.actorAccountId = const Value.absent(),
+    required String resultRef,
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : key = Value(key),
+       scope = Value(scope),
+       resultRef = Value(resultRef),
+       createdAt = Value(createdAt);
+  static Insertable<IdempotencyRecordRow> custom({
+    Expression<String>? key,
+    Expression<String>? scope,
+    Expression<String>? actorAccountId,
+    Expression<String>? resultRef,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (key != null) 'key': key,
+      if (scope != null) 'scope': scope,
+      if (actorAccountId != null) 'actor_account_id': actorAccountId,
+      if (resultRef != null) 'result_ref': resultRef,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  IdempotencyRecordsCompanion copyWith({
+    Value<String>? key,
+    Value<String>? scope,
+    Value<String?>? actorAccountId,
+    Value<String>? resultRef,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return IdempotencyRecordsCompanion(
+      key: key ?? this.key,
+      scope: scope ?? this.scope,
+      actorAccountId: actorAccountId ?? this.actorAccountId,
+      resultRef: resultRef ?? this.resultRef,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (key.present) {
+      map['key'] = Variable<String>(key.value);
+    }
+    if (scope.present) {
+      map['scope'] = Variable<String>(scope.value);
+    }
+    if (actorAccountId.present) {
+      map['actor_account_id'] = Variable<String>(actorAccountId.value);
+    }
+    if (resultRef.present) {
+      map['result_ref'] = Variable<String>(resultRef.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('IdempotencyRecordsCompanion(')
+          ..write('key: $key, ')
+          ..write('scope: $scope, ')
+          ..write('actorAccountId: $actorAccountId, ')
+          ..write('resultRef: $resultRef, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $OutboxEventsTable extends OutboxEvents
+    with TableInfo<$OutboxEventsTable, OutboxEventRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $OutboxEventsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _payloadMeta = const VerificationMeta(
+    'payload',
+  );
+  @override
+  late final GeneratedColumn<String> payload = GeneratedColumn<String>(
+    'payload',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<OutboxStatus, String> status =
+      GeneratedColumn<String>(
+        'status',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('pending'),
+      ).withConverter<OutboxStatus>($OutboxEventsTable.$converterstatus);
+  static const VerificationMeta _attemptsMeta = const VerificationMeta(
+    'attempts',
+  );
+  @override
+  late final GeneratedColumn<int> attempts = GeneratedColumn<int>(
+    'attempts',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nextAttemptAtMeta = const VerificationMeta(
+    'nextAttemptAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> nextAttemptAt =
+      GeneratedColumn<DateTime>(
+        'next_attempt_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _deliveredAtMeta = const VerificationMeta(
+    'deliveredAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deliveredAt = GeneratedColumn<DateTime>(
+    'delivered_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _lastErrorMeta = const VerificationMeta(
+    'lastError',
+  );
+  @override
+  late final GeneratedColumn<String> lastError = GeneratedColumn<String>(
+    'last_error',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    type,
+    payload,
+    status,
+    attempts,
+    createdAt,
+    nextAttemptAt,
+    deliveredAt,
+    lastError,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'outbox_events';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<OutboxEventRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('payload')) {
+      context.handle(
+        _payloadMeta,
+        payload.isAcceptableOrUnknown(data['payload']!, _payloadMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_payloadMeta);
+    }
+    if (data.containsKey('attempts')) {
+      context.handle(
+        _attemptsMeta,
+        attempts.isAcceptableOrUnknown(data['attempts']!, _attemptsMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('next_attempt_at')) {
+      context.handle(
+        _nextAttemptAtMeta,
+        nextAttemptAt.isAcceptableOrUnknown(
+          data['next_attempt_at']!,
+          _nextAttemptAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_nextAttemptAtMeta);
+    }
+    if (data.containsKey('delivered_at')) {
+      context.handle(
+        _deliveredAtMeta,
+        deliveredAt.isAcceptableOrUnknown(
+          data['delivered_at']!,
+          _deliveredAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_error')) {
+      context.handle(
+        _lastErrorMeta,
+        lastError.isAcceptableOrUnknown(data['last_error']!, _lastErrorMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  OutboxEventRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return OutboxEventRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
+      payload: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payload'],
+      )!,
+      status: $OutboxEventsTable.$converterstatus.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}status'],
+        )!,
+      ),
+      attempts: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}attempts'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      nextAttemptAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}next_attempt_at'],
+      )!,
+      deliveredAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}delivered_at'],
+      ),
+      lastError: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_error'],
+      ),
+    );
+  }
+
+  @override
+  $OutboxEventsTable createAlias(String alias) {
+    return $OutboxEventsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<OutboxStatus, String, String> $converterstatus =
+      const EnumNameConverter<OutboxStatus>(OutboxStatus.values);
+}
+
+class OutboxEventRow extends DataClass implements Insertable<OutboxEventRow> {
+  final String id;
+
+  /// Handler name, e.g. `notification.deliver`.
+  final String type;
+
+  /// JSON payload for the handler.
+  final String payload;
+  final OutboxStatus status;
+  final int attempts;
+  final DateTime createdAt;
+  final DateTime nextAttemptAt;
+  final DateTime? deliveredAt;
+
+  /// Last failure reason (never payload content).
+  final String? lastError;
+  const OutboxEventRow({
+    required this.id,
+    required this.type,
+    required this.payload,
+    required this.status,
+    required this.attempts,
+    required this.createdAt,
+    required this.nextAttemptAt,
+    this.deliveredAt,
+    this.lastError,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['type'] = Variable<String>(type);
+    map['payload'] = Variable<String>(payload);
+    {
+      map['status'] = Variable<String>(
+        $OutboxEventsTable.$converterstatus.toSql(status),
+      );
+    }
+    map['attempts'] = Variable<int>(attempts);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['next_attempt_at'] = Variable<DateTime>(nextAttemptAt);
+    if (!nullToAbsent || deliveredAt != null) {
+      map['delivered_at'] = Variable<DateTime>(deliveredAt);
+    }
+    if (!nullToAbsent || lastError != null) {
+      map['last_error'] = Variable<String>(lastError);
+    }
+    return map;
+  }
+
+  OutboxEventsCompanion toCompanion(bool nullToAbsent) {
+    return OutboxEventsCompanion(
+      id: Value(id),
+      type: Value(type),
+      payload: Value(payload),
+      status: Value(status),
+      attempts: Value(attempts),
+      createdAt: Value(createdAt),
+      nextAttemptAt: Value(nextAttemptAt),
+      deliveredAt: deliveredAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deliveredAt),
+      lastError: lastError == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastError),
+    );
+  }
+
+  factory OutboxEventRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return OutboxEventRow(
+      id: serializer.fromJson<String>(json['id']),
+      type: serializer.fromJson<String>(json['type']),
+      payload: serializer.fromJson<String>(json['payload']),
+      status: $OutboxEventsTable.$converterstatus.fromJson(
+        serializer.fromJson<String>(json['status']),
+      ),
+      attempts: serializer.fromJson<int>(json['attempts']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      nextAttemptAt: serializer.fromJson<DateTime>(json['nextAttemptAt']),
+      deliveredAt: serializer.fromJson<DateTime?>(json['deliveredAt']),
+      lastError: serializer.fromJson<String?>(json['lastError']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'type': serializer.toJson<String>(type),
+      'payload': serializer.toJson<String>(payload),
+      'status': serializer.toJson<String>(
+        $OutboxEventsTable.$converterstatus.toJson(status),
+      ),
+      'attempts': serializer.toJson<int>(attempts),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'nextAttemptAt': serializer.toJson<DateTime>(nextAttemptAt),
+      'deliveredAt': serializer.toJson<DateTime?>(deliveredAt),
+      'lastError': serializer.toJson<String?>(lastError),
+    };
+  }
+
+  OutboxEventRow copyWith({
+    String? id,
+    String? type,
+    String? payload,
+    OutboxStatus? status,
+    int? attempts,
+    DateTime? createdAt,
+    DateTime? nextAttemptAt,
+    Value<DateTime?> deliveredAt = const Value.absent(),
+    Value<String?> lastError = const Value.absent(),
+  }) => OutboxEventRow(
+    id: id ?? this.id,
+    type: type ?? this.type,
+    payload: payload ?? this.payload,
+    status: status ?? this.status,
+    attempts: attempts ?? this.attempts,
+    createdAt: createdAt ?? this.createdAt,
+    nextAttemptAt: nextAttemptAt ?? this.nextAttemptAt,
+    deliveredAt: deliveredAt.present ? deliveredAt.value : this.deliveredAt,
+    lastError: lastError.present ? lastError.value : this.lastError,
+  );
+  OutboxEventRow copyWithCompanion(OutboxEventsCompanion data) {
+    return OutboxEventRow(
+      id: data.id.present ? data.id.value : this.id,
+      type: data.type.present ? data.type.value : this.type,
+      payload: data.payload.present ? data.payload.value : this.payload,
+      status: data.status.present ? data.status.value : this.status,
+      attempts: data.attempts.present ? data.attempts.value : this.attempts,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      nextAttemptAt: data.nextAttemptAt.present
+          ? data.nextAttemptAt.value
+          : this.nextAttemptAt,
+      deliveredAt: data.deliveredAt.present
+          ? data.deliveredAt.value
+          : this.deliveredAt,
+      lastError: data.lastError.present ? data.lastError.value : this.lastError,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OutboxEventRow(')
+          ..write('id: $id, ')
+          ..write('type: $type, ')
+          ..write('payload: $payload, ')
+          ..write('status: $status, ')
+          ..write('attempts: $attempts, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('nextAttemptAt: $nextAttemptAt, ')
+          ..write('deliveredAt: $deliveredAt, ')
+          ..write('lastError: $lastError')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    type,
+    payload,
+    status,
+    attempts,
+    createdAt,
+    nextAttemptAt,
+    deliveredAt,
+    lastError,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is OutboxEventRow &&
+          other.id == this.id &&
+          other.type == this.type &&
+          other.payload == this.payload &&
+          other.status == this.status &&
+          other.attempts == this.attempts &&
+          other.createdAt == this.createdAt &&
+          other.nextAttemptAt == this.nextAttemptAt &&
+          other.deliveredAt == this.deliveredAt &&
+          other.lastError == this.lastError);
+}
+
+class OutboxEventsCompanion extends UpdateCompanion<OutboxEventRow> {
+  final Value<String> id;
+  final Value<String> type;
+  final Value<String> payload;
+  final Value<OutboxStatus> status;
+  final Value<int> attempts;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> nextAttemptAt;
+  final Value<DateTime?> deliveredAt;
+  final Value<String?> lastError;
+  final Value<int> rowid;
+  const OutboxEventsCompanion({
+    this.id = const Value.absent(),
+    this.type = const Value.absent(),
+    this.payload = const Value.absent(),
+    this.status = const Value.absent(),
+    this.attempts = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.nextAttemptAt = const Value.absent(),
+    this.deliveredAt = const Value.absent(),
+    this.lastError = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  OutboxEventsCompanion.insert({
+    required String id,
+    required String type,
+    required String payload,
+    this.status = const Value.absent(),
+    this.attempts = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime nextAttemptAt,
+    this.deliveredAt = const Value.absent(),
+    this.lastError = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       type = Value(type),
+       payload = Value(payload),
+       createdAt = Value(createdAt),
+       nextAttemptAt = Value(nextAttemptAt);
+  static Insertable<OutboxEventRow> custom({
+    Expression<String>? id,
+    Expression<String>? type,
+    Expression<String>? payload,
+    Expression<String>? status,
+    Expression<int>? attempts,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? nextAttemptAt,
+    Expression<DateTime>? deliveredAt,
+    Expression<String>? lastError,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (type != null) 'type': type,
+      if (payload != null) 'payload': payload,
+      if (status != null) 'status': status,
+      if (attempts != null) 'attempts': attempts,
+      if (createdAt != null) 'created_at': createdAt,
+      if (nextAttemptAt != null) 'next_attempt_at': nextAttemptAt,
+      if (deliveredAt != null) 'delivered_at': deliveredAt,
+      if (lastError != null) 'last_error': lastError,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  OutboxEventsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? type,
+    Value<String>? payload,
+    Value<OutboxStatus>? status,
+    Value<int>? attempts,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? nextAttemptAt,
+    Value<DateTime?>? deliveredAt,
+    Value<String?>? lastError,
+    Value<int>? rowid,
+  }) {
+    return OutboxEventsCompanion(
+      id: id ?? this.id,
+      type: type ?? this.type,
+      payload: payload ?? this.payload,
+      status: status ?? this.status,
+      attempts: attempts ?? this.attempts,
+      createdAt: createdAt ?? this.createdAt,
+      nextAttemptAt: nextAttemptAt ?? this.nextAttemptAt,
+      deliveredAt: deliveredAt ?? this.deliveredAt,
+      lastError: lastError ?? this.lastError,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (payload.present) {
+      map['payload'] = Variable<String>(payload.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(
+        $OutboxEventsTable.$converterstatus.toSql(status.value),
+      );
+    }
+    if (attempts.present) {
+      map['attempts'] = Variable<int>(attempts.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (nextAttemptAt.present) {
+      map['next_attempt_at'] = Variable<DateTime>(nextAttemptAt.value);
+    }
+    if (deliveredAt.present) {
+      map['delivered_at'] = Variable<DateTime>(deliveredAt.value);
+    }
+    if (lastError.present) {
+      map['last_error'] = Variable<String>(lastError.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OutboxEventsCompanion(')
+          ..write('id: $id, ')
+          ..write('type: $type, ')
+          ..write('payload: $payload, ')
+          ..write('status: $status, ')
+          ..write('attempts: $attempts, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('nextAttemptAt: $nextAttemptAt, ')
+          ..write('deliveredAt: $deliveredAt, ')
+          ..write('lastError: $lastError, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   late final $DepartmentsTable departments = $DepartmentsTable(this);
@@ -17424,14 +27141,31 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $StaffProfilesTable staffProfiles = $StaffProfilesTable(this);
   late final $PasswordResetRequestsTable passwordResetRequests =
       $PasswordResetRequestsTable(this);
+  late final $AccountRecoveryTokensTable accountRecoveryTokens =
+      $AccountRecoveryTokensTable(this);
+  late final $CareTeamAssignmentsTable careTeamAssignments =
+      $CareTeamAssignmentsTable(this);
+  late final $StaffCredentialsTable staffCredentials = $StaffCredentialsTable(
+    this,
+  );
   late final $ScheduleTemplatesTable scheduleTemplates =
       $ScheduleTemplatesTable(this);
+  late final $AvailabilityExceptionsTable availabilityExceptions =
+      $AvailabilityExceptionsTable(this);
   late final $AppointmentsTable appointments = $AppointmentsTable(this);
   late final $RemindersTable reminders = $RemindersTable(this);
   late final $MedicalRecordsTable medicalRecords = $MedicalRecordsTable(this);
   late final $LabValuesTable labValues = $LabValuesTable(this);
+  late final $ResultReviewsTable resultReviews = $ResultReviewsTable(this);
   late final $VitalsTable vitals = $VitalsTable(this);
   late final $MedicationsTable medications = $MedicationsTable(this);
+  late final $EncounterDraftsTable encounterDrafts = $EncounterDraftsTable(
+    this,
+  );
+  late final $SignedNotesTable signedNotes = $SignedNotesTable(this);
+  late final $SignedNoteAmendmentsTable signedNoteAmendments =
+      $SignedNoteAmendmentsTable(this);
+  late final $DocumentFilesTable documentFiles = $DocumentFilesTable(this);
   late final $AiSummariesTable aiSummaries = $AiSummariesTable(this);
   late final $StaffTasksTable staffTasks = $StaffTasksTable(this);
   late final $RiskFlagsTable riskFlags = $RiskFlagsTable(this);
@@ -17439,6 +27173,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $PaymentMethodsTable paymentMethods = $PaymentMethodsTable(this);
   late final $WalletTransactionsTable walletTransactions =
       $WalletTransactionsTable(this);
+  late final $PaymentTransactionsTable paymentTransactions =
+      $PaymentTransactionsTable(this);
+  late final $SimulatedGatewayChargesTable simulatedGatewayCharges =
+      $SimulatedGatewayChargesTable(this);
   late final $FamilyLinksTable familyLinks = $FamilyLinksTable(this);
   late final $NotificationsTable notifications = $NotificationsTable(this);
   late final $SickLeaveCertificatesTable sickLeaveCertificates =
@@ -17454,6 +27192,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
   late final $FeedbacksTable feedbacks = $FeedbacksTable(this);
   late final $AiUsageLogTable aiUsageLog = $AiUsageLogTable(this);
+  late final $IdempotencyRecordsTable idempotencyRecords =
+      $IdempotencyRecordsTable(this);
+  late final $OutboxEventsTable outboxEvents = $OutboxEventsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -17464,19 +27205,30 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     patientProfiles,
     staffProfiles,
     passwordResetRequests,
+    accountRecoveryTokens,
+    careTeamAssignments,
+    staffCredentials,
     scheduleTemplates,
+    availabilityExceptions,
     appointments,
     reminders,
     medicalRecords,
     labValues,
+    resultReviews,
     vitals,
     medications,
+    encounterDrafts,
+    signedNotes,
+    signedNoteAmendments,
+    documentFiles,
     aiSummaries,
     staffTasks,
     riskFlags,
     invoices,
     paymentMethods,
     walletTransactions,
+    paymentTransactions,
+    simulatedGatewayCharges,
     familyLinks,
     notifications,
     sickLeaveCertificates,
@@ -17488,6 +27240,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     appSettings,
     feedbacks,
     aiUsageLog,
+    idempotencyRecords,
+    outboxEvents,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -17517,7 +27271,42 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         'users',
         limitUpdateKind: UpdateKind.delete,
       ),
+      result: [TableUpdate('account_recovery_tokens', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('care_team_assignments', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('care_team_assignments', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('staff_credentials', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
       result: [TableUpdate('schedule_templates', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('availability_exceptions', kind: UpdateKind.delete)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -17559,6 +27348,41 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         'users',
         limitUpdateKind: UpdateKind.delete,
       ),
+      result: [TableUpdate('lab_values', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'medical_records',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('result_reviews', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('result_reviews', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('result_reviews', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('result_reviews', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
       result: [TableUpdate('vitals', kind: UpdateKind.delete)],
     ),
     WritePropagation(
@@ -17577,6 +27401,27 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
+        'appointments',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('encounter_drafts', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'signed_notes',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('signed_note_amendments', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'medical_records',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('document_files', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
         'users',
         limitUpdateKind: UpdateKind.delete,
       ),
@@ -17588,6 +27433,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('staff_tasks', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('staff_tasks', kind: UpdateKind.update)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -17630,6 +27482,20 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('wallet_transactions', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('payment_transactions', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'invoices',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('payment_transactions', kind: UpdateKind.update)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -17679,6 +27545,20 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('care_messages', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('care_messages', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('care_messages', kind: UpdateKind.update)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -17739,6 +27619,20 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     WritePropagation(
       on: TableUpdateQuery.onTableName(
         'appointments',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('referral_requests', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('referral_requests', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('referral_requests', kind: UpdateKind.update)],

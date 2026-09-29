@@ -35,13 +35,17 @@ void main() {
     const f = CardNumberInputFormatter();
 
     test('groups a Visa number 4-4-4-4', () {
-      expect(_type(f, '424242424242', '4242424242424242').text,
-          '4242 4242 4242 4242');
+      expect(
+        _type(f, '424242424242', '4242424242424242').text,
+        '4242 4242 4242 4242',
+      );
     });
 
     test('groups an Amex number 4-6-5', () {
-      expect(_type(f, '37828224631', '378282246310005').text,
-          '3782 822463 10005');
+      expect(
+        _type(f, '37828224631', '378282246310005').text,
+        '3782 822463 10005',
+      );
     });
 
     test('caps the PAN at 19 digits', () {

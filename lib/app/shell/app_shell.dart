@@ -11,9 +11,9 @@ import 'package:go_router/go_router.dart';
 import '../../core/presentation/app_scaffold.dart';
 import '../theme/theme.dart';
 
-/// Navigation labels scale with the user's text size up to the app's own
-/// largest tier; beyond that the bar would crowd out the page content.
-const double _navMaxTextScale = 1.3;
+/// Navigation labels remain meaningful through the supported 200% text size.
+/// The bar grows with them instead of silently shrinking accessibility text.
+const double _navMaxTextScale = 2;
 
 /// One navigation destination in a role shell.
 class AppDestination {
@@ -33,6 +33,7 @@ class AppShell extends StatefulWidget {
     required this.navigationShell,
     required this.destinations,
     this.overlay,
+    this.contextHeader,
     super.key,
   });
 
@@ -43,6 +44,9 @@ class AppShell extends StatefulWidget {
   /// FAB. Sits below the router's Navigator, so tooltips / text selection
   /// work; hidden on full-screen pushes over the shell.
   final Widget? overlay;
+
+  /// Optional role context that remains visible while switching branches.
+  final Widget? contextHeader;
 
   @override
   State<AppShell> createState() => _AppShellState();
@@ -83,10 +87,18 @@ class _AppShellState extends State<AppShell> {
     final current = widget.navigationShell.currentIndex;
     final hairline = Theme.of(context).colorScheme.outlineVariant;
 
-    final body = ScrollToTopSignal(
+    Widget body = ScrollToTopSignal(
       notifier: _scrollToTop,
       child: widget.navigationShell,
     );
+    if (widget.contextHeader != null) {
+      body = Column(
+        children: [
+          widget.contextHeader!,
+          Expanded(child: body),
+        ],
+      );
+    }
 
     if (size.isCompact) {
       final navScaler = MediaQuery.textScalerOf(
@@ -94,8 +106,8 @@ class _AppShellState extends State<AppShell> {
       ).clamp(maxScaleFactor: _navMaxTextScale);
       return Scaffold(
         body: body,
-        // Labels follow the user's text size (up to the app's xLarge 1.3
-        // tier) instead of being shrunk below it; the bar grows taller so a
+        // Labels follow the user's text size through the supported 2x tier;
+        // the bar grows taller so a
         // long label like "Appointments" can wrap to a second line.
         bottomNavigationBar: MediaQuery(
           data: MediaQuery.of(context).copyWith(textScaler: navScaler),
@@ -165,8 +177,8 @@ class _Rail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Same ceiling as the compact bottom bar (see its comment); the rail
-    // already scrolls, so taller wrapped labels still fit.
+    // Same supported 2x ceiling as the compact bottom bar. The rail scrolls,
+    // so taller wrapped labels remain reachable.
     return MediaQuery(
       data: MediaQuery.of(context).copyWith(
         textScaler: MediaQuery.textScalerOf(

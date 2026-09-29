@@ -3,10 +3,12 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/data/contracts.dart';
 import '../../../core/di.dart';
 import '../../../core/failures.dart';
 import '../../../core/result.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../domain/enums.dart';
 import '../../../domain/repositories/billing_repository.dart';
 import '../../auth/application/session.dart';
 
@@ -105,15 +107,24 @@ class BillingController {
 
   /// Settles [invoiceId] for the signed-in patient. Scoped to their own id, so
   /// a tampered invoice id cannot pay (or reveal) someone else's bill.
-  Future<Result<Invoice>> pay(String invoiceId, CardPayment payment) async {
+  Future<Result<Invoice>> pay(
+    String invoiceId,
+    CardPayment payment, {
+    IdempotencyKey? key,
+  }) async {
     final user = _ref.read(currentUserProvider);
     if (user == null || !user.isPatient) {
       return const Err(AuthFailure('Sign in to pay an invoice.'));
     }
     final result = await _ref
         .read(billingRepositoryProvider)
-        .pay(invoiceId: invoiceId, patientId: user.id, payment: payment);
-    if (result case Ok()) _ref.invalidate(patientInvoicesProvider);
+        .pay(
+          invoiceId: invoiceId,
+          patientId: user.id,
+          payment: payment,
+          idempotencyKey: key,
+        );
+    _afterPayment();
     return result;
   }
 
@@ -122,6 +133,7 @@ class BillingController {
     required String invoiceId,
     required String cardId,
     required String cvc,
+    IdempotencyKey? key,
   }) async {
     final user = _ref.read(currentUserProvider);
     if (user == null || !user.isPatient) {
@@ -134,19 +146,29 @@ class BillingController {
           patientId: user.id,
           cardId: cardId,
           cvc: cvc,
+          idempotencyKey: key,
         );
-    if (result case Ok()) _ref.invalidate(patientInvoicesProvider);
+    _afterPayment();
     return result;
   }
 
   /// Tops up the signed-in patient's wallet with a new card.
-  Future<Result<double>> topUpWallet(double amount, CardPayment card) async {
+  Future<Result<double>> topUpWallet(
+    double amount,
+    CardPayment card, {
+    IdempotencyKey? key,
+  }) async {
     final id = _patientId;
     if (id == null) return const Err(AuthFailure('Sign in to top up.'));
     final result = await _ref
         .read(billingRepositoryProvider)
-        .topUpWallet(patientId: id, amount: amount, card: card);
-    if (result case Ok()) _ref.invalidate(walletBalanceProvider);
+        .topUpWallet(
+          patientId: id,
+          amount: amount,
+          card: card,
+          idempotencyKey: key,
+        );
+    _afterPayment();
     return result;
   }
 
@@ -155,6 +177,7 @@ class BillingController {
     required double amount,
     required String cardId,
     required String cvc,
+    IdempotencyKey? key,
   }) async {
     final id = _patientId;
     if (id == null) return const Err(AuthFailure('Sign in to top up.'));
@@ -165,27 +188,97 @@ class BillingController {
           amount: amount,
           cardId: cardId,
           cvc: cvc,
+          idempotencyKey: key,
         );
-    if (result case Ok()) _ref.invalidate(walletBalanceProvider);
+    _afterPayment();
     return result;
   }
 
   /// Settles [invoiceId] from the signed-in patient's wallet balance.
-  Future<Result<Invoice>> payWithWallet(String invoiceId) async {
+  Future<Result<Invoice>> payWithWallet(
+    String invoiceId, {
+    IdempotencyKey? key,
+  }) async {
     final user = _ref.read(currentUserProvider);
     if (user == null || !user.isPatient) {
       return const Err(AuthFailure('Sign in to pay an invoice.'));
     }
     final result = await _ref
         .read(billingRepositoryProvider)
-        .payWithWallet(invoiceId: invoiceId, patientId: user.id);
-    if (result case Ok()) {
-      _ref.invalidate(patientInvoicesProvider);
-      _ref.invalidate(walletBalanceProvider);
-    }
+        .payWithWallet(
+          invoiceId: invoiceId,
+          patientId: user.id,
+          idempotencyKey: key,
+        );
+    _afterPayment();
     return result;
   }
+
+  /// Whatever happened — paid, declined or still being confirmed — the
+  /// screens re-read the authoritative state rather than assume.
+  void _afterPayment() {
+    _ref
+      ..invalidate(patientInvoicesProvider)
+      ..invalidate(walletBalanceProvider)
+      ..invalidate(patientPaymentsProvider);
+  }
+
+  /// Ask the provider about payments whose outcome is unknown. Never charges.
+  Future<Result<int>> reconcile() async {
+    final id = _patientId;
+    if (id == null) return const Err(AuthFailure('Sign in first.'));
+    final result = await _ref
+        .read(billingRepositoryProvider)
+        .reconcile(patientId: id);
+    _afterPayment();
+    return result;
+  }
+
+  /// The newest payment attempt for [invoiceId], after reconciling.
+  Future<Result<PaymentTransaction?>> latestAttempt(String invoiceId) async {
+    await reconcile();
+    final result = await _ref
+        .read(billingRepositoryProvider)
+        .transactions(invoiceId: invoiceId);
+    return switch (result) {
+      Ok(:final value) => Ok(
+        value.where((t) => t.kind == PaymentKind.invoiceCharge).firstOrNull,
+      ),
+      Err(:final failure) => Err(failure),
+    };
+  }
 }
+
+/// Every payment, top-up and refund for the signed-in patient, newest first.
+/// Reconciles first, so a payment interrupted last session shows its real
+/// outcome.
+final patientPaymentsProvider = FutureProvider<List<PaymentTransaction>>((
+  ref,
+) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null || !user.isPatient) return const [];
+  final repo = ref.watch(billingRepositoryProvider);
+  await repo.reconcile(patientId: user.id);
+  final result = await repo.transactions(patientId: user.id);
+  return switch (result) {
+    Ok(:final value) => value,
+    Err(:final failure) => throw failure,
+  };
+});
+
+/// Invoice ids with a card payment still being confirmed.
+final invoicesAwaitingConfirmationProvider = Provider<Set<String>>((ref) {
+  final payments = ref.watch(patientPaymentsProvider).valueOrNull ?? const [];
+  return {
+    for (final p in payments)
+      if (p.isInFlight && p.kind == PaymentKind.invoiceCharge) ?p.invoiceId,
+  };
+});
+
+/// True while payments go to the simulated provider.
+final paymentsSimulatedProvider = Provider<bool>(
+  (ref) => ref.watch(billingRepositoryProvider).paymentsAreSimulated,
+);
 
 final billingControllerProvider = Provider<BillingController>(
   BillingController.new,

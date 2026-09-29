@@ -14,7 +14,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Patient {
 
- User get user; String? get bloodType; List<String> get allergies; List<String> get chronicConditions; String? get emergencyContact;
+ User get user; String? get bloodType; List<String> get allergies; List<String> get chronicConditions; String? get emergencyContact;/// Version of the health profile; pass back as `expectedVersion`.
+ int get profileVersion;
 /// Create a copy of Patient
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +26,16 @@ $PatientCopyWith<Patient> get copyWith => _$PatientCopyWithImpl<Patient>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Patient&&(identical(other.user, user) || other.user == user)&&(identical(other.bloodType, bloodType) || other.bloodType == bloodType)&&const DeepCollectionEquality().equals(other.allergies, allergies)&&const DeepCollectionEquality().equals(other.chronicConditions, chronicConditions)&&(identical(other.emergencyContact, emergencyContact) || other.emergencyContact == emergencyContact));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Patient&&(identical(other.user, user) || other.user == user)&&(identical(other.bloodType, bloodType) || other.bloodType == bloodType)&&const DeepCollectionEquality().equals(other.allergies, allergies)&&const DeepCollectionEquality().equals(other.chronicConditions, chronicConditions)&&(identical(other.emergencyContact, emergencyContact) || other.emergencyContact == emergencyContact)&&(identical(other.profileVersion, profileVersion) || other.profileVersion == profileVersion));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,user,bloodType,const DeepCollectionEquality().hash(allergies),const DeepCollectionEquality().hash(chronicConditions),emergencyContact);
+int get hashCode => Object.hash(runtimeType,user,bloodType,const DeepCollectionEquality().hash(allergies),const DeepCollectionEquality().hash(chronicConditions),emergencyContact,profileVersion);
 
 @override
 String toString() {
-  return 'Patient(user: $user, bloodType: $bloodType, allergies: $allergies, chronicConditions: $chronicConditions, emergencyContact: $emergencyContact)';
+  return 'Patient(user: $user, bloodType: $bloodType, allergies: $allergies, chronicConditions: $chronicConditions, emergencyContact: $emergencyContact, profileVersion: $profileVersion)';
 }
 
 
@@ -45,7 +46,7 @@ abstract mixin class $PatientCopyWith<$Res>  {
   factory $PatientCopyWith(Patient value, $Res Function(Patient) _then) = _$PatientCopyWithImpl;
 @useResult
 $Res call({
- User user, String? bloodType, List<String> allergies, List<String> chronicConditions, String? emergencyContact
+ User user, String? bloodType, List<String> allergies, List<String> chronicConditions, String? emergencyContact, int profileVersion
 });
 
 
@@ -62,14 +63,15 @@ class _$PatientCopyWithImpl<$Res>
 
 /// Create a copy of Patient
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? user = null,Object? bloodType = freezed,Object? allergies = null,Object? chronicConditions = null,Object? emergencyContact = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? user = null,Object? bloodType = freezed,Object? allergies = null,Object? chronicConditions = null,Object? emergencyContact = freezed,Object? profileVersion = null,}) {
   return _then(_self.copyWith(
 user: null == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
 as User,bloodType: freezed == bloodType ? _self.bloodType : bloodType // ignore: cast_nullable_to_non_nullable
 as String?,allergies: null == allergies ? _self.allergies : allergies // ignore: cast_nullable_to_non_nullable
 as List<String>,chronicConditions: null == chronicConditions ? _self.chronicConditions : chronicConditions // ignore: cast_nullable_to_non_nullable
 as List<String>,emergencyContact: freezed == emergencyContact ? _self.emergencyContact : emergencyContact // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,profileVersion: null == profileVersion ? _self.profileVersion : profileVersion // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 /// Create a copy of Patient
@@ -163,10 +165,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( User user,  String? bloodType,  List<String> allergies,  List<String> chronicConditions,  String? emergencyContact)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( User user,  String? bloodType,  List<String> allergies,  List<String> chronicConditions,  String? emergencyContact,  int profileVersion)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Patient() when $default != null:
-return $default(_that.user,_that.bloodType,_that.allergies,_that.chronicConditions,_that.emergencyContact);case _:
+return $default(_that.user,_that.bloodType,_that.allergies,_that.chronicConditions,_that.emergencyContact,_that.profileVersion);case _:
   return orElse();
 
 }
@@ -184,10 +186,10 @@ return $default(_that.user,_that.bloodType,_that.allergies,_that.chronicConditio
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( User user,  String? bloodType,  List<String> allergies,  List<String> chronicConditions,  String? emergencyContact)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( User user,  String? bloodType,  List<String> allergies,  List<String> chronicConditions,  String? emergencyContact,  int profileVersion)  $default,) {final _that = this;
 switch (_that) {
 case _Patient():
-return $default(_that.user,_that.bloodType,_that.allergies,_that.chronicConditions,_that.emergencyContact);case _:
+return $default(_that.user,_that.bloodType,_that.allergies,_that.chronicConditions,_that.emergencyContact,_that.profileVersion);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -204,10 +206,10 @@ return $default(_that.user,_that.bloodType,_that.allergies,_that.chronicConditio
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( User user,  String? bloodType,  List<String> allergies,  List<String> chronicConditions,  String? emergencyContact)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( User user,  String? bloodType,  List<String> allergies,  List<String> chronicConditions,  String? emergencyContact,  int profileVersion)?  $default,) {final _that = this;
 switch (_that) {
 case _Patient() when $default != null:
-return $default(_that.user,_that.bloodType,_that.allergies,_that.chronicConditions,_that.emergencyContact);case _:
+return $default(_that.user,_that.bloodType,_that.allergies,_that.chronicConditions,_that.emergencyContact,_that.profileVersion);case _:
   return null;
 
 }
@@ -219,7 +221,7 @@ return $default(_that.user,_that.bloodType,_that.allergies,_that.chronicConditio
 
 
 class _Patient extends Patient {
-  const _Patient({required this.user, this.bloodType, final  List<String> allergies = const [], final  List<String> chronicConditions = const [], this.emergencyContact}): _allergies = allergies,_chronicConditions = chronicConditions,super._();
+  const _Patient({required this.user, this.bloodType, final  List<String> allergies = const [], final  List<String> chronicConditions = const [], this.emergencyContact, this.profileVersion = 1}): _allergies = allergies,_chronicConditions = chronicConditions,super._();
   
 
 @override final  User user;
@@ -239,6 +241,8 @@ class _Patient extends Patient {
 }
 
 @override final  String? emergencyContact;
+/// Version of the health profile; pass back as `expectedVersion`.
+@override@JsonKey() final  int profileVersion;
 
 /// Create a copy of Patient
 /// with the given fields replaced by the non-null parameter values.
@@ -250,16 +254,16 @@ _$PatientCopyWith<_Patient> get copyWith => __$PatientCopyWithImpl<_Patient>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Patient&&(identical(other.user, user) || other.user == user)&&(identical(other.bloodType, bloodType) || other.bloodType == bloodType)&&const DeepCollectionEquality().equals(other._allergies, _allergies)&&const DeepCollectionEquality().equals(other._chronicConditions, _chronicConditions)&&(identical(other.emergencyContact, emergencyContact) || other.emergencyContact == emergencyContact));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Patient&&(identical(other.user, user) || other.user == user)&&(identical(other.bloodType, bloodType) || other.bloodType == bloodType)&&const DeepCollectionEquality().equals(other._allergies, _allergies)&&const DeepCollectionEquality().equals(other._chronicConditions, _chronicConditions)&&(identical(other.emergencyContact, emergencyContact) || other.emergencyContact == emergencyContact)&&(identical(other.profileVersion, profileVersion) || other.profileVersion == profileVersion));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,user,bloodType,const DeepCollectionEquality().hash(_allergies),const DeepCollectionEquality().hash(_chronicConditions),emergencyContact);
+int get hashCode => Object.hash(runtimeType,user,bloodType,const DeepCollectionEquality().hash(_allergies),const DeepCollectionEquality().hash(_chronicConditions),emergencyContact,profileVersion);
 
 @override
 String toString() {
-  return 'Patient(user: $user, bloodType: $bloodType, allergies: $allergies, chronicConditions: $chronicConditions, emergencyContact: $emergencyContact)';
+  return 'Patient(user: $user, bloodType: $bloodType, allergies: $allergies, chronicConditions: $chronicConditions, emergencyContact: $emergencyContact, profileVersion: $profileVersion)';
 }
 
 
@@ -270,7 +274,7 @@ abstract mixin class _$PatientCopyWith<$Res> implements $PatientCopyWith<$Res> {
   factory _$PatientCopyWith(_Patient value, $Res Function(_Patient) _then) = __$PatientCopyWithImpl;
 @override @useResult
 $Res call({
- User user, String? bloodType, List<String> allergies, List<String> chronicConditions, String? emergencyContact
+ User user, String? bloodType, List<String> allergies, List<String> chronicConditions, String? emergencyContact, int profileVersion
 });
 
 
@@ -287,14 +291,15 @@ class __$PatientCopyWithImpl<$Res>
 
 /// Create a copy of Patient
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? user = null,Object? bloodType = freezed,Object? allergies = null,Object? chronicConditions = null,Object? emergencyContact = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? user = null,Object? bloodType = freezed,Object? allergies = null,Object? chronicConditions = null,Object? emergencyContact = freezed,Object? profileVersion = null,}) {
   return _then(_Patient(
 user: null == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
 as User,bloodType: freezed == bloodType ? _self.bloodType : bloodType // ignore: cast_nullable_to_non_nullable
 as String?,allergies: null == allergies ? _self._allergies : allergies // ignore: cast_nullable_to_non_nullable
 as List<String>,chronicConditions: null == chronicConditions ? _self._chronicConditions : chronicConditions // ignore: cast_nullable_to_non_nullable
 as List<String>,emergencyContact: freezed == emergencyContact ? _self.emergencyContact : emergencyContact // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,profileVersion: null == profileVersion ? _self.profileVersion : profileVersion // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 

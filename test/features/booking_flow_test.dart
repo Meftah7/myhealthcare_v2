@@ -117,7 +117,8 @@ void main() {
     await _settle(tester);
     expect(find.text('Review & confirm'), findsOneWidget);
     await tester.tap(find.widgetWithText(FilledButton, 'Confirm booking'));
-    // The confirmation checkmark plays over the transition to Home. Pump just
+    // The confirmation checkmark plays over the transition to the
+    // authoritative appointment detail. Pump just
     // far enough to catch it mid-animation (it clears itself after ~1.4s).
     for (var i = 0; i < 6; i++) {
       await tester.pump(const Duration(milliseconds: 80));
@@ -128,8 +129,8 @@ void main() {
     await _settle(tester);
     await _settle(tester);
 
-    // Landed on Home with the new booking.
-    expect(find.widgetWithText(AppBar, 'MyHealth Care'), findsOneWidget);
+    // Landed on the persistent confirmation with ticket, room and actions.
+    expect(find.text('Appointment details'), findsOneWidget);
     final after = (await container.read(
       patientAppointmentsProvider.future,
     )).length;

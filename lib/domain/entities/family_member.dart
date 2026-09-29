@@ -23,6 +23,7 @@ class FamilyMember {
     this.bloodType,
     this.phone,
     this.email,
+    this.patientId,
   });
 
   factory FamilyMember.fromJson(Map<String, dynamic> json) => FamilyMember(
@@ -40,6 +41,7 @@ class FamilyMember {
     bloodType: json['bloodType'] as String?,
     phone: json['phone'] as String?,
     email: json['email'] as String?,
+    patientId: json['patientId'] as String?,
   );
 
   final String id;
@@ -58,6 +60,11 @@ class FamilyMember {
   final String? phone;
   final String? email;
 
+  /// The member's own patient record, once one exists. Visits, records and
+  /// invoices for the member attach to this — never to the account holder's
+  /// record. The account holder reaches it through a proxy grant.
+  final String? patientId;
+
   String get fullName => '$firstName $lastName'.trim();
 
   static const _unset = Object();
@@ -72,6 +79,7 @@ class FamilyMember {
     Object? bloodType = _unset,
     Object? phone = _unset,
     Object? email = _unset,
+    Object? patientId = _unset,
   }) => FamilyMember(
     id: id,
     relationship: relationship ?? this.relationship,
@@ -85,6 +93,9 @@ class FamilyMember {
         : bloodType as String?,
     phone: identical(phone, _unset) ? this.phone : phone as String?,
     email: identical(email, _unset) ? this.email : email as String?,
+    patientId: identical(patientId, _unset)
+        ? this.patientId
+        : patientId as String?,
   );
 
   Map<String, dynamic> toJson() => {
@@ -98,6 +109,7 @@ class FamilyMember {
     'bloodType': bloodType,
     'phone': phone,
     'email': email,
+    'patientId': patientId,
   };
 
   @override
@@ -112,7 +124,8 @@ class FamilyMember {
       other.gender == gender &&
       other.bloodType == bloodType &&
       other.phone == phone &&
-      other.email == email;
+      other.email == email &&
+      other.patientId == patientId;
 
   @override
   int get hashCode => Object.hash(
@@ -124,6 +137,6 @@ class FamilyMember {
     dob,
     gender,
     bloodType,
-    Object.hash(phone, email),
+    Object.hash(phone, email, patientId),
   );
 }

@@ -31,6 +31,7 @@ class AppointmentConfirmationController
 }
 
 final appointmentConfirmationProvider =
-    NotifierProvider<AppointmentConfirmationController, AppointmentConfirmation?>(
-      AppointmentConfirmationController.new,
-    );
+    NotifierProvider<
+      AppointmentConfirmationController,
+      AppointmentConfirmation?
+    >(AppointmentConfirmationController.new);

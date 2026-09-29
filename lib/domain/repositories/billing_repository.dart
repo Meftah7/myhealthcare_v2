@@ -1,6 +1,7 @@
 /// Billing contract: a patient's invoices and settling them.
 library;
 
+import '../../core/data/contracts.dart';
 import '../../core/result.dart';
 import '../entities/entities.dart';
 import '../enums.dart';
@@ -74,12 +75,62 @@ abstract interface class BillingRepository {
 
   Future<Result<Invoice>> byId(String id);
 
-  /// Admin sets an invoice's status directly (no card). Moving to
-  /// [InvoiceStatus.paid] stamps `paidAt`; moving away from it clears it.
+  /// Admin cancels an open invoice. An invoice is never marked paid by a
+  /// status change — only by a settled payment ([recordOfflinePayment] for
+  /// money taken at the desk). Cancelling is refused while a card payment
+  /// for it is still being confirmed.
   Future<Result<Invoice>> setStatus({
     required String id,
     required InvoiceStatus status,
+    int? expectedVersion,
   });
+
+  // --- payment ledger (Phase 5) -------------------------------------------
+
+  /// True while payments go to the simulated provider — the UI says no real
+  /// money moves.
+  bool get paymentsAreSimulated;
+
+  /// Payment history, newest first: every charge, top-up and refund for one
+  /// invoice, or for one patient. Admins may read any; a patient (or proxy)
+  /// only their own.
+  Future<Result<List<PaymentTransaction>>> transactions({
+    String? invoiceId,
+    String? patientId,
+  });
+
+  /// Resolves payments whose outcome is not yet known by asking the provider
+  /// what it recorded — after a crash, closed tab or lost response. A charge
+  /// the provider captured settles its invoice; one it never received is
+  /// released so the patient can try again. Never charges. Scoped to
+  /// [patientId] for a patient; everything for an admin. Returns how many
+  /// were resolved.
+  Future<Result<int>> reconcile({String? patientId});
+
+  /// Records money taken outside the app (cash or card at the desk) against
+  /// an open invoice. The receipt reference is required.
+  Future<Result<Invoice>> recordOfflinePayment({
+    required String invoiceId,
+    required String receiptReference,
+    String? note,
+    IdempotencyKey? idempotencyKey,
+  });
+
+  /// Returns [amount] of a settled invoice charge to where it came from
+  /// (card, wallet, or at the desk). Needs the refund permission and a
+  /// reason; never more than is left unrefunded. A full refund marks the
+  /// invoice refunded.
+  Future<Result<PaymentTransaction>> refund({
+    required String transactionId,
+    required double amount,
+    required String reason,
+    IdempotencyKey? idempotencyKey,
+  });
+
+  // Every money movement below takes an [IdempotencyKey]. Reuse it for
+  // every retry of the same payment: a retry after a lost response returns
+  // the committed result instead of charging again. A card payment whose
+  // outcome is unknown fails with `PaymentPendingFailure` — never "paid".
 
   /// Settles [invoiceId] with [payment].
   ///
@@ -90,6 +141,7 @@ abstract interface class BillingRepository {
     required String invoiceId,
     required String patientId,
     required CardPayment payment,
+    IdempotencyKey? idempotencyKey,
   });
 
   /// Settles [invoiceId] with a card already saved to the patient's wallet.
@@ -102,10 +154,14 @@ abstract interface class BillingRepository {
     required String patientId,
     required String cardId,
     required String cvc,
+    IdempotencyKey? idempotencyKey,
   });
 
   /// Raises a new bill (admin/staff side).
-  Future<Result<Invoice>> issue(NewInvoice invoice);
+  Future<Result<Invoice>> issue(
+    NewInvoice invoice, {
+    IdempotencyKey? idempotencyKey,
+  });
 
   // --- wallet: saved cards ------------------------------------------------
 
@@ -138,6 +194,7 @@ abstract interface class BillingRepository {
     required String patientId,
     required double amount,
     required CardPayment card,
+    IdempotencyKey? idempotencyKey,
   });
 
   /// Adds [amount] to [patientId]'s wallet balance, charged to a saved card.
@@ -146,6 +203,7 @@ abstract interface class BillingRepository {
     required double amount,
     required String cardId,
     required String cvc,
+    IdempotencyKey? idempotencyKey,
   });
 
   /// Settles [invoiceId] entirely from [patientId]'s wallet balance. Fails if
@@ -153,5 +211,6 @@ abstract interface class BillingRepository {
   Future<Result<Invoice>> payWithWallet({
     required String invoiceId,
     required String patientId,
+    IdempotencyKey? idempotencyKey,
   });
 }

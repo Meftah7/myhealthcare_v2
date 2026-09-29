@@ -95,8 +95,13 @@ extension ReferralRequestStatusLabel on ReferralRequestStatus {
     final t = AppLocalizations.of(context)!;
     return switch (this) {
       ReferralRequestStatus.pending => t.referralRequestStatusPending,
+      ReferralRequestStatus.clarificationRequested =>
+        t.referralRequestStatusClarification,
+      ReferralRequestStatus.accepted => t.referralRequestStatusAccepted,
+      ReferralRequestStatus.arranged => t.referralRequestStatusArranged,
       ReferralRequestStatus.actioned => t.referralRequestStatusActioned,
       ReferralRequestStatus.rejected => t.referralRequestStatusRejected,
+      ReferralRequestStatus.closed => t.referralRequestStatusClosed,
     };
   }
 }
@@ -135,6 +140,31 @@ extension AbnormalFlagLabel on AbnormalFlag {
       AbnormalFlag.low => t.abnormalFlagLow,
       AbnormalFlag.high => t.abnormalFlagHigh,
       AbnormalFlag.critical => t.abnormalFlagCritical,
+      AbnormalFlag.unknown => t.abnormalFlagUnknown,
+    };
+  }
+}
+
+extension ResultReviewStatusLabel on ResultReviewStatus {
+  String label(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    return switch (this) {
+      ResultReviewStatus.unassigned => t.resultReviewStatusUnassigned,
+      ResultReviewStatus.assigned => t.resultReviewStatusAssigned,
+      ResultReviewStatus.inReview => t.resultReviewStatusInReview,
+      ResultReviewStatus.resolved => t.resultReviewStatusResolved,
+      ResultReviewStatus.escalated => t.resultReviewStatusEscalated,
+    };
+  }
+}
+
+extension WorkPriorityLabel on WorkPriority {
+  String label(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    return switch (this) {
+      WorkPriority.routine => t.workPriorityRoutine,
+      WorkPriority.priority => t.workPriorityPriority,
+      WorkPriority.urgent => t.workPriorityUrgent,
     };
   }
 }
@@ -229,6 +259,7 @@ extension InvoiceStatusLabel on InvoiceStatus {
       InvoiceStatus.pending => t.invoiceStatusPending,
       InvoiceStatus.paid => t.invoiceStatusPaid,
       InvoiceStatus.cancelled => t.invoiceStatusCancelled,
+      InvoiceStatus.refunded => t.invoiceStatusRefunded,
     };
   }
 }
@@ -305,6 +336,30 @@ String invoiceStatusLabel(
     return AppLocalizations.of(context)!.invoiceStatusOverdue;
   }
   return status.label(context);
+}
+
+extension PaymentKindLabel on PaymentKind {
+  String label(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    return switch (this) {
+      PaymentKind.invoiceCharge => t.paymentKindCharge,
+      PaymentKind.walletTopUp => t.paymentKindTopUp,
+      PaymentKind.refund => t.paymentKindRefund,
+    };
+  }
+}
+
+extension PaymentStatusLabel on PaymentStatus {
+  String label(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    return switch (this) {
+      PaymentStatus.initiated => t.paymentStatusInitiated,
+      PaymentStatus.authorized => t.paymentStatusAuthorized,
+      PaymentStatus.settled => t.paymentStatusSettled,
+      PaymentStatus.failed => t.paymentStatusFailed,
+      PaymentStatus.voided => t.paymentStatusVoided,
+    };
+  }
 }
 
 extension FamilyLinkPermissionLabel on FamilyLinkPermission {

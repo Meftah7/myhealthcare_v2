@@ -189,6 +189,12 @@ class AbnormalValueIndicator extends StatelessWidget {
       AbnormalFlag.low => ramp.labLow,
       AbnormalFlag.high => ramp.labHigh,
       AbnormalFlag.critical => ramp.labCritical,
+      // Not judged: neutral colour, but never the "normal" look.
+      AbnormalFlag.unknown => ClinicalStatusStyle(
+        container: ramp.labNormal.container,
+        onContainer: ramp.labNormal.onContainer,
+        icon: Icons.help_outline,
+      ),
     };
     final semantic = flag.label(context);
     final t = AppLocalizations.of(context)!;

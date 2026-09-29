@@ -5,11 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/app.dart';
+import 'package:myhealthcare/app/router.dart';
+import 'package:myhealthcare/core/app_environment.dart';
 import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/core/result.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:myhealthcare/domain/entities/entities.dart';
 import 'package:myhealthcare/domain/enums.dart';
+import 'package:myhealthcare/services/auth/recovery_delivery.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/test_database.dart';
@@ -55,43 +58,42 @@ void main() {
     );
     addTearDown(container.dispose);
 
-    final patient = (await container
-            .read(userRepositoryProvider)
-            .byRole(UserRole.patient))
-        .valueOrNull!
-        .firstWhere((u) => u.nationalId != null);
+    // Listing patients is a clinic-side action.
+    await container
+        .read(authRepositoryProvider)
+        .login(email: 'admin@myhealth.demo', password: Seeder.demoPassword);
+    final patient =
+        (await container.read(userRepositoryProvider).byRole(UserRole.patient))
+            .valueOrNull!
+            .firstWhere((u) => u.nationalId != null);
 
-    final byId = await container.read(authRepositoryProvider).login(
-          email: patient.nationalId!,
-          password: Seeder.demoPassword,
-        );
+    final byId = await container
+        .read(authRepositoryProvider)
+        .login(email: patient.nationalId!, password: Seeder.demoPassword);
     expect(byId, isA<Ok<User>>());
     expect(byId.valueOrNull!.id, patient.id);
   });
 
-  test(
-    'forgot password always succeeds and never reveals whether the '
-    'account exists',
-    () async {
-      final db = newTestDatabase();
-      await Seeder(db).run();
-      final container = ProviderContainer(
-        overrides: [appDatabaseProvider.overrideWithValue(db)],
-      );
-      addTearDown(container.dispose);
-      final auth = container.read(authRepositoryProvider);
+  test('forgot password always succeeds and never reveals whether the '
+      'account exists', () async {
+    final db = newTestDatabase();
+    await Seeder(db).run();
+    final container = ProviderContainer(
+      overrides: [appDatabaseProvider.overrideWithValue(db)],
+    );
+    addTearDown(container.dispose);
+    final auth = container.read(authRepositoryProvider);
 
-      // A real identifier and a made-up one report the identical outcome.
-      expect(
-        await auth.requestPasswordReset('patient1@myhealth.demo'),
-        isA<Ok<dynamic>>(),
-      );
-      expect(
-        await auth.requestPasswordReset('nobody@myhealth.demo'),
-        isA<Ok<dynamic>>(),
-      );
-    },
-  );
+    // A real identifier and a made-up one report the identical outcome.
+    expect(
+      await auth.requestPasswordReset('patient1@myhealth.demo'),
+      isA<Ok<dynamic>>(),
+    );
+    expect(
+      await auth.requestPasswordReset('nobody@myhealth.demo'),
+      isA<Ok<dynamic>>(),
+    );
+  });
 
   test(
     'a queued request is visible to admin and resolving it via the '
@@ -106,11 +108,17 @@ void main() {
       final auth = container.read(authRepositoryProvider);
       final users = container.read(userRepositoryProvider);
 
-      final patient = (await users.byRole(UserRole.patient)).valueOrNull!
-          .firstWhere((u) => u.email == 'patient1@myhealth.demo');
+      // The request is made signed out; the admin handles it.
+      await auth.requestPasswordReset('patient1@myhealth.demo');
+      await auth.login(
+        email: 'admin@myhealth.demo',
+        password: Seeder.demoPassword,
+      );
+      final patient = (await users.byRole(
+        UserRole.patient,
+      )).valueOrNull!.firstWhere((u) => u.email == 'patient1@myhealth.demo');
       final admin = (await users.byRole(UserRole.admin)).valueOrNull!.first;
 
-      await auth.requestPasswordReset('patient1@myhealth.demo');
       final pending = await users.userIdsWithPendingPasswordResetRequests();
       expect(pending.valueOrNull, contains(patient.id));
 
@@ -124,16 +132,13 @@ void main() {
         staffId: admin.id,
       );
 
-      final pendingAfter =
-          await users.userIdsWithPendingPasswordResetRequests();
+      final pendingAfter = await users
+          .userIdsWithPendingPasswordResetRequests();
       expect(pendingAfter.valueOrNull, isNot(contains(patient.id)));
 
       // Old password no longer works, new one does.
       expect(
-        await auth.login(
-          email: 'patient1@myhealth.demo',
-          password: 'password',
-        ),
+        await auth.login(email: 'patient1@myhealth.demo', password: 'password'),
         isA<Err<dynamic>>(),
       );
       expect(
@@ -153,6 +158,9 @@ void main() {
       overrides: [appDatabaseProvider.overrideWithValue(db)],
     );
     addTearDown(container.dispose);
+    await container
+        .read(authRepositoryProvider)
+        .login(email: 'admin@myhealth.demo', password: Seeder.demoPassword);
     final users = container.read(userRepositoryProvider);
     final patient = (await users.byRole(UserRole.patient)).valueOrNull!.first;
     expect(
@@ -206,13 +214,16 @@ void main() {
         email: 'patient1@myhealth.demo',
         password: 'whatever12',
       );
-      expect(unknown.failureOrNull!.message, wrongPassword.failureOrNull!.message);
+      expect(
+        unknown.failureOrNull!.message,
+        wrongPassword.failureOrNull!.message,
+      );
     },
   );
 
   testWidgets(
-    'forgot-password screen never lets the requester set a new password '
-    'directly — it queues a request and shows one generic confirmation',
+    'forgot password: the code sent to the account (a labelled simulated '
+    'inbox in demo builds) sets a new password once',
     (tester) async {
       final container = await _pumpApp(tester);
       addTearDown(container.dispose);
@@ -228,15 +239,97 @@ void main() {
       await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
       await _settle(tester);
 
-      // No password field is ever shown from this unauthenticated flow.
-      expect(find.byType(TextFormField), findsNothing);
-      expect(find.text('Request sent'), findsOneWidget);
+      // Same wording whether or not the identifier matched.
+      expect(find.text('Check your email'), findsOneWidget);
+      expect(find.textContaining('Demo inbox'), findsOneWidget);
+      final outbox =
+          container.read(recoveryDeliveryProvider) as DemoRecoveryOutbox;
+      final code = outbox.messages.single.code;
 
-      await tester.tap(find.widgetWithText(FilledButton, 'Back to sign in'));
+      // A wrong code keeps the form and says so generically.
+      await tester.enterText(
+        find.byKey(const ValueKey('recovery-code')),
+        code == '000000' ? '111111' : '000000',
+      );
+      await tester.enterText(
+        find.byKey(const ValueKey('recovery-password')),
+        'Fresh-Password-1',
+      );
+      await tester.enterText(
+        find.byKey(const ValueKey('recovery-confirm')),
+        'Fresh-Password-1',
+      );
+      await tester.ensureVisible(
+        find.widgetWithText(FilledButton, 'Set new password'),
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Set new password'));
+      await _settle(tester);
+      expect(find.textContaining('invalid or has expired'), findsOneWidget);
+
+      await tester.enterText(find.byKey(const ValueKey('recovery-code')), code);
+      await tester.ensureVisible(
+        find.widgetWithText(FilledButton, 'Set new password'),
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Set new password'));
+      await _settle(tester);
+      expect(find.text('Password updated'), findsOneWidget);
+
+      expect(
+        await container
+            .read(authRepositoryProvider)
+            .login(
+              email: 'patient1@myhealth.demo',
+              password: 'Fresh-Password-1',
+            ),
+        isA<Ok<dynamic>>(),
+      );
+      await container.read(authRepositoryProvider).signOut();
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 1));
+    },
+  );
+
+  testWidgets(
+    'forgot password without a delivery channel (production) never lets the '
+    'requester set a password — it queues an admin-verified request',
+    (tester) async {
+      final db = newTestDatabase();
+      await Seeder(db).run();
+      SharedPreferences.setMockInitialValues({'ui.hasSeenOnboarding': true});
+      final prefs = await SharedPreferences.getInstance();
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          appModeProvider.overrideWithValue(AppMode.production),
+          appDatabaseProvider.overrideWith((ref) {
+            ref.onDispose(db.close);
+            return db;
+          }),
+        ],
+      );
+      addTearDown(container.dispose);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MyHealthCareApp(),
+        ),
+      );
+      await _settle(tester);
+      container.read(routerProvider).go(AppRoutes.forgotPassword);
       await _settle(tester);
 
-      // Back on the sign-in screen.
-      expect(find.widgetWithText(FilledButton, 'Sign in'), findsOneWidget);
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Email or national ID'),
+        'patient1@myhealth.demo',
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
+      await _settle(tester);
+
+      // No code, no password field — only the generic confirmation.
+      expect(find.byType(TextField), findsNothing);
+      expect(find.text('Request sent'), findsOneWidget);
+      expect(await db.select(db.passwordResetRequests).get(), hasLength(1));
 
       await tester.pumpWidget(const SizedBox());
       await tester.pump(const Duration(seconds: 1));

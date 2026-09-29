@@ -9,12 +9,15 @@ import '../../core/result.dart';
 import '../../domain/entities/entities.dart';
 import '../../domain/enums.dart';
 import '../../domain/repositories/ai_repository.dart';
+import '../../services/auth/access_policy.dart';
 import '../db/app_database.dart';
 
 class AiSummaryRepositoryImpl implements AiSummaryRepository {
-  AiSummaryRepositoryImpl(this._db);
+  AiSummaryRepositoryImpl(this._db, {AccessPolicy? access})
+    : _access = access ?? AccessPolicy.unenforced(_db);
 
   final AppDatabase _db;
+  final AccessPolicy _access;
 
   AiSummary _toEntity(AiSummaryRow r) => AiSummary(
     id: r.id,
@@ -38,13 +41,20 @@ class AiSummaryRepositoryImpl implements AiSummaryRepository {
                 ..orderBy([(s) => OrderingTerm.desc(s.generatedAt)])
                 ..limit(1))
               .getSingleOrNull();
-      return row == null ? null : _toEntity(row);
+      if (row == null) return null;
+      await _access.readPatient(
+        row.patientId,
+        entityType: 'ai_summary',
+        entityId: row.id,
+      );
+      return _toEntity(row);
     });
   }
 
   @override
   Future<Result<AiSummary?>> latestForPatient(String patientId) {
     return Result.guardAsync(() async {
+      await _access.readPatient(patientId, entityType: 'ai_summary');
       final row =
           await (_db.select(_db.aiSummaries)
                 ..where((s) => s.patientId.equals(patientId))
@@ -58,6 +68,11 @@ class AiSummaryRepositoryImpl implements AiSummaryRepository {
   @override
   Future<Result<void>> save(AiSummary s) {
     return Result.guardAsync(() async {
+      await _access.readPatient(
+        s.patientId,
+        entityType: 'ai_summary',
+        entityId: s.id,
+      );
       await _db
           .into(_db.aiSummaries)
           .insertOnConflictUpdate(

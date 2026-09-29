@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/chart_providers.dart';
@@ -100,15 +101,17 @@ class _SheetScaffold extends StatelessWidget {
 /// Reports failures inline on the sheet (via [error]) and successes with a
 /// snackbar after the sheet has closed — a failure keeps the sheet open with
 /// the entered data intact, so it needs the message to stay in view.
-String? _errorOf(Result<Object?> result) => switch (result) {
-  Ok() => null,
-  Err(:final failure) => failure.message,
-};
+String? _errorOf(BuildContext context, Result<Object?> result) =>
+    switch (result) {
+      Ok() => null,
+      Err(:final failure) => describeFailure(
+        AppLocalizations.of(context)!,
+        failure,
+      ).message,
+    };
 
 void _reportOk(BuildContext context, String message) {
-  ScaffoldMessenger.of(
-    context,
-  ).showSnackBar(SnackBar(content: Text(message)));
+  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
 }
 
 // --- clinical note ---------------------------------------------------------
@@ -151,7 +154,7 @@ class _NoteSheetState extends ConsumerState<_NoteSheet> {
     if (!mounted) return;
     setState(() {
       _busy = false;
-      _error = _errorOf(result);
+      _error = _errorOf(context, result);
     });
     if (result.isOk) {
       Navigator.of(context).pop();
@@ -234,7 +237,7 @@ class _PrescribeSheetState extends ConsumerState<_PrescribeSheet> {
     if (!mounted) return;
     setState(() {
       _busy = false;
-      _error = _errorOf(result);
+      _error = _errorOf(context, result);
     });
     if (result.isOk) {
       Navigator.of(context).pop();
@@ -325,7 +328,7 @@ class _LabSheetState extends ConsumerState<_LabSheet> {
     if (!mounted) return;
     setState(() {
       _busy = false;
-      _error = _errorOf(result);
+      _error = _errorOf(context, result);
     });
     if (result.isOk) {
       Navigator.of(context).pop();
@@ -472,7 +475,7 @@ class _SickLeaveSheetState extends ConsumerState<_SickLeaveSheet> {
     if (!mounted) return;
     setState(() {
       _busy = false;
-      _error = _errorOf(result);
+      _error = _errorOf(context, result);
     });
     if (result.isOk) {
       Navigator.of(context).pop();

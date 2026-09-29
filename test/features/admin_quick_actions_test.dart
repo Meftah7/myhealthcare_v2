@@ -1,6 +1,7 @@
 // Admin dashboard rebuild: the Quick actions grid — broadcast, create invoice,
 // billing overview, all-appointments.
 
+import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/app.dart';
 import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/core/presentation/app_scaffold.dart';
+import 'package:myhealthcare/core/result.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:myhealthcare/domain/enums.dart';
 import 'package:myhealthcare/features/admin/application/admin_providers.dart';
@@ -123,17 +125,24 @@ void main() {
     await _settle(tester);
     expect(find.textContaining('Sent to'), findsOneWidget);
 
-    // A seeded patient now has the notification.
-    final patients = await container
-        .read(userRepositoryProvider)
-        .byRole(UserRole.patient);
-    final someone = patients.valueOrNull!.first.id;
-    final notes = await container
-        .read(notificationRepositoryProvider)
-        .forRecipient(someone);
+    // A seeded patient now has the notification. (Inboxes are private to
+    // their owner, so the admin can't read it through the repository — check
+    // the stored row.)
+    final db = container.read(appDatabaseProvider);
+    final delivered =
+        await (db.select(db.notifications)..where(
+              (n) =>
+                  n.recipientId.equals('patient_001') &
+                  n.title.equals('Clinic closed Friday'),
+            ))
+            .get();
+    expect(delivered, isNotEmpty);
+    // …and the admin's own session never touched it.
     expect(
-      notes.valueOrNull!.any((n) => n.title == 'Clinic closed Friday'),
-      isTrue,
+      await container
+          .read(notificationRepositoryProvider)
+          .forRecipient('patient_001'),
+      isA<Err<dynamic>>(),
     );
 
     await tester.pumpWidget(const SizedBox());
@@ -219,14 +228,28 @@ void main() {
     expect(find.widgetWithText(AppBar, 'Billing'), findsOneWidget);
     expect(find.textContaining('BD '), findsWidgets);
 
-    // Filter to pending invoices and pay the first one.
+    // Filter to pending invoices and record a desk payment for the first
+    // one — with its receipt number (there is no "mark paid").
     await tester.tap(find.widgetWithText(FilterChip, 'Pending'));
     await _settle(tester);
-    final payButtons = find.widgetWithText(FilledButton, 'Mark paid');
+    expect(find.widgetWithText(FilledButton, 'Mark paid'), findsNothing);
+    final payButtons = find.widgetWithText(FilledButton, 'Record desk payment');
     if (payButtons.evaluate().isNotEmpty) {
       await tester.tap(payButtons.first);
       await _settle(tester);
-      expect(find.textContaining('marked Paid'), findsOneWidget);
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Receipt number'),
+        'DESK-9',
+      );
+      await tester.pump();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.widgetWithText(FilledButton, 'Record desk payment'),
+        ),
+      );
+      await _settle(tester);
+      expect(find.text('Payment recorded.'), findsOneWidget);
     }
 
     await tester.pumpWidget(const SizedBox());

@@ -11,7 +11,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
+import '../../../core/failures.dart';
 import '../../../core/presentation/states.dart';
+import '../../../core/result.dart';
 import '../../../core/utils/clinic_hours.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/repositories/appointment_repository.dart';
@@ -66,7 +68,13 @@ class _SlotPickerSheetState extends ConsumerState<_SlotPickerSheet> {
     _future = ref
         .read(appointmentRepositoryProvider)
         .openSlots(widget.staffId, _date)
-        .then((r) => r.valueOrNull ?? const []);
+        // A failed read is an error, never "no open slots that day".
+        .then(
+          (r) => switch (r) {
+            Ok(:final value) => value,
+            Err(:final failure) => throw failure,
+          },
+        );
   }
 
   Future<void> _pickDate() async {
@@ -115,6 +123,14 @@ class _SlotPickerSheetState extends ConsumerState<_SlotPickerSheet> {
                 child: FutureBuilder<List<OpenSlot>>(
                   future: _future,
                   builder: (context, snap) {
+                    if (snap.hasError) {
+                      return ErrorStateView(
+                        message: snap.error is Failure
+                            ? (snap.error! as Failure).message
+                            : UnexpectedFailure.from(snap.error!).message,
+                        onRetry: () => setState(_load),
+                      );
+                    }
                     if (!snap.hasData) {
                       return const Padding(
                         padding: EdgeInsets.symmetric(vertical: Space.lg),

@@ -11,6 +11,7 @@ import 'package:intl/intl.dart';
 
 import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../l10n/app_localizations.dart';
 
 class ClinicHoursScreen extends ConsumerWidget {
@@ -49,8 +50,8 @@ class ClinicHoursScreen extends ConsumerWidget {
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(title: Text(t.clinicHoursTitle)),
+    return AppScaffold(
+      title: t.clinicHoursTitle,
       body: ListView(
         padding: const EdgeInsets.all(Space.lg),
         children: [
@@ -95,6 +96,7 @@ class ClinicHoursScreen extends ConsumerWidget {
           ),
         ],
       ),
+      centerBody: false,
     );
   }
 

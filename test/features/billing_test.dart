@@ -151,15 +151,24 @@ void main() {
     addTearDown(db.close);
     await Seeder(db).run();
     final repo = BillingRepositoryImpl(db);
-    final pending = (await repo.all(status: InvoiceStatus.pending))
-        .valueOrNull!;
+    final pending = (await repo.all(
+      status: InvoiceStatus.pending,
+    )).valueOrNull!;
     expect(pending.length, greaterThanOrEqualTo(2));
 
-    final paid = await repo.setStatus(
-      id: pending[0].id,
-      status: InvoiceStatus.paid,
+    // Paid only through a recorded payment, never a status edit (Phase 5).
+    expect(
+      (await repo.setStatus(
+        id: pending[0].id,
+        status: InvoiceStatus.paid,
+      )).isErr,
+      isTrue,
     );
-    expect(paid.isOk, isTrue);
+    final paid = await repo.recordOfflinePayment(
+      invoiceId: pending[0].id,
+      receiptReference: 'DESK-1',
+    );
+    expect(paid.valueOrNull?.status, InvoiceStatus.paid);
     expect(
       (await repo.setStatus(
         id: pending[0].id,

@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/states.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../staff_dashboard/presentation/staff_top_actions.dart';
@@ -21,11 +22,9 @@ class StaffInboxScreen extends ConsumerWidget {
     final t = AppLocalizations.of(context)!;
     final threads = ref.watch(staffThreadsProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(t.messagesTitle),
-        actions: const [StaffTopActions()],
-      ),
+    return AppScaffold(
+      title: t.messagesTitle,
+      actions: const [StaffTopActions()],
       body: RefreshIndicator(
         onRefresh: () async => ref.invalidate(staffThreadsProvider),
         child: threads.when(
@@ -79,6 +78,7 @@ class StaffInboxScreen extends ConsumerWidget {
           },
         ),
       ),
+      centerBody: false,
     );
   }
 }

@@ -16,6 +16,7 @@ import 'package:myhealthcare/features/auth/application/session.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/mfa.dart';
+import '../support/sessions.dart';
 import '../support/test_database.dart';
 
 Future<void> _settle(WidgetTester tester) async {
@@ -98,6 +99,8 @@ void main() {
       expect(appt.status, AppointmentStatus.booked);
       expect(appt.staffId, doctors.first.id);
 
+      // The patient's inbox is theirs alone — check it as the patient.
+      await signInAs(container, 'patient4@myhealth.demo');
       final notes = await container
           .read(notificationRepositoryProvider)
           .forRecipient(patientId);
@@ -139,6 +142,9 @@ void main() {
           );
       expect(r2.isOk, isTrue, reason: r2.toString());
 
+      // Administrators have no clinical access; the patient sees the
+      // referral letters in their own history.
+      await signInAs(container, 'patient6@myhealth.demo');
       final timeline = await container
           .read(recordRepositoryProvider)
           .timeline(patientId, limit: 500);

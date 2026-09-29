@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../l10n/app_localizations.dart';
@@ -92,8 +93,9 @@ class _HealthDetailsSectionState extends ConsumerState<HealthDetailsSection> {
       bloodType: _bloodType,
       allergies: _split(_allergies.text),
       chronicConditions: _split(_conditions.text),
-      emergencyContact:
-          _emergency.text.trim().isEmpty ? null : _emergency.text.trim(),
+      emergencyContact: _emergency.text.trim().isEmpty
+          ? null
+          : _emergency.text.trim(),
     );
     final result = await ref
         .read(patientProfileControllerProvider)
@@ -111,9 +113,13 @@ class _HealthDetailsSectionState extends ConsumerState<HealthDetailsSection> {
           ),
         );
       case Err(:final failure):
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(failure.message)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              describeFailure(AppLocalizations.of(context)!, failure).message,
+            ),
+          ),
+        );
     }
   }
 

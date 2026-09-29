@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -64,12 +65,11 @@ class RadiologyScreen extends ConsumerWidget {
 
     if (embedded) return list;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(t.imagingTitle),
-        actions: const [PatientTopActions()],
-      ),
+    return AppScaffold(
+      title: t.imagingTitle,
+      actions: const [PatientTopActions()],
       body: list,
+      centerBody: false,
     );
   }
 }

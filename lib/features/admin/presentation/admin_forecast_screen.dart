@@ -8,33 +8,42 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/operational_list.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
+import '../../../core/utils/format.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/capacity_forecast.dart';
 
-class AdminForecastScreen extends ConsumerWidget {
+class AdminForecastScreen extends ConsumerStatefulWidget {
   const AdminForecastScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AdminForecastScreen> createState() =>
+      _AdminForecastScreenState();
+}
+
+class _AdminForecastScreenState extends ConsumerState<AdminForecastScreen> {
+  int _visibleSources = 20;
+
+  @override
+  Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final forecast = ref.watch(capacityForecastProvider);
     final gutter = WindowSize.of(context).gutter;
     final compact = WindowSize.of(context).isCompact;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(t.capacityForecastTitle),
-        actions: [
-          IconButton(
-            tooltip: t.recomputeTooltip,
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref.invalidate(capacityForecastProvider),
-          ),
-        ],
-      ),
+    return AppScaffold(
+      title: t.capacityForecastTitle,
+      actions: [
+        IconButton(
+          tooltip: t.recomputeTooltip,
+          icon: const Icon(Icons.refresh),
+          onPressed: () => ref.invalidate(capacityForecastProvider),
+        ),
+      ],
       body: forecast.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
@@ -64,6 +73,8 @@ class AdminForecastScreen extends ConsumerWidget {
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
+                      const SizedBox(height: Space.sm),
+                      _MetricContract(metadata: f.metadata),
                       const SizedBox(height: Space.md),
                       if (compact)
                         for (final d in f.days)
@@ -93,11 +104,90 @@ class AdminForecastScreen extends ConsumerWidget {
                               ],
                             ),
                           ),
+                      const SizedBox(height: Space.lg),
+                      const SectionHeader(
+                        'Source appointments',
+                        overline: true,
+                      ),
+                      OperationalList<DemandSourceRow>(
+                        items: f.sourceRows.take(_visibleSources).toList(),
+                        itemId: (row) => row.appointmentId,
+                        searchText: (row) =>
+                            '${row.appointmentId} ${row.staffId} ${row.status.name}',
+                        columns: [
+                          OperationalColumn(
+                            label: 'Appointment',
+                            value: (row) => row.appointmentId,
+                          ),
+                          OperationalColumn(
+                            label: 'Time',
+                            value: (row) => fmtDateTime(row.slotStart),
+                          ),
+                          OperationalColumn(
+                            label: 'Staff',
+                            value: (row) => row.staffId,
+                          ),
+                          OperationalColumn(
+                            label: 'Status',
+                            value: (row) => row.status.name,
+                          ),
+                        ],
+                        searchHint: 'Search source appointments',
+                        allLabel: 'All',
+                        fetchedAt: f.metadata.refreshedAt,
+                        onRefresh: () =>
+                            ref.invalidate(capacityForecastProvider),
+                        hasMore: _visibleSources < f.sourceRows.length,
+                        onLoadMore: () => setState(() => _visibleSources += 20),
+                        empty: const EmptyState(
+                          icon: Icons.event_busy_outlined,
+                          message: 'No included appointments in this window.',
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ),
             ),
+          ],
+        ),
+      ),
+      centerBody: false,
+    );
+  }
+}
+
+class _MetricContract extends StatelessWidget {
+  const _MetricContract({required this.metadata});
+  final ForecastMetadata metadata;
+
+  @override
+  Widget build(BuildContext context) {
+    final start = metadata.windowStart;
+    final end = metadata.windowEnd;
+    return Semantics(
+      label: 'Metric definition and source',
+      child: AppCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Metric details',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            const SizedBox(height: Space.xs),
+            if (metadata.isStaleAt(DateTime.now()))
+              Text(
+                'Stale data — refresh before making an operational decision.',
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            Text('Source: ${metadata.source}'),
+            Text(
+              'Window: ${start == null ? 'No included data' : '${fmtDate(start)} – ${fmtDate(end!)}'}',
+            ),
+            Text('Excludes: ${metadata.exclusions}'),
+            Text('Timezone: ${metadata.timezone}'),
+            Text('Freshness: calculated ${fmtDateTime(metadata.refreshedAt)}'),
           ],
         ),
       ),

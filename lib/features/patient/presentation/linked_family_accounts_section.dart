@@ -16,8 +16,8 @@ import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
-import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
 import '../../../domain/repositories/patient_repository.dart';
 import '../../../l10n/app_localizations.dart';
@@ -29,10 +29,19 @@ class LinkedFamilyAccountsSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
-    final incoming = ref.watch(incomingFamilyRequestsProvider).valueOrNull ?? const [];
-    final outgoing = ref.watch(outgoingFamilyRequestsProvider).valueOrNull ?? const [];
+    final incomingAsync = ref.watch(incomingFamilyRequestsProvider);
+    final outgoingAsync = ref.watch(outgoingFamilyRequestsProvider);
+    final viewersAsync = ref.watch(viewersOfMeProvider);
+    final incoming = incomingAsync.valueOrNull ?? const [];
+    final outgoing = outgoingAsync.valueOrNull ?? const [];
     final linked = ref.watch(linkedAccountsProvider);
-    final viewers = ref.watch(viewersOfMeProvider).valueOrNull ?? const [];
+    final viewers = viewersAsync.valueOrNull ?? const [];
+    // If any part failed, nothing here may read as "no links" — especially
+    // not who can see this patient's data.
+    final partFailed =
+        incomingAsync.hasError ||
+        outgoingAsync.hasError ||
+        viewersAsync.hasError;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -48,6 +57,11 @@ class LinkedFamilyAccountsSection extends ConsumerWidget {
           ],
         ),
 
+        if (partFailed) ...[
+          InlineBanner.error(t.couldNotLoadFamilyMembers),
+          const SizedBox(height: Space.sm),
+        ],
+
         if (incoming.isNotEmpty) ...[
           _Label(t.pendingRequestsTitle),
           for (final v in incoming) _IncomingRequestCard(view: v),
@@ -58,7 +72,10 @@ class LinkedFamilyAccountsSection extends ConsumerWidget {
           loading: () => const LoadingSkeleton(height: 56),
           error: (e, _) => InlineBanner.error(t.couldNotLoadFamilyMembers),
           data: (items) {
-            if (items.isEmpty && incoming.isEmpty && outgoing.isEmpty) {
+            if (items.isEmpty &&
+                incoming.isEmpty &&
+                outgoing.isEmpty &&
+                !partFailed) {
               return Text(
                 t.noLinkedAccountsYet,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -137,7 +154,9 @@ class _PermissionBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: Space.xs, vertical: 2),
       decoration: BoxDecoration(
-        color: manage ? scheme.primaryContainer : scheme.surfaceContainerHighest,
+        color: manage
+            ? scheme.primaryContainer
+            : scheme.surfaceContainerHighest,
         borderRadius: Radii.pill,
       ),
       child: Text(
@@ -213,7 +232,9 @@ class _IncomingRequestCard extends ConsumerWidget {
                           .decline(view.link.id);
                       if (context.mounted && result.isErr) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(result.failureOrNull!.message)),
+                          SnackBar(
+                            content: Text(result.failureOrNull!.message),
+                          ),
                         );
                       }
                     },
@@ -229,7 +250,9 @@ class _IncomingRequestCard extends ConsumerWidget {
                           .accept(view.link.id);
                       if (context.mounted && result.isErr) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(result.failureOrNull!.message)),
+                          SnackBar(
+                            content: Text(result.failureOrNull!.message),
+                          ),
                         );
                       }
                     },
@@ -340,9 +363,9 @@ class _OutgoingRequestTile extends ConsumerWidget {
                 .read(familyLinkControllerProvider)
                 .decline(view.link.id);
             if (context.mounted && result.isErr) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text(result.failureOrNull!.message)));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(result.failureOrNull!.message)),
+              );
             }
           },
           child: Text(t.declineButton),
@@ -392,9 +415,9 @@ class _ViewerTile extends ConsumerWidget {
                 .read(familyLinkControllerProvider)
                 .unlink(view.link.id);
             if (context.mounted && result.isErr) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text(result.failureOrNull!.message)));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(result.failureOrNull!.message)),
+              );
             }
           },
         ),
@@ -444,7 +467,10 @@ class _LinkAccountSheetState extends ConsumerState<_LinkAccountSheet> {
       case Err(:final failure):
         setState(() {
           _busy = false;
-          _error = failure.message;
+          _error = describeFailure(
+            AppLocalizations.of(context)!,
+            failure,
+          ).message;
         });
     }
   }

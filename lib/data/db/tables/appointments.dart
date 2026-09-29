@@ -26,6 +26,20 @@ class ScheduleTemplates extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+@DataClassName('AvailabilityExceptionRow')
+class AvailabilityExceptions extends Table {
+  TextColumn get id => text()();
+  TextColumn get staffId =>
+      text().references(Users, #id, onDelete: KeyAction.cascade)();
+  DateTimeColumn get startsAt => dateTime()();
+  DateTimeColumn get endsAt => dateTime()();
+  TextColumn get reason => text().nullable()();
+  IntColumn get version => integer().withDefault(const Constant(1))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 @DataClassName('AppointmentRow')
 class Appointments extends Table {
   TextColumn get id => text()();
@@ -72,6 +86,16 @@ class Appointments extends Table {
   /// on someone else's behalf. Null = the account holder's own visit.
   TextColumn get bookedForName => text().nullable()();
 
+  /// The signed-in account that made the booking. Differs from [patientId]
+  /// when a guardian or proxy booked for someone else. Null on rows from
+  /// before this was tracked.
+  TextColumn get bookedByAccountId => text().nullable()();
+
+  /// Optimistic-concurrency version, bumped on every update by a database
+  /// trigger (schema v19) so no write path can forget. A write naming a
+  /// stale version is refused with a conflict.
+  IntColumn get version => integer().withDefault(const Constant(1))();
+
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
@@ -85,6 +109,14 @@ class Reminders extends Table {
   TextColumn get channel => textEnum<ReminderChannel>()();
   TextColumn get kind =>
       textEnum<ReminderKind>().withDefault(const Constant('standard'))();
+  TextColumn get deliveryStatus => textEnum<ReminderDeliveryStatus>()
+      .withDefault(const Constant('queued'))();
+  IntColumn get deliveryAttempts => integer().withDefault(const Constant(0))();
+  TextColumn get lastError => text().nullable()();
+
+  /// Earliest retry after a transient delivery failure (schema v24). Null
+  /// means "as soon as it is due".
+  DateTimeColumn get nextAttemptAt => dateTime().nullable()();
   DateTimeColumn get sentAt => dateTime().nullable()();
   BoolColumn get acknowledged => boolean().withDefault(const Constant(false))();
 

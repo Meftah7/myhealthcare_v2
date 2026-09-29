@@ -45,6 +45,10 @@ abstract class Appointment with _$Appointment {
     /// The linked family member this visit was booked for, or null for the
     /// account holder's own visit.
     String? bookedForName,
+
+    /// Optimistic-concurrency version; pass it back as `expectedVersion`
+    /// when changing this appointment.
+    @Default(1) int version,
   }) = _Appointment;
 
   const Appointment._();

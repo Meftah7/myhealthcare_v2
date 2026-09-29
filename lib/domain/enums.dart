@@ -31,7 +31,26 @@ enum WalkInStatus { waiting, called, inProgress, done, cancelled }
 
 /// A doctor's request for the admin to refer a patient out (`ReferralRequests`).
 /// The doctor supplies only the reason; the admin decides where and executes.
-enum ReferralRequestStatus { pending, actioned, rejected }
+enum ReferralRequestStatus {
+  pending,
+  clarificationRequested,
+  accepted,
+  arranged,
+  actioned,
+  rejected,
+  closed,
+}
+
+/// How soon owned clinical work (a result review, referral, task) is due.
+enum WorkPriority { routine, priority, urgent }
+
+/// A result review's lifecycle (Phase 4). unassigned → assigned → inReview →
+/// resolved; any open state may be escalated to a covering clinician, and an
+/// escalated review goes back into review or is resolved.
+enum ResultReviewStatus { unassigned, assigned, inReview, resolved, escalated }
+
+/// Whether a clinician has confirmed an observation's value (Phase 4).
+enum VerificationStatus { unverified, verified, corrected }
 
 /// Why the patient is coming in — a feature of the no-show model (P4-03).
 enum VisitType {
@@ -59,7 +78,9 @@ enum RecordType {
 }
 
 /// A lab value's position relative to its reference range (DESIGN.md §2.2).
-enum AbnormalFlag { normal, low, high, critical }
+/// `unknown` — no reference range was supplied, so the value cannot be
+/// judged; it is never shown as normal (Phase 4).
+enum AbnormalFlag { normal, low, high, critical, unknown }
 
 enum TaskKind {
   followUpDue,
@@ -90,9 +111,35 @@ enum ReminderKind { standard, escalated, confirmRequest }
 
 enum ReminderChannel { push, inApp, sms, email }
 
+/// queued → delivered | failed | suppressed. A queued reminder with
+/// attempts > 0 is waiting to retry after a transient failure.
+enum ReminderDeliveryStatus { queued, delivered, failed, suppressed }
+
 /// Lifecycle of a patient invoice. `overdue` is derived at read time from the
 /// due date rather than stored, so it never goes stale in the database.
-enum InvoiceStatus { pending, paid, cancelled }
+///
+/// pending → paid (a settled payment only) → refunded (fully refunded);
+/// pending → cancelled. The database rejects every other change (schema v24).
+enum InvoiceStatus { pending, paid, cancelled, refunded }
+
+/// What a payment transaction does (Phase 5).
+enum PaymentKind { invoiceCharge, walletTopUp, refund }
+
+/// How the money moved.
+enum PaymentMethodKind { card, savedCard, wallet, offline }
+
+/// A payment transaction's lifecycle (Phase 5).
+///
+/// `initiated` — recorded before the provider was asked; the outcome is not
+/// known yet. `authorized` — the provider approved but has not captured.
+/// `settled` — the provider (or the wallet ledger) confirmed the money moved;
+/// only this marks an invoice paid. `failed` — declined, or the provider never
+/// received it. `voided` — an authorization released without capture.
+enum PaymentStatus { initiated, authorized, settled, failed, voided }
+
+/// Whether a clinician has looked at a patient-imported document (Phase 5).
+/// Clinic-authored records are `notRequired`.
+enum ImportReviewStatus { notRequired, pendingReview, reviewed, rejected }
 
 /// Lifecycle of a home-visit request (P10-08). `requested` is the patient's
 /// submission; the clinic moves it from there.
@@ -101,7 +148,7 @@ enum HomeVisitStatus { requested, scheduled, completed, declined, cancelled }
 /// A movement in the patient's wallet balance: money added, or money spent
 /// settling an invoice. The balance itself is never stored — it's the sum of
 /// these entries, so it can never drift from its history.
-enum WalletTransactionType { topUp, redemption }
+enum WalletTransactionType { topUp, redemption, refund }
 
 /// What a linked family account can do with the owner's data.
 enum FamilyLinkPermission { viewOnly, manage }

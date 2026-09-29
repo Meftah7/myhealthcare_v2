@@ -61,7 +61,8 @@ void main() {
       slotStart: slot,
       band: RiskBand.high,
     );
-    expect(first.valueOrNull, 3);
+    // Three plan steps, each in-app and push.
+    expect(first.valueOrNull, 6);
 
     // Re-scheduling clears the unsent ones first — no duplicates.
     final second = await scheduler.scheduleFor(
@@ -69,9 +70,78 @@ void main() {
       slotStart: slot,
       band: RiskBand.medium,
     );
-    expect(second.valueOrNull, 2);
+    expect(second.valueOrNull, 4);
 
     final rows = await db.select(db.reminders).get();
-    expect(rows, hasLength(2));
+    expect(
+      rows.where((row) => row.deliveryStatus == ReminderDeliveryStatus.queued),
+      hasLength(4),
+    );
+    expect(
+      rows.where(
+        (row) => row.deliveryStatus == ReminderDeliveryStatus.suppressed,
+      ),
+      hasLength(6),
+    );
+  });
+
+  test('delivery failure can be retried and then delivered', () async {
+    final db = newTestDatabase();
+    addTearDown(db.close);
+    final scheduler = ReminderScheduler(db);
+    for (final (id, role) in const [
+      ('staff', UserRole.staff),
+      ('patient', UserRole.patient),
+    ]) {
+      await db
+          .into(db.users)
+          .insert(
+            UsersCompanion.insert(
+              id: id,
+              role: role,
+              fullName: id,
+              email: '$id@example.test',
+              passwordHash: 'h',
+              passwordSalt: 's',
+            ),
+          );
+    }
+    final slot = DateTime.now().add(const Duration(days: 2));
+    await db
+        .into(db.appointments)
+        .insert(
+          AppointmentsCompanion.insert(
+            id: 'appointment',
+            patientId: 'patient',
+            staffId: 'staff',
+            slotStart: slot,
+            slotEnd: slot.add(const Duration(minutes: 20)),
+            visitType: VisitType.followUp,
+          ),
+        );
+    await scheduler.scheduleFor(
+      appointmentId: 'appointment',
+      slotStart: slot,
+      band: RiskBand.low,
+      enabledChannels: const {ReminderChannel.push},
+    );
+    final reminder = (await (db.select(
+      db.reminders,
+    )..where((r) => r.channel.equalsValue(ReminderChannel.push))).get()).single;
+
+    await scheduler.markFailed(reminder.id, 'permission denied');
+    var updated = await (db.select(
+      db.reminders,
+    )..where((row) => row.id.equals(reminder.id))).getSingle();
+    expect(updated.deliveryStatus, ReminderDeliveryStatus.failed);
+    expect(updated.deliveryAttempts, 1);
+
+    await scheduler.retry(reminder.id);
+    await scheduler.markSent(reminder.id);
+    updated = await (db.select(
+      db.reminders,
+    )..where((row) => row.id.equals(reminder.id))).getSingle();
+    expect(updated.deliveryStatus, ReminderDeliveryStatus.delivered);
+    expect(updated.sentAt, isNotNull);
   });
 }

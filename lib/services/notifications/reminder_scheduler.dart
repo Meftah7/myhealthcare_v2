@@ -24,6 +24,24 @@ class ReminderPlan {
   final ReminderChannel channel;
 }
 
+/// Channels this prototype can actually deliver on: in-app (always, the
+/// guaranteed fallback) and browser alerts. SMS and email need a delivery
+/// provider the release scope excludes, so they are never queued — a reminder
+/// is not written down for a channel that would silently drop it (Phase 5).
+const deliverableReminderChannels = {
+  ReminderChannel.inApp,
+  ReminderChannel.push,
+};
+
+/// Which channels a reminder goes out on, given the patient's preferences
+/// ([enabled] null = no preference, so every deliverable channel). In-app is
+/// always included, so switching everything else off still leaves one.
+Set<ReminderChannel> reminderChannelsFor(Set<ReminderChannel>? enabled) => {
+  ReminderChannel.inApp,
+  if (enabled == null || enabled.contains(ReminderChannel.push))
+    ReminderChannel.push,
+};
+
 List<ReminderPlan> reminderPlanFor(RiskBand band) {
   switch (band) {
     case RiskBand.low:
@@ -88,31 +106,37 @@ class ReminderScheduler {
     Set<ReminderChannel>? enabledChannels,
   }) {
     return Result.guardAsync(() async {
-      await (_db.delete(_db.reminders)..where(
-            (r) => r.appointmentId.equals(appointmentId) & r.sentAt.isNull(),
+      await (_db.update(_db.reminders)..where(
+            (r) =>
+                r.appointmentId.equals(appointmentId) &
+                r.deliveryStatus.equalsValue(ReminderDeliveryStatus.queued),
           ))
-          .go();
+          .write(
+            const RemindersCompanion(
+              deliveryStatus: Value(ReminderDeliveryStatus.suppressed),
+            ),
+          );
 
       final now = DateTime.now();
       var written = 0;
+      final channels = reminderChannelsFor(enabledChannels);
       for (final plan in reminderPlanFor(band)) {
-        if (enabledChannels != null && !enabledChannels.contains(plan.channel)) {
-          continue;
-        }
         final at = slotStart.subtract(plan.offsetBeforeSlot);
         if (at.isBefore(now)) continue; // no point scheduling the past
-        await _db
-            .into(_db.reminders)
-            .insert(
-              RemindersCompanion.insert(
-                id: newId('rem'),
-                appointmentId: appointmentId,
-                scheduledFor: at,
-                channel: plan.channel,
-                kind: Value(plan.kind),
-              ),
-            );
-        written++;
+        for (final channel in channels) {
+          await _db
+              .into(_db.reminders)
+              .insert(
+                RemindersCompanion.insert(
+                  id: newId('rem'),
+                  appointmentId: appointmentId,
+                  scheduledFor: at,
+                  channel: channel,
+                  kind: Value(plan.kind),
+                ),
+              );
+          written++;
+        }
       }
       return written;
     });
@@ -123,14 +147,53 @@ class ReminderScheduler {
     final at = asOf ?? DateTime.now();
     return (_db.select(_db.reminders)
           ..where(
-            (r) => r.sentAt.isNull() & r.scheduledFor.isSmallerOrEqualValue(at),
+            (r) =>
+                r.deliveryStatus.equalsValue(ReminderDeliveryStatus.queued) &
+                r.scheduledFor.isSmallerOrEqualValue(at),
           )
           ..orderBy([(r) => OrderingTerm(expression: r.scheduledFor)]))
         .get();
   }
 
-  Future<void> markSent(String reminderId) {
-    return (_db.update(_db.reminders)..where((r) => r.id.equals(reminderId)))
-        .write(RemindersCompanion(sentAt: Value(DateTime.now())));
+  Future<void> markSent(String reminderId) async {
+    final row = await (_db.select(
+      _db.reminders,
+    )..where((r) => r.id.equals(reminderId))).getSingle();
+    await (_db.update(
+      _db.reminders,
+    )..where((r) => r.id.equals(reminderId))).write(
+      RemindersCompanion(
+        sentAt: Value(DateTime.now()),
+        deliveryStatus: const Value(ReminderDeliveryStatus.delivered),
+        deliveryAttempts: Value(row.deliveryAttempts + 1),
+        lastError: const Value(null),
+      ),
+    );
+  }
+
+  Future<void> markFailed(String reminderId, String error) async {
+    final row = await (_db.select(
+      _db.reminders,
+    )..where((r) => r.id.equals(reminderId))).getSingle();
+    await (_db.update(
+      _db.reminders,
+    )..where((r) => r.id.equals(reminderId))).write(
+      RemindersCompanion(
+        deliveryStatus: const Value(ReminderDeliveryStatus.failed),
+        deliveryAttempts: Value(row.deliveryAttempts + 1),
+        lastError: Value(error),
+      ),
+    );
+  }
+
+  Future<void> retry(String reminderId) {
+    return (_db.update(
+      _db.reminders,
+    )..where((r) => r.id.equals(reminderId))).write(
+      const RemindersCompanion(
+        deliveryStatus: Value(ReminderDeliveryStatus.queued),
+        lastError: Value(null),
+      ),
+    );
   }
 }

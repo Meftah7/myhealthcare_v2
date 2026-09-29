@@ -1,6 +1,9 @@
-/// Admin dashboard — the same layout language as the patient and staff
-/// dashboards: date overline + greeting, one saturated hero, a three-figure
-/// "System health" row, Quick actions as row tiles, then the live queues.
+/// Admin dashboard (Phase 6) — built around ownership and correction, not
+/// totals: date overline + greeting, one hero that says how much is waiting
+/// on the administrator (or that the queues could not be checked), the
+/// "Needs attention" list of exception queues, Quick actions, and recent
+/// activity. System totals and appointment analytics live one tap away
+/// (Analytics) instead of competing for the first screen.
 library;
 
 import 'package:flutter/material.dart';
@@ -11,17 +14,17 @@ import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/data_state_view.dart';
 import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
-import '../../../domain/enums.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
-import '../../care/application/care_providers.dart';
-import '../../staff_dashboard/application/staff_providers.dart';
 import '../application/admin_providers.dart';
+import '../application/attention_providers.dart';
 import 'admin_quick_actions.dart';
 import 'admin_top_actions.dart';
+import 'attention_list.dart';
 
 class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});
@@ -35,16 +38,12 @@ class AdminDashboardScreen extends ConsumerWidget {
         .first;
 
     return AppScaffold(
+      stagger: true,
       titleWidget: AppBrandLockup(subtitle: t.roleAdmin),
       actions: const [AdminTopActions()],
       onRefresh: () async {
-        ref
-          ..invalidate(systemStatsProvider)
-          ..invalidate(panelStatsProvider)
-          ..invalidate(unpaidInvoiceCountProvider)
-          ..invalidate(openFeedbackCountProvider)
-          ..invalidate(auditLogProvider)
-          ..invalidate(homeVisitQueueProvider(null));
+        refreshAdminAttention(ref);
+        ref.invalidate(auditLogProvider);
       },
       children: [
         PageGreeting(
@@ -57,26 +56,33 @@ class AdminDashboardScreen extends ConsumerWidget {
 
         SectionColumns(
           primary: [
-            SectionHeader(t.systemHealthHeader, overline: true),
-            _SystemHealth(),
+            SectionHeader(
+              t.needsAttentionHeader,
+              overline: true,
+              action: t.workQueueTitle,
+              onAction: () => context.push(AppRoutes.adminWorkQueue),
+            ),
+            const AdminAttentionList(),
             SectionHeader(t.quickActionsHeader, overline: true),
             const AdminQuickActions(),
           ],
           secondary: [
-            SectionHeader(
-              t.appointmentsLast90DaysHeader,
-              overline: true,
-              action: t.analyticsAction,
-              onAction: () => context.push(AppRoutes.adminProfileAnalytics),
-            ),
-            _PanelCard(),
             SectionHeader(
               t.recentActivityHeader,
               overline: true,
               action: t.auditLogTitle,
               onAction: () => context.push(AppRoutes.adminProfileAudit),
             ),
-            _ActivityCard(),
+            const _ActivityCard(),
+            const SizedBox(height: Space.sm),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton.icon(
+                onPressed: () => context.push(AppRoutes.adminProfileAnalytics),
+                icon: const Icon(Icons.insights_outlined, size: 18),
+                label: Text(t.viewDetailedAnalytics),
+              ),
+            ),
           ],
         ),
       ],
@@ -84,188 +90,76 @@ class AdminDashboardScreen extends ConsumerWidget {
   }
 }
 
-/// The screen's one saturated surface — how many things are waiting on the
-/// admin, and the way into the most urgent one.
+/// The screen's one saturated surface: how much is waiting on the admin, and
+/// the way into the most urgent queue. "All clear" only once every queue was
+/// actually read.
 class _NeedsYouHero extends ConsumerWidget {
   const _NeedsYouHero();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
-    // "All clear" is only honest once every queue has actually been read —
-    // a failed or pending read must never look like an empty queue.
-    final sources = <AsyncValue<Object?>>[
-      ref.watch(unpaidInvoiceCountProvider),
-      ref.watch(openFeedbackCountProvider),
-      ref.watch(homeVisitQueueProvider(HomeVisitStatus.requested)),
-      ref.watch(pendingReferralRequestsProvider),
+    final values = [
+      for (final (_, source) in adminAttentionSources) ref.watch(source),
     ];
-    if (sources.any((s) => s.hasError)) {
+    if (values.any((v) => v.hasError)) {
       return GradientHeroCard(
         icon: Icons.sync_problem_outlined,
         title: t.queuesCheckFailedTitle,
         subtitle: t.queuesCheckFailedSubtitle,
-        onTap: () {
-          ref
-            ..invalidate(unpaidInvoiceCountProvider)
-            ..invalidate(openFeedbackCountProvider)
-            ..invalidate(homeVisitQueueProvider(HomeVisitStatus.requested))
-            ..invalidate(pendingReferralRequestsProvider);
-        },
+        onTap: () => refreshAdminAttention(ref),
       );
     }
-    if (sources.any((s) => !s.hasValue)) {
+    if (values.any((v) => !v.hasValue)) {
       return GradientHeroCard(
         icon: Icons.hourglass_empty,
         title: t.queuesCheckingTitle,
         subtitle: t.queuesCheckingSubtitle,
       );
     }
-
-    final unpaid = ref.watch(unpaidInvoiceCountProvider).requireValue;
-    final feedback = ref.watch(openFeedbackCountProvider).requireValue;
-    final homeVisits = ref.watch(openHomeVisitCountProvider);
-    final referrals = ref.watch(pendingReferralRequestCountProvider);
-    final total = unpaid + feedback + homeVisits + referrals;
-
+    final items = [
+      for (final v in values)
+        if (v.requireValue.count > 0) v.requireValue,
+    ];
+    final total = items.fold<int>(0, (sum, i) => sum + i.count);
     if (total == 0) {
       return GradientHeroCard(
         icon: Icons.check_circle_outline,
         title: t.allClearTitle,
         subtitle: t.noQueuesWaitingSubtitle,
-        onTap: () => context.push(AppRoutes.adminProfileAnalytics),
       );
     }
-
-    final parts = <String>[
-      if (unpaid > 0) t.unpaidInvoiceCount(unpaid),
-      if (feedback > 0) t.openReportCount(feedback),
-      if (homeVisits > 0) t.visitRequestCount(homeVisits),
-      if (referrals > 0) t.referralRequestCount(referrals),
-    ];
-
-    // Deep-link to the busiest queue.
-    final route =
-        referrals >= unpaid && referrals >= feedback && referrals >= homeVisits
-        ? AppRoutes.adminReferralRequests
-        : unpaid >= feedback && unpaid >= homeVisits
-        ? AppRoutes.adminBilling
-        : feedback >= homeVisits
-        ? AppRoutes.adminFeedback
-        : AppRoutes.adminHomeVisits;
-
+    // Queues are in clinical-priority order: the first with work leads.
+    final lead = items.first;
     return GradientHeroCard(
       icon: Icons.priority_high,
       title: t.thingsNeedYouTitle(total),
-      subtitle: parts.join(' · '),
-      onTap: () => route == AppRoutes.adminBilling
-          ? context.go(route)
-          : context.push(route),
-    );
-  }
-}
-
-/// Three figures for the whole system — the admin mirror of the patient's
-/// "Your health" row.
-class _SystemHealth extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final t = AppLocalizations.of(context)!;
-    final stats = ref.watch(systemStatsProvider);
-
-    return AppReveal(
-      child: stats.when(
-        loading: () =>
-            const LoadingSkeleton(key: ValueKey('s-load'), height: 96),
-        error: (e, _) => InlineBanner.error(
-          t.couldNotLoadSystemStats,
-          key: const ValueKey('s-err'),
-        ),
-        data: (s) => MetricRow(
-          key: const ValueKey('s-data'),
-          children: [
-            MetricTile(
-              value: '${s.patients}',
-              label: t.patientsAction,
-              icon: Icons.people_outline,
-              onTap: () => context.go(AppRoutes.adminUsers),
-            ),
-            MetricTile(
-              value: '${s.staff}',
-              label: t.staffCountLabel,
-              icon: Icons.badge_outlined,
-              onTap: () => context.go(AppRoutes.adminUsers),
-            ),
-            MetricTile(
-              value: '${s.departments}',
-              label: t.departmentsLabel,
-              icon: Icons.apartment_outlined,
-              onTap: () => context.go(AppRoutes.adminDepartments),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PanelCard extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final t = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final rtl = Directionality.of(context) == TextDirection.rtl;
-    final panel = ref.watch(panelStatsProvider);
-    return panel.when(
-      loading: () => const LoadingSkeleton(height: 120),
-      error: (e, _) => InlineBanner.error(t.couldNotLoadAppointmentStats),
-      data: (p) => AppCard(
-        onTap: () => context.push(AppRoutes.adminProfileAnalytics),
-        child: Column(
-          children: [
-            _Kv(
-              t.noShowRateLabel,
-              '${(p.noShowRate * 100).toStringAsFixed(1)}%',
-            ),
-            _Kv(
-              t.cancellationRateLabel,
-              '${(p.cancellationRate * 100).toStringAsFixed(1)}%',
-            ),
-            _Kv(t.completedLabel, '${p.completed}'),
-            _Kv(t.upcomingLabel, '${p.upcoming}', last: true),
-            const SizedBox(height: Space.xs),
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: Text(
-                '${t.viewDetailedAnalytics}  ${rtl ? '‹' : '›'}',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+      subtitle: [
+        for (final i in items.take(3))
+          '${attentionLabel(t, i.kind)} (${i.count})',
+      ].join(' · '),
+      onTap: () => openAttentionRoute(context, lead.route),
     );
   }
 }
 
 class _ActivityCard extends ConsumerWidget {
+  const _ActivityCard();
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final audit = ref.watch(auditLogProvider);
-    return audit.when(
-      loading: () => const LoadingSkeleton(height: 90),
-      error: (e, _) => InlineBanner.error(t.couldNotLoadAuditLog),
-      data: (list) {
-        if (list.isEmpty) {
-          return AppCard(
-            padding: const EdgeInsets.all(Space.md),
-            child: Text(t.noAuditEntriesYet),
-          );
-        }
+    return AsyncDataView(
+      value: ref.watch(auditLogProvider),
+      onRetry: () => ref.invalidate(auditLogProvider),
+      loading: const LoadingSkeleton(height: 90),
+      isEmpty: (list) => list.isEmpty,
+      empty: AppCard(
+        padding: const EdgeInsets.all(Space.md),
+        child: Text(t.noAuditEntriesYet),
+      ),
+      builder: (context, list) {
         final rows = list.take(6).toList();
         return AppCard(
           padding: EdgeInsets.zero,
@@ -291,38 +185,6 @@ class _ActivityCard extends ConsumerWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class _Kv extends StatelessWidget {
-  const _Kv(this.label, this.value, {this.last = false});
-  final String label;
-  final String value;
-  final bool last;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: EdgeInsets.only(bottom: last ? 0 : Space.sm),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          Text(
-            value,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontFeatures: kTabularFigures,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

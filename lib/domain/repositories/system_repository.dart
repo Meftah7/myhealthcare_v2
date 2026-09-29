@@ -1,6 +1,7 @@
 /// Audit trail + app settings contracts (P1-11).
 library;
 
+import '../../core/data/contracts.dart';
 import '../../core/result.dart';
 import '../entities/entities.dart';
 import '../enums.dart';
@@ -35,6 +36,12 @@ abstract interface class AuditRepository {
   });
 
   Future<Result<List<AuditEntry>>> query(AuditQuery query);
+
+  /// [query]'s filters, one page at a time, newest first.
+  Future<Result<Page<AuditEntry>>> queryPage(
+    AuditQuery query, {
+    PageRequest page,
+  });
 }
 
 abstract interface class SettingsRepository {
@@ -86,4 +93,9 @@ abstract interface class AiUsageRepository {
   });
 
   Future<Result<List<AiUsageEntry>>> recent({AiFeature? feature, int limit});
+
+  Future<Result<Page<AiUsageEntry>>> recentPage({
+    AiFeature? feature,
+    PageRequest page,
+  });
 }

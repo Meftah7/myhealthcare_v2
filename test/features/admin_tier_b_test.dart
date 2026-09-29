@@ -15,6 +15,7 @@ import 'package:myhealthcare/features/auth/application/session.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/mfa.dart';
+import '../support/sessions.dart';
 import '../support/test_database.dart';
 
 Future<void> _settle(WidgetTester tester) async {
@@ -78,73 +79,86 @@ void main() {
   setUp(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('plugins.it_nomads.com/flutter_secure_storage'),
-      (call) async => null,
-    );
+          const MethodChannel('plugins.it_nomads.com/flutter_secure_storage'),
+          (call) async => null,
+        );
   });
 
   test('feedback: submit → admin sees it → resolve', () async {
     final container = await _container();
     addTearDown(container.dispose);
-    await container.read(sessionProvider.notifier).login(
-          email: 'patient3@myhealth.demo',
-          password: Seeder.demoPassword,
-        );
+    await container
+        .read(sessionProvider.notifier)
+        .login(email: 'patient3@myhealth.demo', password: Seeder.demoPassword);
     final me = container.read(currentUserProvider)!.id;
 
-    await container.read(feedbackRepositoryProvider).submit(
+    await container
+        .read(feedbackRepositoryProvider)
+        .submit(
           category: FeedbackCategory.bug,
           message: 'The medication list does not scroll on my phone.',
           reporterId: me,
         );
 
-    final open = await container.read(feedbackProvider(FeedbackStatus.open).future);
+    // The inbox is for administrators only.
+    await signInAs(container, 'admin@myhealth.demo');
+    final open = await container.read(
+      feedbackProvider(FeedbackStatus.open).future,
+    );
     final mine = open.firstWhere((f) => f.reporterId == me);
     expect(mine.category, FeedbackCategory.bug);
     expect(mine.reporterName, isNotNull);
 
-    await container.read(sessionProvider.notifier).logout();
-    await container.read(sessionProvider.notifier).login(
-          email: 'admin@myhealth.demo',
-          password: Seeder.demoPassword,
-        );
     await container
         .read(adminActionsProvider)
         .setFeedbackStatus(id: mine.id, status: FeedbackStatus.resolved);
 
-    final stillOpen =
-        await container.read(feedbackProvider(FeedbackStatus.open).future);
+    final stillOpen = await container.read(
+      feedbackProvider(FeedbackStatus.open).future,
+    );
     expect(stillOpen.any((f) => f.id == mine.id), isFalse);
   });
 
-  test('forecastFromHistory bins by weekday and always returns 7 days', () async {
-    final container = await _container();
-    addTearDown(container.dispose);
-    await container.read(sessionProvider.notifier).login(
-          email: 'admin@myhealth.demo',
-          password: Seeder.demoPassword,
-        );
-    final appts = await container.read(allAppointmentsProvider.future);
-    final forecast = forecastFromHistory(appts);
-    expect(forecast.days, hasLength(7));
-    expect(forecast.aiNarrated, isFalse);
-    expect(forecast.days.map((d) => d.weekday).toSet(), {1, 2, 3, 4, 5, 6, 7});
-  });
+  test(
+    'forecastFromHistory bins by weekday and always returns 7 days',
+    () async {
+      final container = await _container();
+      addTearDown(container.dispose);
+      await container
+          .read(sessionProvider.notifier)
+          .login(email: 'admin@myhealth.demo', password: Seeder.demoPassword);
+      final appts = await container.read(allAppointmentsProvider.future);
+      final forecast = forecastFromHistory(appts);
+      expect(forecast.days, hasLength(7));
+      expect(forecast.aiNarrated, isFalse);
+      expect(forecast.days.map((d) => d.weekday).toSet(), {
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+      });
+    },
+  );
 
   test('AI usage is logged when the Care Navigator answers', () async {
     final container = await _container();
     addTearDown(container.dispose);
-    await container.read(sessionProvider.notifier).login(
-          email: 'patient3@myhealth.demo',
-          password: Seeder.demoPassword,
-        );
+    await container
+        .read(sessionProvider.notifier)
+        .login(email: 'patient3@myhealth.demo', password: Seeder.demoPassword);
 
     await container
         .read(careNavigatorProvider.notifier)
         .send('how do I book an appointment?');
 
-    final log = await container
-        .read(aiUsageProvider(AiFeature.careNavigator).future);
+    // The usage log is an operational report — administrators read it.
+    await signInAs(container, 'admin@myhealth.demo');
+    final log = await container.read(
+      aiUsageProvider(AiFeature.careNavigator).future,
+    );
     expect(log, isNotEmpty);
     expect(log.first.feature, AiFeature.careNavigator);
     expect(log.first.usedLiveModel, isFalse); // no key in tests
@@ -187,9 +201,9 @@ void main() {
 
     await tester.tap(find.text('Profile').last);
     await _settle(tester);
-    await tester.tap(find.text('Capacity forecast'));
+    await tester.tap(find.text('Historical demand'));
     await _settle(tester);
-    expect(find.widgetWithText(AppBar, 'Capacity forecast'), findsOneWidget);
+    expect(find.widgetWithText(AppBar, 'Historical demand'), findsOneWidget);
     expect(find.text('Monday'), findsOneWidget);
     expect(find.text('Sunday'), findsOneWidget);
     expect(find.byType(BackButton), findsOneWidget);

@@ -1,5 +1,9 @@
-/// Device UI preferences: theme mode, text size, language, and the alert
-/// channels (P8-07, redesign v2).
+/// UI preferences (P8-07, redesign v2, Phase 6), grouped by where they are
+/// kept: "On this device" (theme, text size, language, motion, contrast —
+/// shared by anyone using this browser) and "For your account" (alert
+/// channels — per signed-in person on this device). Each group has its own
+/// reset, and a setting that fails to save says so. Clinic-wide settings
+/// (hours, AI) are administrator pages, not here.
 ///
 /// A self-contained block for the profile screens — reads and writes
 /// [themeModeProvider] / [textScaleProvider] / [localeProvider] /
@@ -7,14 +11,18 @@
 /// reminder delivery preferences.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/di.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../services/notifications/device_notifier.dart';
 
 /// Translated label for a [TextScaleLevel] — a device-local UI preference,
 /// not a domain enum, so its label lives here rather than in
@@ -161,19 +169,26 @@ class PreferencesSection extends ConsumerWidget {
           icon: Icons.notifications_outlined,
           label: t.notificationChannelsLabel,
         ),
+        // SMS and email have no delivery provider in this prototype: shown
+        // (so the choice is visible) but off and disabled, never pretending
+        // to send.
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           title: Text(t.smsLabel),
-          subtitle: Text(t.smsChannelSubtitle),
-          value: notify.sms,
-          onChanged: ref.read(notificationPrefsProvider.notifier).setSms,
+          subtitle: Text(
+            '${t.smsChannelSubtitle} · ${t.channelNotAvailableInPrototype}',
+          ),
+          value: false,
+          onChanged: null,
         ),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           title: Text(t.emailLabel),
-          subtitle: Text(t.emailChannelSubtitle),
-          value: notify.email,
-          onChanged: ref.read(notificationPrefsProvider.notifier).setEmail,
+          subtitle: Text(
+            '${t.emailChannelSubtitle} · ${t.channelNotAvailableInPrototype}',
+          ),
+          value: false,
+          onChanged: null,
         ),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
@@ -182,14 +197,14 @@ class PreferencesSection extends ConsumerWidget {
           value: notify.push,
           onChanged: ref.read(notificationPrefsProvider.notifier).setPush,
         ),
+        if (notify.push) const _AlertPermissionStatus(),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           title: Text(t.soundsLabel),
           subtitle: Text(t.soundsSubtitle),
           value: soundsOn,
-          onChanged: (v) => ref
-              .read(soundsEnabledProvider.notifier)
-              .set(enabled: v),
+          onChanged: (v) =>
+              ref.read(soundsEnabledProvider.notifier).set(enabled: v),
         ),
         Text(
           t.notificationChannelsCaption,
@@ -239,8 +254,7 @@ class PreferencesSection extends ConsumerWidget {
             (MotionPreference.full, t.motionFull),
           ],
           selected: motionPref,
-          onChanged: (v) =>
-              ref.read(motionPreferenceProvider.notifier).set(v),
+          onChanged: (v) => ref.read(motionPreferenceProvider.notifier).set(v),
         ),
         const SizedBox(height: Space.sm),
         SwitchListTile(
@@ -280,19 +294,57 @@ class PreferencesSection extends ConsumerWidget {
       PrefsBlock.notifications: notificationsBlock,
       PrefsBlock.accessibility: accessibilityBlock,
     };
-    final shown = [
-      for (final b in PrefsBlock.values)
-        if (blocks.contains(b)) byBlock[b]!,
+    // Grouped by where each setting lives (Phase 6), so nobody expects a
+    // device choice to follow their account, or one person's alert choices
+    // to change another's.
+    const deviceBlocks = [
+      PrefsBlock.theme,
+      PrefsBlock.textSize,
+      PrefsBlock.language,
+      PrefsBlock.accessibility,
     ];
+    const accountBlocks = [PrefsBlock.notifications];
+    Widget group(String title, String caption, List<PrefsBlock> which) {
+      final cards = [
+        for (final b in which)
+          if (blocks.contains(b)) byBlock[b]!,
+      ];
+      if (cards.isEmpty) return const SizedBox.shrink();
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: Space.sm, bottom: Space.xxs),
+            child: Text(title, style: theme.textTheme.titleSmall),
+          ),
+          Text(
+            caption,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
+          ),
+          for (final card in cards) ...[
+            const SizedBox(height: Space.sm),
+            AppCard(padding: const EdgeInsets.all(Space.md), child: card),
+          ],
+        ],
+      );
+    }
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (showHeader) SectionHeader(t.preferences, overline: true),
-        for (final (i, block) in shown.indexed) ...[
-          if (i > 0) const SizedBox(height: Space.sm),
-          AppCard(padding: const EdgeInsets.all(Space.md), child: block),
-        ],
+        group(
+          t.settingsDeviceScope,
+          t.settingsDeviceScopeCaption,
+          deviceBlocks,
+        ),
+        group(
+          t.settingsAccountScope,
+          t.settingsAccountScopeCaption,
+          accountBlocks,
+        ),
       ],
     );
   }
@@ -337,6 +389,62 @@ class _FixedA extends StatelessWidget {
           fontWeight: FontWeight.w600,
         ),
       ),
+    );
+  }
+}
+
+/// What the browser will actually do with alerts, with a way to ask when it
+/// hasn't been asked yet. The in-app inbox is the fallback in every case.
+class _AlertPermissionStatus extends ConsumerStatefulWidget {
+  const _AlertPermissionStatus();
+
+  @override
+  ConsumerState<_AlertPermissionStatus> createState() =>
+      _AlertPermissionStatusState();
+}
+
+class _AlertPermissionStatusState
+    extends ConsumerState<_AlertPermissionStatus> {
+  AlertPermission? _permission;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_load());
+  }
+
+  Future<void> _load() async {
+    final p = await ref.read(deviceNotifierProvider).permission();
+    if (mounted) setState(() => _permission = p);
+  }
+
+  Future<void> _request() async {
+    final p = await ref.read(deviceNotifierProvider).requestPermission();
+    if (mounted) setState(() => _permission = p);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final style = theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+    final p = _permission;
+    if (p == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: Space.xs),
+      child: switch (p) {
+        AlertPermission.granted => Text(t.alertsAllowed, style: style),
+        AlertPermission.denied => Text(t.alertsBlocked, style: style),
+        AlertPermission.unsupported => Text(t.alertsUnsupported, style: style),
+        AlertPermission.notRequested => Row(
+          children: [
+            Expanded(child: Text(t.alertsNotRequested, style: style)),
+            TextButton(onPressed: _request, child: Text(t.allowAlertsAction)),
+          ],
+        ),
+      },
     );
   }
 }

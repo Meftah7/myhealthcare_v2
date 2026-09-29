@@ -94,7 +94,8 @@ class _SplashOverlayState extends State<SplashOverlay>
         final leaving = (1 - _out.value).clamp(0.0, 1.0);
         final markScale = reduce ? 1.0 : (0.88 + 0.12 * _markIn.value);
         final markOpacity = _markFade.value * leaving;
-        final wordOpacity = (reduce ? _markFade.value : _wordIn.value) * leaving;
+        final wordOpacity =
+            (reduce ? _markFade.value : _wordIn.value) * leaving;
         final wordRise = reduce ? 0.0 : (1 - _wordIn.value) * 12;
 
         // One slow in-and-out swell across the hold — 4% of scale, invisible as
@@ -124,8 +125,10 @@ class _SplashOverlayState extends State<SplashOverlay>
                         // Brand bloom: a wide radial wash that makes the mark
                         // feel lit rather than pasted onto the surface.
                         Opacity(
-                          opacity:
-                              (_bloomIn.value * 0.9 * leaving).clamp(0.0, 1.0),
+                          opacity: (_bloomIn.value * 0.9 * leaving).clamp(
+                            0.0,
+                            1.0,
+                          ),
                           child: Transform.scale(
                             scale: bloomScale,
                             child: const DecoratedBox(

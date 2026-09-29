@@ -46,13 +46,60 @@ Future<void> _login(WidgetTester tester, String email) async {
     find.widgetWithText(TextFormField, 'Password'),
     Seeder.demoPassword,
   );
-  await tester.ensureVisible(find.widgetWithText(FilledButton, 'Sign in'));
-  await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
+  final signIn = find.widgetWithText(FilledButton, 'Sign in');
+  await tester.ensureVisible(signIn);
+  await tester.tap(signIn);
   await passMfa(tester);
   await _pump(tester);
 }
 
 void main() {
+  testWidgets(
+    'login focuses the first invalid field and exposes password state',
+    (tester) async {
+      final db = newTestDatabase();
+      await Seeder(db).run();
+      await tester.pumpWidget(await _app(db));
+      await _pump(tester);
+
+      final signIn = find.widgetWithText(FilledButton, 'Sign in');
+      await tester.ensureVisible(signIn);
+      await tester.tap(signIn);
+      await tester.pump();
+      final email = tester.widget<EditableText>(
+        find.descendant(
+          of: find.widgetWithText(TextFormField, 'Email'),
+          matching: find.byType(EditableText),
+        ),
+      );
+      expect(email.focusNode.hasFocus, isTrue);
+
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Email'),
+        'a@b.c',
+      );
+      await tester.ensureVisible(signIn);
+      await tester.tap(signIn);
+      await tester.pump();
+      final password = tester.widget<EditableText>(
+        find.descendant(
+          of: find.widgetWithText(TextFormField, 'Password'),
+          matching: find.byType(EditableText),
+        ),
+      );
+      expect(password.focusNode.hasFocus, isTrue);
+
+      expect(find.byTooltip('Show password'), findsOneWidget);
+      final passwordToggle = find.descendant(
+        of: find.widgetWithText(TextFormField, 'Password'),
+        matching: find.byType(IconButton),
+      );
+      tester.widget<IconButton>(passwordToggle).onPressed!();
+      await tester.pump();
+      expect(find.byTooltip('Hide password'), findsOneWidget);
+    },
+  );
+
   testWidgets('login screen meets contrast, tap-target and label guidelines', (
     tester,
   ) async {

@@ -16,6 +16,7 @@ abstract interface class TaskRepository {
     required String id,
     required String staffId,
     required TaskStatus status,
+    int? expectedVersion,
   });
 
   /// Writes AI priority + rationale onto an existing task (P5-10).
@@ -24,6 +25,15 @@ abstract interface class TaskRepository {
     required String staffId,
     required double score,
     required String rationale,
+    int? expectedVersion,
+  });
+
+  Future<Result<void>> escalate({
+    required String id,
+    required String staffId,
+    required String coverageStaffId,
+    required WorkPriority priority,
+    int? expectedVersion,
   });
 }
 

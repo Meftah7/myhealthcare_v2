@@ -16,7 +16,7 @@ mixin _$Invoice {
 
  String get id; String get patientId; double get subtotal;/// Percent, e.g. `10` for 10%.
  double get taxRate; double get taxAmount; double get totalAmount; InvoiceStatus get status; DateTime get issuedAt; String? get appointmentId; DateTime? get dueDate; DateTime? get paidAt;/// Masked descriptor only — never a full card number (e.g. "Card ····4242").
- String? get paymentMethod; String? get notes;
+ String? get paymentMethod; String? get notes; int get version;
 /// Create a copy of Invoice
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,16 +27,16 @@ $InvoiceCopyWith<Invoice> get copyWith => _$InvoiceCopyWithImpl<Invoice>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Invoice&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.subtotal, subtotal) || other.subtotal == subtotal)&&(identical(other.taxRate, taxRate) || other.taxRate == taxRate)&&(identical(other.taxAmount, taxAmount) || other.taxAmount == taxAmount)&&(identical(other.totalAmount, totalAmount) || other.totalAmount == totalAmount)&&(identical(other.status, status) || other.status == status)&&(identical(other.issuedAt, issuedAt) || other.issuedAt == issuedAt)&&(identical(other.appointmentId, appointmentId) || other.appointmentId == appointmentId)&&(identical(other.dueDate, dueDate) || other.dueDate == dueDate)&&(identical(other.paidAt, paidAt) || other.paidAt == paidAt)&&(identical(other.paymentMethod, paymentMethod) || other.paymentMethod == paymentMethod)&&(identical(other.notes, notes) || other.notes == notes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Invoice&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.subtotal, subtotal) || other.subtotal == subtotal)&&(identical(other.taxRate, taxRate) || other.taxRate == taxRate)&&(identical(other.taxAmount, taxAmount) || other.taxAmount == taxAmount)&&(identical(other.totalAmount, totalAmount) || other.totalAmount == totalAmount)&&(identical(other.status, status) || other.status == status)&&(identical(other.issuedAt, issuedAt) || other.issuedAt == issuedAt)&&(identical(other.appointmentId, appointmentId) || other.appointmentId == appointmentId)&&(identical(other.dueDate, dueDate) || other.dueDate == dueDate)&&(identical(other.paidAt, paidAt) || other.paidAt == paidAt)&&(identical(other.paymentMethod, paymentMethod) || other.paymentMethod == paymentMethod)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.version, version) || other.version == version));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,patientId,subtotal,taxRate,taxAmount,totalAmount,status,issuedAt,appointmentId,dueDate,paidAt,paymentMethod,notes);
+int get hashCode => Object.hash(runtimeType,id,patientId,subtotal,taxRate,taxAmount,totalAmount,status,issuedAt,appointmentId,dueDate,paidAt,paymentMethod,notes,version);
 
 @override
 String toString() {
-  return 'Invoice(id: $id, patientId: $patientId, subtotal: $subtotal, taxRate: $taxRate, taxAmount: $taxAmount, totalAmount: $totalAmount, status: $status, issuedAt: $issuedAt, appointmentId: $appointmentId, dueDate: $dueDate, paidAt: $paidAt, paymentMethod: $paymentMethod, notes: $notes)';
+  return 'Invoice(id: $id, patientId: $patientId, subtotal: $subtotal, taxRate: $taxRate, taxAmount: $taxAmount, totalAmount: $totalAmount, status: $status, issuedAt: $issuedAt, appointmentId: $appointmentId, dueDate: $dueDate, paidAt: $paidAt, paymentMethod: $paymentMethod, notes: $notes, version: $version)';
 }
 
 
@@ -47,7 +47,7 @@ abstract mixin class $InvoiceCopyWith<$Res>  {
   factory $InvoiceCopyWith(Invoice value, $Res Function(Invoice) _then) = _$InvoiceCopyWithImpl;
 @useResult
 $Res call({
- String id, String patientId, double subtotal, double taxRate, double taxAmount, double totalAmount, InvoiceStatus status, DateTime issuedAt, String? appointmentId, DateTime? dueDate, DateTime? paidAt, String? paymentMethod, String? notes
+ String id, String patientId, double subtotal, double taxRate, double taxAmount, double totalAmount, InvoiceStatus status, DateTime issuedAt, String? appointmentId, DateTime? dueDate, DateTime? paidAt, String? paymentMethod, String? notes, int version
 });
 
 
@@ -64,7 +64,7 @@ class _$InvoiceCopyWithImpl<$Res>
 
 /// Create a copy of Invoice
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? patientId = null,Object? subtotal = null,Object? taxRate = null,Object? taxAmount = null,Object? totalAmount = null,Object? status = null,Object? issuedAt = null,Object? appointmentId = freezed,Object? dueDate = freezed,Object? paidAt = freezed,Object? paymentMethod = freezed,Object? notes = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? patientId = null,Object? subtotal = null,Object? taxRate = null,Object? taxAmount = null,Object? totalAmount = null,Object? status = null,Object? issuedAt = null,Object? appointmentId = freezed,Object? dueDate = freezed,Object? paidAt = freezed,Object? paymentMethod = freezed,Object? notes = freezed,Object? version = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,patientId: null == patientId ? _self.patientId : patientId // ignore: cast_nullable_to_non_nullable
@@ -79,7 +79,8 @@ as String?,dueDate: freezed == dueDate ? _self.dueDate : dueDate // ignore: cast
 as DateTime?,paidAt: freezed == paidAt ? _self.paidAt : paidAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,paymentMethod: freezed == paymentMethod ? _self.paymentMethod : paymentMethod // ignore: cast_nullable_to_non_nullable
 as String?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 
@@ -164,10 +165,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String patientId,  double subtotal,  double taxRate,  double taxAmount,  double totalAmount,  InvoiceStatus status,  DateTime issuedAt,  String? appointmentId,  DateTime? dueDate,  DateTime? paidAt,  String? paymentMethod,  String? notes)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String patientId,  double subtotal,  double taxRate,  double taxAmount,  double totalAmount,  InvoiceStatus status,  DateTime issuedAt,  String? appointmentId,  DateTime? dueDate,  DateTime? paidAt,  String? paymentMethod,  String? notes,  int version)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Invoice() when $default != null:
-return $default(_that.id,_that.patientId,_that.subtotal,_that.taxRate,_that.taxAmount,_that.totalAmount,_that.status,_that.issuedAt,_that.appointmentId,_that.dueDate,_that.paidAt,_that.paymentMethod,_that.notes);case _:
+return $default(_that.id,_that.patientId,_that.subtotal,_that.taxRate,_that.taxAmount,_that.totalAmount,_that.status,_that.issuedAt,_that.appointmentId,_that.dueDate,_that.paidAt,_that.paymentMethod,_that.notes,_that.version);case _:
   return orElse();
 
 }
@@ -185,10 +186,10 @@ return $default(_that.id,_that.patientId,_that.subtotal,_that.taxRate,_that.taxA
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String patientId,  double subtotal,  double taxRate,  double taxAmount,  double totalAmount,  InvoiceStatus status,  DateTime issuedAt,  String? appointmentId,  DateTime? dueDate,  DateTime? paidAt,  String? paymentMethod,  String? notes)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String patientId,  double subtotal,  double taxRate,  double taxAmount,  double totalAmount,  InvoiceStatus status,  DateTime issuedAt,  String? appointmentId,  DateTime? dueDate,  DateTime? paidAt,  String? paymentMethod,  String? notes,  int version)  $default,) {final _that = this;
 switch (_that) {
 case _Invoice():
-return $default(_that.id,_that.patientId,_that.subtotal,_that.taxRate,_that.taxAmount,_that.totalAmount,_that.status,_that.issuedAt,_that.appointmentId,_that.dueDate,_that.paidAt,_that.paymentMethod,_that.notes);case _:
+return $default(_that.id,_that.patientId,_that.subtotal,_that.taxRate,_that.taxAmount,_that.totalAmount,_that.status,_that.issuedAt,_that.appointmentId,_that.dueDate,_that.paidAt,_that.paymentMethod,_that.notes,_that.version);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -205,10 +206,10 @@ return $default(_that.id,_that.patientId,_that.subtotal,_that.taxRate,_that.taxA
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String patientId,  double subtotal,  double taxRate,  double taxAmount,  double totalAmount,  InvoiceStatus status,  DateTime issuedAt,  String? appointmentId,  DateTime? dueDate,  DateTime? paidAt,  String? paymentMethod,  String? notes)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String patientId,  double subtotal,  double taxRate,  double taxAmount,  double totalAmount,  InvoiceStatus status,  DateTime issuedAt,  String? appointmentId,  DateTime? dueDate,  DateTime? paidAt,  String? paymentMethod,  String? notes,  int version)?  $default,) {final _that = this;
 switch (_that) {
 case _Invoice() when $default != null:
-return $default(_that.id,_that.patientId,_that.subtotal,_that.taxRate,_that.taxAmount,_that.totalAmount,_that.status,_that.issuedAt,_that.appointmentId,_that.dueDate,_that.paidAt,_that.paymentMethod,_that.notes);case _:
+return $default(_that.id,_that.patientId,_that.subtotal,_that.taxRate,_that.taxAmount,_that.totalAmount,_that.status,_that.issuedAt,_that.appointmentId,_that.dueDate,_that.paidAt,_that.paymentMethod,_that.notes,_that.version);case _:
   return null;
 
 }
@@ -220,7 +221,7 @@ return $default(_that.id,_that.patientId,_that.subtotal,_that.taxRate,_that.taxA
 
 
 class _Invoice extends Invoice {
-  const _Invoice({required this.id, required this.patientId, required this.subtotal, required this.taxRate, required this.taxAmount, required this.totalAmount, required this.status, required this.issuedAt, this.appointmentId, this.dueDate, this.paidAt, this.paymentMethod, this.notes}): super._();
+  const _Invoice({required this.id, required this.patientId, required this.subtotal, required this.taxRate, required this.taxAmount, required this.totalAmount, required this.status, required this.issuedAt, this.appointmentId, this.dueDate, this.paidAt, this.paymentMethod, this.notes, this.version = 1}): super._();
   
 
 @override final  String id;
@@ -238,6 +239,7 @@ class _Invoice extends Invoice {
 /// Masked descriptor only — never a full card number (e.g. "Card ····4242").
 @override final  String? paymentMethod;
 @override final  String? notes;
+@override@JsonKey() final  int version;
 
 /// Create a copy of Invoice
 /// with the given fields replaced by the non-null parameter values.
@@ -249,16 +251,16 @@ _$InvoiceCopyWith<_Invoice> get copyWith => __$InvoiceCopyWithImpl<_Invoice>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Invoice&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.subtotal, subtotal) || other.subtotal == subtotal)&&(identical(other.taxRate, taxRate) || other.taxRate == taxRate)&&(identical(other.taxAmount, taxAmount) || other.taxAmount == taxAmount)&&(identical(other.totalAmount, totalAmount) || other.totalAmount == totalAmount)&&(identical(other.status, status) || other.status == status)&&(identical(other.issuedAt, issuedAt) || other.issuedAt == issuedAt)&&(identical(other.appointmentId, appointmentId) || other.appointmentId == appointmentId)&&(identical(other.dueDate, dueDate) || other.dueDate == dueDate)&&(identical(other.paidAt, paidAt) || other.paidAt == paidAt)&&(identical(other.paymentMethod, paymentMethod) || other.paymentMethod == paymentMethod)&&(identical(other.notes, notes) || other.notes == notes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Invoice&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.subtotal, subtotal) || other.subtotal == subtotal)&&(identical(other.taxRate, taxRate) || other.taxRate == taxRate)&&(identical(other.taxAmount, taxAmount) || other.taxAmount == taxAmount)&&(identical(other.totalAmount, totalAmount) || other.totalAmount == totalAmount)&&(identical(other.status, status) || other.status == status)&&(identical(other.issuedAt, issuedAt) || other.issuedAt == issuedAt)&&(identical(other.appointmentId, appointmentId) || other.appointmentId == appointmentId)&&(identical(other.dueDate, dueDate) || other.dueDate == dueDate)&&(identical(other.paidAt, paidAt) || other.paidAt == paidAt)&&(identical(other.paymentMethod, paymentMethod) || other.paymentMethod == paymentMethod)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.version, version) || other.version == version));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,patientId,subtotal,taxRate,taxAmount,totalAmount,status,issuedAt,appointmentId,dueDate,paidAt,paymentMethod,notes);
+int get hashCode => Object.hash(runtimeType,id,patientId,subtotal,taxRate,taxAmount,totalAmount,status,issuedAt,appointmentId,dueDate,paidAt,paymentMethod,notes,version);
 
 @override
 String toString() {
-  return 'Invoice(id: $id, patientId: $patientId, subtotal: $subtotal, taxRate: $taxRate, taxAmount: $taxAmount, totalAmount: $totalAmount, status: $status, issuedAt: $issuedAt, appointmentId: $appointmentId, dueDate: $dueDate, paidAt: $paidAt, paymentMethod: $paymentMethod, notes: $notes)';
+  return 'Invoice(id: $id, patientId: $patientId, subtotal: $subtotal, taxRate: $taxRate, taxAmount: $taxAmount, totalAmount: $totalAmount, status: $status, issuedAt: $issuedAt, appointmentId: $appointmentId, dueDate: $dueDate, paidAt: $paidAt, paymentMethod: $paymentMethod, notes: $notes, version: $version)';
 }
 
 
@@ -269,7 +271,7 @@ abstract mixin class _$InvoiceCopyWith<$Res> implements $InvoiceCopyWith<$Res> {
   factory _$InvoiceCopyWith(_Invoice value, $Res Function(_Invoice) _then) = __$InvoiceCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String patientId, double subtotal, double taxRate, double taxAmount, double totalAmount, InvoiceStatus status, DateTime issuedAt, String? appointmentId, DateTime? dueDate, DateTime? paidAt, String? paymentMethod, String? notes
+ String id, String patientId, double subtotal, double taxRate, double taxAmount, double totalAmount, InvoiceStatus status, DateTime issuedAt, String? appointmentId, DateTime? dueDate, DateTime? paidAt, String? paymentMethod, String? notes, int version
 });
 
 
@@ -286,7 +288,7 @@ class __$InvoiceCopyWithImpl<$Res>
 
 /// Create a copy of Invoice
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? patientId = null,Object? subtotal = null,Object? taxRate = null,Object? taxAmount = null,Object? totalAmount = null,Object? status = null,Object? issuedAt = null,Object? appointmentId = freezed,Object? dueDate = freezed,Object? paidAt = freezed,Object? paymentMethod = freezed,Object? notes = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? patientId = null,Object? subtotal = null,Object? taxRate = null,Object? taxAmount = null,Object? totalAmount = null,Object? status = null,Object? issuedAt = null,Object? appointmentId = freezed,Object? dueDate = freezed,Object? paidAt = freezed,Object? paymentMethod = freezed,Object? notes = freezed,Object? version = null,}) {
   return _then(_Invoice(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,patientId: null == patientId ? _self.patientId : patientId // ignore: cast_nullable_to_non_nullable
@@ -301,7 +303,8 @@ as String?,dueDate: freezed == dueDate ? _self.dueDate : dueDate // ignore: cast
 as DateTime?,paidAt: freezed == paidAt ? _self.paidAt : paidAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,paymentMethod: freezed == paymentMethod ? _self.paymentMethod : paymentMethod // ignore: cast_nullable_to_non_nullable
 as String?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 

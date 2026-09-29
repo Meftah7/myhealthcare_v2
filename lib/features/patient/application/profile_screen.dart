@@ -19,6 +19,7 @@ import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
@@ -31,8 +32,16 @@ class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   List<(IconData, String, String)> _sections(AppLocalizations t) => [
-    (Icons.badge_outlined, t.personalInfoTitle, AppRoutes.patientProfilePersonal),
-    (Icons.favorite_outline, t.healthDetailsTitle, AppRoutes.patientProfileHealth),
+    (
+      Icons.badge_outlined,
+      t.personalInfoTitle,
+      AppRoutes.patientProfilePersonal,
+    ),
+    (
+      Icons.favorite_outline,
+      t.healthDetailsTitle,
+      AppRoutes.patientProfileHealth,
+    ),
     (Icons.payments_outlined, t.paymentsTitle, AppRoutes.patientBilling),
     (
       Icons.family_restroom_outlined,
@@ -96,7 +105,11 @@ class ProfileScreen extends ConsumerWidget {
                     horizontal: Space.md,
                     vertical: Space.xxs,
                   ),
-                  leading: Icon(icon, size: 20, color: theme.colorScheme.primary),
+                  leading: Icon(
+                    icon,
+                    size: 20,
+                    color: theme.colorScheme.primary,
+                  ),
                   title: Text(title, style: theme.textTheme.titleSmall),
                   trailing: Icon(
                     Icons.chevron_right,
@@ -116,7 +129,10 @@ class ProfileScreen extends ConsumerWidget {
                   size: 20,
                   color: theme.colorScheme.primary,
                 ),
-                title: Text(t.changePasswordTitle, style: theme.textTheme.titleSmall),
+                title: Text(
+                  t.changePasswordTitle,
+                  style: theme.textTheme.titleSmall,
+                ),
                 trailing: Icon(
                   Icons.chevron_right,
                   size: kTrailingChevronSize,
@@ -160,9 +176,8 @@ class ProfileScreen extends ConsumerWidget {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
-              onPressed: () => unawaited(
-                context.push(AppRoutes.patientProfilePreferences),
-              ),
+              onPressed: () =>
+                  unawaited(context.push(AppRoutes.patientProfilePreferences)),
               icon: const Icon(Icons.tune),
               label: Text(t.preferences),
             ),
@@ -261,9 +276,7 @@ Future<void> _showChangePasswordDialog(
               TextFormField(
                 controller: next,
                 obscureText: obscure,
-                decoration: InputDecoration(
-                  labelText: t.newPasswordLabel,
-                ),
+                decoration: InputDecoration(labelText: t.newPasswordLabel),
                 validator: (v) => (v == null || v.trim().length < 8)
                     ? t.atLeast8Characters
                     : null,
@@ -272,9 +285,10 @@ Future<void> _showChangePasswordDialog(
               TextFormField(
                 controller: confirmNext,
                 obscureText: obscure,
-                decoration: InputDecoration(labelText: t.confirmNewPasswordLabel),
-                validator: (v) =>
-                    v != next.text ? t.passwordsDoNotMatch : null,
+                decoration: InputDecoration(
+                  labelText: t.confirmNewPasswordLabel,
+                ),
+                validator: (v) => v != next.text ? t.passwordsDoNotMatch : null,
               ),
               CheckboxListTile(
                 value: !obscure,
@@ -321,7 +335,10 @@ Future<void> _showChangePasswordDialog(
                       case Err(:final failure):
                         setState(() {
                           busy = false;
-                          error = failure.message;
+                          error = describeFailure(
+                            AppLocalizations.of(context)!,
+                            failure,
+                          ).message;
                         });
                     }
                   },

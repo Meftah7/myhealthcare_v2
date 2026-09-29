@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/states.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../patient/presentation/patient_top_actions.dart';
@@ -40,11 +41,9 @@ class _NutritionScreenState extends State<NutritionScreen> {
     final gutter = WindowSize.of(context).gutter;
     final t = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(t.nutritionTitle),
-        actions: const [PatientTopActions()],
-      ),
+    return AppScaffold(
+      title: t.nutritionTitle,
+      actions: const [PatientTopActions()],
       body: Column(
         children: [
           Padding(
@@ -98,6 +97,7 @@ class _NutritionScreenState extends State<NutritionScreen> {
           ),
         ],
       ),
+      centerBody: false,
     );
   }
 }
@@ -188,9 +188,7 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
                     child: TextField(
                       controller: _age,
                       keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       decoration: InputDecoration(labelText: t.ageLabel),
                     ),
                   ),
@@ -224,9 +222,7 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
-                      decoration: InputDecoration(
-                        labelText: t.weightKgLabel,
-                      ),
+                      decoration: InputDecoration(labelText: t.weightKgLabel),
                     ),
                   ),
                   const SizedBox(width: Space.sm),
@@ -236,9 +232,7 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
-                      decoration: InputDecoration(
-                        labelText: t.heightCmLabel,
-                      ),
+                      decoration: InputDecoration(labelText: t.heightCmLabel),
                     ),
                   ),
                 ],
@@ -249,7 +243,10 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
                 isExpanded: true,
                 decoration: InputDecoration(labelText: t.activityLabel),
                 items: [
-                  DropdownMenuItem(value: 1.2, child: Text(t.activitySedentary)),
+                  DropdownMenuItem(
+                    value: 1.2,
+                    child: Text(t.activitySedentary),
+                  ),
                   DropdownMenuItem(
                     value: 1.375,
                     child: Text(t.activityLightlyActive),
@@ -267,9 +264,8 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
                     child: Text(t.activityExtraActive),
                   ),
                 ],
-                onChanged: (v) => v == null
-                    ? null
-                    : _update(_i.copyWith(activityFactor: v)),
+                onChanged: (v) =>
+                    v == null ? null : _update(_i.copyWith(activityFactor: v)),
               ),
               const SizedBox(height: Space.sm),
               DropdownButtonFormField<FitnessGoal>(
@@ -302,9 +298,8 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
                     DropdownMenuItem(value: 0.5, child: Text(t.weeklyRate05)),
                     DropdownMenuItem(value: 1.0, child: Text(t.weeklyRate10)),
                   ],
-                  onChanged: (v) => v == null
-                      ? null
-                      : _update(_i.copyWith(weeklyRateKg: v)),
+                  onChanged: (v) =>
+                      v == null ? null : _update(_i.copyWith(weeklyRateKg: v)),
                 ),
               ],
               const SizedBox(height: Space.md),
@@ -354,18 +349,42 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
             mainAxisSpacing: Space.sm,
             childAspectRatio: 1.5,
             children: [
-              _MacroCard(t.macroCalories, '${result.targetCalories}', t.unitKcalPerDay,
-                  accent: theme.colorScheme.primary),
-              _MacroCard(t.macroProtein, '${result.protein} g', t.unitPerDay,
-                  accent: theme.colorScheme.primary),
-              _MacroCard(t.macroCarbs, '${result.carbs} g', t.unitPerDay,
-                  accent: theme.colorScheme.tertiary),
-              _MacroCard(t.macroFat, '${result.fat} g', t.unitPerDay,
-                  accent: theme.clinicalStatus.riskLow.onContainer),
-              _MacroCard(t.macroSugar, '≤ ${result.maxSugar} g', t.unitDailyCap,
-                  accent: theme.clinicalStatus.riskMedium.onContainer),
-              _MacroCard(t.macroSatFat, '≤ ${result.maxSatFat} g', t.unitDailyCap,
-                  accent: theme.clinicalStatus.riskHigh.onContainer),
+              _MacroCard(
+                t.macroCalories,
+                '${result.targetCalories}',
+                t.unitKcalPerDay,
+                accent: theme.colorScheme.primary,
+              ),
+              _MacroCard(
+                t.macroProtein,
+                '${result.protein} g',
+                t.unitPerDay,
+                accent: theme.colorScheme.primary,
+              ),
+              _MacroCard(
+                t.macroCarbs,
+                '${result.carbs} g',
+                t.unitPerDay,
+                accent: theme.colorScheme.tertiary,
+              ),
+              _MacroCard(
+                t.macroFat,
+                '${result.fat} g',
+                t.unitPerDay,
+                accent: theme.clinicalStatus.riskLow.onContainer,
+              ),
+              _MacroCard(
+                t.macroSugar,
+                '≤ ${result.maxSugar} g',
+                t.unitDailyCap,
+                accent: theme.clinicalStatus.riskMedium.onContainer,
+              ),
+              _MacroCard(
+                t.macroSatFat,
+                '≤ ${result.maxSatFat} g',
+                t.unitDailyCap,
+                accent: theme.clinicalStatus.riskHigh.onContainer,
+              ),
             ],
           ),
           const SizedBox(height: Space.md),
@@ -488,9 +507,9 @@ class _FoodsView extends ConsumerWidget {
                   child: ChoiceChip(
                     label: Text(t.allCategoriesChip),
                     selected: selectedCat == null,
-                    onSelected: (_) => ref
-                        .read(foodCategoryFilterProvider.notifier)
-                        .state = null,
+                    onSelected: (_) =>
+                        ref.read(foodCategoryFilterProvider.notifier).state =
+                            null,
                   ),
                 ),
                 for (final c in categories)
@@ -499,9 +518,9 @@ class _FoodsView extends ConsumerWidget {
                     child: ChoiceChip(
                       label: Text(c),
                       selected: selectedCat == c,
-                      onSelected: (_) => ref
-                          .read(foodCategoryFilterProvider.notifier)
-                          .state = (selectedCat == c ? null : c),
+                      onSelected: (_) =>
+                          ref.read(foodCategoryFilterProvider.notifier).state =
+                              (selectedCat == c ? null : c),
                     ),
                   ),
               ],
@@ -594,7 +613,11 @@ class _FoodCard extends StatelessWidget {
           // Six figures: calories + the five macros, three to a row.
           _PillGrid(
             pills: [
-              _Pill(t.macroCalories, '${food.calories}', accent: scheme.primary),
+              _Pill(
+                t.macroCalories,
+                '${food.calories}',
+                accent: scheme.primary,
+              ),
               _Pill(t.macroProtein, _g(food.protein), accent: scheme.primary),
               _Pill(t.macroCarbs, _g(food.carbs), accent: scheme.primary),
               _Pill(t.macroFat, _g(food.fat), accent: scheme.primary),

@@ -56,12 +56,8 @@ void main() {
       expect(issued.isOk, isTrue);
       expect(issued.valueOrNull!.days, 4);
 
-      expect(
-        (await sick.forPatient(patientId)).valueOrNull, hasLength(1),
-      );
-      expect(
-        (await sick.issuedBy(staffId)).valueOrNull, hasLength(1),
-      );
+      expect((await sick.forPatient(patientId)).valueOrNull, hasLength(1));
+      expect((await sick.issuedBy(staffId)).valueOrNull, hasLength(1));
     });
 
     test('rejects an end date before the start date', () async {
@@ -140,8 +136,9 @@ void main() {
         readerIsStaff: true,
       );
       expect(
-        (await messages.threadsForStaff(staffId)).valueOrNull!.single
-            .unreadForStaff,
+        (await messages.threadsForStaff(
+          staffId,
+        )).valueOrNull!.single.unreadForStaff,
         0,
       );
     });

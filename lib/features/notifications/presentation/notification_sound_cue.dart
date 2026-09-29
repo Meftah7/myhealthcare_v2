@@ -40,7 +40,9 @@ class _NotificationSoundCueState extends ConsumerState<NotificationSoundCue> {
     ) {
       final feed = next.valueOrNull;
       if (feed == null) return;
-      final newest = feed.isEmpty ? null : feed.first; // repo sorts newest-first
+      final newest = feed.isEmpty
+          ? null
+          : feed.first; // repo sorts newest-first
 
       // The first delivery after a sign-in only primes the marker: we announce
       // arrivals, never the backlog that was already waiting.

@@ -131,9 +131,8 @@ class StaffProfileScreen extends ConsumerWidget {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: () => unawaited(
-                  context.push(AppRoutes.staffProfilePreferences),
-                ),
+                onPressed: () =>
+                    unawaited(context.push(AppRoutes.staffProfilePreferences)),
                 icon: const Icon(Icons.tune),
                 label: Text(t.preferences),
               ),

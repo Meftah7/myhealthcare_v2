@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$WalkInTicket {
 
- String get id; String get patientId; String get departmentId; String get ticketTag; WalkInStatus get status; String get createdByStaffId; DateTime get createdAt; String? get reason; String? get sourceAppointmentId; String? get claimedByStaffId; String? get resultAppointmentId; DateTime? get resolvedAt;
+ String get id; String get patientId; String get departmentId; String get ticketTag; WalkInStatus get status; String get createdByStaffId; DateTime get createdAt; String? get reason; String? get sourceAppointmentId; String? get claimedByStaffId; String? get resultAppointmentId; DateTime? get resolvedAt; int get version;
 /// Create a copy of WalkInTicket
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $WalkInTicketCopyWith<WalkInTicket> get copyWith => _$WalkInTicketCopyWithImpl<W
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is WalkInTicket&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.departmentId, departmentId) || other.departmentId == departmentId)&&(identical(other.ticketTag, ticketTag) || other.ticketTag == ticketTag)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdByStaffId, createdByStaffId) || other.createdByStaffId == createdByStaffId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.sourceAppointmentId, sourceAppointmentId) || other.sourceAppointmentId == sourceAppointmentId)&&(identical(other.claimedByStaffId, claimedByStaffId) || other.claimedByStaffId == claimedByStaffId)&&(identical(other.resultAppointmentId, resultAppointmentId) || other.resultAppointmentId == resultAppointmentId)&&(identical(other.resolvedAt, resolvedAt) || other.resolvedAt == resolvedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is WalkInTicket&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.departmentId, departmentId) || other.departmentId == departmentId)&&(identical(other.ticketTag, ticketTag) || other.ticketTag == ticketTag)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdByStaffId, createdByStaffId) || other.createdByStaffId == createdByStaffId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.sourceAppointmentId, sourceAppointmentId) || other.sourceAppointmentId == sourceAppointmentId)&&(identical(other.claimedByStaffId, claimedByStaffId) || other.claimedByStaffId == claimedByStaffId)&&(identical(other.resultAppointmentId, resultAppointmentId) || other.resultAppointmentId == resultAppointmentId)&&(identical(other.resolvedAt, resolvedAt) || other.resolvedAt == resolvedAt)&&(identical(other.version, version) || other.version == version));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,patientId,departmentId,ticketTag,status,createdByStaffId,createdAt,reason,sourceAppointmentId,claimedByStaffId,resultAppointmentId,resolvedAt);
+int get hashCode => Object.hash(runtimeType,id,patientId,departmentId,ticketTag,status,createdByStaffId,createdAt,reason,sourceAppointmentId,claimedByStaffId,resultAppointmentId,resolvedAt,version);
 
 @override
 String toString() {
-  return 'WalkInTicket(id: $id, patientId: $patientId, departmentId: $departmentId, ticketTag: $ticketTag, status: $status, createdByStaffId: $createdByStaffId, createdAt: $createdAt, reason: $reason, sourceAppointmentId: $sourceAppointmentId, claimedByStaffId: $claimedByStaffId, resultAppointmentId: $resultAppointmentId, resolvedAt: $resolvedAt)';
+  return 'WalkInTicket(id: $id, patientId: $patientId, departmentId: $departmentId, ticketTag: $ticketTag, status: $status, createdByStaffId: $createdByStaffId, createdAt: $createdAt, reason: $reason, sourceAppointmentId: $sourceAppointmentId, claimedByStaffId: $claimedByStaffId, resultAppointmentId: $resultAppointmentId, resolvedAt: $resolvedAt, version: $version)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $WalkInTicketCopyWith<$Res>  {
   factory $WalkInTicketCopyWith(WalkInTicket value, $Res Function(WalkInTicket) _then) = _$WalkInTicketCopyWithImpl;
 @useResult
 $Res call({
- String id, String patientId, String departmentId, String ticketTag, WalkInStatus status, String createdByStaffId, DateTime createdAt, String? reason, String? sourceAppointmentId, String? claimedByStaffId, String? resultAppointmentId, DateTime? resolvedAt
+ String id, String patientId, String departmentId, String ticketTag, WalkInStatus status, String createdByStaffId, DateTime createdAt, String? reason, String? sourceAppointmentId, String? claimedByStaffId, String? resultAppointmentId, DateTime? resolvedAt, int version
 });
 
 
@@ -62,7 +62,7 @@ class _$WalkInTicketCopyWithImpl<$Res>
 
 /// Create a copy of WalkInTicket
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? patientId = null,Object? departmentId = null,Object? ticketTag = null,Object? status = null,Object? createdByStaffId = null,Object? createdAt = null,Object? reason = freezed,Object? sourceAppointmentId = freezed,Object? claimedByStaffId = freezed,Object? resultAppointmentId = freezed,Object? resolvedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? patientId = null,Object? departmentId = null,Object? ticketTag = null,Object? status = null,Object? createdByStaffId = null,Object? createdAt = null,Object? reason = freezed,Object? sourceAppointmentId = freezed,Object? claimedByStaffId = freezed,Object? resultAppointmentId = freezed,Object? resolvedAt = freezed,Object? version = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,patientId: null == patientId ? _self.patientId : patientId // ignore: cast_nullable_to_non_nullable
@@ -76,7 +76,8 @@ as String?,sourceAppointmentId: freezed == sourceAppointmentId ? _self.sourceApp
 as String?,claimedByStaffId: freezed == claimedByStaffId ? _self.claimedByStaffId : claimedByStaffId // ignore: cast_nullable_to_non_nullable
 as String?,resultAppointmentId: freezed == resultAppointmentId ? _self.resultAppointmentId : resultAppointmentId // ignore: cast_nullable_to_non_nullable
 as String?,resolvedAt: freezed == resolvedAt ? _self.resolvedAt : resolvedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 
@@ -161,10 +162,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String patientId,  String departmentId,  String ticketTag,  WalkInStatus status,  String createdByStaffId,  DateTime createdAt,  String? reason,  String? sourceAppointmentId,  String? claimedByStaffId,  String? resultAppointmentId,  DateTime? resolvedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String patientId,  String departmentId,  String ticketTag,  WalkInStatus status,  String createdByStaffId,  DateTime createdAt,  String? reason,  String? sourceAppointmentId,  String? claimedByStaffId,  String? resultAppointmentId,  DateTime? resolvedAt,  int version)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _WalkInTicket() when $default != null:
-return $default(_that.id,_that.patientId,_that.departmentId,_that.ticketTag,_that.status,_that.createdByStaffId,_that.createdAt,_that.reason,_that.sourceAppointmentId,_that.claimedByStaffId,_that.resultAppointmentId,_that.resolvedAt);case _:
+return $default(_that.id,_that.patientId,_that.departmentId,_that.ticketTag,_that.status,_that.createdByStaffId,_that.createdAt,_that.reason,_that.sourceAppointmentId,_that.claimedByStaffId,_that.resultAppointmentId,_that.resolvedAt,_that.version);case _:
   return orElse();
 
 }
@@ -182,10 +183,10 @@ return $default(_that.id,_that.patientId,_that.departmentId,_that.ticketTag,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String patientId,  String departmentId,  String ticketTag,  WalkInStatus status,  String createdByStaffId,  DateTime createdAt,  String? reason,  String? sourceAppointmentId,  String? claimedByStaffId,  String? resultAppointmentId,  DateTime? resolvedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String patientId,  String departmentId,  String ticketTag,  WalkInStatus status,  String createdByStaffId,  DateTime createdAt,  String? reason,  String? sourceAppointmentId,  String? claimedByStaffId,  String? resultAppointmentId,  DateTime? resolvedAt,  int version)  $default,) {final _that = this;
 switch (_that) {
 case _WalkInTicket():
-return $default(_that.id,_that.patientId,_that.departmentId,_that.ticketTag,_that.status,_that.createdByStaffId,_that.createdAt,_that.reason,_that.sourceAppointmentId,_that.claimedByStaffId,_that.resultAppointmentId,_that.resolvedAt);case _:
+return $default(_that.id,_that.patientId,_that.departmentId,_that.ticketTag,_that.status,_that.createdByStaffId,_that.createdAt,_that.reason,_that.sourceAppointmentId,_that.claimedByStaffId,_that.resultAppointmentId,_that.resolvedAt,_that.version);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -202,10 +203,10 @@ return $default(_that.id,_that.patientId,_that.departmentId,_that.ticketTag,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String patientId,  String departmentId,  String ticketTag,  WalkInStatus status,  String createdByStaffId,  DateTime createdAt,  String? reason,  String? sourceAppointmentId,  String? claimedByStaffId,  String? resultAppointmentId,  DateTime? resolvedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String patientId,  String departmentId,  String ticketTag,  WalkInStatus status,  String createdByStaffId,  DateTime createdAt,  String? reason,  String? sourceAppointmentId,  String? claimedByStaffId,  String? resultAppointmentId,  DateTime? resolvedAt,  int version)?  $default,) {final _that = this;
 switch (_that) {
 case _WalkInTicket() when $default != null:
-return $default(_that.id,_that.patientId,_that.departmentId,_that.ticketTag,_that.status,_that.createdByStaffId,_that.createdAt,_that.reason,_that.sourceAppointmentId,_that.claimedByStaffId,_that.resultAppointmentId,_that.resolvedAt);case _:
+return $default(_that.id,_that.patientId,_that.departmentId,_that.ticketTag,_that.status,_that.createdByStaffId,_that.createdAt,_that.reason,_that.sourceAppointmentId,_that.claimedByStaffId,_that.resultAppointmentId,_that.resolvedAt,_that.version);case _:
   return null;
 
 }
@@ -217,7 +218,7 @@ return $default(_that.id,_that.patientId,_that.departmentId,_that.ticketTag,_tha
 
 
 class _WalkInTicket extends WalkInTicket {
-  const _WalkInTicket({required this.id, required this.patientId, required this.departmentId, required this.ticketTag, required this.status, required this.createdByStaffId, required this.createdAt, this.reason, this.sourceAppointmentId, this.claimedByStaffId, this.resultAppointmentId, this.resolvedAt}): super._();
+  const _WalkInTicket({required this.id, required this.patientId, required this.departmentId, required this.ticketTag, required this.status, required this.createdByStaffId, required this.createdAt, this.reason, this.sourceAppointmentId, this.claimedByStaffId, this.resultAppointmentId, this.resolvedAt, this.version = 1}): super._();
   
 
 @override final  String id;
@@ -232,6 +233,7 @@ class _WalkInTicket extends WalkInTicket {
 @override final  String? claimedByStaffId;
 @override final  String? resultAppointmentId;
 @override final  DateTime? resolvedAt;
+@override@JsonKey() final  int version;
 
 /// Create a copy of WalkInTicket
 /// with the given fields replaced by the non-null parameter values.
@@ -243,16 +245,16 @@ _$WalkInTicketCopyWith<_WalkInTicket> get copyWith => __$WalkInTicketCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WalkInTicket&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.departmentId, departmentId) || other.departmentId == departmentId)&&(identical(other.ticketTag, ticketTag) || other.ticketTag == ticketTag)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdByStaffId, createdByStaffId) || other.createdByStaffId == createdByStaffId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.sourceAppointmentId, sourceAppointmentId) || other.sourceAppointmentId == sourceAppointmentId)&&(identical(other.claimedByStaffId, claimedByStaffId) || other.claimedByStaffId == claimedByStaffId)&&(identical(other.resultAppointmentId, resultAppointmentId) || other.resultAppointmentId == resultAppointmentId)&&(identical(other.resolvedAt, resolvedAt) || other.resolvedAt == resolvedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WalkInTicket&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.departmentId, departmentId) || other.departmentId == departmentId)&&(identical(other.ticketTag, ticketTag) || other.ticketTag == ticketTag)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdByStaffId, createdByStaffId) || other.createdByStaffId == createdByStaffId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.sourceAppointmentId, sourceAppointmentId) || other.sourceAppointmentId == sourceAppointmentId)&&(identical(other.claimedByStaffId, claimedByStaffId) || other.claimedByStaffId == claimedByStaffId)&&(identical(other.resultAppointmentId, resultAppointmentId) || other.resultAppointmentId == resultAppointmentId)&&(identical(other.resolvedAt, resolvedAt) || other.resolvedAt == resolvedAt)&&(identical(other.version, version) || other.version == version));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,patientId,departmentId,ticketTag,status,createdByStaffId,createdAt,reason,sourceAppointmentId,claimedByStaffId,resultAppointmentId,resolvedAt);
+int get hashCode => Object.hash(runtimeType,id,patientId,departmentId,ticketTag,status,createdByStaffId,createdAt,reason,sourceAppointmentId,claimedByStaffId,resultAppointmentId,resolvedAt,version);
 
 @override
 String toString() {
-  return 'WalkInTicket(id: $id, patientId: $patientId, departmentId: $departmentId, ticketTag: $ticketTag, status: $status, createdByStaffId: $createdByStaffId, createdAt: $createdAt, reason: $reason, sourceAppointmentId: $sourceAppointmentId, claimedByStaffId: $claimedByStaffId, resultAppointmentId: $resultAppointmentId, resolvedAt: $resolvedAt)';
+  return 'WalkInTicket(id: $id, patientId: $patientId, departmentId: $departmentId, ticketTag: $ticketTag, status: $status, createdByStaffId: $createdByStaffId, createdAt: $createdAt, reason: $reason, sourceAppointmentId: $sourceAppointmentId, claimedByStaffId: $claimedByStaffId, resultAppointmentId: $resultAppointmentId, resolvedAt: $resolvedAt, version: $version)';
 }
 
 
@@ -263,7 +265,7 @@ abstract mixin class _$WalkInTicketCopyWith<$Res> implements $WalkInTicketCopyWi
   factory _$WalkInTicketCopyWith(_WalkInTicket value, $Res Function(_WalkInTicket) _then) = __$WalkInTicketCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String patientId, String departmentId, String ticketTag, WalkInStatus status, String createdByStaffId, DateTime createdAt, String? reason, String? sourceAppointmentId, String? claimedByStaffId, String? resultAppointmentId, DateTime? resolvedAt
+ String id, String patientId, String departmentId, String ticketTag, WalkInStatus status, String createdByStaffId, DateTime createdAt, String? reason, String? sourceAppointmentId, String? claimedByStaffId, String? resultAppointmentId, DateTime? resolvedAt, int version
 });
 
 
@@ -280,7 +282,7 @@ class __$WalkInTicketCopyWithImpl<$Res>
 
 /// Create a copy of WalkInTicket
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? patientId = null,Object? departmentId = null,Object? ticketTag = null,Object? status = null,Object? createdByStaffId = null,Object? createdAt = null,Object? reason = freezed,Object? sourceAppointmentId = freezed,Object? claimedByStaffId = freezed,Object? resultAppointmentId = freezed,Object? resolvedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? patientId = null,Object? departmentId = null,Object? ticketTag = null,Object? status = null,Object? createdByStaffId = null,Object? createdAt = null,Object? reason = freezed,Object? sourceAppointmentId = freezed,Object? claimedByStaffId = freezed,Object? resultAppointmentId = freezed,Object? resolvedAt = freezed,Object? version = null,}) {
   return _then(_WalkInTicket(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,patientId: null == patientId ? _self.patientId : patientId // ignore: cast_nullable_to_non_nullable
@@ -294,7 +296,8 @@ as String?,sourceAppointmentId: freezed == sourceAppointmentId ? _self.sourceApp
 as String?,claimedByStaffId: freezed == claimedByStaffId ? _self.claimedByStaffId : claimedByStaffId // ignore: cast_nullable_to_non_nullable
 as String?,resultAppointmentId: freezed == resultAppointmentId ? _self.resultAppointmentId : resultAppointmentId // ignore: cast_nullable_to_non_nullable
 as String?,resolvedAt: freezed == resolvedAt ? _self.resolvedAt : resolvedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 

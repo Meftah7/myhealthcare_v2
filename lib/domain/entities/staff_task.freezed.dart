@@ -14,7 +14,9 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$StaffTask {
 
- String get id; String get staffId; String get title; TaskKind get kind; TaskStatus get status; double get ruleScore; DateTime get createdAt; String? get patientId; DateTime? get dueAt; double? get aiPriorityScore; String? get aiRationale;
+ String get id; String get staffId; String get title; TaskKind get kind; TaskStatus get status; double get ruleScore; DateTime get createdAt; String? get patientId; DateTime? get dueAt; double? get aiPriorityScore; String? get aiRationale; WorkPriority get priority;/// A clinician covering the task (escalation, or off-duty cover). The
+/// owner ([staffId]) stays accountable.
+ String? get coverageStaffId; DateTime? get escalatedAt; int get version;
 /// Create a copy of StaffTask
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +27,16 @@ $StaffTaskCopyWith<StaffTask> get copyWith => _$StaffTaskCopyWithImpl<StaffTask>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is StaffTask&&(identical(other.id, id) || other.id == id)&&(identical(other.staffId, staffId) || other.staffId == staffId)&&(identical(other.title, title) || other.title == title)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.status, status) || other.status == status)&&(identical(other.ruleScore, ruleScore) || other.ruleScore == ruleScore)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.dueAt, dueAt) || other.dueAt == dueAt)&&(identical(other.aiPriorityScore, aiPriorityScore) || other.aiPriorityScore == aiPriorityScore)&&(identical(other.aiRationale, aiRationale) || other.aiRationale == aiRationale));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StaffTask&&(identical(other.id, id) || other.id == id)&&(identical(other.staffId, staffId) || other.staffId == staffId)&&(identical(other.title, title) || other.title == title)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.status, status) || other.status == status)&&(identical(other.ruleScore, ruleScore) || other.ruleScore == ruleScore)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.dueAt, dueAt) || other.dueAt == dueAt)&&(identical(other.aiPriorityScore, aiPriorityScore) || other.aiPriorityScore == aiPriorityScore)&&(identical(other.aiRationale, aiRationale) || other.aiRationale == aiRationale)&&(identical(other.priority, priority) || other.priority == priority)&&(identical(other.coverageStaffId, coverageStaffId) || other.coverageStaffId == coverageStaffId)&&(identical(other.escalatedAt, escalatedAt) || other.escalatedAt == escalatedAt)&&(identical(other.version, version) || other.version == version));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,staffId,title,kind,status,ruleScore,createdAt,patientId,dueAt,aiPriorityScore,aiRationale);
+int get hashCode => Object.hash(runtimeType,id,staffId,title,kind,status,ruleScore,createdAt,patientId,dueAt,aiPriorityScore,aiRationale,priority,coverageStaffId,escalatedAt,version);
 
 @override
 String toString() {
-  return 'StaffTask(id: $id, staffId: $staffId, title: $title, kind: $kind, status: $status, ruleScore: $ruleScore, createdAt: $createdAt, patientId: $patientId, dueAt: $dueAt, aiPriorityScore: $aiPriorityScore, aiRationale: $aiRationale)';
+  return 'StaffTask(id: $id, staffId: $staffId, title: $title, kind: $kind, status: $status, ruleScore: $ruleScore, createdAt: $createdAt, patientId: $patientId, dueAt: $dueAt, aiPriorityScore: $aiPriorityScore, aiRationale: $aiRationale, priority: $priority, coverageStaffId: $coverageStaffId, escalatedAt: $escalatedAt, version: $version)';
 }
 
 
@@ -45,7 +47,7 @@ abstract mixin class $StaffTaskCopyWith<$Res>  {
   factory $StaffTaskCopyWith(StaffTask value, $Res Function(StaffTask) _then) = _$StaffTaskCopyWithImpl;
 @useResult
 $Res call({
- String id, String staffId, String title, TaskKind kind, TaskStatus status, double ruleScore, DateTime createdAt, String? patientId, DateTime? dueAt, double? aiPriorityScore, String? aiRationale
+ String id, String staffId, String title, TaskKind kind, TaskStatus status, double ruleScore, DateTime createdAt, String? patientId, DateTime? dueAt, double? aiPriorityScore, String? aiRationale, WorkPriority priority, String? coverageStaffId, DateTime? escalatedAt, int version
 });
 
 
@@ -62,7 +64,7 @@ class _$StaffTaskCopyWithImpl<$Res>
 
 /// Create a copy of StaffTask
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? staffId = null,Object? title = null,Object? kind = null,Object? status = null,Object? ruleScore = null,Object? createdAt = null,Object? patientId = freezed,Object? dueAt = freezed,Object? aiPriorityScore = freezed,Object? aiRationale = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? staffId = null,Object? title = null,Object? kind = null,Object? status = null,Object? ruleScore = null,Object? createdAt = null,Object? patientId = freezed,Object? dueAt = freezed,Object? aiPriorityScore = freezed,Object? aiRationale = freezed,Object? priority = null,Object? coverageStaffId = freezed,Object? escalatedAt = freezed,Object? version = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,staffId: null == staffId ? _self.staffId : staffId // ignore: cast_nullable_to_non_nullable
@@ -75,7 +77,11 @@ as DateTime,patientId: freezed == patientId ? _self.patientId : patientId // ign
 as String?,dueAt: freezed == dueAt ? _self.dueAt : dueAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,aiPriorityScore: freezed == aiPriorityScore ? _self.aiPriorityScore : aiPriorityScore // ignore: cast_nullable_to_non_nullable
 as double?,aiRationale: freezed == aiRationale ? _self.aiRationale : aiRationale // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,priority: null == priority ? _self.priority : priority // ignore: cast_nullable_to_non_nullable
+as WorkPriority,coverageStaffId: freezed == coverageStaffId ? _self.coverageStaffId : coverageStaffId // ignore: cast_nullable_to_non_nullable
+as String?,escalatedAt: freezed == escalatedAt ? _self.escalatedAt : escalatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 
@@ -160,10 +166,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String staffId,  String title,  TaskKind kind,  TaskStatus status,  double ruleScore,  DateTime createdAt,  String? patientId,  DateTime? dueAt,  double? aiPriorityScore,  String? aiRationale)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String staffId,  String title,  TaskKind kind,  TaskStatus status,  double ruleScore,  DateTime createdAt,  String? patientId,  DateTime? dueAt,  double? aiPriorityScore,  String? aiRationale,  WorkPriority priority,  String? coverageStaffId,  DateTime? escalatedAt,  int version)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _StaffTask() when $default != null:
-return $default(_that.id,_that.staffId,_that.title,_that.kind,_that.status,_that.ruleScore,_that.createdAt,_that.patientId,_that.dueAt,_that.aiPriorityScore,_that.aiRationale);case _:
+return $default(_that.id,_that.staffId,_that.title,_that.kind,_that.status,_that.ruleScore,_that.createdAt,_that.patientId,_that.dueAt,_that.aiPriorityScore,_that.aiRationale,_that.priority,_that.coverageStaffId,_that.escalatedAt,_that.version);case _:
   return orElse();
 
 }
@@ -181,10 +187,10 @@ return $default(_that.id,_that.staffId,_that.title,_that.kind,_that.status,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String staffId,  String title,  TaskKind kind,  TaskStatus status,  double ruleScore,  DateTime createdAt,  String? patientId,  DateTime? dueAt,  double? aiPriorityScore,  String? aiRationale)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String staffId,  String title,  TaskKind kind,  TaskStatus status,  double ruleScore,  DateTime createdAt,  String? patientId,  DateTime? dueAt,  double? aiPriorityScore,  String? aiRationale,  WorkPriority priority,  String? coverageStaffId,  DateTime? escalatedAt,  int version)  $default,) {final _that = this;
 switch (_that) {
 case _StaffTask():
-return $default(_that.id,_that.staffId,_that.title,_that.kind,_that.status,_that.ruleScore,_that.createdAt,_that.patientId,_that.dueAt,_that.aiPriorityScore,_that.aiRationale);case _:
+return $default(_that.id,_that.staffId,_that.title,_that.kind,_that.status,_that.ruleScore,_that.createdAt,_that.patientId,_that.dueAt,_that.aiPriorityScore,_that.aiRationale,_that.priority,_that.coverageStaffId,_that.escalatedAt,_that.version);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -201,10 +207,10 @@ return $default(_that.id,_that.staffId,_that.title,_that.kind,_that.status,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String staffId,  String title,  TaskKind kind,  TaskStatus status,  double ruleScore,  DateTime createdAt,  String? patientId,  DateTime? dueAt,  double? aiPriorityScore,  String? aiRationale)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String staffId,  String title,  TaskKind kind,  TaskStatus status,  double ruleScore,  DateTime createdAt,  String? patientId,  DateTime? dueAt,  double? aiPriorityScore,  String? aiRationale,  WorkPriority priority,  String? coverageStaffId,  DateTime? escalatedAt,  int version)?  $default,) {final _that = this;
 switch (_that) {
 case _StaffTask() when $default != null:
-return $default(_that.id,_that.staffId,_that.title,_that.kind,_that.status,_that.ruleScore,_that.createdAt,_that.patientId,_that.dueAt,_that.aiPriorityScore,_that.aiRationale);case _:
+return $default(_that.id,_that.staffId,_that.title,_that.kind,_that.status,_that.ruleScore,_that.createdAt,_that.patientId,_that.dueAt,_that.aiPriorityScore,_that.aiRationale,_that.priority,_that.coverageStaffId,_that.escalatedAt,_that.version);case _:
   return null;
 
 }
@@ -216,7 +222,7 @@ return $default(_that.id,_that.staffId,_that.title,_that.kind,_that.status,_that
 
 
 class _StaffTask extends StaffTask {
-  const _StaffTask({required this.id, required this.staffId, required this.title, required this.kind, required this.status, required this.ruleScore, required this.createdAt, this.patientId, this.dueAt, this.aiPriorityScore, this.aiRationale}): super._();
+  const _StaffTask({required this.id, required this.staffId, required this.title, required this.kind, required this.status, required this.ruleScore, required this.createdAt, this.patientId, this.dueAt, this.aiPriorityScore, this.aiRationale, this.priority = WorkPriority.routine, this.coverageStaffId, this.escalatedAt, this.version = 1}): super._();
   
 
 @override final  String id;
@@ -230,6 +236,12 @@ class _StaffTask extends StaffTask {
 @override final  DateTime? dueAt;
 @override final  double? aiPriorityScore;
 @override final  String? aiRationale;
+@override@JsonKey() final  WorkPriority priority;
+/// A clinician covering the task (escalation, or off-duty cover). The
+/// owner ([staffId]) stays accountable.
+@override final  String? coverageStaffId;
+@override final  DateTime? escalatedAt;
+@override@JsonKey() final  int version;
 
 /// Create a copy of StaffTask
 /// with the given fields replaced by the non-null parameter values.
@@ -241,16 +253,16 @@ _$StaffTaskCopyWith<_StaffTask> get copyWith => __$StaffTaskCopyWithImpl<_StaffT
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StaffTask&&(identical(other.id, id) || other.id == id)&&(identical(other.staffId, staffId) || other.staffId == staffId)&&(identical(other.title, title) || other.title == title)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.status, status) || other.status == status)&&(identical(other.ruleScore, ruleScore) || other.ruleScore == ruleScore)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.dueAt, dueAt) || other.dueAt == dueAt)&&(identical(other.aiPriorityScore, aiPriorityScore) || other.aiPriorityScore == aiPriorityScore)&&(identical(other.aiRationale, aiRationale) || other.aiRationale == aiRationale));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StaffTask&&(identical(other.id, id) || other.id == id)&&(identical(other.staffId, staffId) || other.staffId == staffId)&&(identical(other.title, title) || other.title == title)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.status, status) || other.status == status)&&(identical(other.ruleScore, ruleScore) || other.ruleScore == ruleScore)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.dueAt, dueAt) || other.dueAt == dueAt)&&(identical(other.aiPriorityScore, aiPriorityScore) || other.aiPriorityScore == aiPriorityScore)&&(identical(other.aiRationale, aiRationale) || other.aiRationale == aiRationale)&&(identical(other.priority, priority) || other.priority == priority)&&(identical(other.coverageStaffId, coverageStaffId) || other.coverageStaffId == coverageStaffId)&&(identical(other.escalatedAt, escalatedAt) || other.escalatedAt == escalatedAt)&&(identical(other.version, version) || other.version == version));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,staffId,title,kind,status,ruleScore,createdAt,patientId,dueAt,aiPriorityScore,aiRationale);
+int get hashCode => Object.hash(runtimeType,id,staffId,title,kind,status,ruleScore,createdAt,patientId,dueAt,aiPriorityScore,aiRationale,priority,coverageStaffId,escalatedAt,version);
 
 @override
 String toString() {
-  return 'StaffTask(id: $id, staffId: $staffId, title: $title, kind: $kind, status: $status, ruleScore: $ruleScore, createdAt: $createdAt, patientId: $patientId, dueAt: $dueAt, aiPriorityScore: $aiPriorityScore, aiRationale: $aiRationale)';
+  return 'StaffTask(id: $id, staffId: $staffId, title: $title, kind: $kind, status: $status, ruleScore: $ruleScore, createdAt: $createdAt, patientId: $patientId, dueAt: $dueAt, aiPriorityScore: $aiPriorityScore, aiRationale: $aiRationale, priority: $priority, coverageStaffId: $coverageStaffId, escalatedAt: $escalatedAt, version: $version)';
 }
 
 
@@ -261,7 +273,7 @@ abstract mixin class _$StaffTaskCopyWith<$Res> implements $StaffTaskCopyWith<$Re
   factory _$StaffTaskCopyWith(_StaffTask value, $Res Function(_StaffTask) _then) = __$StaffTaskCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String staffId, String title, TaskKind kind, TaskStatus status, double ruleScore, DateTime createdAt, String? patientId, DateTime? dueAt, double? aiPriorityScore, String? aiRationale
+ String id, String staffId, String title, TaskKind kind, TaskStatus status, double ruleScore, DateTime createdAt, String? patientId, DateTime? dueAt, double? aiPriorityScore, String? aiRationale, WorkPriority priority, String? coverageStaffId, DateTime? escalatedAt, int version
 });
 
 
@@ -278,7 +290,7 @@ class __$StaffTaskCopyWithImpl<$Res>
 
 /// Create a copy of StaffTask
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? staffId = null,Object? title = null,Object? kind = null,Object? status = null,Object? ruleScore = null,Object? createdAt = null,Object? patientId = freezed,Object? dueAt = freezed,Object? aiPriorityScore = freezed,Object? aiRationale = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? staffId = null,Object? title = null,Object? kind = null,Object? status = null,Object? ruleScore = null,Object? createdAt = null,Object? patientId = freezed,Object? dueAt = freezed,Object? aiPriorityScore = freezed,Object? aiRationale = freezed,Object? priority = null,Object? coverageStaffId = freezed,Object? escalatedAt = freezed,Object? version = null,}) {
   return _then(_StaffTask(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,staffId: null == staffId ? _self.staffId : staffId // ignore: cast_nullable_to_non_nullable
@@ -291,7 +303,11 @@ as DateTime,patientId: freezed == patientId ? _self.patientId : patientId // ign
 as String?,dueAt: freezed == dueAt ? _self.dueAt : dueAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,aiPriorityScore: freezed == aiPriorityScore ? _self.aiPriorityScore : aiPriorityScore // ignore: cast_nullable_to_non_nullable
 as double?,aiRationale: freezed == aiRationale ? _self.aiRationale : aiRationale // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,priority: null == priority ? _self.priority : priority // ignore: cast_nullable_to_non_nullable
+as WorkPriority,coverageStaffId: freezed == coverageStaffId ? _self.coverageStaffId : coverageStaffId // ignore: cast_nullable_to_non_nullable
+as String?,escalatedAt: freezed == escalatedAt ? _self.escalatedAt : escalatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 

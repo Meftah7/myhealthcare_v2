@@ -36,6 +36,7 @@ Patient patientFrom(UserRow user, PatientProfileRow? profile) => Patient(
   allergies: profile?.allergies ?? const [],
   chronicConditions: profile?.chronicConditions ?? const [],
   emergencyContact: profile?.emergencyContact,
+  profileVersion: profile?.version ?? 1,
 );
 
 Staff staffFrom(UserRow user, StaffProfileRow? profile) => Staff(
@@ -79,6 +80,7 @@ extension AppointmentRowX on AppointmentRow {
     ticketTag: ticketTag,
     roomNumber: roomNumber,
     bookedForName: bookedForName,
+    version: version,
   );
 }
 
@@ -96,6 +98,7 @@ extension WalkInRowX on WalkInRow {
     resultAppointmentId: resultAppointmentId,
     createdAt: createdAt,
     resolvedAt: resolvedAt,
+    version: version,
   );
 }
 
@@ -111,6 +114,12 @@ extension ReferralRequestRowX on ReferralRequestRow {
     decisionNote: decisionNote,
     decidedAt: decidedAt,
     createdAt: createdAt,
+    ownerStaffId: ownerStaffId,
+    coverageStaffId: coverageStaffId,
+    dueAt: dueAt,
+    priority: priority,
+    handoverNote: handoverNote,
+    version: version,
   );
 }
 
@@ -129,6 +138,31 @@ extension InvoiceRowX on InvoiceRow {
     paidAt: paidAt,
     paymentMethod: paymentMethod,
     notes: notes,
+    version: version,
+  );
+}
+
+extension PaymentTransactionRowX on PaymentTransactionRow {
+  PaymentTransaction toEntity() => PaymentTransaction(
+    id: id,
+    patientId: patientId,
+    invoiceId: invoiceId,
+    kind: kind,
+    method: method,
+    status: status,
+    amount: amount,
+    provider: provider,
+    requestReference: requestReference,
+    providerReference: providerReference,
+    methodDescriptor: methodDescriptor,
+    refundOfId: refundOfId,
+    reason: reason,
+    failureReason: failureReason,
+    actorAccountId: actorAccountId,
+    createdAt: createdAt,
+    updatedAt: updatedAt,
+    settledAt: settledAt,
+    reconciledAt: reconciledAt,
   );
 }
 
@@ -193,6 +227,11 @@ extension LabValueRowX on LabValueRow {
     unit: unit,
     refLow: refLow,
     refHigh: refHigh,
+    source: source,
+    provenance: provenance,
+    verificationStatus: verificationStatus,
+    verifiedByStaffId: verifiedByStaffId,
+    verifiedAt: verifiedAt,
   );
 }
 
@@ -212,6 +251,11 @@ MedicalRecord recordFrom(MedicalRecordRow row, List<LabValueRow> labs) =>
       attachmentPath: row.attachmentPath,
       uploadedByPatient: row.uploadedByPatient,
       extractedText: row.extractedText,
+      createdByAccountId: row.createdByAccountId,
+      reviewStatus: row.reviewStatus,
+      reviewedByStaffId: row.reviewedByStaffId,
+      reviewedAt: row.reviewedAt,
+      reviewNote: row.reviewNote,
     );
 
 extension VitalsRowX on VitalsRow {
@@ -259,6 +303,10 @@ extension StaffTaskRowX on StaffTaskRow {
     dueAt: dueAt,
     aiPriorityScore: aiPriorityScore,
     aiRationale: aiRationale,
+    priority: priority,
+    coverageStaffId: coverageStaffId,
+    escalatedAt: escalatedAt,
+    version: version,
   );
 }
 
@@ -348,6 +396,9 @@ extension CareMessageRowX on CareMessageRow {
     body: body,
     sentAt: sentAt,
     readAt: readAt,
+    queueOwnerStaffId: queueOwnerStaffId,
+    coverageStaffId: coverageStaffId,
+    responseDueAt: responseDueAt,
   );
 }
 
@@ -364,5 +415,6 @@ extension HomeVisitRowX on HomeVisitRow {
     assignedStaffId: assignedStaffId,
     decisionNote: decisionNote,
     decidedAt: decidedAt,
+    version: version,
   );
 }

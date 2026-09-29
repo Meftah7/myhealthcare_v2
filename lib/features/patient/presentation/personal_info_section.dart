@@ -12,6 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/i18n/enum_labels.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/date_input.dart';
 import '../../../domain/entities/entities.dart';
@@ -158,9 +159,13 @@ class _PersonalInfoSectionState extends ConsumerState<PersonalInfoSection> {
           ),
         );
       case Err(:final failure):
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(failure.message)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              describeFailure(AppLocalizations.of(context)!, failure).message,
+            ),
+          ),
+        );
     }
   }
 

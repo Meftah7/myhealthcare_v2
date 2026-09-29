@@ -15,6 +15,10 @@ class AuditLog extends Table {
   TextColumn get entityType => text()();
   TextColumn get entityId => text().nullable()();
   TextColumn get detail => text().nullable()();
+
+  /// The patient whose data the action touched, when that differs from (or
+  /// is not implied by) the actor — e.g. a proxy acting for a dependent.
+  TextColumn get subjectPatientId => text().nullable()();
   DateTimeColumn get at => dateTime().withDefault(currentDateAndTime)();
 
   @override

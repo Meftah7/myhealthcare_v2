@@ -12,20 +12,27 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/failures.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/confirm_dialog.dart';
+import '../../../core/presentation/data_state_view.dart';
+import '../../../core/presentation/paging_widgets.dart';
 import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
+import '../../care/application/care_providers.dart';
+import '../../patient_chart/application/result_review_providers.dart';
 import '../../patient_chart/presentation/chart_write_sheets.dart';
+import '../../patient_chart/presentation/result_review_sheet.dart';
 import '../application/staff_providers.dart';
 import 'staff_quick_actions.dart';
 import 'staff_top_actions.dart';
@@ -37,11 +44,12 @@ class StaffDashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
     final user = ref.watch(currentUserProvider);
-    final firstName = (user?.fullName ?? t.greetingFallbackName).split(
-      ' ',
-    ).first;
+    final firstName = (user?.fullName ?? t.greetingFallbackName)
+        .split(' ')
+        .first;
 
     return AppScaffold(
+      stagger: true,
       // The brand lockup, not the word "Dashboard": the greeting below already
       // says where you are, and two headings competing is one too many.
       titleWidget: AppBrandLockup(subtitle: t.roleStaff),
@@ -51,6 +59,8 @@ class StaffDashboardScreen extends ConsumerWidget {
           ..invalidate(staffTodayProvider)
           ..invalidate(staffQueueProvider)
           ..invalidate(unacknowledgedFlagsProvider)
+          ..invalidate(myResultReviewsProvider)
+          ..invalidate(staffAwaitingReplyProvider)
           ..invalidate(staffTasksProvider);
       },
       children: [
@@ -85,6 +95,15 @@ class StaffDashboardScreen extends ConsumerWidget {
               onAction: () => context.go(AppRoutes.staffPatients),
             ),
             _RiskFlags(),
+            SectionHeader(t.resultsToReviewHeader, overline: true),
+            const _ResultReviewQueue(),
+            SectionHeader(
+              t.awaitingReplyHeader,
+              overline: true,
+              action: t.messagesTitle,
+              onAction: () => context.push(AppRoutes.staffInbox),
+            ),
+            const _AwaitingReply(),
             SectionHeader(
               t.tasksHeader,
               overline: true,
@@ -110,15 +129,28 @@ class _DepartmentWalkIns extends ConsumerWidget {
     final t = AppLocalizations.of(context)!;
     final walkIns = ref.watch(departmentWalkInsProvider);
     final names = ref.watch(patientNameLookupProvider).valueOrNull ?? const {};
+    // A failed read is not "nobody waiting": say so, and offer a retry.
+    if (walkIns.hasError) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: Space.md),
+        child: ErrorStateView(
+          message: (walkIns.error is Failure)
+              ? (walkIns.error! as Failure).message
+              : UnexpectedFailure.from(walkIns.error!).message,
+          onRetry: () => ref.invalidate(departmentWalkInsProvider),
+        ),
+      );
+    }
     final list = walkIns.valueOrNull ?? const [];
     if (list.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SectionHeader(
-          t.departmentWalkInsHeader(list.length),
-          overline: true,
+        SectionHeader(t.departmentWalkInsHeader(list.length), overline: true),
+        FreshnessBar(
+          fetchedAt: ref.watch(departmentWalkInsFetchedAtProvider),
+          onRefresh: () => ref.invalidate(departmentWalkInsProvider),
         ),
         ListCard(
           children: [
@@ -154,7 +186,13 @@ class _WalkInRowState extends ConsumerState<_WalkInRow> {
       case Ok(:final value):
         unawaited(context.push(AppRoutes.staffConsultation(value)));
       case Err(:final failure):
-        messenger.showSnackBar(SnackBar(content: Text(failure.message)));
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              describeFailure(AppLocalizations.of(context)!, failure).message,
+            ),
+          ),
+        );
     }
   }
 
@@ -523,6 +561,148 @@ class _RiskFlags extends ConsumerWidget {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+/// Abnormal, critical and unjudgeable results this clinician owns or
+/// covers — most urgent first, overdue in red. A failed read says so; it is
+/// never an empty "all clear".
+class _ResultReviewQueue extends ConsumerWidget {
+  const _ResultReviewQueue();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final reviews = ref.watch(myResultReviewsProvider);
+    final names = ref.watch(patientNameLookupProvider).valueOrNull ?? const {};
+    return AppReveal(
+      child: reviews.when(
+        loading: () =>
+            const LoadingSkeleton(key: ValueKey('rr-load'), height: 72),
+        error: (e, _) => InlineBanner.error(
+          t.couldNotLoadResultReviews,
+          key: const ValueKey('rr-err'),
+        ),
+        data: (list) => ListCard(
+          key: const ValueKey('rr-data'),
+          emptyIcon: Icons.science_outlined,
+          emptyText: t.noResultsToReview,
+          children: [
+            for (final rv in list.take(5))
+              Builder(
+                builder: (context) {
+                  final overdue = rv.isOverdueAt(DateTime.now());
+                  final due = '${fmtDate(rv.dueAt)} ${fmtTime(rv.dueAt)}';
+                  return ListTile(
+                    leading: Icon(
+                      rv.priority == WorkPriority.urgent
+                          ? Icons.priority_high
+                          : Icons.science_outlined,
+                      color: rv.priority == WorkPriority.urgent
+                          ? theme.colorScheme.error
+                          : null,
+                    ),
+                    title: Text(
+                      '${names[rv.patientId] ?? t.rolePatient} · '
+                      '${rv.recordTitle}',
+                    ),
+                    subtitle: Text(
+                      '${rv.priority.label(context)} · '
+                      '${rv.status.label(context)} · '
+                      '${overdue ? t.resultReviewOverdue(due) : t.resultReviewDue(due)}',
+                      style: overdue
+                          ? theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.error,
+                              fontWeight: FontWeight.w600,
+                            )
+                          : theme.textTheme.bodySmall,
+                    ),
+                    onTap: () => showResultSheet(context, rv.recordId),
+                  );
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Patient messages this clinician owns or covers that still need a reply,
+/// earliest due first; overdue in red. Covered threads open as the owner's
+/// thread, so the reply lands where the patient is looking.
+class _AwaitingReply extends ConsumerWidget {
+  const _AwaitingReply();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final me = ref.watch(currentUserProvider)?.id;
+    final names = ref.watch(patientNameLookupProvider).valueOrNull ?? const {};
+    final staff = {
+      for (final s
+          in ref.watch(staffDirectoryProvider).valueOrNull ?? const <Staff>[])
+        s.id: s.fullName,
+    };
+    return AsyncDataView(
+      value: ref.watch(staffAwaitingReplyProvider),
+      onRetry: () => ref.invalidate(staffAwaitingReplyProvider),
+      loading: const LoadingSkeleton(height: 72),
+      isEmpty: (list) => list.isEmpty,
+      empty: ListCard(
+        emptyIcon: Icons.mark_email_read_outlined,
+        emptyText: t.noMessagesAwaiting,
+        children: const [],
+      ),
+      builder: (context, list) => ListCard(
+        children: [
+          for (final m in list.take(5))
+            Builder(
+              builder: (context) {
+                final overdue = m.isOverdueAt(DateTime.now());
+                final due = m.responseDueAt!;
+                final covering = m.staffId != me;
+                final patient = names[m.patientId] ?? t.rolePatient;
+                return ListTile(
+                  leading: Icon(
+                    overdue
+                        ? Icons.mark_email_unread
+                        : Icons.mark_email_unread_outlined,
+                    color: overdue ? theme.colorScheme.error : null,
+                  ),
+                  title: Text(patient),
+                  subtitle: Text(
+                    [
+                      if (covering)
+                        t.coveringFor(staff[m.staffId] ?? m.staffId),
+                      overdue
+                          ? t.messageReplyWasDue(
+                              '${fmtDate(due)} ${fmtTime(due)}',
+                            )
+                          : t.replyBy('${fmtDate(due)} ${fmtTime(due)}'),
+                    ].join(' · '),
+                    style: overdue
+                        ? theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.error,
+                            fontWeight: FontWeight.w600,
+                          )
+                        : theme.textTheme.bodySmall,
+                  ),
+                  onTap: () => context.push(
+                    AppRoutes.staffInboxThread(
+                      m.patientId,
+                      name: patient,
+                      ownerId: covering ? m.staffId : null,
+                    ),
+                  ),
+                );
+              },
+            ),
+        ],
       ),
     );
   }

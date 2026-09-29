@@ -28,11 +28,13 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/presentation/status_badges.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../consultation/application/consultation_providers.dart';
 import '../application/staff_providers.dart';
 
@@ -41,8 +43,8 @@ import '../application/staff_providers.dart';
 enum ScheduleCardState { booked, called, arrived, notArrived, done }
 
 ScheduleCardState scheduleCardStateOf(Appointment a) => switch (a.status) {
-  AppointmentStatus.completed || AppointmentStatus.cancelled =>
-    ScheduleCardState.done,
+  AppointmentStatus.completed ||
+  AppointmentStatus.cancelled => ScheduleCardState.done,
   AppointmentStatus.inProgress => ScheduleCardState.arrived,
   AppointmentStatus.noShow => ScheduleCardState.notArrived,
   AppointmentStatus.booked || AppointmentStatus.confirmed =>
@@ -64,8 +66,8 @@ double scheduleCardEstimatedHeight(Appointment a, {required bool compact}) {
   };
   if (hasInfo) h += 16;
   h += 9; // divider
-  final buttonRows = state == ScheduleCardState.booked ||
-          state == ScheduleCardState.called
+  final buttonRows =
+      state == ScheduleCardState.booked || state == ScheduleCardState.called
       ? 2
       : 1;
   h += buttonRows * 40 + (buttonRows - 1) * 8;
@@ -158,7 +160,13 @@ class _ScheduleAppointmentCardState
     if (!mounted) return;
     setState(() => _busy = false);
     if (result case Err(:final failure)) {
-      messenger.showSnackBar(SnackBar(content: Text(failure.message)));
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            describeFailure(AppLocalizations.of(context)!, failure).message,
+          ),
+        ),
+      );
     } else if (ok != null) {
       messenger
         ..clearSnackBars()
@@ -205,8 +213,7 @@ class _ScheduleAppointmentCardState
     final state = scheduleCardStateOf(_a);
     final pal = _CardPalette.of(context, state);
     final highlighted = ref.watch(scheduleHighlightIdProvider) == _a.id;
-    final names =
-        ref.watch(patientNameLookupProvider).valueOrNull ?? const {};
+    final names = ref.watch(patientNameLookupProvider).valueOrNull ?? const {};
     final who = names[_a.patientId] ?? visitTypeLabel(_a.visitType);
 
     final border = Border.all(
@@ -742,8 +749,9 @@ class _FlashMark extends StatelessWidget {
     if (t == 0) return const SizedBox.shrink();
     final ramp = Theme.of(context).clinicalStatus;
     final style = kind == _Flash.cross ? ramp.riskHigh : ramp.riskLow;
-    final icon =
-        kind == _Flash.cross ? Icons.close_rounded : Icons.check_rounded;
+    final icon = kind == _Flash.cross
+        ? Icons.close_rounded
+        : Icons.check_rounded;
     final scale = 0.6 + 0.4 * Curves.easeOutBack.transform(t.clamp(0.0, 1.0));
 
     return Container(

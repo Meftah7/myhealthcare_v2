@@ -67,7 +67,12 @@ class ScheduleQueueStrip extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(Space.xxs, Space.xxs, Space.xxs, 0),
+            padding: const EdgeInsets.fromLTRB(
+              Space.xxs,
+              Space.xxs,
+              Space.xxs,
+              0,
+            ),
             child: Row(
               children: [
                 Text(
@@ -265,9 +270,7 @@ class _InlineSummary extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Expanded(
-                  child: Text(name, style: theme.textTheme.titleSmall),
-                ),
+                Expanded(child: Text(name, style: theme.textTheme.titleSmall)),
                 Text(
                   fmtTime(appointment.slotStart),
                   style: theme.textTheme.labelSmall?.copyWith(

@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/enums.dart';
@@ -38,35 +39,33 @@ class _AdminAiLogScreenState extends ConsumerState<AdminAiLogScreen> {
     final entries = ref.watch(aiUsageProvider(_filter));
     final gutter = WindowSize.of(context).gutter;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(t.aiActivityTitle),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(52),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.fromLTRB(Space.md, 0, Space.md, Space.xs),
-            child: Row(
-              children: [
+    return AppScaffold(
+      title: t.aiActivityTitle,
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(52),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.fromLTRB(Space.md, 0, Space.md, Space.xs),
+          child: Row(
+            children: [
+              Padding(
+                padding: const EdgeInsetsDirectional.only(end: Space.xs),
+                child: FilterChip(
+                  label: Text(t.allFilterChip),
+                  selected: _filter == null,
+                  onSelected: (_) => setState(() => _filter = null),
+                ),
+              ),
+              for (final f in AiFeature.values)
                 Padding(
                   padding: const EdgeInsetsDirectional.only(end: Space.xs),
                   child: FilterChip(
-                    label: Text(t.allFilterChip),
-                    selected: _filter == null,
-                    onSelected: (_) => setState(() => _filter = null),
+                    label: Text(f.label(context)),
+                    selected: _filter == f,
+                    onSelected: (_) => setState(() => _filter = f),
                   ),
                 ),
-                for (final f in AiFeature.values)
-                  Padding(
-                    padding: const EdgeInsetsDirectional.only(end: Space.xs),
-                    child: FilterChip(
-                      label: Text(f.label(context)),
-                      selected: _filter == f,
-                      onSelected: (_) => setState(() => _filter = f),
-                    ),
-                  ),
-              ],
-            ),
+            ],
           ),
         ),
       ),
@@ -140,6 +139,7 @@ class _AdminAiLogScreenState extends ConsumerState<AdminAiLogScreen> {
           );
         },
       ),
+      centerBody: false,
     );
   }
 }

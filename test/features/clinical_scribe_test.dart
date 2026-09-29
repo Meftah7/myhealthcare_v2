@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/app.dart';
+import 'package:myhealthcare/core/app_environment.dart';
 import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/core/result.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
@@ -23,7 +24,7 @@ Future<void> _settle(WidgetTester tester) async {
   }
 }
 
-Future<ProviderContainer> _container() async {
+Future<ProviderContainer> _container({AppMode mode = AppMode.demo}) async {
   final db = newTestDatabase();
   await Seeder(db).run();
   SharedPreferences.setMockInitialValues({'ui.hasSeenOnboarding': true});
@@ -31,6 +32,7 @@ Future<ProviderContainer> _container() async {
   final container = ProviderContainer(
     overrides: [
       sharedPreferencesProvider.overrideWithValue(prefs),
+      appModeProvider.overrideWithValue(mode),
       appDatabaseProvider.overrideWith((ref) {
         ref.onDispose(db.close);
         return db;
@@ -83,15 +85,32 @@ void main() {
     expect(result, isA<Err<ScribeDraft>>());
   });
 
+  test('production scribe never substitutes an offline AI draft', () async {
+    final container = await _container(mode: AppMode.production);
+    addTearDown(container.dispose);
+
+    final result = await container
+        .read(clinicalScribeProvider)
+        .structure('Sore throat for three days.');
+
+    expect(result, isA<Err<ScribeDraft>>());
+    expect(
+      (result as Err<ScribeDraft>).failure.message,
+      contains('live provider'),
+    );
+  });
+
   test('staff patient summary generates for an explicit patient id', () async {
     final container = await _container();
     addTearDown(container.dispose);
 
-    // A seeded chronic patient with history.
-    final patients = await container
-        .read(patientRepositoryProvider)
-        .all(limit: 5);
-    final id = patients.valueOrNull!.first.id;
+    // Use a patient assigned to the signed-in clinician; chart access is
+    // intentionally denied for arbitrary patient ids.
+    final staffId = container.read(currentUserProvider)!.id;
+    final appointments = await container
+        .read(appointmentRepositoryProvider)
+        .forStaffInRange(staffId, DateTime(2000), DateTime(2100));
+    final id = appointments.valueOrNull!.first.patientId;
 
     final summary = await container.read(
       chartPatientSummaryProvider(id).future,

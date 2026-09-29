@@ -19,8 +19,8 @@ class ThemeModeIconToggle extends ConsumerWidget {
     final mode = ref.watch(themeModeProvider);
     final platformIsDark =
         MediaQuery.platformBrightnessOf(context) == Brightness.dark;
-    final isDark = mode == ThemeMode.dark ||
-        (mode == ThemeMode.system && platformIsDark);
+    final isDark =
+        mode == ThemeMode.dark || (mode == ThemeMode.system && platformIsDark);
 
     return CircleIconButton(
       icon: isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,

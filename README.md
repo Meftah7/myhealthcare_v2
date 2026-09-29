@@ -77,6 +77,21 @@ Without those headers it falls back to IndexedDB (still persistent). See
 > byte-identical on every run. Once built: **Admin → AI Settings →
 > Re-seed / reset demo data**, or it runs automatically on first launch.
 
+The build-time `APP_MODE` controls whether demo data and controls exist.
+Debug/profile builds default to demo, while release builds default to
+production. Select demo explicitly for a release-mode university demonstration:
+
+```bash
+flutter run --dart-define=APP_MODE=demo
+```
+
+Production startup never generates demo accounts, and demo credentials and
+reseed controls are hidden. The explicit production command is:
+
+```bash
+flutter build <platform> --dart-define=APP_MODE=production
+```
+
 ## Add the AI API key
 
 > Implemented in P3-06. The key is entered at **Admin → AI Settings**, stored in

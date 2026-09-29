@@ -1,8 +1,8 @@
 /// Admin → AI Settings (P5-16, key entry part of P3-06).
 library;
 
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
@@ -85,34 +85,35 @@ class AiSettingsScreen extends ConsumerWidget {
               ),
 
               if (kDebugMode) SectionHeader(t.demoDataHeader),
-              if (kDebugMode) AppCard(
-                padding: EdgeInsets.zero,
-                child: ListTile(
-                  leading: const Icon(Icons.restart_alt),
-                  title: Text(t.reseedDemoDataTitle),
-                  subtitle: Text(t.reseedDemoDataSubtitle),
-                  onTap: () async {
-                    final ok = await confirm(
-                      context,
-                      title: t.reseedConfirmTitle,
-                      message: t.reseedConfirmBody,
-                      confirmLabel: t.reseedAction,
-                      destructive: true,
-                    );
-                    if (!ok || !context.mounted) return;
-                    final r = await ref.read(seederProvider).reset();
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            t.reseededSnackbar(r.patients, r.appointments),
-                          ),
-                        ),
+              if (kDebugMode)
+                AppCard(
+                  padding: EdgeInsets.zero,
+                  child: ListTile(
+                    leading: const Icon(Icons.restart_alt),
+                    title: Text(t.reseedDemoDataTitle),
+                    subtitle: Text(t.reseedDemoDataSubtitle),
+                    onTap: () async {
+                      final ok = await confirm(
+                        context,
+                        title: t.reseedConfirmTitle,
+                        message: t.reseedConfirmBody,
+                        confirmLabel: t.reseedAction,
+                        destructive: true,
                       );
-                    }
-                  },
+                      if (!ok || !context.mounted) return;
+                      final r = await ref.read(seederProvider).reset();
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              t.reseededSnackbar(r.patients, r.appointments),
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                  ),
                 ),
-              ),
             ],
           );
         },

@@ -295,7 +295,11 @@ as String?,
 /// @nodoc
 mixin _$CareMessage {
 
- String get id; String get patientId; String get staffId; bool get fromStaff; String get body; DateTime get sentAt; DateTime? get readAt;
+ String get id; String get patientId; String get staffId; bool get fromStaff; String get body; DateTime get sentAt; DateTime? get readAt;/// Who must answer a patient's message (the thread's clinician), and who
+/// covers it while they are off duty. Null on staff replies.
+ String? get queueOwnerStaffId; String? get coverageStaffId;/// When a reply is due ([CareMessageQueue.responseWindow] after it was
+/// sent). Null on staff replies.
+ DateTime? get responseDueAt;
 /// Create a copy of CareMessage
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -306,16 +310,16 @@ $CareMessageCopyWith<CareMessage> get copyWith => _$CareMessageCopyWithImpl<Care
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CareMessage&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.staffId, staffId) || other.staffId == staffId)&&(identical(other.fromStaff, fromStaff) || other.fromStaff == fromStaff)&&(identical(other.body, body) || other.body == body)&&(identical(other.sentAt, sentAt) || other.sentAt == sentAt)&&(identical(other.readAt, readAt) || other.readAt == readAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CareMessage&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.staffId, staffId) || other.staffId == staffId)&&(identical(other.fromStaff, fromStaff) || other.fromStaff == fromStaff)&&(identical(other.body, body) || other.body == body)&&(identical(other.sentAt, sentAt) || other.sentAt == sentAt)&&(identical(other.readAt, readAt) || other.readAt == readAt)&&(identical(other.queueOwnerStaffId, queueOwnerStaffId) || other.queueOwnerStaffId == queueOwnerStaffId)&&(identical(other.coverageStaffId, coverageStaffId) || other.coverageStaffId == coverageStaffId)&&(identical(other.responseDueAt, responseDueAt) || other.responseDueAt == responseDueAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,patientId,staffId,fromStaff,body,sentAt,readAt);
+int get hashCode => Object.hash(runtimeType,id,patientId,staffId,fromStaff,body,sentAt,readAt,queueOwnerStaffId,coverageStaffId,responseDueAt);
 
 @override
 String toString() {
-  return 'CareMessage(id: $id, patientId: $patientId, staffId: $staffId, fromStaff: $fromStaff, body: $body, sentAt: $sentAt, readAt: $readAt)';
+  return 'CareMessage(id: $id, patientId: $patientId, staffId: $staffId, fromStaff: $fromStaff, body: $body, sentAt: $sentAt, readAt: $readAt, queueOwnerStaffId: $queueOwnerStaffId, coverageStaffId: $coverageStaffId, responseDueAt: $responseDueAt)';
 }
 
 
@@ -326,7 +330,7 @@ abstract mixin class $CareMessageCopyWith<$Res>  {
   factory $CareMessageCopyWith(CareMessage value, $Res Function(CareMessage) _then) = _$CareMessageCopyWithImpl;
 @useResult
 $Res call({
- String id, String patientId, String staffId, bool fromStaff, String body, DateTime sentAt, DateTime? readAt
+ String id, String patientId, String staffId, bool fromStaff, String body, DateTime sentAt, DateTime? readAt, String? queueOwnerStaffId, String? coverageStaffId, DateTime? responseDueAt
 });
 
 
@@ -343,7 +347,7 @@ class _$CareMessageCopyWithImpl<$Res>
 
 /// Create a copy of CareMessage
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? patientId = null,Object? staffId = null,Object? fromStaff = null,Object? body = null,Object? sentAt = null,Object? readAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? patientId = null,Object? staffId = null,Object? fromStaff = null,Object? body = null,Object? sentAt = null,Object? readAt = freezed,Object? queueOwnerStaffId = freezed,Object? coverageStaffId = freezed,Object? responseDueAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,patientId: null == patientId ? _self.patientId : patientId // ignore: cast_nullable_to_non_nullable
@@ -352,6 +356,9 @@ as String,fromStaff: null == fromStaff ? _self.fromStaff : fromStaff // ignore: 
 as bool,body: null == body ? _self.body : body // ignore: cast_nullable_to_non_nullable
 as String,sentAt: null == sentAt ? _self.sentAt : sentAt // ignore: cast_nullable_to_non_nullable
 as DateTime,readAt: freezed == readAt ? _self.readAt : readAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,queueOwnerStaffId: freezed == queueOwnerStaffId ? _self.queueOwnerStaffId : queueOwnerStaffId // ignore: cast_nullable_to_non_nullable
+as String?,coverageStaffId: freezed == coverageStaffId ? _self.coverageStaffId : coverageStaffId // ignore: cast_nullable_to_non_nullable
+as String?,responseDueAt: freezed == responseDueAt ? _self.responseDueAt : responseDueAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }
@@ -437,10 +444,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String patientId,  String staffId,  bool fromStaff,  String body,  DateTime sentAt,  DateTime? readAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String patientId,  String staffId,  bool fromStaff,  String body,  DateTime sentAt,  DateTime? readAt,  String? queueOwnerStaffId,  String? coverageStaffId,  DateTime? responseDueAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CareMessage() when $default != null:
-return $default(_that.id,_that.patientId,_that.staffId,_that.fromStaff,_that.body,_that.sentAt,_that.readAt);case _:
+return $default(_that.id,_that.patientId,_that.staffId,_that.fromStaff,_that.body,_that.sentAt,_that.readAt,_that.queueOwnerStaffId,_that.coverageStaffId,_that.responseDueAt);case _:
   return orElse();
 
 }
@@ -458,10 +465,10 @@ return $default(_that.id,_that.patientId,_that.staffId,_that.fromStaff,_that.bod
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String patientId,  String staffId,  bool fromStaff,  String body,  DateTime sentAt,  DateTime? readAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String patientId,  String staffId,  bool fromStaff,  String body,  DateTime sentAt,  DateTime? readAt,  String? queueOwnerStaffId,  String? coverageStaffId,  DateTime? responseDueAt)  $default,) {final _that = this;
 switch (_that) {
 case _CareMessage():
-return $default(_that.id,_that.patientId,_that.staffId,_that.fromStaff,_that.body,_that.sentAt,_that.readAt);case _:
+return $default(_that.id,_that.patientId,_that.staffId,_that.fromStaff,_that.body,_that.sentAt,_that.readAt,_that.queueOwnerStaffId,_that.coverageStaffId,_that.responseDueAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -478,10 +485,10 @@ return $default(_that.id,_that.patientId,_that.staffId,_that.fromStaff,_that.bod
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String patientId,  String staffId,  bool fromStaff,  String body,  DateTime sentAt,  DateTime? readAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String patientId,  String staffId,  bool fromStaff,  String body,  DateTime sentAt,  DateTime? readAt,  String? queueOwnerStaffId,  String? coverageStaffId,  DateTime? responseDueAt)?  $default,) {final _that = this;
 switch (_that) {
 case _CareMessage() when $default != null:
-return $default(_that.id,_that.patientId,_that.staffId,_that.fromStaff,_that.body,_that.sentAt,_that.readAt);case _:
+return $default(_that.id,_that.patientId,_that.staffId,_that.fromStaff,_that.body,_that.sentAt,_that.readAt,_that.queueOwnerStaffId,_that.coverageStaffId,_that.responseDueAt);case _:
   return null;
 
 }
@@ -493,7 +500,7 @@ return $default(_that.id,_that.patientId,_that.staffId,_that.fromStaff,_that.bod
 
 
 class _CareMessage extends CareMessage {
-  const _CareMessage({required this.id, required this.patientId, required this.staffId, required this.fromStaff, required this.body, required this.sentAt, this.readAt}): super._();
+  const _CareMessage({required this.id, required this.patientId, required this.staffId, required this.fromStaff, required this.body, required this.sentAt, this.readAt, this.queueOwnerStaffId, this.coverageStaffId, this.responseDueAt}): super._();
   
 
 @override final  String id;
@@ -503,6 +510,13 @@ class _CareMessage extends CareMessage {
 @override final  String body;
 @override final  DateTime sentAt;
 @override final  DateTime? readAt;
+/// Who must answer a patient's message (the thread's clinician), and who
+/// covers it while they are off duty. Null on staff replies.
+@override final  String? queueOwnerStaffId;
+@override final  String? coverageStaffId;
+/// When a reply is due ([CareMessageQueue.responseWindow] after it was
+/// sent). Null on staff replies.
+@override final  DateTime? responseDueAt;
 
 /// Create a copy of CareMessage
 /// with the given fields replaced by the non-null parameter values.
@@ -514,16 +528,16 @@ _$CareMessageCopyWith<_CareMessage> get copyWith => __$CareMessageCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CareMessage&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.staffId, staffId) || other.staffId == staffId)&&(identical(other.fromStaff, fromStaff) || other.fromStaff == fromStaff)&&(identical(other.body, body) || other.body == body)&&(identical(other.sentAt, sentAt) || other.sentAt == sentAt)&&(identical(other.readAt, readAt) || other.readAt == readAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CareMessage&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.staffId, staffId) || other.staffId == staffId)&&(identical(other.fromStaff, fromStaff) || other.fromStaff == fromStaff)&&(identical(other.body, body) || other.body == body)&&(identical(other.sentAt, sentAt) || other.sentAt == sentAt)&&(identical(other.readAt, readAt) || other.readAt == readAt)&&(identical(other.queueOwnerStaffId, queueOwnerStaffId) || other.queueOwnerStaffId == queueOwnerStaffId)&&(identical(other.coverageStaffId, coverageStaffId) || other.coverageStaffId == coverageStaffId)&&(identical(other.responseDueAt, responseDueAt) || other.responseDueAt == responseDueAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,patientId,staffId,fromStaff,body,sentAt,readAt);
+int get hashCode => Object.hash(runtimeType,id,patientId,staffId,fromStaff,body,sentAt,readAt,queueOwnerStaffId,coverageStaffId,responseDueAt);
 
 @override
 String toString() {
-  return 'CareMessage(id: $id, patientId: $patientId, staffId: $staffId, fromStaff: $fromStaff, body: $body, sentAt: $sentAt, readAt: $readAt)';
+  return 'CareMessage(id: $id, patientId: $patientId, staffId: $staffId, fromStaff: $fromStaff, body: $body, sentAt: $sentAt, readAt: $readAt, queueOwnerStaffId: $queueOwnerStaffId, coverageStaffId: $coverageStaffId, responseDueAt: $responseDueAt)';
 }
 
 
@@ -534,7 +548,7 @@ abstract mixin class _$CareMessageCopyWith<$Res> implements $CareMessageCopyWith
   factory _$CareMessageCopyWith(_CareMessage value, $Res Function(_CareMessage) _then) = __$CareMessageCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String patientId, String staffId, bool fromStaff, String body, DateTime sentAt, DateTime? readAt
+ String id, String patientId, String staffId, bool fromStaff, String body, DateTime sentAt, DateTime? readAt, String? queueOwnerStaffId, String? coverageStaffId, DateTime? responseDueAt
 });
 
 
@@ -551,7 +565,7 @@ class __$CareMessageCopyWithImpl<$Res>
 
 /// Create a copy of CareMessage
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? patientId = null,Object? staffId = null,Object? fromStaff = null,Object? body = null,Object? sentAt = null,Object? readAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? patientId = null,Object? staffId = null,Object? fromStaff = null,Object? body = null,Object? sentAt = null,Object? readAt = freezed,Object? queueOwnerStaffId = freezed,Object? coverageStaffId = freezed,Object? responseDueAt = freezed,}) {
   return _then(_CareMessage(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,patientId: null == patientId ? _self.patientId : patientId // ignore: cast_nullable_to_non_nullable
@@ -560,6 +574,9 @@ as String,fromStaff: null == fromStaff ? _self.fromStaff : fromStaff // ignore: 
 as bool,body: null == body ? _self.body : body // ignore: cast_nullable_to_non_nullable
 as String,sentAt: null == sentAt ? _self.sentAt : sentAt // ignore: cast_nullable_to_non_nullable
 as DateTime,readAt: freezed == readAt ? _self.readAt : readAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,queueOwnerStaffId: freezed == queueOwnerStaffId ? _self.queueOwnerStaffId : queueOwnerStaffId // ignore: cast_nullable_to_non_nullable
+as String?,coverageStaffId: freezed == coverageStaffId ? _self.coverageStaffId : coverageStaffId // ignore: cast_nullable_to_non_nullable
+as String?,responseDueAt: freezed == responseDueAt ? _self.responseDueAt : responseDueAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }
@@ -860,7 +877,7 @@ $CareMessageCopyWith<$Res> get lastMessage {
 /// @nodoc
 mixin _$HomeVisitRequest {
 
- String get id; String get patientId; String get addressText; DateTime get preferredDate; String get reasonText; HomeVisitStatus get status; DateTime get createdAt; String? get departmentId; String? get assignedStaffId; String? get decisionNote; DateTime? get decidedAt;
+ String get id; String get patientId; String get addressText; DateTime get preferredDate; String get reasonText; HomeVisitStatus get status; DateTime get createdAt; String? get departmentId; String? get assignedStaffId; String? get decisionNote; DateTime? get decidedAt; int get version;
 /// Create a copy of HomeVisitRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -871,16 +888,16 @@ $HomeVisitRequestCopyWith<HomeVisitRequest> get copyWith => _$HomeVisitRequestCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is HomeVisitRequest&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.addressText, addressText) || other.addressText == addressText)&&(identical(other.preferredDate, preferredDate) || other.preferredDate == preferredDate)&&(identical(other.reasonText, reasonText) || other.reasonText == reasonText)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.departmentId, departmentId) || other.departmentId == departmentId)&&(identical(other.assignedStaffId, assignedStaffId) || other.assignedStaffId == assignedStaffId)&&(identical(other.decisionNote, decisionNote) || other.decisionNote == decisionNote)&&(identical(other.decidedAt, decidedAt) || other.decidedAt == decidedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is HomeVisitRequest&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.addressText, addressText) || other.addressText == addressText)&&(identical(other.preferredDate, preferredDate) || other.preferredDate == preferredDate)&&(identical(other.reasonText, reasonText) || other.reasonText == reasonText)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.departmentId, departmentId) || other.departmentId == departmentId)&&(identical(other.assignedStaffId, assignedStaffId) || other.assignedStaffId == assignedStaffId)&&(identical(other.decisionNote, decisionNote) || other.decisionNote == decisionNote)&&(identical(other.decidedAt, decidedAt) || other.decidedAt == decidedAt)&&(identical(other.version, version) || other.version == version));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,patientId,addressText,preferredDate,reasonText,status,createdAt,departmentId,assignedStaffId,decisionNote,decidedAt);
+int get hashCode => Object.hash(runtimeType,id,patientId,addressText,preferredDate,reasonText,status,createdAt,departmentId,assignedStaffId,decisionNote,decidedAt,version);
 
 @override
 String toString() {
-  return 'HomeVisitRequest(id: $id, patientId: $patientId, addressText: $addressText, preferredDate: $preferredDate, reasonText: $reasonText, status: $status, createdAt: $createdAt, departmentId: $departmentId, assignedStaffId: $assignedStaffId, decisionNote: $decisionNote, decidedAt: $decidedAt)';
+  return 'HomeVisitRequest(id: $id, patientId: $patientId, addressText: $addressText, preferredDate: $preferredDate, reasonText: $reasonText, status: $status, createdAt: $createdAt, departmentId: $departmentId, assignedStaffId: $assignedStaffId, decisionNote: $decisionNote, decidedAt: $decidedAt, version: $version)';
 }
 
 
@@ -891,7 +908,7 @@ abstract mixin class $HomeVisitRequestCopyWith<$Res>  {
   factory $HomeVisitRequestCopyWith(HomeVisitRequest value, $Res Function(HomeVisitRequest) _then) = _$HomeVisitRequestCopyWithImpl;
 @useResult
 $Res call({
- String id, String patientId, String addressText, DateTime preferredDate, String reasonText, HomeVisitStatus status, DateTime createdAt, String? departmentId, String? assignedStaffId, String? decisionNote, DateTime? decidedAt
+ String id, String patientId, String addressText, DateTime preferredDate, String reasonText, HomeVisitStatus status, DateTime createdAt, String? departmentId, String? assignedStaffId, String? decisionNote, DateTime? decidedAt, int version
 });
 
 
@@ -908,7 +925,7 @@ class _$HomeVisitRequestCopyWithImpl<$Res>
 
 /// Create a copy of HomeVisitRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? patientId = null,Object? addressText = null,Object? preferredDate = null,Object? reasonText = null,Object? status = null,Object? createdAt = null,Object? departmentId = freezed,Object? assignedStaffId = freezed,Object? decisionNote = freezed,Object? decidedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? patientId = null,Object? addressText = null,Object? preferredDate = null,Object? reasonText = null,Object? status = null,Object? createdAt = null,Object? departmentId = freezed,Object? assignedStaffId = freezed,Object? decisionNote = freezed,Object? decidedAt = freezed,Object? version = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,patientId: null == patientId ? _self.patientId : patientId // ignore: cast_nullable_to_non_nullable
@@ -921,7 +938,8 @@ as DateTime,departmentId: freezed == departmentId ? _self.departmentId : departm
 as String?,assignedStaffId: freezed == assignedStaffId ? _self.assignedStaffId : assignedStaffId // ignore: cast_nullable_to_non_nullable
 as String?,decisionNote: freezed == decisionNote ? _self.decisionNote : decisionNote // ignore: cast_nullable_to_non_nullable
 as String?,decidedAt: freezed == decidedAt ? _self.decidedAt : decidedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 
@@ -1006,10 +1024,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String patientId,  String addressText,  DateTime preferredDate,  String reasonText,  HomeVisitStatus status,  DateTime createdAt,  String? departmentId,  String? assignedStaffId,  String? decisionNote,  DateTime? decidedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String patientId,  String addressText,  DateTime preferredDate,  String reasonText,  HomeVisitStatus status,  DateTime createdAt,  String? departmentId,  String? assignedStaffId,  String? decisionNote,  DateTime? decidedAt,  int version)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _HomeVisitRequest() when $default != null:
-return $default(_that.id,_that.patientId,_that.addressText,_that.preferredDate,_that.reasonText,_that.status,_that.createdAt,_that.departmentId,_that.assignedStaffId,_that.decisionNote,_that.decidedAt);case _:
+return $default(_that.id,_that.patientId,_that.addressText,_that.preferredDate,_that.reasonText,_that.status,_that.createdAt,_that.departmentId,_that.assignedStaffId,_that.decisionNote,_that.decidedAt,_that.version);case _:
   return orElse();
 
 }
@@ -1027,10 +1045,10 @@ return $default(_that.id,_that.patientId,_that.addressText,_that.preferredDate,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String patientId,  String addressText,  DateTime preferredDate,  String reasonText,  HomeVisitStatus status,  DateTime createdAt,  String? departmentId,  String? assignedStaffId,  String? decisionNote,  DateTime? decidedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String patientId,  String addressText,  DateTime preferredDate,  String reasonText,  HomeVisitStatus status,  DateTime createdAt,  String? departmentId,  String? assignedStaffId,  String? decisionNote,  DateTime? decidedAt,  int version)  $default,) {final _that = this;
 switch (_that) {
 case _HomeVisitRequest():
-return $default(_that.id,_that.patientId,_that.addressText,_that.preferredDate,_that.reasonText,_that.status,_that.createdAt,_that.departmentId,_that.assignedStaffId,_that.decisionNote,_that.decidedAt);case _:
+return $default(_that.id,_that.patientId,_that.addressText,_that.preferredDate,_that.reasonText,_that.status,_that.createdAt,_that.departmentId,_that.assignedStaffId,_that.decisionNote,_that.decidedAt,_that.version);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1047,10 +1065,10 @@ return $default(_that.id,_that.patientId,_that.addressText,_that.preferredDate,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String patientId,  String addressText,  DateTime preferredDate,  String reasonText,  HomeVisitStatus status,  DateTime createdAt,  String? departmentId,  String? assignedStaffId,  String? decisionNote,  DateTime? decidedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String patientId,  String addressText,  DateTime preferredDate,  String reasonText,  HomeVisitStatus status,  DateTime createdAt,  String? departmentId,  String? assignedStaffId,  String? decisionNote,  DateTime? decidedAt,  int version)?  $default,) {final _that = this;
 switch (_that) {
 case _HomeVisitRequest() when $default != null:
-return $default(_that.id,_that.patientId,_that.addressText,_that.preferredDate,_that.reasonText,_that.status,_that.createdAt,_that.departmentId,_that.assignedStaffId,_that.decisionNote,_that.decidedAt);case _:
+return $default(_that.id,_that.patientId,_that.addressText,_that.preferredDate,_that.reasonText,_that.status,_that.createdAt,_that.departmentId,_that.assignedStaffId,_that.decisionNote,_that.decidedAt,_that.version);case _:
   return null;
 
 }
@@ -1062,7 +1080,7 @@ return $default(_that.id,_that.patientId,_that.addressText,_that.preferredDate,_
 
 
 class _HomeVisitRequest extends HomeVisitRequest {
-  const _HomeVisitRequest({required this.id, required this.patientId, required this.addressText, required this.preferredDate, required this.reasonText, required this.status, required this.createdAt, this.departmentId, this.assignedStaffId, this.decisionNote, this.decidedAt}): super._();
+  const _HomeVisitRequest({required this.id, required this.patientId, required this.addressText, required this.preferredDate, required this.reasonText, required this.status, required this.createdAt, this.departmentId, this.assignedStaffId, this.decisionNote, this.decidedAt, this.version = 1}): super._();
   
 
 @override final  String id;
@@ -1076,6 +1094,7 @@ class _HomeVisitRequest extends HomeVisitRequest {
 @override final  String? assignedStaffId;
 @override final  String? decisionNote;
 @override final  DateTime? decidedAt;
+@override@JsonKey() final  int version;
 
 /// Create a copy of HomeVisitRequest
 /// with the given fields replaced by the non-null parameter values.
@@ -1087,16 +1106,16 @@ _$HomeVisitRequestCopyWith<_HomeVisitRequest> get copyWith => __$HomeVisitReques
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _HomeVisitRequest&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.addressText, addressText) || other.addressText == addressText)&&(identical(other.preferredDate, preferredDate) || other.preferredDate == preferredDate)&&(identical(other.reasonText, reasonText) || other.reasonText == reasonText)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.departmentId, departmentId) || other.departmentId == departmentId)&&(identical(other.assignedStaffId, assignedStaffId) || other.assignedStaffId == assignedStaffId)&&(identical(other.decisionNote, decisionNote) || other.decisionNote == decisionNote)&&(identical(other.decidedAt, decidedAt) || other.decidedAt == decidedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _HomeVisitRequest&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.addressText, addressText) || other.addressText == addressText)&&(identical(other.preferredDate, preferredDate) || other.preferredDate == preferredDate)&&(identical(other.reasonText, reasonText) || other.reasonText == reasonText)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.departmentId, departmentId) || other.departmentId == departmentId)&&(identical(other.assignedStaffId, assignedStaffId) || other.assignedStaffId == assignedStaffId)&&(identical(other.decisionNote, decisionNote) || other.decisionNote == decisionNote)&&(identical(other.decidedAt, decidedAt) || other.decidedAt == decidedAt)&&(identical(other.version, version) || other.version == version));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,patientId,addressText,preferredDate,reasonText,status,createdAt,departmentId,assignedStaffId,decisionNote,decidedAt);
+int get hashCode => Object.hash(runtimeType,id,patientId,addressText,preferredDate,reasonText,status,createdAt,departmentId,assignedStaffId,decisionNote,decidedAt,version);
 
 @override
 String toString() {
-  return 'HomeVisitRequest(id: $id, patientId: $patientId, addressText: $addressText, preferredDate: $preferredDate, reasonText: $reasonText, status: $status, createdAt: $createdAt, departmentId: $departmentId, assignedStaffId: $assignedStaffId, decisionNote: $decisionNote, decidedAt: $decidedAt)';
+  return 'HomeVisitRequest(id: $id, patientId: $patientId, addressText: $addressText, preferredDate: $preferredDate, reasonText: $reasonText, status: $status, createdAt: $createdAt, departmentId: $departmentId, assignedStaffId: $assignedStaffId, decisionNote: $decisionNote, decidedAt: $decidedAt, version: $version)';
 }
 
 
@@ -1107,7 +1126,7 @@ abstract mixin class _$HomeVisitRequestCopyWith<$Res> implements $HomeVisitReque
   factory _$HomeVisitRequestCopyWith(_HomeVisitRequest value, $Res Function(_HomeVisitRequest) _then) = __$HomeVisitRequestCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String patientId, String addressText, DateTime preferredDate, String reasonText, HomeVisitStatus status, DateTime createdAt, String? departmentId, String? assignedStaffId, String? decisionNote, DateTime? decidedAt
+ String id, String patientId, String addressText, DateTime preferredDate, String reasonText, HomeVisitStatus status, DateTime createdAt, String? departmentId, String? assignedStaffId, String? decisionNote, DateTime? decidedAt, int version
 });
 
 
@@ -1124,7 +1143,7 @@ class __$HomeVisitRequestCopyWithImpl<$Res>
 
 /// Create a copy of HomeVisitRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? patientId = null,Object? addressText = null,Object? preferredDate = null,Object? reasonText = null,Object? status = null,Object? createdAt = null,Object? departmentId = freezed,Object? assignedStaffId = freezed,Object? decisionNote = freezed,Object? decidedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? patientId = null,Object? addressText = null,Object? preferredDate = null,Object? reasonText = null,Object? status = null,Object? createdAt = null,Object? departmentId = freezed,Object? assignedStaffId = freezed,Object? decisionNote = freezed,Object? decidedAt = freezed,Object? version = null,}) {
   return _then(_HomeVisitRequest(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,patientId: null == patientId ? _self.patientId : patientId // ignore: cast_nullable_to_non_nullable
@@ -1137,7 +1156,8 @@ as DateTime,departmentId: freezed == departmentId ? _self.departmentId : departm
 as String?,assignedStaffId: freezed == assignedStaffId ? _self.assignedStaffId : assignedStaffId // ignore: cast_nullable_to_non_nullable
 as String?,decisionNote: freezed == decisionNote ? _self.decisionNote : decisionNote // ignore: cast_nullable_to_non_nullable
 as String?,decidedAt: freezed == decidedAt ? _self.decidedAt : decidedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 

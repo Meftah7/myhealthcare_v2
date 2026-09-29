@@ -4,8 +4,8 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:myhealthcare/core/failures.dart';
 import 'package:myhealthcare/core/di.dart';
+import 'package:myhealthcare/core/failures.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:myhealthcare/domain/entities/entities.dart';
 import 'package:myhealthcare/domain/enums.dart';
@@ -45,21 +45,24 @@ Future<void> _login(ProviderContainer c, String email) async {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('seeded sick-leave certificates reach the patient and build a PDF', () async {
-    final c = await _container();
-    await _login(c, 'patient3@myhealth.demo');
+  test(
+    'seeded sick-leave certificates reach the patient and build a PDF',
+    () async {
+      final c = await _container();
+      await _login(c, 'patient3@myhealth.demo');
 
-    final certs = await c.read(patientSickLeaveProvider.future);
-    expect(certs, isNotEmpty);
+      final certs = await c.read(patientSickLeaveProvider.future);
+      expect(certs, isNotEmpty);
 
-    final identity = await c.read(pdfIdentityProvider.future);
-    final bytes = await sickLeavePdf(
-      patient: identity,
-      certificate: certs.first,
-      issuingClinician: 'Dr Test',
-    );
-    expect(bytes.length, greaterThan(800));
-  });
+      final identity = await c.read(pdfIdentityProvider.future);
+      final bytes = await sickLeavePdf(
+        patient: identity,
+        certificate: certs.first,
+        issuingClinician: 'Dr Test',
+      );
+      expect(bytes.length, greaterThan(800));
+    },
+  );
 
   test('a patient message and a doctor reply share one thread', () async {
     final c = await _container();
@@ -89,6 +92,10 @@ void main() {
       throwsA(isA<AuthFailure>()),
     );
 
+    // The doctor signs in and sees the thread in their inbox.
+    final staffEmail = _staffEmail(staffId);
+    await _login(c, staffEmail);
+
     // The patient's message dropped a notification for the doctor.
     final staffInbox = await c
         .read(notificationRepositoryProvider)
@@ -100,10 +107,6 @@ void main() {
       isNotEmpty,
       reason: 'a new message must notify the recipient (bell badge + cue)',
     );
-
-    // The doctor signs in and sees the thread in their inbox.
-    final staffEmail = _staffEmail(staffId);
-    await _login(c, staffEmail);
     final inbox = await c.read(staffThreadsProvider.future);
     final mine = inbox.where((t) => t.patientId == patientId).toList();
     expect(mine, isNotEmpty);
@@ -122,7 +125,8 @@ void main() {
     final thread = await c.read(staffThreadProvider(patientId).future);
     expect(thread, hasLength(greaterThanOrEqualTo(2)));
 
-    // …and the reply notified the patient.
+    // …and the reply notified the patient (in the patient's own inbox).
+    await _login(c, 'patient3@myhealth.demo');
     final patientNotes = await c
         .read(notificationRepositoryProvider)
         .forRecipient(patientId);
@@ -149,82 +153,86 @@ void main() {
     expect(anyStaff.first.fullName, isNot(startsWith('Dr ')));
   });
 
-  test('a home-visit request is created and the clinic can schedule it', () async {
-    final c = await _container();
-    await _login(c, 'patient5@myhealth.demo');
+  test(
+    'a home-visit request is created and the clinic can schedule it',
+    () async {
+      final c = await _container();
+      await _login(c, 'patient5@myhealth.demo');
 
-    final created = await c
-        .read(homeVisitActionsProvider)
-        .request(
-          address: 'Building 9, Road 9, Block 900',
-          preferredDate: DateTime.now().add(const Duration(days: 3)),
-          reason: 'Post-op wound check, cannot travel',
-        );
-    expect(created.isOk, isTrue);
+      final created = await c
+          .read(homeVisitActionsProvider)
+          .request(
+            address: 'Building 9, Road 9, Block 900',
+            preferredDate: DateTime.now().add(const Duration(days: 3)),
+            reason: 'Post-op wound check, cannot travel',
+          );
+      expect(created.isOk, isTrue);
 
-    // Admin triages the queue.
-    await _login(c, 'admin@myhealth.demo');
-    final queue = await c.read(
-      homeVisitQueueProvider(HomeVisitStatus.requested).future,
-    );
-    expect(queue, isNotEmpty);
+      // Admin triages the queue.
+      await _login(c, 'admin@myhealth.demo');
+      final queue = await c.read(
+        homeVisitQueueProvider(HomeVisitStatus.requested).future,
+      );
+      expect(queue, isNotEmpty);
 
-    final decided = await c
-        .read(homeVisitActionsProvider)
-        .decide(
-          id: created.valueOrNull!.id,
-          status: HomeVisitStatus.scheduled,
-          decisionNote: 'Nurse will call to confirm.',
-        );
-    expect(decided.valueOrNull!.status, HomeVisitStatus.scheduled);
+      final decided = await c
+          .read(homeVisitActionsProvider)
+          .decide(
+            id: created.valueOrNull!.id,
+            status: HomeVisitStatus.scheduled,
+            decisionNote: 'Nurse will call to confirm.',
+          );
+      expect(decided.valueOrNull!.status, HomeVisitStatus.scheduled);
 
-    // The patient is notified of the decision.
-    final patientId = decided.valueOrNull!.patientId;
-    final notifications = (await c
-            .read(notificationRepositoryProvider)
-            .forRecipient(patientId))
-        .valueOrNull!;
-    expect(
-      notifications,
-      contains(
-        predicate<AppNotification>(
-          (n) =>
-              n.category == NotificationCategory.system &&
-              n.body.contains('Nurse will call to confirm.'),
+      // The patient is notified of the decision.
+      final patientId = decided.valueOrNull!.patientId;
+      await _login(c, 'patient5@myhealth.demo');
+      final notifications =
+          (await c.read(notificationRepositoryProvider).forRecipient(patientId))
+              .valueOrNull!;
+      expect(
+        notifications,
+        contains(
+          predicate<AppNotification>(
+            (n) =>
+                n.category == NotificationCategory.system &&
+                n.body.contains('Nurse will call to confirm.'),
+          ),
         ),
-      ),
-    );
-  });
+      );
+    },
+  );
 
-  test('declining or completing a home visit also notifies the patient', () async {
-    final c = await _container();
-    await _login(c, 'patient5@myhealth.demo');
-    final created = await c
-        .read(homeVisitActionsProvider)
-        .request(
-          address: 'Building 1, Road 1, Block 100',
-          preferredDate: DateTime.now().add(const Duration(days: 2)),
-          reason: 'Dressing change',
-        );
-    final requestId = created.valueOrNull!.id;
-    final patientId = created.valueOrNull!.patientId;
+  test(
+    'declining or completing a home visit also notifies the patient',
+    () async {
+      final c = await _container();
+      await _login(c, 'patient5@myhealth.demo');
+      final created = await c
+          .read(homeVisitActionsProvider)
+          .request(
+            address: 'Building 1, Road 1, Block 100',
+            preferredDate: DateTime.now().add(const Duration(days: 2)),
+            reason: 'Dressing change',
+          );
+      final requestId = created.valueOrNull!.id;
+      final patientId = created.valueOrNull!.patientId;
 
-    await _login(c, 'admin@myhealth.demo');
-    await c
-        .read(homeVisitActionsProvider)
-        .decide(id: requestId, status: HomeVisitStatus.declined);
+      await _login(c, 'admin@myhealth.demo');
+      await c
+          .read(homeVisitActionsProvider)
+          .decide(id: requestId, status: HomeVisitStatus.declined);
 
-    final notifications = (await c
-            .read(notificationRepositoryProvider)
-            .forRecipient(patientId))
-        .valueOrNull!;
-    expect(
-      notifications.any(
-        (n) => n.title.toLowerCase().contains('declined'),
-      ),
-      isTrue,
-    );
-  });
+      await _login(c, 'patient5@myhealth.demo');
+      final notifications =
+          (await c.read(notificationRepositoryProvider).forRecipient(patientId))
+              .valueOrNull!;
+      expect(
+        notifications.any((n) => n.title.toLowerCase().contains('declined')),
+        isTrue,
+      );
+    },
+  );
 }
 
 /// Seeded staff emails are `staff<n>@myhealth.demo` (no leading zero).

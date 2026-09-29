@@ -15,6 +15,7 @@ import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -93,8 +94,9 @@ class StaffQuickActions extends ConsumerWidget {
       _QuickAction(
         icon: Icons.forum_outlined,
         label: switch (ref.watch(staffUnreadCountProvider)) {
-          0 => t.messagesTitle,
-          final n => t.messagesActionWithCount(n),
+          // Unknown or zero: the plain label, never a count claim.
+          null || 0 => t.messagesTitle,
+          final int n => t.messagesActionWithCount(n),
         },
         onTap: () => unawaited(context.push(AppRoutes.staffInbox)),
       ),
@@ -126,9 +128,7 @@ class StaffQuickActions extends ConsumerWidget {
     final count = await ref.read(staffOpsProvider).refreshPanel();
     messenger
       ..removeCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text(t.panelScanCompleteFlags(count))),
-      );
+      ..showSnackBar(SnackBar(content: Text(t.panelScanCompleteFlags(count))));
   }
 
   Future<void> _pickPatientThen(
@@ -357,7 +357,10 @@ class _TransferSheetState extends ConsumerState<_TransferSheet> {
       SnackBar(
         content: Text(switch (result) {
           Ok() => t.visitTransferred,
-          Err(:final failure) => failure.message,
+          Err(:final failure) => describeFailure(
+            AppLocalizations.of(context)!,
+            failure,
+          ).message,
         }),
       ),
     );

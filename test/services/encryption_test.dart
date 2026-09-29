@@ -55,7 +55,7 @@ void main() {
         ..execute("PRAGMA hexkey = '$key'")
         ..execute('CREATE TABLE t (v TEXT)')
         ..execute("INSERT INTO t VALUES ('diagnosis')")
-        ..dispose();
+        ..close();
 
       expect(plaintextHeader(path), isFalse);
       expect(
@@ -68,11 +68,11 @@ void main() {
         () => noKey.select('SELECT * FROM t'),
         throwsA(isA<SqliteException>()),
       );
-      noKey.dispose();
+      noKey.close();
 
       final keyed = sqlite3.open(path)..execute("PRAGMA hexkey = '$key'");
       expect(keyed.select('SELECT v FROM t').single['v'], 'diagnosis');
-      keyed.dispose();
+      keyed.close();
     });
 
     test('an existing plaintext database is encrypted in place by rekey', () {
@@ -80,17 +80,17 @@ void main() {
       sqlite3.open(path)
         ..execute('CREATE TABLE t (v TEXT)')
         ..execute("INSERT INTO t VALUES ('kept')")
-        ..dispose();
+        ..close();
       expect(plaintextHeader(path), isTrue);
 
       sqlite3.open(path)
         ..execute("PRAGMA hexrekey = '$key'")
-        ..dispose();
+        ..close();
       expect(plaintextHeader(path), isFalse);
 
       final keyed = sqlite3.open(path)..execute("PRAGMA hexkey = '$key'");
       expect(keyed.select('SELECT v FROM t').single['v'], 'kept');
-      keyed.dispose();
+      keyed.close();
     });
   });
 }

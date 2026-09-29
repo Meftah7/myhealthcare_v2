@@ -4,6 +4,8 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/settings/ui_prefs.dart';
+import '../../../core/capabilities/capability_registry.dart';
+import '../../../core/data/contracts.dart';
 import '../../../core/di.dart';
 import '../../../core/failures.dart';
 import '../../../core/result.dart';
@@ -42,12 +44,14 @@ class RankedSlot {
     required this.probability,
     required this.band,
     required this.reason,
+    this.hasRiskEstimate = true,
   });
 
   final OpenSlot slot;
   final double probability;
   final RiskBand band;
   final String reason;
+  final bool hasRiskEstimate;
 }
 
 class BookingRequestDraft {
@@ -66,8 +70,9 @@ class BookingRequestDraft {
   final VisitType visitType;
   final String? reason;
 
-  /// Null = the account holder's own visit; otherwise a linked family
-  /// member's name.
+  /// Null = the account holder's own visit; otherwise the household
+  /// member's name, shown on the visit. The visit itself is attached to that
+  /// member's own patient record (see [BookingSubjectSelector]).
   final String? bookedForName;
 
   static const _keep = Object();
@@ -110,13 +115,9 @@ final _bookingSubjectProvider = FutureProvider<Patient>((ref) async {
   if (targetId == actingPatientId) {
     return ref.watch(patientProfileProvider.future);
   }
-  final permission = await ref.watch(
-    linkedPermissionProvider(targetId).future,
-  );
+  final permission = await ref.watch(linkedPermissionProvider(targetId).future);
   if (permission != FamilyLinkPermission.manage) {
-    throw const AuthFailure(
-      'You do not have manage access to this account.',
-    );
+    throw const AuthFailure('You do not have manage access to this account.');
   }
   return ref.watch(linkedPatientProvider(targetId).future);
 });
@@ -125,18 +126,14 @@ final _bookingSubjectHistoryProvider = FutureProvider<List<Appointment>>((
   ref,
 ) async {
   final targetId = ref.watch(bookingTargetPatientIdProvider);
-  if (targetId == null) return ref.watch(patientAppointmentsProvider.future);
+  if (targetId == null) return ref.watch(ownAppointmentsProvider.future);
   final actingPatientId = ref.watch(currentUserProvider)?.id;
   if (targetId == actingPatientId) {
-    return ref.watch(patientAppointmentsProvider.future);
+    return ref.watch(ownAppointmentsProvider.future);
   }
-  final permission = await ref.watch(
-    linkedPermissionProvider(targetId).future,
-  );
+  final permission = await ref.watch(linkedPermissionProvider(targetId).future);
   if (permission != FamilyLinkPermission.manage) {
-    throw const AuthFailure(
-      'You do not have manage access to this account.',
-    );
+    throw const AuthFailure('You do not have manage access to this account.');
   }
   return ref.watch(linkedAppointmentsProvider(targetId).future);
 });
@@ -146,11 +143,31 @@ final rankedSlotsProvider = FutureProvider<List<RankedSlot>>((ref) async {
   final draft = ref.watch(bookingDraftProvider);
   if (draft.staffId == null || draft.date == null) return const [];
 
+  // Authorize the booking subject before anything else, whether or not
+  // risk ranking is enabled.
+  final patient = await ref.watch(_bookingSubjectProvider.future);
+
   final appts = ref.watch(appointmentRepositoryProvider);
   final slots = _unwrap(await appts.openSlots(draft.staffId!, draft.date!));
   if (slots.isEmpty) return const [];
 
-  final patient = await ref.watch(_bookingSubjectProvider.future);
+  final riskEnabled = phase8Capabilities
+      .singleWhere((capability) => capability.id == 'no-show-risk')
+      .mayShip;
+  if (!riskEnabled) {
+    return [
+      for (final slot in slots..sort((a, b) => a.start.compareTo(b.start)))
+        RankedSlot(
+          slot: slot,
+          probability: 0,
+          band: RiskBand.low,
+          reason:
+              'Earliest available time; risk ranking is disabled pending validation.',
+          hasRiskEstimate: false,
+        ),
+    ];
+  }
+
   final history = await ref.watch(_bookingSubjectHistoryProvider.future);
   final model = await ref.watch(noShowModelProvider.future);
 
@@ -219,6 +236,11 @@ class BookingController {
   BookingController(this._ref);
   final Ref _ref;
 
+  /// One idempotency key per (patient, clinician, slot) booking attempt,
+  /// kept until it succeeds: tapping Confirm again after a failure or a lost
+  /// response retries the *same* booking and can never book it twice.
+  final Map<String, IdempotencyKey> _attempts = {};
+
   Future<Result<Appointment>> confirm(RankedSlot slot) async {
     final draft = _ref.read(bookingDraftProvider);
     final actingPatientId = _ref.read(currentUserProvider)!.id;
@@ -244,6 +266,9 @@ class BookingController {
       patientId = actingPatientId;
     }
 
+    final attempt =
+        '$patientId|${slot.slot.staffId}|${slot.slot.start.toIso8601String()}';
+    final key = _attempts.putIfAbsent(attempt, IdempotencyKey.generate);
     final result = await _ref
         .read(appointmentRepositoryProvider)
         .book(
@@ -255,28 +280,23 @@ class BookingController {
             visitType: draft.visitType,
             departmentId: draft.departmentId,
             reasonText: draft.reason,
-            noShowRisk: slot.probability,
-            riskBand: slot.band,
+            noShowRisk: slot.hasRiskEstimate ? slot.probability : null,
+            riskBand: slot.hasRiskEstimate ? slot.band : null,
             bookedForName: draft.bookedForName,
+            idempotencyKey: key,
+            enabledReminderChannels: _ref
+                .read(notificationPrefsProvider)
+                .enabledChannels,
           ),
         );
     if (result case Ok(:final value)) {
+      _attempts.remove(attempt);
       _ref.invalidate(rankedSlotsProvider);
-      if (patientId == actingPatientId) {
-        _ref.invalidate(patientAppointmentsProvider);
-      } else {
+      // A household member's visit also shows in the account holder's list.
+      _ref.invalidate(patientAppointmentsProvider);
+      if (patientId != actingPatientId) {
         _ref.invalidate(linkedAppointmentsProvider(patientId));
       }
-      await _ref
-          .read(reminderSchedulerProvider)
-          .scheduleFor(
-            appointmentId: value.id,
-            slotStart: value.slotStart,
-            band: value.riskBand ?? RiskBand.low,
-            enabledChannels: _ref
-                .read(notificationPrefsProvider)
-                .enabledChannels,
-          );
       await _ref
           .read(auditRepositoryProvider)
           .record(
@@ -289,6 +309,44 @@ class BookingController {
     return result;
   }
 }
+
+/// Who the visit is for. A household member is booked under their own
+/// patient record (created on first use and reached through the account
+/// holder's proxy grant), so the visit, its notes and its invoice land on
+/// the right chart — the account holder and the patient stay distinct.
+class BookingSubjectSelector {
+  BookingSubjectSelector(this._ref);
+  final Ref _ref;
+
+  void selectSelf() {
+    _ref.read(bookingTargetPatientIdProvider.notifier).state = null;
+    final draft = _ref.read(bookingDraftProvider);
+    _ref.read(bookingDraftProvider.notifier).state = draft.copyWith(
+      bookedForName: null,
+    );
+  }
+
+  Future<Result<String>> selectMember(FamilyMember member) async {
+    final guardianId = _ref.read(currentUserProvider)?.id;
+    if (guardianId == null) return const Err(SessionExpiredFailure());
+    final result = await _ref
+        .read(patientRepositoryProvider)
+        .ensureDependentRecord(guardianId: guardianId, memberId: member.id);
+    if (result case Ok(:final value)) {
+      _ref.invalidate(patientFamilyMembersProvider);
+      _ref.read(bookingTargetPatientIdProvider.notifier).state = value;
+      final draft = _ref.read(bookingDraftProvider);
+      _ref.read(bookingDraftProvider.notifier).state = draft.copyWith(
+        bookedForName: member.fullName,
+      );
+    }
+    return result;
+  }
+}
+
+final bookingSubjectSelectorProvider = Provider<BookingSubjectSelector>(
+  BookingSubjectSelector.new,
+);
 
 final bookingControllerProvider = Provider<BookingController>(
   BookingController.new,

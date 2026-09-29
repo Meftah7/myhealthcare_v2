@@ -5,6 +5,8 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/router.dart';
+import '../../../core/data/contracts.dart';
+import '../../../core/data/data_state.dart';
 import '../../../core/di.dart';
 import '../../../core/failures.dart';
 import '../../../core/result.dart';
@@ -20,7 +22,9 @@ import '../../patient/application/visited_doctors_provider.dart';
 
 String _requirePatient(Ref ref) {
   final user = ref.watch(currentUserProvider);
-  if (user == null || !user.isPatient) throw StateError('no patient in session');
+  if (user == null || !user.isPatient) {
+    throw StateError('no patient in session');
+  }
   return user.id;
 }
 
@@ -65,20 +69,18 @@ final patientThreadsProvider = FutureProvider<List<CareThread>>((ref) async {
 });
 
 /// Messages in one patient thread (keyed by the doctor's id).
-final patientThreadProvider =
-    FutureProvider.family<List<CareMessage>, String>((ref, staffId) async {
-      final patientId = _requirePatient(ref);
-      await _requireCareRelationship(
-        ref,
-        patientId: patientId,
-        staffId: staffId,
-      );
-      return _unwrap(
-        await ref
-            .watch(careMessageRepositoryProvider)
-            .thread(patientId: patientId, staffId: staffId),
-      );
-    });
+final patientThreadProvider = FutureProvider.family<List<CareMessage>, String>((
+  ref,
+  staffId,
+) async {
+  final patientId = _requirePatient(ref);
+  await _requireCareRelationship(ref, patientId: patientId, staffId: staffId);
+  return _unwrap(
+    await ref
+        .watch(careMessageRepositoryProvider)
+        .thread(patientId: patientId, staffId: staffId),
+  );
+});
 
 /// Doctors the patient can start a thread with (everyone they have seen).
 final messageableDoctorsProvider =
@@ -87,10 +89,15 @@ final messageableDoctorsProvider =
       return [for (final d in visited) (id: d.staffId, name: d.name)];
     });
 
-/// Unread doctor replies across all of the patient's threads.
-final patientUnreadCountProvider = Provider<int>((ref) {
-  final threads = ref.watch(patientThreadsProvider).valueOrNull ?? const [];
-  return threads.fold(0, (sum, t) => sum + t.unreadForPatient);
+/// Unread doctor replies across all of the patient's threads — null until
+/// the threads have loaded (or when they failed), never a reassuring 0.
+final patientUnreadCountProvider = Provider<int?>((ref) {
+  final threads = ref.watch(patientThreadsProvider);
+  if (threads.hasError || !threads.hasValue) return null;
+  return threads.requireValue.fold<int>(
+    0,
+    (sum, t) => sum + t.unreadForPatient,
+  );
 });
 
 /// Staff inbox — one thread per patient who has messaged this clinician.
@@ -118,9 +125,40 @@ final staffThreadProvider = FutureProvider.family<List<CareMessage>, String>((
   );
 });
 
-final staffUnreadCountProvider = Provider<int>((ref) {
-  final threads = ref.watch(staffThreadsProvider).valueOrNull ?? const [];
-  return threads.fold(0, (sum, t) => sum + t.unreadForStaff);
+/// Another clinician's thread with this patient, opened by the colleague
+/// covering it (Phase 4 cover). Keyed by (patient, owning clinician).
+final coveredThreadProvider =
+    FutureProvider.family<
+      List<CareMessage>,
+      ({String patientId, String ownerId})
+    >((ref, key) async {
+      return _unwrap(
+        await ref
+            .watch(careMessageRepositoryProvider)
+            .thread(patientId: key.patientId, staffId: key.ownerId),
+      );
+    });
+
+/// Patient messages the signed-in clinician owns or covers that still await
+/// a reply — overdue first (Phase 6). An error, never an empty "all
+/// answered", when the read fails.
+final staffAwaitingReplyProvider = FutureProvider<List<CareMessage>>((
+  ref,
+) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null || !user.isStaff) return const [];
+  return _unwrap(
+    await ref
+        .watch(careMessageRepositoryProvider)
+        .awaitingReply(staffId: user.id),
+  );
+});
+
+/// Null until known (loading or failed) — see [patientUnreadCountProvider].
+final staffUnreadCountProvider = Provider<int?>((ref) {
+  final threads = ref.watch(staffThreadsProvider);
+  if (threads.hasError || !threads.hasValue) return null;
+  return threads.requireValue.fold<int>(0, (sum, t) => sum + t.unreadForStaff);
 });
 
 class MessageActions {
@@ -150,6 +188,10 @@ class MessageActions {
     } on Failure catch (f) {
       return Err(f);
     }
+    // Same message to the same person = the same attempt until it succeeds,
+    // so pressing Send again after a failure can't post it twice.
+    final attempt = '$patientId|$staffId|${body.trim()}';
+    final key = _attempts.putIfAbsent(attempt, IdempotencyKey.generate);
     final result = await _ref
         .read(careMessageRepositoryProvider)
         .send(
@@ -157,64 +199,107 @@ class MessageActions {
           staffId: staffId,
           fromStaff: fromStaff,
           body: body,
+          idempotencyKey: key,
+          // Recorded with the message; delivered even if this app dies now.
+          notify: [
+            await _recipientNotice(
+              patientId: patientId,
+              staffId: staffId,
+              fromStaff: fromStaff,
+            ),
+          ],
         );
     if (result.isOk) {
+      _attempts.remove(attempt);
       _invalidate(patientId, staffId);
-      await _notifyRecipient(
-        patientId: patientId,
-        staffId: staffId,
-        fromStaff: fromStaff,
-      );
+      await deliverPendingSideEffects(_ref);
     }
     return result;
   }
 
-  /// Drop an in-app notification for the other side — this drives the bell
-  /// badge and the arrival sound cue, which a bare `care_messages` row does not.
-  Future<void> _notifyRecipient({
+  final Map<String, IdempotencyKey> _attempts = {};
+
+  /// Replies in [ownerId]'s thread as the colleague covering it. The
+  /// repository checks the cover and audits the reply.
+  Future<Result<CareMessage>> sendAsCover({
+    required String patientId,
+    required String ownerId,
+    required String body,
+  }) async {
+    final attempt = 'cover|$patientId|$ownerId|${body.trim()}';
+    final key = _attempts.putIfAbsent(attempt, IdempotencyKey.generate);
+    final result = await _ref
+        .read(careMessageRepositoryProvider)
+        .send(
+          patientId: patientId,
+          staffId: ownerId,
+          fromStaff: true,
+          body: body,
+          idempotencyKey: key,
+          notify: [
+            await _recipientNotice(
+              patientId: patientId,
+              staffId: ownerId,
+              fromStaff: true,
+            ),
+          ],
+        );
+    if (result.isOk) {
+      _attempts.remove(attempt);
+      _invalidate(patientId, ownerId);
+      _ref.invalidate(coveredThreadProvider);
+      await deliverPendingSideEffects(_ref);
+    }
+    return result;
+  }
+
+  /// An in-app notification for the other side — this drives the bell badge
+  /// and the arrival sound cue, which a bare `care_messages` row does not.
+  Future<NewNotification> _recipientNotice({
     required String patientId,
     required String staffId,
     required bool fromStaff,
   }) async {
     final recipientId = fromStaff ? patientId : staffId;
     final senderId = fromStaff ? staffId : patientId;
-    final sender = (await _ref.read(userRepositoryProvider).byId(senderId))
-        .valueOrNull;
+    final sender =
+        (await _ref.read(userRepositoryProvider).byId(senderId)).valueOrNull;
     final senderName = sender == null
         ? (fromStaff ? 'your clinician' : 'a patient')
         : (fromStaff ? clinicianName(sender.fullName) : sender.fullName);
-    await _ref
-        .read(notificationRepositoryProvider)
-        .send(
-          NewNotification(
-            recipientId: recipientId,
-            category: NotificationCategory.message,
-            title: 'New message from $senderName',
-            body: 'Open MyHealth Care to read your secure message.',
-            deepLink: fromStaff
-                ? '${AppRoutes.patientMessages}/$staffId'
-                : AppRoutes.staffInbox,
-          ),
-        );
+    return NewNotification(
+      recipientId: recipientId,
+      category: NotificationCategory.message,
+      title: 'New message from $senderName',
+      body: 'Open MyHealth Care to read your secure message.',
+      deepLink: fromStaff
+          ? '${AppRoutes.patientMessages}/$staffId'
+          : AppRoutes.staffInbox,
+    );
   }
 
-  Future<void> markRead({
+  /// The reader side is checked against the signed-in account by the
+  /// repository; a failure is returned so the screen can say so rather than
+  /// leaving the unread badge silently wrong.
+  Future<Result<void>> markRead({
     required String patientId,
     required String staffId,
     required bool readerIsStaff,
   }) async {
-    await _ref
+    final result = await _ref
         .read(careMessageRepositoryProvider)
         .markRead(
           patientId: patientId,
           staffId: staffId,
           readerIsStaff: readerIsStaff,
         );
-    _invalidate(patientId, staffId);
+    if (result.isOk) _invalidate(patientId, staffId);
+    return result;
   }
 
   void _invalidate(String patientId, String staffId) {
     _ref
+      ..invalidate(staffAwaitingReplyProvider)
       ..invalidate(patientThreadsProvider)
       ..invalidate(patientThreadProvider(staffId))
       ..invalidate(staffThreadsProvider)
@@ -254,16 +339,16 @@ final patientDirectoryProvider = FutureProvider<Map<String, String>>((
   return {for (final u in users) u.id: u.fullName};
 });
 
-final openHomeVisitCountProvider = Provider<int>((ref) {
-  final list =
-      ref.watch(homeVisitQueueProvider(HomeVisitStatus.requested)).valueOrNull ??
-      const [];
-  return list.length;
-});
+/// Open home-visit requests, or null while unknown (loading / failed).
+final openHomeVisitCountProvider = Provider<int?>(
+  (ref) =>
+      ref.watch(homeVisitQueueProvider(HomeVisitStatus.requested)).countOrNull,
+);
 
 class HomeVisitActions {
   HomeVisitActions(this._ref);
   final Ref _ref;
+  final Map<String, IdempotencyKey> _attempts = {};
 
   Future<Result<HomeVisitRequest>> request({
     required String address,
@@ -272,6 +357,9 @@ class HomeVisitActions {
     String? departmentId,
   }) async {
     final id = _requirePatient(_ref);
+    // Resubmitting the same request after a failure is the same attempt.
+    final attempt = '$id|$address|$reason|${preferredDate.toIso8601String()}';
+    final key = _attempts.putIfAbsent(attempt, IdempotencyKey.generate);
     final result = await _ref
         .read(homeVisitRepositoryProvider)
         .create(
@@ -282,8 +370,12 @@ class HomeVisitActions {
             reasonText: reason,
             departmentId: departmentId,
           ),
+          idempotencyKey: key,
         );
-    if (result.isOk) _invalidate();
+    if (result.isOk) {
+      _attempts.remove(attempt);
+      _invalidate();
+    }
     return result;
   }
 
@@ -301,35 +393,51 @@ class HomeVisitActions {
     required HomeVisitStatus status,
     String? assignedStaffId,
     String? decisionNote,
+    int? expectedVersion,
   }) async {
+    final current = _unwrap(
+      await _ref.read(homeVisitRepositoryProvider).byId(id),
+    );
+    final notice = _patientNotice(
+      patientId: current.patientId,
+      status: status,
+      decisionNote: decisionNote?.trim(),
+    );
     final result = await _ref
         .read(homeVisitRepositoryProvider)
         .decide(
           id: id,
           status: status,
+          // The admin decided on what they saw; if another admin acted in
+          // between, this is a conflict, not an overwrite.
+          expectedVersion: expectedVersion ?? current.version,
+          notify: [?notice],
           assignedStaffId: assignedStaffId,
           decisionNote: decisionNote,
         );
-    if (result case Ok(:final value)) {
+    if (result.isOk) {
       _invalidate();
-      await _notifyPatient(value);
+      await deliverPendingSideEffects(_ref);
     }
     return result;
   }
 
-  /// Drop an in-app notification for the patient when their home-visit
-  /// request is scheduled, declined or completed — a bare row update
-  /// otherwise gives them no signal that a decision was made.
-  Future<void> _notifyPatient(HomeVisitRequest request) async {
-    final (String, String)? content = switch (request.status) {
+  /// An in-app notification for the patient when their home-visit request
+  /// is scheduled, declined or completed — a bare row update otherwise gives
+  /// them no signal that a decision was made. Recorded with the decision.
+  NewNotification? _patientNotice({
+    required String patientId,
+    required HomeVisitStatus status,
+    String? decisionNote,
+  }) {
+    final (String, String)? content = switch (status) {
       HomeVisitStatus.scheduled => (
         'Home visit scheduled',
-        request.decisionNote ??
-            'Your home visit request has been scheduled.',
+        decisionNote ?? 'Your home visit request has been scheduled.',
       ),
       HomeVisitStatus.declined => (
         'Home visit request declined',
-        request.decisionNote ?? 'Your home visit request was declined.',
+        decisionNote ?? 'Your home visit request was declined.',
       ),
       HomeVisitStatus.completed => (
         'Home visit completed',
@@ -337,19 +445,15 @@ class HomeVisitActions {
       ),
       HomeVisitStatus.requested || HomeVisitStatus.cancelled => null,
     };
-    if (content == null) return;
+    if (content == null) return null;
     final (title, body) = content;
-    await _ref
-        .read(notificationRepositoryProvider)
-        .send(
-          NewNotification(
-            recipientId: request.patientId,
-            category: NotificationCategory.system,
-            title: title,
-            body: body,
-            deepLink: AppRoutes.patientHomeVisit,
-          ),
-        );
+    return NewNotification(
+      recipientId: patientId,
+      category: NotificationCategory.system,
+      title: title,
+      body: body,
+      deepLink: AppRoutes.patientHomeVisit,
+    );
   }
 
   void _invalidate() {

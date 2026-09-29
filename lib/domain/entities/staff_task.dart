@@ -21,12 +21,21 @@ abstract class StaffTask with _$StaffTask {
     DateTime? dueAt,
     double? aiPriorityScore,
     String? aiRationale,
+    @Default(WorkPriority.routine) WorkPriority priority,
+
+    /// A clinician covering the task (escalation, or off-duty cover). The
+    /// owner ([staffId]) stays accountable.
+    String? coverageStaffId,
+    DateTime? escalatedAt,
+    @Default(1) int version,
   }) = _StaffTask;
 
   const StaffTask._();
 
   bool get isOpen =>
       status == TaskStatus.open || status == TaskStatus.inProgress;
+
+  bool get isEscalated => escalatedAt != null;
 
   bool get isOverdue {
     final due = dueAt;

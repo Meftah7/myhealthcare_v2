@@ -7,7 +7,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/states.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -26,11 +28,9 @@ class HomeVisitScreen extends ConsumerWidget {
     final t = AppLocalizations.of(context)!;
     final requests = ref.watch(patientHomeVisitsProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(t.homeHealthCareTitle),
-        actions: const [PatientTopActions()],
-      ),
+    return AppScaffold(
+      title: t.homeHealthCareTitle,
+      actions: const [PatientTopActions()],
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openForm(context, ref),
         icon: const Icon(Icons.add_home_outlined),
@@ -63,13 +63,13 @@ class HomeVisitScreen extends ConsumerWidget {
                 ),
                 itemCount: list.length,
                 separatorBuilder: (_, _) => const SizedBox(height: Space.sm),
-                itemBuilder: (context, i) =>
-                    _RequestCard(request: list[i]),
+                itemBuilder: (context, i) => _RequestCard(request: list[i]),
               ),
             ),
           );
         },
       ),
+      centerBody: false,
     );
   }
 
@@ -114,10 +114,7 @@ class _RequestCard extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: Space.xs),
-          Text(
-            request.reasonText,
-            style: theme.textTheme.bodyMedium,
-          ),
+          Text(request.reasonText, style: theme.textTheme.bodyMedium),
           const SizedBox(height: Space.xxs),
           Row(
             children: [
@@ -170,14 +167,16 @@ class _RequestCard extends ConsumerWidget {
   }
 
   Future<void> _cancel(BuildContext context, WidgetRef ref) async {
-    final result = await ref
-        .read(homeVisitActionsProvider)
-        .cancel(request.id);
+    final result = await ref.read(homeVisitActionsProvider).cancel(request.id);
     if (!context.mounted) return;
     if (result case Err(:final failure)) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(failure.message)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            describeFailure(AppLocalizations.of(context)!, failure).message,
+          ),
+        ),
+      );
     }
   }
 }
@@ -229,13 +228,13 @@ class _RequestFormState extends ConsumerState<_RequestForm> {
     setState(() => _busy = false);
     if (result.isOk) {
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(t.requestSentToClinic)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(t.requestSentToClinic)));
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result.failureOrNull!.message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result.failureOrNull!.message)));
     }
   }
 
@@ -294,10 +293,7 @@ class _RequestFormState extends ConsumerState<_RequestForm> {
                   for (final entry in departments.entries)
                     DropdownMenuItem(
                       value: entry.key,
-                      child: Text(
-                        entry.value,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                      child: Text(entry.value, overflow: TextOverflow.ellipsis),
                     ),
                 ],
                 onChanged: (v) => setState(() => _departmentId = v),

@@ -11,7 +11,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/states.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -33,30 +35,36 @@ class NotificationsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
     final feed = ref.watch(myNotificationsProvider);
-    final unread = ref.watch(unreadNotificationCountProvider);
+    // Unknown (loading/failed) hides "mark all read"; the list shows why.
+    final unread = ref.watch(unreadNotificationCountProvider) ?? 0;
     final gutter = WindowSize.of(context).gutter;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(t.notificationsTooltip),
-        actions: [
-          if (unread > 0)
-            TextButton(
-              onPressed: () async {
-                final result = await ref
-                    .read(notificationControllerProvider)
-                    .markAllRead();
-                if (result case Err(:final failure) when context.mounted) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text(failure.message)));
-                }
-              },
-              child: Text(t.markAllReadButton),
-            ),
-          topActions,
-        ],
-      ),
+    return AppScaffold(
+      title: t.notificationsTooltip,
+      actions: [
+        if (unread > 0)
+          TextButton(
+            onPressed: () async {
+              final result = await ref
+                  .read(notificationControllerProvider)
+                  .markAllRead();
+              if (result case Err(:final failure) when context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      describeFailure(
+                        AppLocalizations.of(context)!,
+                        failure,
+                      ).message,
+                    ),
+                  ),
+                );
+              }
+            },
+            child: Text(t.markAllReadButton),
+          ),
+        topActions,
+      ],
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: Space.maxContentWidth),
@@ -111,6 +119,7 @@ class NotificationsScreen extends ConsumerWidget {
           ),
         ),
       ),
+      centerBody: false,
     );
   }
 }
@@ -241,9 +250,13 @@ class _NotificationTile extends ConsumerWidget {
           .read(notificationControllerProvider)
           .markRead(notification.id);
       if (result case Err(:final failure) when context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(failure.message)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              describeFailure(AppLocalizations.of(context)!, failure).message,
+            ),
+          ),
+        );
       }
     }
     if (!context.mounted) return;

@@ -30,6 +30,7 @@ abstract class Invoice with _$Invoice {
     /// Masked descriptor only — never a full card number (e.g. "Card ····4242").
     String? paymentMethod,
     String? notes,
+    @Default(1) int version,
   }) = _Invoice;
 
   const Invoice._();

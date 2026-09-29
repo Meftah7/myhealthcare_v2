@@ -43,7 +43,48 @@ class MedicalRecords extends Table {
   BoolColumn get uploadedByPatient =>
       boolean().withDefault(const Constant(false))();
 
+  /// The signed-in account that created the record (a clinician, the
+  /// patient, or a proxy uploading for them). Null on older rows.
+  TextColumn get createdByAccountId => text().nullable()();
+
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  // --- import provenance (Phase 5) -----------------------------------------
+
+  /// Whether a clinician has reviewed a patient import. Clinic-authored
+  /// records are `notRequired`. Stored by name.
+  TextColumn get reviewStatus => textEnum<ImportReviewStatus>().withDefault(
+    const Constant('notRequired'),
+  )();
+  TextColumn get reviewedByStaffId =>
+      text().nullable().references(Users, #id)();
+  DateTimeColumn get reviewedAt => dateTime().nullable()();
+  TextColumn get reviewNote => text().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+/// The original file behind an imported record (Phase 5). Stored in the
+/// database on every platform — web has no app file system — so the source
+/// survives restarts, backups and exports. Native databases are encrypted at
+/// rest; web storage follows SEC-XCUT-03.
+@DataClassName('DocumentFileRow')
+class DocumentFiles extends Table {
+  TextColumn get id => text()();
+  TextColumn get recordId => text().unique().references(
+    MedicalRecords,
+    #id,
+    onDelete: KeyAction.cascade,
+  )();
+  TextColumn get fileName => text()();
+  TextColumn get mimeType => text()();
+  IntColumn get sizeBytes => integer()();
+
+  /// Hex SHA-256 of [bytes] — proves the file shown is the one imported.
+  TextColumn get sha256 => text()();
+  BlobColumn get bytes => blob()();
+  DateTimeColumn get storedAt => dateTime()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -62,6 +103,43 @@ class LabValues extends Table {
   RealColumn get refHigh => real().nullable()();
   TextColumn get abnormalFlag =>
       textEnum<AbnormalFlag>().withDefault(const Constant('normal'))();
+  TextColumn get source => text().nullable()();
+  TextColumn get provenance => text().nullable()();
+  TextColumn get verificationStatus => textEnum<VerificationStatus>()
+      .withDefault(const Constant('unverified'))();
+  TextColumn get verifiedByStaffId =>
+      text().nullable().references(Users, #id, onDelete: KeyAction.setNull)();
+  DateTimeColumn get verifiedAt => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+/// Owned review of an abnormal or unjudgeable result (Phase 4). Opened when
+/// the result is filed; it cannot lose its owner, only be handed to another
+/// clinician. One per record.
+@DataClassName('ResultReviewRow')
+class ResultReviews extends Table {
+  TextColumn get id => text()();
+  TextColumn get recordId =>
+      text().references(MedicalRecords, #id, onDelete: KeyAction.cascade)();
+  TextColumn get ownerStaffId =>
+      text().nullable().references(Users, #id, onDelete: KeyAction.setNull)();
+  TextColumn get coverageStaffId =>
+      text().nullable().references(Users, #id, onDelete: KeyAction.setNull)();
+  DateTimeColumn get dueAt => dateTime()();
+  TextColumn get priority =>
+      textEnum<WorkPriority>().withDefault(const Constant('routine'))();
+  TextColumn get status => textEnum<ResultReviewStatus>().withDefault(
+    const Constant('unassigned'),
+  )();
+  TextColumn get escalationNote => text().nullable()();
+  DateTimeColumn get resolvedAt => dateTime().nullable()();
+  TextColumn get resolvedByStaffId =>
+      text().nullable().references(Users, #id, onDelete: KeyAction.setNull)();
+  TextColumn get resolutionNote => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  IntColumn get version => integer().withDefault(const Constant(1))();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -110,6 +188,51 @@ class Medications extends Table {
   DateTimeColumn get startDate => dateTime()();
   DateTimeColumn get endDate => dateTime().nullable()();
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+@DataClassName('EncounterDraftRow')
+class EncounterDrafts extends Table {
+  TextColumn get appointmentId =>
+      text().references(Appointments, #id, onDelete: KeyAction.cascade)();
+  TextColumn get patientId => text().references(Users, #id)();
+  TextColumn get authorStaffId => text().references(Users, #id)();
+  TextColumn get note => text().withDefault(const Constant(''))();
+  TextColumn get medicationsJson => text().withDefault(const Constant('[]'))();
+  BoolColumn get referralRequested =>
+      boolean().withDefault(const Constant(false))();
+  IntColumn get version => integer().withDefault(const Constant(1))();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column<Object>> get primaryKey => {appointmentId};
+}
+
+@DataClassName('SignedNoteRow')
+class SignedNotes extends Table {
+  TextColumn get id => text()();
+  TextColumn get appointmentId =>
+      text().unique().references(Appointments, #id)();
+  TextColumn get patientId => text().references(Users, #id)();
+  TextColumn get authorStaffId => text().references(Users, #id)();
+  TextColumn get body => text()();
+  DateTimeColumn get signedAt => dateTime().withDefault(currentDateAndTime)();
+  IntColumn get version => integer().withDefault(const Constant(1))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+@DataClassName('SignedNoteAmendmentRow')
+class SignedNoteAmendments extends Table {
+  TextColumn get id => text()();
+  TextColumn get signedNoteId =>
+      text().references(SignedNotes, #id, onDelete: KeyAction.cascade)();
+  TextColumn get authorStaffId => text().references(Users, #id)();
+  TextColumn get body => text()();
+  DateTimeColumn get amendedAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
   Set<Column<Object>> get primaryKey => {id};

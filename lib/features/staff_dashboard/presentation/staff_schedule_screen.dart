@@ -629,10 +629,7 @@ class _DayViewState extends ConsumerState<_DayView> {
             else
               const SizedBox(height: 2),
             if (isToday) const ScheduleQueueStrip(),
-            _ZoomBar(
-              onOut: () => _zoom(1 / 1.25),
-              onIn: () => _zoom(1.25),
-            ),
+            _ZoomBar(onOut: () => _zoom(1 / 1.25), onIn: () => _zoom(1.25)),
             Expanded(
               child: SingleChildScrollView(
                 controller: _scroll,

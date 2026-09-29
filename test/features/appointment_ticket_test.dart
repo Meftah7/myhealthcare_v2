@@ -46,7 +46,8 @@ void main() {
     final rows = await db.select(db.appointments).get();
     final byBucket = <String, List<String>>{};
     for (final a in rows) {
-      final b = '${a.slotStart.year}-${a.slotStart.month}-'
+      final b =
+          '${a.slotStart.year}-${a.slotStart.month}-'
           '${a.slotStart.day}-${a.slotStart.hour}';
       (byBucket[b] ??= []).add(a.ticketTag!);
     }

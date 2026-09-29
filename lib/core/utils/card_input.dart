@@ -112,7 +112,8 @@ class ExpiryInputFormatter extends TextInputFormatter {
 
     // Backspacing the auto-inserted slash ("12/" → "12") should take the digit
     // with it, so the month can be re-typed.
-    if (deleting && oldValue.text == '${newValue.text}/' &&
+    if (deleting &&
+        oldValue.text == '${newValue.text}/' &&
         !newValue.text.contains('/')) {
       final d = newValue.text.replaceAll(RegExp(r'\D'), '');
       final trimmed = d.isEmpty ? d : d.substring(0, d.length - 1);
@@ -139,7 +140,8 @@ class ExpiryInputFormatter extends TextInputFormatter {
 
     // Reached the month → drop the slash in so the year comes next. Only bare
     // while deleting *within* the year, so a lone digit stays clearable.
-    final keepBare = deleting && digits.length == 2 && oldValue.text.length <= 3;
+    final keepBare =
+        deleting && digits.length == 2 && oldValue.text.length <= 3;
     final text = switch (digits.length) {
       < 2 => digits,
       2 => keepBare ? digits : '$digits/',

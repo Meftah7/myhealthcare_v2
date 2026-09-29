@@ -3,6 +3,7 @@
 
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:myhealthcare/data/db/app_database.dart';
 import 'package:myhealthcare/data/repositories/auth_repository_impl.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:myhealthcare/domain/enums.dart';
@@ -10,6 +11,16 @@ import 'package:myhealthcare/domain/enums.dart';
 import '../support/test_database.dart';
 
 void main() {
+  test('production-disabled seeder rejects generation and reset', () async {
+    final db = newTestDatabase();
+    addTearDown(db.close);
+    final seeder = Seeder(db, seedingEnabled: false);
+
+    await expectLater(seeder.run(), throwsStateError);
+    await expectLater(seeder.reset(), throwsStateError);
+    expect(await db.select(db.users).get(), isEmpty);
+  });
+
   test('produces the expected population', () async {
     final db = newTestDatabase();
     addTearDown(db.close);
@@ -113,6 +124,34 @@ void main() {
     final reset = await Seeder(db).reset();
     expect(reset.patients, 60);
     expect((await db.select(db.users).get()).length, usersAfterRun);
+  });
+
+  test('an older seed version is advanced without replacing data', () async {
+    final db = newTestDatabase();
+    addTearDown(db.close);
+    await Seeder(db).run();
+
+    final originalUsers = await db.select(db.users).get();
+    final patient = originalUsers.firstWhere(
+      (user) => user.role == UserRole.patient,
+    );
+    const preservedName = 'Preserve This Existing Patient';
+    await (db.update(db.users)..where((user) => user.id.equals(patient.id)))
+        .write(const UsersCompanion(fullName: Value(preservedName)));
+    await (db.update(db.appSettings)..where((row) => row.id.equals(1))).write(
+      const AppSettingsCompanion(seedVersion: Value(1)),
+    );
+
+    expect(await Seeder(db).run(), isNull);
+    expect((await db.select(db.users).get()).length, originalUsers.length);
+    final preserved = await (db.select(
+      db.users,
+    )..where((user) => user.id.equals(patient.id))).getSingle();
+    expect(preserved.fullName, preservedName);
+    final settings = await (db.select(
+      db.appSettings,
+    )..where((row) => row.id.equals(1))).getSingle();
+    expect(settings.seedVersion, Seeder.seedVersion);
   });
 
   test('every seeded account logs in with the demo password', () async {

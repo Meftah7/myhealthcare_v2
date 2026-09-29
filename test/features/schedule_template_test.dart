@@ -18,6 +18,9 @@ void main() {
     final repo = AppointmentRepositoryImpl(db);
 
     final staff = (await db.select(db.staffProfiles).get()).first;
+    await (db.delete(
+      db.appointments,
+    )..where((appointment) => appointment.staffId.equals(staff.userId))).go();
 
     final saved = await repo.setTemplates(
       staffId: staff.userId,
@@ -91,5 +94,27 @@ void main() {
     );
     expect(result.isErr, isTrue);
     expect(result.failureOrNull!.message, contains('greater than zero'));
+  });
+
+  test('rejects overlapping blocks on the same weekday', () async {
+    final db = newTestDatabase();
+    addTearDown(db.close);
+    await Seeder(db).run();
+    final repo = AppointmentRepositoryImpl(db);
+    final staff = (await db.select(db.staffProfiles).get()).first;
+    await (db.delete(
+      db.appointments,
+    )..where((appointment) => appointment.staffId.equals(staff.userId))).go();
+
+    final result = await repo.setTemplates(
+      staffId: staff.userId,
+      templates: const [
+        NewScheduleTemplate(weekday: 1, startMinutes: 540, endMinutes: 720),
+        NewScheduleTemplate(weekday: 1, startMinutes: 660, endMinutes: 780),
+      ],
+    );
+
+    expect(result.isErr, isTrue);
+    expect(result.failureOrNull!.message, contains('overlap'));
   });
 }

@@ -1,13 +1,16 @@
 /// One button for "turn this into a PDF and hand it to me" (P10-01).
 ///
 /// Owns the busy state and the failure SnackBar so every document screen —
-/// vitals, radiology, sick leave — gets the same behaviour for free.
+/// vitals, radiology, sick leave — gets the same behaviour for free. A
+/// failure says what stopped it (no access, a missing original, or the
+/// document could not be built) and offers "Try again" when that can help.
 library;
 
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
+import '../../../core/failures.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../services/pdf/clinic_pdf.dart';
 
@@ -42,13 +45,22 @@ class _DocumentDownloadButtonState extends State<DocumentDownloadButton> {
     try {
       final bytes = await widget.build();
       await ClinicPdf.present(bytes, filename: widget.filename);
-    } catch (_) {
+    } on Object catch (error) {
       if (mounted) {
+        final t = AppLocalizations.of(context)!;
+        // Say which boundary stopped it; offer a retry only when one could
+        // succeed.
+        final denied = error is AccessDeniedFailure;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              AppLocalizations.of(context)!.couldNotCreateDocument,
-            ),
+            content: Text(switch (error) {
+              AccessDeniedFailure() => t.accessDeniedBody,
+              Failure(:final message) => message,
+              _ => t.couldNotCreateDocument,
+            }),
+            action: denied
+                ? null
+                : SnackBarAction(label: t.tryAgain, onPressed: _run),
           ),
         );
       }

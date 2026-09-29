@@ -9,15 +9,49 @@ import '../../core/utils/ids.dart';
 import '../../core/utils/ticketing.dart';
 import '../../domain/entities/entities.dart';
 import '../../domain/enums.dart';
+import '../../domain/identity/permissions.dart';
 import '../../domain/repositories/appointment_repository.dart';
+import '../../domain/repositories/notification_repository.dart';
+import '../../services/auth/access_policy.dart';
 import '../../services/notifications/reminder_scheduler.dart';
 import '../db/app_database.dart';
+import '../sync/idempotency.dart';
+import '../sync/outbox.dart';
 import 'mappers.dart';
 
 class AppointmentRepositoryImpl implements AppointmentRepository {
-  AppointmentRepositoryImpl(this._db);
+  AppointmentRepositoryImpl(
+    this._db, {
+    AccessPolicy? access,
+    this.changePolicy = const AppointmentChangePolicy(),
+  }) : _access = access ?? AccessPolicy.unenforced(_db),
+       _idempotency = IdempotencyGuard(_db),
+       _outbox = Outbox(_db);
 
   final AppDatabase _db;
+  final AppointmentChangePolicy changePolicy;
+  final AccessPolicy _access;
+  final IdempotencyGuard _idempotency;
+  final Outbox _outbox;
+
+  static const _bookScope = 'appointment.book';
+
+  /// Optimistic concurrency: refuse a change based on a stale copy.
+  static void _requireVersion(AppointmentRow row, int? expected) {
+    if (expected != null && row.version != expected) {
+      throw ConflictFailure(
+        'This appointment was changed by someone else. Reload to see the '
+        'latest before trying again.',
+        currentVersion: row.version,
+      );
+    }
+  }
+
+  Future<void> _enqueue(List<NewNotification> notify) async {
+    for (final n in notify) {
+      await _outbox.enqueueNotification(n);
+    }
+  }
 
   static DateTime _dayStart(DateTime d) => DateTime(d.year, d.month, d.day);
 
@@ -28,6 +62,12 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
         _db.appointments,
       )..where((a) => a.id.equals(id))).getSingleOrNull();
       if (row == null) throw NotFoundFailure('No appointment $id.');
+      await _access.readPatient(
+        row.patientId,
+        scope: PatientDataScope.administrative,
+        entityType: 'appointment',
+        entityId: id,
+      );
       return row.toEntity();
     });
   }
@@ -38,12 +78,11 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     required String patientId,
   }) {
     return Result.guardAsync(() async {
-      final row = await (_db.select(_db.appointments)..where(
-            (a) =>
-                a.staffId.equals(staffId) & a.patientId.equals(patientId),
-          )..limit(1))
-          .getSingleOrNull();
-      return row != null;
+      await _access.principal();
+      return _access.hasCareRelationship(
+        staffId: staffId,
+        patientId: patientId,
+      );
     });
   }
 
@@ -53,6 +92,11 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     bool upcomingOnly = false,
   }) {
     return Result.guardAsync(() async {
+      await _access.readPatient(
+        patientId,
+        scope: PatientDataScope.administrative,
+        entityType: 'appointment',
+      );
       final q = _db.select(_db.appointments)
         ..where((a) => a.patientId.equals(patientId))
         ..orderBy([(a) => OrderingTerm.desc(a.slotStart)]);
@@ -86,6 +130,7 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     DateTime day,
   ) {
     return Result.guardAsync(() async {
+      await _access.requireStaffOrAdmin(entityType: 'appointment');
       final rows = await _forStaffOnDayQuery(staffId, day).get();
       return rows.map((r) => r.toEntity()).toList();
     });
@@ -98,6 +143,7 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     DateTime to,
   ) {
     return Result.guardAsync(() async {
+      await _access.requireStaffOrAdmin(entityType: 'appointment');
       final rows =
           await (_db.select(_db.appointments)
                 ..where(
@@ -115,6 +161,7 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
   @override
   Future<Result<List<Appointment>>> inRange(DateTime from, DateTime to) {
     return Result.guardAsync(() async {
+      await _access.requireStaffOrAdmin(entityType: 'appointment');
       final rows =
           await (_db.select(_db.appointments)
                 ..where(
@@ -130,31 +177,56 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
 
   @override
   Stream<List<Appointment>> watchForStaffOnDay(String staffId, DateTime day) {
-    return _forStaffOnDayQuery(
-      staffId,
-      day,
-    ).watch().map((rows) => rows.map((r) => r.toEntity()).toList());
+    return authorizedStream(
+      () => _access.requireStaffOrAdmin(entityType: 'appointment'),
+      () => _forStaffOnDayQuery(
+        staffId,
+        day,
+      ).watch().map((rows) => rows.map((r) => r.toEntity()).toList()),
+    );
   }
 
   @override
   Future<Result<List<OpenSlot>>> openSlots(String staffId, DateTime day) {
     return Result.guardAsync(() async {
+      await _access.principal();
       final raw = await _templateSlotsFor(staffId, day);
       if (raw.isEmpty) return const <OpenSlot>[];
 
       final booked = await _forStaffOnDayQuery(staffId, day).get();
-      final bookedStarts = booked
+      final dayStart = _dayStart(day);
+      final exceptions =
+          await (_db.select(_db.availabilityExceptions)..where(
+                (e) =>
+                    e.staffId.equals(staffId) &
+                    e.startsAt.isSmallerThanValue(
+                      dayStart.add(const Duration(days: 1)),
+                    ) &
+                    e.endsAt.isBiggerThanValue(dayStart),
+              ))
+              .get();
+      final active = booked
           .where((a) => a.status != AppointmentStatus.cancelled)
-          .map((a) => a.slotStart)
-          .toSet();
+          .toList();
 
-      final slots = raw
-          .where(
-            (s) => s.start.isAfter(DateTime.now()) &&
-                !bookedStarts.contains(s.start),
-          )
-          .toList()
-        ..sort((a, b) => a.start.compareTo(b.start));
+      final slots =
+          raw
+              .where(
+                (s) =>
+                    s.start.isAfter(DateTime.now()) &&
+                    !active.any(
+                      (a) =>
+                          a.slotStart.isBefore(s.end) &&
+                          a.slotEnd.isAfter(s.start),
+                    ) &&
+                    !exceptions.any(
+                      (e) =>
+                          e.startsAt.isBefore(s.end) &&
+                          e.endsAt.isAfter(s.start),
+                    ),
+              )
+              .toList()
+            ..sort((a, b) => a.start.compareTo(b.start));
       return slots;
     });
   }
@@ -164,20 +236,40 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
   /// what's actually available. Shared by [openSlots] (which filters it) and
   /// [_isOnScheduleGrid] (which just needs to know a boundary is legitimate).
   Future<List<OpenSlot>> _templateSlotsFor(String staffId, DateTime day) async {
+    final settings = await (_db.select(
+      _db.appSettings,
+    )..where((s) => s.id.equals(1))).getSingleOrNull();
+    final openDays = settings?.clinicOpenDays
+        ?.split(',')
+        .map(int.tryParse)
+        .whereType<int>()
+        .toSet();
+    if (openDays != null && !openDays.contains(day.weekday)) {
+      return const [];
+    }
+    final clinicOpenMinutes = (settings?.clinicOpenHour ?? 8) * 60;
+    final clinicCloseMinutes = (settings?.clinicCloseHour ?? 20) * 60;
     final templates =
         await (_db.select(_db.scheduleTemplates)..where(
-              (t) =>
-                  t.staffId.equals(staffId) & t.weekday.equals(day.weekday),
+              (t) => t.staffId.equals(staffId) & t.weekday.equals(day.weekday),
             ))
             .get();
     final dayStart = _dayStart(day);
     final slots = <OpenSlot>[];
     for (final t in templates) {
       var cursor = t.startMinutes;
-      while (cursor + t.slotMinutes <= t.endMinutes) {
+      while (cursor < clinicOpenMinutes) {
+        cursor += t.slotMinutes;
+      }
+      final closingBoundary = t.endMinutes < clinicCloseMinutes
+          ? t.endMinutes
+          : clinicCloseMinutes;
+      while (cursor + t.slotMinutes <= closingBoundary) {
         final start = dayStart.add(Duration(minutes: cursor));
         final end = start.add(Duration(minutes: t.slotMinutes));
-        slots.add(OpenSlot(staffId: staffId, start: start, end: end));
+        slots.add(
+          OpenSlot(staffId: staffId, start: start, end: end, resourceId: t.id),
+        );
         cursor += t.slotMinutes;
       }
     }
@@ -197,9 +289,26 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     return raw.any((s) => s.start == start && s.end == end);
   }
 
+  Future<bool> _hasAvailabilityException({
+    required String staffId,
+    required DateTime start,
+    required DateTime end,
+  }) async {
+    final rows =
+        await (_db.select(_db.availabilityExceptions)..where(
+              (e) =>
+                  e.staffId.equals(staffId) &
+                  e.startsAt.isSmallerThanValue(end) &
+                  e.endsAt.isBiggerThanValue(start),
+            ))
+            .get();
+    return rows.isNotEmpty;
+  }
+
   @override
   Future<Result<List<ScheduleTemplate>>> templatesFor(String staffId) {
     return Result.guardAsync(() async {
+      await _access.principal();
       final rows =
           await (_db.select(_db.scheduleTemplates)
                 ..where((t) => t.staffId.equals(staffId))
@@ -215,12 +324,30 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     required List<NewScheduleTemplate> templates,
   }) {
     return Result.guardAsync(() async {
+      // A clinician edits their own schedule; an administrator anyone's.
+      final actor = await _access.principal();
+      if (actor != null && actor.isStaff) {
+        await _access.actAsStaff(
+          staffId,
+          Permission.manageOwnSchedule,
+          entityType: 'schedule',
+          entityId: staffId,
+        );
+      } else if (actor != null) {
+        await _access.require(
+          Permission.manageClinicSchedules,
+          entityType: 'schedule',
+          entityId: staffId,
+        );
+      }
       for (final t in templates) {
         if (t.startMinutes >= t.endMinutes) {
           throw const ValidationFailure('Start time must be before end time.');
         }
         if (t.slotMinutes <= 0) {
-          throw const ValidationFailure('Slot length must be greater than zero.');
+          throw const ValidationFailure(
+            'Slot length must be greater than zero.',
+          );
         }
       }
       // Two templates for the same weekday that overlap in time would make
@@ -235,7 +362,8 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
           for (var j = i + 1; j < group.length; j++) {
             final a = group[i];
             final b = group[j];
-            if (a.startMinutes < b.endMinutes && a.endMinutes > b.startMinutes) {
+            if (a.startMinutes < b.endMinutes &&
+                a.endMinutes > b.startMinutes) {
               throw const ValidationFailure(
                 'Two schedules for the same day overlap. Adjust the times.',
               );
@@ -243,16 +371,17 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
           }
         }
       }
-      final existingAppointments = await (_db.select(_db.appointments)..where(
-            (a) =>
-                a.staffId.equals(staffId) &
-                a.slotStart.isBiggerThanValue(DateTime.now()) &
-                a.status.isInValues([
-                  AppointmentStatus.booked,
-                  AppointmentStatus.confirmed,
-                ]),
-          ))
-          .get();
+      final existingAppointments =
+          await (_db.select(_db.appointments)..where(
+                (a) =>
+                    a.staffId.equals(staffId) &
+                    a.slotStart.isBiggerThanValue(DateTime.now()) &
+                    a.status.isInValues([
+                      AppointmentStatus.booked,
+                      AppointmentStatus.confirmed,
+                    ]),
+              ))
+              .get();
       for (final appointment in existingAppointments) {
         final startMinutes =
             appointment.slotStart.hour * 60 + appointment.slotStart.minute;
@@ -302,13 +431,109 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
   }
 
   @override
-  Future<Result<Appointment>> book(BookingRequest r) {
+  Future<Result<AvailabilityException>> addAvailabilityException({
+    required String staffId,
+    required DateTime start,
+    required DateTime end,
+    String? reason,
+  }) {
+    return Result.guardAsync(() async {
+      await _access.requireStaffOrAdmin(entityType: 'availability_exception');
+      if (!end.isAfter(start)) {
+        throw const ValidationFailure('Exception end must be after its start.');
+      }
+      final id = newId('availability');
+      await _db
+          .into(_db.availabilityExceptions)
+          .insert(
+            AvailabilityExceptionsCompanion.insert(
+              id: id,
+              staffId: staffId,
+              startsAt: start,
+              endsAt: end,
+              reason: Value(reason?.trim()),
+            ),
+          );
+      return AvailabilityException(
+        id: id,
+        staffId: staffId,
+        start: start,
+        end: end,
+        reason: reason?.trim(),
+      );
+    });
+  }
+
+  @override
+  Future<Result<List<AvailabilityException>>> availabilityExceptions(
+    String staffId,
+    DateTime from,
+    DateTime to,
+  ) {
+    return Result.guardAsync(() async {
+      await _access.principal();
+      final rows =
+          await (_db.select(_db.availabilityExceptions)..where(
+                (e) =>
+                    e.staffId.equals(staffId) &
+                    e.startsAt.isSmallerThanValue(to) &
+                    e.endsAt.isBiggerThanValue(from),
+              ))
+              .get();
+      return [
+        for (final row in rows)
+          AvailabilityException(
+            id: row.id,
+            staffId: row.staffId,
+            start: row.startsAt,
+            end: row.endsAt,
+            reason: row.reason,
+            version: row.version,
+          ),
+      ];
+    });
+  }
+
+  @override
+  Future<Result<Appointment>> book(BookingRequest r) async {
+    // Authorize before the transaction so a denial's audit row survives.
+    final String? bookedBy;
+    try {
+      bookedBy = await _authorizeBooking(r.patientId);
+    } on Failure catch (f) {
+      return Err(f);
+    }
+    // A visit for someone else must be booked on *their* record. A name
+    // stamped on the booker's own record would put the visit — and every
+    // note and invoice after it — on the wrong patient's chart.
+    if (r.bookedForName != null &&
+        bookedBy != null &&
+        bookedBy == r.patientId) {
+      return const Err(
+        ValidationFailure(
+          'Choose the family member so the visit is booked on their record.',
+        ),
+      );
+    }
     // The whole thing — the overlap check, the ticket-count read, and the
     // insert — runs as one transaction. SQLite serializes writers, so two
     // concurrent bookings can no longer both pass the check (a stale read
     // racing an insert) and no longer both land on the same ticket count.
     return Result.guardAsync(
       () => _db.transaction(() async {
+        // A retry of a booking that already committed gets that booking
+        // back — it never books (or notifies) twice.
+        final prior = await _idempotency.prior(
+          r.idempotencyKey,
+          scope: _bookScope,
+          actorAccountId: bookedBy,
+        );
+        if (prior != null) {
+          final existing = await (_db.select(
+            _db.appointments,
+          )..where((a) => a.id.equals(prior))).getSingle();
+          return existing.toEntity();
+        }
         if (r.end.isBefore(r.start) || r.end.isAtSameMomentAs(r.start)) {
           throw const ValidationFailure('The visit must end after it starts.');
         }
@@ -326,8 +551,30 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
             "That time isn't on this clinician's schedule. Choose a listed slot.",
           );
         }
+        if (await _hasAvailabilityException(
+          staffId: r.staffId,
+          start: r.start,
+          end: r.end,
+        )) {
+          throw const ConflictFailure(
+            'That clinician is unavailable at this time.',
+          );
+        }
         if (await _hasOverlap(staffId: r.staffId, start: r.start, end: r.end)) {
-          throw const ValidationFailure('That slot was just taken.');
+          throw const ConflictFailure('That slot was just taken.');
+        }
+        final slot = (await _templateSlotsFor(r.staffId, r.start)).firstWhere(
+          (candidate) => candidate.start == r.start && candidate.end == r.end,
+        );
+        final reservation = BookingReservation(
+          resourceId: slot.resourceId ?? r.staffId,
+          start: r.start,
+          end: r.end,
+          capacity: slot.capacity,
+          resourceVersion: slot.version,
+        );
+        if (reservation.capacity < 1) {
+          throw const ConflictFailure('That slot has no remaining capacity.');
         }
 
         final id = newId('appt');
@@ -355,8 +602,22 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
                 ticketTag: Value(ticketTag),
                 roomNumber: Value(roomNumber),
                 bookedForName: Value(r.bookedForName),
+                bookedByAccountId: Value(bookedBy),
               ),
             );
+        await _idempotency.remember(
+          r.idempotencyKey,
+          scope: _bookScope,
+          actorAccountId: bookedBy,
+          resultRef: id,
+        );
+        await _enqueue(r.notify);
+        await _rebuildReminders(
+          appointmentId: id,
+          slotStart: r.start,
+          band: r.riskBand ?? RiskBand.low,
+          enabledChannels: r.enabledReminderChannels,
+        );
         // Reminder scheduling for a fresh booking stays with the caller
         // (`booking_providers.dart`/`quick_appointment_providers.dart`),
         // which already calls `ReminderScheduler.scheduleFor` right after —
@@ -369,6 +630,71 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
         return row.toEntity();
       }),
     );
+  }
+
+  /// A patient (or a proxy with a manage grant) books for that patient; an
+  /// administrator books on a patient's behalf. Returns the acting account.
+  Future<String?> _authorizeBooking(String patientId) async {
+    final actor = await _access.principal();
+    if (actor == null) return null;
+    if (actor.isAdmin) {
+      await _access.require(
+        Permission.manageClinicSchedules,
+        entityType: 'appointment',
+      );
+      await _access.audit(
+        'appointment.book_on_behalf',
+        entityType: 'appointment',
+        subjectPatientId: patientId,
+      );
+      return actor.accountId;
+    }
+    final subject = await _access.actForPatient(
+      patientId,
+      Permission.bookAppointments,
+      entityType: 'appointment',
+    );
+    if (!subject.isSelf) {
+      await _access.audit(
+        'proxy.appointment.book',
+        entityType: 'appointment',
+        subjectPatientId: patientId,
+      );
+    }
+    return subject.actingAccountId;
+  }
+
+  /// A patient-side change to an existing appointment. Authorizes against
+  /// the appointment's *stored* patient, so a caller cannot reach another
+  /// patient's visit by passing a patient ID it does control.
+  Future<void> _authorizePatientChange(
+    String id,
+    String patientId,
+    String action,
+  ) async {
+    final row = await (_db.select(
+      _db.appointments,
+    )..where((a) => a.id.equals(id))).getSingleOrNull();
+    if (row == null) throw NotFoundFailure('No appointment $id.');
+    if (row.patientId != patientId) {
+      throw const AccessDeniedFailure(
+        'You do not have permission to change this appointment.',
+      );
+    }
+    final subject = await _access.actForPatient(
+      row.patientId,
+      Permission.bookAppointments,
+      entityType: 'appointment',
+      entityId: id,
+    );
+    if (!subject.isSelf) {
+      await _access.audit(
+        'proxy.appointment.$action',
+        entityType: 'appointment',
+        entityId: id,
+        subjectPatientId: row.patientId,
+      );
+    }
   }
 
   /// True when [staffId] already has an active (non-cancelled) appointment
@@ -402,28 +728,34 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     required RiskBand band,
     Set<ReminderChannel>? enabledChannels,
   }) async {
-    await (_db.delete(_db.reminders)..where(
-          (r) => r.appointmentId.equals(appointmentId) & r.sentAt.isNull(),
+    await (_db.update(_db.reminders)..where(
+          (r) =>
+              r.appointmentId.equals(appointmentId) &
+              r.deliveryStatus.equalsValue(ReminderDeliveryStatus.queued),
         ))
-        .go();
+        .write(
+          const RemindersCompanion(
+            deliveryStatus: Value(ReminderDeliveryStatus.suppressed),
+          ),
+        );
     final now = DateTime.now();
+    final channels = reminderChannelsFor(enabledChannels);
     for (final plan in reminderPlanFor(band)) {
-      if (enabledChannels != null && !enabledChannels.contains(plan.channel)) {
-        continue;
-      }
       final at = slotStart.subtract(plan.offsetBeforeSlot);
-      if (at.isBefore(now)) continue;
-      await _db
-          .into(_db.reminders)
-          .insert(
-            RemindersCompanion.insert(
-              id: newId('rem'),
-              appointmentId: appointmentId,
-              scheduledFor: at,
-              channel: plan.channel,
-              kind: Value(plan.kind),
-            ),
-          );
+      if (at.isBefore(now)) continue; // no point scheduling the past
+      for (final channel in channels) {
+        await _db
+            .into(_db.reminders)
+            .insert(
+              RemindersCompanion.insert(
+                id: newId('rem'),
+                appointmentId: appointmentId,
+                scheduledFor: at,
+                channel: channel,
+                kind: Value(plan.kind),
+              ),
+            );
+      }
     }
   }
 
@@ -496,7 +828,13 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     required DateTime newStart,
     required DateTime newEnd,
     Set<ReminderChannel>? enabledChannels,
-  }) {
+    int? expectedVersion,
+  }) async {
+    try {
+      await _authorizePatientChange(id, patientId, 'reschedule');
+    } on Failure catch (f) {
+      return Err(f);
+    }
     return Result.guardAsync(
       () => _db.transaction(() async {
         final row = await (_db.select(
@@ -511,6 +849,7 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
             'You do not have permission to change this appointment.',
           );
         }
+        _requireVersion(row, expectedVersion);
         if (!_reschedulableStatuses.contains(row.status)) {
           throw const ValidationFailure(
             'This appointment can no longer be rescheduled.',
@@ -524,6 +863,11 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
             'That time has already passed. Choose a later slot.',
           );
         }
+        if (newStart.difference(DateTime.now()) < changePolicy.minimumNotice) {
+          throw const ValidationFailure(
+            'This appointment is inside the change cutoff window.',
+          );
+        }
         if (!await _isOnScheduleGrid(
           staffId: row.staffId,
           start: newStart,
@@ -533,13 +877,22 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
             "That time isn't on this clinician's schedule. Choose a listed slot.",
           );
         }
+        if (await _hasAvailabilityException(
+          staffId: row.staffId,
+          start: newStart,
+          end: newEnd,
+        )) {
+          throw const ConflictFailure(
+            'That clinician is unavailable at this time.',
+          );
+        }
         if (await _hasOverlap(
           staffId: row.staffId,
           start: newStart,
           end: newEnd,
           excludingAppointmentId: id,
         )) {
-          throw const ValidationFailure(
+          throw const ConflictFailure(
             'That slot is no longer available. Choose another.',
           );
         }
@@ -563,13 +916,28 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
         final updated = await (_db.select(
           _db.appointments,
         )..where((a) => a.id.equals(id))).getSingle();
+        await _access.audit(
+          'appointment.reschedule',
+          entityType: 'appointment',
+          entityId: id,
+          subjectPatientId: row.patientId,
+        );
         return updated.toEntity();
       }),
     );
   }
 
   @override
-  Future<Result<void>> cancel(String id, {required String patientId}) {
+  Future<Result<void>> cancel(
+    String id, {
+    required String patientId,
+    int? expectedVersion,
+  }) async {
+    try {
+      await _authorizePatientChange(id, patientId, 'cancel');
+    } on Failure catch (f) {
+      return Err(f);
+    }
     return Result.guardAsync(
       () => _db.transaction(() async {
         final row = await (_db.select(
@@ -581,12 +949,17 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
             'You do not have permission to cancel this appointment.',
           );
         }
-        if (row.status == AppointmentStatus.cancelled) {
-          throw const ValidationFailure('This appointment is already cancelled.');
-        }
-        if (row.status == AppointmentStatus.completed) {
+        _requireVersion(row, expectedVersion);
+        if (!_reschedulableStatuses.contains(row.status) ||
+            row.checkedInAt != null) {
           throw const ValidationFailure(
-            'A completed visit cannot be cancelled.',
+            'This appointment can no longer be cancelled.',
+          );
+        }
+        if (row.slotStart.difference(DateTime.now()) <
+            changePolicy.minimumNotice) {
+          throw const ValidationFailure(
+            'This appointment is inside the cancellation cutoff window.',
           );
         }
         await (_db.update(
@@ -596,10 +969,22 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
             status: Value(AppointmentStatus.cancelled),
           ),
         );
-        await (_db.delete(_db.reminders)..where(
-              (r) => r.appointmentId.equals(id) & r.sentAt.isNull(),
+        await (_db.update(_db.reminders)..where(
+              (r) =>
+                  r.appointmentId.equals(id) &
+                  r.deliveryStatus.equalsValue(ReminderDeliveryStatus.queued),
             ))
-            .go();
+            .write(
+              const RemindersCompanion(
+                deliveryStatus: Value(ReminderDeliveryStatus.suppressed),
+              ),
+            );
+        await _access.audit(
+          'appointment.cancel',
+          entityType: 'appointment',
+          entityId: id,
+          subjectPatientId: row.patientId,
+        );
       }),
     );
   }
@@ -607,7 +992,27 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
   /// Loads the appointment and verifies [staffId] matches its current
   /// clinician — every staff-side mutation below goes through this so a
   /// clinician can't act on a colleague's visit just by knowing its ID.
-  Future<AppointmentRow> _ownedByStaff(String id, String staffId) async {
+  /// The principal must *be* [staffId] (checked before any transaction so a
+  /// denial's audit row is kept).
+  Future<Failure?> _staffDenial(String id, String staffId) async {
+    try {
+      await _access.actAsStaff(
+        staffId,
+        Permission.runConsultation,
+        entityType: 'appointment',
+        entityId: id,
+      );
+      return null;
+    } on Failure catch (f) {
+      return f;
+    }
+  }
+
+  Future<AppointmentRow> _ownedByStaff(
+    String id,
+    String staffId, [
+    int? expectedVersion,
+  ]) async {
     final row = await (_db.select(
       _db.appointments,
     )..where((a) => a.id.equals(id))).getSingleOrNull();
@@ -617,29 +1022,28 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
         'This appointment is assigned to a different clinician.',
       );
     }
+    _requireVersion(row, expectedVersion);
     return row;
   }
 
-  bool _canTransition(AppointmentStatus from, AppointmentStatus to) => switch (
-    from
-  ) {
-    AppointmentStatus.booked =>
-      to == AppointmentStatus.confirmed ||
+  bool _canTransition(AppointmentStatus from, AppointmentStatus to) =>
+      switch (from) {
+        AppointmentStatus.booked =>
+          to == AppointmentStatus.confirmed ||
+              to == AppointmentStatus.cancelled ||
+              to == AppointmentStatus.noShow,
+        AppointmentStatus.confirmed =>
           to == AppointmentStatus.inProgress ||
-          to == AppointmentStatus.cancelled ||
-          to == AppointmentStatus.noShow,
-    AppointmentStatus.confirmed =>
-      to == AppointmentStatus.inProgress ||
-          to == AppointmentStatus.cancelled ||
-          to == AppointmentStatus.noShow,
-    AppointmentStatus.inProgress =>
-      to == AppointmentStatus.completed ||
-          to == AppointmentStatus.cancelled ||
-          to == AppointmentStatus.noShow,
-    AppointmentStatus.completed ||
-    AppointmentStatus.cancelled ||
-    AppointmentStatus.noShow => false,
-  };
+              to == AppointmentStatus.cancelled ||
+              to == AppointmentStatus.noShow,
+        AppointmentStatus.inProgress =>
+          to == AppointmentStatus.completed ||
+              to == AppointmentStatus.cancelled ||
+              to == AppointmentStatus.noShow,
+        AppointmentStatus.completed ||
+        AppointmentStatus.cancelled ||
+        AppointmentStatus.noShow => false,
+      };
 
   void _requireTransition(AppointmentStatus from, AppointmentStatus to) {
     if (!_canTransition(from, to)) {
@@ -654,14 +1058,55 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     required String id,
     required String staffId,
     required AppointmentStatus status,
-  }) {
-    return Result.guardAsync(() => _db.transaction(() async {
-      final row = await _ownedByStaff(id, staffId);
-      _requireTransition(row.status, status);
-      await (_db.update(_db.appointments)..where((a) => a.id.equals(id))).write(
-        AppointmentsCompanion(status: Value(status)),
-      );
-    }));
+    int? expectedVersion,
+  }) async {
+    final denied = await _staffDenial(id, staffId);
+    if (denied != null) return Err(denied);
+    return Result.guardAsync(
+      () => _db.transaction(() async {
+        final row = await _ownedByStaff(id, staffId, expectedVersion);
+        _requireTransition(row.status, status);
+        await (_db.update(_db.appointments)..where((a) => a.id.equals(id)))
+            .write(AppointmentsCompanion(status: Value(status)));
+      }),
+    );
+  }
+
+  @override
+  Future<Result<void>> updateRiskBand({
+    required String id,
+    required String staffId,
+    required RiskBand riskBand,
+    Set<ReminderChannel>? enabledChannels,
+    int? expectedVersion,
+  }) async {
+    final denied = await _staffDenial(id, staffId);
+    if (denied != null) return Err(denied);
+    return Result.guardAsync(
+      () => _db.transaction(() async {
+        final row = await _ownedByStaff(id, staffId, expectedVersion);
+        if (!_reschedulableStatuses.contains(row.status)) {
+          throw const ValidationFailure(
+            'A closed or active appointment cannot change reminder risk.',
+          );
+        }
+        await (_db.update(_db.appointments)..where((a) => a.id.equals(id)))
+            .write(AppointmentsCompanion(riskBand: Value(riskBand)));
+        await _rebuildReminders(
+          appointmentId: id,
+          slotStart: row.slotStart,
+          band: riskBand,
+          enabledChannels: enabledChannels,
+        );
+        await _access.audit(
+          'appointment.risk_band.update',
+          entityType: 'appointment',
+          entityId: id,
+          subjectPatientId: row.patientId,
+          detail: riskBand.name,
+        );
+      }),
+    );
   }
 
   @override
@@ -669,17 +1114,24 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     String id, {
     required String staffId,
     required DateTime at,
-  }) {
-    return Result.guardAsync(() => _db.transaction(() async {
-      final row = await _ownedByStaff(id, staffId);
-      _requireTransition(row.status, AppointmentStatus.confirmed);
-      await (_db.update(_db.appointments)..where((a) => a.id.equals(id))).write(
-        AppointmentsCompanion(
-          checkedInAt: Value(at),
-          status: const Value(AppointmentStatus.confirmed),
-        ),
-      );
-    }));
+    int? expectedVersion,
+  }) async {
+    final denied = await _staffDenial(id, staffId);
+    if (denied != null) return Err(denied);
+    return Result.guardAsync(
+      () => _db.transaction(() async {
+        final row = await _ownedByStaff(id, staffId, expectedVersion);
+        _requireTransition(row.status, AppointmentStatus.confirmed);
+        await (_db.update(
+          _db.appointments,
+        )..where((a) => a.id.equals(id))).write(
+          AppointmentsCompanion(
+            checkedInAt: Value(at),
+            status: const Value(AppointmentStatus.confirmed),
+          ),
+        );
+      }),
+    );
   }
 
   @override
@@ -687,20 +1139,26 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     String id, {
     required String staffId,
     required DateTime at,
-  }) {
-    return Result.guardAsync(() => _db.transaction(() async {
-      final row = await _ownedByStaff(id, staffId);
-      if (row.status == AppointmentStatus.completed ||
-          row.status == AppointmentStatus.cancelled ||
-          row.status == AppointmentStatus.noShow) {
-        throw const ValidationFailure(
-          'A closed appointment cannot be called in.',
-        );
-      }
-      await (_db.update(_db.appointments)..where((a) => a.id.equals(id))).write(
-        AppointmentsCompanion(calledInAt: Value(at)),
-      );
-    }));
+    int? expectedVersion,
+    List<NewNotification> notify = const [],
+  }) async {
+    final denied = await _staffDenial(id, staffId);
+    if (denied != null) return Err(denied);
+    return Result.guardAsync(
+      () => _db.transaction(() async {
+        final row = await _ownedByStaff(id, staffId, expectedVersion);
+        if (row.status == AppointmentStatus.completed ||
+            row.status == AppointmentStatus.cancelled ||
+            row.status == AppointmentStatus.noShow) {
+          throw const ValidationFailure(
+            'A closed appointment cannot be called in.',
+          );
+        }
+        await (_db.update(_db.appointments)..where((a) => a.id.equals(id)))
+            .write(AppointmentsCompanion(calledInAt: Value(at)));
+        await _enqueue(notify);
+      }),
+    );
   }
 
   @override
@@ -708,20 +1166,38 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     String id, {
     required String staffId,
     required DateTime at,
-  }) {
-    return Result.guardAsync(() => _db.transaction(() async {
-      final row = await _ownedByStaff(id, staffId);
-      if (row.status != AppointmentStatus.inProgress &&
-          row.status != AppointmentStatus.noShow) {
-        _requireTransition(row.status, AppointmentStatus.inProgress);
-      }
-      await (_db.update(_db.appointments)..where((a) => a.id.equals(id))).write(
-        AppointmentsCompanion(
-          checkedInAt: Value(at),
-          status: const Value(AppointmentStatus.inProgress),
-        ),
-      );
-    }));
+    int? expectedVersion,
+  }) async {
+    final denied = await _staffDenial(id, staffId);
+    if (denied != null) return Err(denied);
+    return Result.guardAsync(
+      () => _db.transaction(() async {
+        final row = await _ownedByStaff(id, staffId, expectedVersion);
+        var currentStatus = row.status;
+        if (currentStatus == AppointmentStatus.booked) {
+          _requireTransition(currentStatus, AppointmentStatus.confirmed);
+          await (_db.update(
+            _db.appointments,
+          )..where((a) => a.id.equals(id))).write(
+            const AppointmentsCompanion(
+              status: Value(AppointmentStatus.confirmed),
+            ),
+          );
+          currentStatus = AppointmentStatus.confirmed;
+        }
+        if (currentStatus != AppointmentStatus.inProgress) {
+          _requireTransition(currentStatus, AppointmentStatus.inProgress);
+        }
+        await (_db.update(
+          _db.appointments,
+        )..where((a) => a.id.equals(id))).write(
+          AppointmentsCompanion(
+            checkedInAt: Value(at),
+            status: const Value(AppointmentStatus.inProgress),
+          ),
+        );
+      }),
+    );
   }
 
   @override
@@ -729,19 +1205,26 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     required String id,
     required String staffId,
     String? outcomeNote,
-  }) {
-    return Result.guardAsync(() => _db.transaction(() async {
-      final row = await _ownedByStaff(id, staffId);
-      _requireTransition(row.status, AppointmentStatus.completed);
-      await (_db.update(_db.appointments)..where((a) => a.id.equals(id))).write(
-        AppointmentsCompanion(
-          status: const Value(AppointmentStatus.completed),
-          outcomeNote: outcomeNote == null
-              ? const Value.absent()
-              : Value(outcomeNote.trim()),
-        ),
-      );
-    }));
+    int? expectedVersion,
+  }) async {
+    final denied = await _staffDenial(id, staffId);
+    if (denied != null) return Err(denied);
+    return Result.guardAsync(
+      () => _db.transaction(() async {
+        final row = await _ownedByStaff(id, staffId, expectedVersion);
+        _requireTransition(row.status, AppointmentStatus.completed);
+        await (_db.update(
+          _db.appointments,
+        )..where((a) => a.id.equals(id))).write(
+          AppointmentsCompanion(
+            status: const Value(AppointmentStatus.completed),
+            outcomeNote: outcomeNote == null
+                ? const Value.absent()
+                : Value(outcomeNote.trim()),
+          ),
+        );
+      }),
+    );
   }
 
   @override
@@ -753,6 +1236,11 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     String? reasonText,
   }) {
     return Result.guardAsync(() async {
+      await _access.actAsStaff(
+        staffId,
+        Permission.manageWalkInQueue,
+        entityType: 'appointment',
+      );
       final now = DateTime.now();
       final id = newId('appt');
       final roomNumber = await _assignRoomNumber(departmentId, staffId);
@@ -787,9 +1275,16 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     required String id,
     required String fromStaffId,
     required String toStaffId,
+    int? expectedVersion,
   }) {
     return Result.guardAsync(() async {
-      final current = await _ownedByStaff(id, fromStaffId);
+      await _access.actAsStaff(
+        fromStaffId,
+        Permission.runConsultation,
+        entityType: 'appointment',
+        entityId: id,
+      );
+      final current = await _ownedByStaff(id, fromStaffId, expectedVersion);
       if (current.staffId == toStaffId) {
         throw const ValidationFailure(
           'That appointment is already with this clinician.',

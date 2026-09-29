@@ -13,9 +13,7 @@ void main() {
   testWidgets(
     'a bootstrap failure shows a retry screen instead of the login screen',
     (tester) async {
-      SharedPreferences.setMockInitialValues({
-        'ui.hasSeenOnboarding': true,
-      });
+      SharedPreferences.setMockInitialValues({'ui.hasSeenOnboarding': true});
       final prefs = await SharedPreferences.getInstance();
       var attempts = 0;
 

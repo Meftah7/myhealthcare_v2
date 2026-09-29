@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/status_badges.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../patient_chart/application/chart_providers.dart';
@@ -55,9 +56,13 @@ class _ClinicalScribeScreenState extends ConsumerState<ClinicalScribeScreen> {
     setState(() => _structuring = false);
     switch (result) {
       case Err(:final failure):
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(failure.message)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              describeFailure(AppLocalizations.of(context)!, failure).message,
+            ),
+          ),
+        );
       case Ok(:final value):
         setState(() {
           _chief.text = value.chiefComplaint;
@@ -94,15 +99,16 @@ class _ClinicalScribeScreenState extends ConsumerState<ClinicalScribeScreen> {
         );
     if (!mounted) return;
     setState(() => _saving = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(switch (result) {
-          Ok() => t.savedToPatientRecord,
-          Err(:final failure) => failure.message,
-        }),
-      ),
-    );
-    if (result.isOk && context.mounted) context.pop();
+    final messenger = ScaffoldMessenger.of(context);
+    final message = switch (result) {
+      Ok() => t.savedToPatientRecord,
+      Err(:final failure) => describeFailure(
+        AppLocalizations.of(context)!,
+        failure,
+      ).message,
+    };
+    if (result.isOk) context.pop();
+    messenger.showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -242,10 +248,7 @@ class _ClinicalScribeScreenState extends ConsumerState<ClinicalScribeScreen> {
         controller: c,
         minLines: lines,
         maxLines: lines + 4,
-        decoration: InputDecoration(
-          labelText: label,
-          alignLabelWithHint: true,
-        ),
+        decoration: InputDecoration(labelText: label, alignLabelWithHint: true),
       ),
     );
   }

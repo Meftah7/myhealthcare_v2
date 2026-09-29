@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/states.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
@@ -25,14 +26,12 @@ class MessagesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
     final threads = ref.watch(patientThreadsProvider);
-    final doctors =
-        ref.watch(messageableDoctorsProvider).valueOrNull ?? const [];
+    final doctorsAsync = ref.watch(messageableDoctorsProvider);
+    final doctors = doctorsAsync.valueOrNull ?? const [];
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(t.quickActionAskDoctor),
-        actions: const [PatientTopActions()],
-      ),
+    return AppScaffold(
+      title: t.quickActionAskDoctor,
+      actions: const [PatientTopActions()],
       floatingActionButton: doctors.isEmpty
           ? null
           : FloatingActionButton.extended(
@@ -43,53 +42,61 @@ class MessagesScreen extends ConsumerWidget {
       body: RefreshIndicator(
         onRefresh: () async => ref.invalidate(patientThreadsProvider),
         child: threads.when(
-        loading: () => const SkeletonList(),
-        error: (e, _) => ErrorStateView(
-          message: t.couldNotLoadMessages,
-          onRetry: () => ref.invalidate(patientThreadsProvider),
-        ),
-        data: (list) {
-          if (list.isEmpty) {
-            return ListView(
-              children: [
-                const SizedBox(height: 120),
-                EmptyState(
-                  icon: Icons.chat_bubble_outline,
-                  message: doctors.isEmpty
-                      ? t.onceSeenDoctorMessage
-                      : t.noConversationsYetMessage,
+          loading: () => const SkeletonList(),
+          error: (e, _) => ErrorStateView(
+            message: t.couldNotLoadMessages,
+            onRetry: () => ref.invalidate(patientThreadsProvider),
+          ),
+          data: (list) {
+            // Unknown doctors is not "you haven't seen a doctor yet".
+            if (list.isEmpty && doctorsAsync.hasError) {
+              return ErrorStateView(
+                message: t.couldNotLoadMessages,
+                onRetry: () => ref.invalidate(messageableDoctorsProvider),
+              );
+            }
+            if (list.isEmpty) {
+              return ListView(
+                children: [
+                  const SizedBox(height: 120),
+                  EmptyState(
+                    icon: Icons.chat_bubble_outline,
+                    message: doctors.isEmpty
+                        ? t.onceSeenDoctorMessage
+                        : t.noConversationsYetMessage,
+                  ),
+                ],
+              );
+            }
+            return Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: Space.maxContentWidth,
                 ),
-              ],
+                child: ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(
+                    Space.md,
+                    Space.md,
+                    Space.md,
+                    Space.xxl,
+                  ),
+                  itemCount: list.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: Space.sm),
+                  itemBuilder: (context, i) {
+                    final t = list[i];
+                    return ThreadTile(
+                      thread: t,
+                      viewerIsStaff: false,
+                      onTap: () => _open(context, t.staffId, t.counterpartName),
+                    );
+                  },
+                ),
+              ),
             );
-          }
-          return Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: Space.maxContentWidth,
-              ),
-              child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(
-                  Space.md,
-                  Space.md,
-                  Space.md,
-                  Space.xxl,
-                ),
-                itemCount: list.length,
-                separatorBuilder: (_, _) => const SizedBox(height: Space.sm),
-                itemBuilder: (context, i) {
-                  final t = list[i];
-                  return ThreadTile(
-                    thread: t,
-                    viewerIsStaff: false,
-                    onTap: () => _open(context, t.staffId, t.counterpartName),
-                  );
-                },
-              ),
-            ),
-          );
-        },
+          },
         ),
       ),
+      centerBody: false,
     );
   }
 
@@ -126,7 +133,11 @@ class MessagesScreen extends ConsumerWidget {
 
 /// Router entry for a patient thread — the patient id comes from the session.
 class PatientMessageThreadPage extends ConsumerWidget {
-  const PatientMessageThreadPage({required this.staffId, this.title, super.key});
+  const PatientMessageThreadPage({
+    required this.staffId,
+    this.title,
+    super.key,
+  });
 
   final String staffId;
   final String? title;
@@ -155,10 +166,18 @@ class PatientMessageThreadPage extends ConsumerWidget {
 
 /// Router entry for a staff thread — the clinician id comes from the session.
 class StaffMessageThreadPage extends ConsumerWidget {
-  const StaffMessageThreadPage({required this.patientId, this.title, super.key});
+  const StaffMessageThreadPage({
+    required this.patientId,
+    this.title,
+    this.ownerId,
+    super.key,
+  });
 
   final String patientId;
   final String? title;
+
+  /// Set when opening a colleague's thread this clinician covers.
+  final String? ownerId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -177,7 +196,7 @@ class StaffMessageThreadPage extends ConsumerWidget {
     }
     return MessageThreadScreen(
       patientId: patientId,
-      staffId: user.id,
+      staffId: ownerId ?? user.id,
       title: name,
       viewerIsStaff: true,
     );

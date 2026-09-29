@@ -9,7 +9,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/states.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -17,6 +19,7 @@ import '../../../domain/enums.dart';
 import '../../../domain/repositories/appointment_repository.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../appointments/presentation/slot_picker_sheet.dart';
+import '../../auth/presentation/reauth_prompt.dart';
 import '../application/admin_providers.dart';
 import 'admin_top_actions.dart';
 
@@ -78,51 +81,47 @@ class _State extends ConsumerState<UserManagementScreen>
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
     final add = _addLabel(t);
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(t.userManagementTitle),
-        actions: const [AdminTopActions()],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(104),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  Space.md,
-                  0,
-                  Space.md,
-                  Space.sm,
-                ),
-                child: SearchBar(
-                  controller: _search,
-                  hintText: t.searchByNameOrEmailHint,
-                  leading: const Icon(Icons.search),
-                  trailing: [
-                    if (_query.isNotEmpty)
-                      IconButton(
-                        tooltip: AppLocalizations.of(
-                          context,
-                        )!.clearSearchTooltip,
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _search.clear();
-                          setState(() => _query = '');
-                        },
-                      ),
-                  ],
-                  onChanged: (v) => setState(() => _query = v),
-                ),
+    return AppScaffold(
+      title: t.userManagementTitle,
+      actions: const [AdminTopActions()],
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(104),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                Space.md,
+                0,
+                Space.md,
+                Space.sm,
               ),
-              TabBar(
-                controller: _tabs,
-                tabs: [
-                  Tab(text: t.patientsAction),
-                  Tab(text: t.staffCountLabel),
-                  Tab(text: t.adminsLabel),
+              child: SearchBar(
+                controller: _search,
+                hintText: t.searchByNameOrEmailHint,
+                leading: const Icon(Icons.search),
+                trailing: [
+                  if (_query.isNotEmpty)
+                    IconButton(
+                      tooltip: AppLocalizations.of(context)!.clearSearchTooltip,
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _search.clear();
+                        setState(() => _query = '');
+                      },
+                    ),
                 ],
+                onChanged: (v) => setState(() => _query = v),
               ),
-            ],
-          ),
+            ),
+            TabBar(
+              controller: _tabs,
+              tabs: [
+                Tab(text: t.patientsAction),
+                Tab(text: t.staffCountLabel),
+                Tab(text: t.adminsLabel),
+              ],
+            ),
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -134,6 +133,7 @@ class _State extends ConsumerState<UserManagementScreen>
         controller: _tabs,
         children: [for (final r in _roles) _UserList(role: r, query: _query)],
       ),
+      centerBody: false,
     );
   }
 }
@@ -201,8 +201,7 @@ class _UserCard extends ConsumerWidget {
     final isPatient = user.role == UserRole.patient;
     final isStaff = user.role == UserRole.staff;
     final pendingReset =
-        (ref.watch(pendingPasswordResetUserIdsProvider).valueOrNull ??
-                const {})
+        (ref.watch(pendingPasswordResetUserIdsProvider).valueOrNull ?? const {})
             .contains(user.id);
 
     return Padding(
@@ -329,16 +328,26 @@ class _UserCard extends ConsumerWidget {
   Future<void> _toggleActive(BuildContext context, WidgetRef ref) async {
     final t = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
-    await ref
-        .read(adminActionsProvider)
-        .setActive(id: user.id, active: !user.isActive);
+    final r = await runWithReauth(
+      context,
+      ref,
+      () => ref
+          .read(adminActionsProvider)
+          .setActive(id: user.id, active: !user.isActive),
+    );
+    // Only confirm what actually happened.
     messenger.showSnackBar(
       SnackBar(
-        content: Text(
-          user.isActive
-              ? t.userDeactivatedSnackbar(user.fullName)
-              : t.userReactivatedSnackbar(user.fullName),
-        ),
+        content: Text(switch (r) {
+          Ok() =>
+            user.isActive
+                ? t.userDeactivatedSnackbar(user.fullName)
+                : t.userReactivatedSnackbar(user.fullName),
+          Err(:final failure) => describeFailure(
+            AppLocalizations.of(context)!,
+            failure,
+          ).message,
+        }),
       ),
     );
   }
@@ -348,14 +357,22 @@ class _UserCard extends ConsumerWidget {
     final messenger = ScaffoldMessenger.of(context);
     final pw = await _promptPassword(context);
     if (pw == null) return;
-    final r = await ref
-        .read(adminActionsProvider)
-        .resetPassword(id: user.id, newPassword: pw);
+    if (!context.mounted) return;
+    final r = await runWithReauth(
+      context,
+      ref,
+      () => ref
+          .read(adminActionsProvider)
+          .resetPassword(id: user.id, newPassword: pw),
+    );
     messenger.showSnackBar(
       SnackBar(
         content: Text(switch (r) {
           Ok() => t.passwordResetForSnackbar(user.fullName),
-          Err(:final failure) => failure.message,
+          Err(:final failure) => describeFailure(
+            AppLocalizations.of(context)!,
+            failure,
+          ).message,
         }),
       ),
     );
@@ -522,13 +539,20 @@ class _CreatePersonSheetState extends ConsumerState<_CreatePersonSheet> {
     final email = _email.text.trim();
     final pw = _password.text.trim();
     final (ok, message) = switch (widget.role) {
-      UserRole.admin => switch (await actions.createAdmin(
-        fullName: name,
-        email: email,
-        temporaryPassword: pw,
+      UserRole.admin => switch (await runWithReauth(
+        context,
+        ref,
+        () => actions.createAdmin(
+          fullName: name,
+          email: email,
+          temporaryPassword: pw,
+        ),
       )) {
         Ok(:final value) => (true, t.createdSnackbar(value.fullName)),
-        Err(:final failure) => (false, failure.message),
+        Err(:final failure) => (
+          false,
+          describeFailure(AppLocalizations.of(context)!, failure).message,
+        ),
       },
       _ => switch (await actions.createPatient(
         fullName: name,
@@ -536,7 +560,10 @@ class _CreatePersonSheetState extends ConsumerState<_CreatePersonSheet> {
         temporaryPassword: pw,
       )) {
         Ok(:final value) => (true, t.createdSnackbar(value.user.fullName)),
-        Err(:final failure) => (false, failure.message),
+        Err(:final failure) => (
+          false,
+          describeFailure(AppLocalizations.of(context)!, failure).message,
+        ),
       },
     };
     if (!mounted) return;
@@ -665,7 +692,10 @@ class _CreateStaffSheetState extends ConsumerState<_CreateStaffSheet> {
       SnackBar(
         content: Text(switch (r) {
           Ok(:final value) => t.createdSnackbar(value.fullName),
-          Err(:final failure) => failure.message,
+          Err(:final failure) => describeFailure(
+            AppLocalizations.of(context)!,
+            failure,
+          ).message,
         }),
       ),
     );
@@ -841,7 +871,10 @@ class _BookForPatientSheetState extends ConsumerState<_BookForPatientSheet> {
       SnackBar(
         content: Text(switch (r) {
           Ok() => t.appointmentBookedForSnackbar(widget.patient.fullName),
-          Err(:final failure) => failure.message,
+          Err(:final failure) => describeFailure(
+            AppLocalizations.of(context)!,
+            failure,
+          ).message,
         }),
       ),
     );
@@ -1019,7 +1052,10 @@ class _ReferPatientSheetState extends ConsumerState<_ReferPatientSheet> {
             widget.patient.fullName,
             destination,
           ),
-          Err(:final failure) => failure.message,
+          Err(:final failure) => describeFailure(
+            AppLocalizations.of(context)!,
+            failure,
+          ).message,
         }),
       ),
     );
@@ -1228,7 +1264,10 @@ class _ScheduleEditorSheetState extends ConsumerState<_ScheduleEditorSheet> {
       case Err(:final failure):
         setState(() {
           _busy = false;
-          _error = failure.message;
+          _error = describeFailure(
+            AppLocalizations.of(context)!,
+            failure,
+          ).message;
         });
     }
   }

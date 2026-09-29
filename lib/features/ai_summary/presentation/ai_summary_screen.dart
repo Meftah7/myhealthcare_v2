@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
 import '../../../core/utils/format.dart';
@@ -24,35 +25,33 @@ class AiSummaryScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final summary = ref.watch(patientAiSummaryProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(t.aiHealthSummaryTitle),
-        actions: [
-          IconButton(
-            tooltip: t.regenerateTooltip,
-            icon: const Icon(Icons.refresh),
-            onPressed: summary.isLoading
-                ? null
-                : () async {
-                    final entity = await ref
-                        .read(aiSummaryControllerProvider)
-                        .load(forceRegenerate: true);
-                    ref
-                      ..invalidate(patientAiSummaryProvider)
-                      ..invalidate(patientAiSummaryProvider);
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            t.regeneratedAt(fmtDateTime(entity.generatedAt)),
-                          ),
+    return AppScaffold(
+      title: t.aiHealthSummaryTitle,
+      actions: [
+        IconButton(
+          tooltip: t.regenerateTooltip,
+          icon: const Icon(Icons.refresh),
+          onPressed: summary.isLoading
+              ? null
+              : () async {
+                  final entity = await ref
+                      .read(aiSummaryControllerProvider)
+                      .load(forceRegenerate: true);
+                  ref
+                    ..invalidate(patientAiSummaryProvider)
+                    ..invalidate(patientAiSummaryProvider);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          t.regeneratedAt(fmtDateTime(entity.generatedAt)),
                         ),
-                      );
-                    }
-                  },
-          ),
-        ],
-      ),
+                      ),
+                    );
+                  }
+                },
+        ),
+      ],
       body: Column(
         children: [
           const AiDisclaimerBanner(),
@@ -100,10 +99,7 @@ class AiSummaryScreen extends ConsumerWidget {
                       ),
 
                       if (s.redFlags.isNotEmpty) ...[
-                        SectionHeader(
-                          t.thingsToCheckHeader,
-                          overline: true,
-                        ),
+                        SectionHeader(t.thingsToCheckHeader, overline: true),
                         AppCard(
                           padding: const EdgeInsets.all(Space.md),
                           child: Column(
@@ -171,9 +167,7 @@ class AiSummaryScreen extends ConsumerWidget {
                                   onTap: e.recordId == null
                                       ? null
                                       : () => context.push(
-                                          AppRoutes.patientRecord(
-                                            e.recordId!,
-                                          ),
+                                          AppRoutes.patientRecord(e.recordId!),
                                         ),
                                 ),
                             ],
@@ -188,6 +182,7 @@ class AiSummaryScreen extends ConsumerWidget {
           ),
         ],
       ),
+      centerBody: false,
     );
   }
 

@@ -8,6 +8,7 @@ import 'package:myhealthcare/core/failures.dart';
 import 'package:myhealthcare/data/repositories/appointment_repository_impl.dart';
 import 'package:myhealthcare/data/repositories/family_link_repository_impl.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
+import 'package:myhealthcare/domain/entities/appointment.dart';
 import 'package:myhealthcare/domain/enums.dart';
 import 'package:myhealthcare/features/auth/application/session.dart';
 import 'package:myhealthcare/features/booking/application/booking_providers.dart';
@@ -19,306 +20,353 @@ import '../support/test_database.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('request must accept before an active link exists, and rejects duplicates', () async {
-    final db = newTestDatabase();
-    addTearDown(db.close);
-    await Seeder(db).run();
-    final repo = FamilyLinkRepositoryImpl(db);
+  test(
+    'request must accept before an active link exists, and rejects duplicates',
+    () async {
+      final db = newTestDatabase();
+      addTearDown(db.close);
+      await Seeder(db).run();
+      final repo = FamilyLinkRepositoryImpl(db);
 
-    final patients = (await db.select(db.users).get())
-        .where((u) => u.role == UserRole.patient)
-        .toList();
-    final a = patients[0].id;
-    final b = patients[1].id;
+      final patients = (await db.select(db.users).get())
+          .where((u) => u.role == UserRole.patient)
+          .toList();
+      final a = patients[0].id;
+      final b = patients[1].id;
 
-    // Can't link to yourself.
-    final self = await repo.request(
-      ownerPatientId: a,
-      viewerPatientId: a,
-      permission: FamilyLinkPermission.viewOnly,
-    );
-    expect(self.isErr, isTrue);
+      // Can't link to yourself.
+      final self = await repo.request(
+        ownerPatientId: a,
+        viewerPatientId: a,
+        permission: FamilyLinkPermission.viewOnly,
+      );
+      expect(self.isErr, isTrue);
 
-    final requested = await repo.request(
-      ownerPatientId: b,
-      viewerPatientId: a,
-      permission: FamilyLinkPermission.viewOnly,
-    );
-    expect(requested.isOk, isTrue);
-    expect(requested.valueOrNull!.status, FamilyLinkStatus.pending);
+      final requested = await repo.request(
+        ownerPatientId: b,
+        viewerPatientId: a,
+        permission: FamilyLinkPermission.viewOnly,
+      );
+      expect(requested.isOk, isTrue);
+      expect(requested.valueOrNull!.status, FamilyLinkStatus.pending);
 
-    // No access yet — still pending.
-    final beforeAccept = await repo.activeLink(
-      viewerPatientId: a,
-      ownerPatientId: b,
-    );
-    expect(beforeAccept.valueOrNull, isNull);
+      // No access yet — still pending.
+      final beforeAccept = await repo.activeLink(
+        viewerPatientId: a,
+        ownerPatientId: b,
+      );
+      expect(beforeAccept.valueOrNull, isNull);
 
-    // A second request between the same two accounts is rejected.
-    final dup = await repo.request(
-      ownerPatientId: b,
-      viewerPatientId: a,
-      permission: FamilyLinkPermission.manage,
-    );
-    expect(dup.isErr, isTrue);
-    expect(dup.failureOrNull!.message, contains('already pending'));
+      // A second request between the same two accounts is rejected.
+      final dup = await repo.request(
+        ownerPatientId: b,
+        viewerPatientId: a,
+        permission: FamilyLinkPermission.manage,
+      );
+      expect(dup.isErr, isTrue);
+      expect(dup.failureOrNull!.message, contains('already pending'));
 
-    // Only the owner (b) can accept.
-    final wrongAcceptor = await repo.accept(
-      linkId: requested.valueOrNull!.id,
-      actingPatientId: a,
-    );
-    expect(wrongAcceptor.isErr, isTrue);
+      // Only the owner (b) can accept.
+      final wrongAcceptor = await repo.accept(
+        linkId: requested.valueOrNull!.id,
+        actingPatientId: a,
+      );
+      expect(wrongAcceptor.isErr, isTrue);
 
-    final accepted = await repo.accept(
-      linkId: requested.valueOrNull!.id,
-      actingPatientId: b,
-    );
-    expect(accepted.isOk, isTrue);
-    expect(accepted.valueOrNull!.status, FamilyLinkStatus.accepted);
+      final accepted = await repo.accept(
+        linkId: requested.valueOrNull!.id,
+        actingPatientId: b,
+      );
+      expect(accepted.isOk, isTrue);
+      expect(accepted.valueOrNull!.status, FamilyLinkStatus.accepted);
 
-    final afterAccept = await repo.activeLink(
-      viewerPatientId: a,
-      ownerPatientId: b,
-    );
-    expect(afterAccept.valueOrNull, isNotNull);
-    expect(afterAccept.valueOrNull!.permission, FamilyLinkPermission.viewOnly);
-  });
+      final afterAccept = await repo.activeLink(
+        viewerPatientId: a,
+        ownerPatientId: b,
+      );
+      expect(afterAccept.valueOrNull, isNotNull);
+      expect(
+        afterAccept.valueOrNull!.permission,
+        FamilyLinkPermission.viewOnly,
+      );
+    },
+  );
 
-  test('either side can decline a pending request or unlink an accepted one', () async {
-    final db = newTestDatabase();
-    addTearDown(db.close);
-    await Seeder(db).run();
-    final repo = FamilyLinkRepositoryImpl(db);
+  test(
+    'either side can decline a pending request or unlink an accepted one',
+    () async {
+      final db = newTestDatabase();
+      addTearDown(db.close);
+      await Seeder(db).run();
+      final repo = FamilyLinkRepositoryImpl(db);
 
-    final patients = (await db.select(db.users).get())
-        .where((u) => u.role == UserRole.patient)
-        .toList();
-    final a = patients[0].id;
-    final b = patients[1].id;
-    final c = patients[2].id;
+      final patients = (await db.select(db.users).get())
+          .where((u) => u.role == UserRole.patient)
+          .toList();
+      final a = patients[0].id;
+      final b = patients[1].id;
+      final c = patients[2].id;
 
-    // The viewer can cancel their own pending request.
-    final r1 = await repo.request(
-      ownerPatientId: b,
-      viewerPatientId: a,
-      permission: FamilyLinkPermission.viewOnly,
-    );
-    final cancelled = await repo.decline(
-      linkId: r1.valueOrNull!.id,
-      actingPatientId: a,
-    );
-    expect(cancelled.isOk, isTrue);
+      // The viewer can cancel their own pending request.
+      final r1 = await repo.request(
+        ownerPatientId: b,
+        viewerPatientId: a,
+        permission: FamilyLinkPermission.viewOnly,
+      );
+      final cancelled = await repo.decline(
+        linkId: r1.valueOrNull!.id,
+        actingPatientId: a,
+      );
+      expect(cancelled.isOk, isTrue);
 
-    // A stranger can't decline someone else's request.
-    final r2 = await repo.request(
-      ownerPatientId: b,
-      viewerPatientId: a,
-      permission: FamilyLinkPermission.viewOnly,
-    );
-    final stranger = await repo.decline(
-      linkId: r2.valueOrNull!.id,
-      actingPatientId: c,
-    );
-    expect(stranger.isErr, isTrue);
+      // A stranger can't decline someone else's request.
+      final r2 = await repo.request(
+        ownerPatientId: b,
+        viewerPatientId: a,
+        permission: FamilyLinkPermission.viewOnly,
+      );
+      final stranger = await repo.decline(
+        linkId: r2.valueOrNull!.id,
+        actingPatientId: c,
+      );
+      expect(stranger.isErr, isTrue);
 
-    // Accept, then either side can unlink.
-    await repo.accept(linkId: r2.valueOrNull!.id, actingPatientId: b);
-    final unlinked = await repo.unlink(
-      linkId: r2.valueOrNull!.id,
-      actingPatientId: b,
-    );
-    expect(unlinked.isOk, isTrue);
-    final gone = await repo.activeLink(viewerPatientId: a, ownerPatientId: b);
-    expect(gone.valueOrNull, isNull);
-  });
+      // Accept, then either side can unlink.
+      await repo.accept(linkId: r2.valueOrNull!.id, actingPatientId: b);
+      final unlinked = await repo.unlink(
+        linkId: r2.valueOrNull!.id,
+        actingPatientId: b,
+      );
+      expect(unlinked.isOk, isTrue);
+      final gone = await repo.activeLink(viewerPatientId: a, ownerPatientId: b);
+      expect(gone.valueOrNull, isNull);
+    },
+  );
 
-  test('manage permission lets a linked patient cancel; view-only cannot', () async {
-    final db = newTestDatabase();
-    addTearDown(db.close);
-    await Seeder(db).run();
+  test(
+    'manage permission lets a linked patient cancel; view-only cannot',
+    () async {
+      final db = newTestDatabase();
+      addTearDown(db.close);
+      await Seeder(db).run();
 
-    SharedPreferences.setMockInitialValues({});
-    final prefs = await SharedPreferences.getInstance();
-    final container = ProviderContainer(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(prefs),
-        appDatabaseProvider.overrideWithValue(db),
-      ],
-    );
-    addTearDown(container.dispose);
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          appDatabaseProvider.overrideWithValue(db),
+        ],
+      );
+      addTearDown(container.dispose);
 
-    final familyRepo = FamilyLinkRepositoryImpl(db);
-    final apptRepo = AppointmentRepositoryImpl(db);
-    final patients = (await db.select(db.users).get())
-        .where((u) => u.role == UserRole.patient)
-        .toList();
-    final manager = patients[0];
-    final viewer = patients[1];
-    final owner = patients[2];
+      final familyRepo = FamilyLinkRepositoryImpl(db);
+      final apptRepo = AppointmentRepositoryImpl(db);
+      final patients = (await db.select(db.users).get())
+          .where((u) => u.role == UserRole.patient)
+          .toList();
+      final manager = patients[0];
+      final viewer = patients[1];
 
-    final ownerAppts = (await apptRepo.forPatient(owner.id)).valueOrNull!;
-    expect(
-      ownerAppts.length,
-      greaterThanOrEqualTo(2),
-      reason: 'need two of this patient\'s appointments for the two checks',
-    );
+      // Only appointments still cancellable: open status and outside the
+      // 2-hour cutoff, so the check does not depend on the time of day.
+      final cutoff = DateTime.now().add(const Duration(hours: 3));
+      Future<List<Appointment>> cancellable(String patientId) async =>
+          (await apptRepo.forPatient(patientId)).valueOrNull!
+              .where(
+                (a) =>
+                    (a.status == AppointmentStatus.booked ||
+                        a.status == AppointmentStatus.confirmed) &&
+                    a.checkedInAt == null &&
+                    a.slotStart.isAfter(cutoff),
+              )
+              .toList();
+      var owner = patients[2];
+      var ownerAppts = await cancellable(owner.id);
+      for (final candidate in patients.skip(2)) {
+        final appts = await cancellable(candidate.id);
+        if (appts.length >= 2) {
+          owner = candidate;
+          ownerAppts = appts;
+          break;
+        }
+      }
+      expect(
+        ownerAppts.length,
+        greaterThanOrEqualTo(2),
+        reason: 'need two of this patient\'s appointments for the two checks',
+      );
 
-    final manageReq = await familyRepo.request(
-      ownerPatientId: owner.id,
-      viewerPatientId: manager.id,
-      permission: FamilyLinkPermission.manage,
-    );
-    await familyRepo.accept(
-      linkId: manageReq.valueOrNull!.id,
-      actingPatientId: owner.id,
-    );
-    final viewReq = await familyRepo.request(
-      ownerPatientId: owner.id,
-      viewerPatientId: viewer.id,
-      permission: FamilyLinkPermission.viewOnly,
-    );
-    await familyRepo.accept(
-      linkId: viewReq.valueOrNull!.id,
-      actingPatientId: owner.id,
-    );
+      final manageReq = await familyRepo.request(
+        ownerPatientId: owner.id,
+        viewerPatientId: manager.id,
+        permission: FamilyLinkPermission.manage,
+      );
+      await familyRepo.accept(
+        linkId: manageReq.valueOrNull!.id,
+        actingPatientId: owner.id,
+      );
+      final viewReq = await familyRepo.request(
+        ownerPatientId: owner.id,
+        viewerPatientId: viewer.id,
+        permission: FamilyLinkPermission.viewOnly,
+      );
+      await familyRepo.accept(
+        linkId: viewReq.valueOrNull!.id,
+        actingPatientId: owner.id,
+      );
 
-    // View-only: the controller refuses before ever touching the appointment.
-    await container
-        .read(sessionProvider.notifier)
-        .login(email: viewer.email, password: Seeder.demoPassword);
-    final deniedResult = await container
-        .read(familyLinkControllerProvider)
-        .cancelForLinkedAccount(
-          ownerPatientId: owner.id,
-          appointmentId: ownerAppts[0].id,
-        );
-    expect(deniedResult.isErr, isTrue);
-    expect(deniedResult.failureOrNull!.message, contains('view access'));
-    final stillOpen = await apptRepo.forPatient(owner.id);
-    expect(
-      stillOpen.valueOrNull!.firstWhere((a) => a.id == ownerAppts[0].id).status,
-      isNot(AppointmentStatus.cancelled),
-    );
+      // View-only: the controller refuses before ever touching the appointment.
+      await container
+          .read(sessionProvider.notifier)
+          .login(email: viewer.email, password: Seeder.demoPassword);
+      final deniedResult = await container
+          .read(familyLinkControllerProvider)
+          .cancelForLinkedAccount(
+            ownerPatientId: owner.id,
+            appointmentId: ownerAppts[0].id,
+          );
+      expect(deniedResult.isErr, isTrue);
+      expect(deniedResult.failureOrNull!.message, contains('view access'));
+      final stillOpen = await apptRepo.forPatient(owner.id);
+      expect(
+        stillOpen.valueOrNull!
+            .firstWhere((a) => a.id == ownerAppts[0].id)
+            .status,
+        isNot(AppointmentStatus.cancelled),
+      );
 
-    // Manage: the controller allows it.
-    await container.read(sessionProvider.notifier).logout();
-    await container
-        .read(sessionProvider.notifier)
-        .login(email: manager.email, password: Seeder.demoPassword);
-    final allowedResult = await container
-        .read(familyLinkControllerProvider)
-        .cancelForLinkedAccount(
-          ownerPatientId: owner.id,
-          appointmentId: ownerAppts[1].id,
-        );
-    expect(allowedResult.isOk, isTrue);
-    final updated = await apptRepo.forPatient(owner.id);
-    expect(
-      updated.valueOrNull!.firstWhere((a) => a.id == ownerAppts[1].id).status,
-      AppointmentStatus.cancelled,
-    );
-  });
+      // Manage: the controller allows it.
+      await container.read(sessionProvider.notifier).logout();
+      await container
+          .read(sessionProvider.notifier)
+          .login(email: manager.email, password: Seeder.demoPassword);
+      final allowedResult = await container
+          .read(familyLinkControllerProvider)
+          .cancelForLinkedAccount(
+            ownerPatientId: owner.id,
+            appointmentId: ownerAppts[1].id,
+          );
+      expect(
+        allowedResult.isOk,
+        isTrue,
+        reason: allowedResult.failureOrNull?.message,
+      );
+      final updated = await apptRepo.forPatient(owner.id);
+      expect(
+        updated.valueOrNull!.firstWhere((a) => a.id == ownerAppts[1].id).status,
+        AppointmentStatus.cancelled,
+      );
+    },
+  );
 
-  test('manage permission lets a linked patient book for the owner; view-only cannot',
-      () async {
-    final db = newTestDatabase();
-    addTearDown(db.close);
-    await Seeder(db).run();
+  test(
+    'manage permission lets a linked patient book for the owner; view-only cannot',
+    () async {
+      final db = newTestDatabase();
+      addTearDown(db.close);
+      await Seeder(db).run();
 
-    SharedPreferences.setMockInitialValues({});
-    final prefs = await SharedPreferences.getInstance();
-    final container = ProviderContainer(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(prefs),
-        appDatabaseProvider.overrideWithValue(db),
-      ],
-    );
-    addTearDown(container.dispose);
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          appDatabaseProvider.overrideWithValue(db),
+        ],
+      );
+      addTearDown(container.dispose);
 
-    final familyRepo = FamilyLinkRepositoryImpl(db);
-    final apptRepo = AppointmentRepositoryImpl(db);
-    final patients = (await db.select(db.users).get())
-        .where((u) => u.role == UserRole.patient)
-        .toList();
-    final manager = patients[3];
-    final viewer = patients[4];
-    final owner = patients[5];
+      final familyRepo = FamilyLinkRepositoryImpl(db);
+      final apptRepo = AppointmentRepositoryImpl(db);
+      final patients = (await db.select(db.users).get())
+          .where((u) => u.role == UserRole.patient)
+          .toList();
+      final manager = patients[3];
+      final viewer = patients[4];
+      final owner = patients[5];
 
-    final manageReq = await familyRepo.request(
-      ownerPatientId: owner.id,
-      viewerPatientId: manager.id,
-      permission: FamilyLinkPermission.manage,
-    );
-    await familyRepo.accept(
-      linkId: manageReq.valueOrNull!.id,
-      actingPatientId: owner.id,
-    );
-    final viewReq = await familyRepo.request(
-      ownerPatientId: owner.id,
-      viewerPatientId: viewer.id,
-      permission: FamilyLinkPermission.viewOnly,
-    );
-    await familyRepo.accept(
-      linkId: viewReq.valueOrNull!.id,
-      actingPatientId: owner.id,
-    );
+      final manageReq = await familyRepo.request(
+        ownerPatientId: owner.id,
+        viewerPatientId: manager.id,
+        permission: FamilyLinkPermission.manage,
+      );
+      await familyRepo.accept(
+        linkId: manageReq.valueOrNull!.id,
+        actingPatientId: owner.id,
+      );
+      final viewReq = await familyRepo.request(
+        ownerPatientId: owner.id,
+        viewerPatientId: viewer.id,
+        permission: FamilyLinkPermission.viewOnly,
+      );
+      await familyRepo.accept(
+        linkId: viewReq.valueOrNull!.id,
+        actingPatientId: owner.id,
+      );
 
-    final depts = await container.read(departmentsProvider.future);
-    final staff = await container.read(
-      departmentStaffProvider(depts.first.id).future,
-    );
-    var date = DateTime.now().add(const Duration(days: 2));
-    while (date.weekday == DateTime.friday ||
-        date.weekday == DateTime.saturday) {
-      date = date.add(const Duration(days: 1));
-    }
-    final draft = BookingRequestDraft(
-      departmentId: depts.first.id,
-      staffId: staff.first.id,
-      date: DateTime(date.year, date.month, date.day),
-    );
+      final depts = await container.read(departmentsProvider.future);
+      final staff = await container.read(
+        departmentStaffProvider(depts.first.id).future,
+      );
+      var date = DateTime.now().add(const Duration(days: 2));
+      while (date.weekday == DateTime.friday ||
+          date.weekday == DateTime.saturday) {
+        date = date.add(const Duration(days: 1));
+      }
+      final draft = BookingRequestDraft(
+        departmentId: depts.first.id,
+        staffId: staff.first.id,
+        date: DateTime(date.year, date.month, date.day),
+      );
 
-    final beforeCount = (await apptRepo.forPatient(owner.id)).valueOrNull!.length;
+      final beforeCount = (await apptRepo.forPatient(
+        owner.id,
+      )).valueOrNull!.length;
 
-    // View-only: authorization fails before ranking can read the owner's
-    // profile or appointment history.
-    await container
-        .read(sessionProvider.notifier)
-        .login(email: viewer.email, password: Seeder.demoPassword);
-    container.read(bookingDraftProvider.notifier).state = draft;
-    container.read(bookingTargetPatientIdProvider.notifier).state = owner.id;
-    await expectLater(
-      container.read(rankedSlotsProvider.future),
-      throwsA(
-        isA<AuthFailure>().having(
-          (failure) => failure.message,
-          'message',
-          contains('manage access'),
+      // View-only: authorization fails before ranking can read the owner's
+      // profile or appointment history.
+      await container
+          .read(sessionProvider.notifier)
+          .login(email: viewer.email, password: Seeder.demoPassword);
+      container.read(bookingDraftProvider.notifier).state = draft;
+      container.read(bookingTargetPatientIdProvider.notifier).state = owner.id;
+      await expectLater(
+        container.read(rankedSlotsProvider.future),
+        throwsA(
+          isA<AuthFailure>().having(
+            (failure) => failure.message,
+            'message',
+            contains('manage access'),
+          ),
         ),
-      ),
-    );
-    expect(
-      (await apptRepo.forPatient(owner.id)).valueOrNull!.length,
-      beforeCount,
-    );
+      );
+      expect(
+        (await apptRepo.forPatient(owner.id)).valueOrNull!.length,
+        beforeCount,
+      );
 
-    // Manage: booking for the owner succeeds and lands under their account.
-    await container.read(sessionProvider.notifier).logout();
-    await container
-        .read(sessionProvider.notifier)
-        .login(email: manager.email, password: Seeder.demoPassword);
-    container.read(bookingTargetPatientIdProvider.notifier).state = owner.id;
-    final managerRanked = await container.read(rankedSlotsProvider.future);
-    expect(managerRanked, isNotEmpty);
-    final allowedBooking = await container
-        .read(bookingControllerProvider)
-        .confirm(managerRanked.first);
-    expect(allowedBooking.isOk, isTrue);
-    expect(allowedBooking.valueOrNull!.patientId, owner.id);
-    expect(
-      (await apptRepo.forPatient(owner.id)).valueOrNull!.length,
-      beforeCount + 1,
-    );
-  });
+      // Manage: booking for the owner succeeds and lands under their account.
+      await container.read(sessionProvider.notifier).logout();
+      await container
+          .read(sessionProvider.notifier)
+          .login(email: manager.email, password: Seeder.demoPassword);
+      // Drafts never carry across accounts on a shared device, so the manager
+      // starts their own.
+      expect(container.read(bookingTargetPatientIdProvider), isNull);
+      container.read(bookingDraftProvider.notifier).state = draft;
+      container.read(bookingTargetPatientIdProvider.notifier).state = owner.id;
+      final managerRanked = await container.read(rankedSlotsProvider.future);
+      expect(managerRanked, isNotEmpty);
+      final allowedBooking = await container
+          .read(bookingControllerProvider)
+          .confirm(managerRanked.first);
+      expect(allowedBooking.isOk, isTrue);
+      expect(allowedBooking.valueOrNull!.patientId, owner.id);
+      expect(
+        (await apptRepo.forPatient(owner.id)).valueOrNull!.length,
+        beforeCount + 1,
+      );
+    },
+  );
 }

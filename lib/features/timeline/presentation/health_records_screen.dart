@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../billing/presentation/payments_screen.dart';
 import '../../patient/application/patient_data_providers.dart';
@@ -42,11 +43,9 @@ class _HealthRecordsScreenState extends State<HealthRecordsScreen> {
     final t = AppLocalizations.of(context)!;
     final largeText = MediaQuery.textScalerOf(context).scale(1) > 1.0;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(t.recordsTitle),
-        actions: const [PatientTopActions()],
-      ),
+    return AppScaffold(
+      title: t.recordsTitle,
+      actions: const [PatientTopActions()],
       floatingActionButton: _view == _RecordsView.timeline
           ? FloatingActionButton.extended(
               onPressed: () => showImportRecordSheet(context),
@@ -133,6 +132,7 @@ class _HealthRecordsScreenState extends State<HealthRecordsScreen> {
           ),
         ],
       ),
+      centerBody: false,
     );
   }
 }

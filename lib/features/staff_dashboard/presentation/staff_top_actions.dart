@@ -35,24 +35,27 @@ class StaffTopActions extends ConsumerWidget {
         MediaQuery.platformBrightnessOf(context) == Brightness.dark;
     final isDark =
         mode == ThemeMode.dark || (mode == ThemeMode.system && platformIsDark);
+    final compact = WindowSize.of(context).isCompact;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         const PresenceMenu(),
         const NotificationsButton(route: AppRoutes.staffNotifications),
-        CircleIconButton(
-          icon: isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-          tooltip: isDark ? t.switchToLightMode : t.switchToDarkMode,
-          onPressed: () => ref
-              .read(themeModeProvider.notifier)
-              .set(isDark ? ThemeMode.light : ThemeMode.dark),
-        ),
-        CircleIconButton(
-          icon: Icons.account_circle_outlined,
-          tooltip: t.profileTooltip,
-          onPressed: () => context.go(AppRoutes.staffProfile),
-        ),
+        if (!compact)
+          CircleIconButton(
+            icon: isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+            tooltip: isDark ? t.switchToLightMode : t.switchToDarkMode,
+            onPressed: () => ref
+                .read(themeModeProvider.notifier)
+                .set(isDark ? ThemeMode.light : ThemeMode.dark),
+          ),
+        if (!compact)
+          CircleIconButton(
+            icon: Icons.account_circle_outlined,
+            tooltip: t.profileTooltip,
+            onPressed: () => context.go(AppRoutes.staffProfile),
+          ),
         const SizedBox(width: Space.xs),
       ],
     );
@@ -102,6 +105,7 @@ class PresenceMenu extends ConsumerWidget {
     final profile = ref.watch(staffProfileProvider);
     final current = profile.valueOrNull?.presence ?? PresenceStatus.offShift;
     final meta = presenceMeta(context, current);
+    final compact = WindowSize.of(context).isCompact;
 
     return PopupMenuButton<PresenceStatus>(
       tooltip: t.setYourAvailabilityTooltip,
@@ -109,9 +113,9 @@ class PresenceMenu extends ConsumerWidget {
       onSelected: (status) async {
         final result = await ref.read(staffOpsProvider).setPresence(status);
         if (context.mounted && result.isErr) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(t.couldNotUpdatePresence)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(t.couldNotUpdatePresence)));
         }
       },
       itemBuilder: (context) => [
@@ -156,14 +160,16 @@ class PresenceMenu extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(meta.icon, size: 15, color: meta.color),
-                const SizedBox(width: Space.xs),
-                Flexible(
-                  child: Text(
-                    meta.label,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelMedium,
+                if (!compact) ...[
+                  const SizedBox(width: Space.xs),
+                  Flexible(
+                    child: Text(
+                      meta.label,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelMedium,
+                    ),
                   ),
-                ),
+                ],
                 Icon(
                   Icons.arrow_drop_down,
                   size: 18,

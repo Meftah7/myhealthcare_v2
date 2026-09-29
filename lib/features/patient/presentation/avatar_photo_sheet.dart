@@ -17,6 +17,7 @@ import 'package:path_provider/path_provider.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/patient_data_providers.dart';
@@ -40,8 +41,7 @@ Future<void> showAvatarPhotoSheet(
   return showModalBottomSheet<void>(
     context: context,
     showDragHandle: true,
-    builder: (context) =>
-        _AvatarPhotoSheet(userId: userId, hasPhoto: hasPhoto),
+    builder: (context) => _AvatarPhotoSheet(userId: userId, hasPhoto: hasPhoto),
   );
 }
 
@@ -135,7 +135,10 @@ class _AvatarPhotoSheetState extends ConsumerState<_AvatarPhotoSheet> {
       case Err(:final failure):
         setState(() {
           _busy = false;
-          _error = failure.message;
+          _error = describeFailure(
+            AppLocalizations.of(context)!,
+            failure,
+          ).message;
         });
     }
   }

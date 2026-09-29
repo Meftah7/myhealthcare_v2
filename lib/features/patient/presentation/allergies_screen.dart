@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/states.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../patient/application/patient_data_providers.dart';
@@ -25,8 +26,8 @@ class AllergiesScreen extends ConsumerWidget {
     final profile = ref.watch(patientProfileProvider);
     final gutter = WindowSize.of(context).gutter;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(t.allergiesLabel)),
+    return AppScaffold(
+      title: t.allergiesLabel,
       body: profile.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
@@ -76,6 +77,7 @@ class AllergiesScreen extends ConsumerWidget {
           );
         },
       ),
+      centerBody: false,
     );
   }
 }

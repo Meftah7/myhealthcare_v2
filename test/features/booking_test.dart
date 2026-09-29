@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
-import 'package:myhealthcare/domain/enums.dart';
+import 'package:myhealthcare/domain/entities/entities.dart';
 import 'package:myhealthcare/features/auth/application/session.dart';
 import 'package:myhealthcare/features/booking/application/booking_providers.dart';
 import 'package:myhealthcare/features/patient/application/patient_data_providers.dart';
@@ -16,7 +16,7 @@ import '../support/test_database.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('ranked slots carry a probability + band and confirm() books', () async {
+  test('unvalidated risk stays disabled and confirm() still books', () async {
     final db = newTestDatabase();
     addTearDown(db.close);
     await Seeder(db).run();
@@ -55,12 +55,8 @@ void main() {
 
     final ranked = await container.read(rankedSlotsProvider.future);
     expect(ranked, isNotEmpty);
-    expect(ranked.first.probability, inInclusiveRange(0.0, 1.0));
-    expect(RiskBand.values, contains(ranked.first.band));
-    expect(
-      ranked.first.probability,
-      lessThanOrEqualTo(ranked.last.probability + 1e-9),
-    );
+    expect(ranked.every((slot) => !slot.hasRiskEstimate), isTrue);
+    expect(!ranked.first.slot.start.isAfter(ranked.last.slot.start), isTrue);
 
     final before = (await container.read(
       patientAppointmentsProvider.future,
@@ -69,8 +65,8 @@ void main() {
         .read(bookingControllerProvider)
         .confirm(ranked.first);
     expect(result.isOk, isTrue);
-    expect(result.valueOrNull!.noShowRisk, isNotNull);
-    expect(result.valueOrNull!.riskBand, isNotNull);
+    expect(result.valueOrNull!.noShowRisk, isNull);
+    expect(result.valueOrNull!.riskBand, isNull);
 
     final after = await container.read(patientAppointmentsProvider.future);
     expect(after.length, before + 1);
@@ -78,8 +74,8 @@ void main() {
     expect(result.valueOrNull!.bookedForName, isNull);
   });
 
-  test('a visit booked for a linked family member is stamped with their name',
-      () async {
+  test('a visit booked for a household member lands on their own record, '
+      'labelled with their name', () async {
     final db = newTestDatabase();
     addTearDown(db.close);
     await Seeder(db).run();
@@ -99,33 +95,51 @@ void main() {
         .login(email: 'patient3@myhealth.demo', password: Seeder.demoPassword);
 
     final depts = await container.read(departmentsProvider.future);
-    final staff = await container
-        .read(departmentStaffProvider(depts.first.id).future);
+    final staff = await container.read(
+      departmentStaffProvider(depts.first.id).future,
+    );
     var date = DateTime.now().add(const Duration(days: 2));
     while (date.weekday == DateTime.friday ||
         date.weekday == DateTime.saturday) {
       date = date.add(const Duration(days: 1));
     }
 
-    container.read(bookingDraftProvider.notifier).state = BookingRequestDraft(
+    await container
+        .read(familyMemberControllerProvider)
+        .add(
+          const FamilyMember(
+            id: 'fm_sara',
+            relationship: FamilyRelationship.child,
+            firstName: 'Sara',
+            lastName: 'Ali',
+          ),
+        );
+    final sara = (await container.read(
+      patientFamilyMembersProvider.future,
+    )).firstWhere((m) => m.id == 'fm_sara');
+    final saraRecord =
+        (await container
+                .read(bookingSubjectSelectorProvider)
+                .selectMember(sara))
+            .valueOrNull!;
+    final draft = container.read(bookingDraftProvider);
+    container.read(bookingDraftProvider.notifier).state = draft.copyWith(
       departmentId: depts.first.id,
       staffId: staff.first.id,
       date: DateTime(date.year, date.month, date.day),
-      bookedForName: 'Sara Ali',
     );
 
     final ranked = await container.read(rankedSlotsProvider.future);
     final result = await container
         .read(bookingControllerProvider)
         .confirm(ranked.first);
-    expect(result.isOk, isTrue);
+    expect(result.isOk, isTrue, reason: '$result');
     expect(result.valueOrNull!.bookedForName, 'Sara Ali');
+    // Sara's own record — not the account holder's.
+    expect(result.valueOrNull!.patientId, saraRecord);
 
     // Persisted and read back on the entity.
     final appts = await container.read(patientAppointmentsProvider.future);
-    expect(
-      appts.where((a) => a.bookedForName == 'Sara Ali'),
-      isNotEmpty,
-    );
+    expect(appts.where((a) => a.bookedForName == 'Sara Ali'), isNotEmpty);
   });
 }

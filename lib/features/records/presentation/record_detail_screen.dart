@@ -9,8 +9,8 @@ import '../../../core/di.dart';
 import '../../../core/failures.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/states.dart';
-import '../../../core/presentation/status_badges.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -20,6 +20,7 @@ import '../../auth/application/session.dart';
 import '../../patient/application/patient_documents.dart';
 import '../../patient/presentation/document_download_button.dart';
 import '../../patient/presentation/patient_top_actions.dart';
+import 'lab_values_table.dart';
 
 final recordDetailProvider = FutureProvider.family<MedicalRecord, String>((
   ref,
@@ -28,7 +29,8 @@ final recordDetailProvider = FutureProvider.family<MedicalRecord, String>((
   final result = await ref.watch(recordRepositoryProvider).byId(id);
   return switch (result) {
     Ok(:final value)
-        when value.patientId == ref.watch(currentUserProvider)?.id => value,
+        when value.patientId == ref.watch(currentUserProvider)?.id =>
+      value,
     Ok() => throw const AuthFailure('You cannot access this record.'),
     Err(:final failure) => throw failure,
   };
@@ -45,17 +47,19 @@ class RecordDetailScreen extends ConsumerWidget {
     final t = AppLocalizations.of(context)!;
     final record = ref.watch(recordDetailProvider(recordId));
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(t.recordTitle),
-        actions: const [PatientTopActions()],
-      ),
+    return AppScaffold(
+      title: t.recordTitle,
+      actions: const [PatientTopActions()],
       body: record.when(
         loading: () => const SkeletonList(),
-        error: (e, _) => ErrorStateView(
-          message: t.couldNotLoadRecord,
-          onRetry: () => ref.invalidate(recordDetailProvider(recordId)),
-        ),
+        // Access loss explains the boundary instead of offering a retry
+        // that can never succeed.
+        error: (e, _) => e is AccessDeniedFailure
+            ? ErrorStateView(message: t.accessDeniedBody)
+            : ErrorStateView(
+                message: t.couldNotLoadRecord,
+                onRetry: () => ref.invalidate(recordDetailProvider(recordId)),
+              ),
         data: (r) => Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 720),
@@ -81,7 +85,32 @@ class RecordDetailScreen extends ConsumerWidget {
                   InlineBanner.info(
                     AppLocalizations.of(context)!.uploadedByPatientNote,
                   ),
+                  const SizedBox(height: Space.sm),
+                  ImportProvenanceCard(record: r),
                 ],
+                const SizedBox(height: Space.sm),
+                Wrap(
+                  spacing: Space.xs,
+                  runSpacing: Space.xs,
+                  children: [
+                    DocumentDownloadButton(
+                      label: t.exportRecordAction,
+                      filename: 'record-${r.id}.pdf',
+                      build: () => buildRecordSummary(
+                        ref,
+                        r,
+                        recordTypeLabel: r.recordType.label(context),
+                      ),
+                    ),
+                    if (r.sourceDocument != null)
+                      DocumentDownloadButton(
+                        label: t.openOriginalAction,
+                        filename: r.sourceDocument!.fileName,
+                        icon: Icons.description_outlined,
+                        build: () => openOriginalFile(ref, r),
+                      ),
+                  ],
+                ),
                 if (r.appointmentId != null) ...[
                   const SizedBox(height: Space.xs),
                   Text(
@@ -113,7 +142,7 @@ class RecordDetailScreen extends ConsumerWidget {
                 if (r.labValues.isNotEmpty) ...[
                   const SizedBox(height: Space.md),
                   SectionHeader(t.resultsSection, overline: true),
-                  AppCard(child: _LabTable(labs: r.labValues)),
+                  AppCard(child: LabValuesTable(labs: r.labValues)),
                 ],
                 if (r.extractedText != null) ...[
                   const SizedBox(height: Space.md),
@@ -133,49 +162,64 @@ class RecordDetailScreen extends ConsumerWidget {
           ),
         ),
       ),
+      centerBody: false,
     );
   }
 }
 
-class _LabTable extends StatelessWidget {
-  const _LabTable({required this.labs});
+/// Where an imported record came from — issuer, when it was imported, the
+/// original file — and whether a clinician has reviewed it.
+class ImportProvenanceCard extends StatelessWidget {
+  const ImportProvenanceCard({required this.record, super.key});
 
-  final List<LabValue> labs;
+  final MedicalRecord record;
 
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: DataTable(
-        columns: [
-          DataColumn(label: Text(t.labColumnAnalyte)),
-          DataColumn(label: Text(t.labColumnValue)),
-          DataColumn(label: Text(t.labColumnReference)),
-        ],
-        rows: [
-          for (final v in labs)
-            DataRow(
-              cells: [
-                DataCell(Text(v.analyte)),
-                DataCell(
-                  AbnormalValueIndicator(
-                    flag: v.abnormalFlag,
-                    valueText:
-                        '${v.value}${v.unit == null ? '' : ' ${v.unit}'}',
-                    referenceText: v.refLow != null && v.refHigh != null
-                        ? '${v.refLow}–${v.refHigh}'
-                        : null,
-                  ),
-                ),
-                DataCell(
-                  Text(
-                    v.refLow != null && v.refHigh != null
-                        ? '${v.refLow}–${v.refHigh}'
-                        : t.none,
-                  ),
-                ),
-              ],
+    final theme = Theme.of(context);
+    final doc = record.sourceDocument;
+    final (status, icon) = switch (record.reviewStatus) {
+      ImportReviewStatus.pendingReview || ImportReviewStatus.notRequired => (
+        t.importStatusPending,
+        Icons.hourglass_top_outlined,
+      ),
+      ImportReviewStatus.reviewed => (
+        t.importStatusReviewed,
+        Icons.verified_outlined,
+      ),
+      ImportReviewStatus.rejected => (
+        t.importStatusRejected,
+        Icons.block_outlined,
+      ),
+    };
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(t.provenanceHeader, style: theme.textTheme.titleSmall),
+          const SizedBox(height: Space.xs),
+          Row(
+            children: [
+              Icon(icon, size: 18),
+              const SizedBox(width: Space.xs),
+              Expanded(child: Text(status)),
+            ],
+          ),
+          if (record.reviewNote != null && record.reviewNote!.isNotEmpty)
+            Text(record.reviewNote!, style: theme.textTheme.bodySmall),
+          if (record.sourceFacility != null)
+            Text(t.provenanceIssuer(record.sourceFacility!)),
+          Text(t.provenanceImportedOn(fmtDate(record.createdAt))),
+          if (doc != null)
+            Text(
+              t.provenanceFile(
+                doc.fileName,
+                '${(doc.sizeBytes / 1024).toStringAsFixed(0)} KB',
+              ),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
         ],
       ),

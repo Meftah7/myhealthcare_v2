@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../l10n/app_localizations.dart';
@@ -24,11 +25,9 @@ class VisitedDoctorsScreen extends ConsumerWidget {
     final t = AppLocalizations.of(context)!;
     final doctors = ref.watch(visitedDoctorsProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(t.visitedDoctorsTitle),
-        actions: const [PatientTopActions()],
-      ),
+    return AppScaffold(
+      title: t.visitedDoctorsTitle,
+      actions: const [PatientTopActions()],
       body: doctors.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
@@ -62,6 +61,7 @@ class VisitedDoctorsScreen extends ConsumerWidget {
           );
         },
       ),
+      centerBody: false,
     );
   }
 }

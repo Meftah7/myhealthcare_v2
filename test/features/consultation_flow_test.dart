@@ -41,7 +41,11 @@ Future<void> _login(ProviderContainer c, String email) => c
     .login(email: email, password: Seeder.demoPassword);
 
 /// A fresh booked appointment for staff_01 + patient_001, a clear slot ahead.
+/// Booked by the patient (clinicians don't book on a patient's behalf), then
+/// whoever was signed in before is signed back in.
 Future<String> _bookAppointment(ProviderContainer c) async {
+  final previous = c.read(currentUserProvider)?.email;
+  await _login(c, 'patient1@myhealth.demo');
   final now = DateTime.now();
   var start = DateTime(now.year, now.month, now.day + 2, 10);
   while (start.weekday == DateTime.friday ||
@@ -59,6 +63,7 @@ Future<String> _bookAppointment(ProviderContainer c) async {
           visitType: VisitType.followUp,
         ),
       );
+  if (previous != null) await _login(c, previous);
   return r.valueOrNull!.id;
 }
 
@@ -184,6 +189,55 @@ void main() {
       );
     },
   );
+
+  test('forced close restores the persisted encounter draft', () async {
+    final c = await _container();
+    await _login(c, 'staff1@myhealth.demo');
+    final id = await _bookAppointment(c);
+    final controller = c.read(consultationControllerProvider(id));
+    const draft = ConsultationDraft(
+      note: 'Persistent assessment',
+      meds: [DraftMed(name: 'Test medicine', dose: '5 mg')],
+    );
+    final saved = await controller.saveDraft(draft);
+    expect(saved.isOk, isTrue);
+    c.read(consultationDraftProvider(id).notifier).state =
+        const ConsultationDraft();
+    final restored = await controller.loadDraft();
+    expect(restored.valueOrNull!.note, 'Persistent assessment');
+    expect(restored.valueOrNull!.meds.single.name, 'Test medicine');
+    expect(restored.valueOrNull!.version, isNotNull);
+  });
+
+  test('completion retry creates one signed note and prescription', () async {
+    final c = await _container();
+    await _login(c, 'staff1@myhealth.demo');
+    final id = await _bookAppointment(c);
+    final controller = c.read(consultationControllerProvider(id));
+    await controller.markArrived();
+    const draft = ConsultationDraft(
+      note: 'Final clinical note',
+      meds: [DraftMed(name: 'Idempotent medicine', dose: '10 mg')],
+    );
+    await controller.saveDraft(draft);
+    final first = await controller.complete(draft);
+    final retry = await controller.complete(draft);
+    expect(first.isOk, isTrue);
+    expect(retry.isOk, isTrue);
+    final db = c.read(appDatabaseProvider);
+    final signed = await (db.select(
+      db.signedNotes,
+    )..where((row) => row.appointmentId.equals(id))).get();
+    final medications = await (db.select(
+      db.medications,
+    )..where((row) => row.appointmentId.equals(id))).get();
+    expect(signed, hasLength(1));
+    expect(
+      medications.where((row) => row.name == 'Idempotent medicine'),
+      hasLength(1),
+    );
+    expect(await db.select(db.encounterDrafts).get(), isEmpty);
+  });
 
   test('admin refers to a hospital → a downloadable referral record', () async {
     final c = await _container();

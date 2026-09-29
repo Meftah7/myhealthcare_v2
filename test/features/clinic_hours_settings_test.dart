@@ -9,11 +9,22 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/settings/ui_prefs.dart';
 import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/core/utils/clinic_hours.dart';
+import 'package:myhealthcare/data/db/app_database.dart';
+import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:myhealthcare/features/admin/presentation/clinic_hours_screen.dart';
 import 'package:myhealthcare/l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/test_database.dart';
+
+/// The clinic schedule is shared data only an administrator may change.
+Future<void> _signInAdmin(ProviderContainer container, AppDatabase db) async {
+  await Seeder(db).run();
+  final r = await container
+      .read(authRepositoryProvider)
+      .login(email: 'admin@myhealth.demo', password: Seeder.demoPassword);
+  expect(r.isOk, isTrue);
+}
 
 void main() {
   group('clinic_hours pure functions', () {
@@ -75,6 +86,7 @@ void main() {
       ],
     );
     addTearDown(container.dispose);
+    await _signInAdmin(container, db);
 
     await container
         .read(clinicScheduleProvider.notifier)
@@ -111,6 +123,7 @@ void main() {
       ],
     );
     addTearDown(adminDevice.dispose);
+    await _signInAdmin(adminDevice, db);
     await adminDevice
         .read(clinicScheduleProvider.notifier)
         .set(

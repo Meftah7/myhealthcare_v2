@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/app.dart';
+import 'package:myhealthcare/core/app_environment.dart';
 import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:myhealthcare/features/ai_chat/application/care_navigator.dart';
@@ -31,9 +32,9 @@ void main() {
     // the AI key store resolves to "no key" instead of stalling the reply.
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('plugins.it_nomads.com/flutter_secure_storage'),
-      (call) async => null,
-    );
+          const MethodChannel('plugins.it_nomads.com/flutter_secure_storage'),
+          (call) async => null,
+        );
   });
 
   group('offline responder', () {
@@ -52,7 +53,9 @@ void main() {
         ],
       );
       addTearDown(container.dispose);
-      await container.read(sessionProvider.notifier).login(
+      await container
+          .read(sessionProvider.notifier)
+          .login(
             email: 'patient3@myhealth.demo',
             password: Seeder.demoPassword,
           );
@@ -81,8 +84,10 @@ void main() {
     });
 
     test('navigation questions route to the right area', () async {
-      expect(await ask('how do I book an appointment?'),
-          contains('Appointments'));
+      expect(
+        await ask('how do I book an appointment?'),
+        contains('Appointments'),
+      );
       expect(await ask('where are my lab results?'), contains('Records'));
       expect(await ask('I want to pay my bill'), contains('Payments'));
       expect(await ask('help me with my calories'), contains('Nutrition'));
@@ -97,15 +102,42 @@ void main() {
 
     test('reset restores just the greeting', () async {
       await ask('hello');
-      expect(container.read(careNavigatorProvider).messages.length,
-          greaterThan(1));
+      expect(
+        container.read(careNavigatorProvider).messages.length,
+        greaterThan(1),
+      );
       container.read(careNavigatorProvider.notifier).reset();
       expect(container.read(careNavigatorProvider).messages, hasLength(1));
     });
   });
 
-  testWidgets('FAB opens the chat panel for a signed-in patient',
-      (tester) async {
+  test('production navigator does not simulate a live AI answer', () async {
+    final db = newTestDatabase();
+    addTearDown(db.close);
+    await Seeder(db).run();
+    SharedPreferences.setMockInitialValues({'ui.hasSeenOnboarding': true});
+    final prefs = await SharedPreferences.getInstance();
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        appDatabaseProvider.overrideWithValue(db),
+        appModeProvider.overrideWithValue(AppMode.production),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await container
+        .read(careNavigatorProvider.notifier)
+        .send('how do I book an appointment?');
+
+    final reply = container.read(careNavigatorProvider).messages.last.text;
+    expect(reply, contains('live Care Navigator is currently unavailable'));
+    expect(reply, isNot(contains('Open the Appointments tab')));
+  });
+
+  testWidgets('FAB opens the chat panel for a signed-in patient', (
+    tester,
+  ) async {
     final db = newTestDatabase();
     await Seeder(db).run();
     SharedPreferences.setMockInitialValues({'ui.hasSeenOnboarding': true});
@@ -185,8 +217,9 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
   });
 
-  testWidgets('the button can be dragged to the left and the tab follows',
-      (tester) async {
+  testWidgets('the button can be dragged to the left and the tab follows', (
+    tester,
+  ) async {
     final db = newTestDatabase();
     await Seeder(db).run();
     SharedPreferences.setMockInitialValues({'ui.hasSeenOnboarding': true});
@@ -239,10 +272,12 @@ void main() {
     await tester.tap(find.byIcon(Icons.close).first);
     await _settle(tester);
     final tab = tester.getTopLeft(
-      find.ancestor(
-        of: find.byIcon(Icons.smart_toy_outlined),
-        matching: find.byType(Material),
-      ).first,
+      find
+          .ancestor(
+            of: find.byIcon(Icons.smart_toy_outlined),
+            matching: find.byType(Material),
+          )
+          .first,
     );
     expect(tab.dx, lessThan(40), reason: 'tab is on the left edge');
 

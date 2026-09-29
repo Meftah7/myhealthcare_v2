@@ -1,8 +1,8 @@
 /// App navigation (P0-06) with role-gated redirects (P2-05).
 library;
 
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -18,6 +18,7 @@ import '../features/admin/presentation/admin_profile_pages.dart';
 import '../features/admin/presentation/admin_profile_screen.dart';
 import '../features/admin/presentation/admin_referral_requests_screen.dart';
 import '../features/admin/presentation/admin_top_actions.dart';
+import '../features/admin/presentation/admin_work_queue_screen.dart';
 import '../features/admin/presentation/ai_settings_screen.dart';
 import '../features/admin/presentation/audit_log_screen.dart';
 import '../features/admin/presentation/clinic_hours_screen.dart';
@@ -152,9 +153,17 @@ abstract final class AppRoutes {
   static const staffInbox = '/staff/dashboard/inbox';
 
   /// One patient thread in the staff inbox.
-  static String staffInboxThread(String patientId, {String? name}) {
+  /// [ownerId] opens a colleague's thread this clinician covers.
+  static String staffInboxThread(
+    String patientId, {
+    String? name,
+    String? ownerId,
+  }) {
+    final query = {'name': ?name, 'owner': ?ownerId};
     final base = '$staffInbox/$patientId';
-    return name == null ? base : '$base?name=${Uri.encodeComponent(name)}';
+    return query.isEmpty
+        ? base
+        : Uri(path: base, queryParameters: query).toString();
   }
 
   // Profile-section pages — each its own page, reached from the Profile hub
@@ -180,6 +189,9 @@ abstract final class AppRoutes {
   static const adminFeedback = '/admin/feedback';
   static const adminHomeVisits = '/admin/dashboard/home-visits';
   static const adminReferralRequests = '/admin/dashboard/referral-requests';
+
+  /// Unowned / overdue clinical work and delivery problems (Phase 6).
+  static const adminWorkQueue = '/admin/dashboard/work';
   static const adminNotifications = '/admin/dashboard/notifications';
 
   // Admin — Profile-section pages, each its own page under the Profile hub
@@ -295,8 +307,18 @@ String? _guard(Ref ref, GoRouterState state) {
   }
 
   // Signed in: keep them out of the splash / auth screens, and out of
-  // another role's area.
-  if (loc == onSplash || onAuthScreen) return homeForRole(user.role);
+  // another role's area. The same account signing back in after an idle
+  // timeout returns to where it was (the session only carries that location
+  // for the account that timed out).
+  if (loc == onSplash || onAuthScreen) {
+    final resume = session.resumeLocation;
+    if (resume != null &&
+        session.resumeAccountId == user.id &&
+        _canAccess(Uri.parse(resume).path, user.role)) {
+      return resume;
+    }
+    return homeForRole(user.role);
+  }
   if (!_canAccess(loc, user.role)) return homeForRole(user.role);
   return null;
 }
@@ -347,24 +369,25 @@ class _SplashScreen extends ConsumerWidget {
               // Collapsed by default (this is patient-facing), but the raw
               // exception is what actually lets a bug report be fixed —
               // "something went wrong" alone taught us nothing last time.
-              if (kDebugMode) ExpansionTile(
-                title: Text(
-                  t.technicalDetailsLabel,
-                  style: Theme.of(context).textTheme.labelMedium,
-                ),
-                tilePadding: EdgeInsets.zero,
-                childrenPadding: const EdgeInsets.only(bottom: 8),
-                children: [
-                  SelectableText(
-                    '${bootstrap.error}',
-                    textAlign: TextAlign.start,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontFamily: 'monospace',
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+              if (kDebugMode)
+                ExpansionTile(
+                  title: Text(
+                    t.technicalDetailsLabel,
+                    style: Theme.of(context).textTheme.labelMedium,
                   ),
-                ],
-              ),
+                  tilePadding: EdgeInsets.zero,
+                  childrenPadding: const EdgeInsets.only(bottom: 8),
+                  children: [
+                    SelectableText(
+                      '${bootstrap.error}',
+                      textAlign: TextAlign.start,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontFamily: 'monospace',
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
             ],
           ),
         ),
@@ -558,6 +581,7 @@ StatefulShellRoute _staffShell() {
       final t = AppLocalizations.of(context)!;
       return AppShell(
         navigationShell: navigationShell,
+        contextHeader: const StaffPatientContextHeader(),
         destinations: [
           AppDestination(
             icon: Icons.dashboard_outlined,
@@ -608,6 +632,7 @@ StatefulShellRoute _staffShell() {
                     builder: (_, state) => StaffMessageThreadPage(
                       patientId: state.pathParameters['patientId']!,
                       title: state.uri.queryParameters['name'],
+                      ownerId: state.uri.queryParameters['owner'],
                     ),
                   ),
                 ],
@@ -747,6 +772,10 @@ StatefulShellRoute _adminShell() {
               GoRoute(
                 path: 'referral-requests',
                 builder: (_, _) => const AdminReferralRequestsScreen(),
+              ),
+              GoRoute(
+                path: 'work',
+                builder: (_, _) => const AdminWorkQueueScreen(),
               ),
             ],
           ),

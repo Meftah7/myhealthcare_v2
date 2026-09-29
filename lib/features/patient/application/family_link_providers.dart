@@ -6,6 +6,7 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/settings/ui_prefs.dart';
+import '../../../core/data/contracts.dart';
 import '../../../core/di.dart';
 import '../../../core/failures.dart';
 import '../../../core/result.dart';
@@ -136,13 +137,11 @@ final linkedPatientProvider = FutureProvider.family<Patient, String>((
   return _unwrap(await ref.watch(patientRepositoryProvider).byId(ownerId));
 });
 
-final linkedPermissionProvider = FutureProvider.family<
-  FamilyLinkPermission,
-  String
->((ref, ownerId) async {
-  final link = await _requireActiveLink(ref, ownerId);
-  return link.permission;
-});
+final linkedPermissionProvider =
+    FutureProvider.family<FamilyLinkPermission, String>((ref, ownerId) async {
+      final link = await _requireActiveLink(ref, ownerId);
+      return link.permission;
+    });
 
 final linkedAppointmentsProvider =
     FutureProvider.family<List<Appointment>, String>((ref, ownerId) async {
@@ -152,15 +151,27 @@ final linkedAppointmentsProvider =
       );
     });
 
-final linkedTimelineProvider =
-    FutureProvider.family<List<MedicalRecord>, String>((ref, ownerId) async {
+/// Pages of a linked account's timeline shown; "Load more" adds one.
+final linkedTimelinePagesProvider = StateProvider.family<int, String>(
+  (ref, ownerId) => 1,
+);
+
+/// A linked account's timeline, paged — the source; invalidate this.
+final linkedTimelinePageProvider =
+    FutureProvider.family<Page<MedicalRecord>, String>((ref, ownerId) async {
       await _requireActiveLink(ref, ownerId);
-      return _unwrap(
-        await ref
-            .watch(recordRepositoryProvider)
-            .timeline(ownerId, limit: 200),
+      final repo = ref.watch(recordRepositoryProvider);
+      return loadPages(
+        ref.watch(linkedTimelinePagesProvider(ownerId)),
+        (page) async => _unwrap(await repo.timelinePage(ownerId, page: page)),
       );
     });
+
+final linkedTimelineProvider =
+    FutureProvider.family<List<MedicalRecord>, String>(
+      (ref, ownerId) async =>
+          (await ref.watch(linkedTimelinePageProvider(ownerId).future)).items,
+    );
 
 final linkedVitalsProvider = FutureProvider.family<List<Vitals>, String>((
   ref,
@@ -198,7 +209,7 @@ class FamilyLinkController {
       ..invalidate(linkedPatientProvider)
       ..invalidate(linkedPermissionProvider)
       ..invalidate(linkedAppointmentsProvider)
-      ..invalidate(linkedTimelineProvider)
+      ..invalidate(linkedTimelinePageProvider)
       ..invalidate(linkedVitalsProvider)
       ..invalidate(linkedMedicationsProvider);
   }
@@ -286,8 +297,7 @@ class FamilyLinkController {
           // (a larger, separate architecture gap) — this is the acting
           // device's preferences, same limitation as everywhere else they're
           // read.
-          enabledChannels:
-              _ref.read(notificationPrefsProvider).enabledChannels,
+          enabledChannels: _ref.read(notificationPrefsProvider).enabledChannels,
         );
     if (result case Ok()) {
       _ref.invalidate(linkedAppointmentsProvider(ownerPatientId));

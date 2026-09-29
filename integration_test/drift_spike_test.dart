@@ -25,7 +25,9 @@ void main() {
     final db = AppDatabase.named(dbName);
     addTearDown(db.close);
 
-    expect(db.schemaVersion, 2);
+    // Opening migrates the file to the app's current schema version.
+    final stored = await db.customSelect('PRAGMA user_version').getSingle();
+    expect(stored.read<int>('user_version'), db.schemaVersion);
 
     const id = 'dept-1';
     await db

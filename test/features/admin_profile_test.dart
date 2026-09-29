@@ -83,10 +83,9 @@ void main() {
     );
     expect(find.textContaining('Good '), findsOneWidget);
     expect(find.byType(GradientHeroCard), findsOneWidget);
-    expect(find.text('SYSTEM HEALTH'), findsOneWidget);
-    for (final label in const ['Patients', 'Staff', 'Departments']) {
-      expect(find.text(label), findsWidgets);
-    }
+    // Phase 6: exception queues lead, not system totals.
+    expect(find.text('NEEDS ATTENTION'), findsOneWidget);
+    expect(find.text('SYSTEM HEALTH'), findsNothing);
     expect(find.text('QUICK ACTIONS'), findsOneWidget);
 
     // The five nav tabs.
@@ -121,7 +120,7 @@ void main() {
       'Account',
       'Audit log',
       'System analytics',
-      'Capacity forecast',
+      'Historical demand',
       'AI settings',
       'AI activity',
       'Preferences',

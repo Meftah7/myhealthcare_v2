@@ -14,10 +14,12 @@ import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/paging_widgets.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/two_pane.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../patient_chart/application/chart_providers.dart';
 import '../../patient_chart/presentation/patient_chart_screen.dart';
 import '../application/staff_providers.dart';
 import 'staff_top_actions.dart';
@@ -33,6 +35,8 @@ class StaffPatientsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
     final results = ref.watch(patientSearchResultsProvider);
+    final hasMore =
+        ref.watch(patientSearchPageProvider).valueOrNull?.hasMore ?? false;
     final selectedId = ref.watch(selectedPatientIdProvider);
     final split = TwoPane.isSplit(context);
 
@@ -83,8 +87,15 @@ class StaffPatientsScreen extends ConsumerWidget {
                 Space.md,
                 Space.xxl,
               ),
-              itemCount: patients.length,
+              // One extra row for "Load more" while more pages exist.
+              itemCount: patients.length + (hasMore ? 1 : 0),
               itemBuilder: (context, i) {
+                if (i == patients.length) {
+                  return LoadMoreFooter(
+                    onLoadMore: () =>
+                        ref.read(patientSearchPagesProvider.notifier).state++,
+                  );
+                }
                 final p = patients[i];
                 return Padding(
                   padding: const EdgeInsets.only(bottom: Space.xs),
@@ -92,10 +103,8 @@ class StaffPatientsScreen extends ConsumerWidget {
                     patient: p,
                     selected: split && p.id == selectedId,
                     onTap: () {
-                      if (split) {
-                        ref.read(selectedPatientIdProvider.notifier).state =
-                            p.id;
-                      } else {
+                      ref.read(selectedPatientIdProvider.notifier).state = p.id;
+                      if (!split) {
                         context.go(AppRoutes.staffPatientChart(p.id));
                       }
                     },
@@ -104,6 +113,55 @@ class StaffPatientsScreen extends ConsumerWidget {
               },
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+/// The selected patient stays visible while the clinician moves between the
+/// chart, inbox, tasks and schedule branches.
+class StaffPatientContextHeader extends ConsumerWidget {
+  const StaffPatientContextHeader({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final id = ref.watch(selectedPatientIdProvider);
+    // Reserve the same strip height before selection so choosing a patient
+    // never moves the queue or loses the operator's visual position.
+    if (id == null) return const SizedBox(height: 48);
+    final patient = ref.watch(chartPatientProvider(id)).valueOrNull;
+    final t = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    return Material(
+      color: scheme.secondaryContainer,
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsetsDirectional.only(start: Space.md),
+          child: Row(
+            children: [
+              const Icon(Icons.person_outline),
+              const SizedBox(width: Space.xs),
+              Expanded(
+                child: Text(
+                  patient?.fullName ?? t.patientChartFallbackTitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              TextButton(
+                onPressed: () => context.go(AppRoutes.staffPatientChart(id)),
+                child: Text(t.openChartAction),
+              ),
+              IconButton(
+                tooltip: t.clearSearchTooltip,
+                onPressed: () =>
+                    ref.read(selectedPatientIdProvider.notifier).state = null,
+                icon: const Icon(Icons.close),
+              ),
+            ],
+          ),
         ),
       ),
     );

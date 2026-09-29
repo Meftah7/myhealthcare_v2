@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/capabilities/capability_registry.dart';
 import '../../../core/di.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/ids.dart';
@@ -40,13 +41,18 @@ final _chartAiServiceProvider = FutureProvider.family<AiService, String>((
 
   final settings = await ref.watch(appSettingsProvider.future);
   final key = await ref.watch(aiKeyStoreProvider).read();
-  if (settings.usesRealAi && key != null && key.isNotEmpty) {
-    return FallbackAiService(
-      primary: GeminiAiService(apiKey: key, model: settings.modelId),
-      fallback: mock,
-    );
+  if (phase8CapabilityEnabled('live-clinical-ai') &&
+      settings.usesRealAi &&
+      key != null &&
+      key.isNotEmpty) {
+    final live = GeminiAiService(apiKey: key, model: settings.modelId);
+    return ref.watch(appModeProvider).isDemo
+        ? FallbackAiService(primary: live, fallback: mock)
+        : live;
   }
-  return mock;
+  return ref.watch(appModeProvider).isDemo
+      ? mock
+      : const UnavailableAiService();
 });
 
 /// The cached-or-generated AI summary for a patient, from the staff chart.
@@ -83,7 +89,7 @@ final chartPatientSummaryProvider = FutureProvider.family<AiSummary, String>((
         .log(
           feature: AiFeature.patientSummary,
           usedLiveModel: summary.modelId != 'mock-ai',
-          summary: 'Chart summary for ${patient.fullName}',
+          summary: null,
         ),
   );
 

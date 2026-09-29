@@ -6,7 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/paging_widgets.dart';
 import '../../../core/presentation/states.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -24,8 +27,7 @@ class AdminHomeVisitsScreen extends ConsumerStatefulWidget {
       _AdminHomeVisitsScreenState();
 }
 
-class _AdminHomeVisitsScreenState
-    extends ConsumerState<AdminHomeVisitsScreen> {
+class _AdminHomeVisitsScreenState extends ConsumerState<AdminHomeVisitsScreen> {
   HomeVisitStatus? _filter = HomeVisitStatus.requested;
 
   @override
@@ -35,32 +37,44 @@ class _AdminHomeVisitsScreenState
     final patients =
         ref.watch(patientDirectoryProvider).valueOrNull ?? const {};
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(t.homeVisitsTitle),
-        actions: const [AdminTopActions()],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(52),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              Space.md,
-              0,
-              Space.md,
-              Space.xs,
-            ),
-            child: SizedBox(
-              height: 40,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  _chip(t.homeVisitStatusRequested, HomeVisitStatus.requested),
-                  _chip(t.homeVisitStatusScheduled, HomeVisitStatus.scheduled),
-                  _chip(t.homeVisitStatusCompleted, HomeVisitStatus.completed),
-                  _chip(t.homeVisitStatusDeclined, HomeVisitStatus.declined),
-                  _chip(t.allCategoriesChip, null),
-                ],
+    return AppScaffold(
+      title: t.homeVisitsTitle,
+      actions: const [AdminTopActions()],
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(100),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(Space.md, 0, Space.md, Space.xs),
+          child: Column(
+            children: [
+              SizedBox(
+                height: 40,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    _chip(
+                      t.homeVisitStatusRequested,
+                      HomeVisitStatus.requested,
+                    ),
+                    _chip(
+                      t.homeVisitStatusScheduled,
+                      HomeVisitStatus.scheduled,
+                    ),
+                    _chip(
+                      t.homeVisitStatusCompleted,
+                      HomeVisitStatus.completed,
+                    ),
+                    _chip(t.homeVisitStatusDeclined, HomeVisitStatus.declined),
+                    _chip(t.allCategoriesChip, null),
+                  ],
+                ),
               ),
-            ),
+              // How current the queue is; refresh keeps the chosen filter.
+              QueueFreshness(
+                value: queue,
+                onRefresh: () =>
+                    ref.invalidate(homeVisitQueueProvider(_filter)),
+              ),
+            ],
           ),
         ),
       ),
@@ -100,6 +114,7 @@ class _AdminHomeVisitsScreenState
           );
         },
       ),
+      centerBody: false,
     );
   }
 
@@ -170,22 +185,16 @@ class _QueueCard extends ConsumerWidget {
               children: [
                 Expanded(
                   child: FilledButton(
-                    onPressed: () => _decide(
-                      context,
-                      ref,
-                      HomeVisitStatus.scheduled,
-                    ),
+                    onPressed: () =>
+                        _decide(context, ref, HomeVisitStatus.scheduled),
                     child: Text(t.scheduleButton),
                   ),
                 ),
                 const SizedBox(width: Space.sm),
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () => _decide(
-                      context,
-                      ref,
-                      HomeVisitStatus.declined,
-                    ),
+                    onPressed: () =>
+                        _decide(context, ref, HomeVisitStatus.declined),
                     child: Text(t.declineButton),
                   ),
                 ),
@@ -196,11 +205,8 @@ class _QueueCard extends ConsumerWidget {
             Align(
               alignment: AlignmentDirectional.centerStart,
               child: OutlinedButton(
-                onPressed: () => _decide(
-                  context,
-                  ref,
-                  HomeVisitStatus.completed,
-                ),
+                onPressed: () =>
+                    _decide(context, ref, HomeVisitStatus.completed),
                 child: Text(t.markCompletedButton),
               ),
             ),
@@ -226,9 +232,13 @@ class _QueueCard extends ConsumerWidget {
         .decide(id: request.id, status: status, decisionNote: note);
     if (!context.mounted) return;
     if (result case Err(:final failure)) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(failure.message)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            describeFailure(AppLocalizations.of(context)!, failure).message,
+          ),
+        ),
+      );
     }
   }
 
@@ -260,8 +270,7 @@ class _QueueCard extends ConsumerWidget {
             child: Text(t.cancel),
           ),
           FilledButton(
-            onPressed: () =>
-                Navigator.of(context).pop(controller.text.trim()),
+            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
             child: Text(t.confirm),
           ),
         ],

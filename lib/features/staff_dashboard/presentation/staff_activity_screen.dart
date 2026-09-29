@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../l10n/app_localizations.dart';
@@ -33,8 +34,8 @@ class _StaffActivityScreenState extends ConsumerState<StaffActivityScreen> {
     final gutter = WindowSize.of(context).gutter;
     final names = ref.watch(patientNameLookupProvider).valueOrNull ?? const {};
 
-    return Scaffold(
-      appBar: AppBar(title: Text(t.myActivityTitle)),
+    return AppScaffold(
+      title: t.myActivityTitle,
       body: Column(
         children: [
           Padding(
@@ -84,6 +85,7 @@ class _StaffActivityScreenState extends ConsumerState<StaffActivityScreen> {
           ),
         ],
       ),
+      centerBody: false,
     );
   }
 }

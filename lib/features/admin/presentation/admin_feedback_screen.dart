@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -36,35 +37,33 @@ class _AdminFeedbackScreenState extends ConsumerState<AdminFeedbackScreen> {
     final feedback = ref.watch(feedbackProvider(_filter));
     final gutter = WindowSize.of(context).gutter;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(t.feedbackTitle),
-        actions: const [AdminTopActions()],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(52),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.fromLTRB(Space.md, 0, Space.md, Space.xs),
-            child: Row(
-              children: [
-                for (final (label, value) in [
-                  (FeedbackStatus.open.label(context), FeedbackStatus.open),
-                  (
-                    FeedbackStatus.resolved.label(context),
-                    FeedbackStatus.resolved,
+    return AppScaffold(
+      title: t.feedbackTitle,
+      actions: const [AdminTopActions()],
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(52),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.fromLTRB(Space.md, 0, Space.md, Space.xs),
+          child: Row(
+            children: [
+              for (final (label, value) in [
+                (FeedbackStatus.open.label(context), FeedbackStatus.open),
+                (
+                  FeedbackStatus.resolved.label(context),
+                  FeedbackStatus.resolved,
+                ),
+                (t.allFilterChip, null),
+              ])
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(end: Space.xs),
+                  child: FilterChip(
+                    label: Text(label),
+                    selected: _filter == value,
+                    onSelected: (_) => setState(() => _filter = value),
                   ),
-                  (t.allFilterChip, null),
-                ])
-                  Padding(
-                    padding: const EdgeInsetsDirectional.only(end: Space.xs),
-                    child: FilterChip(
-                      label: Text(label),
-                      selected: _filter == value,
-                      onSelected: (_) => setState(() => _filter = value),
-                    ),
-                  ),
-              ],
-            ),
+                ),
+            ],
           ),
         ),
       ),
@@ -102,6 +101,7 @@ class _AdminFeedbackScreenState extends ConsumerState<AdminFeedbackScreen> {
           );
         },
       ),
+      centerBody: false,
     );
   }
 }

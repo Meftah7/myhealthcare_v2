@@ -10,10 +10,14 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
+import '../../../core/presentation/feedback.dart';
+import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../auth/application/session.dart';
 import '../application/care_providers.dart';
 
 class MessageThreadScreen extends ConsumerStatefulWidget {
@@ -43,7 +47,7 @@ class _MessageThreadScreenState extends ConsumerState<MessageThreadScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _markRead());
+    WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_markRead()));
   }
 
   @override
@@ -53,19 +57,36 @@ class _MessageThreadScreenState extends ConsumerState<MessageThreadScreen> {
     super.dispose();
   }
 
-  void _markRead() {
-    unawaited(
-      ref
-          .read(messageActionsProvider)
-          .markRead(
-            patientId: widget.patientId,
-            staffId: widget.staffId,
-            readerIsStaff: widget.viewerIsStaff,
+  Future<void> _markRead() async {
+    final result = await ref
+        .read(messageActionsProvider)
+        .markRead(
+          patientId: widget.patientId,
+          staffId: widget.staffId,
+          readerIsStaff: widget.viewerIsStaff,
+        );
+    if (result case Err(:final failure) when mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            describeFailure(AppLocalizations.of(context)!, failure).message,
           ),
-    );
+        ),
+      );
+    }
   }
 
-  FutureProvider<List<CareMessage>> get _threadProvider => widget.viewerIsStaff
+  /// A clinician opening a colleague's thread they cover.
+  bool get _covering =>
+      widget.viewerIsStaff &&
+      widget.staffId != ref.read(currentUserProvider)?.id;
+
+  FutureProvider<List<CareMessage>> get _threadProvider => _covering
+      ? coveredThreadProvider((
+          patientId: widget.patientId,
+          ownerId: widget.staffId,
+        ))
+      : widget.viewerIsStaff
       ? staffThreadProvider(widget.patientId)
       : patientThreadProvider(widget.staffId);
 
@@ -73,14 +94,19 @@ class _MessageThreadScreenState extends ConsumerState<MessageThreadScreen> {
     final text = _input.text.trim();
     if (text.isEmpty || _sending) return;
     setState(() => _sending = true);
-    final result = await ref
-        .read(messageActionsProvider)
-        .sendAsCurrentUser(
-          counterpartId: widget.viewerIsStaff
-              ? widget.patientId
-              : widget.staffId,
-          body: text,
-        );
+    final actions = ref.read(messageActionsProvider);
+    final result = _covering
+        ? await actions.sendAsCover(
+            patientId: widget.patientId,
+            ownerId: widget.staffId,
+            body: text,
+          )
+        : await actions.sendAsCurrentUser(
+            counterpartId: widget.viewerIsStaff
+                ? widget.patientId
+                : widget.staffId,
+            body: text,
+          );
     if (!mounted) return;
     setState(() => _sending = false);
     if (result.isOk) {
@@ -116,14 +142,25 @@ class _MessageThreadScreenState extends ConsumerState<MessageThreadScreen> {
             IconButton(
               tooltip: t.openPatientChartTooltip,
               icon: const Icon(Icons.folder_shared_outlined),
-              onPressed: () => context.go(
-                AppRoutes.staffPatientChart(widget.patientId),
-              ),
+              onPressed: () =>
+                  context.go(AppRoutes.staffPatientChart(widget.patientId)),
             ),
         ],
       ),
       body: Column(
         children: [
+          // The honest promise: when a reply comes, and that this is not an
+          // emergency channel.
+          if (!widget.viewerIsStaff)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                Space.md,
+                Space.sm,
+                Space.md,
+                0,
+              ),
+              child: InlineBanner.info(t.messageResponseExpectation),
+            ),
           Expanded(
             child: messages.when(
               loading: () => const SkeletonList(),
@@ -219,7 +256,9 @@ class _Bubble extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     return Align(
-      alignment: mine ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
+      alignment: mine
+          ? AlignmentDirectional.centerEnd
+          : AlignmentDirectional.centerStart,
       child: Container(
         margin: const EdgeInsets.only(bottom: Space.xs),
         padding: const EdgeInsets.symmetric(

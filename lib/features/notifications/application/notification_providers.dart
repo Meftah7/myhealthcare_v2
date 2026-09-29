@@ -20,13 +20,11 @@ final myNotificationsProvider = StreamProvider<List<AppNotification>>((ref) {
 });
 
 /// How many are unread — for the header badge.
-final unreadNotificationCountProvider = Provider<int>((ref) {
-  return ref
-      .watch(myNotificationsProvider)
-      .maybeWhen(
-        data: (list) => list.where((n) => !n.isRead).length,
-        orElse: () => 0,
-      );
+/// Null while the feed is loading or failed — never a reassuring 0.
+final unreadNotificationCountProvider = Provider<int?>((ref) {
+  final feed = ref.watch(myNotificationsProvider);
+  if (feed.hasError || !feed.hasValue) return null;
+  return feed.requireValue.where((n) => !n.isRead).length;
 });
 
 class NotificationController {

@@ -23,6 +23,7 @@ abstract class WalkInTicket with _$WalkInTicket {
     String? claimedByStaffId,
     String? resultAppointmentId,
     DateTime? resolvedAt,
+    @Default(1) int version,
   }) = _WalkInTicket;
 
   const WalkInTicket._();

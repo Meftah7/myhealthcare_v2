@@ -50,6 +50,15 @@ class CareMessages extends Table {
   DateTimeColumn get sentAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get readAt => dateTime().nullable()();
 
+  /// The signed-in account that wrote it — the doctor, the patient, or a
+  /// proxy writing for the patient.
+  TextColumn get senderAccountId => text().nullable()();
+  TextColumn get queueOwnerStaffId =>
+      text().nullable().references(Users, #id, onDelete: KeyAction.setNull)();
+  TextColumn get coverageStaffId =>
+      text().nullable().references(Users, #id, onDelete: KeyAction.setNull)();
+  DateTimeColumn get responseDueAt => dateTime().nullable()();
+
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
@@ -96,6 +105,10 @@ class WalkInTickets extends Table {
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get resolvedAt => dateTime().nullable()();
 
+  /// Optimistic-concurrency version (trigger-bumped, schema v19). Two
+  /// clinicians claiming one ticket race on this.
+  IntColumn get version => integer().withDefault(const Constant(1))();
+
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
@@ -125,6 +138,17 @@ class ReferralRequests extends Table {
   TextColumn get decisionNote => text().nullable()();
   DateTimeColumn get decidedAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  TextColumn get ownerStaffId =>
+      text().nullable().references(Users, #id, onDelete: KeyAction.setNull)();
+  TextColumn get coverageStaffId =>
+      text().nullable().references(Users, #id, onDelete: KeyAction.setNull)();
+  DateTimeColumn get dueAt => dateTime().nullable()();
+  TextColumn get priority =>
+      textEnum<WorkPriority>().withDefault(const Constant('routine'))();
+  TextColumn get handoverNote => text().nullable()();
+
+  /// Optimistic-concurrency version (trigger-bumped, schema v19).
+  IntColumn get version => integer().withDefault(const Constant(1))();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -156,6 +180,12 @@ class HomeVisitRequests extends Table {
   TextColumn get decisionNote => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get decidedAt => dateTime().nullable()();
+
+  /// The signed-in account that asked for the visit (patient or proxy).
+  TextColumn get requestedByAccountId => text().nullable()();
+
+  /// Optimistic-concurrency version (trigger-bumped, schema v19).
+  IntColumn get version => integer().withDefault(const Constant(1))();
 
   @override
   Set<Column<Object>> get primaryKey => {id};

@@ -1,6 +1,7 @@
-/// Patient home (P2-07, redesign v3 — patient dashboard rebuild): a calm
-/// at-a-glance screen — greeting, quick appointment, a health snapshot,
-/// quick actions, live appointment ticket(s).
+/// Patient home (P2-07, redesign v3, Phase 6): a calm at-a-glance screen in
+/// priority order — greeting, allergy alert, what needs the patient's
+/// attention, the next appointment ticket(s) as the anchor, a health
+/// snapshot, then booking and quick actions.
 library;
 
 import 'dart:async';
@@ -18,16 +19,17 @@ import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
-import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
-import '../../booking/application/appointment_confirmation.dart';
+import '../../billing/application/billing_providers.dart';
+import '../../care/application/care_providers.dart';
+import '../../patient/application/family_link_providers.dart';
 import '../../patient/application/patient_data_providers.dart';
 import '../../patient/presentation/patient_top_actions.dart';
-import '../../quick_appointment/application/quick_appointment_providers.dart';
+import 'needs_attention_strip.dart';
 
 class PatientHomeScreen extends ConsumerWidget {
   const PatientHomeScreen({super.key});
@@ -41,10 +43,15 @@ class PatientHomeScreen extends ConsumerWidget {
         .first;
 
     return AppScaffold(
+      stagger: true,
       titleWidget: const AppBrandLockup(),
       actions: const [PatientTopActions()],
       onRefresh: () async {
         ref
+          ..invalidate(patientThreadsProvider)
+          ..invalidate(patientInvoicesProvider)
+          ..invalidate(patientPaymentsProvider)
+          ..invalidate(incomingFamilyRequestsProvider)
           ..invalidate(patientAppointmentsProvider)
           ..invalidate(patientMedicationsProvider)
           ..invalidate(patientVitalsProvider);
@@ -56,23 +63,26 @@ class PatientHomeScreen extends ConsumerWidget {
         ),
         const SizedBox(height: Space.lg),
 
+        // Urgent clinical information first, then what is waiting on the
+        // patient (hidden when nothing is, shown as an error when it could
+        // not be checked).
         const _AllergyAlert(),
+        const NeedsAttentionStrip(),
 
-        // The screen's one saturated surface, and on a wide window the anchor
-        // that spans both columns below it (DESIGN.md §1).
-        const _QuickAppointmentAction(),
+        // The screen's anchor (Phase 6): the next appointment, stable and
+        // first — what's happening before what you can do.
+        SectionHeader(t.sectionUpcomingAppointments, overline: true),
+        const _UpcomingCarousel(),
 
-        // Split so the narrow reading order is unchanged — what's happening
-        // (figures, then the ticket carousel) before what you can do.
         SectionColumns(
           primary: [
             SectionHeader(t.sectionYourHealth, overline: true),
             _HealthSnapshot(),
-            SectionHeader(t.sectionUpcomingAppointments, overline: true),
-            const _UpcomingCarousel(),
           ],
           secondary: [
             SectionHeader(t.sectionQuickActions, overline: true),
+            const _QuickAppointmentAction(),
+            const SizedBox(height: Space.sm),
             const _QuickActions(),
           ],
         ),
@@ -96,11 +106,11 @@ class _QuickAppointmentAction extends ConsumerWidget {
       icon: Icons.bolt,
       title: t.quickAppointmentTitle,
       subtitle: t.quickAppointmentSubtitle,
-      onTap: () => _chooseUrgency(context, ref),
+      onTap: () => _chooseUrgency(context),
     );
   }
 
-  Future<void> _chooseUrgency(BuildContext context, WidgetRef ref) async {
+  Future<void> _chooseUrgency(BuildContext context) async {
     final choice = await showModalBottomSheet<_QuickChoice>(
       context: context,
       showDragHandle: true,
@@ -169,37 +179,33 @@ class _QuickAppointmentAction extends ConsumerWidget {
       context.go(AppRoutes.patientAppointments);
       return;
     }
-    await _bookUrgent(context, ref);
+    await _bookUrgent(context);
   }
 
-  Future<void> _bookUrgent(BuildContext context, WidgetRef ref) async {
-    unawaited(
-      showDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => const Center(child: CircularProgressIndicator()),
+  Future<void> _bookUrgent(BuildContext context) async {
+    final t = AppLocalizations.of(context)!;
+    final schedule = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(t.urgencyUrgentTitle),
+        content: Text(t.sendNonUrgentQuestionMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(t.backButton),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(t.continueButton),
+          ),
+        ],
       ),
     );
-    final result = await ref
-        .read(quickAppointmentControllerProvider)
-        .bookUrgent();
-    if (!context.mounted) return;
+    if (schedule == true && context.mounted) {
+      context.go(AppRoutes.patientAppointments);
+    }
     // The loader sits on the root navigator — close it there, not on the shell
     // branch's navigator (which would pop Home and leave a blank screen).
-    Navigator.of(context, rootNavigator: true).pop();
-
-    switch (result) {
-      case Ok():
-        ref.invalidate(patientAppointmentsProvider);
-        ref
-            .read(appointmentConfirmationProvider.notifier)
-            .show(AppLocalizations.of(context)!.onSchedule);
-      case Err(:final failure):
-        if (!context.mounted) return;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(failure.message)));
-    }
   }
 }
 
@@ -419,6 +425,10 @@ class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
   int _index = 0;
   int _count = 0;
 
+  /// The raw page in view. Neighbours peeking in at the edges are visual
+  /// only — not tappable slivers, and not announced twice to screen readers.
+  int _raw = _origin;
+
   @override
   void dispose() {
     _controller.dispose();
@@ -532,17 +542,29 @@ class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
                   // No itemCount → scrolls forever; the card shown is
                   // `rawPage % count`, so the list wraps in either direction.
                   onPageChanged: (raw) {
-                    setState(() => _index = ((raw % _count) + _count) % _count);
+                    setState(() {
+                      _raw = raw;
+                      _index = ((raw % _count) + _count) % _count;
+                    });
                   },
                   itemBuilder: (context, raw) {
                     if (_count == 0) return const SizedBox.shrink();
                     final i = ((raw % _count) + _count) % _count;
                     final appt = active[i];
-                    return Padding(
-                      padding: const EdgeInsetsDirectional.only(end: Space.sm),
-                      child: _BigTicketCard(
-                        appt: appt,
-                        doctorName: doctors[appt.staffId]?.name,
+                    final current = raw == _raw;
+                    return ExcludeSemantics(
+                      excluding: !current,
+                      child: IgnorePointer(
+                        ignoring: !current,
+                        child: Padding(
+                          padding: const EdgeInsetsDirectional.only(
+                            end: Space.sm,
+                          ),
+                          child: _BigTicketCard(
+                            appt: appt,
+                            doctorName: doctors[appt.staffId]?.name,
+                          ),
+                        ),
                       ),
                     );
                   },

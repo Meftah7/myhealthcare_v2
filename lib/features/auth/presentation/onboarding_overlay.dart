@@ -143,8 +143,7 @@ class _OnboardingOverlayState extends ConsumerState<OnboardingOverlay> {
                 controller: _controller,
                 onPageChanged: (i) => setState(() => _page = i),
                 children: [
-                  for (final page in pages)
-                    _OnboardingPageView(page: page),
+                  for (final page in pages) _OnboardingPageView(page: page),
                 ],
               ),
             ),
@@ -211,7 +210,9 @@ class _OnboardingOverlayState extends ConsumerState<OnboardingOverlay> {
                           ),
                           shape: const StadiumBorder(),
                         ),
-                        child: Text(last ? t.onboardingGetStarted : t.nextLabel),
+                        child: Text(
+                          last ? t.onboardingGetStarted : t.nextLabel,
+                        ),
                       ),
                     ],
                   ),
@@ -392,4 +393,3 @@ class _OnboardingPageView extends StatelessWidget {
     );
   }
 }
-

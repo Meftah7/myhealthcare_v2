@@ -1,9 +1,14 @@
-/// Shared PDF chrome for every patient-facing document (P10-01).
+/// Shared PDF chrome for every patient-facing document (P10-01, Phase 5).
 ///
-/// One letterhead, one patient strip, one footer — so a vitals report, an
-/// imaging result and a sick-leave note all read as documents from the same
-/// clinic. Report builders live in `reports.dart`; they hand this a title and
-/// a list of `pw.Widget` body blocks and get back the finished bytes.
+/// One letterhead, one patient strip, one provenance block, one footer — so a
+/// vitals report, an imaging result and a sick-leave note all read as
+/// documents from the same clinic and all say who issued them, where the
+/// content came from, its date and its status.
+///
+/// Documents are real text (not images), so they can be selected, searched
+/// and read by screen readers. Arabic documents are laid out right-to-left
+/// with an embedded Arabic font; names and clinical free text are printed as
+/// recorded.
 library;
 
 import 'dart:typed_data';
@@ -13,6 +18,8 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+
+import 'pdf_strings.dart';
 
 /// The patient identity block printed at the top of every document.
 class PdfIdentity {
@@ -31,6 +38,32 @@ class PdfIdentity {
   final List<String> allergies;
 }
 
+/// Who issued a document, where its content came from, when, and in what
+/// state — printed on every export so a reader never has to guess.
+class DocumentProvenance {
+  const DocumentProvenance({
+    required this.issuer,
+    required this.source,
+    required this.documentDate,
+    required this.status,
+    required this.reference,
+    this.originalFile,
+    this.sha256,
+  });
+
+  final String issuer;
+  final String source;
+  final DateTime documentDate;
+  final String status;
+
+  /// A stable reference for the underlying record or certificate.
+  final String reference;
+
+  /// For an imported record: the original file's name and fingerprint.
+  final String? originalFile;
+  final String? sha256;
+}
+
 /// Brand colours, kept in step with `AppColors` but declared here so the PDF
 /// layer has no dependency on the Flutter theme.
 const _ink = PdfColor.fromInt(0xFF1A1A2E);
@@ -39,43 +72,62 @@ const _brand = PdfColor.fromInt(0xFF5B4FE9);
 const _hairline = PdfColor.fromInt(0xFFD9D9E3);
 const _alertBg = PdfColor.fromInt(0xFFFDECEC);
 const _alertInk = PdfColor.fromInt(0xFFB3261E);
+const _panel = PdfColor.fromInt(0xFFF6F6FA);
 
-final _dateFmt = DateFormat('d MMMM yyyy');
-final _stampFmt = DateFormat('d MMM yyyy, HH:mm');
+/// Dates in documents. English spells the month; Arabic uses an unambiguous
+/// numeric form that needs no locale data.
+String pdfDate(DateTime d, {bool arabic = false}) => arabic
+    ? DateFormat('d/M/yyyy').format(d)
+    : DateFormat('d MMMM yyyy').format(d);
+
+String pdfShortDate(DateTime d, {bool arabic = false}) => arabic
+    ? DateFormat('d/M/yyyy').format(d)
+    : DateFormat('d MMM yyyy').format(d);
+
+String pdfStamp(DateTime d, {bool arabic = false}) => arabic
+    ? DateFormat('d/M/yyyy HH:mm').format(d)
+    : DateFormat('d MMM yyyy, HH:mm').format(d);
 
 class ClinicPdf {
   const ClinicPdf._();
 
   static const clinicName = 'MyHealth Care';
-  static const clinicTagline = 'Integrated clinic & patient portal';
-  static const _disclaimer =
-      'This document is generated from the patient record and is not a '
-      'substitute for direct clinical advice.';
 
-  /// Builds a finished PDF. [title] is the document name ("Vital signs '
-  /// report"); [subtitle] is an optional line under it (a date range, say).
+  /// Builds a finished PDF. [title] is the document name; [subtitle] an
+  /// optional line under it (a date range, say).
   static Future<Uint8List> build({
     required String title,
     required PdfIdentity patient,
+    required DocumentProvenance provenance,
     required List<pw.Widget> body,
     String? subtitle,
+    bool arabic = false,
   }) async {
+    final s = PdfStrings.of(arabic: arabic);
     final logo = await _logo();
     final theme = await _theme();
     final generatedAt = DateTime.now();
-    final doc = pw.Document(title: title, author: clinicName, theme: theme);
+    final doc = pw.Document(
+      title: title,
+      author: clinicName,
+      subject: provenance.reference,
+      theme: theme,
+    );
 
     doc.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         theme: theme,
+        textDirection: arabic ? pw.TextDirection.rtl : pw.TextDirection.ltr,
         margin: const pw.EdgeInsets.fromLTRB(40, 40, 40, 48),
         header: (context) => context.pageNumber == 1
-            ? _letterhead(logo, title, subtitle)
+            ? _letterhead(logo, title, subtitle, s)
             : _runningHeader(title),
-        footer: _footer(generatedAt),
+        footer: _footer(generatedAt, s),
         build: (context) => [
-          _identityStrip(patient),
+          _identityStrip(patient, s),
+          pw.SizedBox(height: 12),
+          _provenanceBlock(provenance, s),
           pw.SizedBox(height: 18),
           ...body,
         ],
@@ -95,6 +147,7 @@ class ClinicPdf {
     pw.ImageProvider? logo,
     String title,
     String? subtitle,
+    PdfStrings s,
   ) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -122,7 +175,7 @@ class ClinicPdf {
                       ),
                     ),
                     pw.Text(
-                      clinicTagline,
+                      s.clinicTagline,
                       style: const pw.TextStyle(fontSize: 8, color: _muted),
                     ),
                   ],
@@ -180,18 +233,18 @@ class ClinicPdf {
     );
   }
 
-  static pw.Widget _identityStrip(PdfIdentity p) {
+  static pw.Widget _identityStrip(PdfIdentity p, PdfStrings s) {
     final facts = <String>[
-      'ID ${_shortId(p.patientId)}',
-      if (p.dob != null) 'DOB ${_dateFmt.format(p.dob!)}',
+      s.id(_shortId(p.patientId)),
+      if (p.dob != null) s.dob(pdfDate(p.dob!, arabic: s.isArabic)),
       if (p.bloodType != null && p.bloodType!.isNotEmpty)
-        'Blood type ${p.bloodType}',
+        s.bloodType(p.bloodType!),
     ];
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         pw.Text(
-          'PATIENT',
+          s.patient,
           style: const pw.TextStyle(
             fontSize: 7,
             color: _muted,
@@ -214,15 +267,15 @@ class ClinicPdf {
           style: const pw.TextStyle(fontSize: 9, color: _muted),
         ),
         pw.SizedBox(height: 8),
-        _allergyBanner(p.allergies),
+        _allergyBanner(p.allergies, s),
       ],
     );
   }
 
-  static pw.Widget _allergyBanner(List<String> allergies) {
+  static pw.Widget _allergyBanner(List<String> allergies, PdfStrings s) {
     if (allergies.isEmpty) {
       return pw.Text(
-        'No known allergies recorded.',
+        s.noAllergies,
         style: const pw.TextStyle(fontSize: 8, color: _muted),
       );
     }
@@ -237,9 +290,9 @@ class ClinicPdf {
       child: pw.RichText(
         text: pw.TextSpan(
           children: [
-            const pw.TextSpan(
-              text: 'ALLERGIES  ',
-              style: pw.TextStyle(
+            pw.TextSpan(
+              text: '${s.allergies}  ',
+              style: const pw.TextStyle(
                 fontSize: 8,
                 fontWeight: pw.FontWeight.bold,
                 color: _alertInk,
@@ -256,7 +309,48 @@ class ClinicPdf {
     );
   }
 
-  static pw.Widget Function(pw.Context) _footer(DateTime generatedAt) {
+  static pw.Widget _provenanceBlock(DocumentProvenance p, PdfStrings s) {
+    return pw.Container(
+      width: double.infinity,
+      padding: const pw.EdgeInsets.all(8),
+      decoration: pw.BoxDecoration(
+        color: _panel,
+        borderRadius: pw.BorderRadius.circular(4),
+        border: pw.Border.all(color: _hairline, width: 0.5),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            s.provenanceHeading.toUpperCase(),
+            style: const pw.TextStyle(
+              fontSize: 7,
+              color: _muted,
+              fontWeight: pw.FontWeight.bold,
+              letterSpacing: 1,
+            ),
+          ),
+          pw.SizedBox(height: 4),
+          pdfKeyValue(s.issuedBy, p.issuer),
+          pdfKeyValue(s.source, p.source),
+          pdfKeyValue(
+            s.documentDate,
+            pdfDate(p.documentDate, arabic: s.isArabic),
+          ),
+          pdfKeyValue(s.status, p.status),
+          pdfKeyValue(s.reference, p.reference),
+          if (p.originalFile != null)
+            pdfKeyValue(s.originalFile, p.originalFile!),
+          if (p.sha256 != null) pdfKeyValue(s.fingerprint, p.sha256!),
+        ],
+      ),
+    );
+  }
+
+  static pw.Widget Function(pw.Context) _footer(
+    DateTime generatedAt,
+    PdfStrings s,
+  ) {
     return (context) => pw.Container(
       margin: const pw.EdgeInsets.only(top: 12),
       padding: const pw.EdgeInsets.only(top: 6),
@@ -267,7 +361,7 @@ class ClinicPdf {
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           pw.Text(
-            _disclaimer,
+            s.disclaimer,
             style: const pw.TextStyle(fontSize: 6.5, color: _muted),
           ),
           pw.SizedBox(height: 3),
@@ -275,11 +369,11 @@ class ClinicPdf {
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
               pw.Text(
-                'Generated ${_stampFmt.format(generatedAt)}',
+                s.generated(pdfStamp(generatedAt, arabic: s.isArabic)),
                 style: const pw.TextStyle(fontSize: 6.5, color: _muted),
               ),
               pw.Text(
-                'Page ${context.pageNumber} of ${context.pagesCount}',
+                s.page(context.pageNumber, context.pagesCount),
                 style: const pw.TextStyle(fontSize: 6.5, color: _muted),
               ),
             ],
@@ -309,14 +403,14 @@ class ClinicPdf {
   static pw.ThemeData? _cachedTheme;
   static bool _themeTried = false;
 
-  /// The bundled app font (Inter) so a PDF can render dashes, symbols and any
-  /// non-Latin text — the pdf package's built-in Helvetica is ASCII-only. Falls
-  /// back to Helvetica if the asset can't be read (e.g. in some test hosts).
+  /// The bundled app font (Inter) with Noto Naskh Arabic as fallback, so a
+  /// document can mix Arabic and Latin text — the pdf package's built-in
+  /// Helvetica is ASCII-only. Falls back to Helvetica if the assets can't be
+  /// read (e.g. in some test hosts).
   ///
-  /// Loads the static Regular/SemiBold instances, not the variable-font
-  /// source — the `pdf` package embeds a font's glyphs as-is with no weight
-  /// interpolation, so passing the same variable-font bytes for both `base`
-  /// and `bold` rendered every PDF with no bold text at all.
+  /// Loads the static Regular/SemiBold instances of Inter, not the
+  /// variable-font source — the `pdf` package embeds a font's glyphs as-is
+  /// with no weight interpolation.
   static Future<pw.ThemeData?> _theme() async {
     if (_themeTried) return _cachedTheme;
     _themeTried = true;
@@ -327,7 +421,14 @@ class ClinicPdf {
       final bold = pw.Font.ttf(
         await rootBundle.load('assets/fonts/static/Inter-SemiBold.ttf'),
       );
-      return _cachedTheme = pw.ThemeData.withFont(base: base, bold: bold);
+      final arabic = pw.Font.ttf(
+        await rootBundle.load('assets/fonts/NotoNaskhArabic.ttf'),
+      );
+      return _cachedTheme = pw.ThemeData.withFont(
+        base: base,
+        bold: bold,
+        fontFallback: [arabic],
+      );
     } catch (_) {
       return null;
     }

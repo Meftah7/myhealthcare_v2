@@ -46,7 +46,11 @@ abstract interface class NotificationRepository {
 
   Future<Result<void>> markAllRead(String recipientId);
 
-  Future<Result<AppNotification>> send(NewNotification notification);
+  /// Queue [notification] for delivery through the outbox. Written in the
+  /// caller's transaction when there is one, so it exists exactly when the
+  /// change that caused it committed; delivery (and any retry) happens
+  /// separately. Returns the outbox event id.
+  Future<Result<String>> send(NewNotification notification);
 
   /// Fan a message out to everyone in [audience] (one row per recipient, each
   /// with its own read state). Returns the number of recipients. Admin only.
@@ -57,4 +61,33 @@ abstract interface class NotificationRepository {
     required String body,
     String? deepLink,
   });
+
+  /// What did not go out (Phase 6, admin): side effects that exhausted their
+  /// retries, reminders that failed for a reason other than the patient's
+  /// own alert settings, and reminders still queued well past their time.
+  Future<Result<DeliveryHealth>> deliveryHealth();
+
+  /// Puts failed side effects back in the outbox queue for another round of
+  /// retries (an administrator's correction). Returns how many.
+  Future<Result<int>> retryFailedDeliveries();
+}
+
+/// Delivery problems an administrator should see and can correct.
+class DeliveryHealth {
+  const DeliveryHealth({
+    required this.failedSideEffects,
+    required this.failedReminders,
+    required this.overdueReminders,
+    this.oldestProblemAt,
+  });
+
+  final int failedSideEffects;
+  final int failedReminders;
+
+  /// Queued reminders more than an hour past due — the delivery loop is not
+  /// keeping up (or nobody has opened the app).
+  final int overdueReminders;
+  final DateTime? oldestProblemAt;
+
+  int get total => failedSideEffects + failedReminders + overdueReminders;
 }

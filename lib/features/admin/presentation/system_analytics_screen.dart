@@ -3,10 +3,14 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
+import '../../../core/di.dart';
+import '../../../core/observability/operational_metrics.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/states.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../staff_dashboard/application/staff_providers.dart';
@@ -21,8 +25,8 @@ class SystemAnalyticsScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final stats = ref.watch(systemStatsProvider);
     final panel = ref.watch(panelStatsProvider);
-    return Scaffold(
-      appBar: AppBar(title: Text(t.systemAnalyticsTitle)),
+    return AppScaffold(
+      title: t.systemAnalyticsTitle,
       body: RefreshIndicator(
         onRefresh: () async {
           ref
@@ -71,10 +75,7 @@ class SystemAnalyticsScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: Space.md),
-                SectionHeader(
-                  t.appointmentsLast90DaysHeader,
-                  overline: true,
-                ),
+                SectionHeader(t.appointmentsLast90DaysHeader, overline: true),
                 panel.when(
                   loading: () => const LoadingSkeleton(height: 120),
                   error: (e, _) =>
@@ -106,10 +107,71 @@ class SystemAnalyticsScreen extends ConsumerWidget {
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
+                const SizedBox(height: Space.md),
+                SectionHeader(t.operationalHealthHeader, overline: true),
+                const _OperationalHealthCard(),
               ],
             ),
           ),
         ),
+      ),
+      centerBody: false,
+    );
+  }
+}
+
+/// Threshold breaches and crash-free rate from this session's privacy-safe
+/// operational signals (Phase 9), with a JSON export for pilot evidence.
+class _OperationalHealthCard extends ConsumerWidget {
+  const _OperationalHealthCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
+    final events = ref.read(operationalMetricsProvider).snapshot();
+    final breaches = evaluateThresholds(events, now: DateTime.now());
+    final crashFree = crashFreeSessionRate(events);
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _Row(
+            t.crashFreeSessionsLabel,
+            crashFree == null
+                ? '—'
+                : '${(crashFree * 100).toStringAsFixed(1)}%',
+          ),
+          const Divider(height: Space.md),
+          _Row(t.operationalEventsLabel, '${events.length}'),
+          const Divider(height: Space.md),
+          if (breaches.isEmpty)
+            InlineBanner.info(t.operationalHealthAllClear)
+          else
+            for (final b in breaches)
+              Padding(
+                padding: const EdgeInsets.only(bottom: Space.sm),
+                child: InlineBanner.error(
+                  '${t.operationalBreachTitle(b.threshold.id, b.observed)}\n'
+                  '${b.threshold.owner}: ${b.threshold.response}',
+                ),
+              ),
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: TextButton.icon(
+              icon: const Icon(Icons.copy_outlined),
+              label: Text(t.copyOperationalEvidence),
+              onPressed: () async {
+                await Clipboard.setData(
+                  ClipboardData(text: exportOperationalEvents(events)),
+                );
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(t.operationalEvidenceCopied)),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

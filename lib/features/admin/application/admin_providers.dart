@@ -4,6 +4,8 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/router.dart';
+import '../../../core/data/contracts.dart';
 import '../../../core/di.dart';
 import '../../../core/failures.dart';
 import '../../../core/result.dart';
@@ -106,13 +108,29 @@ const kReferralHospitals = [
   'Ibn Al-Nafees Hospital',
 ];
 
-final auditLogProvider = FutureProvider<List<AuditEntry>>((ref) async {
-  return _unwrap(
-    await ref
-        .watch(auditRepositoryProvider)
-        .query(const AuditQuery(limit: 200)),
-  );
+/// How many pages of the audit log are shown ("Load more" adds one).
+final auditLogPagesProvider = StateProvider<int>((ref) => 1);
+
+/// The audit log, paged — it says when older entries exist rather than
+/// silently stopping at a cap.
+final auditLogPageProvider = FutureProvider<Page<AuditEntry>>((ref) async {
+  final pages = ref.watch(auditLogPagesProvider);
+  final repo = ref.watch(auditRepositoryProvider);
+  var request = const PageRequest();
+  Page<AuditEntry>? all;
+  for (var i = 0; i < pages; i++, request = request.next) {
+    final page = _unwrap(
+      await repo.queryPage(const AuditQuery(), page: request),
+    );
+    all = all == null ? page : all.append(page);
+    if (!page.hasMore) break;
+  }
+  return all!;
 });
+
+final auditLogProvider = FutureProvider<List<AuditEntry>>(
+  (ref) async => (await ref.watch(auditLogPageProvider.future)).items,
+);
 
 /// User feedback / issue reports, optionally filtered by status.
 final feedbackProvider =
@@ -136,11 +154,16 @@ final aiUsageProvider = FutureProvider.family<List<AiUsageEntry>, AiFeature?>((
   ref,
   feature,
 ) async {
-  return _unwrap(
+  // The newest page; the screen states the limit (PageLimits.maxSize).
+  final page = _unwrap(
     await ref
         .watch(aiUsageRepositoryProvider)
-        .recent(feature: feature, limit: 200),
+        .recentPage(
+          feature: feature,
+          page: const PageRequest(size: PageLimits.maxSize),
+        ),
   );
+  return page.items;
 });
 
 class SystemStats {
@@ -164,6 +187,19 @@ final allInvoicesProvider =
     FutureProvider.family<List<Invoice>, InvoiceStatus?>((ref, status) async {
       return _unwrap(
         await ref.watch(billingRepositoryProvider).all(status: status),
+      );
+    });
+
+/// Payment history for one invoice — charges, desk payments and refunds.
+final invoicePaymentsProvider =
+    FutureProvider.family<List<PaymentTransaction>, String>((
+      ref,
+      invoiceId,
+    ) async {
+      return _unwrap(
+        await ref
+            .watch(billingRepositoryProvider)
+            .transactions(invoiceId: invoiceId),
       );
     });
 
@@ -240,6 +276,10 @@ class AdminActions {
   AdminActions(this._ref);
   final Ref _ref;
 
+  /// Idempotency keys for in-flight consequential actions, kept until they
+  /// succeed so a retry is the same action, not a second one.
+  final Map<String, IdempotencyKey> _attempts = {};
+
   Result<T>? _denyUnlessAdmin<T>() {
     final actor = _ref.read(currentUserProvider);
     if (actor == null || !actor.isAdmin || !actor.isActive) {
@@ -310,7 +350,10 @@ class AdminActions {
     return result;
   }
 
-  Future<Result<void>> setActive({required String id, required bool active}) async {
+  Future<Result<void>> setActive({
+    required String id,
+    required bool active,
+  }) async {
     final denied = _denyUnlessAdmin<void>();
     if (denied != null) return denied;
     final result = await _ref
@@ -355,6 +398,8 @@ class AdminActions {
     final denied = _denyUnlessAdmin<Appointment>();
     if (denied != null) return denied;
     final adminId = _ref.read(currentUserProvider)?.id;
+    final attempt = '$patientId|$staffId|${start.toIso8601String()}';
+    final key = _attempts.putIfAbsent(attempt, IdempotencyKey.generate);
     final r = await _ref
         .read(appointmentRepositoryProvider)
         .book(
@@ -366,16 +411,27 @@ class AdminActions {
             visitType: visitType,
             departmentId: departmentId,
             reasonText: reason,
+            idempotencyKey: key,
+            enabledReminderChannels: const {ReminderChannel.push},
+            // Recorded with the booking, delivered through the outbox.
+            notify: [
+              NewNotification(
+                recipientId: patientId,
+                category: NotificationCategory.appointment,
+                title: 'Appointment booked for you',
+                body:
+                    'The clinic booked you a visit on ${fmtDateTime(start)}. '
+                    'Your ticket and room are in Appointments.',
+                deepLink: AppRoutes.patientAppointments,
+              ),
+            ],
           ),
         );
+    if (r.isOk) {
+      _attempts.remove(attempt);
+      await deliverPendingSideEffects(_ref);
+    }
     if (r case Ok(:final value)) {
-      await _ref
-          .read(reminderSchedulerProvider)
-          .scheduleFor(
-            appointmentId: value.id,
-            slotStart: value.slotStart,
-            band: value.riskBand ?? RiskBand.low,
-          );
       await _ref
           .read(auditRepositoryProvider)
           .record(
@@ -383,19 +439,6 @@ class AdminActions {
             entityType: 'appointment',
             entityId: value.id,
             actorUserId: adminId,
-          );
-      await _ref
-          .read(notificationRepositoryProvider)
-          .send(
-            NewNotification(
-              recipientId: patientId,
-              category: NotificationCategory.appointment,
-              title: 'Appointment booked for you',
-              body:
-                  'The clinic booked you a visit on '
-                  '${fmtDateTime(value.slotStart)}'
-                  '${value.ticketTag == null ? '' : ' · ticket ${value.ticketTag}'}.',
-            ),
           );
       _ref.invalidate(allAppointmentsProvider);
     }
@@ -423,69 +466,90 @@ class AdminActions {
     if (denied != null) return denied;
     final adminId = _ref.read(currentUserProvider)?.id;
     final trimmedReason = reason.trim();
-    final r = await _ref
-        .read(recordRepositoryProvider)
-        .add(
-          NewRecord(
-            patientId: patientId,
-            recordType: RecordType.referral,
-            title: external
-                ? 'Referral — $destination'
-                : 'Department referral — $destination',
-            occurredAt: DateTime.now(),
-            authorStaffId: adminId,
-            body: trimmedReason,
-            sourceFacility: external ? destination : null,
-          ),
+    // The referral letter, the walk-in ticket (department referrals) and the
+    // patient's notice commit together; the notice is then delivered from
+    // the outbox. A retry of the same referral returns the same letter.
+    final attempt = '$patientId|$destination|$external|$trimmedReason';
+    final key = _attempts.putIfAbsent(attempt, IdempotencyKey.generate);
+    final r = await Result.guardAsync(
+      () => _ref.read(appDatabaseProvider).transaction(() async {
+        final record = _unwrap(
+          await _ref
+              .read(recordRepositoryProvider)
+              .add(
+                NewRecord(
+                  patientId: patientId,
+                  recordType: RecordType.referral,
+                  title: external
+                      ? 'Referral — $destination'
+                      : 'Department referral — $destination',
+                  occurredAt: DateTime.now(),
+                  authorStaffId: adminId,
+                  body: trimmedReason,
+                  sourceFacility: external ? destination : null,
+                  idempotencyKey: key,
+                ),
+              ),
         );
-    if (r case Ok(:final value)) {
-      await _ref
-          .read(auditRepositoryProvider)
-          .record(
-            action: external ? 'patient.refer.external' : 'patient.refer.dept',
-            entityType: 'medical_record',
-            entityId: value.id,
-            actorUserId: adminId,
-            detail: destination,
-          );
+        await _ref
+            .read(auditRepositoryProvider)
+            .record(
+              action: external
+                  ? 'patient.refer.external'
+                  : 'patient.refer.dept',
+              entityType: 'medical_record',
+              entityId: record.id,
+              actorUserId: adminId,
+              detail: destination,
+            );
 
-      String notice;
-      if (external) {
-        notice =
-            'To $destination. Reason: $trimmedReason. A referral letter is in '
-            'your Records.';
-      } else {
-        // Department referral → a walk-in queue ticket.
-        final ticket = departmentId == null
-            ? null
-            : (await _ref
-                      .read(walkInTicketRepositoryProvider)
-                      .create(
-                        NewWalkInTicket(
-                          patientId: patientId,
-                          departmentId: departmentId,
-                          createdByStaffId: adminId ?? patientId,
-                          reason: trimmedReason,
-                          sourceAppointmentId: sourceAppointmentId,
-                        ),
-                      ))
-                  .valueOrNull;
-        notice = ticket == null
-            ? 'To the $destination department. Reason: $trimmedReason.'
-            : 'To the $destination department — walk-in ticket ${ticket.ticketTag}. '
-                  'Please proceed to the $destination desk.';
-      }
+        String notice;
+        if (external) {
+          notice =
+              'To $destination. Reason: $trimmedReason. A referral letter is '
+              'in your Records.';
+        } else {
+          // Department referral → a walk-in queue ticket.
+          final ticket = departmentId == null
+              ? null
+              : (await _ref
+                        .read(walkInTicketRepositoryProvider)
+                        .create(
+                          NewWalkInTicket(
+                            patientId: patientId,
+                            departmentId: departmentId,
+                            createdByStaffId: adminId ?? patientId,
+                            reason: trimmedReason,
+                            sourceAppointmentId: sourceAppointmentId,
+                          ),
+                          idempotencyKey: IdempotencyKey('${key.value}.walkin'),
+                        ))
+                    .valueOrNull;
+          notice = ticket == null
+              ? 'To the $destination department. Reason: $trimmedReason.'
+              : 'To the $destination department — walk-in ticket '
+                    '${ticket.ticketTag}. Please proceed to the $destination '
+                    'desk.';
+        }
 
-      await _ref
-          .read(notificationRepositoryProvider)
-          .send(
-            NewNotification(
-              recipientId: patientId,
-              category: NotificationCategory.appointment,
-              title: 'You have been referred',
-              body: notice,
-            ),
-          );
+        _unwrap(
+          await _ref
+              .read(notificationRepositoryProvider)
+              .send(
+                NewNotification(
+                  recipientId: patientId,
+                  category: NotificationCategory.appointment,
+                  title: 'You have been referred',
+                  body: notice,
+                ),
+              ),
+        );
+        return record;
+      }),
+    );
+    if (r.isOk) {
+      _attempts.remove(attempt);
+      await deliverPendingSideEffects(_ref);
       _ref.invalidate(pendingReferralRequestsProvider);
     }
     return r;
@@ -642,7 +706,65 @@ class AdminActions {
     return r;
   }
 
-  /// Admin changes an invoice's status (mark paid / cancel).
+  void _refreshBilling([String? invoiceId]) {
+    _ref
+      ..invalidate(allInvoicesProvider)
+      ..invalidate(unpaidInvoiceCountProvider);
+    if (invoiceId != null) _ref.invalidate(invoicePaymentsProvider(invoiceId));
+  }
+
+  /// Record money taken at the desk against an open invoice.
+  Future<Result<Invoice>> recordDeskPayment({
+    required String invoiceId,
+    required String receipt,
+    required IdempotencyKey key,
+    String? note,
+  }) async {
+    final denied = _denyUnlessAdmin<Invoice>();
+    if (denied != null) return denied;
+    final r = await _ref
+        .read(billingRepositoryProvider)
+        .recordOfflinePayment(
+          invoiceId: invoiceId,
+          receiptReference: receipt,
+          note: note,
+          idempotencyKey: key,
+        );
+    _refreshBilling(invoiceId);
+    return r;
+  }
+
+  /// Refund part or all of a settled payment.
+  Future<Result<PaymentTransaction>> refundPayment({
+    required PaymentTransaction payment,
+    required double amount,
+    required String reason,
+    required IdempotencyKey key,
+  }) async {
+    final denied = _denyUnlessAdmin<PaymentTransaction>();
+    if (denied != null) return denied;
+    final r = await _ref
+        .read(billingRepositoryProvider)
+        .refund(
+          transactionId: payment.id,
+          amount: amount,
+          reason: reason,
+          idempotencyKey: key,
+        );
+    _refreshBilling(payment.invoiceId);
+    return r;
+  }
+
+  /// Ask the provider about every payment whose outcome is unknown.
+  Future<Result<int>> reconcilePayments() async {
+    final denied = _denyUnlessAdmin<int>();
+    if (denied != null) return denied;
+    final r = await _ref.read(billingRepositoryProvider).reconcile();
+    _refreshBilling();
+    return r;
+  }
+
+  /// Admin cancels an open invoice.
   Future<Result<Invoice>> setInvoiceStatus({
     required String id,
     required InvoiceStatus status,

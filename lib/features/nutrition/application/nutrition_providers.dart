@@ -10,9 +10,11 @@ library;
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/di.dart';
 import '../../../domain/enums.dart' as app;
+import '../../auth/application/session.dart';
 import '../../patient/application/patient_data_providers.dart';
 import '../domain/nutrition_data.dart';
 import 'macro_calculator.dart';
@@ -43,6 +45,25 @@ final defaultMacroInputsProvider = Provider<MacroInputs>((ref) {
 });
 
 const _macroInputsKey = 'nutrition.macroInputs';
+
+/// Body measurements are health data: they are saved under the signed-in
+/// user's own key (never device-wide) and removed at sign-out, so the next
+/// person on a shared device starts blank.
+String? nutritionPreferenceKey(String base, String? userId) =>
+    userId == null ? null : '$base.$userId';
+
+/// Remove [userId]'s saved nutrition inputs, plus the device-wide keys older
+/// builds wrote.
+Future<void> clearNutritionState(
+  SharedPreferences prefs,
+  String? userId,
+) async {
+  for (final base in const [_macroInputsKey, _includeSweetKey]) {
+    await prefs.remove(base);
+    final key = nutritionPreferenceKey(base, userId);
+    if (key != null) await prefs.remove(key);
+  }
+}
 
 Map<String, dynamic> _encodeMacroInputs(MacroInputs i) => {
   'age': i.age,
@@ -77,11 +98,16 @@ MacroInputs? _decodeMacroInputs(String? raw) {
 /// The calculator inputs last saved to the device, or null if the patient has
 /// never run the calculator. Read once by the calculator form to restore its
 /// fields after the app restarts.
-final savedMacroInputsProvider = Provider<MacroInputs?>(
-  (ref) => _decodeMacroInputs(
-    ref.watch(sharedPreferencesProvider).getString(_macroInputsKey),
-  ),
-);
+final savedMacroInputsProvider = Provider<MacroInputs?>((ref) {
+  final key = nutritionPreferenceKey(
+    _macroInputsKey,
+    ref.watch(currentUserProvider)?.id,
+  );
+  if (key == null) return null;
+  return _decodeMacroInputs(
+    ref.watch(sharedPreferencesProvider).getString(key),
+  );
+});
 
 /// The last-computed macro targets, or null until the patient calculates.
 /// This is the link between the Calculator and the Meal plan, and it's
@@ -95,14 +121,23 @@ class MacroTargetsController extends Notifier<MacroResult?> {
 
   Future<void> set(MacroInputs inputs) async {
     state = calculateMacros(inputs);
+    final key = nutritionPreferenceKey(
+      _macroInputsKey,
+      ref.read(currentUserProvider)?.id,
+    );
+    if (key == null) return;
     await ref
         .read(sharedPreferencesProvider)
-        .setString(_macroInputsKey, jsonEncode(_encodeMacroInputs(inputs)));
+        .setString(key, jsonEncode(_encodeMacroInputs(inputs)));
   }
 
   Future<void> clear() async {
     state = null;
-    await ref.read(sharedPreferencesProvider).remove(_macroInputsKey);
+    final key = nutritionPreferenceKey(
+      _macroInputsKey,
+      ref.read(currentUserProvider)?.id,
+    );
+    if (key != null) await ref.read(sharedPreferencesProvider).remove(key);
   }
 }
 
@@ -120,7 +155,11 @@ final nutritionFoodsProvider = Provider<List<NutritionFood>>(
 
 /// Every category present in the database, alphabetical — the filter chips.
 final foodCategoriesProvider = Provider<List<String>>((ref) {
-  return (ref.watch(nutritionFoodsProvider).map((f) => f.category).toSet().toList()
+  return (ref
+      .watch(nutritionFoodsProvider)
+      .map((f) => f.category)
+      .toSet()
+      .toList()
     ..sort());
 });
 
@@ -208,10 +247,14 @@ const _includeSweetKey = 'nutrition.includeSweet';
 
 /// The "include dessert" toggle last saved to the device — read once by the
 /// meal-plan form to restore its switch after the app restarts.
-final savedIncludeSweetProvider = Provider<bool>(
-  (ref) =>
-      ref.watch(sharedPreferencesProvider).getBool(_includeSweetKey) ?? true,
-);
+final savedIncludeSweetProvider = Provider<bool>((ref) {
+  final key = nutritionPreferenceKey(
+    _includeSweetKey,
+    ref.watch(currentUserProvider)?.id,
+  );
+  if (key == null) return true;
+  return ref.watch(sharedPreferencesProvider).getBool(key) ?? true;
+});
 
 GeneratedMealPlan _buildPlan(MacroResult? targets, bool includeSweet) {
   final types = [
@@ -251,9 +294,12 @@ class MealPlanController extends Notifier<GeneratedMealPlan?> {
 
   Future<void> generate(MealPlanRequest req) async {
     state = _buildPlan(ref.read(macroTargetsProvider), req.includeSweet);
-    await ref
-        .read(sharedPreferencesProvider)
-        .setBool(_includeSweetKey, req.includeSweet);
+    final key = nutritionPreferenceKey(
+      _includeSweetKey,
+      ref.read(currentUserProvider)?.id,
+    );
+    if (key == null) return;
+    await ref.read(sharedPreferencesProvider).setBool(key, req.includeSweet);
   }
 
   void clear() => state = null;

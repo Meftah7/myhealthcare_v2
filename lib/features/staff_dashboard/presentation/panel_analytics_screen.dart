@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/states.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/staff_providers.dart';
@@ -19,8 +20,8 @@ class PanelAnalyticsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
     final stats = ref.watch(panelStatsProvider);
-    return Scaffold(
-      appBar: AppBar(title: Text(t.panelAnalyticsTitle)),
+    return AppScaffold(
+      title: t.panelAnalyticsTitle,
       body: stats.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
@@ -64,9 +65,7 @@ class PanelAnalyticsScreen extends ConsumerWidget {
                     MetricTile(
                       value: '${s.completed}',
                       label: t.completedLabel,
-                      caption: t.perDayCaption(
-                        s.keptPerDay.toStringAsFixed(1),
-                      ),
+                      caption: t.perDayCaption(s.keptPerDay.toStringAsFixed(1)),
                     ),
                     MetricTile(
                       value: '${s.upcoming}',
@@ -80,6 +79,7 @@ class PanelAnalyticsScreen extends ConsumerWidget {
           ),
         ),
       ),
+      centerBody: false,
     );
   }
 }

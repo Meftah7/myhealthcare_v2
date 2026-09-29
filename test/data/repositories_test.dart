@@ -256,45 +256,38 @@ void main() {
       },
     );
 
-    test(
-      "reschedule rejects a time that isn't on the clinician's schedule "
-      'grid',
-      () async {
-        final patient = await registerPatient(email: 'grid2@example.com');
-        final staffId = await makeStaff('staff-grid2');
-        final appts = AppointmentRepositoryImpl(db);
-        final start = _nextWeekday(
-          DateTime.monday,
-        ).add(const Duration(hours: 9));
+    test("reschedule rejects a time that isn't on the clinician's schedule "
+        'grid', () async {
+      final patient = await registerPatient(email: 'grid2@example.com');
+      final staffId = await makeStaff('staff-grid2');
+      final appts = AppointmentRepositoryImpl(db);
+      final start = _nextWeekday(DateTime.monday).add(const Duration(hours: 9));
 
-        final booked = (await appts.book(
-          BookingRequest(
-            patientId: patient.id,
-            staffId: staffId,
-            start: start,
-            end: start.add(const Duration(minutes: 20)),
-            visitType: VisitType.followUp,
-          ),
-        )).valueOrNull!;
-
-        final offGrid = start.add(const Duration(days: 1, minutes: 5));
-        final result = await appts.reschedule(
-          id: booked.id,
+      final booked = (await appts.book(
+        BookingRequest(
           patientId: patient.id,
-          newStart: offGrid,
-          newEnd: offGrid.add(const Duration(minutes: 20)),
-        );
-        expect(result.isErr, isTrue);
-      },
-    );
+          staffId: staffId,
+          start: start,
+          end: start.add(const Duration(minutes: 20)),
+          visitType: VisitType.followUp,
+        ),
+      )).valueOrNull!;
+
+      final offGrid = start.add(const Duration(days: 1, minutes: 5));
+      final result = await appts.reschedule(
+        id: booked.id,
+        patientId: patient.id,
+        newStart: offGrid,
+        newEnd: offGrid.add(const Duration(minutes: 20)),
+      );
+      expect(result.isErr, isTrue);
+    });
 
     test(
       'reschedule rejects a caller who does not own the appointment',
       () async {
         final owner = await registerPatient(email: 'owner1@example.com');
-        final stranger = await registerPatient(
-          email: 'stranger1@example.com',
-        );
+        final stranger = await registerPatient(email: 'stranger1@example.com');
         final staffId = await makeStaff('staff-auth1');
         final appts = AppointmentRepositoryImpl(db);
         final start = _nextWeekday(
@@ -363,121 +356,112 @@ void main() {
           newEnd: first.slotEnd,
         );
         expect(result.isErr, isTrue);
+        final unchanged = (await appts.byId(second.id)).valueOrNull!;
+        expect(unchanged.slotStart, second.slotStart);
+        expect(unchanged.slotEnd, second.slotEnd);
       },
     );
 
-    test(
-      'reschedule rejects a completed appointment and rebuilds reminders '
-      'on success',
-      () async {
-        final patient = await registerPatient(email: 'resched2@example.com');
-        final staffId = await makeStaff('staff-resched2');
-        final appts = AppointmentRepositoryImpl(db);
-        final start = _nextWeekday(
-          DateTime.monday,
-        ).add(const Duration(hours: 9));
+    test('reschedule rejects a completed appointment and rebuilds reminders '
+        'on success', () async {
+      final patient = await registerPatient(email: 'resched2@example.com');
+      final staffId = await makeStaff('staff-resched2');
+      final appts = AppointmentRepositoryImpl(db);
+      final start = _nextWeekday(DateTime.monday).add(const Duration(hours: 9));
 
-        final booked = (await appts.book(
-          BookingRequest(
-            patientId: patient.id,
-            staffId: staffId,
-            start: start,
-            end: start.add(const Duration(minutes: 20)),
-            visitType: VisitType.followUp,
-            riskBand: RiskBand.low,
-          ),
-        )).valueOrNull!;
-
-        final newStart = start.add(const Duration(days: 1));
-        final rescheduled = await appts.reschedule(
-          id: booked.id,
+      final booked = (await appts.book(
+        BookingRequest(
           patientId: patient.id,
-          newStart: newStart,
-          newEnd: newStart.add(const Duration(minutes: 20)),
-        );
-        expect(rescheduled.isOk, isTrue);
-
-        final reminders = await (db.select(
-          db.reminders,
-        )..where((r) => r.appointmentId.equals(booked.id))).get();
-        expect(reminders, isNotEmpty);
-        expect(
-          reminders.every((r) => r.scheduledFor.isBefore(newStart)),
-          isTrue,
-        );
-
-        await appts.markArrived(
-          booked.id,
           staffId: staffId,
-          at: DateTime.now(),
-        );
-        await appts.completeVisit(id: booked.id, staffId: staffId);
-        final afterCompletion = await appts.reschedule(
-          id: booked.id,
-          patientId: patient.id,
-          newStart: newStart.add(const Duration(days: 1)),
-          newEnd: newStart.add(const Duration(days: 1, minutes: 20)),
-        );
-        expect(afterCompletion.isErr, isTrue);
-      },
-    );
+          start: start,
+          end: start.add(const Duration(minutes: 20)),
+          visitType: VisitType.followUp,
+          riskBand: RiskBand.low,
+        ),
+      )).valueOrNull!;
 
-    test(
-      'cancel rejects a non-owner, is not repeatable, and clears '
-      'unsent reminders',
-      () async {
-        final owner = await registerPatient(email: 'owner2@example.com');
-        final stranger = await registerPatient(email: 'stranger2@example.com');
-        final staffId = await makeStaff('staff-cancel1');
-        final appts = AppointmentRepositoryImpl(db);
-        final start = _nextWeekday(
-          DateTime.monday,
-        ).add(const Duration(hours: 9));
+      final newStart = start.add(const Duration(days: 1));
+      final rescheduled = await appts.reschedule(
+        id: booked.id,
+        patientId: patient.id,
+        newStart: newStart,
+        newEnd: newStart.add(const Duration(minutes: 20)),
+      );
+      expect(rescheduled.isOk, isTrue);
 
-        final booked = (await appts.book(
-          BookingRequest(
-            patientId: owner.id,
-            staffId: staffId,
-            start: start,
-            end: start.add(const Duration(minutes: 20)),
-            visitType: VisitType.followUp,
-            riskBand: RiskBand.low,
-          ),
-        )).valueOrNull!;
-        // Booking itself doesn't schedule reminders (the caller does);
-        // create one directly so there is something to clear.
-        await db
-            .into(db.reminders)
-            .insert(
-              RemindersCompanion.insert(
-                id: 'rem-cancel1',
-                appointmentId: booked.id,
-                scheduledFor: start.subtract(const Duration(hours: 24)),
-                channel: ReminderChannel.push,
-              ),
-            );
+      final reminders = await (db.select(
+        db.reminders,
+      )..where((r) => r.appointmentId.equals(booked.id))).get();
+      expect(reminders, isNotEmpty);
+      expect(reminders.every((r) => r.scheduledFor.isBefore(newStart)), isTrue);
 
-        final wrongOwner = await appts.cancel(
-          booked.id,
-          patientId: stranger.id,
-        );
-        expect(wrongOwner.isErr, isTrue);
+      await appts.updateStatus(
+        id: booked.id,
+        staffId: staffId,
+        status: AppointmentStatus.confirmed,
+      );
+      await appts.markArrived(booked.id, staffId: staffId, at: DateTime.now());
+      await appts.completeVisit(id: booked.id, staffId: staffId);
+      final afterCompletion = await appts.reschedule(
+        id: booked.id,
+        patientId: patient.id,
+        newStart: newStart.add(const Duration(days: 1)),
+        newEnd: newStart.add(const Duration(days: 1, minutes: 20)),
+      );
+      expect(afterCompletion.isErr, isTrue);
+    });
 
-        final firstCancel = await appts.cancel(booked.id, patientId: owner.id);
-        expect(firstCancel.isOk, isTrue);
+    test('cancel rejects a non-owner, is not repeatable, and suppresses '
+        'queued reminders', () async {
+      final owner = await registerPatient(email: 'owner2@example.com');
+      final stranger = await registerPatient(email: 'stranger2@example.com');
+      final staffId = await makeStaff('staff-cancel1');
+      final appts = AppointmentRepositoryImpl(db);
+      final start = _nextWeekday(DateTime.monday).add(const Duration(hours: 9));
 
-        final secondCancel = await appts.cancel(
-          booked.id,
+      final booked = (await appts.book(
+        BookingRequest(
           patientId: owner.id,
-        );
-        expect(secondCancel.isErr, isTrue);
+          staffId: staffId,
+          start: start,
+          end: start.add(const Duration(minutes: 20)),
+          visitType: VisitType.followUp,
+          riskBand: RiskBand.low,
+        ),
+      )).valueOrNull!;
+      // Add another reminder so both repository-created and legacy rows
+      // are retained as suppressed evidence.
+      await db
+          .into(db.reminders)
+          .insert(
+            RemindersCompanion.insert(
+              id: 'rem-cancel1',
+              appointmentId: booked.id,
+              scheduledFor: start.subtract(const Duration(hours: 24)),
+              channel: ReminderChannel.push,
+            ),
+          );
 
-        final remaining = await (db.select(
-          db.reminders,
-        )..where((r) => r.appointmentId.equals(booked.id))).get();
-        expect(remaining, isEmpty);
-      },
-    );
+      final wrongOwner = await appts.cancel(booked.id, patientId: stranger.id);
+      expect(wrongOwner.isErr, isTrue);
+
+      final firstCancel = await appts.cancel(booked.id, patientId: owner.id);
+      expect(firstCancel.isOk, isTrue);
+
+      final secondCancel = await appts.cancel(booked.id, patientId: owner.id);
+      expect(secondCancel.isErr, isTrue);
+
+      final remaining = await (db.select(
+        db.reminders,
+      )..where((r) => r.appointmentId.equals(booked.id))).get();
+      expect(remaining, isNotEmpty);
+      expect(
+        remaining.every(
+          (row) => row.deliveryStatus == ReminderDeliveryStatus.suppressed,
+        ),
+        isTrue,
+      );
+    });
 
     test(
       'setTemplates rejects two overlapping templates on the same weekday',
@@ -503,92 +487,82 @@ void main() {
       },
     );
 
-    test(
-      'a clinician cannot mutate an appointment assigned to another '
-      'clinician',
-      () async {
-        final patient = await registerPatient(email: 'staffauth1@example.com');
-        final ownerStaffId = await makeStaff('staff-owner1');
-        final otherStaffId = await makeStaff('staff-other1');
-        final appts = AppointmentRepositoryImpl(db);
-        final start = _nextWeekday(
-          DateTime.monday,
-        ).add(const Duration(hours: 9));
+    test('a clinician cannot mutate an appointment assigned to another '
+        'clinician', () async {
+      final patient = await registerPatient(email: 'staffauth1@example.com');
+      final ownerStaffId = await makeStaff('staff-owner1');
+      final otherStaffId = await makeStaff('staff-other1');
+      final appts = AppointmentRepositoryImpl(db);
+      final start = _nextWeekday(DateTime.monday).add(const Duration(hours: 9));
 
-        final booked = (await appts.book(
-          BookingRequest(
-            patientId: patient.id,
-            staffId: ownerStaffId,
-            start: start,
-            end: start.add(const Duration(minutes: 20)),
-            visitType: VisitType.followUp,
-          ),
-        )).valueOrNull!;
+      final booked = (await appts.book(
+        BookingRequest(
+          patientId: patient.id,
+          staffId: ownerStaffId,
+          start: start,
+          end: start.add(const Duration(minutes: 20)),
+          visitType: VisitType.followUp,
+        ),
+      )).valueOrNull!;
 
-        expect(
-          (await appts.updateStatus(
-            id: booked.id,
-            staffId: otherStaffId,
-            status: AppointmentStatus.noShow,
-          )).isErr,
-          isTrue,
-        );
-        expect(
-          (await appts.markCalledIn(
-            booked.id,
-            staffId: otherStaffId,
-            at: DateTime.now(),
-          )).isErr,
-          isTrue,
-        );
-        expect(
-          (await appts.markArrived(
-            booked.id,
-            staffId: otherStaffId,
-            at: DateTime.now(),
-          )).isErr,
-          isTrue,
-        );
-        expect(
-          (await appts.completeVisit(
-            id: booked.id,
-            staffId: otherStaffId,
-          )).isErr,
-          isTrue,
-        );
-        expect(
-          (await appts.transfer(
-            id: booked.id,
-            fromStaffId: otherStaffId,
-            toStaffId: ownerStaffId,
-          )).isErr,
-          isTrue,
-        );
+      expect(
+        (await appts.updateStatus(
+          id: booked.id,
+          staffId: otherStaffId,
+          status: AppointmentStatus.noShow,
+        )).isErr,
+        isTrue,
+      );
+      expect(
+        (await appts.markCalledIn(
+          booked.id,
+          staffId: otherStaffId,
+          at: DateTime.now(),
+        )).isErr,
+        isTrue,
+      );
+      expect(
+        (await appts.markArrived(
+          booked.id,
+          staffId: otherStaffId,
+          at: DateTime.now(),
+        )).isErr,
+        isTrue,
+      );
+      expect(
+        (await appts.completeVisit(id: booked.id, staffId: otherStaffId)).isErr,
+        isTrue,
+      );
+      expect(
+        (await appts.transfer(
+          id: booked.id,
+          fromStaffId: otherStaffId,
+          toStaffId: ownerStaffId,
+        )).isErr,
+        isTrue,
+      );
 
-        // Untouched by any of the rejected attempts.
-        final unchanged = (await appts.byId(booked.id)).valueOrNull!;
-        expect(unchanged.status, AppointmentStatus.booked);
-        expect(unchanged.staffId, ownerStaffId);
+      // Untouched by any of the rejected attempts.
+      final unchanged = (await appts.byId(booked.id)).valueOrNull!;
+      expect(unchanged.status, AppointmentStatus.booked);
+      expect(unchanged.staffId, ownerStaffId);
 
-        // The actual owner can, though.
-        expect(
-          (await appts.markCalledIn(
-            booked.id,
-            staffId: ownerStaffId,
-            at: DateTime.now(),
-          )).isOk,
-          isTrue,
-        );
-      },
-    );
+      // The actual owner can, though.
+      expect(
+        (await appts.markCalledIn(
+          booked.id,
+          staffId: ownerStaffId,
+          at: DateTime.now(),
+        )).isOk,
+        isTrue,
+      );
+    });
 
     test('terminal appointment states cannot be reopened', () async {
       final patient = await registerPatient(email: 'terminal@example.com');
       final staffId = await makeStaff('staff-terminal');
       final appts = AppointmentRepositoryImpl(db);
-      final start = _nextWeekday(
-        DateTime.monday,
-      ).add(const Duration(hours: 9));
+      final start = _nextWeekday(DateTime.monday).add(const Duration(hours: 9));
       final booked = (await appts.book(
         BookingRequest(
           patientId: patient.id,
@@ -650,66 +624,70 @@ void main() {
       );
     });
 
-    test('an imported PDF round-trips its filename and extracted text',
-        () async {
-      final patient = await registerPatient(email: 'import@example.com');
-      final repo = RecordRepositoryImpl(db);
+    test(
+      'an imported PDF round-trips its filename and extracted text',
+      () async {
+        final patient = await registerPatient(email: 'import@example.com');
+        final repo = RecordRepositoryImpl(db);
 
-      final saved = (await repo.add(
-        NewRecord(
-          patientId: patient.id,
-          recordType: RecordType.labResult,
-          title: 'Outside lab result',
-          occurredAt: DateTime(2026, 3),
-          attachmentPath: 'lab_report.pdf',
-          extractedText: 'Hemoglobin 13.2 g/dL — within range',
-        ),
-      )).valueOrNull!;
+        final saved = (await repo.add(
+          NewRecord(
+            patientId: patient.id,
+            recordType: RecordType.labResult,
+            title: 'Outside lab result',
+            occurredAt: DateTime(2026, 3),
+            attachmentPath: 'lab_report.pdf',
+            extractedText: 'Hemoglobin 13.2 g/dL — within range',
+          ),
+        )).valueOrNull!;
 
-      expect(saved.hasAttachment, isTrue);
-      expect(saved.attachmentPath, 'lab_report.pdf');
-      expect(saved.extractedText, contains('Hemoglobin'));
+        expect(saved.hasAttachment, isTrue);
+        expect(saved.attachmentPath, 'lab_report.pdf');
+        expect(saved.extractedText, contains('Hemoglobin'));
 
-      // It shows up in the patient's timeline like any other record.
-      final timeline =
-          (await repo.timeline(patient.id)).valueOrNull!;
-      expect(timeline.any((r) => r.id == saved.id), isTrue);
-    });
+        // It shows up in the patient's timeline like any other record.
+        final timeline = (await repo.timeline(patient.id)).valueOrNull!;
+        expect(timeline.any((r) => r.id == saved.id), isTrue);
+      },
+    );
 
-    test('a patient upload stays marked as unreviewed; clinic records do not',
-        () async {
-      final patient = await registerPatient(email: 'upload@example.com');
-      final repo = RecordRepositoryImpl(db);
+    test(
+      'a patient upload stays marked as unreviewed; clinic records do not',
+      () async {
+        final patient = await registerPatient(email: 'upload@example.com');
+        final repo = RecordRepositoryImpl(db);
 
-      final upload = (await repo.add(
-        NewRecord(
-          patientId: patient.id,
-          recordType: RecordType.labResult,
-          title: 'My outside lab',
-          occurredAt: DateTime(2026, 3),
-          attachmentPath: 'lab.pdf',
-          uploadedByPatient: true,
-        ),
-      )).valueOrNull!;
-      final clinic = (await repo.add(
-        NewRecord(
-          patientId: patient.id,
-          recordType: RecordType.labResult,
-          title: 'Clinic CBC',
-          occurredAt: DateTime(2026, 3),
-        ),
-      )).valueOrNull!;
+        final upload = (await repo.add(
+          NewRecord(
+            patientId: patient.id,
+            recordType: RecordType.labResult,
+            title: 'My outside lab',
+            occurredAt: DateTime(2026, 3),
+            attachmentPath: 'lab.pdf',
+            sourceFacility: 'Outside Lab Co.',
+            uploadedByPatient: true,
+          ),
+        )).valueOrNull!;
+        final clinic = (await repo.add(
+          NewRecord(
+            patientId: patient.id,
+            recordType: RecordType.labResult,
+            title: 'Clinic CBC',
+            occurredAt: DateTime(2026, 3),
+          ),
+        )).valueOrNull!;
 
-      final timeline = (await repo.timeline(patient.id)).valueOrNull!;
-      expect(
-        timeline.firstWhere((r) => r.id == upload.id).uploadedByPatient,
-        isTrue,
-      );
-      expect(
-        timeline.firstWhere((r) => r.id == clinic.id).uploadedByPatient,
-        isFalse,
-      );
-    });
+        final timeline = (await repo.timeline(patient.id)).valueOrNull!;
+        expect(
+          timeline.firstWhere((r) => r.id == upload.id).uploadedByPatient,
+          isTrue,
+        );
+        expect(
+          timeline.firstWhere((r) => r.id == clinic.id).uploadedByPatient,
+          isFalse,
+        );
+      },
+    );
   });
 
   group('RiskRepository', () {

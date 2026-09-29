@@ -12,6 +12,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/capabilities/capability_registry.dart';
 import '../../../core/di.dart';
 import '../../../domain/enums.dart';
 import '../../admin/application/settings_providers.dart';
@@ -64,6 +65,10 @@ const _emergencyReply = ChatMessage(
   isEmergency: true,
 );
 
+const _liveAiUnavailable =
+    'The live Care Navigator is currently unavailable. You can still use the '
+    'app navigation tabs, or try again later.';
+
 class CareNavigatorState {
   const CareNavigatorState({required this.messages, this.sending = false});
   final List<ChatMessage> messages;
@@ -106,7 +111,9 @@ class CareNavigator extends Notifier<CareNavigatorState> {
       reply = r;
       usedAi = live;
     } catch (_) {
-      reply = _offlineReply(text);
+      reply = ref.read(appModeProvider).isDemo
+          ? _offlineReply(text)
+          : _liveAiUnavailable;
     }
     state = state.copyWith(
       sending: false,
@@ -119,7 +126,8 @@ class CareNavigator extends Notifier<CareNavigatorState> {
             feature: AiFeature.careNavigator,
             usedLiveModel: usedAi,
             userId: ref.read(currentUserProvider)?.id,
-            summary: text.length > 80 ? '${text.substring(0, 80)}…' : text,
+            // Only its size is kept (see AiUsageRepositoryImpl.analyticsSummary).
+            summary: text,
           ),
     );
   }
@@ -130,8 +138,16 @@ class CareNavigator extends Notifier<CareNavigatorState> {
   Future<(String, bool)> _answer(String text) async {
     final settings = await ref.read(appSettingsProvider.future);
     final key = await ref.read(aiKeyStoreProvider).read();
-    if (!settings.usesRealAi || key == null || key.isEmpty) {
-      return (_offlineReply(text), false);
+    if (!phase8CapabilityEnabled('live-clinical-ai') ||
+        !settings.usesRealAi ||
+        key == null ||
+        key.isEmpty) {
+      return (
+        ref.read(appModeProvider).isDemo
+            ? _offlineReply(text)
+            : _liveAiUnavailable,
+        false,
+      );
     }
     return (await _askGemini(text, apiKey: key, model: settings.modelId), true);
   }
@@ -184,7 +200,11 @@ class CareNavigator extends Notifier<CareNavigatorState> {
     final parts = content is Map ? content['parts'] : null;
     final part = (parts is List && parts.isNotEmpty) ? parts.first : null;
     final out = part is Map ? part['text'] : null;
-    if (out is! String || out.trim().isEmpty) return _offlineReply(text);
+    if (out is! String || out.trim().isEmpty) {
+      return ref.read(appModeProvider).isDemo
+          ? _offlineReply(text)
+          : _liveAiUnavailable;
+    }
     return out.trim();
   }
 

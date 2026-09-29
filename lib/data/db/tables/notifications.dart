@@ -29,6 +29,11 @@ class Notifications extends Table {
   /// Null until the recipient opens it.
   DateTimeColumn get readAt => dateTime().nullable()();
 
+  /// The outbox event that delivered this row, when it came through the
+  /// outbox. Unique (a partial index, schema v19), so a redelivered event can
+  /// never notify twice.
+  TextColumn get sourceEventId => text().nullable()();
+
   @override
   Set<Column<Object>> get primaryKey => {id};
 }

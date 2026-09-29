@@ -23,7 +23,8 @@ class NotificationsButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final unread = ref.watch(unreadNotificationCountProvider);
+    // Unknown shows no dot (not a "0 new" claim); the centre shows the error.
+    final unread = ref.watch(unreadNotificationCountProvider) ?? 0;
     final scheme = Theme.of(context).colorScheme;
     final t = AppLocalizations.of(context)!;
 
@@ -31,9 +32,7 @@ class NotificationsButton extends ConsumerWidget {
       clipBehavior: Clip.none,
       children: [
         CircleIconButton(
-          icon: unread > 0
-              ? Icons.notifications
-              : Icons.notifications_outlined,
+          icon: unread > 0 ? Icons.notifications : Icons.notifications_outlined,
           tooltip: unread > 0
               ? t.notificationsTooltipUnread(unread)
               : t.notificationsTooltip,

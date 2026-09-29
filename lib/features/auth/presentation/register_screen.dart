@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../domain/enums.dart';
 import '../../../domain/repositories/auth_repository.dart';
@@ -87,7 +88,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (!mounted) return;
     setState(() => _busy = false);
     if (result case Err(:final failure)) {
-      setState(() => _error = failure.message);
+      setState(
+        () => _error = describeFailure(
+          AppLocalizations.of(context)!,
+          failure,
+        ).message,
+      );
     }
     // On success the router redirect lands the new patient on their home.
   }
@@ -141,8 +147,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         TextFormField(
                           controller: _name,
                           decoration: InputDecoration(labelText: t.fullName),
-                          validator: (v) =>
-                              (v == null || v.trim().isEmpty)
+                          validator: (v) => (v == null || v.trim().isEmpty)
                               ? t.requiredField
                               : null,
                         ),
@@ -251,10 +256,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                     'AB+',
                                     'AB-',
                                   ])
-                                    DropdownMenuItem(
-                                      value: b,
-                                      child: Text(b),
-                                    ),
+                                    DropdownMenuItem(value: b, child: Text(b)),
                                 ],
                                 onChanged: (v) =>
                                     setState(() => _bloodType = v),

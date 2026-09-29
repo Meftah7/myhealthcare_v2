@@ -14,13 +14,17 @@ import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../domain/identity/permissions.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../auth/application/session.dart';
 import '../application/chart_providers.dart';
 import 'chart_write_sheets.dart';
+import 'result_review_sheet.dart';
 
 class PatientChartScreen extends ConsumerWidget {
   const PatientChartScreen({
@@ -122,13 +126,11 @@ class _Header extends StatelessWidget {
           ),
           if (patient.chronicConditions.isNotEmpty) ...[
             const SizedBox(height: Space.sm),
-            Wrap(
-              spacing: Space.xs,
-              runSpacing: Space.xxs,
-              children: [
-                for (final c in patient.chronicConditions)
-                  Chip(label: Text(c), visualDensity: VisualDensity.compact),
-              ],
+            Text(
+              patient.chronicConditions.join(' · '),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
           if (patient.allergies.isNotEmpty) ...[
@@ -206,7 +208,14 @@ class _FlagsCard extends ConsumerWidget {
                         :final failure,
                       ) when context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(failure.message)),
+                          SnackBar(
+                            content: Text(
+                              describeFailure(
+                                AppLocalizations.of(context)!,
+                                failure,
+                              ).message,
+                            ),
+                          ),
                         );
                       }
                     },
@@ -338,8 +347,16 @@ class _TimelineCard extends ConsumerWidget {
                           Icons.priority_high,
                           color: theme.colorScheme.error,
                           size: 20,
+                          semanticLabel: t.abnormalFlagHigh,
                         )
-                      : null,
+                      : r.hasUnknownLabs
+                      ? Icon(
+                          Icons.help_outline,
+                          size: 20,
+                          semanticLabel: t.abnormalFlagUnknown,
+                        )
+                      : const Icon(Icons.chevron_right),
+                  onTap: () => showResultSheet(context, r.id),
                 ),
             ],
           ),
@@ -371,13 +388,18 @@ IconData _recordIcon(RecordType t) => switch (t) {
   RecordType.referral => Icons.forward_to_inbox_outlined,
 };
 
-class _ChartFab extends StatelessWidget {
+class _ChartFab extends ConsumerWidget {
   const _ChartFab({required this.patientId});
   final String patientId;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
+    // Offer only what this clinician's role allows (the repositories still
+    // enforce it).
+    final canPrescribe = ref.watch(canProvider(Permission.prescribe));
+    final canCertify = ref.watch(canProvider(Permission.issueSickLeave));
+    final canScribe = ref.watch(canProvider(Permission.useClinicalScribe));
     return PopupMenuButton<String>(
       onSelected: (v) => unawaited(switch (v) {
         'note' => showChartNoteSheet(context, patientId),
@@ -391,10 +413,13 @@ class _ChartFab extends StatelessWidget {
       }),
       itemBuilder: (context) => [
         PopupMenuItem(value: 'note', child: Text(t.addClinicalNoteAction)),
-        PopupMenuItem(value: 'scribe', child: Text(t.aiScribeANoteAction)),
-        PopupMenuItem(value: 'rx', child: Text(t.prescribeMedicationAction)),
+        if (canScribe)
+          PopupMenuItem(value: 'scribe', child: Text(t.aiScribeANoteAction)),
+        if (canPrescribe)
+          PopupMenuItem(value: 'rx', child: Text(t.prescribeMedicationAction)),
         PopupMenuItem(value: 'lab', child: Text(t.enterLabResultAction)),
-        PopupMenuItem(value: 'sick', child: Text(t.issueSickLeaveAction)),
+        if (canCertify)
+          PopupMenuItem(value: 'sick', child: Text(t.issueSickLeaveAction)),
       ],
       child: const FloatingActionButton(
         onPressed: null,

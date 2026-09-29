@@ -10,6 +10,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/paging_widgets.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -73,7 +75,7 @@ class TimelineScreen extends ConsumerWidget {
       loading: () => SkeletonList(lines: embedded ? 3 : 5),
       error: (e, _) => ErrorStateView(
         message: t.couldNotLoadRecords,
-        onRetry: () => ref.invalidate(patientTimelineProvider),
+        onRetry: () => ref.invalidate(patientTimelinePageProvider),
       ),
       data: (recs) {
         final entries = <_Entry>[
@@ -103,15 +105,14 @@ class TimelineScreen extends ConsumerWidget {
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(t.recordsTitle),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(112),
-          child: _Filters(),
-        ),
+    return AppScaffold(
+      title: t.recordsTitle,
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(112),
+        child: _Filters(),
       ),
       body: feed,
+      centerBody: false,
     );
   }
 
@@ -221,6 +222,15 @@ class _GroupedList extends ConsumerWidget {
         ),
         _VitalsEntry(:final vitals) => _VitalsTile(vitals: vitals),
       });
+    }
+    // Older records exist beyond what's loaded: say so, never stop silently.
+    if (ref.watch(patientTimelinePageProvider).valueOrNull?.hasMore ?? false) {
+      items.add(
+        LoadMoreFooter(
+          onLoadMore: () =>
+              ref.read(patientTimelinePagesProvider.notifier).state++,
+        ),
+      );
     }
     return Center(
       child: ConstrainedBox(

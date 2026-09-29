@@ -27,8 +27,8 @@ class NutritionFood {
     final p = (j['protein'] as num?)?.toDouble() ?? 0;
     final c = (j['carbs'] as num?)?.toDouble() ?? 0;
     final f = (j['fat'] as num?)?.toDouble() ?? 0;
-    final kcal = (j['calories'] as num?)?.round() ??
-        (p * 4 + c * 4 + f * 9).round();
+    final kcal =
+        (j['calories'] as num?)?.round() ?? (p * 4 + c * 4 + f * 9).round();
     return NutritionFood(
       name: j['name'] as String,
       category: (j['category'] as String?) ?? 'Other',
@@ -69,8 +69,7 @@ class NutritionFood {
   bool matches(String query) {
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return true;
-    return name.toLowerCase().contains(q) ||
-        category.toLowerCase().contains(q);
+    return name.toLowerCase().contains(q) || category.toLowerCase().contains(q);
   }
 }
 
@@ -88,7 +87,11 @@ final List<NutritionFood> _curatedFoods = [
     category: 'Poultry',
     serving: '100 g',
     calories: _kcal(31, 0, 3.6),
-    protein: 31, carbs: 0, fat: 3.6, sugar: 0, satFat: 1,
+    protein: 31,
+    carbs: 0,
+    fat: 3.6,
+    sugar: 0,
+    satFat: 1,
     micros: {
       'Sodium': '74 mg',
       'Potassium': '256 mg',
@@ -101,7 +104,11 @@ final List<NutritionFood> _curatedFoods = [
     category: 'Seafood',
     serving: '100 g',
     calories: _kcal(22, 0, 13),
-    protein: 22, carbs: 0, fat: 13, sugar: 0, satFat: 2.5,
+    protein: 22,
+    carbs: 0,
+    fat: 13,
+    sugar: 0,
+    satFat: 2.5,
     micros: {
       'Omega-3': '2.3 g',
       'Vitamin D': '100% DV',
@@ -115,7 +122,11 @@ final List<NutritionFood> _curatedFoods = [
     category: 'Dairy & eggs',
     serving: '1 egg (50 g)',
     calories: _kcal(6.3, 0.4, 5.3),
-    protein: 6.3, carbs: 0.4, fat: 5.3, sugar: 0.2, satFat: 1.6,
+    protein: 6.3,
+    carbs: 0.4,
+    fat: 5.3,
+    sugar: 0.2,
+    satFat: 1.6,
     micros: {
       'Choline': '147 mg',
       'Vitamin A': '5% DV',
@@ -129,7 +140,11 @@ final List<NutritionFood> _curatedFoods = [
     category: 'Dairy & eggs',
     serving: '170 g',
     calories: _kcal(17, 6, 0.7),
-    protein: 17, carbs: 6, fat: 0.7, sugar: 6, satFat: 0.2,
+    protein: 17,
+    carbs: 6,
+    fat: 0.7,
+    sugar: 6,
+    satFat: 0.2,
     micros: {
       'Calcium': '18% DV',
       'Potassium': '240 mg',
@@ -142,7 +157,11 @@ final List<NutritionFood> _curatedFoods = [
     category: 'Grains',
     serving: '50 g',
     calories: _kcal(6.5, 34, 3.5),
-    protein: 6.5, carbs: 34, fat: 3.5, sugar: 0.5, satFat: 0.6,
+    protein: 6.5,
+    carbs: 34,
+    fat: 3.5,
+    sugar: 0.5,
+    satFat: 0.6,
     micros: {
       'Fibre': '5 g',
       'Iron': '10% DV',
@@ -156,19 +175,23 @@ final List<NutritionFood> _curatedFoods = [
     category: 'Grains',
     serving: '150 g',
     calories: _kcal(4.5, 38, 1.4),
-    protein: 4.5, carbs: 38, fat: 1.4, sugar: 0.5, satFat: 0.3,
-    micros: {
-      'Fibre': '2.7 g',
-      'Magnesium': '11% DV',
-      'Manganese': '44% DV',
-    },
+    protein: 4.5,
+    carbs: 38,
+    fat: 1.4,
+    sugar: 0.5,
+    satFat: 0.3,
+    micros: {'Fibre': '2.7 g', 'Magnesium': '11% DV', 'Manganese': '44% DV'},
   ),
   NutritionFood(
     name: 'Baked sweet potato',
     category: 'Vegetables',
     serving: '130 g',
     calories: _kcal(2.6, 27, 0.2),
-    protein: 2.6, carbs: 27, fat: 0.2, sugar: 7.4, satFat: 0.05,
+    protein: 2.6,
+    carbs: 27,
+    fat: 0.2,
+    sugar: 7.4,
+    satFat: 0.05,
     micros: {
       'Fibre': '4 g',
       'Vitamin A': '400% DV',
@@ -181,7 +204,11 @@ final List<NutritionFood> _curatedFoods = [
     category: 'Fruits',
     serving: '100 g',
     calories: _kcal(2, 8.5, 15),
-    protein: 2, carbs: 8.5, fat: 15, sugar: 0.7, satFat: 2.1,
+    protein: 2,
+    carbs: 8.5,
+    fat: 15,
+    sugar: 0.7,
+    satFat: 2.1,
     micros: {
       'Fibre': '6.7 g',
       'Potassium': '485 mg',
@@ -194,7 +221,11 @@ final List<NutritionFood> _curatedFoods = [
     category: 'Nuts & seeds',
     serving: '30 g',
     calories: _kcal(6, 6, 15),
-    protein: 6, carbs: 6, fat: 15, sugar: 1.2, satFat: 1.1,
+    protein: 6,
+    carbs: 6,
+    fat: 15,
+    sugar: 1.2,
+    satFat: 1.1,
     micros: {
       'Fibre': '3.5 g',
       'Magnesium': '20% DV',
@@ -208,19 +239,23 @@ final List<NutritionFood> _curatedFoods = [
     category: 'Fruits',
     serving: '1 medium (182 g)',
     calories: _kcal(0.5, 25, 0.3),
-    protein: 0.5, carbs: 25, fat: 0.3, sugar: 19, satFat: 0.05,
-    micros: {
-      'Fibre': '4.4 g',
-      'Vitamin C': '14% DV',
-      'Potassium': '195 mg',
-    },
+    protein: 0.5,
+    carbs: 25,
+    fat: 0.3,
+    sugar: 19,
+    satFat: 0.05,
+    micros: {'Fibre': '4.4 g', 'Vitamin C': '14% DV', 'Potassium': '195 mg'},
   ),
   NutritionFood(
     name: 'Fresh ripe banana',
     category: 'Fruits',
     serving: '1 medium (118 g)',
     calories: _kcal(1.3, 27, 0.4),
-    protein: 1.3, carbs: 27, fat: 0.4, sugar: 14, satFat: 0.1,
+    protein: 1.3,
+    carbs: 27,
+    fat: 0.4,
+    sugar: 14,
+    satFat: 0.1,
     micros: {
       'Fibre': '3.1 g',
       'Vitamin B6': '33% DV',
@@ -233,7 +268,11 @@ final List<NutritionFood> _curatedFoods = [
     category: 'Vegetables',
     serving: '150 g',
     calories: _kcal(3.7, 8, 0.6),
-    protein: 3.7, carbs: 8, fat: 0.6, sugar: 2.1, satFat: 0.1,
+    protein: 3.7,
+    carbs: 8,
+    fat: 0.6,
+    sugar: 2.1,
+    satFat: 0.1,
     micros: {
       'Fibre': '3.8 g',
       'Vitamin C': '135% DV',
@@ -244,4 +283,3 @@ final List<NutritionFood> _curatedFoods = [
 ];
 
 enum MealType { breakfast, lunch, dinner, sweet }
-

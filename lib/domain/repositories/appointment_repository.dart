@@ -1,9 +1,11 @@
 /// Appointment + scheduling contracts (P1-11).
 library;
 
+import '../../core/data/contracts.dart';
 import '../../core/result.dart';
 import '../entities/entities.dart';
 import '../enums.dart';
+import 'notification_repository.dart';
 
 /// A bookable time window produced by the slot generator (P4-12).
 class OpenSlot {
@@ -11,11 +13,75 @@ class OpenSlot {
     required this.staffId,
     required this.start,
     required this.end,
+    this.resourceId,
+    this.capacity = 1,
+    this.version = 1,
   });
 
   final String staffId;
   final DateTime start;
   final DateTime end;
+  final String? resourceId;
+  final int capacity;
+  final int version;
+}
+
+class ScheduleResource {
+  const ScheduleResource({
+    required this.id,
+    required this.staffId,
+    required this.slotDuration,
+    required this.capacity,
+    required this.version,
+  });
+
+  final String id;
+  final String staffId;
+  final Duration slotDuration;
+  final int capacity;
+  final int version;
+}
+
+class AvailabilityException {
+  const AvailabilityException({
+    required this.id,
+    required this.staffId,
+    required this.start,
+    required this.end,
+    this.reason,
+    this.version = 1,
+  });
+
+  final String id;
+  final String staffId;
+  final DateTime start;
+  final DateTime end;
+  final String? reason;
+  final int version;
+}
+
+class BookingReservation {
+  const BookingReservation({
+    required this.resourceId,
+    required this.start,
+    required this.end,
+    required this.capacity,
+    required this.resourceVersion,
+  });
+
+  final String resourceId;
+  final DateTime start;
+  final DateTime end;
+  final int capacity;
+  final int resourceVersion;
+}
+
+class AppointmentChangePolicy {
+  const AppointmentChangePolicy({
+    this.minimumNotice = const Duration(hours: 2),
+  });
+
+  final Duration minimumNotice;
 }
 
 class BookingRequest {
@@ -30,6 +96,9 @@ class BookingRequest {
     this.noShowRisk,
     this.riskBand,
     this.bookedForName,
+    this.idempotencyKey,
+    this.enabledReminderChannels,
+    this.notify = const [],
   });
 
   final String patientId;
@@ -45,6 +114,18 @@ class BookingRequest {
   /// A linked family member's name when the visit is for someone other than
   /// the account holder.
   final String? bookedForName;
+
+  /// Reuse across retries of the same booking: a retry returns the
+  /// appointment the first attempt committed instead of booking again.
+  final IdempotencyKey? idempotencyKey;
+
+  /// Channels enabled for this patient. These reminders commit atomically
+  /// with the booking.
+  final Set<ReminderChannel>? enabledReminderChannels;
+
+  /// Notifications to deliver (through the outbox) if — and only if — the
+  /// booking commits.
+  final List<NewNotification> notify;
 }
 
 abstract interface class AppointmentRepository {
@@ -92,7 +173,25 @@ abstract interface class AppointmentRepository {
     required List<NewScheduleTemplate> templates,
   });
 
+  Future<Result<AvailabilityException>> addAvailabilityException({
+    required String staffId,
+    required DateTime start,
+    required DateTime end,
+    String? reason,
+  });
+
+  Future<Result<List<AvailabilityException>>> availabilityExceptions(
+    String staffId,
+    DateTime from,
+    DateTime to,
+  );
+
   Future<Result<Appointment>> book(BookingRequest request);
+
+  // Every change below takes an optional `expectedVersion`: the
+  // [Appointment.version] the caller's decision was based on. If the
+  // appointment changed since, the call fails with `ConflictFailure` instead
+  // of overwriting the newer state.
 
   /// [patientId] must match the appointment's own patient — the repository
   /// verifies this itself rather than trusting the caller, since a caller
@@ -109,12 +208,17 @@ abstract interface class AppointmentRepository {
     required DateTime newStart,
     required DateTime newEnd,
     Set<ReminderChannel>? enabledChannels,
+    int? expectedVersion,
   });
 
   /// [patientId] must match the appointment's own patient (see [reschedule]).
   /// Clears its unsent reminders. Cancelling an already-cancelled or
   /// completed appointment fails cleanly rather than silently no-op'ing.
-  Future<Result<void>> cancel(String id, {required String patientId});
+  Future<Result<void>> cancel(
+    String id, {
+    required String patientId,
+    int? expectedVersion,
+  });
 
   /// [staffId] must match the appointment's own clinician — a staff member
   /// must not be able to change the status of a visit assigned to a
@@ -124,19 +228,34 @@ abstract interface class AppointmentRepository {
     required String id,
     required String staffId,
     required AppointmentStatus status,
+    int? expectedVersion,
+  });
+
+  /// Updates the operational no-show band and rebuilds queued reminders in
+  /// the same transaction.
+  Future<Result<void>> updateRiskBand({
+    required String id,
+    required String staffId,
+    required RiskBand riskBand,
+    Set<ReminderChannel>? enabledChannels,
+    int? expectedVersion,
   });
 
   Future<Result<void>> markCheckedIn(
     String id, {
     required String staffId,
     required DateTime at,
+    int? expectedVersion,
   });
 
   /// "Call patient" — stamps `calledInAt`; the status is unchanged.
+  /// [notify] is delivered through the outbox if the call-in commits.
   Future<Result<void>> markCalledIn(
     String id, {
     required String staffId,
     required DateTime at,
+    int? expectedVersion,
+    List<NewNotification> notify,
   });
 
   /// "Patient arrived" — stamps `checkedInAt` and moves the visit to
@@ -145,6 +264,7 @@ abstract interface class AppointmentRepository {
     String id, {
     required String staffId,
     required DateTime at,
+    int? expectedVersion,
   });
 
   /// "Complete consultation" — [AppointmentStatus.completed] plus the doctor's
@@ -153,6 +273,7 @@ abstract interface class AppointmentRepository {
     required String id,
     required String staffId,
     String? outcomeNote,
+    int? expectedVersion,
   });
 
   /// Creates an in-progress visit for a walk-in ticket — no slot picking, the
@@ -176,5 +297,6 @@ abstract interface class AppointmentRepository {
     required String id,
     required String fromStaffId,
     required String toStaffId,
+    int? expectedVersion,
   });
 }
