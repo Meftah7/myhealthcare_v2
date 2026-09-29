@@ -54,6 +54,7 @@
   "forgotPassword": "نسيت كلمة المرور؟",
   "createPatientAccount": "إنشاء حساب مريض",
   "demoAccounts": "حسابات تجريبية",
+  "demoQuickSignInHint": "اضغط على حساب لتسجيل الدخول مباشرة.",
   "demoPatient": "مريض",
   "demoStaff": "طاقم",
   "demoAdmin": "مسؤول",

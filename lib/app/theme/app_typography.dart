@@ -14,6 +14,12 @@ abstract final class AppFonts {
 
   /// Only where literal character alignment matters (extracted PDF text, debug).
   static const String mono = 'JetBrainsMono';
+
+  /// Arabic glyphs, which Lexend and Inter lack. Without a bundled fallback
+  /// the web engine fetches one from fonts.gstatic.com — blocked by the CSP,
+  /// so Arabic text would render as empty boxes.
+  static const String arabic = 'NotoNaskhArabic';
+  static const List<String> fallback = [arabic];
 }
 
 /// Tabular (monospaced) figures — digits align in columns so 98 never looks

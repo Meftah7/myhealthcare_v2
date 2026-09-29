@@ -113,6 +113,25 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
   });
 
+  testWidgets('a demo quick action signs in with one tap', (tester) async {
+    await tester.pumpWidget(await _app(db));
+    await _pump(tester);
+
+    expect(find.text('Demo accounts'), findsOneWidget);
+    final staffTile = find.widgetWithText(InkWell, 'Staff');
+    await tester.ensureVisible(staffTile);
+    await tester.tap(staffTile);
+    await passMfa(tester);
+    await _pump(tester);
+    await _pump(tester);
+
+    expect(find.text('Dashboard'), findsWidgets);
+    expect(find.text('Patients'), findsWidgets);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
   testWidgets('wrong password shows an error, stays on login', (tester) async {
     await tester.pumpWidget(await _app(db));
     await _pump(tester);

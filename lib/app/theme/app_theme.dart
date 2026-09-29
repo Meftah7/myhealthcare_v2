@@ -59,6 +59,7 @@ abstract final class AppTheme {
     final text = buildTextTheme().apply(
       bodyColor: scheme.onSurface,
       displayColor: scheme.onSurface,
+      fontFamilyFallback: AppFonts.fallback,
     );
     final isLight = brightness == Brightness.light;
 
@@ -92,6 +93,8 @@ abstract final class AppTheme {
 
     return ThemeData(
       colorScheme: scheme,
+      // Also covers primaryTextTheme and styles built outside [text].
+      fontFamilyFallback: AppFonts.fallback,
       textTheme: text,
       extensions: [status],
       scaffoldBackgroundColor: scheme.surface,

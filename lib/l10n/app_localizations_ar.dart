@@ -163,6 +163,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get demoAccounts => 'حسابات تجريبية';
 
   @override
+  String get demoQuickSignInHint => 'اضغط على حساب لتسجيل الدخول مباشرة.';
+
+  @override
   String get demoPatient => 'مريض';
 
   @override

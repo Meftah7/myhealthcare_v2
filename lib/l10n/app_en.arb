@@ -54,6 +54,7 @@
   "forgotPassword": "Forgot password?",
   "createPatientAccount": "Create a patient account",
   "demoAccounts": "Demo accounts",
+  "demoQuickSignInHint": "Tap an account to sign in instantly.",
   "demoPatient": "Patient",
   "demoStaff": "Staff",
   "demoAdmin": "Admin",

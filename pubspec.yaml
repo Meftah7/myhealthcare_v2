@@ -147,6 +147,11 @@ flutter:
     - family: JetBrainsMono
       fonts:
         - asset: assets/fonts/JetBrainsMono.ttf
+    # Arabic UI glyphs. Bundled so the web build never fetches a fallback
+    # font from fonts.gstatic.com, which the page's CSP blocks.
+    - family: NotoNaskhArabic
+      fonts:
+        - asset: assets/fonts/NotoNaskhArabic.ttf
 
   assets:
     - assets/models/no_show_model.json

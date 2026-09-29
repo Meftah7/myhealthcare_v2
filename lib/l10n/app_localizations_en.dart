@@ -164,6 +164,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get demoAccounts => 'Demo accounts';
 
   @override
+  String get demoQuickSignInHint => 'Tap an account to sign in instantly.';
+
+  @override
   String get demoPatient => 'Patient';
 
   @override

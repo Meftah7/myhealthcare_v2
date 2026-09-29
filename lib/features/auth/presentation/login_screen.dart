@@ -1,6 +1,8 @@
 /// Sign-in screen (P2-02, redesign v2).
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -12,6 +14,7 @@ import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
+import '../../../data/seed/seeder.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/session.dart';
 import 'auth_app_bar_actions.dart';
@@ -199,10 +202,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           // Demo credentials belong to the explicit demo runtime only.
           if (ref.watch(appModeProvider).isDemo) ...[
             const SizedBox(height: Space.lg),
-            _DemoHint(
-              onFill: (email) {
+            _DemoQuickActions(
+              enabled: !_busy,
+              onSelect: (email) {
                 _email.text = email;
-                _password.text = 'password';
+                _password.text = Seeder.demoPassword;
+                unawaited(_submit());
               },
             ),
           ],
@@ -303,16 +308,23 @@ class _BrandLockup extends StatelessWidget {
   }
 }
 
-class _DemoHint extends StatelessWidget {
-  const _DemoHint({required this.onFill});
+/// One-tap sign-in to the three seeded demo accounts. Demo runtime only.
+class _DemoQuickActions extends StatelessWidget {
+  const _DemoQuickActions({required this.enabled, required this.onSelect});
 
-  final void Function(String email) onFill;
+  final bool enabled;
+  final void Function(String email) onSelect;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final t = AppLocalizations.of(context)!;
+    final accounts = [
+      (t.demoPatient, Icons.person_outline, 'patient1@myhealth.demo'),
+      (t.demoStaff, Icons.medical_services_outlined, 'staff1@myhealth.demo'),
+      (t.demoAdmin, Icons.admin_panel_settings_outlined, 'admin@myhealth.demo'),
+    ];
     return Container(
       padding: const EdgeInsets.all(Space.md),
       decoration: BoxDecoration(
@@ -321,32 +333,120 @@ class _DemoHint extends StatelessWidget {
         border: Border.all(color: scheme.outlineVariant),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(t.demoAccounts, style: theme.textTheme.titleSmall),
-          const SizedBox(height: Space.xs),
-          Wrap(
-            spacing: Space.xs,
-            runSpacing: Space.xs,
+          Row(
             children: [
-              for (final (label, email) in [
-                (t.demoPatient, 'patient1@myhealth.demo'),
-                (t.demoStaff, 'staff1@myhealth.demo'),
-                (t.demoAdmin, 'admin@myhealth.demo'),
-              ])
-                ActionChip(
-                  label: Text(label),
-                  onPressed: () => onFill(email),
-                  visualDensity: VisualDensity.compact,
-                ),
+              Icon(Icons.bolt_outlined, size: 18, color: scheme.primary),
+              const SizedBox(width: Space.xs),
+              Expanded(
+                child: Text(t.demoAccounts, style: theme.textTheme.titleSmall),
+              ),
             ],
           ),
           const SizedBox(height: Space.xs),
           Text(
-            t.demoPasswordNote('password'),
-            style: theme.textTheme.bodySmall?.copyWith(color: scheme.onSurface),
+            t.demoQuickSignInHint,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: Space.sm),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final tiles = [
+                for (final (label, icon, email) in accounts)
+                  _DemoAccountTile(
+                    label: label,
+                    icon: icon,
+                    onTap: enabled ? () => onSelect(email) : null,
+                  ),
+              ];
+              // Three across needs ~96dp per tile at the current text size;
+              // otherwise (narrow phone, large text) stack them full width.
+              final scale = MediaQuery.textScalerOf(context).scale(1);
+              if (constraints.maxWidth / 3 < 96 * scale) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (final (i, tile) in tiles.indexed) ...[
+                      if (i > 0) const SizedBox(height: Space.xs),
+                      tile,
+                    ],
+                  ],
+                );
+              }
+              return Row(
+                children: [
+                  for (final (i, tile) in tiles.indexed) ...[
+                    if (i > 0) const SizedBox(width: Space.xs),
+                    Expanded(child: tile),
+                  ],
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: Space.sm),
+          Text(
+            t.demoPasswordNote(Seeder.demoPassword),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _DemoAccountTile extends StatelessWidget {
+  const _DemoAccountTile({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Semantics(
+      button: true,
+      label: label,
+      child: Material(
+        color: scheme.surfaceContainerLowest,
+        shape: RoundedRectangleBorder(
+          borderRadius: Radii.cardSmall,
+          side: BorderSide(color: scheme.outlineVariant),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: Space.sm,
+              horizontal: Space.xs,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, color: scheme.primary),
+                const SizedBox(height: Space.xxs),
+                Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelLarge,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

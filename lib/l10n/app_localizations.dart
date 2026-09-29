@@ -392,6 +392,12 @@ abstract class AppLocalizations {
   /// **'Demo accounts'**
   String get demoAccounts;
 
+  /// No description provided for @demoQuickSignInHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap an account to sign in instantly.'**
+  String get demoQuickSignInHint;
+
   /// No description provided for @demoPatient.
   ///
   /// In en, this message translates to:
