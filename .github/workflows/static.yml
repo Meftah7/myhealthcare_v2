@@ -34,7 +34,8 @@ jobs:
        # — without this flag the app loads its JS but never renders (blank
        # white page, no catchable error since the CSP block happens before
        # any Dart code runs).
-       run: flutter build web --release --base-href "/myhealthcare_v2/" --no-web-resources-cdn
+       run: flutter build web --release --base-href "/myhealthcare_v2/" --no-web-resources-cdn  --dart-define=APP_MODE=demo
+
      - name: Setup Pages
        uses: actions/configure-pages@v5
      - name: Upload artifact
