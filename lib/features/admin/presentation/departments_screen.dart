@@ -42,6 +42,7 @@ class DepartmentsScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     return AppScaffold(
+      hero: true,
       title: t.departmentsLabel,
       actions: const [AdminTopActions()],
       floatingActionButton: FloatingActionButton.extended(

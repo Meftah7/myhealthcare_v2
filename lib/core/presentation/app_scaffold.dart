@@ -57,6 +57,8 @@ class AppScaffold extends StatefulWidget {
     this.maxContentWidth = Space.maxContentWidth,
     this.stagger = false,
     this.centerBody = true,
+    this.hero = false,
+    this.heroOverline,
     super.key,
   }) : assert(
          (children != null ? 1 : 0) +
@@ -105,6 +107,13 @@ class AppScaffold extends StatefulWidget {
   /// Centre and cap [body] the way [children] is centred and capped. Off when
   /// the body genuinely wants the full window (a two-pane split, a calendar).
   final bool centerBody;
+
+  /// Figma redesign header for a role's top-level tabs: a tall pale-blue
+  /// panel with rounded bottom corners and a large bold [title].
+  final bool hero;
+
+  /// Small line above the hero title ("Good morning", "Today").
+  final String? heroOverline;
 
   @override
   State<AppScaffold> createState() => _AppScaffoldState();
@@ -174,9 +183,60 @@ class _AppScaffoldState extends State<AppScaffold> {
         widget.bottom != null ||
         widget.leading != null;
 
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    Widget? title =
+        widget.titleWidget ??
+        (widget.title == null
+            ? null
+            : Text(
+                widget.title!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: widget.hero
+                    ? theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: scheme.onPrimaryContainer,
+                      )
+                    : null,
+              ));
+    if (widget.hero && widget.heroOverline != null && title != null) {
+      title = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            widget.heroOverline!,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
+          ),
+          title,
+        ],
+      );
+    }
+
     return Scaffold(
       appBar: !hasAppBar
           ? null
+          : widget.hero
+          ? AppBar(
+              titleSpacing: gutter,
+              toolbarHeight: 104,
+              backgroundColor: scheme.primaryContainer,
+              surfaceTintColor: Colors.transparent,
+              scrolledUnderElevation: 0,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(
+                  bottom: Radius.circular(28),
+                ),
+              ),
+              title: title,
+              leading: widget.leading,
+              automaticallyImplyLeading: widget.automaticallyImplyLeading,
+              actions: widget.actions,
+              bottom: widget.bottom,
+            )
           : AppBar(
               titleSpacing: gutter,
               title:

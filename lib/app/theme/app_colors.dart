@@ -21,14 +21,14 @@ abstract final class AppColors {
   /// Indigo-violet — the visual centre of the brand gradient. Sits far from
   /// every clinical status hue (amber / orange / red / green), holds WCAG
   /// contrast in both themes, and reads as considered rather than clinical-cold.
-  static const Color seed = Color(0xFF5B4FE9);
+  static const Color seed = Color(0xFF1E5FAF);
 
   /// The three brand-gradient stops (mark: magenta → violet → blue). Used
   /// *sparingly and with intent* — the login mark, one hero surface per role,
   /// the empty-state call to action. Never as page decoration (DESIGN.md §1).
-  static const Color brandMagenta = Color(0xFFEC4899);
-  static const Color brandViolet = Color(0xFF7C5CFC);
-  static const Color brandBlue = Color(0xFF3B82F6);
+  static const Color brandMagenta = Color(0xFF2F7AD6);
+  static const Color brandViolet = Color(0xFF1E5FAF);
+  static const Color brandBlue = Color(0xFF174C8E);
 
   /// Left-to-right brand gradient. Full saturation — reserve it for the mark.
   static const LinearGradient brandGradient = LinearGradient(
@@ -42,13 +42,13 @@ abstract final class AppColors {
   static const LinearGradient heroGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF6D5DF6), Color(0xFF4C43D9), Color(0xFF3F6FE0)],
+    colors: [Color(0xFF2468B8), Color(0xFF1E5FAF), Color(0xFF1A549C)],
   );
 
   /// Ambient glow behind the splash mark — the gradient at low alpha, used as a
   /// radial bloom rather than a fill.
   static const RadialGradient brandGlow = RadialGradient(
-    colors: [Color(0x385B4FE9), Color(0x005B4FE9)],
+    colors: [Color(0x381E5FAF), Color(0x001E5FAF)],
   );
 
   // --- light ---------------------------------------------------------------
@@ -62,15 +62,15 @@ abstract final class AppColors {
         seedColor: seed,
         dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
       ).copyWith(
-        primary: const Color(0xFF5B4FE9),
+        primary: const Color(0xFF1E5FAF),
         onPrimary: Colors.white,
-        primaryContainer: const Color(0xFFE7E3FF),
-        onPrimaryContainer: const Color(0xFF251C71),
+        primaryContainer: const Color(0xFFE3ECF8),
+        onPrimaryContainer: const Color(0xFF0F2E57),
 
-        secondary: const Color(0xFF5C5F80),
+        secondary: const Color(0xFF4F6280),
         onSecondary: Colors.white,
-        secondaryContainer: const Color(0xFFE5E3F8),
-        onSecondaryContainer: const Color(0xFF2F2B58),
+        secondaryContainer: const Color(0xFFE6EDF7),
+        onSecondaryContainer: const Color(0xFF1C2D47),
 
         tertiary: const Color(0xFF0E7C86),
         onTertiary: Colors.white,
@@ -84,14 +84,14 @@ abstract final class AppColors {
 
         // Page sits a step below the cards, so a white card lifts off it
         // without needing a heavy shadow.
-        surface: const Color(0xFFF7F8FB),
+        surface: const Color(0xFFF3F6FB),
         onSurface: const Color(0xFF161922),
         onSurfaceVariant: const Color(0xFF585F70),
         surfaceDim: const Color(0xFFE6E8EF),
         surfaceBright: Colors.white,
         surfaceContainerLowest: Colors.white,
         surfaceContainerLow: const Color(0xFFFBFBFD),
-        surfaceContainer: const Color(0xFFF2F3F8),
+        surfaceContainer: const Color(0xFFEDF2F9),
         surfaceContainerHigh: const Color(0xFFECEEF4),
         surfaceContainerHighest: const Color(0xFFE5E8F0),
 
@@ -99,7 +99,7 @@ abstract final class AppColors {
         outlineVariant: const Color(0xFFDCDFE8),
         inverseSurface: const Color(0xFF262A34),
         onInverseSurface: const Color(0xFFF3F4F9),
-        inversePrimary: const Color(0xFFB7ACFF),
+        inversePrimary: const Color(0xFFA9C8F2),
         surfaceTint: Colors.transparent,
       );
 
@@ -114,15 +114,15 @@ abstract final class AppColors {
         brightness: Brightness.dark,
         dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
       ).copyWith(
-        primary: const Color(0xFFB7ACFF),
-        onPrimary: const Color(0xFF2C1E78),
-        primaryContainer: const Color(0xFF413394),
-        onPrimaryContainer: const Color(0xFFE7E3FF),
+        primary: const Color(0xFFA9C8F2),
+        onPrimary: const Color(0xFF0B2A52),
+        primaryContainer: const Color(0xFF17447D),
+        onPrimaryContainer: const Color(0xFFE3ECF8),
 
-        secondary: const Color(0xFFC5C4DD),
+        secondary: const Color(0xFFC0CCDD),
         onSecondary: const Color(0xFF2E2F43),
-        secondaryContainer: const Color(0xFF34315E),
-        onSecondaryContainer: const Color(0xFFE5E3F8),
+        secondaryContainer: const Color(0xFF2A3A52),
+        onSecondaryContainer: const Color(0xFFE6EDF7),
 
         tertiary: const Color(0xFF5BD5E0),
         onTertiary: const Color(0xFF00363B),
@@ -149,7 +149,7 @@ abstract final class AppColors {
         outlineVariant: const Color(0xFF2E323C),
         inverseSurface: const Color(0xFFE8EAF1),
         onInverseSurface: const Color(0xFF1A1D25),
-        inversePrimary: const Color(0xFF5B4FE9),
+        inversePrimary: const Color(0xFF1E5FAF),
         surfaceTint: Colors.transparent,
       );
 }

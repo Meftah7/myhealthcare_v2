@@ -26,6 +26,7 @@ class TaskBoardScreen extends ConsumerWidget {
     final tasks = ref.watch(staffTasksProvider);
     final weight = ref.watch(aiTaskWeightProvider).valueOrNull ?? 0.5;
     return AppScaffold(
+      hero: true,
       title: t.taskBoardTitle,
       actions: [_PrioritiseButton(), const StaffTopActions()],
       body: tasks.when(

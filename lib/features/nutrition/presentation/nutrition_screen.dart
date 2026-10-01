@@ -42,6 +42,7 @@ class _NutritionScreenState extends State<NutritionScreen> {
     final t = AppLocalizations.of(context)!;
 
     return AppScaffold(
+      hero: true,
       title: t.nutritionTitle,
       actions: const [PatientTopActions()],
       body: Column(

@@ -82,6 +82,7 @@ class _State extends ConsumerState<UserManagementScreen>
     final t = AppLocalizations.of(context)!;
     final add = _addLabel(t);
     return AppScaffold(
+      hero: true,
       title: t.userManagementTitle,
       actions: const [AdminTopActions()],
       bottom: PreferredSize(

@@ -26,6 +26,7 @@ import '../../../domain/repositories/auth_repository.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../services/auth/recovery_delivery.dart';
 import 'auth_app_bar_actions.dart';
+import 'auth_scaffold.dart';
 
 enum _Step { identify, verify, queued, done }
 
@@ -134,9 +135,29 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
+    switch (_step) {
+      case _Step.identify:
+        return AuthScaffold(
+          title: t.forgotPasswordQuestion,
+          subtitle: t.forgotPasswordBody,
+          onBack: () => context.go(AppRoutes.login),
+          child: _identifyForm(t),
+        );
+      case _Step.verify:
+        return AuthScaffold(
+          title: t.recoveryCodeSentTitle,
+          subtitle: t.recoveryCodeSentBody,
+          onBack: () => context.go(AppRoutes.login),
+          child: _verifyForm(t),
+        );
+      case _Step.queued:
+      case _Step.done:
+        break;
+    }
     return Scaffold(
       appBar: AppBar(
-        title: Text(t.resetPasswordTitle),
+        backgroundColor: Colors.transparent,
+        automaticallyImplyLeading: false,
         actions: authAppBarActions,
       ),
       body: Center(
@@ -145,8 +166,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420),
             child: switch (_step) {
-              _Step.identify => _identifyForm(t),
-              _Step.verify => _verifyForm(t),
+              _Step.identify || _Step.verify => const SizedBox.shrink(),
               _Step.queued => _Outcome(
                 icon: Icons.mark_email_read_outlined,
                 title: t.passwordResetRequestedTitle,
@@ -167,19 +187,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   }
 
   Widget _identifyForm(AppLocalizations t) {
-    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(t.forgotPasswordQuestion, style: theme.textTheme.headlineSmall),
-        const SizedBox(height: Space.xxs),
-        Text(
-          t.forgotPasswordBody,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(height: Space.lg),
         TextField(
           controller: _identifier,
           autofocus: true,
@@ -211,24 +221,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   }
 
   Widget _verifyForm(AppLocalizations t) {
-    final theme = Theme.of(context);
     final outbox = ref.watch(recoveryDeliveryProvider);
     return AutofillGroup(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(t.recoveryCodeSentTitle, style: theme.textTheme.headlineSmall),
-          const SizedBox(height: Space.xxs),
-          Text(
-            t.recoveryCodeSentBody,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          if (outbox is DemoRecoveryOutbox) ...[
-            const SizedBox(height: Space.md),
-            _DemoInbox(outbox: outbox),
-          ],
+          if (outbox is DemoRecoveryOutbox) _DemoInbox(outbox: outbox),
           const SizedBox(height: Space.lg),
           TextField(
             key: const ValueKey('recovery-code'),
@@ -376,12 +374,29 @@ class _Outcome extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Icon(icon, size: 40, color: theme.colorScheme.primary),
+        Center(
+          child: Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 34, color: theme.colorScheme.primary),
+          ),
+        ),
         const SizedBox(height: Space.md),
-        Text(title, style: theme.textTheme.headlineSmall),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         const SizedBox(height: Space.xs),
         Text(
           body,
+          textAlign: TextAlign.center,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),

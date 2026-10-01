@@ -44,7 +44,9 @@ class PatientHomeScreen extends ConsumerWidget {
 
     return AppScaffold(
       stagger: true,
-      titleWidget: const AppBrandLockup(),
+      hero: true,
+      heroOverline: fmtDate(DateTime.now()),
+      title: greeting(firstName),
       actions: const [PatientTopActions()],
       onRefresh: () async {
         ref
@@ -57,12 +59,6 @@ class PatientHomeScreen extends ConsumerWidget {
           ..invalidate(patientVitalsProvider);
       },
       children: [
-        PageGreeting(
-          overline: fmtDate(DateTime.now()),
-          greeting: greeting(firstName),
-        ),
-        const SizedBox(height: Space.lg),
-
         // Urgent clinical information first, then what is waiting on the
         // patient (hidden when nothing is, shown as an error when it could
         // not be checked).

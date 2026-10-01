@@ -59,6 +59,7 @@ class ProfileScreen extends ConsumerWidget {
     final locale = ref.watch(localeProvider);
 
     return AppScaffold(
+      hero: true,
       title: t.profile,
       actions: [
         TextButton(

@@ -68,7 +68,7 @@ class DocumentProvenance {
 /// layer has no dependency on the Flutter theme.
 const _ink = PdfColor.fromInt(0xFF1A1A2E);
 const _muted = PdfColor.fromInt(0xFF6B6B80);
-const _brand = PdfColor.fromInt(0xFF5B4FE9);
+const _brand = PdfColor.fromInt(0xFF1E5FAF);
 const _hairline = PdfColor.fromInt(0xFFD9D9E3);
 const _alertBg = PdfColor.fromInt(0xFFFDECEC);
 const _alertInk = PdfColor.fromInt(0xFFB3261E);

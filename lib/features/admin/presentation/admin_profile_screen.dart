@@ -63,6 +63,7 @@ class AdminProfileScreen extends ConsumerWidget {
     final sections = _sections(t);
 
     return AppScaffold(
+      hero: true,
       title: t.profile,
       children: user == null
           ? const [SkeletonList()]

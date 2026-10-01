@@ -39,19 +39,15 @@ class AdminDashboardScreen extends ConsumerWidget {
 
     return AppScaffold(
       stagger: true,
-      titleWidget: AppBrandLockup(subtitle: t.roleAdmin),
+      hero: true,
+      heroOverline: fmtDate(DateTime.now()),
+      title: greeting(firstName),
       actions: const [AdminTopActions()],
       onRefresh: () async {
         refreshAdminAttention(ref);
         ref.invalidate(auditLogProvider);
       },
       children: [
-        PageGreeting(
-          overline: fmtDate(DateTime.now()),
-          greeting: greeting(firstName),
-        ),
-        const SizedBox(height: Space.lg),
-
         const _NeedsYouHero(),
 
         SectionColumns(

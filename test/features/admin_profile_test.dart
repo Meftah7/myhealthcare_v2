@@ -10,7 +10,6 @@ import 'package:myhealthcare/app/app.dart';
 import 'package:myhealthcare/app/settings/ui_prefs.dart';
 import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/core/presentation/app_card.dart';
-import 'package:myhealthcare/core/presentation/app_scaffold.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -77,11 +76,10 @@ void main() {
     expect(
       find.descendant(
         of: find.byType(AppBar),
-        matching: find.byType(AppBrandLockup),
+        matching: find.textContaining('Good '),
       ),
       findsOneWidget,
     );
-    expect(find.textContaining('Good '), findsOneWidget);
     expect(find.byType(GradientHeroCard), findsOneWidget);
     // Phase 6: exception queues lead, not system totals.
     expect(find.text('NEEDS ATTENTION'), findsOneWidget);

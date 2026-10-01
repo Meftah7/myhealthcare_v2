@@ -10,11 +10,13 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/common.dart' show CommonDatabase;
 
+import '../../core/app_environment.dart';
 import '../../domain/entities/family_member.dart';
 import '../../domain/enums.dart';
 import '../../domain/identity/identity.dart';
 import '../../services/crypto/device_key_store.dart';
 import 'converters.dart';
+import 'demo_snapshot.dart';
 import 'tables/ai.dart';
 import 'tables/appointments.dart';
 import 'tables/billing.dart';
@@ -101,7 +103,12 @@ class AppDatabase extends _$AppDatabase {
   /// build is encrypted in place on first open. Web has no keystore, so its
   /// OPFS database stays unencrypted (SEC-XCUT-03).
   static QueryExecutor _openEncrypted() {
-    if (kIsWeb) return driftDatabase(name: _dbName, web: _webOptions);
+    if (kIsWeb) {
+      return driftDatabase(
+        name: _dbName,
+        web: configuredAppMode.isDemo ? _demoWebOptions : _webOptions,
+      );
+    }
     return LazyDatabase(() async {
       final key = DeviceKeyStore.toHex(
         await DeviceKeyStore().keyFor(DeviceKeyStore.databaseKey),
@@ -159,6 +166,15 @@ class AppDatabase extends _$AppDatabase {
   static final _webOptions = DriftWebOptions(
     sqlite3Wasm: Uri.parse('sqlite3.wasm'),
     driftWorker: Uri.parse('drift_worker.js'),
+  );
+
+  /// Demo web builds start a brand-new browser database from the shipped
+  /// pre-seeded snapshot (see demo_snapshot.dart). Drift calls this only
+  /// when no database exists yet.
+  static final _demoWebOptions = DriftWebOptions(
+    sqlite3Wasm: Uri.parse('sqlite3.wasm'),
+    driftWorker: Uri.parse('drift_worker.js'),
+    initializeDatabase: loadDemoSnapshot,
   );
 
   @override

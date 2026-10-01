@@ -8,7 +8,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/app.dart';
 import 'package:myhealthcare/core/di.dart';
-import 'package:myhealthcare/core/presentation/app_scaffold.dart';
 import 'package:myhealthcare/core/result.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:myhealthcare/domain/enums.dart';
@@ -84,7 +83,7 @@ void main() {
     expect(
       find.descendant(
         of: find.byType(AppBar),
-        matching: find.byType(AppBrandLockup),
+        matching: find.textContaining('Good '),
       ),
       findsOneWidget,
     );

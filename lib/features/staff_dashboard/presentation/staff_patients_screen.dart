@@ -41,6 +41,7 @@ class StaffPatientsScreen extends ConsumerWidget {
     final split = TwoPane.isSplit(context);
 
     return AppScaffold(
+      hero: true,
       title: t.navPatients,
       actions: const [StaffTopActions()],
       bottom: PreferredSize(

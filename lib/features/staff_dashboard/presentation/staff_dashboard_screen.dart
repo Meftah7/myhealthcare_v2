@@ -50,9 +50,9 @@ class StaffDashboardScreen extends ConsumerWidget {
 
     return AppScaffold(
       stagger: true,
-      // The brand lockup, not the word "Dashboard": the greeting below already
-      // says where you are, and two headings competing is one too many.
-      titleWidget: AppBrandLockup(subtitle: t.roleStaff),
+      hero: true,
+      heroOverline: fmtDate(DateTime.now()),
+      title: greeting(firstName),
       actions: const [StaffTopActions()],
       onRefresh: () async {
         ref
@@ -64,11 +64,6 @@ class StaffDashboardScreen extends ConsumerWidget {
           ..invalidate(staffTasksProvider);
       },
       children: [
-        PageGreeting(
-          overline: fmtDate(DateTime.now()),
-          greeting: greeting(firstName),
-        ),
-        const SizedBox(height: Space.lg),
 
         const _NextPatientHero(),
 

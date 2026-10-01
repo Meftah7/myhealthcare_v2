@@ -51,6 +51,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
         ref.watch(departmentDirectoryProvider).valueOrNull ?? const {};
 
     return AppScaffold(
+      hero: true,
       title: t.appointmentsTitle,
       actions: const [PatientTopActions()],
       onRefresh: () async => ref.invalidate(patientAppointmentsProvider),

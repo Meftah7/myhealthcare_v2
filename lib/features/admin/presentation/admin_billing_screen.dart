@@ -46,6 +46,7 @@ class _AdminBillingScreenState extends ConsumerState<AdminBillingScreen> {
     final gutter = WindowSize.of(context).gutter;
 
     return AppScaffold(
+      hero: true,
       title: t.billingTitle,
       actions: [
         IconButton(

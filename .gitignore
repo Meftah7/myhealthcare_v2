@@ -45,14 +45,14 @@ app.*.map.json
 /android/app/release
 
 # --- MyHealth Care additions ---
-# Secrets — never commit. AI API keys live in flutter_secure_storage at runtime (P3-06).
+# Secrets â€” never commit. AI API keys live in flutter_secure_storage at runtime (P3-06).
 *.env
 .env*
 **/secrets.dart
 **/*.secrets.dart
 lib/**/api_keys.dart
 
-# Vendored third-party skills — reproducible from skills-lock.json via `npx skills`
+# Vendored third-party skills â€” reproducible from skills-lock.json via `npx skills`
 .agents/
 .claude/skills/
 

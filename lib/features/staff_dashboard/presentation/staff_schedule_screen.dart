@@ -44,8 +44,16 @@ class StaffScheduleScreen extends ConsumerWidget {
       ScheduleView.day => DateFormat('EEE d').format(focused),
     };
 
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: 104,
+        backgroundColor: theme.colorScheme.primaryContainer,
+        surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 0,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
+        ),
         // Steps up a level, and says where it goes — the year from a month,
         // the month from a day.
         leadingWidth: view == ScheduleView.year ? null : 108,
@@ -60,7 +68,13 @@ class StaffScheduleScreen extends ConsumerWidget {
             onTap: () => goUp(ScheduleView.month),
           ),
         },
-        title: Text(title),
+        title: Text(
+          title,
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: theme.colorScheme.onPrimaryContainer,
+          ),
+        ),
         actions: const [StaffTopActions()],
       ),
       body: switch (view) {
