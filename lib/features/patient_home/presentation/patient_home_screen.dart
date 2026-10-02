@@ -5,7 +5,6 @@
 library;
 
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,7 +17,6 @@ import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
-import '../../../core/presentation/status_badges.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
@@ -45,8 +43,8 @@ class PatientHomeScreen extends ConsumerWidget {
     return AppScaffold(
       stagger: true,
       hero: true,
-      heroOverline: fmtDate(DateTime.now()),
-      title: greeting(firstName),
+      heroOverline: greeting(firstName),
+      title: user?.fullName ?? t.greetingFallbackName,
       actions: const [PatientTopActions()],
       onRefresh: () async {
         ref
@@ -68,18 +66,18 @@ class PatientHomeScreen extends ConsumerWidget {
         // The screen's anchor (Phase 6): the next appointment, stable and
         // first — what's happening before what you can do.
         SectionHeader(t.sectionUpcomingAppointments, overline: true),
-        const _UpcomingCarousel(),
+        const _UpcomingAppointment(),
 
         SectionColumns(
           primary: [
-            SectionHeader(t.sectionYourHealth, overline: true),
-            _HealthSnapshot(),
+            SectionHeader(t.sectionQuickActions, overline: true),
+            const _QuickActions(),
           ],
           secondary: [
-            SectionHeader(t.sectionQuickActions, overline: true),
-            const _QuickAppointmentAction(),
+            SectionHeader(t.sectionYourHealth, overline: true),
+            _HealthSnapshot(),
             const SizedBox(height: Space.sm),
-            const _QuickActions(),
+            const _QuickAppointmentAction(),
           ],
         ),
       ],
@@ -401,425 +399,61 @@ class _QuickActions extends StatelessWidget {
 /// prominent ticket number, the room, date/time and doctor, with page dots
 /// and a "1 of N" count. It never moves on its own — an appointment card
 /// has to stay put long enough to read; the user swipes or uses the arrows.
-class _UpcomingCarousel extends ConsumerStatefulWidget {
-  const _UpcomingCarousel();
+class _UpcomingAppointment extends ConsumerWidget {
+  const _UpcomingAppointment();
 
   @override
-  ConsumerState<_UpcomingCarousel> createState() => _UpcomingCarouselState();
-}
-
-class _UpcomingCarouselState extends ConsumerState<_UpcomingCarousel> {
-  // A large mid-point so the PageView can scroll forever in both directions;
-  // the real card is `rawPage % count`, so advancing past the last one brings
-  // the first back in from the right instead of snapping backwards.
-  static const _origin = 100000;
-
-  final _controller = PageController(
-    initialPage: _origin,
-    viewportFraction: 0.92,
-  );
-  int _index = 0;
-  int _count = 0;
-
-  /// The raw page in view. Neighbours peeking in at the edges are visual
-  /// only — not tappable slivers, and not announced twice to screen readers.
-  int _raw = _origin;
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  int _rawPage() =>
-      _controller.hasClients ? (_controller.page ?? _origin).round() : _origin;
-
-  /// Move [delta] cards in that direction — always animates the way you'd
-  /// expect (next = slide left, first-after-last comes from the right).
-  void _step(int delta) {
-    if (_count == 0 || !_controller.hasClients) return;
-    unawaited(
-      _controller.animateToPage(
-        _rawPage() + delta,
-        duration: Motion.medium,
-        curve: Motion.standard,
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
+  Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
-    final appts = ref.watch(patientAppointmentsProvider);
     final doctors = ref.watch(doctorDirectoryProvider).valueOrNull ?? const {};
-
-    return appts.when(
-      loading: () => const LoadingSkeleton(height: 200),
-      error: (e, _) => InlineBanner.error(t.couldNotLoadAppointments),
-      data: (list) {
-        final now = DateTime.now();
-        final active =
-            list
-                .where(
-                  (a) =>
-                      (a.status == AppointmentStatus.booked ||
-                          a.status == AppointmentStatus.confirmed) &&
-                      // A past visit still marked "booked" is not upcoming.
-                      a.slotEnd.isAfter(now),
-                )
-                .toList()
-              ..sort((a, b) => a.slotStart.compareTo(b.slotStart));
-
-        if (active.isEmpty) {
-          return NavRow(
-            icon: Icons.event_available_outlined,
-            title: t.noUpcomingAppointments,
-            subtitle: t.tapToBookVisit,
-            onTap: () => context.go(AppRoutes.patientBook),
-          );
-        }
-
-        if (active.length != _count) {
-          _count = active.length;
-          if (_index >= _count) _index = 0;
-        }
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Text(
-                  t.carouselPosition(_index + 1, active.length),
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                    fontFeatures: kTabularFigures,
-                  ),
-                ),
-                const Spacer(),
-                if (active.length > 1) ...[
-                  // The chevrons point toward where the card actually is —
-                  // "previous" is against reading direction, "next" with it —
-                  // so they swap in RTL rather than staying fixed left/right.
-                  IconButton(
-                    tooltip: t.previousAppointment,
-                    onPressed: () => _step(-1),
-                    icon: Icon(
-                      Directionality.of(context) == TextDirection.rtl
-                          ? Icons.chevron_right
-                          : Icons.chevron_left,
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: t.nextAppointment,
-                    onPressed: () => _step(1),
-                    icon: Icon(
-                      Directionality.of(context) == TextDirection.rtl
-                          ? Icons.chevron_left
-                          : Icons.chevron_right,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-            const SizedBox(height: Space.xs),
-            SizedBox(
-              height: _BigTicketCard.heightFor(
-                context,
-                active,
-                doctorName: (a) => doctors[a.staffId]?.name,
-              ),
-              // Keep the pager's swipe repaints off the rest of Home.
-              child: RepaintBoundary(
-                child: PageView.builder(
-                  controller: _controller,
-                  // No itemCount → scrolls forever; the card shown is
-                  // `rawPage % count`, so the list wraps in either direction.
-                  onPageChanged: (raw) {
-                    setState(() {
-                      _raw = raw;
-                      _index = ((raw % _count) + _count) % _count;
-                    });
-                  },
-                  itemBuilder: (context, raw) {
-                    if (_count == 0) return const SizedBox.shrink();
-                    final i = ((raw % _count) + _count) % _count;
-                    final appt = active[i];
-                    final current = raw == _raw;
-                    return ExcludeSemantics(
-                      excluding: !current,
-                      child: IgnorePointer(
-                        ignoring: !current,
-                        child: Padding(
-                          padding: const EdgeInsetsDirectional.only(
-                            end: Space.sm,
-                          ),
-                          child: _BigTicketCard(
-                            appt: appt,
-                            doctorName: doctors[appt.staffId]?.name,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-            if (active.length > 1) ...[
-              const SizedBox(height: Space.sm),
-              // Position readout, not a control: a 7dp dot can never carry a
-              // 48dp tap target, and the arrows above plus the swipe already
-              // move the carousel. The "n of m" line above is the accessible
-              // equivalent, so these are hidden from semantics.
-              ExcludeSemantics(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    for (var i = 0; i < active.length; i++)
-                      AnimatedContainer(
-                        duration: Motion.medium,
-                        curve: Motion.standard,
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: Space.xxs / 2,
-                        ),
-                        width: i == _index ? 22 : 7,
-                        height: 7,
-                        decoration: BoxDecoration(
-                          color: i == _index
-                              ? scheme.primary
-                              : scheme.outlineVariant,
-                          borderRadius: Radii.pill,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ],
-          ],
-        );
-      },
-    );
-  }
-}
-
-/// One slide of [_UpcomingCarousel] — the ticket number is the headline.
-class _BigTicketCard extends StatelessWidget {
-  const _BigTicketCard({required this.appt, this.doctorName});
-
-  final Appointment appt;
-  final String? doctorName;
-
-  /// The tallest card in [appts], measured at the current text scale.
-  ///
-  /// A `PageView` needs one height for every page, and the old fixed 208dp
-  /// clipped as soon as the OS text size went up. This sizes to the tallest
-  /// card instead.
-  ///
-  /// The line heights are **measured from the actual strings the card will
-  /// render** — same style, same [TextScaler], same font resolution as the
-  /// real render — not assumed from nominal font sizes. The bundled
-  /// Lexend/Inter carry no Arabic glyphs, so Arabic falls back to platform
-  /// fonts with different line metrics; measuring the real text keeps the
-  /// height exact in every locale, on every platform, at every text scale.
-  static double heightFor(
-    BuildContext context,
-    List<Appointment> appts, {
-    String? Function(Appointment appt)? doctorName,
-  }) {
-    final scaler = MediaQuery.textScalerOf(context);
+    final scheme = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
-    final t = AppLocalizations.of(context)!;
-    final direction = Directionality.of(context);
-
-    // Height of [text] on one line, laid out exactly as the card will lay it
-    // out (this is the same style resolution RenderParagraph performs).
-    double textHeight(String text, TextStyle? style) {
-      final painter = TextPainter(
-        text: TextSpan(text: text, style: style),
-        textDirection: direction,
-        textScaler: scaler,
-        maxLines: 1,
-      )..layout();
-      final height = painter.height;
-      painter.dispose();
-      return height;
-    }
-
-    final bodyStyle = theme.textTheme.bodyMedium?.copyWith(
-      fontWeight: FontWeight.w500,
-    );
-
-    // A detail row never renders shorter than its 16dp leading icon.
-    double rowHeight(String text) =>
-        math.max(16.0, textHeight(text, bodyStyle));
-
-    double detailFor(Appointment a) {
-      final doctor = doctorName?.call(a) ?? visitTypeLabel(a.visitType);
-      final rows = [
-        fmtRelativeDay(a.slotStart),
-        fmtTime(a.slotStart),
-        t.roomNumber(a.roomNumber ?? t.none),
-        doctor,
-        if (a.bookedForName != null) t.bookedForName(a.bookedForName!),
-      ];
-      var height = 0.0;
-      for (final (i, row) in rows.indexed) {
-        if (i > 0) height += Space.xs;
-        height += rowHeight(row);
-      }
-      return height;
-    }
-
-    // The ticket column: overline + the big number + the status pill (whose
-    // own vertical padding is Space.xxs on each side, and whose 15dp icon
-    // can outgrow its label).
-    double ticketFor(Appointment a) {
-      final pillLabel = math.max(
-        15.0,
-        textHeight(a.status.label(context), theme.textTheme.labelMedium),
-      );
-      return textHeight(
-            t.ticketOverline,
-            theme.textTheme.labelSmall?.copyWith(letterSpacing: 1),
-          ) +
-          2 +
-          textHeight(
-            a.ticketTag ?? '—',
-            theme.textTheme.displaySmall?.copyWith(
-              fontFeatures: kTabularFigures,
-              height: 1,
-            ),
-          ) +
-          Space.xs +
-          pillLabel +
-          Space.xxs * 2;
-    }
-
-    var height = 0.0;
-    for (final a in appts) {
-      height = math.max(height, math.max(detailFor(a), ticketFor(a)));
-    }
-    return Space.lg * 2 + height;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final t = AppLocalizations.of(context)!;
-
-    return AppCard(
-      elevated: true,
-      color: scheme.primaryContainer,
-      // Tinted edge, not the neutral hairline — a grey line around a lavender
-      // card reads as a mistake.
-      borderColor: scheme.onPrimaryContainer.withValues(alpha: 0.12),
-      onTap: () => context.go(AppRoutes.patientAppointments),
-      child: Row(
-        // Stretch so the rule between the two halves is exactly as tall as the
-        // card, at any text scale, instead of a hard-coded 120dp.
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                t.ticketOverline,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: scheme.onPrimaryContainer.withValues(alpha: 0.7),
-                  letterSpacing: 1,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                appt.ticketTag ?? '—',
-                // w500 is the ceiling for display type (DESIGN.md §3.3) — this
-                // app doesn't shout, and the size is already doing the work.
-                style: theme.textTheme.displaySmall?.copyWith(
-                  color: scheme.onPrimaryContainer,
-                  fontFeatures: kTabularFigures,
-                  height: 1,
-                ),
-              ),
-              const SizedBox(height: Space.xs),
-              AppointmentStatusPill(appt.status, dense: true),
-            ],
-          ),
-          const SizedBox(width: Space.md),
-          Container(
-            width: 1,
-            color: scheme.onPrimaryContainer.withValues(alpha: 0.2),
-          ),
-          const SizedBox(width: Space.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _line(
-                  context,
-                  Icons.calendar_today_outlined,
-                  fmtRelativeDay(appt.slotStart),
-                ),
-                const SizedBox(height: Space.xs),
-                _line(
-                  context,
-                  Icons.schedule_outlined,
-                  fmtTime(appt.slotStart),
-                ),
-                const SizedBox(height: Space.xs),
-                _line(
-                  context,
-                  Icons.meeting_room_outlined,
-                  t.roomNumber(appt.roomNumber ?? t.none),
-                ),
-                const SizedBox(height: Space.xs),
-                _line(
-                  context,
-                  Icons.person_outline,
-                  doctorName ?? visitTypeLabel(appt.visitType),
-                ),
-                if (appt.bookedForName != null) ...[
-                  const SizedBox(height: Space.xs),
-                  _line(
-                    context,
-                    Icons.people_outline,
-                    t.bookedForName(appt.bookedForName!),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
+    return ref.watch(patientAppointmentsProvider).when(
+      loading: () => const LoadingSkeleton(height: 180),
+      error: (e, _) => ErrorStateView(
+        message: t.couldNotLoadAppointments,
+        onRetry: () => ref.invalidate(patientAppointmentsProvider),
       ),
-    );
-  }
-
-  Widget _line(BuildContext context, IconData icon, String text) {
-    final theme = Theme.of(context);
-    final fg = theme.colorScheme.onPrimaryContainer;
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: fg.withValues(alpha: 0.8)),
-        const SizedBox(width: Space.xs),
-        Expanded(
-          child: Text(
-            text,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: fg,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
+      data: (list) {
+        final active = list.where((a) =>
+          (a.status == AppointmentStatus.booked || a.status == AppointmentStatus.confirmed) &&
+          a.slotEnd.isAfter(DateTime.now())).toList()
+          ..sort((a, b) => a.slotStart.compareTo(b.slotStart));
+        if (active.isEmpty) {
+          return NavRow(icon: Icons.event_available_outlined,
+            title: t.noUpcomingAppointments, subtitle: t.tapToBookVisit,
+            onTap: () => context.push(AppRoutes.patientBook));
+        }
+        final appointment = active.first;
+        final detail = AppRoutes.patientAppointmentDetail(appointment.id);
+        return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          AppCard(color: scheme.brightness == Brightness.light ? AppColors.seed : AppColors.brandBlue,
+            borderColor: Colors.transparent,
+            padding: const EdgeInsets.all(20),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(t.sectionUpcomingAppointments, style: theme.textTheme.labelSmall?.copyWith(color: Colors.white70)),
+              const SizedBox(height: Space.xs),
+              Text(doctors[appointment.staffId]?.name ?? visitTypeLabel(appointment.visitType),
+                style: theme.textTheme.titleLarge?.copyWith(color: Colors.white)),
+              const SizedBox(height: Space.sm),
+              Text('${fmtRelativeDay(appointment.slotStart)} · ${fmtTime(appointment.slotStart)} · ${t.roomNumber(appointment.roomNumber ?? t.none)}',
+                style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70)),
+              if (appointment.bookedForName != null) ...[
+                const SizedBox(height: Space.xs),
+                Text(t.bookedForName(appointment.bookedForName!), style: theme.textTheme.bodySmall?.copyWith(color: Colors.white)),
+              ],
+              const SizedBox(height: Space.md),
+              Wrap(spacing: Space.xs, runSpacing: Space.xs, children: [
+                OutlinedButton.icon(onPressed: () => context.push(detail),
+                  style: OutlinedButton.styleFrom(foregroundColor: Colors.white, side: const BorderSide(color: Colors.white54)),
+                  icon: const Icon(Icons.confirmation_number_outlined, size: 18), label: Text(t.ticketOverline)),
+                TextButton(onPressed: () => context.go(AppRoutes.patientAppointments),
+                  style: TextButton.styleFrom(foregroundColor: Colors.white), label: Text(t.appointmentsTitle)),
+              ]),
+            ])),
+          const SizedBox(height: Space.sm),
+        ]);
+      },
     );
   }
 }

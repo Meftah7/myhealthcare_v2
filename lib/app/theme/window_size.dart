@@ -52,7 +52,7 @@ enum WindowSize {
   bool get usesPanes => this == WindowSize.expanded || this == WindowSize.large;
 
   /// Default screen edge padding for this size class (DESIGN.md §4.1).
-  double get gutter => this == WindowSize.compact ? 16 : 24;
+  double get gutter => this == WindowSize.compact ? 20 : 24;
 
   /// Columns for a grid of short shortcut tiles (`TileGrid`). Two on a phone,
   /// and one more each time the content column can carry it without the tiles

@@ -89,7 +89,7 @@ class AuthScaffold extends StatelessWidget {
                               Text(
                                 'MyHealth Care',
                                 style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: FontWeight.w500,
                                   color: scheme.onPrimaryContainer,
                                 ),
                               ),
@@ -99,7 +99,7 @@ class AuthScaffold extends StatelessWidget {
                           Text(
                             title,
                             style: theme.textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w500,
                               color: scheme.onPrimaryContainer,
                             ),
                           ),

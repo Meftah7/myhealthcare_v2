@@ -1,0 +1,28 @@
+{
+  "fileUrl": "https://www.figma.com/design/MPBXbXygNp0QFdc8ske81m",
+  "fileKey": "MPBXbXygNp0QFdc8ske81m",
+  "built": {
+    "auth": 9,
+    "patient": 31,
+    "staff": 16,
+    "admin": 0
+  },
+  "planned": {
+    "auth": 9,
+    "patient": 31,
+    "staff": 16,
+    "admin": 22
+  },
+  "remaining": [
+    "22 Admin screens",
+    "409 prototype connections",
+    "shared component variant grouping",
+    "four-workspace overview",
+    "Figma visual verification"
+  ],
+  "blocker": "Figma MCP Starter-plan tool call quota",
+  "stateLedger": "figma-state-built.json",
+  "continuationBuilder": "code.js",
+  "completeOfflinePreview": "preview.html",
+  "figmaVisualVerified": false
+}

@@ -1,0 +1,16 @@
+{
+  "screens": 78,
+  "counts": {
+    "frames": 1570,
+    "text": 1083,
+    "icon": 648,
+    "button": 125,
+    "badge": 88,
+    "chip": 64
+  },
+  "issues": [],
+  "prototypeLinks": 409,
+  "missingTargets": [],
+  "unexpectedCrossRoleLinks": [],
+  "figmaRuntimeVerified": false
+}

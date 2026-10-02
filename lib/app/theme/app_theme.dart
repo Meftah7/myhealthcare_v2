@@ -77,7 +77,7 @@ abstract final class AppTheme {
     // Inset fields: a filled well with its own hairline, so a text field is
     // legible whether it sits on a white card or on the tinted page.
     final fieldFill = isLight
-        ? scheme.surfaceContainer
+        ? scheme.surfaceContainerLowest
         : scheme.surfaceContainerHigh;
 
     // Bars, rails and sheets share the card's plane.
@@ -192,7 +192,7 @@ abstract final class AppTheme {
           minimumSize: const Size(0, 50),
           padding: const EdgeInsets.symmetric(horizontal: Space.lg),
           textStyle: text.labelLarge,
-          side: BorderSide(color: scheme.outline),
+          side: BorderSide(color: hairline),
           shape: const RoundedRectangleBorder(borderRadius: Radii.button),
         ),
       ),
@@ -298,14 +298,14 @@ abstract final class AppTheme {
         height: 68,
         backgroundColor: navSurface,
         surfaceTintColor: Colors.transparent,
-        indicatorColor: scheme.secondaryContainer,
-        indicatorShape: const StadiumBorder(),
+        indicatorColor: scheme.primaryContainer,
+        indicatorShape: const RoundedRectangleBorder(borderRadius: Radii.button),
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         labelTextStyle: WidgetStateProperty.resolveWith(
           (states) => text.labelMedium?.copyWith(
             fontWeight: FontWeight.w600,
             color: states.contains(WidgetState.selected)
-                ? scheme.onSurface
+                ? scheme.primary
                 : scheme.onSurfaceVariant,
           ),
         ),
@@ -313,7 +313,7 @@ abstract final class AppTheme {
           (states) => IconThemeData(
             size: 24,
             color: states.contains(WidgetState.selected)
-                ? scheme.onSecondaryContainer
+                ? scheme.primary
                 : scheme.onSurfaceVariant,
           ),
         ),
@@ -321,13 +321,13 @@ abstract final class AppTheme {
       navigationRailTheme: NavigationRailThemeData(
         elevation: 0,
         backgroundColor: navSurface,
-        indicatorColor: scheme.secondaryContainer,
-        indicatorShape: const StadiumBorder(),
-        selectedIconTheme: IconThemeData(color: scheme.onSecondaryContainer),
+        indicatorColor: scheme.primaryContainer,
+        indicatorShape: const RoundedRectangleBorder(borderRadius: Radii.button),
+        selectedIconTheme: IconThemeData(color: scheme.primary),
         unselectedIconTheme: IconThemeData(color: scheme.onSurfaceVariant),
         selectedLabelTextStyle: text.labelMedium?.copyWith(
           fontWeight: FontWeight.w600,
-          color: scheme.onSurface,
+          color: scheme.primary,
         ),
         unselectedLabelTextStyle: text.labelMedium?.copyWith(
           color: scheme.onSurfaceVariant,

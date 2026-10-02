@@ -18,6 +18,7 @@ import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/feedback.dart';
@@ -99,13 +100,7 @@ class AdminQuickActions extends ConsumerWidget {
 
     // Two tiles per row on a phone, three once there's room — the same shape
     // the patient and staff dashboards use.
-    return GridView.count(
-      crossAxisCount: WindowSize.of(context).isCompact ? 2 : 3,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: Space.sm,
-      crossAxisSpacing: Space.sm,
-      childAspectRatio: 2.6,
+    return TileGrid(
       children: [for (final a in actions) _QuickActionTile(action: a)],
     );
   }

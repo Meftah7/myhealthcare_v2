@@ -28,7 +28,7 @@ const double kTrailingChevronSize = 20;
 class AppCard extends StatelessWidget {
   const AppCard({
     required this.child,
-    this.padding = const EdgeInsets.all(Space.lg),
+    this.padding = const EdgeInsets.all(Space.md),
     this.onTap,
     this.elevated = false,
     this.color,
@@ -108,24 +108,10 @@ class GradientHeroCard extends StatelessWidget {
     final surface = DecoratedBox(
       decoration: const BoxDecoration(
         borderRadius: Radii.card,
-        gradient: AppColors.heroGradient,
+        color: AppColors.seed,
       ),
       child: Stack(
         children: [
-          // A soft highlight bloom in the top-right corner keeps the gradient
-          // from reading as a flat two-stop fill.
-          Positioned(
-            right: -40,
-            top: -60,
-            child: Container(
-              width: 180,
-              height: 180,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.10),
-              ),
-            ),
-          ),
           Padding(
             padding: const EdgeInsets.all(Space.lg),
             child: Row(

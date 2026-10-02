@@ -11,13 +11,12 @@ import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
 import '../../../core/presentation/app_card.dart';
-import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../data/seed/seeder.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/session.dart';
-import 'auth_app_bar_actions.dart';
+import 'auth_scaffold.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -92,8 +91,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _BrandLockup(subtitle: t.signInSubtitle),
-          const SizedBox(height: Space.xl),
           if (endedByInactivity) ...[
             Container(
               padding: const EdgeInsets.all(Space.sm),
@@ -195,7 +192,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 : Text(t.signInTitle),
           ),
           const SizedBox(height: Space.xs),
-          TextButton(
+          OutlinedButton(
             onPressed: _busy ? null : () => context.push(AppRoutes.register),
             child: Text(t.createPatientAccount),
           ),
@@ -215,100 +212,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ),
     );
 
-    final wide = WindowSize.of(context).usesRail;
-
-    return Scaffold(
-      // No title, no back button — a minimal language pill + theme icon,
-      // floating over the tinted page. Unlike every other top bar's paired
-      // circular buttons, this pair is sign-in-specific: a language pill
-      // (globe + the language you'd switch to) beside a bare theme icon.
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        automaticallyImplyLeading: false,
-        actions: authAppBarActions,
-      ),
-      // On a wide window the form becomes a floating card on the tinted page;
-      // on a phone it is the page, so the card chrome would just be noise.
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(
-            horizontal: Space.lg,
-            vertical: Space.xl,
-          ),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
-            child: AppEntrance(
-              rise: 12,
-              child: wide
-                  ? Container(
-                      padding: const EdgeInsets.all(Space.xl),
-                      decoration: BoxDecoration(
-                        color: scheme.surfaceContainerLowest,
-                        borderRadius: Radii.card,
-                        border: Border.all(color: scheme.outlineVariant),
-                        boxShadow: Shadows.e2,
-                      ),
-                      child: form,
-                    )
-                  : form,
-            ),
-          ),
-        ),
-      ),
+    return AuthScaffold(
+      title: t.signInTitle,
+      subtitle: t.signInSubtitle,
+      child: AutofillGroup(child: form),
     );
   }
 }
 
-/// The gradient-medallion mark + wordmark. One of the sanctioned brand-gradient
-/// surfaces (DESIGN.md §1) — and the only saturated thing on this screen, so it
-/// gets the coloured bloom rather than a neutral shadow.
-class _BrandLockup extends StatelessWidget {
-  const _BrandLockup({required this.subtitle});
-  final String subtitle;
-
-  static const double _markSize = 80;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      children: [
-        Container(
-          width: _markSize,
-          height: _markSize,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            gradient: AppColors.brandGradient,
-            boxShadow: Shadows.glow(AppColors.brandViolet),
-          ),
-          // The mark sits on ~16% padding inside its medallion, which is what
-          // keeps the heart optically centred in the rounded square.
-          padding: const EdgeInsets.all(_markSize * 0.16),
-          child: const AppLogo(),
-        ),
-        const SizedBox(height: Space.lg),
-        Text(
-          'MyHealth Care',
-          textAlign: TextAlign.center,
-          style: theme.textTheme.headlineMedium,
-        ),
-        const SizedBox(height: Space.xs),
-        Text(
-          subtitle,
-          textAlign: TextAlign.center,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-            height: 1.5,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// One-tap sign-in to the three seeded demo accounts. Demo runtime only.
 class _DemoQuickActions extends StatelessWidget {
   const _DemoQuickActions({required this.enabled, required this.onSelect});
 

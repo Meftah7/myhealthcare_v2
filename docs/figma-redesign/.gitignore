@@ -1,0 +1,7 @@
+rendered-preview.html
+__pycache__/
+remote-batch-*.js
+remote-common.js
+remote-init.js
+remote-batches.json
+figma-state.json

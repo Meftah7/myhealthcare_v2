@@ -32,15 +32,15 @@ abstract final class Space {
 /// curves stay concentric: a [card] holding a [cardSmall] inset by 12–16dp
 /// reads as one machined object rather than two stacked rectangles.
 abstract final class Radii {
-  static const BorderRadius card = BorderRadius.all(Radius.circular(22));
+  static const BorderRadius card = BorderRadius.all(Radius.circular(16));
   static const BorderRadius cardLarge = BorderRadius.all(Radius.circular(28));
-  static const BorderRadius cardSmall = BorderRadius.all(Radius.circular(16));
+  static const BorderRadius cardSmall = BorderRadius.all(Radius.circular(12));
   static const BorderRadius sheet = BorderRadius.vertical(
     top: Radius.circular(28),
   );
-  static const BorderRadius field = BorderRadius.all(Radius.circular(14));
+  static const BorderRadius field = BorderRadius.all(Radius.circular(12));
   static const BorderRadius chip = BorderRadius.all(Radius.circular(10));
-  static const BorderRadius button = BorderRadius.all(Radius.circular(14));
+  static const BorderRadius button = BorderRadius.all(Radius.circular(12));
   static const BorderRadius pill = BorderRadius.all(Radius.circular(999));
 }
 

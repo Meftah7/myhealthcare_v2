@@ -8,6 +8,8 @@
 /// screen declares *what* is on it and nothing about how the page is framed.
 library;
 
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../../app/theme/theme.dart';
@@ -57,7 +59,7 @@ class AppScaffold extends StatefulWidget {
     this.maxContentWidth = Space.maxContentWidth,
     this.stagger = false,
     this.centerBody = true,
-    this.hero = false,
+    this.hero = true,
     this.heroOverline,
     super.key,
   }) : assert(
@@ -191,11 +193,11 @@ class _AppScaffoldState extends State<AppScaffold> {
             ? null
             : Text(
                 widget.title!,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+                maxLines: widget.hero ? null : 1,
+                overflow: widget.hero ? TextOverflow.visible : TextOverflow.ellipsis,
                 style: widget.hero
                     ? theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w500,
                         color: scheme.onPrimaryContainer,
                       )
                     : null,
@@ -216,13 +218,33 @@ class _AppScaffoldState extends State<AppScaffold> {
       );
     }
 
+    // Measure the actual heading at the user's text size. Long titles wrap
+    // instead of disappearing behind an ellipsis or a fixed-height toolbar.
+    var toolbarHeight = 96.0;
+    if (widget.hero && widget.title != null) {
+      final hasLeading = widget.leading != null ||
+          (widget.automaticallyImplyLeading && Navigator.canPop(context));
+      final available = math.max(80.0, MediaQuery.sizeOf(context).width -
+          gutter * 2 - (hasLeading ? 56 : 0) -
+          ((widget.actions?.isNotEmpty ?? false) ? 160 : 0));
+      final painter = TextPainter(
+        text: TextSpan(text: widget.title,
+            style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w500)),
+        textDirection: Directionality.of(context),
+        textScaler: MediaQuery.textScalerOf(context),
+      )..layout(maxWidth: available);
+      toolbarHeight = math.max(toolbarHeight, painter.height + 40 +
+          (widget.heroOverline == null ? 0 : MediaQuery.textScalerOf(context).scale(24)));
+      painter.dispose();
+    }
+
     return Scaffold(
       appBar: !hasAppBar
           ? null
           : widget.hero
           ? AppBar(
               titleSpacing: gutter,
-              toolbarHeight: 104,
+              toolbarHeight: toolbarHeight,
               backgroundColor: scheme.primaryContainer,
               surfaceTintColor: Colors.transparent,
               scrolledUnderElevation: 0,

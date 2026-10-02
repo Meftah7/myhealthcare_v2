@@ -1,0 +1,548 @@
+[
+  {
+    "id": "auth-login",
+    "name": "01 \u00b7 Sign in",
+    "role": "auth",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "auth-register-1",
+    "name": "02 \u00b7 Register / account",
+    "role": "auth",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "auth-register-2",
+    "name": "03 \u00b7 Register / details",
+    "role": "auth",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "auth-register-3",
+    "name": "04 \u00b7 Register / health",
+    "role": "auth",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "auth-recover",
+    "name": "05 \u00b7 Recovery / identify",
+    "role": "auth",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "auth-code",
+    "name": "06 \u00b7 Recovery / verification",
+    "role": "auth",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "auth-password",
+    "name": "07 \u00b7 Recovery / new password",
+    "role": "auth",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "auth-success",
+    "name": "08 \u00b7 Recovery / complete",
+    "role": "auth",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "auth-help",
+    "name": "09 \u00b7 Recovery / assisted",
+    "role": "auth",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-home",
+    "name": "01 \u00b7 Home",
+    "role": "patient",
+    "width": 390,
+    "height": 870.609375
+  },
+  {
+    "id": "p-appointments",
+    "name": "02 \u00b7 Appointments",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-ticket",
+    "name": "03 \u00b7 Appointment ticket",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-booking",
+    "name": "04 \u00b7 Book / choose",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-slot",
+    "name": "05 \u00b7 Book / time",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-review",
+    "name": "06 \u00b7 Book / review",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-confirmed",
+    "name": "07 \u00b7 Book / success",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-cancel",
+    "name": "08 \u00b7 Appointment / cancel",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-records",
+    "name": "09 \u00b7 Health records",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-result",
+    "name": "10 \u00b7 Lab result detail",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-medications",
+    "name": "11 \u00b7 Medications",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-vitals",
+    "name": "12 \u00b7 Vital signs",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-import",
+    "name": "13 \u00b7 Import record",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-nutrition",
+    "name": "14 \u00b7 Nutrition overview",
+    "role": "patient",
+    "width": 390,
+    "height": 941.34375
+  },
+  {
+    "id": "p-nutrition-edit",
+    "name": "15 \u00b7 Nutrition / inputs",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-foods",
+    "name": "16 \u00b7 Nutrition / foods",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-profile",
+    "name": "17 \u00b7 Profile",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-personal",
+    "name": "18 \u00b7 Personal information",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-health",
+    "name": "19 \u00b7 Health details",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-family",
+    "name": "20 \u00b7 Family access",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-linked",
+    "name": "21 \u00b7 Linked account",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-preferences",
+    "name": "22 \u00b7 Preferences",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-payments",
+    "name": "23 \u00b7 Payments overview",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-pay",
+    "name": "24 \u00b7 Pay invoice",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-payment-pending",
+    "name": "25 \u00b7 Payment pending",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-messages",
+    "name": "26 \u00b7 Care messages",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-thread",
+    "name": "27 \u00b7 Message thread",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-homevisit",
+    "name": "28 \u00b7 Home care request",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-home",
+    "name": "01 \u00b7 Dashboard",
+    "role": "staff",
+    "width": 390,
+    "height": 862.921875
+  },
+  {
+    "id": "s-patients",
+    "name": "02 \u00b7 Patients",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-chart",
+    "name": "03 \u00b7 Patient chart",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-consultation",
+    "name": "04 \u00b7 Consultation",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-referral",
+    "name": "04b \u00b7 Create referral",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-signed",
+    "name": "05 \u00b7 Consultation signed",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-result",
+    "name": "06 \u00b7 Result review",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-handover",
+    "name": "06b \u00b7 Handover / escalate",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-tasks",
+    "name": "07 \u00b7 Task board",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-schedule",
+    "name": "08 \u00b7 Schedule",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-inbox",
+    "name": "09 \u00b7 Staff inbox",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-thread",
+    "name": "10 \u00b7 Covered thread",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-profile",
+    "name": "11 \u00b7 Staff profile",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-preferences",
+    "name": "12 \u00b7 Staff preferences",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-home",
+    "name": "01 \u00b7 Dashboard",
+    "role": "admin",
+    "width": 390,
+    "height": 913.9375
+  },
+  {
+    "id": "a-work",
+    "name": "02 \u00b7 Work queue",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-assign",
+    "name": "03 \u00b7 Assign work",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-users",
+    "name": "04 \u00b7 User directory",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-user",
+    "name": "05 \u00b7 Staff account",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-create",
+    "name": "06 \u00b7 Create staff",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-departments",
+    "name": "07 \u00b7 Departments",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-department",
+    "name": "08 \u00b7 Edit department",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-billing",
+    "name": "09 \u00b7 Billing overview",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-invoice",
+    "name": "10 \u00b7 Invoice & ledger",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-desk",
+    "name": "11 \u00b7 Desk payment",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-referrals",
+    "name": "12 \u00b7 Referral requests",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-referral",
+    "name": "13 \u00b7 Review referral",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-homevisits",
+    "name": "14 \u00b7 Home visit queue",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-profile",
+    "name": "15 \u00b7 Admin profile",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-analytics",
+    "name": "16 \u00b7 Analytics",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-audit",
+    "name": "17 \u00b7 Audit log",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-hours",
+    "name": "18 \u00b7 Clinic hours",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-ai",
+    "name": "19 \u00b7 AI settings",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-preferences",
+    "name": "20 \u00b7 Admin preferences",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-empty",
+    "name": "29 \u00b7 State / no appointments",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-error",
+    "name": "30 \u00b7 State / wallet failure",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-error",
+    "name": "13 \u00b7 State / save failure",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-error",
+    "name": "21 \u00b7 State / queue failure",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-desktop",
+    "name": "31 \u00b7 Desktop / patient overview",
+    "role": "patient",
+    "width": 1440,
+    "height": 962
+  },
+  {
+    "id": "s-desktop",
+    "name": "14 \u00b7 Desktop / staff workspace",
+    "role": "staff",
+    "width": 1440,
+    "height": 962
+  },
+  {
+    "id": "a-desktop",
+    "name": "22 \u00b7 Desktop / admin work queue",
+    "role": "admin",
+    "width": 1440,
+    "height": 962
+  }
+]

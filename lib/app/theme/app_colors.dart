@@ -65,7 +65,7 @@ abstract final class AppColors {
         primary: const Color(0xFF1E5FAF),
         onPrimary: Colors.white,
         primaryContainer: const Color(0xFFE3ECF8),
-        onPrimaryContainer: const Color(0xFF0F2E57),
+        onPrimaryContainer: const Color(0xFF152C49),
 
         secondary: const Color(0xFF4F6280),
         onSecondary: Colors.white,
@@ -85,8 +85,8 @@ abstract final class AppColors {
         // Page sits a step below the cards, so a white card lifts off it
         // without needing a heavy shadow.
         surface: const Color(0xFFF3F6FB),
-        onSurface: const Color(0xFF161922),
-        onSurfaceVariant: const Color(0xFF585F70),
+        onSurface: const Color(0xFF152C49),
+        onSurfaceVariant: const Color(0xFF586A81),
         surfaceDim: const Color(0xFFE6E8EF),
         surfaceBright: Colors.white,
         surfaceContainerLowest: Colors.white,
@@ -96,7 +96,7 @@ abstract final class AppColors {
         surfaceContainerHighest: const Color(0xFFE5E8F0),
 
         outline: const Color(0xFF8C93A4),
-        outlineVariant: const Color(0xFFDCDFE8),
+        outlineVariant: const Color(0xFFDFE7F1),
         inverseSurface: const Color(0xFF262A34),
         onInverseSurface: const Color(0xFFF3F4F9),
         inversePrimary: const Color(0xFFA9C8F2),
