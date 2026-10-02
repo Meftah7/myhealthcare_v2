@@ -12,8 +12,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
-import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/quick_actions.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
@@ -76,8 +76,6 @@ class PatientHomeScreen extends ConsumerWidget {
           secondary: [
             SectionHeader(t.sectionYourHealth, overline: true),
             _HealthSnapshot(),
-            const SizedBox(height: Space.sm),
-            const _QuickAppointmentAction(),
           ],
         ),
       ],
@@ -212,8 +210,13 @@ class _HealthSnapshot extends ConsumerWidget {
 
     if (appts.hasError || meds.hasError) {
       return ErrorStateView(
-        message: appts.hasError ? t.couldNotLoadAppointments : t.couldNotLoadMedications,
-        onRetry: () { ref.invalidate(patientAppointmentsProvider); ref.invalidate(patientMedicationsProvider); },
+        message: appts.hasError
+            ? t.couldNotLoadAppointments
+            : t.couldNotLoadMedications,
+        onRetry: () {
+          ref.invalidate(patientAppointmentsProvider);
+          ref.invalidate(patientMedicationsProvider);
+        },
       );
     }
     final all = appts.valueOrNull ?? const <Appointment>[];
@@ -337,6 +340,12 @@ class _QuickActions extends StatelessWidget {
     // button for section screens that aren't a nav destination of their own.
     final items = [
       (
+        Icons.calendar_month_outlined,
+        t.bookAppointmentAction,
+        AppRoutes.patientBook,
+        true,
+      ),
+      (
         Icons.favorite_outline,
         t.quickActionVitals,
         AppRoutes.patientVitals,
@@ -380,21 +389,48 @@ class _QuickActions extends StatelessWidget {
       ),
     ];
 
-    return TileGrid(
+    Widget tile((IconData, String, String, bool) item) {
+      final (icon, label, route, push) = item;
+      return QuickActionTile(
+        icon: icon,
+        label: label,
+        onTap: () {
+          if (push) {
+            unawaited(context.push(route));
+          } else {
+            context.go(route);
+          }
+        },
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final (icon, label, route, push) in items)
-          NavRow(
-            icon: icon,
-            title: label,
-            tinted: true,
-            onTap: () {
-              if (push) {
-                unawaited(context.push(route));
-              } else {
-                context.go(route);
-              }
-            },
+        QuickActionGrid(
+          children: [
+            for (final i in [0, 3, 6]) tile(items[i]),
+          ],
+        ),
+        const SizedBox(height: Space.xs),
+        ExpansionTile(
+          tilePadding: EdgeInsets.zero,
+          childrenPadding: const EdgeInsets.only(bottom: Space.sm),
+          title: Text(
+            t.moreActionsTooltip,
+            style: Theme.of(context).textTheme.labelLarge,
           ),
+          children: [
+            QuickActionGrid(
+              children: [
+                for (final (i, item) in items.indexed)
+                  if (![0, 3, 6].contains(i)) tile(item),
+              ],
+            ),
+            const SizedBox(height: Space.sm),
+            const _QuickAppointmentAction(),
+          ],
+        ),
       ],
     );
   }
@@ -414,52 +450,111 @@ class _UpcomingAppointment extends ConsumerWidget {
     final doctors = ref.watch(doctorDirectoryProvider).valueOrNull ?? const {};
     final scheme = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
-    return ref.watch(patientAppointmentsProvider).when(
-      loading: () => const LoadingSkeleton(height: 180),
-      error: (e, _) => ErrorStateView(
-        message: t.couldNotLoadAppointments,
-        onRetry: () => ref.invalidate(patientAppointmentsProvider),
-      ),
-      data: (list) {
-        final active = list.where((a) =>
-          (a.status == AppointmentStatus.booked || a.status == AppointmentStatus.confirmed) &&
-          a.slotEnd.isAfter(DateTime.now())).toList()
-          ..sort((a, b) => a.slotStart.compareTo(b.slotStart));
-        if (active.isEmpty) {
-          return NavRow(icon: Icons.event_available_outlined,
-            title: t.noUpcomingAppointments, subtitle: t.tapToBookVisit,
-            onTap: () => context.push(AppRoutes.patientBook));
-        }
-        final appointment = active.first;
-        final detail = AppRoutes.patientAppointmentDetail(appointment.id);
-        return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          AppCard(color: scheme.brightness == Brightness.light ? AppColors.seed : AppColors.brandBlue,
-            borderColor: Colors.transparent,
-            padding: const EdgeInsets.all(20),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(t.sectionUpcomingAppointments, style: theme.textTheme.labelSmall?.copyWith(color: Colors.white70)),
-              const SizedBox(height: Space.xs),
-              Text(doctors[appointment.staffId]?.name ?? visitTypeLabel(appointment.visitType),
-                style: theme.textTheme.titleLarge?.copyWith(color: Colors.white)),
-              const SizedBox(height: Space.sm),
-              Text('${fmtRelativeDay(appointment.slotStart)} · ${fmtTime(appointment.slotStart)} · ${t.roomNumber(appointment.roomNumber ?? t.none)}',
-                style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70)),
-              if (appointment.bookedForName != null) ...[
-                const SizedBox(height: Space.xs),
-                Text(t.bookedForName(appointment.bookedForName!), style: theme.textTheme.bodySmall?.copyWith(color: Colors.white)),
+    return ref
+        .watch(patientAppointmentsProvider)
+        .when(
+          loading: () => const LoadingSkeleton(height: 180),
+          error: (e, _) => ErrorStateView(
+            message: t.couldNotLoadAppointments,
+            onRetry: () => ref.invalidate(patientAppointmentsProvider),
+          ),
+          data: (list) {
+            final active =
+                list
+                    .where(
+                      (a) =>
+                          (a.status == AppointmentStatus.booked ||
+                              a.status == AppointmentStatus.confirmed) &&
+                          a.slotEnd.isAfter(DateTime.now()),
+                    )
+                    .toList()
+                  ..sort((a, b) => a.slotStart.compareTo(b.slotStart));
+            if (active.isEmpty) {
+              return NavRow(
+                icon: Icons.event_available_outlined,
+                title: t.noUpcomingAppointments,
+                subtitle: t.tapToBookVisit,
+                onTap: () => context.push(AppRoutes.patientBook),
+              );
+            }
+            final appointment = active.first;
+            final detail = AppRoutes.patientAppointmentDetail(appointment.id);
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AppCard(
+                  color: scheme.brightness == Brightness.light
+                      ? AppColors.seed
+                      : AppColors.brandBlue,
+                  borderColor: Colors.transparent,
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        t.sectionUpcomingAppointments,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: Colors.white70,
+                        ),
+                      ),
+                      const SizedBox(height: Space.xs),
+                      Text(
+                        doctors[appointment.staffId]?.name ??
+                            visitTypeLabel(appointment.visitType),
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: Space.sm),
+                      Text(
+                        '${fmtRelativeDay(appointment.slotStart)} · ${fmtTime(appointment.slotStart)} · ${t.roomNumber(appointment.roomNumber ?? t.none)}',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.white70,
+                        ),
+                      ),
+                      if (appointment.bookedForName != null) ...[
+                        const SizedBox(height: Space.xs),
+                        Text(
+                          t.bookedForName(appointment.bookedForName!),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: Space.md),
+                      Wrap(
+                        spacing: Space.xs,
+                        runSpacing: Space.xs,
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: () => context.push(detail),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              side: const BorderSide(color: Colors.white54),
+                            ),
+                            icon: const Icon(
+                              Icons.confirmation_number_outlined,
+                              size: 18,
+                            ),
+                            label: Text(t.ticketOverline),
+                          ),
+                          TextButton(
+                            onPressed: () =>
+                                context.go(AppRoutes.patientAppointments),
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.white,
+                            ),
+                            child: Text(t.appointmentsTitle),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: Space.sm),
               ],
-              const SizedBox(height: Space.md),
-              Wrap(spacing: Space.xs, runSpacing: Space.xs, children: [
-                OutlinedButton.icon(onPressed: () => context.push(detail),
-                  style: OutlinedButton.styleFrom(foregroundColor: Colors.white, side: const BorderSide(color: Colors.white54)),
-                  icon: const Icon(Icons.confirmation_number_outlined, size: 18), label: Text(t.ticketOverline)),
-                TextButton(onPressed: () => context.go(AppRoutes.patientAppointments),
-                  style: TextButton.styleFrom(foregroundColor: Colors.white), child: Text(t.appointmentsTitle)),
-              ]),
-            ])),
-          const SizedBox(height: Space.sm),
-        ]);
-      },
-    );
+            );
+          },
+        );
   }
 }

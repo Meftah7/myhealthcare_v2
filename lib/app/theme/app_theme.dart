@@ -216,11 +216,17 @@ abstract final class AppTheme {
       ),
 
       chipTheme: ChipThemeData(
-        labelStyle: text.labelMedium,
+        labelStyle: text.labelMedium?.copyWith(
+          color: WidgetStateColor.resolveWith(
+            (states) => states.contains(WidgetState.selected)
+                ? scheme.onPrimary
+                : scheme.onSurfaceVariant,
+          ),
+        ),
         side: BorderSide(color: hairline),
         backgroundColor: cardColor,
-        selectedColor: scheme.secondaryContainer,
-        checkmarkColor: scheme.onSecondaryContainer,
+        selectedColor: scheme.primary,
+        checkmarkColor: scheme.onPrimary,
         showCheckmark: false,
         shape: const RoundedRectangleBorder(borderRadius: Radii.chip),
         padding: const EdgeInsets.symmetric(
@@ -298,11 +304,15 @@ abstract final class AppTheme {
         height: 68,
         backgroundColor: navSurface,
         surfaceTintColor: Colors.transparent,
-        indicatorColor: scheme.primaryContainer,
-        indicatorShape: const RoundedRectangleBorder(borderRadius: Radii.button),
+        indicatorColor: scheme.surfaceContainer,
+        indicatorShape: const RoundedRectangleBorder(
+          borderRadius: Radii.button,
+        ),
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         labelTextStyle: WidgetStateProperty.resolveWith(
           (states) => text.labelMedium?.copyWith(
+            fontSize: 11,
+            height: 16 / 11,
             fontWeight: FontWeight.w600,
             color: states.contains(WidgetState.selected)
                 ? scheme.primary
@@ -321,8 +331,10 @@ abstract final class AppTheme {
       navigationRailTheme: NavigationRailThemeData(
         elevation: 0,
         backgroundColor: navSurface,
-        indicatorColor: scheme.primaryContainer,
-        indicatorShape: const RoundedRectangleBorder(borderRadius: Radii.button),
+        indicatorColor: scheme.surfaceContainer,
+        indicatorShape: const RoundedRectangleBorder(
+          borderRadius: Radii.button,
+        ),
         selectedIconTheme: IconThemeData(color: scheme.primary),
         unselectedIconTheme: IconThemeData(color: scheme.onSurfaceVariant),
         selectedLabelTextStyle: text.labelMedium?.copyWith(

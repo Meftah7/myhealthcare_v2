@@ -14,7 +14,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
-import '../../../core/presentation/responsive.dart';
+import '../../../core/presentation/quick_actions.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
@@ -110,7 +110,7 @@ class StaffQuickActions extends ConsumerWidget {
 
     // Two tiles per row on a phone, three once there's room — the same shape
     // the patient dashboard uses for its Quick actions.
-    return TileGrid(
+    return QuickActionGrid(
       children: [for (final a in actions) _QuickActionTile(action: a)],
     );
   }
@@ -166,48 +166,12 @@ class _QuickAction {
 class _QuickActionTile extends StatelessWidget {
   const _QuickActionTile({required this.action});
   final _QuickAction action;
-
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return AppCard(
-      padding: const EdgeInsets.symmetric(
-        horizontal: Space.sm,
-        vertical: Space.sm,
-      ),
-      onTap: action.onTap,
-      child: Row(
-        children: [
-          // A tinted medallion rather than a bare glyph — it anchors the row
-          // and reads as an object you can press.
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: scheme.primaryContainer,
-              borderRadius: Radii.chip,
-            ),
-            child: Icon(
-              action.icon,
-              size: 18,
-              color: scheme.onPrimaryContainer,
-            ),
-          ),
-          const SizedBox(width: Space.sm),
-          Expanded(
-            child: Text(
-              action.label,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.titleSmall,
-            ),
-          ),
-          Icon(Icons.chevron_right, size: 18, color: scheme.onSurfaceVariant),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => QuickActionTile(
+    icon: action.icon,
+    label: action.label,
+    onTap: action.onTap,
+  );
 }
 
 // --- patient picker ------------------------------------------------------

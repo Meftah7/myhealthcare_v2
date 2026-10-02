@@ -119,7 +119,7 @@ void main() {
     await _settle(tester);
     expect(find.byType(SearchBar), findsNothing);
     // Seeded chronic patient is on medication.
-    expect(find.text('CURRENT'), findsOneWidget);
+    expect(find.text('Current'), findsOneWidget);
 
     // Switch to Bills — the invoice list is here now too.
     await tester.tap(find.text('Bills'));
@@ -150,19 +150,24 @@ void main() {
     expect(find.text('Appointment'), findsWidgets);
 
     // Tabs, in order: Calculator → Meal plan → Foods.
-    expect(find.text('Calculator'), findsOneWidget);
-    expect(find.text('Example split'), findsOneWidget);
+    expect(find.text('Calculator'), findsWidgets);
+    expect(find.text('Example split'), findsWidgets);
 
     // Calculator is the default view; calculate.
+    await tester.tap(find.text('Calculator').first);
+    await _settle(tester);
+    await tester.ensureVisible(
+      find.widgetWithText(FilledButton, 'Calculate estimate'),
+    );
     await tester.tap(find.widgetWithText(FilledButton, 'Calculate estimate'));
     await _settle(tester);
-    expect(find.text('DAILY TARGETS'), findsOneWidget);
-    expect(find.text('PREFERENCES'), findsOneWidget); // was "Split"
+    expect(find.text('Daily targets'), findsWidgets);
+    expect(find.text('Preferences'), findsOneWidget); // was "Split"
     expect(find.textContaining('kcal / day'), findsWidgets);
 
     // The Meal plan reads the calculator's targets and splits them per meal —
     // just the daily breakdown, no recipe cards.
-    await tester.tap(find.text('Example split'));
+    await tester.tap(find.text('Example split').first);
     await _settle(tester);
     await tester.tap(find.widgetWithText(FilledButton, 'Build my day'));
     await _settle(tester);
@@ -171,7 +176,7 @@ void main() {
     expect(find.text('Lunch'), findsWidgets);
 
     // Foods view: the full database, a category filter, six figures per item.
-    await tester.tap(find.text('Foods'));
+    await tester.tap(find.text('Foods').first);
     await _settle(tester);
     expect(find.widgetWithText(ChoiceChip, 'All'), findsOneWidget);
     await tester.enterText(find.byType(SearchBar), 'salmon');
@@ -232,10 +237,15 @@ void main() {
     final first = await launch();
     await tester.tap(find.text('Nutrition').first);
     await _settle(tester);
+    await tester.tap(find.text('Calculator').first);
+    await _settle(tester);
+    await tester.ensureVisible(
+      find.widgetWithText(FilledButton, 'Calculate estimate'),
+    );
     await tester.tap(find.widgetWithText(FilledButton, 'Calculate estimate'));
     await _settle(tester);
-    expect(find.text('DAILY TARGETS'), findsOneWidget);
-    await tester.tap(find.text('Example split'));
+    expect(find.text('Daily targets'), findsWidgets);
+    await tester.tap(find.text('Example split').first);
     await _settle(tester);
     await tester.tap(find.widgetWithText(FilledButton, 'Build my day'));
     await _settle(tester);
@@ -252,8 +262,8 @@ void main() {
     addTearDown(second.dispose);
     await tester.tap(find.text('Nutrition').first);
     await _settle(tester);
-    expect(find.text('DAILY TARGETS'), findsOneWidget);
-    await tester.tap(find.text('Example split'));
+    expect(find.text('Daily targets'), findsWidgets);
+    await tester.tap(find.text('Example split').first);
     await _settle(tester);
     expect(find.text('Your day'), findsOneWidget);
     expect(find.text('Breakfast'), findsWidgets);

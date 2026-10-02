@@ -58,6 +58,7 @@ class AdminStatusMenu extends ConsumerWidget {
     final theme = Theme.of(context);
     final current = ref.watch(adminStatusProvider);
     final meta = _meta(context, current);
+    final compact = MediaQuery.sizeOf(context).width < 600;
 
     return PopupMenuButton<AdminStatus>(
       tooltip: t.setYourAvailabilityTooltip,
@@ -97,6 +98,7 @@ class AdminStatusMenu extends ConsumerWidget {
         height: 48,
         child: Center(
           child: Container(
+            width: compact ? 48 : null,
             height: 40,
             alignment: Alignment.center,
             constraints: const BoxConstraints(minWidth: 48, maxWidth: 156),
@@ -110,19 +112,22 @@ class AdminStatusMenu extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(meta.icon, size: 15, color: meta.color),
-                const SizedBox(width: Space.xs),
-                Flexible(
-                  child: Text(
-                    _statusLabel(context, current),
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelMedium,
+                if (!compact) ...[
+                  const SizedBox(width: Space.xs),
+                  Flexible(
+                    child: Text(
+                      _statusLabel(context, current),
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelMedium,
+                    ),
                   ),
-                ),
-                Icon(
-                  Icons.arrow_drop_down,
-                  size: 18,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
+                ],
+                if (!compact)
+                  Icon(
+                    Icons.arrow_drop_down,
+                    size: 18,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
               ],
             ),
           ),

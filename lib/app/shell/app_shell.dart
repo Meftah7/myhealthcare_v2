@@ -177,6 +177,59 @@ class _Rail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (extended) {
+      final theme = Theme.of(context);
+      final scheme = theme.colorScheme;
+      return SizedBox(
+        width: 248,
+        child: ColoredBox(
+          color: scheme.surfaceContainerLowest,
+          child: SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.all(Space.lg),
+              children: [
+                const AppBrandLockup(),
+                const SizedBox(height: Space.xl),
+                for (final (i, destination) in destinations.indexed) ...[
+                  Material(
+                    color: currentIndex == i
+                        ? scheme.primaryContainer
+                        : Colors.transparent,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: Radii.cardSmall,
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: Space.sm,
+                      ),
+                      selected: currentIndex == i,
+                      selectedColor: scheme.primary,
+                      selectedTileColor: Colors.transparent,
+                      leading: Icon(
+                        currentIndex == i
+                            ? destination.selectedIcon
+                            : destination.icon,
+                        size: 20,
+                        color: currentIndex == i
+                            ? scheme.primary
+                            : scheme.onSurfaceVariant,
+                      ),
+                      title: Text(
+                        destination.label,
+                        style: theme.textTheme.labelLarge,
+                      ),
+                      onTap: () => onSelected(i),
+                    ),
+                  ),
+                  const SizedBox(height: Space.xs),
+                ],
+              ],
+            ),
+          ),
+        ),
+      );
+    }
     // Same supported 2x ceiling as the compact bottom bar. The rail scrolls,
     // so taller wrapped labels remain reachable.
     return MediaQuery(

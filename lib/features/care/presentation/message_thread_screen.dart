@@ -5,6 +5,8 @@ library;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+
+import '../../../core/presentation/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -134,19 +136,18 @@ class _MessageThreadScreenState extends ConsumerState<MessageThreadScreen> {
     final t = AppLocalizations.of(context)!;
     final messages = ref.watch(_threadProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        actions: [
-          if (widget.viewerIsStaff)
-            IconButton(
-              tooltip: t.openPatientChartTooltip,
-              icon: const Icon(Icons.folder_shared_outlined),
-              onPressed: () =>
-                  context.go(AppRoutes.staffPatientChart(widget.patientId)),
-            ),
-        ],
-      ),
+    return AppScaffold(
+      title: widget.title,
+      actions: [
+        if (widget.viewerIsStaff)
+          IconButton(
+            tooltip: t.openPatientChartTooltip,
+            icon: const Icon(Icons.folder_shared_outlined),
+            onPressed: () =>
+                context.go(AppRoutes.staffPatientChart(widget.patientId)),
+          ),
+      ],
+      centerBody: false,
       body: Column(
         children: [
           // The honest promise: when a reply comes, and that this is not an

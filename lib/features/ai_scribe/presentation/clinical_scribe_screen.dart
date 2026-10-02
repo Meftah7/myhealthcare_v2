@@ -3,6 +3,8 @@
 library;
 
 import 'package:flutter/material.dart';
+
+import '../../../core/presentation/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -118,11 +120,10 @@ class _ClinicalScribeScreenState extends ConsumerState<ClinicalScribeScreen> {
     final patient = ref.watch(chartPatientProvider(widget.patientId));
     final gutter = WindowSize.of(context).gutter;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(t.aiClinicalScribeTitle),
-        actions: const [StaffTopActions()],
-      ),
+    return AppScaffold(
+      title: t.aiClinicalScribeTitle,
+      actions: const [StaffTopActions()],
+      centerBody: false,
       body: Column(
         children: [
           if (_usedAi) const AiDisclaimerBanner(),

@@ -89,14 +89,25 @@ void main() {
     await _settle(tester);
 
     // Recommended slot on top, then the full open-times grid.
+    expect(find.byType(ActionChip), findsNothing);
     await tester.scrollUntilVisible(
-      find.text('RECOMMENDED'),
+      find.widgetWithText(FilledButton, 'Continue'),
       300,
       scrollable: find.byType(Scrollable).first,
     );
     await _settle(tester);
-    expect(find.text('RECOMMENDED'), findsOneWidget);
-    expect(find.text('ALL OPEN TIMES'), findsOneWidget);
+    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Continue'));
+    await _settle(tester);
+    await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
+    await _settle(tester);
+    await tester.scrollUntilVisible(
+      find.text('Recommended'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await _settle(tester);
+    expect(find.text('Recommended'), findsOneWidget);
+    expect(find.text('All open times'), findsOneWidget);
 
     // A fresh future clinic day opens the whole 08:00–13:40 span (18 × 20-min).
     expect(find.text('08:00'), findsWidgets);

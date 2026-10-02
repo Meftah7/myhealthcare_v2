@@ -88,18 +88,18 @@ class ClinicalStatusColors extends ThemeExtension<ClinicalStatusColors> {
 
   static const ClinicalStatusColors light = ClinicalStatusColors(
     riskLow: ClinicalStatusStyle(
-      container: Color(0xFFDCF2EE),
-      onContainer: Color(0xFF0B3B39),
+      container: Color(0xFFE4F3EA),
+      onContainer: Color(0xFF216746),
       icon: Icons.check_circle_outline,
     ),
     riskMedium: ClinicalStatusStyle(
-      container: Color(0xFFFFF1D6),
-      onContainer: Color(0xFF4A3209),
+      container: Color(0xFFFFF2DD),
+      onContainer: Color(0xFF8A5109),
       icon: Icons.error_outline,
     ),
     riskHigh: ClinicalStatusStyle(
-      container: Color(0xFFFCE4E4),
-      onContainer: Color(0xFF5E1414),
+      container: Color(0xFFFCE8E7),
+      onContainer: Color(0xFFA13432),
       icon: Icons.warning_amber_rounded,
     ),
     labNormal: ClinicalStatusStyle(
@@ -108,18 +108,18 @@ class ClinicalStatusColors extends ThemeExtension<ClinicalStatusColors> {
       icon: Icons.remove,
     ),
     labLow: ClinicalStatusStyle(
-      container: Color(0xFFE1ECF7),
-      onContainer: Color(0xFF0F3A5F),
+      container: Color(0xFFEEF4FC),
+      onContainer: Color(0xFF1E5FAF),
       icon: Icons.south,
     ),
     labHigh: ClinicalStatusStyle(
-      container: Color(0xFFFFF1D6),
-      onContainer: Color(0xFF4A3209),
+      container: Color(0xFFFFF2DD),
+      onContainer: Color(0xFF8A5109),
       icon: Icons.north,
     ),
     labCritical: ClinicalStatusStyle(
-      container: Color(0xFFF4C7C7),
-      onContainer: Color(0xFF5E1414),
+      container: Color(0xFFFCE8E7),
+      onContainer: Color(0xFFA13432),
       icon: Icons.priority_high,
     ),
     severityInfo: ClinicalStatusStyle(
@@ -128,13 +128,13 @@ class ClinicalStatusColors extends ThemeExtension<ClinicalStatusColors> {
       icon: Icons.info_outline,
     ),
     severityWarning: ClinicalStatusStyle(
-      container: Color(0xFFFFF1D6),
-      onContainer: Color(0xFF4A3209),
+      container: Color(0xFFFFF2DD),
+      onContainer: Color(0xFF8A5109),
       icon: Icons.error_outline,
     ),
     severityUrgent: ClinicalStatusStyle(
-      container: Color(0xFFF4C7C7),
-      onContainer: Color(0xFF5E1414),
+      container: Color(0xFFFCE8E7),
+      onContainer: Color(0xFFA13432),
       icon: Icons.notification_important,
     ),
   );

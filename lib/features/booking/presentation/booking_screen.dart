@@ -6,6 +6,8 @@
 library;
 
 import 'package:flutter/material.dart';
+
+import '../../../core/presentation/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -59,6 +61,7 @@ class BookingScreen extends ConsumerStatefulWidget {
 }
 
 class _BookingScreenState extends ConsumerState<BookingScreen> {
+  int _stage = 0;
   @override
   void initState() {
     super.initState();
@@ -80,13 +83,6 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
 
   BookingMode get mode => widget.mode;
 
-  int _stepFor(BookingRequestDraft d) {
-    if (d.departmentId == null) return 0;
-    if (d.staffId == null) return 1;
-    if (d.date == null) return 2;
-    return 3;
-  }
-
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
@@ -95,14 +91,21 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     final notifier = ref.read(bookingDraftProvider.notifier);
     final gutter = WindowSize.of(context).gutter;
     final schedule = ref.watch(clinicScheduleProvider);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          mode == BookingMode.now ? t.bookNowTitle : t.scheduleAVisitTitle,
-        ),
-        actions: const [PatientTopActions()],
-      ),
+    return AppScaffold(
+      title: _stage == 1
+          ? t.stepDateTime
+          : mode == BookingMode.now
+          ? t.bookNowTitle
+          : t.scheduleAVisitTitle,
+      leading: _stage == 0
+          ? null
+          : IconButton(
+              icon: const BackButtonIcon(),
+              tooltip: t.backButton,
+              onPressed: () => setState(() => _stage = 0),
+            ),
+      actions: const [PatientTopActions()],
+      centerBody: false,
       body: departments.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
@@ -111,70 +114,74 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
         ),
         data: (depts) => Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: Space.maxContentWidth),
+            constraints: const BoxConstraints(maxWidth: 720),
             child: ListView(
+              key: ValueKey(_stage),
               padding: EdgeInsets.fromLTRB(gutter, Space.md, gutter, Space.xxl),
               children: [
-                if (widget.targetPatientId != null)
-                  _BookingForLinkedAccountBanner(
-                    ownerPatientId: widget.targetPatientId!,
-                  )
-                else
-                  const _BookingForSelector(),
-                _StepBar(current: _stepFor(draft)),
-                const SizedBox(height: Space.lg),
-
-                _StepCard(
-                  index: 1,
-                  title: t.stepDepartment,
-                  done: draft.departmentId != null,
-                  child: _ChoiceWrap(
-                    options: [for (final d in depts) (d.id, d.name)],
-                    selectedId: draft.departmentId,
-                    onSelected: (id) => notifier.state = BookingRequestDraft(
-                      departmentId: id,
-                      visitType: draft.visitType,
-                      bookedForName: draft.bookedForName,
-                    ),
-                  ),
-                ),
-
-                if (draft.departmentId != null) ...[
-                  const SizedBox(height: Space.sm),
+                _StepBar(current: _stage),
+                const SizedBox(height: Space.md),
+                if (_stage == 0) ...[
+                  if (widget.targetPatientId != null)
+                    _BookingForLinkedAccountBanner(
+                      ownerPatientId: widget.targetPatientId!,
+                    )
+                  else
+                    const _BookingForSelector(),
                   _StepCard(
-                    index: 2,
-                    title: t.stepDoctor,
-                    done: draft.staffId != null,
-                    child: _DoctorPicker(
-                      departmentId: draft.departmentId!,
-                      mode: mode,
-                    ),
-                  ),
-                ],
-
-                if (draft.staffId != null) ...[
-                  const SizedBox(height: Space.sm),
-                  _StepCard(
-                    index: 3,
-                    title: t.stepReasonForVisit,
-                    done: true,
+                    index: 1,
+                    title: t.stepDepartment,
+                    done: draft.departmentId != null,
                     child: _ChoiceWrap(
-                      options: [
-                        for (final t in VisitType.values)
-                          (t.name, visitTypeLabel(t)),
-                      ],
-                      selectedId: draft.visitType.name,
-                      onSelected: (name) => notifier.state = draft.copyWith(
-                        visitType: VisitType.values.byName(name),
+                      options: [for (final d in depts) (d.id, d.name)],
+                      selectedId: draft.departmentId,
+                      onSelected: (id) => notifier.state = BookingRequestDraft(
+                        departmentId: id,
+                        visitType: draft.visitType,
+                        bookedForName: draft.bookedForName,
                       ),
                     ),
                   ),
-                ],
-
-                if (draft.staffId != null) ...[
-                  const SizedBox(height: Space.sm),
+                  if (draft.departmentId != null) ...[
+                    const SizedBox(height: Space.md),
+                    _StepCard(
+                      index: 2,
+                      title: t.stepDoctor,
+                      done: draft.staffId != null,
+                      child: _DoctorPicker(
+                        departmentId: draft.departmentId!,
+                        mode: mode,
+                      ),
+                    ),
+                  ],
+                  if (draft.staffId != null) ...[
+                    const SizedBox(height: Space.md),
+                    _StepCard(
+                      index: 3,
+                      title: t.stepReasonForVisit,
+                      done: true,
+                      child: _ChoiceWrap(
+                        options: [
+                          for (final type in VisitType.values)
+                            (type.name, visitTypeLabel(type)),
+                        ],
+                        selectedId: draft.visitType.name,
+                        onSelected: (name) => notifier.state = draft.copyWith(
+                          visitType: VisitType.values.byName(name),
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: Space.lg),
+                  FilledButton(
+                    onPressed: draft.staffId == null
+                        ? null
+                        : () => setState(() => _stage = 1),
+                    child: Text(t.continueButton),
+                  ),
+                ] else ...[
                   _StepCard(
-                    index: 4,
+                    index: 2,
                     title: t.stepDateTime,
                     done: draft.date != null,
                     child: mode == BookingMode.now
@@ -186,11 +193,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                                 notifier.state = draft.copyWith(date: d),
                           ),
                   ),
-                ],
-
-                if (draft.staffId != null && draft.date != null) ...[
-                  const SizedBox(height: Space.md),
-                  _SlotList(mode: mode),
+                  if (draft.staffId != null && draft.date != null) ...[
+                    const SizedBox(height: Space.md),
+                    _SlotList(mode: mode),
+                  ],
                 ],
               ],
             ),
@@ -320,19 +326,14 @@ class _BookingForSelector extends ConsumerWidget {
 class _StepBar extends StatelessWidget {
   const _StepBar({required this.current});
 
-  final int current; // 0..3
+  final int current; // clinician, time, review
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final t = AppLocalizations.of(context)!;
-    final labels = [
-      t.stepDepartment,
-      t.stepDoctor,
-      t.stepReasonShort,
-      t.stepDateTime,
-    ];
+    final labels = [t.stepDoctor, t.stepDateTime, t.reviewAndConfirm];
     final clamped = current.clamp(0, labels.length - 1);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -915,6 +916,8 @@ class _ReviewSheet extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const _StepBar(current: 2),
+            const SizedBox(height: Space.md),
             Text(t.reviewAndConfirm, style: theme.textTheme.titleLarge),
             const SizedBox(height: Space.md),
             if (bookedFor != null)

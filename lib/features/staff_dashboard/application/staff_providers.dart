@@ -275,13 +275,13 @@ class StaffOps {
       ..invalidate(staffTasksProvider);
   }
 
-  Future<void> setTaskStatus(
+  Future<Result<void>> setTaskStatus(
     String taskId,
     TaskStatus status, {
     int? expectedVersion,
   }) async {
     final staffId = _ref.read(currentUserProvider)!.id;
-    await _ref
+    final result = await _ref
         .read(taskRepositoryProvider)
         .setStatus(
           id: taskId,
@@ -289,7 +289,8 @@ class StaffOps {
           status: status,
           expectedVersion: expectedVersion,
         );
-    _ref.invalidate(staffTasksProvider);
+    if (result.isOk) _ref.invalidate(staffTasksProvider);
+    return result;
   }
 
   // --- presence + queue (FirstSemMyHealth doctor-dashboard parity) -------

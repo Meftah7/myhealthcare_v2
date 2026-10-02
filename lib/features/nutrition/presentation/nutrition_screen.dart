@@ -24,7 +24,7 @@ import '../application/macro_calculator.dart';
 import '../application/nutrition_providers.dart';
 import '../domain/nutrition_data.dart';
 
-enum _View { calculator, meals, foods }
+enum _View { overview, calculator, meals, foods }
 
 class NutritionScreen extends StatefulWidget {
   const NutritionScreen({super.key});
@@ -34,7 +34,7 @@ class NutritionScreen extends StatefulWidget {
 }
 
 class _NutritionScreenState extends State<NutritionScreen> {
-  _View _view = _View.calculator;
+  _View _view = _View.overview;
 
   @override
   Widget build(BuildContext context) {
@@ -56,27 +56,15 @@ class _NutritionScreenState extends State<NutritionScreen> {
                 ),
                 child: SizedBox(
                   width: double.infinity,
-                  child: SegmentedButton<_View>(
+                  child: PillSegmented<_View>(
                     segments: [
-                      ButtonSegment(
-                        value: _View.calculator,
-                        icon: const Icon(Icons.calculate_outlined),
-                        label: Text(t.calculatorSegment),
-                      ),
-                      ButtonSegment(
-                        value: _View.meals,
-                        icon: const Icon(Icons.restaurant_menu),
-                        label: Text(t.mealPlanSegment),
-                      ),
-                      ButtonSegment(
-                        value: _View.foods,
-                        icon: const Icon(Icons.search),
-                        label: Text(t.foodsSegment),
-                      ),
+                      (_View.overview, t.dailyTargetsSection),
+                      (_View.calculator, t.calculatorSegment),
+                      (_View.meals, t.mealPlanSegment),
+                      (_View.foods, t.foodsSegment),
                     ],
-                    selected: {_view},
-                    showSelectedIcon: false,
-                    onSelectionChanged: (s) => setState(() => _view = s.first),
+                    selected: _view,
+                    onChanged: (value) => setState(() => _view = value),
                   ),
                 ),
               ),
@@ -89,6 +77,10 @@ class _NutritionScreenState extends State<NutritionScreen> {
                   maxWidth: Space.maxContentWidth,
                 ),
                 child: switch (_view) {
+                  _View.overview => _NutritionOverview(
+                    onEdit: () => setState(() => _view = _View.calculator),
+                    onFoods: () => setState(() => _view = _View.foods),
+                  ),
                   _View.calculator => const _CalculatorView(),
                   _View.meals => const _MealPlanView(),
                   _View.foods => const _FoodsView(),
@@ -99,6 +91,121 @@ class _NutritionScreenState extends State<NutritionScreen> {
         ],
       ),
       centerBody: false,
+    );
+  }
+}
+
+class _NutritionOverview extends ConsumerWidget {
+  const _NutritionOverview({required this.onEdit, required this.onFoods});
+  final VoidCallback onEdit;
+  final VoidCallback onFoods;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final targets = ref.watch(macroTargetsProvider);
+    return ListView(
+      padding: EdgeInsets.fromLTRB(
+        WindowSize.of(context).gutter,
+        Space.xs,
+        WindowSize.of(context).gutter,
+        Space.xxl,
+      ),
+      children: [
+        InlineBanner.info(t.macroSplitNote),
+        const SizedBox(height: Space.md),
+        AppCard(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      t.dailyTargetsSection,
+                      style: theme.textTheme.titleSmall,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: onEdit,
+                    child: Text(t.calculatorSegment),
+                  ),
+                ],
+              ),
+              if (targets == null) ...[
+                Text(
+                  t.calculateTargetsButton,
+                  style: theme.textTheme.bodyMedium,
+                ),
+                const SizedBox(height: Space.md),
+                FilledButton(
+                  onPressed: onEdit,
+                  child: Text(t.calculateTargetsButton),
+                ),
+              ] else ...[
+                Text(
+                  '${targets.targetCalories}',
+                  style: theme.textTheme.displaySmall,
+                ),
+                Text(t.unitKcalPerDay, style: theme.textTheme.bodySmall),
+                const SizedBox(height: Space.md),
+                Wrap(
+                  spacing: Space.md,
+                  runSpacing: Space.xs,
+                  children: [
+                    Text('${t.macroProtein} · ${targets.protein} g'),
+                    Text('${t.macroCarbs} · ${targets.carbs} g'),
+                    Text('${t.macroFat} · ${targets.fat} g'),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+        SectionHeader(t.mealPlanSegment),
+        for (final meal in [
+          MealType.breakfast,
+          MealType.lunch,
+          MealType.dinner,
+        ]) ...[
+          AppCard(
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainer,
+                    borderRadius: Radii.cardSmall,
+                  ),
+                  child: Icon(
+                    Icons.restaurant_outlined,
+                    color: theme.colorScheme.primary,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: Space.sm),
+                Expanded(
+                  child: Text(
+                    _mealLabel(t, meal),
+                    style: theme.textTheme.titleSmall,
+                  ),
+                ),
+                Text(
+                  targets == null
+                      ? '—'
+                      : '${(targets.targetCalories * const MealSplit().fractionFor(meal)).round()} ${t.macroCalories}',
+                  style: theme.textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: Space.sm),
+        ],
+        OutlinedButton(onPressed: onFoods, child: Text(t.foodsSegment)),
+      ],
     );
   }
 }

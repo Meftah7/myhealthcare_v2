@@ -26,7 +26,7 @@ The plugin setup follows the official [Figma development guide](https://develope
 - Figma returned IDs, dimensions and descendant counts for all 56 created screens. Inter and Lexend loaded without fallback. `figma-state-built.json` contains the returned node IDs and the 288 navigation actions awaiting wiring.
 - Figma's quota also blocked the screenshot check. Remote visual verification, 22 Admin screens and all 409 prototype connections remain pending. The continuation plugin has passed JavaScript syntax checks, but cannot be executed from this session; inspect the four sections after running it.
 - Prototype navigation shows review paths. It does not perform account changes, save clinical records, send messages or process payments.
-- The Flutter application source remains unchanged. The broader analysis and implementation plan are in `../UI_UX_REDESIGN_PLAN.md`.
+- The design is now integrated into the Flutter application. See `IMPLEMENTATION.md` and `implementation-map.json` for all 78 screen mappings and validation. The earlier analysis remains in `../UI_UX_REDESIGN_PLAN.md`.
 
 ## Maintain the artifacts
 

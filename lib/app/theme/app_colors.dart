@@ -91,7 +91,7 @@ abstract final class AppColors {
         surfaceBright: Colors.white,
         surfaceContainerLowest: Colors.white,
         surfaceContainerLow: const Color(0xFFFBFBFD),
-        surfaceContainer: const Color(0xFFEDF2F9),
+        surfaceContainer: const Color(0xFFEEF4FC),
         surfaceContainerHigh: const Color(0xFFECEEF4),
         surfaceContainerHighest: const Color(0xFFE5E8F0),
 

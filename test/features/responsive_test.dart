@@ -122,7 +122,10 @@ void main() {
         expect(tester.takeException(), isNull);
         expect(
           find.byWidgetPredicate(
-            (widget) => widget is NavigationBar || widget is NavigationRail,
+            (widget) =>
+                widget is NavigationBar ||
+                widget is NavigationRail ||
+                (widget is SizedBox && widget.width == 248),
           ),
           findsOneWidget,
         );
@@ -168,10 +171,18 @@ void main() {
     testWidgets('expanded (840-1199) extends the rail', (tester) async {
       await _signInPatient(tester, size: const Size(1000, 1200));
 
-      final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
-      expect(rail.extended, isTrue);
-      // An extended rail draws its own inline labels.
-      expect(rail.labelType, NavigationRailLabelType.none);
+      expect(find.byType(NavigationRail), findsNothing);
+      final sidebar = find.byWidgetPredicate(
+        (w) => w is SizedBox && w.width == 248,
+      );
+      expect(sidebar, findsOneWidget);
+      expect(
+        find.descendant(
+          of: sidebar,
+          matching: find.widgetWithText(ListTile, 'Home'),
+        ),
+        findsOneWidget,
+      );
 
       await _teardown(tester);
     });
@@ -179,8 +190,11 @@ void main() {
     testWidgets('large (>=1200) keeps the extended rail', (tester) async {
       await _signInPatient(tester, size: const Size(1400, 1200));
 
-      final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
-      expect(rail.extended, isTrue);
+      expect(find.byType(NavigationRail), findsNothing);
+      expect(
+        find.byWidgetPredicate((w) => w is SizedBox && w.width == 248),
+        findsOneWidget,
+      );
 
       await _teardown(tester);
     });
@@ -190,11 +204,11 @@ void main() {
     testWidgets('compact stacks them in one column', (tester) async {
       await _signInPatient(tester, size: const Size(400, 2200));
 
-      final health = tester.getTopLeft(find.text('YOUR HEALTH'));
-      final quick = tester.getTopLeft(find.text('QUICK ACTIONS'));
+      final health = tester.getTopLeft(find.text('Your health'));
+      final quick = tester.getTopLeft(find.text('Quick actions'));
       // Same column: identical x, and health comes first.
       expect(quick.dx, health.dx);
-      expect(health.dy, lessThan(quick.dy));
+      expect(quick.dy, lessThan(health.dy));
 
       await _teardown(tester);
     });
@@ -203,11 +217,11 @@ void main() {
       await _signInPatient(tester, size: const Size(1200, 1600));
 
       expect(find.byType(SectionColumns), findsWidgets);
-      final health = tester.getTopLeft(find.text('YOUR HEALTH'));
-      final quick = tester.getTopLeft(find.text('QUICK ACTIONS'));
+      final health = tester.getTopLeft(find.text('Your health'));
+      final quick = tester.getTopLeft(find.text('Quick actions'));
       // Two columns: Quick actions moves to the right of Your health, and both
       // start at the same height.
-      expect(quick.dx, greaterThan(health.dx));
+      expect(health.dx, greaterThan(quick.dx));
       expect(quick.dy, health.dy);
 
       await _teardown(tester);

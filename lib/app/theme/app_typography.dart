@@ -38,7 +38,7 @@ TextTheme buildTextTheme() {
       fontFamily: AppFonts.display,
       fontSize: 32,
       height: 38 / 32,
-      fontWeight: FontWeight.w500,
+      fontWeight: FontWeight.w600,
       letterSpacing: -0.8,
     ),
     // Screen titles (large windows).
@@ -46,7 +46,7 @@ TextTheme buildTextTheme() {
       fontFamily: AppFonts.display,
       fontSize: 26,
       height: 32 / 26,
-      fontWeight: FontWeight.w500,
+      fontWeight: FontWeight.w600,
       letterSpacing: -0.6,
     ),
     // Screen titles (compact), section heads.
@@ -54,7 +54,7 @@ TextTheme buildTextTheme() {
       fontFamily: AppFonts.display,
       fontSize: 22,
       height: 28 / 22,
-      fontWeight: FontWeight.w500,
+      fontWeight: FontWeight.w600,
       letterSpacing: -0.4,
     ),
     // Card titles, dialog titles.
@@ -62,7 +62,7 @@ TextTheme buildTextTheme() {
       fontFamily: AppFonts.display,
       fontSize: 20,
       height: 26 / 20,
-      fontWeight: FontWeight.w500,
+      fontWeight: FontWeight.w600,
       letterSpacing: -0.2,
     ),
     // List item primary, form section labels.

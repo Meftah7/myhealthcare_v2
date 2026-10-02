@@ -51,7 +51,7 @@ class AuthScaffold extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(
                         Space.lg,
-                        Space.xs,
+                        Space.lg,
                         Space.lg,
                         Space.xl,
                       ),
@@ -68,8 +68,12 @@ class AuthScaffold extends StatelessWidget {
                                     context,
                                   ).backButtonTooltip,
                                 ),
-                              const Spacer(),
-                              ...authAppBarActions,
+                              Expanded(
+                                child: Wrap(
+                                  alignment: WrapAlignment.end,
+                                  children: authAppBarActions,
+                                ),
+                              ),
                             ],
                           ),
                           const SizedBox(height: Space.md),
@@ -86,11 +90,13 @@ class AuthScaffold extends StatelessWidget {
                                 child: const AppLogo(),
                               ),
                               const SizedBox(width: Space.sm),
-                              Text(
-                                'MyHealth Care',
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w500,
-                                  color: scheme.onPrimaryContainer,
+                              Expanded(
+                                child: Text(
+                                  'MyHealth Care',
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: scheme.onPrimaryContainer,
+                                  ),
                                 ),
                               ),
                             ],
@@ -99,7 +105,7 @@ class AuthScaffold extends StatelessWidget {
                           Text(
                             title,
                             style: theme.textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w600,
                               color: scheme.onPrimaryContainer,
                             ),
                           ),

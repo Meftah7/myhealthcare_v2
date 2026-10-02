@@ -134,6 +134,8 @@ flutter:
       fonts:
         - asset: assets/fonts/static/Lexend-Medium.ttf
           weight: 500
+        - asset: assets/fonts/static/Lexend-SemiBold.ttf
+          weight: 600
     - family: Inter
       fonts:
         - asset: assets/fonts/static/Inter-Regular.ttf

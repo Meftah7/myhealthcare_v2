@@ -48,9 +48,8 @@ class CircleIconButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: scheme.surfaceContainerLowest,
           shape: BoxShape.circle,
-          border: Border.all(color: scheme.outlineVariant),
         ),
-        child: Icon(icon, size: 19, color: scheme.onSurfaceVariant),
+        child: Icon(icon, size: 19, color: scheme.primary),
       ),
     );
   }

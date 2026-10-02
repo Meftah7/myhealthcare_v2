@@ -236,6 +236,7 @@ void main() {
         find.widgetWithText(TextField, 'Email or national ID'),
         'patient1@myhealth.demo',
       );
+      await tester.ensureVisible(find.widgetWithText(FilledButton, 'Continue'));
       await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
       await _settle(tester);
 
@@ -251,6 +252,10 @@ void main() {
         find.byKey(const ValueKey('recovery-code')),
         code == '000000' ? '111111' : '000000',
       );
+      expect(find.byKey(const ValueKey('recovery-password')), findsNothing);
+      await tester.ensureVisible(find.widgetWithText(FilledButton, 'Continue'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
+      await _settle(tester);
       await tester.enterText(
         find.byKey(const ValueKey('recovery-password')),
         'Fresh-Password-1',
@@ -267,6 +272,9 @@ void main() {
       expect(find.textContaining('invalid or has expired'), findsOneWidget);
 
       await tester.enterText(find.byKey(const ValueKey('recovery-code')), code);
+      await tester.ensureVisible(find.widgetWithText(FilledButton, 'Continue'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
+      await _settle(tester);
       await tester.ensureVisible(
         find.widgetWithText(FilledButton, 'Set new password'),
       );
@@ -323,6 +331,7 @@ void main() {
         find.widgetWithText(TextField, 'Email or national ID'),
         'patient1@myhealth.demo',
       );
+      await tester.ensureVisible(find.widgetWithText(FilledButton, 'Continue'));
       await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
       await _settle(tester);
 

@@ -5,6 +5,7 @@ library;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -45,21 +46,19 @@ class PatientChartScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
     final patient = ref.watch(chartPatientProvider(patientId));
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: !embedded,
-        title: Text(
-          patient.valueOrNull?.fullName ?? t.patientChartFallbackTitle,
+    return AppScaffold(
+      hero: !embedded,
+      automaticallyImplyLeading: !embedded,
+      title: patient.valueOrNull?.fullName ?? t.patientChartFallbackTitle,
+      centerBody: false,
+      actions: [
+        IconButton(
+          tooltip: t.aiSummaryTooltip,
+          icon: const Icon(Icons.summarize_outlined),
+          onPressed: () =>
+              context.push(AppRoutes.staffPatientSummary(patientId)),
         ),
-        actions: [
-          IconButton(
-            tooltip: t.aiSummaryTooltip,
-            icon: const Icon(Icons.summarize_outlined),
-            onPressed: () =>
-                context.push(AppRoutes.staffPatientSummary(patientId)),
-          ),
-        ],
-      ),
+      ],
       floatingActionButton: patient.hasValue
           ? _ChartFab(patientId: patientId)
           : null,

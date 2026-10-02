@@ -10,6 +10,7 @@ import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/states.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
@@ -60,7 +61,7 @@ class TaskBoardScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: Space.sm),
                   for (final t in list) ...[
-                    _TaskCard(task: t, weight: weight),
+                    _TaskCard(key: ValueKey(t.id), task: t, weight: weight),
                     const SizedBox(height: Space.sm),
                   ],
                 ],
@@ -113,17 +114,44 @@ class _PrioritiseButtonState extends ConsumerState<_PrioritiseButton> {
   }
 }
 
-class _TaskCard extends ConsumerWidget {
-  const _TaskCard({required this.task, required this.weight});
+class _TaskCard extends ConsumerStatefulWidget {
+  const _TaskCard({required this.task, required this.weight, super.key});
 
   final StaffTask task;
   final double weight;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_TaskCard> createState() => _TaskCardState();
+}
+
+class _TaskCardState extends ConsumerState<_TaskCard> {
+  bool _busy = false;
+  StaffTask get task => widget.task;
+
+  Future<void> _change(TaskStatus status) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      final result = await ref
+          .read(staffOpsProvider)
+          .setTaskStatus(task.id, status, expectedVersion: task.version);
+      if (!mounted) return;
+      showMutationFeedback(
+        context,
+        result,
+        onRetry: () => _change(status),
+        onReload: () => ref.invalidate(staffTasksProvider),
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final t = AppLocalizations.of(context)!;
-    final priority = task.effectivePriority(weight);
+    final priority = task.effectivePriority(widget.weight);
     return AppCard(
       padding: const EdgeInsets.all(Space.md),
       child: Column(
@@ -137,8 +165,8 @@ class _TaskCard extends ConsumerWidget {
                 child: Text(task.title, style: theme.textTheme.titleSmall),
               ),
               PopupMenuButton<TaskStatus>(
-                onSelected: (s) =>
-                    ref.read(staffOpsProvider).setTaskStatus(task.id, s),
+                enabled: !_busy,
+                onSelected: _change,
                 itemBuilder: (context) => [
                   PopupMenuItem(
                     value: TaskStatus.inProgress,
@@ -163,12 +191,14 @@ class _TaskCard extends ConsumerWidget {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               _Tag(label: _kindLabel(t, task.kind)),
-              _Tag(label: t.ruleScoreTag(task.ruleScore.toStringAsFixed(2))),
-              if (task.aiPriorityScore != null)
-                _Tag(
-                  label: t.aiScoreTag(task.aiPriorityScore!.toStringAsFixed(2)),
-                  icon: Icons.auto_awesome,
-                ),
+              _Tag(
+                label: switch (task.priority) {
+                  WorkPriority.routine => t.workPriorityRoutine,
+                  WorkPriority.priority => t.workPriorityPriority,
+                  WorkPriority.urgent => t.workPriorityUrgent,
+                },
+                error: task.priority == WorkPriority.urgent,
+              ),
               if (task.dueAt != null)
                 _Tag(
                   label: t.dueTag(fmtRelativeDay(task.dueAt!)),
@@ -178,15 +208,68 @@ class _TaskCard extends ConsumerWidget {
                 _Tag(label: t.taskStatusInProgress),
             ],
           ),
-          if (task.aiRationale != null) ...[
-            const SizedBox(height: Space.xs),
-            Text(
-              task.aiRationale!,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+          const SizedBox(height: Space.sm),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: FilledButton.icon(
+              onPressed: _busy || !task.isOpen
+                  ? null
+                  : () => _change(
+                      task.status == TaskStatus.open
+                          ? TaskStatus.inProgress
+                          : TaskStatus.done,
+                    ),
+              icon: _busy
+                  ? const SizedBox.square(
+                      dimension: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Icon(
+                      task.status == TaskStatus.open
+                          ? Icons.play_arrow_outlined
+                          : Icons.check,
+                    ),
+              label: Text(
+                task.status == TaskStatus.open
+                    ? t.startAction
+                    : t.completeAction,
               ),
             ),
-          ],
+          ),
+          ExpansionTile(
+            tilePadding: EdgeInsets.zero,
+            title: Text(
+              t.priorityBlendNote((widget.weight * 100).round()),
+              style: theme.textTheme.bodySmall,
+            ),
+            children: [
+              Wrap(
+                spacing: Space.xs,
+                runSpacing: Space.xs,
+                children: [
+                  _Tag(
+                    label: t.ruleScoreTag(task.ruleScore.toStringAsFixed(2)),
+                  ),
+                  if (task.aiPriorityScore != null)
+                    _Tag(
+                      label: t.aiScoreTag(
+                        task.aiPriorityScore!.toStringAsFixed(2),
+                      ),
+                      icon: Icons.auto_awesome,
+                    ),
+                ],
+              ),
+              if (task.aiRationale != null) ...[
+                const SizedBox(height: Space.xs),
+                Text(
+                  task.aiRationale!,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ],
+          ),
         ],
       ),
     );

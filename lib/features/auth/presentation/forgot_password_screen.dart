@@ -25,10 +25,9 @@ import '../../../core/result.dart';
 import '../../../domain/repositories/auth_repository.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../services/auth/recovery_delivery.dart';
-import 'auth_app_bar_actions.dart';
 import 'auth_scaffold.dart';
 
-enum _Step { identify, verify, queued, done }
+enum _Step { identify, verify, password, queued, done }
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -117,6 +116,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         // Keep what they typed; only the code is likely wrong.
         setState(() {
           _busy = false;
+          _step = _Step.verify;
           _error = describeFailure(
             AppLocalizations.of(context)!,
             failure,
@@ -150,39 +150,38 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           onBack: () => context.go(AppRoutes.login),
           child: _verifyForm(t),
         );
+      case _Step.password:
+        return AuthScaffold(
+          title: t.newPasswordLabel,
+          onBack: () => setState(() {
+            _step = _Step.verify;
+            _error = null;
+          }),
+          child: _verifyForm(t),
+        );
       case _Step.queued:
       case _Step.done:
         break;
     }
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        automaticallyImplyLeading: false,
-        actions: authAppBarActions,
-      ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(Space.lg),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
-            child: switch (_step) {
-              _Step.identify || _Step.verify => const SizedBox.shrink(),
-              _Step.queued => _Outcome(
-                icon: Icons.mark_email_read_outlined,
-                title: t.passwordResetRequestedTitle,
-                body: t.passwordResetRequestedBody,
-                onDone: () => context.go(AppRoutes.login),
-              ),
-              _Step.done => _Outcome(
-                icon: Icons.verified_user_outlined,
-                title: t.recoveryDoneTitle,
-                body: t.recoveryDoneBody,
-                onDone: () => context.go(AppRoutes.login),
-              ),
-            },
-          ),
+    return AuthScaffold(
+      title: _step == _Step.done
+          ? t.recoveryDoneTitle
+          : t.passwordResetRequestedTitle,
+      child: switch (_step) {
+        _Step.identify ||
+        _Step.verify ||
+        _Step.password => const SizedBox.shrink(),
+        _Step.queued => _Outcome(
+          icon: Icons.mark_email_read_outlined,
+          body: t.passwordResetRequestedBody,
+          onDone: () => context.go(AppRoutes.login),
         ),
-      ),
+        _Step.done => _Outcome(
+          icon: Icons.verified_user_outlined,
+          body: t.recoveryDoneBody,
+          onDone: () => context.go(AppRoutes.login),
+        ),
+      },
     );
   }
 
@@ -226,52 +225,75 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (outbox is DemoRecoveryOutbox) _DemoInbox(outbox: outbox),
+          if (_step == _Step.verify && outbox is DemoRecoveryOutbox)
+            _DemoInbox(outbox: outbox),
           const SizedBox(height: Space.lg),
-          TextField(
-            key: const ValueKey('recovery-code'),
-            controller: _code,
-            autofocus: true,
-            keyboardType: TextInputType.number,
-            maxLength: 6,
-            autofillHints: const [AutofillHints.oneTimeCode],
-            decoration: InputDecoration(
-              labelText: t.recoveryCodeLabel,
-              prefixIcon: const Icon(Icons.pin_outlined),
-              counterText: '',
+          if (_step == _Step.verify)
+            TextField(
+              key: const ValueKey('recovery-code'),
+              controller: _code,
+              autofocus: true,
+              keyboardType: TextInputType.number,
+              maxLength: 6,
+              autofillHints: const [AutofillHints.oneTimeCode],
+              decoration: InputDecoration(
+                labelText: t.recoveryCodeLabel,
+                prefixIcon: const Icon(Icons.pin_outlined),
+                counterText: '',
+              ),
             ),
-          ),
-          const SizedBox(height: Space.sm),
-          TextField(
-            key: const ValueKey('recovery-password'),
-            controller: _password,
-            obscureText: true,
-            autofillHints: const [AutofillHints.newPassword],
-            decoration: InputDecoration(
-              labelText: t.newPasswordLabel,
-              prefixIcon: const Icon(Icons.lock_outline),
+          if (_step == _Step.password) ...[
+            const SizedBox(height: Space.sm),
+            TextField(
+              key: const ValueKey('recovery-password'),
+              controller: _password,
+              obscureText: true,
+              autofillHints: const [AutofillHints.newPassword],
+              decoration: InputDecoration(
+                labelText: t.newPasswordLabel,
+                prefixIcon: const Icon(Icons.lock_outline),
+              ),
             ),
-          ),
-          const SizedBox(height: Space.sm),
-          TextField(
-            key: const ValueKey('recovery-confirm'),
-            controller: _confirm,
-            obscureText: true,
-            textInputAction: TextInputAction.go,
-            onSubmitted: (_) => _reset(),
-            decoration: InputDecoration(
-              labelText: t.recoveryConfirmPasswordLabel,
-              prefixIcon: const Icon(Icons.lock_outline),
+            const SizedBox(height: Space.sm),
+            TextField(
+              key: const ValueKey('recovery-confirm'),
+              controller: _confirm,
+              obscureText: true,
+              textInputAction: TextInputAction.go,
+              onSubmitted: (_) => _reset(),
+              decoration: InputDecoration(
+                labelText: t.recoveryConfirmPasswordLabel,
+                prefixIcon: const Icon(Icons.lock_outline),
+              ),
             ),
-          ),
+          ],
           if (_error != null) ...[
             const SizedBox(height: Space.md),
             InlineBanner.error(_error!),
           ],
           const SizedBox(height: Space.lg),
           FilledButton(
-            onPressed: _busy ? null : _reset,
-            child: _busy ? const _Spinner() : Text(t.recoveryResetButton),
+            onPressed: _busy
+                ? null
+                : _step == _Step.password
+                ? _reset
+                : () {
+                    if (!RegExp(r'^\d{6}$').hasMatch(_code.text.trim())) {
+                      setState(() => _error = t.recoveryCodeRequired);
+                      return;
+                    }
+                    setState(() {
+                      _step = _Step.password;
+                      _error = null;
+                    });
+                  },
+            child: _busy
+                ? const _Spinner()
+                : Text(
+                    _step == _Step.password
+                        ? t.recoveryResetButton
+                        : t.continueButton,
+                  ),
           ),
           const SizedBox(height: Space.xs),
           TextButton(
@@ -357,13 +379,11 @@ class _DemoInbox extends StatelessWidget {
 class _Outcome extends StatelessWidget {
   const _Outcome({
     required this.icon,
-    required this.title,
     required this.body,
     required this.onDone,
   });
 
   final IconData icon;
-  final String title;
   final String body;
   final VoidCallback onDone;
 
@@ -386,13 +406,6 @@ class _Outcome extends StatelessWidget {
           ),
         ),
         const SizedBox(height: Space.md),
-        Text(
-          title,
-          textAlign: TextAlign.center,
-          style: theme.textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
-        ),
         const SizedBox(height: Space.xs),
         Text(
           body,

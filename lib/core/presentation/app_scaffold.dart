@@ -153,6 +153,7 @@ class _AppScaffoldState extends State<AppScaffold> {
   @override
   Widget build(BuildContext context) {
     final size = WindowSize.of(context);
+    final hero = widget.hero && !(size.isExpanded || size.isLarge);
     final gutter = size.gutter;
     final pad =
         widget.padding ??
@@ -193,16 +194,19 @@ class _AppScaffoldState extends State<AppScaffold> {
             ? null
             : Text(
                 widget.title!,
-                maxLines: widget.hero ? null : 1,
-                overflow: widget.hero ? TextOverflow.visible : TextOverflow.ellipsis,
-                style: widget.hero
+                softWrap: hero,
+                maxLines: hero ? null : 1,
+                overflow: hero ? TextOverflow.visible : TextOverflow.ellipsis,
+                style: hero
                     ? theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
                         color: scheme.onPrimaryContainer,
                       )
+                    : widget.hero
+                    ? theme.textTheme.headlineMedium
                     : null,
               ));
-    if (widget.hero && widget.heroOverline != null && title != null) {
+    if (hero && widget.heroOverline != null && title != null) {
       title = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -221,27 +225,42 @@ class _AppScaffoldState extends State<AppScaffold> {
     // Measure the actual heading at the user's text size. Long titles wrap
     // instead of disappearing behind an ellipsis or a fixed-height toolbar.
     var toolbarHeight = 96.0;
-    if (widget.hero && widget.title != null) {
-      final hasLeading = widget.leading != null ||
+    if (hero && widget.title != null) {
+      final hasLeading =
+          widget.leading != null ||
           (widget.automaticallyImplyLeading && Navigator.canPop(context));
-      final available = math.max(80.0, MediaQuery.sizeOf(context).width -
-          gutter * 2 - (hasLeading ? 56 : 0) -
-          ((widget.actions?.isNotEmpty ?? false) ? 160 : 0));
+      final available = math.max(
+        80.0,
+        MediaQuery.sizeOf(context).width -
+            gutter * 2 -
+            (hasLeading ? 56 : 0) -
+            ((widget.actions?.isNotEmpty ?? false) ? 160 : 0),
+      );
       final painter = TextPainter(
-        text: TextSpan(text: widget.title,
-            style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w500)),
+        text: TextSpan(
+          text: widget.title,
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         textDirection: Directionality.of(context),
         textScaler: MediaQuery.textScalerOf(context),
       )..layout(maxWidth: available);
-      toolbarHeight = math.max(toolbarHeight, painter.height + 40 +
-          (widget.heroOverline == null ? 0 : MediaQuery.textScalerOf(context).scale(24)));
+      toolbarHeight = math.max(
+        toolbarHeight,
+        painter.height +
+            40 +
+            (widget.heroOverline == null
+                ? 0
+                : MediaQuery.textScalerOf(context).scale(24)),
+      );
       painter.dispose();
     }
 
     return Scaffold(
       appBar: !hasAppBar
           ? null
-          : widget.hero
+          : hero
           ? AppBar(
               titleSpacing: gutter,
               toolbarHeight: toolbarHeight,
@@ -250,7 +269,7 @@ class _AppScaffoldState extends State<AppScaffold> {
               scrolledUnderElevation: 0,
               shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.vertical(
-                  bottom: Radius.circular(28),
+                  bottom: Radius.circular(24),
                 ),
               ),
               title: title,
@@ -261,15 +280,7 @@ class _AppScaffoldState extends State<AppScaffold> {
             )
           : AppBar(
               titleSpacing: gutter,
-              title:
-                  widget.titleWidget ??
-                  (widget.title == null
-                      ? null
-                      : Text(
-                          widget.title!,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        )),
+              title: title,
               leading: widget.leading,
               automaticallyImplyLeading: widget.automaticallyImplyLeading,
               actions: widget.actions,
@@ -336,13 +347,65 @@ class AppLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    return Image.asset(
-      dark ? 'assets/images/logo_dark.png' : 'assets/images/logo_light.png',
-      height: height,
-      semanticLabel: semanticLabel,
+    final dimension = height ?? 36;
+    return Semantics(
+      image: true,
+      label: semanticLabel ?? 'MyHealth Care',
+      child: SizedBox.square(
+        dimension: dimension,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: AppColors.seed,
+            borderRadius: BorderRadius.circular(dimension * .28),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(dimension * .17),
+            child: CustomPaint(painter: _CareMarkPainter()),
+          ),
+        ),
+      ),
     );
   }
+}
+
+class _CareMarkPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.save();
+    canvas.scale(size.width / 24, size.height / 24);
+    final paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.6
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    final heart = Path()
+      ..moveTo(20.8, 4.6)
+      ..cubicTo(18.7, 2.5, 15.3, 2.5, 13.2, 4.6)
+      ..lineTo(12, 5.8)
+      ..lineTo(10.8, 4.6)
+      ..cubicTo(8.7, 2.5, 5.3, 2.5, 3.2, 4.6)
+      ..cubicTo(1.1, 6.7, 1.1, 10.1, 3.2, 12.2)
+      ..lineTo(12, 21)
+      ..lineTo(20.8, 12.2)
+      ..cubicTo(22.9, 10.1, 22.9, 6.7, 20.8, 4.6)
+      ..close();
+    canvas.drawPath(heart, paint);
+    canvas.drawPath(
+      Path()
+        ..moveTo(4, 12)
+        ..lineTo(8, 12)
+        ..lineTo(10, 8)
+        ..lineTo(13, 16)
+        ..lineTo(15, 12)
+        ..lineTo(20, 12),
+      paint,
+    );
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant _CareMarkPainter oldDelegate) => false;
 }
 
 /// The product mark — logo plus wordmark — for the role home screens' app bar.

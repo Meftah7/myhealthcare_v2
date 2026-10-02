@@ -107,7 +107,7 @@ class GradientHeroCard extends StatelessWidget {
     final theme = Theme.of(context);
     final surface = DecoratedBox(
       decoration: const BoxDecoration(
-        borderRadius: Radii.card,
+        borderRadius: Radii.hero,
         color: AppColors.seed,
       ),
       child: Stack(
@@ -174,15 +174,7 @@ class GradientHeroCard extends StatelessWidget {
       ),
     );
 
-    // Shadow outside the clip, gradient inside it — a ClipRRect wrapping the
-    // shadow would eat the bloom.
-    final lifted = DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: Radii.card,
-        boxShadow: Shadows.glow(AppColors.brandViolet),
-      ),
-      child: ClipRRect(borderRadius: Radii.card, child: surface),
-    );
+    final lifted = ClipRRect(borderRadius: Radii.hero, child: surface);
     return onTap == null ? lifted : Pressable(onTap: onTap, child: lifted);
   }
 }
@@ -733,29 +725,56 @@ class PillSegmented<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return Row(children: [
-      for (final (index, item) in segments.indexed)
-        Expanded(child: Padding(
-          padding: EdgeInsetsDirectional.only(end: index == segments.length - 1 ? 0 : Space.xs),
-          child: Semantics(button: true, selected: item.$1 == selected,
-            child: Pressable(onTap: () => onChanged(item.$1),
-              child: AnimatedContainer(
-                duration: Motion.fast, curve: Motion.standard,
-                constraints: const BoxConstraints(minHeight: 48),
-                padding: const EdgeInsets.symmetric(horizontal: Space.xs, vertical: Space.xs),
-                decoration: BoxDecoration(
-                  color: item.$1 == selected ? scheme.primary : scheme.surfaceContainerLowest,
-                  borderRadius: Radii.chip,
-                  border: Border.all(color: item.$1 == selected ? scheme.primary : scheme.outlineVariant)),
-                alignment: Alignment.center,
-                child: Text(item.$2, textAlign: TextAlign.center,
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: item.$1 == selected ? scheme.onPrimary : scheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w600)),
-              )),
+    return Row(
+      children: [
+        for (final (index, item) in segments.indexed)
+          Expanded(
+            child: Padding(
+              padding: EdgeInsetsDirectional.only(
+                end: index == segments.length - 1 ? 0 : Space.xs,
+              ),
+              child: Semantics(
+                button: true,
+                selected: item.$1 == selected,
+                child: Pressable(
+                  onTap: () => onChanged(item.$1),
+                  child: AnimatedContainer(
+                    duration: Motion.fast,
+                    curve: Motion.standard,
+                    constraints: const BoxConstraints(minHeight: 48),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: Space.xs,
+                      vertical: Space.xs,
+                    ),
+                    decoration: BoxDecoration(
+                      color: item.$1 == selected
+                          ? scheme.primary
+                          : scheme.surfaceContainerLowest,
+                      borderRadius: Radii.chip,
+                      border: Border.all(
+                        color: item.$1 == selected
+                            ? scheme.primary
+                            : scheme.outlineVariant,
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      item.$2,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: item.$1 == selected
+                            ? scheme.onPrimary
+                            : scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
-        )),
-    ]);
+      ],
+    );
   }
 }
 
