@@ -219,7 +219,7 @@ class _QuickActionTile extends StatelessWidget {
           Expanded(
             child: Text(
               action.label,
-              maxLines: 1,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.titleSmall,
             ),

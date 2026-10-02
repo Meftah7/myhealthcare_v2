@@ -124,6 +124,12 @@ class _BalanceCard extends ConsumerWidget {
     final balanceAsync = ref.watch(walletBalanceProvider);
     final summary = ref.watch(billingSummaryProvider).valueOrNull;
 
+    if (balanceAsync.hasError && !balanceAsync.hasValue) {
+      return ErrorStateView(
+        message: t.couldNotLoadPayments,
+        onRetry: () => ref.invalidate(walletBalanceProvider),
+      );
+    }
     if (!balanceAsync.hasValue) return const LoadingSkeleton(height: 120);
     final balance = balanceAsync.value!;
 

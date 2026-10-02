@@ -47,7 +47,11 @@ class TwoPane extends StatelessWidget {
 
   /// True when this window is showing both panes — callers use it to decide
   /// between setting selection state and pushing a route.
-  static bool isSplit(BuildContext context) => WindowSize.of(context).usesPanes;
+  static bool isSplit(BuildContext context) {
+    final size = WindowSize.of(context);
+    final rail = size.isCompact ? 0 : (size.isExpanded || size.isLarge ? 256 : 72);
+    return MediaQuery.sizeOf(context).width - rail >= 801;
+  }
 
   @override
   Widget build(BuildContext context) {

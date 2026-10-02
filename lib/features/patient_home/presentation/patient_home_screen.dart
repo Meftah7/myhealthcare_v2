@@ -96,7 +96,7 @@ class _QuickAppointmentAction extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
-    return GradientHeroCard(
+    return NavRow(
       icon: Icons.bolt,
       title: t.quickAppointmentTitle,
       subtitle: t.quickAppointmentSubtitle,
@@ -210,6 +210,12 @@ class _HealthSnapshot extends ConsumerWidget {
     final appts = ref.watch(patientAppointmentsProvider);
     final meds = ref.watch(patientMedicationsProvider);
 
+    if (appts.hasError || meds.hasError) {
+      return ErrorStateView(
+        message: appts.hasError ? t.couldNotLoadAppointments : t.couldNotLoadMedications,
+        onRetry: () { ref.invalidate(patientAppointmentsProvider); ref.invalidate(patientMedicationsProvider); },
+      );
+    }
     final all = appts.valueOrNull ?? const <Appointment>[];
 
     // Ticket — how many upcoming appointments the patient is holding.
@@ -235,7 +241,7 @@ class _HealthSnapshot extends ConsumerWidget {
         : fmtShortDate(lastVisit.slotStart);
 
     return AppReveal(
-      child: appts.isLoading && meds.isLoading
+      child: appts.isLoading || meds.isLoading
           ? const LoadingSkeleton(key: ValueKey('loading'), height: 92)
           : MetricRow(
               key: const ValueKey('data'),

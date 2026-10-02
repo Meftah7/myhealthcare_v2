@@ -78,9 +78,17 @@ void main() {
         reason: 'first-launch colour should be the light-theme onSurface',
       );
 
-      // Flip to dark via the same toggle button the app bar exposes.
-      await tester.tap(find.byIcon(Icons.dark_mode_outlined).first);
-      await _pump(tester);
+      // Preferences now owns the appearance controls for every workspace.
+      Future<void> chooseTheme(String label) async {
+        await tester.tap(find.byIcon(Icons.settings_outlined).first);
+        await _pump(tester);
+        await tester.ensureVisible(find.text(label));
+        await tester.tap(find.text(label));
+        await _pump(tester);
+        await tester.tap(find.byType(BackButton));
+        await _pump(tester);
+      }
+      await chooseTheme('Dark');
 
       final afterDark = nameColor();
       expect(
@@ -94,8 +102,7 @@ void main() {
 
       // And back to light — this is the exact "change mode" step the report
       // describes as breaking.
-      await tester.tap(find.byIcon(Icons.light_mode_outlined).first);
-      await _pump(tester);
+      await chooseTheme('Light');
       final backToLight = nameColor();
       expect(
         backToLight,

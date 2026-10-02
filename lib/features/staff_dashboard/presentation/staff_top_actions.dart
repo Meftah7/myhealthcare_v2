@@ -11,7 +11,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
-import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/circle_icon_button.dart';
@@ -30,32 +29,16 @@ class StaffTopActions extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
-    final mode = ref.watch(themeModeProvider);
-    final platformIsDark =
-        MediaQuery.platformBrightnessOf(context) == Brightness.dark;
-    final isDark =
-        mode == ThemeMode.dark || (mode == ThemeMode.system && platformIsDark);
-    final compact = WindowSize.of(context).isCompact;
-
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         const PresenceMenu(),
         const NotificationsButton(route: AppRoutes.staffNotifications),
-        if (!compact)
-          CircleIconButton(
-            icon: isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-            tooltip: isDark ? t.switchToLightMode : t.switchToDarkMode,
-            onPressed: () => ref
-                .read(themeModeProvider.notifier)
-                .set(isDark ? ThemeMode.light : ThemeMode.dark),
-          ),
-        if (!compact)
-          CircleIconButton(
-            icon: Icons.account_circle_outlined,
-            tooltip: t.profileTooltip,
-            onPressed: () => context.go(AppRoutes.staffProfile),
-          ),
+        CircleIconButton(
+          icon: Icons.settings_outlined,
+          tooltip: t.preferences,
+          onPressed: () => context.push(AppRoutes.staffProfilePreferences),
+        ),
         const SizedBox(width: Space.xs),
       ],
     );

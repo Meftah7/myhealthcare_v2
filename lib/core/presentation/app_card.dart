@@ -222,15 +222,13 @@ class SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final label = overline
-        ? Text(
-            title.toUpperCase(),
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              letterSpacing: 0.8,
-            ),
-          )
-        : Text(title, style: theme.textTheme.titleSmall);
+    final label = Text(
+      title,
+      style: theme.textTheme.titleSmall?.copyWith(
+        fontSize: overline ? 16 : 15,
+        color: theme.colorScheme.onSurface,
+      ),
+    );
     return Padding(
       padding:
           padding ??
@@ -242,7 +240,7 @@ class SectionHeader extends StatelessWidget {
             TextButton(
               onPressed: onAction,
               style: TextButton.styleFrom(
-                minimumSize: const Size(0, 36),
+                minimumSize: const Size(0, 48),
                 padding: const EdgeInsets.symmetric(horizontal: Space.xs),
                 textStyle: theme.textTheme.labelMedium,
               ),
@@ -735,49 +733,29 @@ class PillSegmented<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest,
-        borderRadius: Radii.pill,
-      ),
-      child: Row(
-        children: [
-          for (final (value, label) in segments)
-            Expanded(
-              child: Pressable(
-                onTap: () => onChanged(value),
-                child: AnimatedContainer(
-                  duration: Motion.fast,
-                  curve: Motion.standard,
-                  padding: const EdgeInsets.symmetric(vertical: Space.xs),
-                  decoration: BoxDecoration(
-                    color: value == selected
-                        ? scheme.primary
-                        : Colors.transparent,
-                    borderRadius: Radii.pill,
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    label,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: value == selected
-                          ? scheme.onPrimary
-                          : scheme.onSurfaceVariant,
-                      fontWeight: value == selected
-                          ? FontWeight.w700
-                          : FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
+    return Row(children: [
+      for (final (index, item) in segments.indexed)
+        Expanded(child: Padding(
+          padding: EdgeInsetsDirectional.only(end: index == segments.length - 1 ? 0 : Space.xs),
+          child: Semantics(button: true, selected: item.$1 == selected,
+            child: Pressable(onTap: () => onChanged(item.$1),
+              child: AnimatedContainer(
+                duration: Motion.fast, curve: Motion.standard,
+                constraints: const BoxConstraints(minHeight: 48),
+                padding: const EdgeInsets.symmetric(horizontal: Space.xs, vertical: Space.xs),
+                decoration: BoxDecoration(
+                  color: item.$1 == selected ? scheme.primary : scheme.surfaceContainerLowest,
+                  borderRadius: Radii.chip,
+                  border: Border.all(color: item.$1 == selected ? scheme.primary : scheme.outlineVariant)),
+                alignment: Alignment.center,
+                child: Text(item.$2, textAlign: TextAlign.center,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: item.$1 == selected ? scheme.onPrimary : scheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600)),
+              )),
+          ),
+        )),
+    ]);
   }
 }
 

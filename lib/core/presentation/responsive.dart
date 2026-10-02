@@ -153,7 +153,7 @@ class TileGrid extends StatelessWidget {
     const medallion = 34.0;
     const titleSmallLineHeight = 20.0;
     final line = MediaQuery.textScalerOf(context).scale(titleSmallLineHeight);
-    return verticalPadding + math.max(medallion, line) + Space.xxs;
+    return verticalPadding + math.max(medallion, line * 2) + Space.xxs;
   }
 
   @override
@@ -163,7 +163,8 @@ class TileGrid extends StatelessWidget {
       builder: (context, constraints) {
         // Never let the configured column count squeeze a tile below the width
         // its label needs — a 600dp tablet in portrait gets two, not three.
-        final fit = (constraints.maxWidth / minTileWidth).floor();
+        final scale = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 2.0);
+        final fit = (constraints.maxWidth / (minTileWidth * scale)).floor();
         final crossAxisCount = fit.clamp(1, columns);
         return GridView.count(
           crossAxisCount: crossAxisCount,

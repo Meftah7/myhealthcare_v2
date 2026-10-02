@@ -10,6 +10,7 @@ import '../../../app/router.dart';
 import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
+import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/confirm_dialog.dart';
@@ -34,6 +35,8 @@ class AppointmentsScreen extends ConsumerStatefulWidget {
   ConsumerState<AppointmentsScreen> createState() => _AppointmentsScreenState();
 }
 
+enum _AppointmentFilter { upcoming, past, cancelled }
+
 class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
   static const _pageSize = 40;
 
@@ -41,6 +44,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
   /// more" is tapped, rather than silently hiding the rest with no way to
   /// see them.
   int _visiblePast = _pageSize;
+  _AppointmentFilter _filter = _AppointmentFilter.upcoming;
 
   @override
   Widget build(BuildContext context) {
@@ -56,9 +60,16 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
       actions: const [PatientTopActions()],
       onRefresh: () async => ref.invalidate(patientAppointmentsProvider),
       children: [
-        // The two ways in stay put while the list below them loads — there is
-        // no reason to make someone wait on a query to book a visit.
-        const _EntryButtons(),
+        // Filters stay available while the list loads; booking remains below.
+        PillSegmented<_AppointmentFilter>(
+          segments: [
+            (_AppointmentFilter.upcoming, t.upcomingLabel),
+            (_AppointmentFilter.past, t.pastSectionLabel),
+            (_AppointmentFilter.cancelled, AppointmentStatus.cancelled.label(context)),
+          ],
+          selected: _filter,
+          onChanged: (value) => setState(() { _filter = value; _visiblePast = _pageSize; }),
+        ),
         ...appts.when(
           loading: () => const [
             SizedBox(height: Space.md),
@@ -72,67 +83,35 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
             ),
           ],
           data: (list) {
-            final upcoming = list.where((a) => a.isUpcoming).toList()
-              ..sort((a, b) => a.slotStart.compareTo(b.slotStart));
-            final past = list.where((a) => !a.isUpcoming).toList()
-              ..sort((a, b) => b.slotStart.compareTo(a.slotStart));
-            final visiblePast = past.take(_visiblePast).toList();
-            final remaining = past.length - visiblePast.length;
-
-            Widget card(Appointment a, {required bool upcoming}) => _ApptCard(
-              a,
-              upcoming: upcoming,
-              doctor: doctors[a.staffId]?.name,
-              department: departments[a.departmentId],
-            );
-
+            final filtered = list.where((a) => switch (_filter) {
+              _AppointmentFilter.upcoming => a.isUpcoming,
+              _AppointmentFilter.past => !a.isUpcoming && a.status != AppointmentStatus.cancelled,
+              _AppointmentFilter.cancelled => a.status == AppointmentStatus.cancelled,
+            }).toList()..sort((a, b) => _filter == _AppointmentFilter.upcoming
+                ? a.slotStart.compareTo(b.slotStart) : b.slotStart.compareTo(a.slotStart));
+            final visible = filtered.take(_visiblePast).toList();
+            final remaining = filtered.length - visible.length;
             return [
-              SectionHeader(t.upcomingCount(upcoming.length), overline: true),
-              if (upcoming.isEmpty)
-                _EmptyNote(t.nothingBookedNote)
-              else
-                CardColumns(
-                  children: [for (final a in upcoming) card(a, upcoming: true)],
-                ),
-
-              SectionHeader(t.historyCount(past.length), overline: true),
-              if (past.isEmpty)
-                _EmptyNote(t.noPastVisitsNote)
+              const SizedBox(height: Space.md),
+              if (filtered.isEmpty)
+                _EmptyNote(_filter == _AppointmentFilter.upcoming ? t.nothingBookedNote : t.noAppointmentsInView)
               else ...[
-                for (final entry in _byMonth(visiblePast).entries) ...[
-                  _MonthLabel(entry.key),
-                  CardColumns(
-                    children: [
-                      for (final a in entry.value) card(a, upcoming: false),
-                    ],
-                  ),
-                ],
-                if (remaining > 0) ...[
-                  const SizedBox(height: Space.sm),
-                  Center(
-                    child: TextButton(
-                      onPressed: () =>
-                          setState(() => _visiblePast += _pageSize),
-                      child: Text(t.showOlderVisitsAction(remaining)),
-                    ),
-                  ),
-                ],
+                CardColumns(children: [for (final a in visible) _ApptCard(a,
+                  upcoming: a.isUpcoming, doctor: doctors[a.staffId]?.name,
+                  department: departments[a.departmentId])]),
+                if (remaining > 0) Center(child: TextButton(
+                  onPressed: () => setState(() => _visiblePast += _pageSize),
+                  child: Text(t.showOlderVisitsAction(remaining)))),
               ],
             ];
           },
         ),
+        const SizedBox(height: Space.lg),
+        const _EntryButtons(),
       ],
     );
   }
 
-  static Map<DateTime, List<Appointment>> _byMonth(Iterable<Appointment> xs) {
-    final out = <DateTime, List<Appointment>>{};
-    for (final a in xs) {
-      final key = DateTime(a.slotStart.year, a.slotStart.month);
-      (out[key] ??= []).add(a);
-    }
-    return out;
-  }
 }
 
 /// The Appointments entry point (redesign v2): "Book Now" jumps straight to
@@ -176,22 +155,6 @@ class _EntryButtons extends StatelessWidget {
   }
 }
 
-class _MonthLabel extends StatelessWidget {
-  const _MonthLabel(this.month);
-  final DateTime month;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(top: Space.sm, bottom: Space.xs),
-    child: Text(
-      fmtMonthYear(month),
-      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
-      ),
-    ),
-  );
-}
-
 /// A one-line "nothing here yet" note inside a section — the quiet sibling of
 /// [EmptyState], which owns a whole screen.
 class _EmptyNote extends StatelessWidget {
@@ -227,108 +190,26 @@ class _ApptCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final t = AppLocalizations.of(context)!;
-    final meta = [
-      visitTypeLabel(appt.visitType),
-      ?doctor,
-      ?department,
-    ].join('  ·  ');
-    final ticketMeta = [
-      t.ticketLabel(appt.ticketTag ?? t.none),
-      t.roomNumber(appt.roomNumber ?? t.none),
-    ].join('  ·  ');
-
     return AppCard(
-      padding: const EdgeInsets.all(Space.md),
       onTap: () => context.push(AppRoutes.patientAppointmentDetail(appt.id)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      upcoming
-                          ? '${fmtRelativeDay(appt.slotStart)} · '
-                                '${fmtTime(appt.slotStart)}'
-                          : fmtDate(appt.slotStart),
-                      style: theme.textTheme.titleMedium,
-                    ),
-                    if (!upcoming)
-                      Text(
-                        fmtTime(appt.slotStart),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: Space.xs),
-              AppointmentStatusPill(appt.status, dense: true),
-            ],
-          ),
-          if (appt.bookedForName != null) ...[
-            const SizedBox(height: Space.xs),
-            Row(
-              children: [
-                Icon(
-                  Icons.person_outline,
-                  size: 15,
-                  color: theme.colorScheme.primary,
-                ),
-                const SizedBox(width: Space.xxs),
-                Text(
-                  t.bookedForName(appt.bookedForName!),
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-              ],
-            ),
-          ],
-          // Space.xs between the detail lines, not xxs: at 4dp the block read
-          // as one dense paragraph rather than four separate facts.
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Container(width: 40, height: 40,
+          decoration: BoxDecoration(color: theme.colorScheme.primaryContainer, borderRadius: Radii.cardSmall),
+          child: Icon(Icons.calendar_today_outlined, size: 20, color: theme.colorScheme.primary)),
+        const SizedBox(width: Space.sm),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(doctor ?? visitTypeLabel(appt.visitType), style: theme.textTheme.titleSmall),
+          const SizedBox(height: Space.xxs),
+          Text([?department, fmtRelativeDay(appt.slotStart), fmtTime(appt.slotStart)].join(' · '),
+            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          if (appt.bookedForName != null) Text(t.bookedForName(appt.bookedForName!), style: theme.textTheme.bodySmall),
           const SizedBox(height: Space.xs),
-          Text(
-            meta,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: Space.xs),
-          Text(
-            ticketMeta,
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: theme.colorScheme.primary,
-            ),
-          ),
-          if (appt.reasonText != null) ...[
-            const SizedBox(height: Space.xs),
-            Text(appt.reasonText!, style: theme.textTheme.bodySmall),
-          ],
-          const SizedBox(height: Space.xs),
-          Text(
-            t.bookedOn(fmtDate(appt.bookedAt)),
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          if (upcoming && appt.riskBand != null) ...[
-            const SizedBox(height: Space.sm),
-            RiskBadge(appt.riskBand!),
-          ],
-          if (upcoming &&
-              (appt.status == AppointmentStatus.booked ||
-                  appt.status == AppointmentStatus.confirmed)) ...[
-            const SizedBox(height: Space.sm),
-            ApptActions(appt: appt),
-          ],
-        ],
-      ),
+          Wrap(spacing: Space.xs, runSpacing: Space.xxs, children: [
+            AppointmentStatusPill(appt.status, dense: true),
+            if (upcoming && appt.riskBand != null) RiskBadge(appt.riskBand!),
+          ]),
+        ])),
+      ]),
     );
   }
 }

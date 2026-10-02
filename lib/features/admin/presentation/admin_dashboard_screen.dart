@@ -59,8 +59,6 @@ class AdminDashboardScreen extends ConsumerWidget {
               onAction: () => context.push(AppRoutes.adminWorkQueue),
             ),
             const AdminAttentionList(),
-            SectionHeader(t.quickActionsHeader, overline: true),
-            const AdminQuickActions(),
           ],
           secondary: [
             SectionHeader(
@@ -81,6 +79,8 @@ class AdminDashboardScreen extends ConsumerWidget {
             ),
           ],
         ),
+        SectionHeader(t.quickActionsHeader, overline: true),
+        const AdminQuickActions(),
       ],
     );
   }

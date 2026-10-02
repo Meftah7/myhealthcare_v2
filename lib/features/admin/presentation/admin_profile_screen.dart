@@ -11,7 +11,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
-import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
@@ -19,7 +18,6 @@ import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
-import '../../settings/presentation/preferences_section.dart';
 
 class AdminProfileScreen extends ConsumerWidget {
   const AdminProfileScreen({super.key});
@@ -59,7 +57,6 @@ class AdminProfileScreen extends ConsumerWidget {
     final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final user = ref.watch(currentUserProvider);
-    final locale = ref.watch(localeProvider);
     final sections = _sections(t);
 
     return AppScaffold(
@@ -73,12 +70,12 @@ class AdminProfileScreen extends ConsumerWidget {
                 email: user.email,
                 phone: user.phone,
                 role: t.roleAdmin,
-                avatarSize: 72,
-                elevated: true,
+                avatarSize: 52,
+                elevated: false,
               ),
               SectionHeader(t.accountSection, overline: true),
               ListCard(
-                elevated: true,
+                elevated: false,
                 children: [
                   for (final (icon, title, route) in sections)
                     ListTile(
@@ -104,33 +101,7 @@ class AdminProfileScreen extends ConsumerWidget {
               ),
 
               SectionHeader(t.settingsSection, overline: true),
-              AppCard(
-                padding: const EdgeInsets.all(Space.md),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    PillLabel(t.language),
-                    const SizedBox(height: Space.sm),
-                    PillSegmented<String>(
-                      segments: [
-                        ('en', t.languageEnglish),
-                        ('ar', t.languageArabic),
-                      ],
-                      selected: locale?.languageCode == 'ar' ? 'ar' : 'en',
-                      onChanged: (v) =>
-                          ref.read(localeProvider.notifier).set(Locale(v)),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: Space.sm),
-              const PreferencesSection(
-                showHeader: false,
-                blocks: {PrefsBlock.theme},
-              ),
-              const SizedBox(height: Space.md),
-
-              // Preferences (text size, notifications) stays its own page.
+          // Preferences (text size, notifications) stays its own page.
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
@@ -162,7 +133,7 @@ class AdminProfileScreen extends ConsumerWidget {
                     backgroundColor: AppColors.light.error,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: Space.md),
-                    shape: const StadiumBorder(),
+                    shape: const RoundedRectangleBorder(borderRadius: Radii.button),
                     textStyle: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),

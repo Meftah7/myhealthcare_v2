@@ -236,8 +236,8 @@ abstract final class AppTheme {
               ? scheme.surfaceContainer
               : scheme.surfaceContainerLow,
           foregroundColor: scheme.onSurfaceVariant,
-          selectedBackgroundColor: scheme.secondaryContainer,
-          selectedForegroundColor: scheme.onSecondaryContainer,
+          selectedBackgroundColor: scheme.primary,
+          selectedForegroundColor: scheme.onPrimary,
           // Hairline, not full outline — a segmented control is a single
           // object, not three bordered buttons.
           side: BorderSide(color: hairline),

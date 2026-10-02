@@ -12,7 +12,6 @@ import '../../../app/theme/theme.dart';
 import '../../../core/presentation/circle_icon_button.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../patient_home/presentation/notifications_button.dart';
-import '../../settings/presentation/theme_mode_icon_toggle.dart';
 
 /// Drop straight into `AppBar.actions`: `actions: const [PatientTopActions()]`.
 class PatientTopActions extends ConsumerWidget {
@@ -25,11 +24,10 @@ class PatientTopActions extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         const NotificationsButton(),
-        const ThemeModeIconToggle(),
         CircleIconButton(
-          icon: Icons.account_circle_outlined,
-          tooltip: t.profileTooltip,
-          onPressed: () => context.go(AppRoutes.patientSettings),
+          icon: Icons.settings_outlined,
+          tooltip: t.preferences,
+          onPressed: () => context.push(AppRoutes.patientProfilePreferences),
         ),
         const SizedBox(width: Space.xs),
       ],

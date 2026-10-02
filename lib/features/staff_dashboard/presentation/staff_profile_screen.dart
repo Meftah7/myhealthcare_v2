@@ -11,7 +11,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
-import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
@@ -21,7 +20,6 @@ import '../../../core/utils/format.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
 import '../../feedback/presentation/feedback_sheet.dart';
-import '../../settings/presentation/preferences_section.dart';
 import '../application/staff_providers.dart';
 
 class StaffProfileScreen extends ConsumerWidget {
@@ -47,7 +45,6 @@ class StaffProfileScreen extends ConsumerWidget {
     final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final profile = ref.watch(staffProfileProvider);
-    final locale = ref.watch(localeProvider);
     final sections = _sections(t);
 
     return AppScaffold(
@@ -70,12 +67,12 @@ class StaffProfileScreen extends ConsumerWidget {
               name: clinicianName(u.fullName),
               email: u.email,
               role: t.roleStaff,
-              avatarSize: 72,
-              elevated: true,
+              avatarSize: 52,
+              elevated: false,
             ),
             SectionHeader(t.accountSection, overline: true),
             ListCard(
-              elevated: true,
+              elevated: false,
               children: [
                 for (final (icon, title, route) in sections)
                   ListTile(
@@ -101,33 +98,7 @@ class StaffProfileScreen extends ConsumerWidget {
             ),
 
             SectionHeader(t.settingsSection, overline: true),
-            AppCard(
-              padding: const EdgeInsets.all(Space.md),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  PillLabel(t.language),
-                  const SizedBox(height: Space.sm),
-                  PillSegmented<String>(
-                    segments: [
-                      ('en', t.languageEnglish),
-                      ('ar', t.languageArabic),
-                    ],
-                    selected: locale?.languageCode == 'ar' ? 'ar' : 'en',
-                    onChanged: (v) =>
-                        ref.read(localeProvider.notifier).set(Locale(v)),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: Space.sm),
-            const PreferencesSection(
-              showHeader: false,
-              blocks: {PrefsBlock.theme},
-            ),
-            const SizedBox(height: Space.md),
-
-            // Preferences (text size, notifications) stays its own page,
+          // Preferences (text size, notifications) stays its own page,
             // linked from here — it isn't part of the compact Settings block.
             SizedBox(
               width: double.infinity,
@@ -148,7 +119,7 @@ class StaffProfileScreen extends ConsumerWidget {
                   backgroundColor: AppColors.brandViolet,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: Space.md),
-                  shape: const StadiumBorder(),
+                  shape: const RoundedRectangleBorder(borderRadius: Radii.button),
                   textStyle: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -177,7 +148,7 @@ class StaffProfileScreen extends ConsumerWidget {
                   backgroundColor: AppColors.light.error,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: Space.md),
-                  shape: const StadiumBorder(),
+                  shape: const RoundedRectangleBorder(borderRadius: Radii.button),
                   textStyle: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),

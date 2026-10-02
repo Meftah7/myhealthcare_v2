@@ -11,7 +11,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
-import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
 import '../../../core/i18n/enum_labels.dart';
@@ -24,7 +23,6 @@ import '../../../core/result.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
 import '../../feedback/presentation/feedback_sheet.dart';
-import '../../settings/presentation/preferences_section.dart';
 import '../presentation/avatar_photo_sheet.dart';
 import 'patient_data_providers.dart';
 
@@ -56,7 +54,6 @@ class ProfileScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final profile = ref.watch(patientProfileProvider);
     final sections = _sections(t);
-    final locale = ref.watch(localeProvider);
 
     return AppScaffold(
       hero: true,
@@ -85,8 +82,8 @@ class ProfileScreen extends ConsumerWidget {
             phone: p.user.phone,
             role: p.user.role.label(context, gender: p.user.gender),
             avatarPath: p.user.avatarPath,
-            avatarSize: 72,
-            elevated: true,
+            avatarSize: 52,
+            elevated: false,
             onEditAvatar: () => unawaited(
               showAvatarPhotoSheet(
                 context,
@@ -97,7 +94,7 @@ class ProfileScreen extends ConsumerWidget {
           ),
           SectionHeader(t.accountSection, overline: true),
           ListCard(
-            elevated: true,
+            elevated: false,
             children: [
               for (final (icon, title, route) in sections)
                 ListTile(
@@ -147,32 +144,6 @@ class ProfileScreen extends ConsumerWidget {
           ),
 
           SectionHeader(t.settingsSection, overline: true),
-          AppCard(
-            padding: const EdgeInsets.all(Space.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                PillLabel(t.language),
-                const SizedBox(height: Space.sm),
-                PillSegmented<String>(
-                  segments: [
-                    ('en', t.languageEnglish),
-                    ('ar', t.languageArabic),
-                  ],
-                  selected: locale?.languageCode == 'ar' ? 'ar' : 'en',
-                  onChanged: (v) =>
-                      ref.read(localeProvider.notifier).set(Locale(v)),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: Space.sm),
-          const PreferencesSection(
-            showHeader: false,
-            blocks: {PrefsBlock.theme},
-          ),
-          const SizedBox(height: Space.md),
-
           // Preferences (text size, notifications) stays its own page.
           SizedBox(
             width: double.infinity,
@@ -193,7 +164,7 @@ class ProfileScreen extends ConsumerWidget {
                 backgroundColor: AppColors.brandViolet,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: Space.md),
-                shape: const StadiumBorder(),
+                shape: const RoundedRectangleBorder(borderRadius: Radii.button),
                 textStyle: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
@@ -225,7 +196,7 @@ class ProfileScreen extends ConsumerWidget {
                 backgroundColor: AppColors.light.error,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: Space.md),
-                shape: const StadiumBorder(),
+                shape: const RoundedRectangleBorder(borderRadius: Radii.button),
                 textStyle: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),

@@ -51,8 +51,8 @@ class StaffDashboardScreen extends ConsumerWidget {
     return AppScaffold(
       stagger: true,
       hero: true,
-      heroOverline: fmtDate(DateTime.now()),
-      title: greeting(firstName),
+      heroOverline: greeting(firstName),
+      title: user?.fullName ?? t.greetingFallbackName,
       actions: const [StaffTopActions()],
       onRefresh: () async {
         ref
@@ -69,12 +69,15 @@ class StaffDashboardScreen extends ConsumerWidget {
 
         SectionColumns(
           primary: [
-            SectionHeader(t.yourShiftHeader, overline: true),
-            _ShiftSnapshot(),
-            SectionHeader(t.quickActionsHeader, overline: true),
-            const StaffQuickActions(),
-          ],
-          secondary: [
+            SectionHeader(t.resultsToReviewHeader, overline: true),
+            const _ResultReviewQueue(),
+            SectionHeader(
+              t.awaitingReplyHeader,
+              overline: true,
+              action: t.messagesTitle,
+              onAction: () => context.push(AppRoutes.staffInbox),
+            ),
+            const _AwaitingReply(),
             const _DepartmentWalkIns(),
             SectionHeader(
               t.todaysQueueHeader,
@@ -90,15 +93,6 @@ class StaffDashboardScreen extends ConsumerWidget {
               onAction: () => context.go(AppRoutes.staffPatients),
             ),
             _RiskFlags(),
-            SectionHeader(t.resultsToReviewHeader, overline: true),
-            const _ResultReviewQueue(),
-            SectionHeader(
-              t.awaitingReplyHeader,
-              overline: true,
-              action: t.messagesTitle,
-              onAction: () => context.push(AppRoutes.staffInbox),
-            ),
-            const _AwaitingReply(),
             SectionHeader(
               t.tasksHeader,
               overline: true,
@@ -107,6 +101,13 @@ class StaffDashboardScreen extends ConsumerWidget {
             ),
             _TaskPreview(),
           ],
+          secondary: [
+            SectionHeader(t.yourShiftHeader, overline: true),
+            _ShiftSnapshot(),
+            SectionHeader(t.quickActionsHeader, overline: true),
+            const StaffQuickActions(),
+          ],
+
         ),
       ],
     );

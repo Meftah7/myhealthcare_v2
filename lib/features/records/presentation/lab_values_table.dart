@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/status_badges.dart';
+import '../../../core/presentation/app_card.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
 import '../../../l10n/app_localizations.dart';
@@ -39,7 +40,7 @@ class LabValuesTable extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final table = SingleChildScrollView(
+    final wideTable = SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: DataTable(
         columns: [
@@ -68,6 +69,24 @@ class LabValuesTable extends StatelessWidget {
         ],
       ),
     );
+    final table = LayoutBuilder(builder: (context, constraints) {
+      if (constraints.maxWidth >= 600) return wideTable;
+      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        for (final v in labs) Padding(
+          padding: const EdgeInsets.only(bottom: Space.xs),
+          child: AppCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(v.analyte, style: theme.textTheme.titleSmall),
+            const SizedBox(height: Space.xs),
+            AbnormalValueIndicator(flag: v.abnormalFlag,
+              valueText: '${v.value}${v.unit == null ? '' : ' ${v.unit}'}',
+              referenceText: labReferenceText(v)),
+            const SizedBox(height: Space.xxs),
+            Text('${t.labColumnReference}: ${labReferenceText(v) ?? v.abnormalFlag.labelOrNone(t)}',
+              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          ])),
+        ),
+      ]);
+    });
     final hasUnknown = labs.any((v) => v.isUnknown);
     if (!showProvenance && !hasUnknown) return table;
     return Column(
