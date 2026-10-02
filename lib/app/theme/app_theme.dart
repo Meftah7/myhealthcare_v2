@@ -4,7 +4,7 @@
 /// Spec: DESIGN.md §9. `MaterialApp` consumes [AppTheme.light] / [AppTheme.dark]
 /// with the device theme-mode preference. The look: flat neutral surfaces,
 /// hairline borders, whisper-soft shadows on the surfaces that lift, one
-/// indigo-violet accent, and saturated colour reserved for clinical risk.
+/// blue accent, and distinct colours for clinical status.
 library;
 
 import 'package:flutter/material.dart';

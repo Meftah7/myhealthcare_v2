@@ -1,5 +1,5 @@
-/// My appointments (P4-16, P8-11): upcoming and past, grouped and labelled,
-/// with cancel + reschedule on upcoming ones.
+/// My appointments, filtered by upcoming, past and cancelled visits.
+/// Appointment details own the cancel and reschedule actions.
 library;
 
 import 'package:flutter/material.dart';
@@ -40,9 +40,7 @@ enum _AppointmentFilter { upcoming, past, cancelled }
 class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
   static const _pageSize = 40;
 
-  /// How many past visits to show — grows by [_pageSize] each time "Show
-  /// more" is tapped, rather than silently hiding the rest with no way to
-  /// see them.
+  /// Pagination applies to the currently selected filter.
   int _visiblePast = _pageSize;
   _AppointmentFilter _filter = _AppointmentFilter.upcoming;
 
@@ -83,9 +81,15 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
             ),
           ],
           data: (list) {
+            final now = DateTime.now();
+            bool currentVisit(Appointment a) =>
+                a.isInProgress ||
+                ((a.status == AppointmentStatus.booked ||
+                    a.status == AppointmentStatus.confirmed) &&
+                    !a.slotEnd.isBefore(now));
             final filtered = list.where((a) => switch (_filter) {
-              _AppointmentFilter.upcoming => a.isUpcoming,
-              _AppointmentFilter.past => !a.isUpcoming && a.status != AppointmentStatus.cancelled,
+              _AppointmentFilter.upcoming => currentVisit(a),
+              _AppointmentFilter.past => !currentVisit(a) && a.status != AppointmentStatus.cancelled,
               _AppointmentFilter.cancelled => a.status == AppointmentStatus.cancelled,
             }).toList()..sort((a, b) => _filter == _AppointmentFilter.upcoming
                 ? a.slotStart.compareTo(b.slotStart) : b.slotStart.compareTo(a.slotStart));
@@ -97,7 +101,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
                 _EmptyNote(_filter == _AppointmentFilter.upcoming ? t.nothingBookedNote : t.noAppointmentsInView)
               else ...[
                 CardColumns(children: [for (final a in visible) _ApptCard(a,
-                  upcoming: a.isUpcoming, doctor: doctors[a.staffId]?.name,
+                  upcoming: currentVisit(a), doctor: doctors[a.staffId]?.name,
                   department: departments[a.departmentId])]),
                 if (remaining > 0) Center(child: TextButton(
                   onPressed: () => setState(() => _visiblePast += _pageSize),

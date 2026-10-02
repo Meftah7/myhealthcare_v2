@@ -1,6 +1,4 @@
-/// The three persistent top-bar actions for every patient screen (redesign v3):
-/// notifications, a light/dark toggle, and a shortcut to Profile — always in
-/// the same place, top-right, on every page the patient can open.
+/// Persistent notifications and preferences actions for patient screens.
 library;
 
 import 'package:flutter/material.dart';
