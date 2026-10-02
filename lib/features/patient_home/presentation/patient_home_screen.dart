@@ -454,7 +454,7 @@ class _UpcomingAppointment extends ConsumerWidget {
                   style: OutlinedButton.styleFrom(foregroundColor: Colors.white, side: const BorderSide(color: Colors.white54)),
                   icon: const Icon(Icons.confirmation_number_outlined, size: 18), label: Text(t.ticketOverline)),
                 TextButton(onPressed: () => context.go(AppRoutes.patientAppointments),
-                  style: TextButton.styleFrom(foregroundColor: Colors.white), label: Text(t.appointmentsTitle)),
+                  style: TextButton.styleFrom(foregroundColor: Colors.white), child: Text(t.appointmentsTitle)),
               ]),
             ])),
           const SizedBox(height: Space.sm),
