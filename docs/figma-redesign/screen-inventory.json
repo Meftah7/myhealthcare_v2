@@ -179,14 +179,14 @@
     "name": "17 \u00b7 Profile",
     "role": "patient",
     "width": 390,
-    "height": 844
+    "height": 1053.84375
   },
   {
     "id": "p-personal",
     "name": "18 \u00b7 Personal information",
     "role": "patient",
     "width": 390,
-    "height": 844
+    "height": 990.671875
   },
   {
     "id": "p-health",
@@ -200,7 +200,7 @@
     "name": "20 \u00b7 Family access",
     "role": "patient",
     "width": 390,
-    "height": 844
+    "height": 951.296875
   },
   {
     "id": "p-linked",
@@ -214,14 +214,14 @@
     "name": "22 \u00b7 Preferences",
     "role": "patient",
     "width": 390,
-    "height": 844
+    "height": 1387.046875
   },
   {
     "id": "p-payments",
     "name": "23 \u00b7 Payments overview",
     "role": "patient",
     "width": 390,
-    "height": 844
+    "height": 902
   },
   {
     "id": "p-pay",
@@ -319,7 +319,7 @@
     "name": "07 \u00b7 Task board",
     "role": "staff",
     "width": 390,
-    "height": 844
+    "height": 846.84375
   },
   {
     "id": "s-schedule",
@@ -354,7 +354,7 @@
     "name": "12 \u00b7 Staff preferences",
     "role": "staff",
     "width": 390,
-    "height": 844
+    "height": 1387.046875
   },
   {
     "id": "a-home",
@@ -459,7 +459,7 @@
     "name": "15 \u00b7 Admin profile",
     "role": "admin",
     "width": 390,
-    "height": 844
+    "height": 933.46875
   },
   {
     "id": "a-analytics",
@@ -494,7 +494,7 @@
     "name": "20 \u00b7 Admin preferences",
     "role": "admin",
     "width": 390,
-    "height": 844
+    "height": 1387.046875
   },
   {
     "id": "p-empty",
@@ -520,6 +520,447 @@
   {
     "id": "a-error",
     "name": "21 \u00b7 State / queue failure",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "auth-onboarding-1",
+    "name": "Added \u00b7 Welcome to MyHealth Care",
+    "role": "auth",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "auth-onboarding-2",
+    "name": "Added \u00b7 Your care team",
+    "role": "auth",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "auth-onboarding-3",
+    "name": "Added \u00b7 Make it comfortable",
+    "role": "auth",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "auth-session",
+    "name": "Added \u00b7 Still there?",
+    "role": "auth",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "auth-reauth",
+    "name": "Added \u00b7 Confirm your password",
+    "role": "auth",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-photo",
+    "name": "Added \u00b7 Profile photo",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-photo-error",
+    "name": "Added \u00b7 Photo could not be saved",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-password",
+    "name": "Added \u00b7 Change password",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-feedback",
+    "name": "Added \u00b7 Send feedback",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-visited",
+    "name": "Added \u00b7 Visited doctors",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-imaging",
+    "name": "Added \u00b7 Imaging results",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-allergies",
+    "name": "Added \u00b7 Allergies",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-sickleave",
+    "name": "Added \u00b7 Sick leave certificates",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-summary",
+    "name": "Added \u00b7 Health summary",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-assistant",
+    "name": "Added \u00b7 Care Navigator",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-topup",
+    "name": "Added \u00b7 Top up wallet",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-methods",
+    "name": "Added \u00b7 Payment methods",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-card-add",
+    "name": "Added \u00b7 Add payment card",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-pay-history",
+    "name": "Added \u00b7 Transaction history",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-family-member",
+    "name": "Added \u00b7 Family member",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-family-request",
+    "name": "Added \u00b7 Request account access",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-family-consent",
+    "name": "Added \u00b7 Review access request",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-family-revoke",
+    "name": "Added \u00b7 Who has access to me",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-linked-manage",
+    "name": "Added \u00b7 Manage linked account",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-reschedule",
+    "name": "Added \u00b7 Reschedule appointment",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-no-slots",
+    "name": "Added \u00b7 No available times",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-booking-conflict",
+    "name": "Added \u00b7 That time is no longer available",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-homevisits-history",
+    "name": "Added \u00b7 Home care requests",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-notifications",
+    "name": "Added \u00b7 Notifications",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "p-reset-prefs",
+    "name": "Added \u00b7 Reset preferences",
+    "role": "patient",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-notifications",
+    "name": "Added \u00b7 Notifications",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-reset-prefs",
+    "name": "Added \u00b7 Reset preferences",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-notifications",
+    "name": "Added \u00b7 Notifications",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-reset-prefs",
+    "name": "Added \u00b7 Reset preferences",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-account",
+    "name": "Added \u00b7 Staff account",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-activity",
+    "name": "Added \u00b7 My activity",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-directory",
+    "name": "Added \u00b7 Staff directory",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-analytics",
+    "name": "Added \u00b7 Panel analytics",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-tools",
+    "name": "Added \u00b7 Clinical actions",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-summary",
+    "name": "Added \u00b7 Patient summary",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-scribe",
+    "name": "Added \u00b7 Clinical scribe",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-note",
+    "name": "Added \u00b7 New clinical note",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-prescribe",
+    "name": "Added \u00b7 Medication order",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-lab-entry",
+    "name": "Added \u00b7 Enter lab result",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-transfer",
+    "name": "Added \u00b7 Transfer visit",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-calendar-month",
+    "name": "Added \u00b7 Month schedule",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-calendar-year",
+    "name": "Added \u00b7 Year schedule",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-feedback",
+    "name": "Added \u00b7 Send feedback",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-access-denied",
+    "name": "Added \u00b7 Patient access unavailable",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "s-conflict",
+    "name": "Added \u00b7 The chart changed",
+    "role": "staff",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-account",
+    "name": "Added \u00b7 Administrator account",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-forecast",
+    "name": "Added \u00b7 Capacity forecast",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-ai-log",
+    "name": "Added \u00b7 AI activity",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-appointments",
+    "name": "Added \u00b7 All appointments",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-feedback",
+    "name": "Added \u00b7 Feedback queue",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-create-patient",
+    "name": "Added \u00b7 Create patient account",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-broadcast",
+    "name": "Added \u00b7 Send announcement",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-create-invoice",
+    "name": "Added \u00b7 Create invoice",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-staff-schedule",
+    "name": "Added \u00b7 Clinician schedule",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-book-patient",
+    "name": "Added \u00b7 Book for patient",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-refer-patient",
+    "name": "Added \u00b7 Refer patient",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-refund",
+    "name": "Added \u00b7 Refund settled payment",
+    "role": "admin",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "id": "a-reconcile",
+    "name": "Added \u00b7 Check pending payments",
     "role": "admin",
     "width": 390,
     "height": 844

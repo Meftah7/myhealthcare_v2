@@ -34,7 +34,7 @@ class AdminSectionScaffold extends StatelessWidget {
       title: title,
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: Space.maxContentWidth),
+          constraints: const BoxConstraints(maxWidth: Space.maxFormWidth),
           child: ListView(
             padding: EdgeInsets.fromLTRB(gutter, Space.md, gutter, Space.xxl),
             children: [child],

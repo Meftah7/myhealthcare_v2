@@ -35,7 +35,7 @@ class StaffSectionScaffold extends StatelessWidget {
       title: title,
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: Space.maxContentWidth),
+          constraints: const BoxConstraints(maxWidth: Space.maxFormWidth),
           child: ListView(
             padding: EdgeInsets.fromLTRB(gutter, Space.md, gutter, Space.xxl),
             children: [child],
@@ -62,7 +62,7 @@ class StaffAccountPage extends ConsumerWidget {
       child: profile.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
-          message: 'Could not load your profile.',
+          message: t.couldNotLoadYourProfile,
           onRetry: () => ref.invalidate(staffProfileProvider),
         ),
         data: (s) {

@@ -54,7 +54,7 @@
   const metrics = (entries) => row(entries.map(e=>card([T(e[0],11,500,'muted'),T(e[1],20,600),...(e[2]?[T(e[2],11,400,'muted')]:[])],{grow:1,padding:12,gap:6})),{gap:10});
   const progress = (current,total=3) => row(Array.from({length:total},(_,i)=>F('Step '+(i+1),[],{height:4,grow:1,bg:i<current?'primary':'border',radius:2})),{gap:6});
   const search = (text='Search') => row([I('search','muted',18),T(text,13,400,'muted',{grow:1})],{padding:14,bg:'surface',border:'border',radius:12});
-  const identity = (name,sub,role) => card([row([F('Avatar',[I('user','primary',24)],{width:52,height:52,bg:'header',radius:26,align:'center',justify:'center'}),col([T(name,16,600),T(sub,12,400,'muted'),badge(role,'blue')],{grow:1,gap:5})])]);
+  const identity = (name,sub,role,photoTarget) => card([row([F('Avatar',[I('user','primary',24)],{width:52,height:52,bg:'header',radius:26,align:'center',justify:'center'}),col([T(name,16,600),T(sub,12,400,'muted'),badge(role,'blue')],{grow:1,gap:5})]),...(photoTarget?[button('Profile photo',photoTarget,'secondary')]:[])]);
   const hero = (over,title,meta,actions) => card([T(over.toUpperCase(),10,600,'whiteMuted',{tracking:1.2}),T(title,20,600,'white'),T(meta,13,400,'whiteMuted'),row(actions.map(a=>button(a[0],a[1],'hero')),{gap:10})],{bg:'primary',border:null,padding:20,radius:18,gap:12});
   const navs = {
     patient:[['home','Home','p-home'],['nutrition','Nutrition','p-nutrition'],['calendar','Visits','p-appointments'],['record','Records','p-records'],['user','Profile','p-profile']],
@@ -64,9 +64,22 @@
   const nav = (role,active) => row(navs[role].map(([icon,label,target],i)=>({...col([I(icon,i===active?'primary':'muted',20),T(label,10,i===active?600:400,i===active?'primary':'muted',{align:'center'})],{grow:1,gap:6,align:'center',padding:[12,0,8,0],bg:i===active?'blueTint':null,radius:12}),target})),{padding:[10,12,20,12],gap:3,bg:'surface',border:'border'});
   const top = (title,over,back,role) => col([
     row([T('9:41',12,600,'ink',{grow:1}),T('•••  ▰',11,600)],{padding:[0,2,6,2]}),
-    row([...(back?[{...I('back','ink',22),target:back}]:[]),col([...(over?[T(over,12,400,'muted')]:[]),T(title,24,600,'ink',{family:'Lexend'})],{grow:1,gap:5}),...(role?[F('Notifications',[I('bell','primary',20)],{width:42,height:42,bg:'surface',radius:21,justify:'center',align:'center'}),F('Preferences',[I('settings','primary',20)],{width:42,height:42,bg:'surface',radius:21,justify:'center',align:'center'})]:[])],{gap:10}),
+    row([...(back?[{...I('back','ink',22),target:back}]:[]),col([...(over?[T(over,12,400,'muted')]:[]),T(title,24,600,'ink',{family:'Lexend'})],{grow:1,gap:5}),...(role?[{...F('Notifications',[I('bell','primary',20)],{width:48,height:48,bg:'surface',radius:24,justify:'center',align:'center'}),target:({patient:'p',staff:'s',admin:'a'})[role]+'-notifications'},{...F('Preferences',[I('settings','primary',20)],{width:48,height:48,bg:'surface',radius:24,justify:'center',align:'center'}),target:({patient:'p',staff:'s',admin:'a'})[role]+'-preferences'}]:[])],{gap:10}),
   ],{padding:[18,20,22,20],bg:'header',radius:[0,0,24,24],gap:10});
   const authTop = (title,sub) => col([row([F('MyHealth mark',[I('heart','white',24)],{width:38,height:38,bg:'primary',radius:12,align:'center',justify:'center'}),T('MyHealth Care',16,600)]),T(title,26,600,'ink',{family:'Lexend'}),T(sub,14,400,'muted')],{padding:[44,24,28,24],bg:'header',radius:[0,0,28,28],gap:16});
+
+  const readonly = (label,value) => card([row([T(label,12,600,'muted',{grow:1}),I('lock','muted',16)]),T(value,14,500),T('Managed by the administrator',11,400,'muted')],{bg:'blueTint',gap:6});
+  const toggle = (label,on,caption) => row([col([T(label,14,500),...(caption?[T(caption,12,400,'muted')]:[])],{grow:1,gap:4}),badge(on?'On':'Off',on?'blue':'amber')],{minHeight:48});
+  const preferencesBody = prefix => [
+    h('On this device'),T('Shared by people using this browser or device.',12,400,'muted'),
+    card([h('Appearance'),chips(['Light','Dark','System'],2)]),
+    card([h('Text size'),row([T('A',12,500),F('Size track',[],{height:6,grow:1,bg:'header',radius:3}),T('A',24,500)]),T('Default · five sizes available',12,400,'muted')]),
+    card([h('Language'),chips(['System','English','العربية'],0)]),
+    card([h('Motion'),chips(['System','Reduced','Full'],0),toggle('High contrast',false),button('Reset appearance',prefix+'-reset-prefs','ghost')]),
+    h('For your account'),T('Notification choices are saved for this account on this device.',12,400,'muted'),
+    card([toggle('SMS',false,'Unavailable in this prototype'),toggle('Email',false,'Unavailable in this prototype'),toggle('Browser alerts',true),note('Browser permission is required for device alerts.','bell','blue'),toggle('Sounds',true),T('In-app notifications remain available.',12,400,'muted'),button('Reset notifications',prefix+'-reset-prefs','ghost')]),
+  ];
+
   const screens = [];
   function screen(id,role,name,title,body,options={}) {
     const children=[role==='auth'?authTop(title,options.subtitle||'Your health, thoughtfully connected.'):top(title,options.over,options.back,role)];
@@ -120,7 +133,7 @@
   screen('p-home','patient','01 · Home','Sara Ahmed',[
     note('Allergy recorded: penicillin','warning','amber'),
     {...row([I('chat','primary'),T('1 new reply from your care team',12,600,'primary',{grow:1}),I('chevron','primary',16)],{bg:'blueTint',padding:12,radius:12}),target:'p-messages'},
-    hero('Next appointment','Dr. Omar Khalil','Cardiology · Tomorrow, 10:30 AM · Room 204',[['View ticket','p-ticket'],['Reschedule','p-booking']]),
+    hero('Next appointment','Dr. Omar Khalil','Cardiology · Tomorrow, 10:30 AM · Room 204',[['View ticket','p-ticket'],['Reschedule','p-reschedule']]),
     h('Quick actions'),row([['calendar','Book visit','p-booking'],['chat','Ask doctor','p-messages'],['home','Home care','p-homevisit']].map(([i,label,target])=>({...col([F('Icon',[I(i)],{width:40,height:40,bg:'blueTint',radius:12,align:'center',justify:'center'}),T(label,11,600,'ink',{align:'center'})],{grow:1,padding:12,bg:'surface',border:'border',radius:14,align:'center',gap:10}),target})),{gap:10}),
     h('Your health','View records','p-records'),metrics([['Last visit','12 Sep'],['Medicines','2 active'],['Blood pressure','118/76','mmHg · 1 Oct']]),
   ],{over:'Good morning',nav:0});
@@ -130,8 +143,8 @@
   ],{nav:2});
   screen('p-ticket','patient','03 · Appointment ticket','Your appointment',[
     card([row([T('VISIT TICKET',11,600,'muted',{grow:1,tracking:1}),badge('Confirmed')]),T('A-1042',32,600,'primary',{family:'Lexend'}),divider(),T('Dr. Omar Khalil',20,600),T('Cardiology · Follow-up visit',14,400,'muted'),row([I('calendar'),T('Saturday, 3 Oct 2026',14,600)]),row([I('clock'),T('10:30 AM · 30 minutes',14,600)]),row([I('building'),T('Room 204 · Main clinic',14,600)])],{padding:24,gap:16}),
-    note('Please arrive 10 minutes before your appointment.','clock','blue'),button('Reschedule appointment','p-booking','secondary'),button('Cancel appointment','p-cancel','ghost'),
-  ],{back:'p-appointments',footer:[button('Download ticket','p-ticket','secondary')]});
+    note('Please arrive 10 minutes before your appointment.','clock','blue'),button('Reschedule appointment','p-reschedule','secondary'),button('Cancel appointment','p-cancel','ghost'),
+  ],{back:'p-appointments',footer:[button('Add to calendar','p-ticket','secondary'),button('Contact support','p-feedback','ghost')]});
   screen('p-booking','patient','04 · Book / choose','Book a visit',[
     progress(1,3),T('Step 1 of 3 · Choose a clinician',12,500,'muted'),note('Booking for Sara Ahmed','user','blue'),field('Department','Cardiology','building'),h('Available clinicians'),
     listrow('user','Dr. Omar Khalil','Next opening · Tomorrow, 10:30 AM','Selected','blue','p-slot'),listrow('user','Dr. Maryam Ali','Next opening · Monday, 9:00 AM',null,'green','p-slot'),field('Reason for visit','Follow-up','record'),
@@ -148,7 +161,7 @@
     card([F('Confirmed',[I('check','greenText',32)],{width:72,height:72,bg:'greenTint',radius:36,justify:'center',align:'center'}),T('You’re booked',24,600),T('Dr. Omar Khalil · Cardiology',15,600),T('3 Oct 2026 · 10:30 AM · Room 204',13,400,'muted')],{padding:24,gap:20}),button('View appointment ticket','p-ticket'),button('Back to home','p-home','secondary'),
   ],{back:'p-home'});
   screen('p-cancel','patient','08 · Appointment / cancel','Cancel this visit?',[
-    listrow('calendar','Dr. Omar Khalil','3 Oct 2026 · 10:30 AM','Confirmed','green','p-ticket'),card([T('This appointment will be cancelled.',18,600),T('Your reminder will also be removed. You can book another visit when you’re ready.',14,400,'muted')]),field('Reason · optional','Tell us why','record'),button('Keep my appointment','p-ticket'),button('Confirm cancellation','p-appointments','secondary'),
+    listrow('calendar','Dr. Omar Khalil','3 Oct 2026 · 10:30 AM','Confirmed','green','p-ticket'),card([T('This appointment will be cancelled.',18,600),T('Your reminder will also be removed. You can book another visit when you’re ready.',14,400,'muted')]),button('Keep my appointment','p-ticket'),button('Confirm cancellation','p-appointments','secondary'),
   ],{back:'p-ticket'});
   screen('p-records','patient','09 · Health records','Health records',[
     search('Search records or lab values'),chips(['All','Lab','Imaging','Notes']),listrow('lab','Blood test results','12 Sep 2026 · Lab','Reviewed','green','p-result'),listrow('record','Cardiology consultation','14 Aug 2026 · Dr. Omar Khalil','New','blue','p-result'),listrow('record','Chest X-ray','28 Aug 2026 · Imaging','Reviewed','green','p-result'),
@@ -178,25 +191,23 @@
     search('Search foods'),chips(['All','Protein','Fruit','Grains']),listrow('nutrition','Greek yogurt','Per 100 g · 59 kcal · 10 g protein',null,'green','p-foods'),listrow('nutrition','Chicken breast','Per 100 g · 165 kcal · 31 g protein',null,'green','p-foods'),listrow('nutrition','Oats','Per 100 g · 389 kcal · 17 g protein',null,'green','p-foods'),note('Check ingredients against your recorded allergies.','warning','amber'),
   ],{back:'p-nutrition'});
   screen('p-profile','patient','17 · Profile','Profile',[
-    identity('Sara Ahmed','sara@example.com','Patient'),menu([['user','Personal information','p-personal'],['heart','Health details','p-health'],['users','Family & linked accounts','p-family'],['wallet','Payments & billing','p-payments'],['settings','Preferences','p-preferences']]),menu([['lock','Change password','auth-password'],['logout','Sign out','auth-login',true]]),
+    identity('Sara Ahmed','sara@example.com','Patient','p-photo'),h('Account'),menu([['user','Personal information','p-personal'],['heart','Health details','p-health'],['users','Family & linked accounts','p-family'],['wallet','Payments & billing','p-payments'],['lock','Change password','p-password']]),h('Settings'),menu([['settings','Preferences','p-preferences'],['chat','Send feedback','p-feedback']]),menu([['logout','Sign out','auth-login',true]]),
   ],{nav:4});
   screen('p-personal','patient','18 · Personal information','Personal information',[
-    field('Full name','Sara Ahmed'),field('Email','sara@example.com','mail'),field('Phone','+973 3333 0000'),field('Date of birth','18 May 1984','calendar'),field('National ID','••••••123'),
+    field('First name','Sara'),field('Last name','Ahmed'),readonly('Email','sara@example.com'),field('Phone','+973 3333 0000'),field('Date of birth','18/05/1984','calendar'),field('Gender','Female'),readonly('National ID','••••••123'),button('Cancel changes','p-profile','secondary'),
   ],{back:'p-profile',footer:[button('Save changes','p-profile')]});
   screen('p-health','patient','19 · Health details','Health details',[
     field('Blood type','O+','heart'),field('Known allergies','Penicillin','warning'),field('Chronic conditions','Hypertension','record'),field('Emergency contact','Ahmed Ali · +973 3333 1000','user'),note('Keep this information current for your care team.','record','blue'),
   ],{back:'p-profile',footer:[button('Save changes','p-profile')]});
   screen('p-family','patient','20 · Family access','Family & linked accounts',[
-    note('Each linked person controls the access they grant.','lock','blue'),h('Accounts you can access'),listrow('user','Ahmed Ali','View-only access','Linked','blue','p-linked'),listrow('user','Layla Ahmed','Manage access','Linked','green','p-linked'),h('Pending requests'),listrow('user','Mariam Ali','Requests view-only access','Pending','amber','p-linked'),button('Request an account link','p-family','secondary'),
+    note('Each linked person controls the access they grant.','lock','blue'),h('Accounts you can access'),listrow('user','Ahmed Ali','View-only access','Linked','blue','p-linked'),listrow('user','Layla Ahmed','Manage access','Linked','green','p-linked'),h('Pending requests'),listrow('user','Mariam Ali','Requests view-only access','Pending','amber','p-linked'),button('Request an account link','p-family-request','secondary'),button('Review pending request','p-family-consent','secondary'),h('Family members without accounts'),listrow('user','Layla Ahmed','Child · Family member',null,'green','p-family-member'),button('Add family member','p-family-member','secondary'),button('Who can view my account','p-family-revoke','ghost'),
   ],{back:'p-profile'});
   screen('p-linked','patient','21 · Linked account','Ahmed Ali',[
     note('Viewing Ahmed’s account · view-only access','lock','blue'),identity('Ahmed Ali','Family account','View only'),h('Health information'),listrow('calendar','Next appointment','8 Oct 2026 · Dr. Yusuf Nasser','Confirmed','green'),listrow('record','Latest record','Blood panel · 18 Sep 2026','Reviewed','green'),T('Booking and editing are available only when this account grants manage access.',13,400,'muted'),button('Back to my account','p-family','secondary'),
   ],{back:'p-family'});
-  screen('p-preferences','patient','22 · Preferences','Preferences',[
-    h('On this device'),menu([['settings','Appearance · System','p-preferences'],['chat','Language · English','p-preferences'],['record','Text size · Default','p-preferences'],['heart','Motion · Follow system','p-preferences'],['settings','High contrast · Off','p-preferences']]),h('For your account'),menu([['bell','Notification preferences','p-preferences'],['bell','Sounds · On','p-preferences']]),T('Appearance applies to this browser. Notifications are saved for your account.',12,400,'muted'),
-  ],{back:'p-profile'});
+  screen('p-preferences','patient','22 · Preferences','Preferences',preferencesBody('p'),{back:'p-profile'});
   screen('p-payments','patient','23 · Payments overview','Payments & billing',[
-    card([T('Outstanding balance',12,500,'muted'),T('BD 35.00',32,600,'primary',{family:'Lexend'}),T('1 invoice awaiting payment',12,400,'muted'),button('View and pay invoice','p-pay')],{padding:20}),h('Invoices'),listrow('wallet','Consultation · INV-1042','Due 5 Oct 2026 · BD 35.00','Unpaid','amber','p-pay'),listrow('wallet','Lab panel · INV-1031','Paid 12 Sep 2026 · BD 20.00','Paid','green','p-payments'),h('Your wallet'),card([row([T('Available balance',14,500,'ink',{grow:1}),T('BD 10.00',18,600)]),button('Manage payment methods','p-pay','secondary')]),
+    card([T('Outstanding balance',12,500,'muted'),T('BD 35.00',32,600,'primary',{family:'Lexend'}),T('1 invoice awaiting payment',12,400,'muted'),button('View and pay invoice','p-pay')],{padding:20}),h('Invoices'),listrow('wallet','Consultation · INV-1042','Due 5 Oct 2026 · BD 35.00','Unpaid','amber','p-pay'),listrow('wallet','Lab panel · INV-1031','Paid 12 Sep 2026 · BD 20.00','Paid','green','p-payments'),h('Your wallet'),card([row([T('Available balance',14,500,'ink',{grow:1}),T('BD 10.00',18,600)]),button('Top up wallet','p-topup','secondary'),button('Payment methods','p-methods','secondary'),button('Transaction history','p-pay-history','ghost')]),
   ],{back:'p-profile'});
   screen('p-pay','patient','24 · Pay invoice','Pay your invoice',[
     card([T('Consultation · INV-1042',14,600),T('BD 35.00',32,600,'primary'),T('Dr. Omar Khalil · 3 Oct 2026',12,400,'muted')],{padding:24}),h('Payment method'),listrow('wallet','Demo card · •••• 4242','Expires 12/28','Selected','blue','p-pay'),listrow('wallet','Wallet · BD 10.00','Insufficient balance',null,'green','p-pay'),note('Demo payment · no real money is charged','wallet','blue'),
@@ -219,7 +230,7 @@
     row([badge('On duty'),T('Cardiology',12,500,'muted',{grow:1}),T('Change',12,600,'primary')]),
     hero('Next patient','Sara Ahmed · 10:30 AM','Checked in · Room 204 · Follow-up',[['Start visit','s-consultation'],['Open chart','s-chart']]),metrics([['In queue','6'],['To review','2'],['Tasks due','4']]),
     h('Needs your attention','View all','s-tasks'),listrow('lab','Ahmed Saleh · Result review','HbA1c · Due 10:00 AM','Overdue','red','s-result'),listrow('chat','Mona Adel · Awaiting reply','You are covering Dr. Lina Haddad','Today','amber','s-inbox'),
-    row([button('Open schedule','s-schedule','secondary'),button('More actions','s-patients','secondary')],{gap:10}),
+    row([button('Open schedule','s-schedule','secondary'),button('More actions','s-tools','secondary')],{gap:10}),
   ],{over:'Good morning',nav:0});
   screen('s-patients','staff','02 · Patients','Patients',[
     search('Search name or National ID'),chips(['My patients','Flagged','All allowed']),listrow('user','Sara Ahmed','42 · Female · Hypertension','Today','blue','s-chart'),listrow('user','Ahmed Saleh','58 · Male · Diabetes','Flagged','red','s-chart'),listrow('user','Mona Adel','35 · Female · Asthma','Follow-up','amber','s-chart'),listrow('user','Khaled Omar','67 · Male · Cardiology','Scheduled','blue','s-chart'),
@@ -267,11 +278,9 @@
     note('Covering Dr. Lina Haddad · due today','user','blue'),T('Today',11,500,'muted',{align:'center'}),card([T('Hello, I have uploaded my report. Can you review it before my appointment?',14,400)]),card([T('You are replying as the covering clinician. Your reply is recorded in this patient’s existing thread.',13,400,'muted')],{bg:'blueTint',border:null}),
   ],{back:'s-inbox',footer:[field('Reply','Write your reply…','chat'),button('Send reply','s-inbox')]});
   screen('s-profile','staff','11 · Staff profile','Profile',[
-    identity('Dr. Omar Khalil','Cardiology','Doctor'),menu([['user','Account','s-profile'],['clock','My activity','s-profile'],['users','Staff directory','s-patients'],['chart','Panel analytics','s-home'],['settings','Preferences','s-preferences']]),menu([['logout','Sign out','auth-login',true]]),
+    identity('Dr. Omar Khalil','Cardiology','Doctor'),menu([['user','Account','s-account'],['clock','My activity','s-activity'],['users','Staff directory','s-directory'],['chart','Panel analytics','s-analytics'],['settings','Preferences','s-preferences']]),menu([['chat','Send feedback','s-feedback'],['logout','Sign out','auth-login',true]]),
   ],{nav:4});
-  screen('s-preferences','staff','12 · Staff preferences','Preferences',[
-    h('On this device'),menu([['settings','Appearance · System','s-preferences'],['chat','Language · English','s-preferences'],['record','Text size · Default','s-preferences'],['heart','Motion · Follow system','s-preferences'],['settings','High contrast · Off','s-preferences']]),h('For your account'),menu([['bell','Notification preferences','s-preferences']]),
-  ],{back:'s-profile'});
+  screen('s-preferences','staff','12 · Staff preferences','Preferences',preferencesBody('s'),{back:'s-profile'});
 
   // ADMIN — ownership, correction and quieter operational lists.
   screen('a-home','admin','01 · Dashboard','Admin workspace',[
@@ -288,10 +297,10 @@
     listrow('lab','Ahmed Saleh','Abnormal lab result · HbA1c','Overdue','red','a-work'),field('Assign to','Dr. Omar Khalil','user'),field('Priority','Priority review','warning'),field('Handover note','Add context for the next owner','record'),note('Only an active doctor can own this result review.','lock','blue'),
   ],{back:'a-work',footer:[button('Assign review','a-work')]});
   screen('a-users','admin','04 · User directory','Users',[
-    search('Search name or email'),chips(['Patients','Staff','Admins'],1),listrow('user','Dr. Omar Khalil','Cardiology · On duty','Active','green','a-user'),listrow('user','Dr. Lina Haddad','Dermatology · Off shift','Active','green','a-user'),listrow('user','Dr. Yusuf Nasser','General practice','Inactive','red','a-user'),listrow('user','Nurse Huda Ali','Emergency · On duty','Active','green','a-user'),button('Add staff member','a-create'),
+    search('Search name or email'),chips(['Patients','Staff','Admins'],1),listrow('user','Dr. Omar Khalil','Cardiology · On duty','Active','green','a-user'),listrow('user','Dr. Lina Haddad','Dermatology · Off shift','Active','green','a-user'),listrow('user','Dr. Yusuf Nasser','General practice','Inactive','red','a-user'),listrow('user','Nurse Huda Ali','Emergency · On duty','Active','green','a-user'),button('Add staff member','a-create'),button('Add patient','a-create-patient','secondary'),
   ],{nav:1});
   screen('a-user','admin','05 · Staff account','Staff account',[
-    identity('Dr. Omar Khalil','omar@myhealth.demo','Doctor'),metrics([['Account','Active'],['Presence','On duty']]),menu([['user','Account information','a-user'],['building','Department · Cardiology','a-user'],['calendar','Schedule templates','a-hours'],['lock','Recovery requests','a-user']]),button('Edit account','a-create','secondary'),button('Deactivate account','a-user','ghost'),
+    identity('Dr. Omar Khalil','omar@myhealth.demo','Doctor'),metrics([['Account','Active'],['Presence','On duty']]),menu([['user','Account information','a-user'],['building','Department · Cardiology','a-user'],['calendar','Schedule templates','a-staff-schedule'],['lock','Recovery requests','a-user']]),button('Schedule templates','a-staff-schedule','secondary'),button('Deactivate account','a-user','ghost'),
   ],{back:'a-users'});
   screen('a-create','admin','06 · Create staff','Add staff member',[
     field('Full name','Enter full name'),field('Email','name@myhealth.demo','mail'),field('Clinical role','Doctor','user'),field('Department','Choose department','building'),field('Temporary password','Set a temporary password','lock','Show'),note('Role determines which clinical actions are available.','lock','blue'),
@@ -306,7 +315,7 @@
     search('Search patient or invoice'),chips(['All','Unpaid','Paid','Refunded']),T('Demo billing · amounts shown in BD',12,500,'muted'),listrow('wallet','Sara Ahmed · BD 35.00','INV-1042 · Due 5 Oct 2026','Unpaid','amber','a-invoice'),listrow('wallet','Ahmed Saleh · BD 20.00','INV-1041 · Paid 28 Sep 2026','Paid','green','a-invoice'),listrow('wallet','Mona Adel · BD 40.00','INV-1040 · Payment being checked','Pending','blue','a-invoice'),button('Check pending payments','a-invoice','secondary'),
   ],{nav:3});
   screen('a-invoice','admin','10 · Invoice & ledger','Invoice INV-1042',[
-    card([row([T('Sara Ahmed',18,600,'ink',{grow:1}),badge('Unpaid','amber')]),T('BD 35.00',32,600,'primary'),T('Consultation · Due 5 Oct 2026',13,400,'muted')],{padding:24}),h('Payment history'),card([T('No settled payment yet.',14,500),T('An invoice is paid only after its transaction is confirmed.',12,400,'muted')]),button('Record desk payment','a-desk','secondary'),button('Check payment status','a-invoice','secondary'),T('Refunds are available for settled transactions and require a reason.',12,400,'muted'),
+    card([row([T('Sara Ahmed',18,600,'ink',{grow:1}),badge('Unpaid','amber')]),T('BD 35.00',32,600,'primary'),T('Consultation · Due 5 Oct 2026',13,400,'muted')],{padding:24}),h('Payment history'),card([T('No settled payment yet.',14,500),T('An invoice is paid only after its transaction is confirmed.',12,400,'muted')]),button('Record desk payment','a-desk','secondary'),button('Check payment status','a-reconcile','secondary'),button('Refund settled payment','a-refund','secondary'),T('Refunds are available for settled transactions and require a reason.',12,400,'muted'),
   ],{back:'a-billing'});
   screen('a-desk','admin','11 · Desk payment','Record desk payment',[
     listrow('wallet','Sara Ahmed · INV-1042','Outstanding · BD 35.00',null,'green','a-invoice'),field('Receipt number','Enter receipt number','record'),field('Payment note · optional','Add a note','record'),note('This records a payment transaction and updates the invoice after settlement.','wallet','blue'),
@@ -321,7 +330,7 @@
     chips(['Pending','Scheduled','Completed']),card([row([T('Sara Ahmed',16,600,'ink',{grow:1}),badge('Pending','amber')]),T('Preferred date · 6 Oct 2026',12,500,'muted'),T('Reason · Follow-up support at home',13,400,'muted'),button('Review & schedule','a-homevisits'),button('Decline with reason','a-homevisits','ghost')]),
   ],{back:'a-home'});
   screen('a-profile','admin','15 · Admin profile','Profile',[
-    identity('Administrator','admin@myhealth.demo','Administrator'),menu([['user','Account','a-profile'],['chart','Analytics & demand','a-analytics'],['record','Audit log','a-audit'],['settings','AI settings','a-ai'],['calendar','Clinic hours','a-hours'],['settings','Preferences','a-preferences']]),menu([['logout','Sign out','auth-login',true]]),
+    identity('Administrator','admin@myhealth.demo','Administrator'),menu([['user','Account','a-account'],['chart','System analytics','a-analytics'],['chart','Capacity forecast','a-forecast'],['clock','AI activity','a-ai-log'],['record','Audit log','a-audit'],['settings','AI settings','a-ai'],['calendar','Clinic hours','a-hours'],['settings','Preferences','a-preferences']]),menu([['logout','Sign out','auth-login',true]]),
   ],{nav:4});
   screen('a-analytics','admin','16 · Analytics','System analytics',[
     chips(['30 days','90 days','Custom'],1),note('Historical activity · not a forecast','chart','blue'),metrics([['Completed','186'],['Cancelled','14']]),metrics([['No-show rate','8%'],['Active staff','12']]),h('Demand by weekday'),card([['Monday',70],['Tuesday',90],['Wednesday',55],['Thursday',80],['Friday',38]].map(([label,val])=>row([T(label,12,500,'muted',{width:76}),F('Bar',[],{height:10,width:val*1.8,bg:'primary',radius:5})],{gap:12})),{gap:16}),T('Example synthetic data · calculated 2 Oct 2026',11,400,'muted'),
@@ -333,11 +342,9 @@
     h('Open days'),chips(['Sun','Mon','Tue','Wed']),chips(['Thu','Fri','Sat'],0),row([field('Opens','08:00','clock'),field('Closes','17:00','clock')],{gap:12}),note('Clinic hours affect which appointment times can be booked.','calendar','blue'),button('Save clinic hours','a-profile'),
   ],{back:'a-profile'});
   screen('a-ai','admin','19 · AI settings','AI settings',[
-    note('Live clinical AI is disabled in this prototype.','lock','amber'),card([h('Current mode'),badge('Demo / offline','blue'),T('Draft content is for human review. Core booking and chart workflows work without AI.',14,400,'muted')]),menu([['record','AI activity log','a-audit'],['settings','Provider configuration','a-ai']]),T('API keys are entered securely in the app. No credentials appear in this design.',12,400,'muted'),
+    note('Live clinical AI is disabled in this prototype.','lock','amber'),card([h('Current mode'),badge('Demo / offline','blue'),T('Draft content is for human review. Core booking and chart workflows work without AI.',14,400,'muted')]),menu([['record','AI activity log','a-ai-log'],['settings','Provider configuration','a-ai']]),T('API keys are entered securely in the app. No credentials appear in this design.',12,400,'muted'),
   ],{back:'a-profile'});
-  screen('a-preferences','admin','20 · Admin preferences','Preferences',[
-    h('On this device'),menu([['settings','Appearance · System','a-preferences'],['chat','Language · English','a-preferences'],['record','Text size · Default','a-preferences'],['heart','Motion · Follow system','a-preferences'],['settings','High contrast · Off','a-preferences']]),h('For your account'),menu([['bell','Notification preferences','a-preferences']]),
-  ],{back:'a-profile'});
+  screen('a-preferences','admin','20 · Admin preferences','Preferences',preferencesBody('a'),{back:'a-profile'});
 
   // Representative states are grouped in the same role area, not separate files.
   screen('p-empty','patient','29 · State / no appointments','Appointments',[
@@ -353,6 +360,1718 @@
     note('Some queues could not be checked.','warning','red'),card([T('Result review queue unavailable',18,600),T('We cannot confirm whether results need an owner.',14,400,'muted'),button('Retry queue check','a-home')]),h('Queues checked successfully'),listrow('wallet','Payments to confirm','3 pending transactions','3','amber','a-billing'),listrow('home','Home visit requests','1 request awaiting review','1','blue','a-homevisits'),
   ],{nav:0});
 
+
+  // Additional current-app workflows identified by the coverage audit.
+  const additionalScreens = [
+  {
+    "id": "auth-onboarding-1",
+    "role": "auth",
+    "name": "Added · Welcome to MyHealth Care",
+    "title": "Welcome to MyHealth Care",
+    "source": "lib/features/auth/presentation/onboarding_overlay.dart",
+    "back": "auth-login",
+    "fields": [],
+    "items": [],
+    "actions": [
+      [
+        "Continue",
+        "auth-onboarding-2"
+      ],
+      [
+        "Skip",
+        "auth-login"
+      ]
+    ],
+    "note": "Keep your appointments and records together."
+  },
+  {
+    "id": "auth-onboarding-2",
+    "role": "auth",
+    "name": "Added · Your care team",
+    "title": "Your care team",
+    "source": "lib/features/auth/presentation/onboarding_overlay.dart",
+    "back": "auth-login",
+    "fields": [],
+    "items": [],
+    "actions": [
+      [
+        "Continue",
+        "auth-onboarding-3"
+      ],
+      [
+        "Skip",
+        "auth-login"
+      ]
+    ],
+    "note": "Find your visits, health information and messages."
+  },
+  {
+    "id": "auth-onboarding-3",
+    "role": "auth",
+    "name": "Added · Make it comfortable",
+    "title": "Make it comfortable",
+    "source": "lib/features/auth/presentation/onboarding_overlay.dart",
+    "back": "auth-login",
+    "fields": [],
+    "items": [],
+    "actions": [
+      [
+        "Continue",
+        "auth-login"
+      ],
+      [
+        "Skip",
+        "auth-login"
+      ]
+    ],
+    "note": "Choose language and appearance before continuing."
+  },
+  {
+    "id": "auth-session",
+    "role": "auth",
+    "name": "Added · Still there?",
+    "title": "Still there?",
+    "source": "lib/features/auth/presentation/session_activity_monitor.dart",
+    "back": "p-home",
+    "fields": [],
+    "items": [],
+    "actions": [
+      [
+        "Keep working",
+        "p-home"
+      ],
+      [
+        "Sign out",
+        "auth-login"
+      ]
+    ],
+    "note": "Your session is about to expire. Confirm to continue your current task."
+  },
+  {
+    "id": "auth-reauth",
+    "role": "auth",
+    "name": "Added · Confirm your password",
+    "title": "Confirm your password",
+    "source": "lib/features/auth/presentation/reauth_prompt.dart",
+    "back": "p-password",
+    "fields": [
+      [
+        "Current password",
+        "Enter your password",
+        "lock"
+      ]
+    ],
+    "items": [],
+    "actions": [
+      [
+        "Confirm",
+        "p-password"
+      ]
+    ],
+    "note": "Confirm your identity before changing account details."
+  },
+  {
+    "id": "p-photo",
+    "role": "patient",
+    "name": "Added · Profile photo",
+    "title": "Profile photo",
+    "source": "lib/features/patient/presentation/avatar_photo_sheet.dart",
+    "back": "p-profile",
+    "fields": [],
+    "items": [],
+    "actions": [
+      [
+        "Choose photo",
+        "p-profile"
+      ],
+      [
+        "Take a photo",
+        "p-profile"
+      ],
+      [
+        "Remove photo",
+        "p-profile"
+      ]
+    ],
+    "note": "Stored on this device. Choose an image up to 5 MB. Camera capture appears on supported mobile devices."
+  },
+  {
+    "id": "p-photo-error",
+    "role": "patient",
+    "name": "Added · Photo could not be saved",
+    "title": "Photo could not be saved",
+    "source": "lib/features/patient/presentation/avatar_photo_sheet.dart",
+    "back": "p-photo",
+    "fields": [],
+    "items": [],
+    "actions": [
+      [
+        "Choose another photo",
+        "p-photo"
+      ]
+    ],
+    "note": "Keep your previous photo. Choose a smaller image or try again."
+  },
+  {
+    "id": "p-password",
+    "role": "patient",
+    "name": "Added · Change password",
+    "title": "Change password",
+    "source": "lib/features/patient/application/profile_screen.dart",
+    "back": "p-profile",
+    "fields": [
+      [
+        "Current password",
+        "Enter current password",
+        "lock"
+      ],
+      [
+        "New password",
+        "Choose a strong password",
+        "lock"
+      ],
+      [
+        "Confirm password",
+        "Repeat new password",
+        "lock"
+      ]
+    ],
+    "items": [],
+    "actions": [
+      [
+        "Change password",
+        "p-profile"
+      ]
+    ],
+    "note": "Your current password is required. This is separate from password recovery."
+  },
+  {
+    "id": "p-feedback",
+    "role": "patient",
+    "name": "Added · Send feedback",
+    "title": "Send feedback",
+    "source": "lib/features/feedback/presentation/feedback_sheet.dart",
+    "back": "p-profile",
+    "fields": [
+      [
+        "Feedback",
+        "Tell us what happened",
+        "chat"
+      ]
+    ],
+    "items": [],
+    "actions": [
+      [
+        "Send feedback",
+        "p-profile"
+      ]
+    ],
+    "note": "Wait for confirmation that your feedback was saved. This is not a care message."
+  },
+  {
+    "id": "p-visited",
+    "role": "patient",
+    "name": "Added · Visited doctors",
+    "title": "Visited doctors",
+    "source": "lib/features/patient/presentation/visited_doctors_screen.dart",
+    "back": "p-appointments",
+    "fields": [],
+    "items": [
+      [
+        "user",
+        "Dr. Omar Khalil",
+        "Cardiology · Last visit 12 Sep",
+        null,
+        "blue",
+        "p-booking"
+      ]
+    ],
+    "actions": [
+      [
+        "Book again",
+        "p-booking"
+      ]
+    ],
+    "note": null
+  },
+  {
+    "id": "p-imaging",
+    "role": "patient",
+    "name": "Added · Imaging results",
+    "title": "Imaging results",
+    "source": "lib/features/records/presentation/radiology_screen.dart",
+    "back": "p-records",
+    "fields": [],
+    "items": [
+      [
+        "record",
+        "Chest X-ray",
+        "28 Aug 2026 · Reviewed",
+        "Reviewed",
+        "green",
+        "p-result"
+      ]
+    ],
+    "actions": [
+      [
+        "Download report",
+        "p-imaging"
+      ]
+    ],
+    "note": null
+  },
+  {
+    "id": "p-allergies",
+    "role": "patient",
+    "name": "Added · Allergies",
+    "title": "Allergies",
+    "source": "lib/features/patient/presentation/allergies_screen.dart",
+    "back": "p-records",
+    "fields": [],
+    "items": [
+      [
+        "warning",
+        "Penicillin",
+        "Recorded in your health details",
+        "Recorded",
+        "red",
+        "p-health"
+      ]
+    ],
+    "actions": [
+      [
+        "Update health details",
+        "p-health"
+      ]
+    ],
+    "note": null
+  },
+  {
+    "id": "p-sickleave",
+    "role": "patient",
+    "name": "Added · Sick leave certificates",
+    "title": "Sick leave certificates",
+    "source": "lib/features/care/presentation/sick_leave_screen.dart",
+    "back": "p-records",
+    "fields": [],
+    "items": [
+      [
+        "record",
+        "Sick leave certificate",
+        "Issued 14 Aug 2026",
+        null,
+        "blue",
+        "p-sickleave"
+      ]
+    ],
+    "actions": [
+      [
+        "Download certificate",
+        "p-sickleave"
+      ]
+    ],
+    "note": null
+  },
+  {
+    "id": "p-summary",
+    "role": "patient",
+    "name": "Added · Health summary",
+    "title": "Health summary",
+    "source": "lib/features/ai_summary/presentation/ai_summary_screen.dart",
+    "back": "p-records",
+    "fields": [],
+    "items": [
+      [
+        "heart",
+        "Recent measurements",
+        "Blood pressure, weight and pulse",
+        null,
+        "blue",
+        "p-vitals"
+      ],
+      [
+        "pill",
+        "Current medicines",
+        "From your saved medication records",
+        null,
+        "blue",
+        "p-medications"
+      ]
+    ],
+    "actions": [],
+    "note": "Generated summary for review. Original records remain the source of truth."
+  },
+  {
+    "id": "p-assistant",
+    "role": "patient",
+    "name": "Added · Care Navigator",
+    "title": "Care Navigator",
+    "source": "lib/features/ai_chat/presentation/care_navigator_panel.dart",
+    "back": "p-home",
+    "fields": [
+      [
+        "Question",
+        "Ask about booking or navigating your records",
+        "chat"
+      ]
+    ],
+    "items": [],
+    "actions": [
+      [
+        "View appointments",
+        "p-appointments"
+      ],
+      [
+        "Open records",
+        "p-records"
+      ]
+    ],
+    "note": "For navigation and non-emergency information. Keep your care team informed."
+  },
+  {
+    "id": "p-topup",
+    "role": "patient",
+    "name": "Added · Top up wallet",
+    "title": "Top up wallet",
+    "source": "lib/features/billing/presentation/wallet_topup_sheet.dart",
+    "back": "p-payments",
+    "fields": [
+      [
+        "Amount",
+        "BD 20.00",
+        "wallet"
+      ],
+      [
+        "Payment method",
+        "Demo card · •••• 4242",
+        "wallet"
+      ]
+    ],
+    "items": [],
+    "actions": [
+      [
+        "Confirm top-up",
+        "p-payments"
+      ]
+    ],
+    "note": "Demo payment. Wallet funds change only after confirmation; no real money is charged."
+  },
+  {
+    "id": "p-methods",
+    "role": "patient",
+    "name": "Added · Payment methods",
+    "title": "Payment methods",
+    "source": "lib/features/billing/presentation/payment_methods_section.dart",
+    "back": "p-payments",
+    "fields": [],
+    "items": [
+      [
+        "wallet",
+        "Demo card · •••• 4242",
+        "Expires 12/28",
+        "Default",
+        "blue",
+        "p-card-add"
+      ]
+    ],
+    "actions": [
+      [
+        "Add card",
+        "p-card-add"
+      ],
+      [
+        "Remove card",
+        "p-methods"
+      ]
+    ],
+    "note": null
+  },
+  {
+    "id": "p-card-add",
+    "role": "patient",
+    "name": "Added · Add payment card",
+    "title": "Add payment card",
+    "source": "lib/features/billing/presentation/payment_methods_section.dart",
+    "back": "p-methods",
+    "fields": [
+      [
+        "Card details",
+        "Enter demo card details",
+        "wallet"
+      ],
+      [
+        "Expiry",
+        "MM/YY",
+        "calendar"
+      ],
+      [
+        "Security code",
+        "CVC",
+        "lock"
+      ]
+    ],
+    "items": [],
+    "actions": [
+      [
+        "Save card",
+        "p-methods"
+      ]
+    ],
+    "note": "Only the masked descriptor appears after saving. Follow the app payment mode."
+  },
+  {
+    "id": "p-pay-history",
+    "role": "patient",
+    "name": "Added · Transaction history",
+    "title": "Transaction history",
+    "source": "lib/features/billing/presentation/payment_history.dart",
+    "back": "p-payments",
+    "fields": [],
+    "items": [
+      [
+        "wallet",
+        "Invoice payment · BD 20.00",
+        "12 Sep 2026",
+        "Settled",
+        "green",
+        "p-payments"
+      ],
+      [
+        "wallet",
+        "Wallet top-up · BD 10.00",
+        "10 Sep 2026",
+        "Settled",
+        "green",
+        "p-payments"
+      ]
+    ],
+    "actions": [],
+    "note": null
+  },
+  {
+    "id": "p-family-member",
+    "role": "patient",
+    "name": "Added · Family member",
+    "title": "Family member",
+    "source": "lib/features/patient/presentation/family_network_section.dart",
+    "back": "p-family",
+    "fields": [
+      [
+        "Relationship",
+        "Child",
+        "users"
+      ],
+      [
+        "First name",
+        "Layla",
+        "user"
+      ],
+      [
+        "Last name",
+        "Ahmed",
+        "user"
+      ],
+      [
+        "Date of birth",
+        "Optional",
+        "calendar"
+      ],
+      [
+        "Phone",
+        "Optional",
+        "user"
+      ]
+    ],
+    "items": [],
+    "actions": [
+      [
+        "Save family member",
+        "p-family"
+      ]
+    ],
+    "note": "A family member record does not automatically grant access to another signed-in account."
+  },
+  {
+    "id": "p-family-request",
+    "role": "patient",
+    "name": "Added · Request account access",
+    "title": "Request account access",
+    "source": "lib/features/patient/presentation/linked_family_accounts_section.dart",
+    "back": "p-family",
+    "fields": [
+      [
+        "Find account",
+        "Search for a family member",
+        "search"
+      ],
+      [
+        "Requested access",
+        "View only or manage",
+        "lock"
+      ]
+    ],
+    "items": [],
+    "actions": [
+      [
+        "Send request",
+        "p-family"
+      ]
+    ],
+    "note": "The account owner must consent before you can view or manage their information."
+  },
+  {
+    "id": "p-family-consent",
+    "role": "patient",
+    "name": "Added · Review access request",
+    "title": "Review access request",
+    "source": "lib/features/patient/presentation/linked_family_accounts_section.dart",
+    "back": "p-family",
+    "fields": [],
+    "items": [
+      [
+        "user",
+        "Mariam Ali",
+        "Requests view-only access",
+        "Pending",
+        "amber",
+        "p-family"
+      ]
+    ],
+    "actions": [
+      [
+        "Accept request",
+        "p-family"
+      ],
+      [
+        "Decline request",
+        "p-family"
+      ]
+    ],
+    "note": "Review the requested permission before granting access to your account."
+  },
+  {
+    "id": "p-family-revoke",
+    "role": "patient",
+    "name": "Added · Who has access to me",
+    "title": "Who has access to me",
+    "source": "lib/features/patient/presentation/linked_family_accounts_section.dart",
+    "back": "p-family",
+    "fields": [],
+    "items": [
+      [
+        "user",
+        "Mariam Ali",
+        "View-only access",
+        "Granted",
+        "blue",
+        "p-family-revoke"
+      ]
+    ],
+    "actions": [
+      [
+        "Revoke access",
+        "p-family"
+      ]
+    ],
+    "note": "Revoking access removes the linked account permission. Confirm before continuing."
+  },
+  {
+    "id": "p-linked-manage",
+    "role": "patient",
+    "name": "Added · Manage linked account",
+    "title": "Manage linked account",
+    "source": "lib/features/patient/presentation/linked_account_screen.dart",
+    "back": "p-family",
+    "fields": [],
+    "items": [
+      [
+        "calendar",
+        "Layla Ahmed · Next visit",
+        "8 Oct 2026",
+        "Confirmed",
+        "green",
+        "p-ticket"
+      ]
+    ],
+    "actions": [
+      [
+        "Book for Layla",
+        "p-booking"
+      ],
+      [
+        "View health information",
+        "p-records"
+      ]
+    ],
+    "note": "Acting for Layla Ahmed · manage access. The app rechecks your grant before every action."
+  },
+  {
+    "id": "p-reschedule",
+    "role": "patient",
+    "name": "Added · Reschedule appointment",
+    "title": "Reschedule appointment",
+    "source": "lib/features/appointments/presentation/slot_picker_sheet.dart",
+    "back": "p-ticket",
+    "fields": [
+      [
+        "Date",
+        "Choose an available date",
+        "calendar"
+      ],
+      [
+        "Time",
+        "Select a free slot",
+        "clock"
+      ]
+    ],
+    "items": [],
+    "actions": [
+      [
+        "Confirm new time",
+        "p-ticket"
+      ]
+    ],
+    "note": "The original visit remains booked until the new time is confirmed."
+  },
+  {
+    "id": "p-no-slots",
+    "role": "patient",
+    "name": "Added · No available times",
+    "title": "No available times",
+    "source": "lib/features/booking/presentation/booking_screen.dart",
+    "back": "p-slot",
+    "fields": [],
+    "items": [],
+    "actions": [
+      [
+        "Choose another day",
+        "p-slot"
+      ],
+      [
+        "Choose another clinician",
+        "p-booking"
+      ]
+    ],
+    "note": "No slots are available for the selected date and clinician."
+  },
+  {
+    "id": "p-booking-conflict",
+    "role": "patient",
+    "name": "Added · That time is no longer available",
+    "title": "That time is no longer available",
+    "source": "lib/features/booking/presentation/booking_screen.dart",
+    "back": "p-slot",
+    "fields": [],
+    "items": [],
+    "actions": [
+      [
+        "Refresh available times",
+        "p-slot"
+      ]
+    ],
+    "note": "Your selection could not be confirmed. Choose another slot; your other booking details remain available."
+  },
+  {
+    "id": "p-homevisits-history",
+    "role": "patient",
+    "name": "Added · Home care requests",
+    "title": "Home care requests",
+    "source": "lib/features/care/presentation/home_visit_screen.dart",
+    "back": "p-home",
+    "fields": [],
+    "items": [
+      [
+        "home",
+        "Home visit request",
+        "Requested 1 Oct 2026",
+        "Pending",
+        "amber",
+        "p-homevisits-history"
+      ]
+    ],
+    "actions": [
+      [
+        "New request",
+        "p-homevisit"
+      ]
+    ],
+    "note": "A request is not a confirmed visit. The clinic reviews each request before arranging care."
+  },
+  {
+    "id": "p-notifications",
+    "role": "patient",
+    "name": "Added · Notifications",
+    "title": "Notifications",
+    "source": "lib/features/notifications/presentation/notifications_screen.dart",
+    "back": "p-home",
+    "fields": [],
+    "items": [
+      [
+        "bell",
+        "Appointment update",
+        "Today · Unread",
+        "New",
+        "blue",
+        "p-ticket"
+      ]
+    ],
+    "actions": [
+      [
+        "Mark all read",
+        "p-notifications"
+      ]
+    ],
+    "note": null
+  },
+  {
+    "id": "p-reset-prefs",
+    "role": "patient",
+    "name": "Added · Reset preferences",
+    "title": "Reset preferences",
+    "source": "lib/features/settings/presentation/preferences_section.dart",
+    "back": "p-preferences",
+    "fields": [],
+    "items": [],
+    "actions": [
+      [
+        "Confirm reset",
+        "p-preferences"
+      ],
+      [
+        "Keep current choices",
+        "p-preferences"
+      ]
+    ],
+    "note": "Appearance and notification groups have separate resets. Confirm which group you are resetting."
+  },
+  {
+    "id": "s-notifications",
+    "role": "staff",
+    "name": "Added · Notifications",
+    "title": "Notifications",
+    "source": "lib/features/notifications/presentation/notifications_screen.dart",
+    "back": "s-home",
+    "fields": [],
+    "items": [
+      [
+        "bell",
+        "Appointment update",
+        "Today · Unread",
+        "New",
+        "blue",
+        "s-schedule"
+      ]
+    ],
+    "actions": [
+      [
+        "Mark all read",
+        "s-notifications"
+      ]
+    ],
+    "note": null
+  },
+  {
+    "id": "s-reset-prefs",
+    "role": "staff",
+    "name": "Added · Reset preferences",
+    "title": "Reset preferences",
+    "source": "lib/features/settings/presentation/preferences_section.dart",
+    "back": "s-preferences",
+    "fields": [],
+    "items": [],
+    "actions": [
+      [
+        "Confirm reset",
+        "s-preferences"
+      ],
+      [
+        "Keep current choices",
+        "s-preferences"
+      ]
+    ],
+    "note": "Appearance and notification groups have separate resets. Confirm which group you are resetting."
+  },
+  {
+    "id": "a-notifications",
+    "role": "admin",
+    "name": "Added · Notifications",
+    "title": "Notifications",
+    "source": "lib/features/notifications/presentation/notifications_screen.dart",
+    "back": "a-home",
+    "fields": [],
+    "items": [
+      [
+        "bell",
+        "Appointment update",
+        "Today · Unread",
+        "New",
+        "blue",
+        "a-appointments"
+      ]
+    ],
+    "actions": [
+      [
+        "Mark all read",
+        "a-notifications"
+      ]
+    ],
+    "note": null
+  },
+  {
+    "id": "a-reset-prefs",
+    "role": "admin",
+    "name": "Added · Reset preferences",
+    "title": "Reset preferences",
+    "source": "lib/features/settings/presentation/preferences_section.dart",
+    "back": "a-preferences",
+    "fields": [],
+    "items": [],
+    "actions": [
+      [
+        "Confirm reset",
+        "a-preferences"
+      ],
+      [
+        "Keep current choices",
+        "a-preferences"
+      ]
+    ],
+    "note": "Appearance and notification groups have separate resets. Confirm which group you are resetting."
+  },
+  {
+    "id": "s-account",
+    "role": "staff",
+    "name": "Added · Staff account",
+    "title": "Staff account",
+    "source": "lib/features/staff_dashboard/presentation/staff_profile_pages.dart",
+    "back": "s-profile",
+    "fields": [],
+    "items": [
+      [
+        "user",
+        "Dr. Omar Khalil",
+        "Doctor · Cardiology",
+        null,
+        "blue",
+        "s-account"
+      ],
+      [
+        "record",
+        "License details",
+        "Maintained by the administrator",
+        null,
+        "blue",
+        "s-account"
+      ]
+    ],
+    "actions": [],
+    "note": "Account details are read-only. Contact the administrator to update them."
+  },
+  {
+    "id": "s-activity",
+    "role": "staff",
+    "name": "Added · My activity",
+    "title": "My activity",
+    "source": "lib/features/staff_dashboard/presentation/staff_activity_screen.dart",
+    "back": "s-profile",
+    "fields": [],
+    "items": [
+      [
+        "record",
+        "Clinical note saved",
+        "Sara Ahmed · Today",
+        null,
+        "blue",
+        "s-chart"
+      ]
+    ],
+    "actions": [],
+    "note": null
+  },
+  {
+    "id": "s-directory",
+    "role": "staff",
+    "name": "Added · Staff directory",
+    "title": "Staff directory",
+    "source": "lib/features/staff_dashboard/presentation/staff_directory_screen.dart",
+    "back": "s-profile",
+    "fields": [
+      [
+        "Search",
+        "Name, specialty or department",
+        "search"
+      ]
+    ],
+    "items": [
+      [
+        "user",
+        "Dr. Lina Haddad",
+        "Dermatology",
+        "Off shift",
+        "amber",
+        "s-directory"
+      ]
+    ],
+    "actions": [],
+    "note": null
+  },
+  {
+    "id": "s-analytics",
+    "role": "staff",
+    "name": "Added · Panel analytics",
+    "title": "Panel analytics",
+    "source": "lib/features/staff_dashboard/presentation/panel_analytics_screen.dart",
+    "back": "s-profile",
+    "fields": [],
+    "items": [],
+    "actions": [],
+    "note": "Metrics describe your permitted patient panel. Missing data is shown as unavailable, not zero."
+  },
+  {
+    "id": "s-tools",
+    "role": "staff",
+    "name": "Added · Clinical actions",
+    "title": "Clinical actions",
+    "source": "lib/features/staff_dashboard/presentation/staff_quick_actions.dart",
+    "back": "s-home",
+    "fields": [],
+    "items": [
+      [
+        "record",
+        "New note",
+        "Choose a patient",
+        null,
+        "blue",
+        "s-note"
+      ],
+      [
+        "pill",
+        "Prescribe",
+        "Choose a patient",
+        null,
+        "blue",
+        "s-prescribe"
+      ],
+      [
+        "lab",
+        "Enter lab result",
+        "Choose a patient",
+        null,
+        "blue",
+        "s-lab-entry"
+      ],
+      [
+        "calendar",
+        "Transfer visit",
+        "Choose a visit",
+        null,
+        "blue",
+        "s-transfer"
+      ],
+      [
+        "record",
+        "AI scribe",
+        "Human-reviewed draft",
+        null,
+        "blue",
+        "s-scribe"
+      ],
+      [
+        "record",
+        "Patient summary",
+        "Open source records",
+        null,
+        "blue",
+        "s-summary"
+      ]
+    ],
+    "actions": [],
+    "note": null
+  },
+  {
+    "id": "s-summary",
+    "role": "staff",
+    "name": "Added · Patient summary",
+    "title": "Patient summary",
+    "source": "lib/features/patient_chart/presentation/patient_summary_screen.dart",
+    "back": "s-chart",
+    "fields": [],
+    "items": [],
+    "actions": [],
+    "note": "Sara Ahmed · Summary of permitted records. Check the source chart before acting."
+  },
+  {
+    "id": "s-scribe",
+    "role": "staff",
+    "name": "Added · Clinical scribe",
+    "title": "Clinical scribe",
+    "source": "lib/features/ai_scribe/presentation/clinical_scribe_screen.dart",
+    "back": "s-chart",
+    "fields": [
+      [
+        "Visit notes",
+        "Enter the consultation context",
+        "record"
+      ]
+    ],
+    "items": [],
+    "actions": [
+      [
+        "Generate draft",
+        "s-scribe"
+      ],
+      [
+        "Review draft",
+        "s-consultation"
+      ]
+    ],
+    "note": "AI output is a draft for clinician review. Core chart actions remain available when AI is unavailable."
+  },
+  {
+    "id": "s-note",
+    "role": "staff",
+    "name": "Added · New clinical note",
+    "title": "New clinical note",
+    "source": "lib/features/patient_chart/presentation/chart_write_sheets.dart",
+    "back": "s-chart",
+    "fields": [
+      [
+        "Clinical note",
+        "Record assessment and plan",
+        "record"
+      ]
+    ],
+    "items": [],
+    "actions": [
+      [
+        "Save to chart",
+        "s-chart"
+      ]
+    ],
+    "note": "Sara Ahmed · Available actions depend on your clinical role and access. Saving requires confirmation."
+  },
+  {
+    "id": "s-prescribe",
+    "role": "staff",
+    "name": "Added · Medication order",
+    "title": "Medication order",
+    "source": "lib/features/patient_chart/presentation/chart_write_sheets.dart",
+    "back": "s-chart",
+    "fields": [
+      [
+        "Medicine",
+        "Choose a medicine",
+        "pill"
+      ],
+      [
+        "Dose",
+        "Dose and unit",
+        "record"
+      ],
+      [
+        "Frequency",
+        "Instructions",
+        "clock"
+      ]
+    ],
+    "items": [],
+    "actions": [
+      [
+        "Save to chart",
+        "s-chart"
+      ]
+    ],
+    "note": "Sara Ahmed · Available actions depend on your clinical role and access. Saving requires confirmation."
+  },
+  {
+    "id": "s-lab-entry",
+    "role": "staff",
+    "name": "Added · Enter lab result",
+    "title": "Enter lab result",
+    "source": "lib/features/patient_chart/presentation/chart_write_sheets.dart",
+    "back": "s-chart",
+    "fields": [
+      [
+        "Analyte",
+        "Result name",
+        "lab"
+      ],
+      [
+        "Value and unit",
+        "Enter the measured value",
+        "record"
+      ],
+      [
+        "Reference range",
+        "From the source report",
+        "record"
+      ]
+    ],
+    "items": [],
+    "actions": [
+      [
+        "Save to chart",
+        "s-chart"
+      ]
+    ],
+    "note": "Sara Ahmed · Available actions depend on your clinical role and access. Saving requires confirmation."
+  },
+  {
+    "id": "s-transfer",
+    "role": "staff",
+    "name": "Added · Transfer visit",
+    "title": "Transfer visit",
+    "source": "lib/features/staff_dashboard/presentation/staff_quick_actions.dart",
+    "back": "s-schedule",
+    "fields": [
+      [
+        "Appointment",
+        "Select the patient visit",
+        "calendar"
+      ],
+      [
+        "Receiving clinician",
+        "Select an available clinician",
+        "user"
+      ]
+    ],
+    "items": [],
+    "actions": [
+      [
+        "Confirm transfer",
+        "s-schedule"
+      ]
+    ],
+    "note": "Review the patient, receiving clinician and available time before transferring."
+  },
+  {
+    "id": "s-calendar-month",
+    "role": "staff",
+    "name": "Added · Month schedule",
+    "title": "Month schedule",
+    "source": "lib/features/staff_dashboard/presentation/staff_schedule_screen.dart",
+    "back": "s-schedule",
+    "fields": [],
+    "items": [
+      [
+        "calendar",
+        "October 2026",
+        "Select a day to see the agenda",
+        null,
+        "blue",
+        "s-schedule"
+      ]
+    ],
+    "actions": [
+      [
+        "Today",
+        "s-schedule"
+      ],
+      [
+        "Year view",
+        "s-calendar-year"
+      ]
+    ],
+    "note": null
+  },
+  {
+    "id": "s-calendar-year",
+    "role": "staff",
+    "name": "Added · Year schedule",
+    "title": "Year schedule",
+    "source": "lib/features/staff_dashboard/presentation/staff_schedule_screen.dart",
+    "back": "s-calendar-month",
+    "fields": [],
+    "items": [
+      [
+        "calendar",
+        "January 2026",
+        "Open month",
+        null,
+        "blue",
+        "s-calendar-month"
+      ],
+      [
+        "calendar",
+        "April 2026",
+        "Open month",
+        null,
+        "blue",
+        "s-calendar-month"
+      ],
+      [
+        "calendar",
+        "July 2026",
+        "Open month",
+        null,
+        "blue",
+        "s-calendar-month"
+      ],
+      [
+        "calendar",
+        "October 2026",
+        "Open month",
+        null,
+        "blue",
+        "s-calendar-month"
+      ]
+    ],
+    "actions": [],
+    "note": null
+  },
+  {
+    "id": "s-feedback",
+    "role": "staff",
+    "name": "Added · Send feedback",
+    "title": "Send feedback",
+    "source": "lib/features/feedback/presentation/feedback_sheet.dart",
+    "back": "s-profile",
+    "fields": [
+      [
+        "Feedback",
+        "Tell us what happened",
+        "chat"
+      ]
+    ],
+    "items": [],
+    "actions": [
+      [
+        "Send feedback",
+        "s-profile"
+      ]
+    ],
+    "note": null
+  },
+  {
+    "id": "s-access-denied",
+    "role": "staff",
+    "name": "Added · Patient access unavailable",
+    "title": "Patient access unavailable",
+    "source": "lib/features/patient_chart/presentation/patient_chart_screen.dart",
+    "back": "s-patients",
+    "fields": [],
+    "items": [],
+    "actions": [
+      [
+        "Return to patients",
+        "s-patients"
+      ]
+    ],
+    "note": "Your current role or assignment does not allow this patient record. Refresh the list or contact the administrator."
+  },
+  {
+    "id": "s-conflict",
+    "role": "staff",
+    "name": "Added · The chart changed",
+    "title": "The chart changed",
+    "source": "lib/features/consultation/presentation/consultation_screen.dart",
+    "back": "s-consultation",
+    "fields": [],
+    "items": [],
+    "actions": [
+      [
+        "Reload latest version",
+        "s-consultation"
+      ],
+      [
+        "Keep reviewing",
+        "s-consultation"
+      ]
+    ],
+    "note": "Keep your draft visible. Review the latest saved version before trying to save again."
+  },
+  {
+    "id": "a-account",
+    "role": "admin",
+    "name": "Added · Administrator account",
+    "title": "Administrator account",
+    "source": "lib/features/admin/presentation/admin_profile_pages.dart",
+    "back": "a-profile",
+    "fields": [],
+    "items": [
+      [
+        "user",
+        "Administrator",
+        "admin@myhealth.demo",
+        null,
+        "blue",
+        "a-account"
+      ]
+    ],
+    "actions": [],
+    "note": "Account identity is separate from clinic configuration and personal preferences."
+  },
+  {
+    "id": "a-forecast",
+    "role": "admin",
+    "name": "Added · Capacity forecast",
+    "title": "Capacity forecast",
+    "source": "lib/features/admin/presentation/admin_forecast_screen.dart",
+    "back": "a-profile",
+    "fields": [],
+    "items": [],
+    "actions": [],
+    "note": "Review appointment demand, staffing and the forecast source and period. Do not treat a missing forecast as zero demand."
+  },
+  {
+    "id": "a-ai-log",
+    "role": "admin",
+    "name": "Added · AI activity",
+    "title": "AI activity",
+    "source": "lib/features/admin/presentation/admin_ai_log_screen.dart",
+    "back": "a-profile",
+    "fields": [
+      [
+        "Search activity",
+        "Patient, model or action",
+        "search"
+      ]
+    ],
+    "items": [
+      [
+        "record",
+        "Clinical summary generated",
+        "Demo / offline · Today",
+        null,
+        "blue",
+        "a-ai-log"
+      ]
+    ],
+    "actions": [],
+    "note": "AI activity is separate from the general audit log."
+  },
+  {
+    "id": "a-appointments",
+    "role": "admin",
+    "name": "Added · All appointments",
+    "title": "All appointments",
+    "source": "lib/features/admin/presentation/admin_appointments_screen.dart",
+    "back": "a-home",
+    "fields": [
+      [
+        "Search appointments",
+        "Patient or clinician",
+        "search"
+      ]
+    ],
+    "items": [
+      [
+        "calendar",
+        "Sara Ahmed · Dr. Omar Khalil",
+        "3 Oct 2026 · 10:30 AM",
+        "Confirmed",
+        "green",
+        "a-book-patient"
+      ]
+    ],
+    "actions": [],
+    "note": null
+  },
+  {
+    "id": "a-feedback",
+    "role": "admin",
+    "name": "Added · Feedback queue",
+    "title": "Feedback queue",
+    "source": "lib/features/admin/presentation/admin_feedback_screen.dart",
+    "back": "a-home",
+    "fields": [],
+    "items": [
+      [
+        "chat",
+        "Profile feedback",
+        "Received today",
+        "Open",
+        "amber",
+        "a-feedback"
+      ]
+    ],
+    "actions": [
+      [
+        "Resolve feedback",
+        "a-feedback"
+      ],
+      [
+        "Reopen feedback",
+        "a-feedback"
+      ]
+    ],
+    "note": null
+  },
+  {
+    "id": "a-create-patient",
+    "role": "admin",
+    "name": "Added · Create patient account",
+    "title": "Create patient account",
+    "source": "lib/features/admin/presentation/user_management_screen.dart",
+    "back": "a-users",
+    "fields": [
+      [
+        "Full name",
+        "Enter patient name",
+        "user"
+      ],
+      [
+        "Email",
+        "name@example.com",
+        "mail"
+      ],
+      [
+        "Temporary password",
+        "Enter temporary password",
+        "lock"
+      ]
+    ],
+    "items": [],
+    "actions": [
+      [
+        "Create patient",
+        "a-users"
+      ]
+    ],
+    "note": null
+  },
+  {
+    "id": "a-broadcast",
+    "role": "admin",
+    "name": "Added · Send announcement",
+    "title": "Send announcement",
+    "source": "lib/features/admin/presentation/admin_quick_actions.dart",
+    "back": "a-home",
+    "fields": [
+      [
+        "Audience",
+        "Choose account roles",
+        "users"
+      ],
+      [
+        "Title",
+        "Announcement title",
+        "record"
+      ],
+      [
+        "Message",
+        "Write the announcement",
+        "chat"
+      ]
+    ],
+    "items": [],
+    "actions": [
+      [
+        "Send announcement",
+        "a-home"
+      ]
+    ],
+    "note": "Confirm audience and delivery availability before sending. Unavailable channels are not shown as delivered."
+  },
+  {
+    "id": "a-create-invoice",
+    "role": "admin",
+    "name": "Added · Create invoice",
+    "title": "Create invoice",
+    "source": "lib/features/admin/presentation/admin_quick_actions.dart",
+    "back": "a-billing",
+    "fields": [
+      [
+        "Patient",
+        "Choose a patient",
+        "user"
+      ],
+      [
+        "Subtotal",
+        "BD 35.00",
+        "wallet"
+      ],
+      [
+        "Tax",
+        "Tax rate",
+        "record"
+      ],
+      [
+        "Notes",
+        "Optional description",
+        "record"
+      ]
+    ],
+    "items": [],
+    "actions": [
+      [
+        "Create invoice",
+        "a-billing"
+      ]
+    ],
+    "note": null
+  },
+  {
+    "id": "a-staff-schedule",
+    "role": "admin",
+    "name": "Added · Clinician schedule",
+    "title": "Clinician schedule",
+    "source": "lib/features/admin/presentation/user_management_screen.dart",
+    "back": "a-user",
+    "fields": [
+      [
+        "Day",
+        "Choose a weekday",
+        "calendar"
+      ],
+      [
+        "Start",
+        "08:00",
+        "clock"
+      ],
+      [
+        "End",
+        "16:00",
+        "clock"
+      ],
+      [
+        "Slot duration",
+        "Minutes",
+        "clock"
+      ]
+    ],
+    "items": [],
+    "actions": [
+      [
+        "Save schedule",
+        "a-user"
+      ]
+    ],
+    "note": "Schedule templates are separate from clinic-wide opening hours. Validate time and existing appointments."
+  },
+  {
+    "id": "a-book-patient",
+    "role": "admin",
+    "name": "Added · Book for patient",
+    "title": "Book for patient",
+    "source": "lib/features/admin/presentation/user_management_screen.dart",
+    "back": "a-users",
+    "fields": [
+      [
+        "Patient",
+        "Sara Ahmed",
+        "user"
+      ],
+      [
+        "Department",
+        "Choose a department",
+        "building"
+      ],
+      [
+        "Clinician",
+        "Choose a clinician",
+        "user"
+      ],
+      [
+        "Time",
+        "Select an available time",
+        "clock"
+      ]
+    ],
+    "items": [],
+    "actions": [
+      [
+        "Confirm appointment",
+        "a-appointments"
+      ]
+    ],
+    "note": null
+  },
+  {
+    "id": "a-refer-patient",
+    "role": "admin",
+    "name": "Added · Refer patient",
+    "title": "Refer patient",
+    "source": "lib/features/admin/presentation/user_management_screen.dart",
+    "back": "a-users",
+    "fields": [
+      [
+        "Patient",
+        "Sara Ahmed",
+        "user"
+      ],
+      [
+        "Destination",
+        "Choose department",
+        "building"
+      ],
+      [
+        "Referral note",
+        "Record the clinical context",
+        "record"
+      ]
+    ],
+    "items": [],
+    "actions": [
+      [
+        "Save referral",
+        "a-referrals"
+      ]
+    ],
+    "note": null
+  },
+  {
+    "id": "a-refund",
+    "role": "admin",
+    "name": "Added · Refund settled payment",
+    "title": "Refund settled payment",
+    "source": "lib/features/admin/presentation/admin_billing_screen.dart",
+    "back": "a-invoice",
+    "fields": [
+      [
+        "Refund amount",
+        "BD 20.00",
+        "wallet"
+      ],
+      [
+        "Reason",
+        "Explain the refund",
+        "record"
+      ]
+    ],
+    "items": [],
+    "actions": [
+      [
+        "Confirm refund",
+        "a-invoice"
+      ]
+    ],
+    "note": "Refund only a settled charge, up to the remaining refundable amount. Wait for the recorded result."
+  },
+  {
+    "id": "a-reconcile",
+    "role": "admin",
+    "name": "Added · Check pending payments",
+    "title": "Check pending payments",
+    "source": "lib/features/admin/presentation/admin_billing_screen.dart",
+    "back": "a-billing",
+    "fields": [],
+    "items": [
+      [
+        "wallet",
+        "INV-1042 · Sara Ahmed",
+        "BD 35.00",
+        "Pending",
+        "amber",
+        "a-invoice"
+      ]
+    ],
+    "actions": [
+      [
+        "Check provider status",
+        "a-billing"
+      ]
+    ],
+    "note": "An invoice is paid only after confirmation. Checking status does not create another charge."
+  }
+];
+  additionalScreens.forEach(e => screen(e.id,e.role,e.name,e.title,[
+    ...(e.note?[note(e.note,'record','blue')]:[]),
+    ...e.fields.map(f=>field(...f)),
+    ...e.items.map(item=>listrow(...item)),
+    ...e.actions.map((a,i)=>button(a[0],a[1],i===0?'primary':'secondary')),
+  ],{back:e.back}));
+
   // Desktop designs use the same component vocabulary and task ordering.
   function desktop(id,role,name,main) {
     const sidebar=col([row([F('Mark',[I('heart','white',24)],{width:38,height:38,bg:'primary',radius:12,align:'center',justify:'center'}),T('MyHealth Care',18,600)]),T(role==='patient'?'YOUR HEALTH':role==='staff'?'CLINICAL WORKSPACE':'ADMINISTRATION',10,600,'muted',{tracking:1.4}),...navs[role].map(([icon,label,target],i)=>({...row([I(icon,i===0?'primary':'muted'),T(label,14,600,i===0?'primary':'muted',{grow:1})],{padding:14,bg:i===0?'header':null,radius:12}),target})),F('Space',[],{grow:1}),note('Synthetic demo data','lock','blue'),row([I('settings','muted'),T('Preferences',13,500,'muted',{target:role==='patient'?'p-preferences':role==='staff'?'s-preferences':'a-preferences'})])],{width:248,height:960,padding:24,bg:'surface',gap:20});
@@ -360,7 +2079,7 @@
   }
   desktop('p-desktop','patient','31 · Desktop / patient overview',[
     note('Allergy recorded: penicillin · 1 new reply from your care team','warning','amber'),
-    row([col([hero('Next appointment','Dr. Omar Khalil','Cardiology · Tomorrow, 10:30 AM · Room 204',[['View appointment ticket','p-ticket'],['Reschedule','p-booking']]),h('Your health'),metrics([['Blood pressure','118/76','mmHg · 1 Oct'],['Heart rate','72','bpm · 1 Oct'],['Medicines','2','active orders']]),h('Latest records','View all','p-records'),listrow('lab','Routine blood panel','12 Sep 2026 · Lab','Reviewed','green','p-result'),listrow('record','Cardiology consultation','14 Aug 2026 · Dr. Omar Khalil','Reviewed','green','p-result')],{grow:2,gap:18}),col([h('Quick actions'),button('Book an appointment','p-booking'),menu([['chat','Message your doctor','p-messages'],['home','Request home care','p-homevisit'],['pill','Medications','p-medications'],['heart','Vital signs','p-vitals']]),h('Payments'),card([T('1 invoice awaiting payment',14,600),T('BD 35.00',26,600,'primary'),button('View invoice','p-payments','secondary')])],{grow:1,gap:18})],{align:'start',gap:24}),
+    row([col([hero('Next appointment','Dr. Omar Khalil','Cardiology · Tomorrow, 10:30 AM · Room 204',[['View appointment ticket','p-ticket'],['Reschedule','p-reschedule']]),h('Your health'),metrics([['Blood pressure','118/76','mmHg · 1 Oct'],['Heart rate','72','bpm · 1 Oct'],['Medicines','2','active orders']]),h('Latest records','View all','p-records'),listrow('lab','Routine blood panel','12 Sep 2026 · Lab','Reviewed','green','p-result'),listrow('record','Cardiology consultation','14 Aug 2026 · Dr. Omar Khalil','Reviewed','green','p-result')],{grow:2,gap:18}),col([h('Quick actions'),button('Book an appointment','p-booking'),menu([['chat','Message your doctor','p-messages'],['home','Request home care','p-homevisit'],['pill','Medications','p-medications'],['heart','Vital signs','p-vitals']]),h('Payments'),card([T('1 invoice awaiting payment',14,600),T('BD 35.00',26,600,'primary'),button('View invoice','p-payments','secondary')])],{grow:1,gap:18})],{align:'start',gap:24}),
   ]);
   desktop('s-desktop','staff','14 · Desktop / staff workspace',[
     row([badge('On duty'),T('Cardiology · 6 patients in queue',14,500,'muted',{grow:1}),button('Open schedule','s-schedule','secondary')]),

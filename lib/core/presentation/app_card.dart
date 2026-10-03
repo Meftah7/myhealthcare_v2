@@ -472,16 +472,21 @@ class ListCard extends StatelessWidget {
 
 /// A stored avatar is either a local file path (native platforms) or a
 /// base64 data URI (web, which has no file system to point a path at).
-ImageProvider _avatarImage(String avatarPath) {
-  if (avatarPath.startsWith('data:')) {
-    final b64 = avatarPath.substring(avatarPath.indexOf(',') + 1);
-    return MemoryImage(base64Decode(b64));
+ImageProvider<Object>? _avatarImage(String? avatarPath) {
+  if (avatarPath == null) return null;
+  try {
+    if (avatarPath.startsWith('data:')) {
+      final separator = avatarPath.indexOf(',');
+      if (separator < 0) return null;
+      return MemoryImage(base64Decode(avatarPath.substring(separator + 1)));
+    }
+    return FileImage(File(avatarPath));
+  } on FormatException {
+    return null;
   }
-  return FileImage(File(avatarPath));
 }
 
-/// The header on a profile screen: a gradient-ringed monogram, name, email,
-/// and a role pill.
+/// Profile identity with a photo or monogram and an accessible edit action.
 class ProfileHeader extends StatelessWidget {
   const ProfileHeader({
     required this.name,
@@ -514,60 +519,57 @@ class ProfileHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final image = _avatarImage(avatarPath);
+    final monogram = Center(
+      child: Text(
+        name.isNotEmpty ? name[0].toUpperCase() : '?',
+        style: theme.textTheme.titleLarge?.copyWith(
+          color: scheme.onPrimaryContainer,
+        ),
+      ),
+    );
     return AppCard(
       elevated: elevated,
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Container(
-                width: avatarSize,
-                height: avatarSize,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: avatarPath == null ? AppColors.brandGradient : null,
-                  image: avatarPath == null
-                      ? null
-                      : DecorationImage(
-                          image: _avatarImage(avatarPath!),
-                          fit: BoxFit.cover,
-                        ),
-                ),
-                child: avatarPath != null
-                    ? null
-                    : Text(
-                        name.isNotEmpty ? name[0].toUpperCase() : '?',
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          color: Colors.white,
-                        ),
-                      ),
-              ),
-              if (onEditAvatar != null)
-                Positioned(
-                  right: -2,
-                  bottom: -2,
-                  child: Pressable(
-                    onTap: onEditAvatar,
-                    child: Container(
-                      width: 26,
-                      height: 26,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: scheme.primary,
-                        border: Border.all(color: scheme.surface, width: 2),
-                      ),
-                      child: Icon(
-                        Icons.photo_camera_outlined,
-                        size: 13,
-                        color: scheme.onPrimary,
-                      ),
+          SizedBox(
+            width: avatarSize + (onEditAvatar == null ? 0 : 12),
+            height: avatarSize + (onEditAvatar == null ? 0 : 12),
+            child: Stack(
+              children: [
+                ClipOval(
+                  child: ColoredBox(
+                    color: scheme.primaryContainer,
+                    child: SizedBox(
+                      width: avatarSize,
+                      height: avatarSize,
+                      child: image == null
+                          ? monogram
+                          : Image(
+                              image: image,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) => monogram,
+                            ),
                     ),
                   ),
                 ),
-            ],
+                if (onEditAvatar != null)
+                  PositionedDirectional(
+                    end: 0,
+                    bottom: 0,
+                    child: IconButton.filledTonal(
+                      tooltip: AppLocalizations.of(context)!.profilePhotoTitle,
+                      onPressed: onEditAvatar,
+                      icon: const Icon(Icons.photo_camera_outlined, size: 20),
+                      constraints: const BoxConstraints(
+                        minWidth: 48,
+                        minHeight: 48,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
           const SizedBox(width: Space.md),
           Expanded(
@@ -600,8 +602,6 @@ class ProfileHeader extends StatelessWidget {
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: scheme.onSurfaceVariant,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
                 if (phone != null) ...[
                   const SizedBox(height: 2),

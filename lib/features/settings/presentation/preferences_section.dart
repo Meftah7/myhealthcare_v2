@@ -88,7 +88,7 @@ class PreferencesSection extends ConsumerWidget {
     final themeBlock = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        PillLabel(t.theme),
+        _BlockLabel(icon: Icons.palette_outlined, label: t.theme),
         const SizedBox(height: Space.sm),
         PillSegmented<ThemeMode>(
           segments: [
@@ -116,6 +116,8 @@ class PreferencesSection extends ConsumerWidget {
                 max: (TextScaleLevel.values.length - 1).toDouble(),
                 divisions: TextScaleLevel.values.length - 1,
                 label: _textScaleLabel(context, textSize),
+                semanticFormatterCallback: (value) => _textScaleLabel(context,
+                  TextScaleLevel.values[value.round()]),
                 onChanged: (v) => ref
                     .read(textScaleProvider.notifier)
                     .set(TextScaleLevel.values[v.round()]),
@@ -139,7 +141,7 @@ class PreferencesSection extends ConsumerWidget {
     final languageBlock = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        PillLabel(t.language),
+        _BlockLabel(icon: Icons.language_outlined, label: t.language),
         const SizedBox(height: Space.sm),
         PillSegmented<String>(
           segments: [

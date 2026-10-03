@@ -1,5 +1,5 @@
 /// Health Records — the patient's clinical history, in views chosen with a top
-/// toggle (timeline, medications, bills), plus a documents & alerts strip:
+/// toggle (timeline, medications, bills), plus document tools and alerts:
 /// allergies, imaging results and an exportable vital-signs report (P10).
 library;
 
@@ -70,7 +70,25 @@ class _HealthRecordsScreenState extends State<HealthRecordsScreen> {
                 ),
                 child: Column(
                   children: [
-                    const _DocumentsStrip(),
+                    const _AllergiesAlert(),
+                    Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: TextButton.icon(
+                        icon: const Icon(Icons.folder_shared_outlined),
+                        label: Text(t.sectionYourHealth),
+                        onPressed: () => showModalBottomSheet<void>(
+                          context: context,
+                          showDragHandle: true,
+                          isScrollControlled: true,
+                          builder: (_) => SafeArea(
+                            child: SingleChildScrollView(
+                              padding: const EdgeInsets.all(Space.md),
+                              child: const _DocumentsStrip(),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: Space.sm),
                     SizedBox(
                       width: double.infinity,
@@ -138,18 +156,13 @@ class _HealthRecordsScreenState extends State<HealthRecordsScreen> {
   }
 }
 
-/// Allergies alert + shortcuts to imaging results and the vital-signs report.
+/// Shortcuts to patient documents and allergy details.
 class _DocumentsStrip extends ConsumerWidget {
   const _DocumentsStrip();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
     final t = AppLocalizations.of(context)!;
-    final allergies =
-        ref.watch(patientProfileProvider).valueOrNull?.allergies ??
-        const <String>[];
 
     // Four shortcuts to the record documents, all the same shape and size:
     // imaging and sick leave were already a matched pair — the vital-signs
@@ -182,40 +195,6 @@ class _DocumentsStrip extends ConsumerWidget {
 
     return Column(
       children: [
-        if (allergies.isNotEmpty) ...[
-          AppCard(
-            onTap: () => context.push(AppRoutes.patientAllergies),
-            color: scheme.errorContainer,
-            borderColor: scheme.error.withValues(alpha: 0.35),
-            padding: const EdgeInsets.symmetric(
-              horizontal: Space.md,
-              vertical: Space.sm,
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.warning_amber_rounded,
-                  size: 20,
-                  color: scheme.onErrorContainer,
-                ),
-                const SizedBox(width: Space.sm),
-                Expanded(
-                  child: Text(
-                    t.allergiesInline(allergies.join(', ')),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: scheme.onErrorContainer,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                Icon(Icons.chevron_right, color: scheme.onErrorContainer),
-              ],
-            ),
-          ),
-          const SizedBox(height: Space.sm),
-        ],
         shortcutRow(
           shortcut(
             Icons.image_outlined,
@@ -243,6 +222,56 @@ class _DocumentsStrip extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Clinically relevant allergies stay visible above the records filters.
+class _AllergiesAlert extends ConsumerWidget {
+  const _AllergiesAlert();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final t = AppLocalizations.of(context)!;
+    final allergies =
+        ref.watch(patientProfileProvider).valueOrNull?.allergies ??
+        const <String>[];
+    if (allergies.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: Space.sm),
+      child: AppCard(
+        onTap: () => context.push(AppRoutes.patientAllergies),
+        color: scheme.errorContainer,
+        borderColor: scheme.error.withValues(alpha: 0.35),
+        padding: const EdgeInsets.symmetric(
+          horizontal: Space.md,
+          vertical: Space.sm,
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.warning_amber_rounded,
+              size: 20,
+              color: scheme.onErrorContainer,
+            ),
+            const SizedBox(width: Space.sm),
+            Expanded(
+              child: Text(
+                t.allergiesInline(allergies.join(', ')),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: scheme.onErrorContainer,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            Icon(Icons.chevron_right, color: scheme.onErrorContainer),
+          ],
+        ),
+      ),
     );
   }
 }

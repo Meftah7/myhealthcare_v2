@@ -18,7 +18,7 @@ import 'health_details_section.dart';
 import 'personal_info_section.dart';
 
 /// Shared shell: an app bar with an automatic back button, content capped at
-/// the app's max width, scrollable.
+/// a readable form width, scrollable.
 class _SectionScaffold extends StatelessWidget {
   const _SectionScaffold({required this.title, required this.child});
 
@@ -32,7 +32,7 @@ class _SectionScaffold extends StatelessWidget {
       title: title,
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: Space.maxContentWidth),
+          constraints: const BoxConstraints(maxWidth: Space.maxFormWidth),
           child: ListView(
             padding: EdgeInsets.fromLTRB(gutter, Space.md, gutter, Space.xxl),
             children: [child],

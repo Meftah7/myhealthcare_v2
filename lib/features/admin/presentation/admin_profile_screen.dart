@@ -14,6 +14,7 @@ import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/profile_navigation.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
 import '../../../l10n/app_localizations.dart';
@@ -55,7 +56,6 @@ class AdminProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
     final user = ref.watch(currentUserProvider);
     final sections = _sections(t);
 
@@ -70,78 +70,32 @@ class AdminProfileScreen extends ConsumerWidget {
                 email: user.email,
                 phone: user.phone,
                 role: t.roleAdmin,
+                avatarPath: user.avatarPath,
                 avatarSize: 52,
                 elevated: false,
               ),
               SectionHeader(t.accountSection, overline: true),
-              ListCard(
-                elevated: false,
-                children: [
-                  for (final (icon, title, route) in sections)
-                    ListTile(
-                      dense: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: Space.md,
-                        vertical: Space.xxs,
-                      ),
-                      leading: Icon(
-                        icon,
-                        size: 20,
-                        color: theme.colorScheme.primary,
-                      ),
-                      title: Text(title, style: theme.textTheme.titleSmall),
-                      trailing: Icon(
-                        Icons.chevron_right,
-                        size: kTrailingChevronSize,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      onTap: () => unawaited(context.push(route)),
-                    ),
-                ],
-              ),
-
+              ProfileNavigationGroup(items: [
+                for (final (icon, title, route) in sections)
+                  ProfileNavigationItem(icon: icon, label: title,
+                    onTap: () => unawaited(context.push(route))),
+              ]),
               SectionHeader(t.settingsSection, overline: true),
-          // Preferences (text size, notifications) stays its own page.
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () => unawaited(
-                    context.push(AppRoutes.adminProfilePreferences),
-                  ),
-                  icon: const Icon(Icons.tune),
-                  label: Text(t.preferences),
-                ),
-              ),
-
+              ProfileNavigationGroup(items: [
+                ProfileNavigationItem(icon: Icons.tune,
+                  label: t.preferences, subtitle: t.preferencesSubtitleAdmin,
+                  onTap: () => unawaited(context.push(AppRoutes.adminProfilePreferences))),
+              ]),
               const SizedBox(height: Space.lg),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: () async {
-                    final ok = await confirm(
-                      context,
-                      title: t.signOutConfirmTitle,
-                      message: t.signOutConfirmBody,
-                      confirmLabel: t.signOut,
-                      destructive: true,
-                    );
-                    if (ok) {
-                      unawaited(ref.read(sessionProvider.notifier).logout());
-                    }
-                  },
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.light.error,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: Space.md),
-                    shape: const RoundedRectangleBorder(borderRadius: Radii.button),
-                    textStyle: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  icon: const Icon(Icons.logout),
-                  label: Text(t.signOut),
-                ),
-              ),
+              ProfileNavigationGroup(items: [
+                ProfileNavigationItem(icon: Icons.logout, label: t.signOut,
+                  destructive: true, onTap: () async {
+                    final ok = await confirm(context,
+                      title: t.signOutConfirmTitle, message: t.signOutConfirmBody,
+                      confirmLabel: t.signOut, destructive: true);
+                    if (ok) unawaited(ref.read(sessionProvider.notifier).logout());
+                  }),
+              ]),
             ],
     );
   }

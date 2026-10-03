@@ -1,16 +1,12 @@
 {
-  "screens": 78,
+  "screens": 141,
   "counts": {
-    "frames": 1570,
-    "text": 1083,
-    "icon": 648,
-    "button": 125,
-    "badge": 88,
-    "chip": 64
+    "frames": 2376,
+    "text": 1547,
+    "icon": 958,
+    "button": 209,
+    "badge": 119,
+    "chip": 91
   },
-  "issues": [],
-  "prototypeLinks": 409,
-  "missingTargets": [],
-  "unexpectedCrossRoleLinks": [],
-  "figmaRuntimeVerified": false
+  "issues": []
 }

@@ -41,30 +41,7 @@ class NotificationsScreen extends ConsumerWidget {
 
     return AppScaffold(
       title: t.notificationsTooltip,
-      actions: [
-        if (unread > 0)
-          TextButton(
-            onPressed: () async {
-              final result = await ref
-                  .read(notificationControllerProvider)
-                  .markAllRead();
-              if (result case Err(:final failure) when context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      describeFailure(
-                        AppLocalizations.of(context)!,
-                        failure,
-                      ).message,
-                    ),
-                  ),
-                );
-              }
-            },
-            child: Text(t.markAllReadButton),
-          ),
-        topActions,
-      ],
+      actions: [topActions],
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: Space.maxContentWidth),
@@ -104,6 +81,30 @@ class NotificationsScreen extends ConsumerWidget {
                   Space.xxl,
                 ),
                 children: [
+                  if (unread > 0)
+                    Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: TextButton(
+                        onPressed: () async {
+                          final result = await ref
+                              .read(notificationControllerProvider)
+                              .markAllRead();
+                          if (result case Err(:final failure) when context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  describeFailure(
+                                    AppLocalizations.of(context)!,
+                                    failure,
+                                  ).message,
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                        child: Text(t.markAllReadButton),
+                      ),
+                    ),
                   if (recent.isNotEmpty) ...[
                     SectionHeader(t.last24HoursSection, overline: true),
                     for (final n in recent) _NotificationTile(n),

@@ -1,7 +1,6 @@
 /// Patient profile + settings (P2-17, redesign v2).
 ///
-/// Every section is a collapsible panel — the page opens compact and the
-/// patient expands only what they need.
+/// Identity and photo editing, followed by account and settings destinations.
 library;
 
 import 'dart:async';
@@ -16,6 +15,7 @@ import '../../../core/di.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/profile_navigation.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/feedback.dart';
@@ -51,7 +51,6 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
     final profile = ref.watch(patientProfileProvider);
     final sections = _sections(t);
 
@@ -82,7 +81,7 @@ class ProfileScreen extends ConsumerWidget {
             phone: p.user.phone,
             role: p.user.role.label(context, gender: p.user.gender),
             avatarPath: p.user.avatarPath,
-            avatarSize: 52,
+            avatarSize: 72,
             elevated: false,
             onEditAvatar: () => unawaited(
               showAvatarPhotoSheet(
@@ -93,118 +92,50 @@ class ProfileScreen extends ConsumerWidget {
             ),
           ),
           SectionHeader(t.accountSection, overline: true),
-          ListCard(
-            elevated: false,
-            children: [
-              for (final (icon, title, route) in sections)
-                ListTile(
-                  dense: true,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: Space.md,
-                    vertical: Space.xxs,
-                  ),
-                  leading: Icon(
-                    icon,
-                    size: 20,
-                    color: theme.colorScheme.primary,
-                  ),
-                  title: Text(title, style: theme.textTheme.titleSmall),
-                  trailing: Icon(
-                    Icons.chevron_right,
-                    size: kTrailingChevronSize,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  onTap: () => unawaited(context.push(route)),
-                ),
-              ListTile(
-                dense: true,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: Space.md,
-                  vertical: Space.xxs,
-                ),
-                leading: Icon(
-                  Icons.lock_outline,
-                  size: 20,
-                  color: theme.colorScheme.primary,
-                ),
-                title: Text(
-                  t.changePasswordTitle,
-                  style: theme.textTheme.titleSmall,
-                ),
-                trailing: Icon(
-                  Icons.chevron_right,
-                  size: kTrailingChevronSize,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                onTap: () => unawaited(
-                  _showChangePasswordDialog(context, ref, p.user.id),
-                ),
-              ),
-            ],
-          ),
-
+          ProfileNavigationGroup(items: [
+            ProfileNavigationItem(
+              icon: Icons.photo_camera_outlined,
+              label: t.profilePhotoTitle,
+              onTap: () => unawaited(showAvatarPhotoSheet(context,
+                userId: p.user.id, hasPhoto: p.user.avatarPath != null)),
+            ),
+            for (final (icon, title, route) in sections)
+              ProfileNavigationItem(icon: icon, label: title,
+                onTap: () => unawaited(context.push(route))),
+            ProfileNavigationItem(
+              icon: Icons.lock_outline,
+              label: t.changePasswordTitle,
+              onTap: () => unawaited(_showChangePasswordDialog(context, ref, p.user.id)),
+            ),
+          ]),
           SectionHeader(t.settingsSection, overline: true),
-          // Preferences (text size, notifications) stays its own page.
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () =>
-                  unawaited(context.push(AppRoutes.patientProfilePreferences)),
-              icon: const Icon(Icons.tune),
-              label: Text(t.preferences),
+          ProfileNavigationGroup(items: [
+            ProfileNavigationItem(
+              icon: Icons.tune,
+              label: t.preferences,
+              subtitle: t.preferencesSubtitle,
+              onTap: () => unawaited(context.push(AppRoutes.patientProfilePreferences)),
             ),
-          ),
-
+            ProfileNavigationItem(
+              icon: Icons.forum_outlined,
+              label: t.sendFeedbackTitle,
+              onTap: () => unawaited(showFeedbackSheet(context, ref)),
+            ),
+          ]),
           const SizedBox(height: Space.lg),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: () => unawaited(showFeedbackSheet(context, ref)),
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.brandViolet,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: Space.md),
-                shape: const RoundedRectangleBorder(borderRadius: Radii.button),
-                textStyle: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              icon: const Icon(Icons.forum_outlined),
-              label: Text(t.sendFeedbackTitle),
-            ),
-          ),
-          const SizedBox(height: Space.sm),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: () async {
-                final ok = await confirm(
-                  context,
-                  title: t.signOutConfirmTitle,
-                  message: t.signOutConfirmBody,
-                  confirmLabel: t.signOut,
-                  destructive: true,
-                );
-                if (ok) {
-                  unawaited(ref.read(sessionProvider.notifier).logout());
-                }
+          ProfileNavigationGroup(items: [
+            ProfileNavigationItem(
+              icon: Icons.logout,
+              label: t.signOut,
+              destructive: true,
+              onTap: () async {
+                final ok = await confirm(context,
+                  title: t.signOutConfirmTitle, message: t.signOutConfirmBody,
+                  confirmLabel: t.signOut, destructive: true);
+                if (ok) unawaited(ref.read(sessionProvider.notifier).logout());
               },
-              style: FilledButton.styleFrom(
-                // Fixed to the light scheme's red in both modes — dark mode's
-                // `error` role is a pale pink meant for text-on-surface, not a
-                // button fill, and looked washed out.
-                backgroundColor: AppColors.light.error,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: Space.md),
-                shape: const RoundedRectangleBorder(borderRadius: Radii.button),
-                textStyle: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              icon: const Icon(Icons.logout),
-              label: Text(t.signOut),
             ),
-          ),
+          ]),
         ],
       ),
     );

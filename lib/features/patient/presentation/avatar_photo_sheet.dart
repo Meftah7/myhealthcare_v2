@@ -60,6 +60,11 @@ class _AvatarPhotoSheetState extends ConsumerState<_AvatarPhotoSheet> {
   String? _error;
 
   Future<void> _fromCamera() async {
+    if (_busy) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
     final t = AppLocalizations.of(context)!;
     try {
       final photo = await ImagePicker().pickImage(source: ImageSource.camera);
@@ -67,10 +72,17 @@ class _AvatarPhotoSheetState extends ConsumerState<_AvatarPhotoSheet> {
       await _handleBytes(await photo.readAsBytes(), extension: 'jpg', t: t);
     } catch (_) {
       if (mounted) setState(() => _error = t.photoUploadFailedError);
+    } finally {
+      if (mounted) setState(() => _busy = false);
     }
   }
 
   Future<void> _fromFiles() async {
+    if (_busy) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
     final t = AppLocalizations.of(context)!;
     try {
       final file = await FilePicker.pickFile(type: FileType.image);
@@ -82,6 +94,8 @@ class _AvatarPhotoSheetState extends ConsumerState<_AvatarPhotoSheet> {
       );
     } catch (_) {
       if (mounted) setState(() => _error = t.photoUploadFailedError);
+    } finally {
+      if (mounted) setState(() => _busy = false);
     }
   }
 
@@ -90,6 +104,7 @@ class _AvatarPhotoSheetState extends ConsumerState<_AvatarPhotoSheet> {
     required String extension,
     required AppLocalizations t,
   }) async {
+    if (!mounted) return;
     if (bytes.length > _maxAvatarBytes) {
       setState(() => _error = t.photoTooLargeError);
       return;
@@ -144,6 +159,7 @@ class _AvatarPhotoSheetState extends ConsumerState<_AvatarPhotoSheet> {
   }
 
   Future<void> _remove() async {
+    if (_busy) return;
     setState(() {
       _busy = true;
       _error = null;
@@ -156,7 +172,7 @@ class _AvatarPhotoSheetState extends ConsumerState<_AvatarPhotoSheet> {
     final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     return SafeArea(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(Space.lg),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -165,24 +181,27 @@ class _AvatarPhotoSheetState extends ConsumerState<_AvatarPhotoSheet> {
             Text(t.profilePhotoTitle, style: theme.textTheme.titleLarge),
             const SizedBox(height: Space.md),
             if (_cameraAvailable) ...[
-              NavRow(
-                icon: Icons.photo_camera_outlined,
-                title: t.takePhotoAction,
-                onTap: _busy ? () {} : _fromCamera,
+              OutlinedButton.icon(
+                icon: const Icon(Icons.photo_camera_outlined),
+                label: Text(t.takePhotoAction),
+                onPressed: _busy ? null : _fromCamera,
               ),
               const SizedBox(height: Space.sm),
             ],
-            NavRow(
-              icon: Icons.photo_library_outlined,
-              title: t.choosePhotoAction,
-              onTap: _busy ? () {} : _fromFiles,
+            OutlinedButton.icon(
+              icon: const Icon(Icons.photo_library_outlined),
+              label: Text(t.choosePhotoAction),
+              onPressed: _busy ? null : _fromFiles,
             ),
             if (widget.hasPhoto) ...[
               const SizedBox(height: Space.sm),
-              NavRow(
-                icon: Icons.no_photography_outlined,
-                title: t.removePhotoAction,
-                onTap: _busy ? () {} : _remove,
+              TextButton.icon(
+                icon: const Icon(Icons.no_photography_outlined),
+                label: Text(t.removePhotoAction),
+                style: TextButton.styleFrom(
+                  foregroundColor: theme.colorScheme.error,
+                ),
+                onPressed: _busy ? null : _remove,
               ),
             ],
             if (_error != null) ...[

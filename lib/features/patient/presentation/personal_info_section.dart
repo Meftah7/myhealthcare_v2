@@ -205,6 +205,7 @@ class _PersonalInfoSectionState extends ConsumerState<PersonalInfoSection> {
           ],
           decoration: InputDecoration(
             labelText: t.cprLabel,
+            suffixIcon: const Icon(Icons.lock_outline),
             helperText: t.cprDigitsHelper(_cpr.text.length),
             errorText: _cprError,
           ),
@@ -240,7 +241,10 @@ class _PersonalInfoSectionState extends ConsumerState<PersonalInfoSection> {
           controller: _email,
           readOnly: true,
           keyboardType: TextInputType.emailAddress,
-          decoration: InputDecoration(labelText: t.emailLabel),
+          decoration: InputDecoration(
+            labelText: t.emailLabel,
+            suffixIcon: const Icon(Icons.lock_outline),
+          ),
         ),
         const SizedBox(height: Space.md),
         Row(

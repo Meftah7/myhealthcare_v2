@@ -22,6 +22,7 @@ abstract final class Space {
 
   /// Widest a reading column is allowed to grow before it is centred (§6).
   static const double maxContentWidth = 1120;
+  static const double maxFormWidth = 720;
 }
 
 /// Corner radii (DESIGN.md §4.2). No fully-circular buttons — they waste

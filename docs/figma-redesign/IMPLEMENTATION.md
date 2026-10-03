@@ -1,6 +1,24 @@
 # Flutter design integration
 
-The supplied design is integrated into the existing Flutter app through shared tokens, headers, navigation, cards, forms, shortcuts, and state views. The table maps all 78 reference frames to their executable Flutter surfaces; some frames are steps, sheets, dialogs, or states within a screen rather than separate routes.
+The approved visual direction is implemented through the app's shared theme, navigation, cards, headers and forms. On 3 October 2026, the source-level audit was followed by another UI upgrade and expansion of the local reference from 78 to 141 frames. Existing business workflows remain in their mapped Flutter screens, sheets and dialogs; reference coverage is not a claim of pixel-perfect parity or runtime verification.
+
+## Current upgrade
+
+- Patient, staff and admin Profile use the same grouped destination rows. Patient photo editing has an explicit menu entry and an accessible camera action; unreadable photos fall back to initials. Photo selection remains device-local, with actual disabled busy controls and a scrollable sheet.
+- Preferences keeps working theme, language, five text sizes, motion, contrast, notification/sound and reset controls. Labels are consistent and the text-size slider exposes meaningful spoken values.
+- Personal information marks immutable email and National ID fields with lock icons. Account/detail forms across roles have a 720dp reading width.
+- Payments puts open invoices and the amount owed before history. Wallet funds, top-up and saved cards load independently of invoice success; invoice failure no longer hides those controls.
+- Health Records moves document tools into a sheet while preserving the allergy warning above its filters. Staff task prioritisation and notifications' mark-all-read actions move out of crowded app bars.
+- Admin Dashboard adds direct Analytics, Forecast, AI Activity and Audit destinations without displacing its attention queue.
+- The local preview now shows missing profile, family, billing, clinical, scheduling, session, notification and admin workflows. Authenticated password changes and staff/admin profile links point to the correct review destinations.
+
+## Current verification
+
+- All 141 local frames pass Chromium geometry checks; all 821 linked review targets resolve.
+- Changed Dart files pass a tree-sitter syntax check. Referenced localization keys and route constants were checked against project declarations; these checks do not replace Dart analysis.
+- Added three widget regression cases in `test/features/profile_billing_upgrade_test.dart`: malformed photo fallback/edit accessibility, invoice failure preserving wallet/cards, and invoice loading preserving wallet access. Profile navigation tests now scroll to Preferences before tapping.
+- `flutter analyze` cannot run: `flutter: command not found`. New and existing tests, builds and live app checks were **not run for this upgrade**. Flutter-enabled validation must include 320–1440dp layouts, 200% text, Arabic RTL, light/dark/high contrast, keyboard access and permission/mutation failure cases.
+- The expanded local board and plugin bundle have not been written to the remote Figma file. The remote file retains its original 56 frames.
 
 ## Integration decisions
 
@@ -11,14 +29,18 @@ The supplied design is integrated into the existing Flutter app through shared t
 - Keep confirmations and edits in responsive sheets/dialogs where that preserves the existing app workflow. User, department, invoice, referral, and ownership edits retain their existing persistence and permission checks.
 - On desktop, the 248dp sidebar and existing dashboard columns/list-detail workspaces provide the wide versions. Extra clinical and operations features remain reachable.
 
-## Validation
+## Historical validation of the first integration
 
-- Release web build passes with the Pages base path and locally bundled web resources.
-- All 48 focused checks pass in one combined run, covering accessibility/contrast, responsive layouts through 200% text size, English/Arabic headers, recovery, booking, nutrition, and task update failures.
-- Project analysis reports no errors or warnings; existing informational style findings remain.
-- Browser review covers synthetic demo accounts. The source mapping is coverage evidence, not a claim that every individual frame has a screenshot baseline.
+The following results were recorded before this upgrade. They have not been re-run for the current changes.
 
-## Screen mapping
+- Release web build passed with the Pages base path and locally bundled web resources.
+- All 48 focused checks passed in one combined run, covering accessibility/contrast, responsive layouts through 200% text size, English/Arabic headers, recovery, booking, nutrition, and task update failures.
+- Project analysis reported no errors or warnings; existing informational style findings remain.
+- Browser review covered synthetic demo accounts. The source mapping is coverage evidence, not a claim that every individual frame has a screenshot baseline.
+
+## Current screen mapping
+
+Some entries share a source because they describe a dialog, embedded view or state of one route.
 
 | Reference | Flutter implementation |
 | --- | --- |
@@ -100,3 +122,66 @@ The supplied design is integrated into the existing Flutter app through shared t
 | p-desktop — 31 · Desktop / patient overview | [lib/features/patient_home/presentation/patient_home_screen.dart](../../lib/features/patient_home/presentation/patient_home_screen.dart) |
 | s-desktop — 14 · Desktop / staff workspace | [lib/features/staff_dashboard/presentation/staff_patients_screen.dart](../../lib/features/staff_dashboard/presentation/staff_patients_screen.dart) |
 | a-desktop — 22 · Desktop / admin work queue | [lib/features/admin/presentation/admin_work_queue_screen.dart](../../lib/features/admin/presentation/admin_work_queue_screen.dart) |
+| auth-onboarding-1 — Added · Welcome to MyHealth Care | [lib/features/auth/presentation/onboarding_overlay.dart](../../lib/features/auth/presentation/onboarding_overlay.dart) |
+| auth-onboarding-2 — Added · Your care team | [lib/features/auth/presentation/onboarding_overlay.dart](../../lib/features/auth/presentation/onboarding_overlay.dart) |
+| auth-onboarding-3 — Added · Make it comfortable | [lib/features/auth/presentation/onboarding_overlay.dart](../../lib/features/auth/presentation/onboarding_overlay.dart) |
+| auth-session — Added · Still there? | [lib/features/auth/presentation/session_activity_monitor.dart](../../lib/features/auth/presentation/session_activity_monitor.dart) |
+| auth-reauth — Added · Confirm your password | [lib/features/auth/presentation/reauth_prompt.dart](../../lib/features/auth/presentation/reauth_prompt.dart) |
+| p-photo — Added · Profile photo | [lib/features/patient/presentation/avatar_photo_sheet.dart](../../lib/features/patient/presentation/avatar_photo_sheet.dart) |
+| p-photo-error — Added · Photo could not be saved | [lib/features/patient/presentation/avatar_photo_sheet.dart](../../lib/features/patient/presentation/avatar_photo_sheet.dart) |
+| p-password — Added · Change password | [lib/features/patient/application/profile_screen.dart](../../lib/features/patient/application/profile_screen.dart) |
+| p-feedback — Added · Send feedback | [lib/features/feedback/presentation/feedback_sheet.dart](../../lib/features/feedback/presentation/feedback_sheet.dart) |
+| p-visited — Added · Visited doctors | [lib/features/patient/presentation/visited_doctors_screen.dart](../../lib/features/patient/presentation/visited_doctors_screen.dart) |
+| p-imaging — Added · Imaging results | [lib/features/records/presentation/radiology_screen.dart](../../lib/features/records/presentation/radiology_screen.dart) |
+| p-allergies — Added · Allergies | [lib/features/patient/presentation/allergies_screen.dart](../../lib/features/patient/presentation/allergies_screen.dart) |
+| p-sickleave — Added · Sick leave certificates | [lib/features/care/presentation/sick_leave_screen.dart](../../lib/features/care/presentation/sick_leave_screen.dart) |
+| p-summary — Added · Health summary | [lib/features/ai_summary/presentation/ai_summary_screen.dart](../../lib/features/ai_summary/presentation/ai_summary_screen.dart) |
+| p-assistant — Added · Care Navigator | [lib/features/ai_chat/presentation/care_navigator_panel.dart](../../lib/features/ai_chat/presentation/care_navigator_panel.dart) |
+| p-topup — Added · Top up wallet | [lib/features/billing/presentation/wallet_topup_sheet.dart](../../lib/features/billing/presentation/wallet_topup_sheet.dart) |
+| p-methods — Added · Payment methods | [lib/features/billing/presentation/payment_methods_section.dart](../../lib/features/billing/presentation/payment_methods_section.dart) |
+| p-card-add — Added · Add payment card | [lib/features/billing/presentation/payment_methods_section.dart](../../lib/features/billing/presentation/payment_methods_section.dart) |
+| p-pay-history — Added · Transaction history | [lib/features/billing/presentation/payment_history.dart](../../lib/features/billing/presentation/payment_history.dart) |
+| p-family-member — Added · Family member | [lib/features/patient/presentation/family_network_section.dart](../../lib/features/patient/presentation/family_network_section.dart) |
+| p-family-request — Added · Request account access | [lib/features/patient/presentation/linked_family_accounts_section.dart](../../lib/features/patient/presentation/linked_family_accounts_section.dart) |
+| p-family-consent — Added · Review access request | [lib/features/patient/presentation/linked_family_accounts_section.dart](../../lib/features/patient/presentation/linked_family_accounts_section.dart) |
+| p-family-revoke — Added · Who has access to me | [lib/features/patient/presentation/linked_family_accounts_section.dart](../../lib/features/patient/presentation/linked_family_accounts_section.dart) |
+| p-linked-manage — Added · Manage linked account | [lib/features/patient/presentation/linked_account_screen.dart](../../lib/features/patient/presentation/linked_account_screen.dart) |
+| p-reschedule — Added · Reschedule appointment | [lib/features/appointments/presentation/slot_picker_sheet.dart](../../lib/features/appointments/presentation/slot_picker_sheet.dart) |
+| p-no-slots — Added · No available times | [lib/features/booking/presentation/booking_screen.dart](../../lib/features/booking/presentation/booking_screen.dart) |
+| p-booking-conflict — Added · That time is no longer available | [lib/features/booking/presentation/booking_screen.dart](../../lib/features/booking/presentation/booking_screen.dart) |
+| p-homevisits-history — Added · Home care requests | [lib/features/care/presentation/home_visit_screen.dart](../../lib/features/care/presentation/home_visit_screen.dart) |
+| p-notifications — Added · Notifications | [lib/features/notifications/presentation/notifications_screen.dart](../../lib/features/notifications/presentation/notifications_screen.dart) |
+| p-reset-prefs — Added · Reset preferences | [lib/features/settings/presentation/preferences_section.dart](../../lib/features/settings/presentation/preferences_section.dart) |
+| s-notifications — Added · Notifications | [lib/features/notifications/presentation/notifications_screen.dart](../../lib/features/notifications/presentation/notifications_screen.dart) |
+| s-reset-prefs — Added · Reset preferences | [lib/features/settings/presentation/preferences_section.dart](../../lib/features/settings/presentation/preferences_section.dart) |
+| a-notifications — Added · Notifications | [lib/features/notifications/presentation/notifications_screen.dart](../../lib/features/notifications/presentation/notifications_screen.dart) |
+| a-reset-prefs — Added · Reset preferences | [lib/features/settings/presentation/preferences_section.dart](../../lib/features/settings/presentation/preferences_section.dart) |
+| s-account — Added · Staff account | [lib/features/staff_dashboard/presentation/staff_profile_pages.dart](../../lib/features/staff_dashboard/presentation/staff_profile_pages.dart) |
+| s-activity — Added · My activity | [lib/features/staff_dashboard/presentation/staff_activity_screen.dart](../../lib/features/staff_dashboard/presentation/staff_activity_screen.dart) |
+| s-directory — Added · Staff directory | [lib/features/staff_dashboard/presentation/staff_directory_screen.dart](../../lib/features/staff_dashboard/presentation/staff_directory_screen.dart) |
+| s-analytics — Added · Panel analytics | [lib/features/staff_dashboard/presentation/panel_analytics_screen.dart](../../lib/features/staff_dashboard/presentation/panel_analytics_screen.dart) |
+| s-tools — Added · Clinical actions | [lib/features/staff_dashboard/presentation/staff_quick_actions.dart](../../lib/features/staff_dashboard/presentation/staff_quick_actions.dart) |
+| s-summary — Added · Patient summary | [lib/features/patient_chart/presentation/patient_summary_screen.dart](../../lib/features/patient_chart/presentation/patient_summary_screen.dart) |
+| s-scribe — Added · Clinical scribe | [lib/features/ai_scribe/presentation/clinical_scribe_screen.dart](../../lib/features/ai_scribe/presentation/clinical_scribe_screen.dart) |
+| s-note — Added · New clinical note | [lib/features/patient_chart/presentation/chart_write_sheets.dart](../../lib/features/patient_chart/presentation/chart_write_sheets.dart) |
+| s-prescribe — Added · Medication order | [lib/features/patient_chart/presentation/chart_write_sheets.dart](../../lib/features/patient_chart/presentation/chart_write_sheets.dart) |
+| s-lab-entry — Added · Enter lab result | [lib/features/patient_chart/presentation/chart_write_sheets.dart](../../lib/features/patient_chart/presentation/chart_write_sheets.dart) |
+| s-transfer — Added · Transfer visit | [lib/features/staff_dashboard/presentation/staff_quick_actions.dart](../../lib/features/staff_dashboard/presentation/staff_quick_actions.dart) |
+| s-calendar-month — Added · Month schedule | [lib/features/staff_dashboard/presentation/staff_schedule_screen.dart](../../lib/features/staff_dashboard/presentation/staff_schedule_screen.dart) |
+| s-calendar-year — Added · Year schedule | [lib/features/staff_dashboard/presentation/staff_schedule_screen.dart](../../lib/features/staff_dashboard/presentation/staff_schedule_screen.dart) |
+| s-feedback — Added · Send feedback | [lib/features/feedback/presentation/feedback_sheet.dart](../../lib/features/feedback/presentation/feedback_sheet.dart) |
+| s-access-denied — Added · Patient access unavailable | [lib/features/patient_chart/presentation/patient_chart_screen.dart](../../lib/features/patient_chart/presentation/patient_chart_screen.dart) |
+| s-conflict — Added · The chart changed | [lib/features/consultation/presentation/consultation_screen.dart](../../lib/features/consultation/presentation/consultation_screen.dart) |
+| a-account — Added · Administrator account | [lib/features/admin/presentation/admin_profile_pages.dart](../../lib/features/admin/presentation/admin_profile_pages.dart) |
+| a-forecast — Added · Capacity forecast | [lib/features/admin/presentation/admin_forecast_screen.dart](../../lib/features/admin/presentation/admin_forecast_screen.dart) |
+| a-ai-log — Added · AI activity | [lib/features/admin/presentation/admin_ai_log_screen.dart](../../lib/features/admin/presentation/admin_ai_log_screen.dart) |
+| a-appointments — Added · All appointments | [lib/features/admin/presentation/admin_appointments_screen.dart](../../lib/features/admin/presentation/admin_appointments_screen.dart) |
+| a-feedback — Added · Feedback queue | [lib/features/admin/presentation/admin_feedback_screen.dart](../../lib/features/admin/presentation/admin_feedback_screen.dart) |
+| a-create-patient — Added · Create patient account | [lib/features/admin/presentation/user_management_screen.dart](../../lib/features/admin/presentation/user_management_screen.dart) |
+| a-broadcast — Added · Send announcement | [lib/features/admin/presentation/admin_quick_actions.dart](../../lib/features/admin/presentation/admin_quick_actions.dart) |
+| a-create-invoice — Added · Create invoice | [lib/features/admin/presentation/admin_quick_actions.dart](../../lib/features/admin/presentation/admin_quick_actions.dart) |
+| a-staff-schedule — Added · Clinician schedule | [lib/features/admin/presentation/user_management_screen.dart](../../lib/features/admin/presentation/user_management_screen.dart) |
+| a-book-patient — Added · Book for patient | [lib/features/admin/presentation/user_management_screen.dart](../../lib/features/admin/presentation/user_management_screen.dart) |
+| a-refer-patient — Added · Refer patient | [lib/features/admin/presentation/user_management_screen.dart](../../lib/features/admin/presentation/user_management_screen.dart) |
+| a-refund — Added · Refund settled payment | [lib/features/admin/presentation/admin_billing_screen.dart](../../lib/features/admin/presentation/admin_billing_screen.dart) |
+| a-reconcile — Added · Check pending payments | [lib/features/admin/presentation/admin_billing_screen.dart](../../lib/features/admin/presentation/admin_billing_screen.dart) |

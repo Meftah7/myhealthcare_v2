@@ -81,7 +81,8 @@ void main() {
     expect(find.widgetWithText(TextField, 'First name'), findsNothing);
 
     // Open Preferences → its own page with the theme picker, a text-size
-    // slider, and the alert channels (SMS + Email, no Push), plus a back button.
+    // slider, alert channel availability and a back button.
+    await tester.ensureVisible(find.text('Preferences'));
     await tester.tap(find.text('Preferences'));
     await _settle(tester);
     expect(find.widgetWithText(AppBar, 'Preferences'), findsOneWidget);
@@ -90,6 +91,7 @@ void main() {
     expect(find.byType(Slider), findsOneWidget);
     expect(find.widgetWithText(SwitchListTile, 'SMS'), findsOneWidget);
     expect(find.widgetWithText(SwitchListTile, 'Email'), findsOneWidget);
+    expect(find.widgetWithText(SwitchListTile, 'Browser alerts'), findsOneWidget);
     expect(find.widgetWithText(SwitchListTile, 'Push'), findsNothing);
     expect(find.byType(BackButton), findsOneWidget);
     await tester.tap(find.byType(BackButton));
@@ -160,6 +162,7 @@ void main() {
 
     await tester.tap(find.text('Profile').last);
     await _settle(tester);
+    await tester.ensureVisible(find.text('Preferences'));
     await tester.tap(find.text('Preferences'));
     await _settle(tester);
 

@@ -1,6 +1,6 @@
 {
   "reference": "design.js",
-  "screenCount": 78,
+  "screenCount": 141,
   "shared": [
     "lib/app/theme/",
     "lib/app/shell/app_shell.dart",
@@ -12,393 +12,708 @@
   "screens": [
     {
       "id": "auth-login",
-      "name": "01 · Sign in",
+      "name": "01 \u00b7 Sign in",
       "source": "lib/features/auth/presentation/login_screen.dart"
     },
     {
       "id": "auth-register-1",
-      "name": "02 · Register / account",
+      "name": "02 \u00b7 Register / account",
       "source": "lib/features/auth/presentation/register_screen.dart"
     },
     {
       "id": "auth-register-2",
-      "name": "03 · Register / details",
+      "name": "03 \u00b7 Register / details",
       "source": "lib/features/auth/presentation/register_screen.dart"
     },
     {
       "id": "auth-register-3",
-      "name": "04 · Register / health",
+      "name": "04 \u00b7 Register / health",
       "source": "lib/features/auth/presentation/register_screen.dart"
     },
     {
       "id": "auth-recover",
-      "name": "05 · Recovery / identify",
+      "name": "05 \u00b7 Recovery / identify",
       "source": "lib/features/auth/presentation/forgot_password_screen.dart"
     },
     {
       "id": "auth-code",
-      "name": "06 · Recovery / verification",
+      "name": "06 \u00b7 Recovery / verification",
       "source": "lib/features/auth/presentation/forgot_password_screen.dart"
     },
     {
       "id": "auth-password",
-      "name": "07 · Recovery / new password",
+      "name": "07 \u00b7 Recovery / new password",
       "source": "lib/features/auth/presentation/forgot_password_screen.dart"
     },
     {
       "id": "auth-success",
-      "name": "08 · Recovery / complete",
+      "name": "08 \u00b7 Recovery / complete",
       "source": "lib/features/auth/presentation/forgot_password_screen.dart"
     },
     {
       "id": "auth-help",
-      "name": "09 · Recovery / assisted",
+      "name": "09 \u00b7 Recovery / assisted",
       "source": "lib/features/auth/presentation/forgot_password_screen.dart"
     },
     {
       "id": "p-home",
-      "name": "01 · Home",
+      "name": "01 \u00b7 Home",
       "source": "lib/features/patient_home/presentation/patient_home_screen.dart"
     },
     {
       "id": "p-appointments",
-      "name": "02 · Appointments",
+      "name": "02 \u00b7 Appointments",
       "source": "lib/features/appointments/presentation/appointments_screen.dart"
     },
     {
       "id": "p-ticket",
-      "name": "03 · Appointment ticket",
+      "name": "03 \u00b7 Appointment ticket",
       "source": "lib/features/appointments/presentation/appointment_detail_screen.dart"
     },
     {
       "id": "p-booking",
-      "name": "04 · Book / choose",
+      "name": "04 \u00b7 Book / choose",
       "source": "lib/features/booking/presentation/booking_screen.dart"
     },
     {
       "id": "p-slot",
-      "name": "05 · Book / time",
+      "name": "05 \u00b7 Book / time",
       "source": "lib/features/booking/presentation/booking_screen.dart"
     },
     {
       "id": "p-review",
-      "name": "06 · Book / review",
+      "name": "06 \u00b7 Book / review",
       "source": "lib/features/booking/presentation/booking_screen.dart"
     },
     {
       "id": "p-confirmed",
-      "name": "07 · Book / success",
+      "name": "07 \u00b7 Book / success",
       "source": "lib/features/appointments/presentation/appointment_detail_screen.dart"
     },
     {
       "id": "p-cancel",
-      "name": "08 · Appointment / cancel",
+      "name": "08 \u00b7 Appointment / cancel",
       "source": "lib/features/appointments/presentation/appointments_screen.dart"
     },
     {
       "id": "p-records",
-      "name": "09 · Health records",
+      "name": "09 \u00b7 Health records",
       "source": "lib/features/timeline/presentation/health_records_screen.dart"
     },
     {
       "id": "p-result",
-      "name": "10 · Lab result detail",
+      "name": "10 \u00b7 Lab result detail",
       "source": "lib/features/records/presentation/record_detail_screen.dart"
     },
     {
       "id": "p-medications",
-      "name": "11 · Medications",
+      "name": "11 \u00b7 Medications",
       "source": "lib/features/records/presentation/medications_screen.dart"
     },
     {
       "id": "p-vitals",
-      "name": "12 · Vital signs",
+      "name": "12 \u00b7 Vital signs",
       "source": "lib/features/vitals/presentation/vitals_screen.dart"
     },
     {
       "id": "p-import",
-      "name": "13 · Import record",
+      "name": "13 \u00b7 Import record",
       "source": "lib/features/timeline/presentation/import_record_sheet.dart"
     },
     {
       "id": "p-nutrition",
-      "name": "14 · Nutrition overview",
+      "name": "14 \u00b7 Nutrition overview",
       "source": "lib/features/nutrition/presentation/nutrition_screen.dart"
     },
     {
       "id": "p-nutrition-edit",
-      "name": "15 · Nutrition / inputs",
+      "name": "15 \u00b7 Nutrition / inputs",
       "source": "lib/features/nutrition/presentation/nutrition_screen.dart"
     },
     {
       "id": "p-foods",
-      "name": "16 · Nutrition / foods",
+      "name": "16 \u00b7 Nutrition / foods",
       "source": "lib/features/nutrition/presentation/nutrition_screen.dart"
     },
     {
       "id": "p-profile",
-      "name": "17 · Profile",
+      "name": "17 \u00b7 Profile",
       "source": "lib/features/patient/application/profile_screen.dart"
     },
     {
       "id": "p-personal",
-      "name": "18 · Personal information",
+      "name": "18 \u00b7 Personal information",
       "source": "lib/features/patient/presentation/personal_info_section.dart"
     },
     {
       "id": "p-health",
-      "name": "19 · Health details",
+      "name": "19 \u00b7 Health details",
       "source": "lib/features/patient/presentation/health_details_section.dart"
     },
     {
       "id": "p-family",
-      "name": "20 · Family access",
+      "name": "20 \u00b7 Family access",
       "source": "lib/features/patient/presentation/family_network_section.dart"
     },
     {
       "id": "p-linked",
-      "name": "21 · Linked account",
+      "name": "21 \u00b7 Linked account",
       "source": "lib/features/patient/presentation/linked_account_screen.dart"
     },
     {
       "id": "p-preferences",
-      "name": "22 · Preferences",
+      "name": "22 \u00b7 Preferences",
       "source": "lib/features/settings/presentation/preferences_section.dart"
     },
     {
       "id": "p-payments",
-      "name": "23 · Payments overview",
+      "name": "23 \u00b7 Payments overview",
       "source": "lib/features/billing/presentation/payments_screen.dart"
     },
     {
       "id": "p-pay",
-      "name": "24 · Pay invoice",
+      "name": "24 \u00b7 Pay invoice",
       "source": "lib/features/billing/presentation/pay_invoice_sheet.dart"
     },
     {
       "id": "p-payment-pending",
-      "name": "25 · Payment pending",
+      "name": "25 \u00b7 Payment pending",
       "source": "lib/features/billing/presentation/pay_invoice_sheet.dart"
     },
     {
       "id": "p-messages",
-      "name": "26 · Care messages",
+      "name": "26 \u00b7 Care messages",
       "source": "lib/features/care/presentation/messages_screen.dart"
     },
     {
       "id": "p-thread",
-      "name": "27 · Message thread",
+      "name": "27 \u00b7 Message thread",
       "source": "lib/features/care/presentation/message_thread_screen.dart"
     },
     {
       "id": "p-homevisit",
-      "name": "28 · Home care request",
+      "name": "28 \u00b7 Home care request",
       "source": "lib/features/care/presentation/home_visit_screen.dart"
     },
     {
       "id": "s-home",
-      "name": "01 · Dashboard",
+      "name": "01 \u00b7 Dashboard",
       "source": "lib/features/staff_dashboard/presentation/staff_dashboard_screen.dart"
     },
     {
       "id": "s-patients",
-      "name": "02 · Patients",
+      "name": "02 \u00b7 Patients",
       "source": "lib/features/staff_dashboard/presentation/staff_patients_screen.dart"
     },
     {
       "id": "s-chart",
-      "name": "03 · Patient chart",
+      "name": "03 \u00b7 Patient chart",
       "source": "lib/features/patient_chart/presentation/patient_chart_screen.dart"
     },
     {
       "id": "s-consultation",
-      "name": "04 · Consultation",
+      "name": "04 \u00b7 Consultation",
       "source": "lib/features/consultation/presentation/consultation_screen.dart"
     },
     {
       "id": "s-referral",
-      "name": "04b · Create referral",
+      "name": "04b \u00b7 Create referral",
       "source": "lib/features/consultation/presentation/consultation_screen.dart"
     },
     {
       "id": "s-signed",
-      "name": "05 · Consultation signed",
+      "name": "05 \u00b7 Consultation signed",
       "source": "lib/features/consultation/presentation/consultation_screen.dart"
     },
     {
       "id": "s-result",
-      "name": "06 · Result review",
+      "name": "06 \u00b7 Result review",
       "source": "lib/features/patient_chart/presentation/result_review_sheet.dart"
     },
     {
       "id": "s-handover",
-      "name": "06b · Handover / escalate",
+      "name": "06b \u00b7 Handover / escalate",
       "source": "lib/features/patient_chart/presentation/result_review_sheet.dart"
     },
     {
       "id": "s-tasks",
-      "name": "07 · Task board",
+      "name": "07 \u00b7 Task board",
       "source": "lib/features/tasks/presentation/task_board_screen.dart"
     },
     {
       "id": "s-schedule",
-      "name": "08 · Schedule",
+      "name": "08 \u00b7 Schedule",
       "source": "lib/features/staff_dashboard/presentation/staff_schedule_screen.dart"
     },
     {
       "id": "s-inbox",
-      "name": "09 · Staff inbox",
+      "name": "09 \u00b7 Staff inbox",
       "source": "lib/features/care/presentation/staff_inbox_screen.dart"
     },
     {
       "id": "s-thread",
-      "name": "10 · Covered thread",
+      "name": "10 \u00b7 Covered thread",
       "source": "lib/features/care/presentation/message_thread_screen.dart"
     },
     {
       "id": "s-profile",
-      "name": "11 · Staff profile",
+      "name": "11 \u00b7 Staff profile",
       "source": "lib/features/staff_dashboard/presentation/staff_profile_screen.dart"
     },
     {
       "id": "s-preferences",
-      "name": "12 · Staff preferences",
+      "name": "12 \u00b7 Staff preferences",
       "source": "lib/features/settings/presentation/preferences_section.dart"
     },
     {
       "id": "a-home",
-      "name": "01 · Dashboard",
+      "name": "01 \u00b7 Dashboard",
       "source": "lib/features/admin/presentation/admin_dashboard_screen.dart"
     },
     {
       "id": "a-work",
-      "name": "02 · Work queue",
+      "name": "02 \u00b7 Work queue",
       "source": "lib/features/admin/presentation/admin_work_queue_screen.dart"
     },
     {
       "id": "a-assign",
-      "name": "03 · Assign work",
+      "name": "03 \u00b7 Assign work",
       "source": "lib/features/admin/presentation/admin_work_queue_screen.dart"
     },
     {
       "id": "a-users",
-      "name": "04 · User directory",
+      "name": "04 \u00b7 User directory",
       "source": "lib/features/admin/presentation/user_management_screen.dart"
     },
     {
       "id": "a-user",
-      "name": "05 · Staff account",
+      "name": "05 \u00b7 Staff account",
       "source": "lib/features/admin/presentation/user_management_screen.dart"
     },
     {
       "id": "a-create",
-      "name": "06 · Create staff",
+      "name": "06 \u00b7 Create staff",
       "source": "lib/features/admin/presentation/user_management_screen.dart"
     },
     {
       "id": "a-departments",
-      "name": "07 · Departments",
+      "name": "07 \u00b7 Departments",
       "source": "lib/features/admin/presentation/departments_screen.dart"
     },
     {
       "id": "a-department",
-      "name": "08 · Edit department",
+      "name": "08 \u00b7 Edit department",
       "source": "lib/features/admin/presentation/departments_screen.dart"
     },
     {
       "id": "a-billing",
-      "name": "09 · Billing overview",
+      "name": "09 \u00b7 Billing overview",
       "source": "lib/features/admin/presentation/admin_billing_screen.dart"
     },
     {
       "id": "a-invoice",
-      "name": "10 · Invoice & ledger",
+      "name": "10 \u00b7 Invoice & ledger",
       "source": "lib/features/admin/presentation/admin_billing_screen.dart"
     },
     {
       "id": "a-desk",
-      "name": "11 · Desk payment",
+      "name": "11 \u00b7 Desk payment",
       "source": "lib/features/admin/presentation/admin_billing_screen.dart"
     },
     {
       "id": "a-referrals",
-      "name": "12 · Referral requests",
+      "name": "12 \u00b7 Referral requests",
       "source": "lib/features/admin/presentation/admin_referral_requests_screen.dart"
     },
     {
       "id": "a-referral",
-      "name": "13 · Review referral",
+      "name": "13 \u00b7 Review referral",
       "source": "lib/features/admin/presentation/admin_referral_requests_screen.dart"
     },
     {
       "id": "a-homevisits",
-      "name": "14 · Home visit queue",
+      "name": "14 \u00b7 Home visit queue",
       "source": "lib/features/care/presentation/admin_home_visits_screen.dart"
     },
     {
       "id": "a-profile",
-      "name": "15 · Admin profile",
+      "name": "15 \u00b7 Admin profile",
       "source": "lib/features/admin/presentation/admin_profile_screen.dart"
     },
     {
       "id": "a-analytics",
-      "name": "16 · Analytics",
+      "name": "16 \u00b7 Analytics",
       "source": "lib/features/admin/presentation/system_analytics_screen.dart"
     },
     {
       "id": "a-audit",
-      "name": "17 · Audit log",
+      "name": "17 \u00b7 Audit log",
       "source": "lib/features/admin/presentation/audit_log_screen.dart"
     },
     {
       "id": "a-hours",
-      "name": "18 · Clinic hours",
+      "name": "18 \u00b7 Clinic hours",
       "source": "lib/features/admin/presentation/clinic_hours_screen.dart"
     },
     {
       "id": "a-ai",
-      "name": "19 · AI settings",
+      "name": "19 \u00b7 AI settings",
       "source": "lib/features/admin/presentation/ai_settings_screen.dart"
     },
     {
       "id": "a-preferences",
-      "name": "20 · Admin preferences",
+      "name": "20 \u00b7 Admin preferences",
       "source": "lib/features/settings/presentation/preferences_section.dart"
     },
     {
       "id": "p-empty",
-      "name": "29 · State / no appointments",
+      "name": "29 \u00b7 State / no appointments",
       "source": "lib/features/appointments/presentation/appointments_screen.dart"
     },
     {
       "id": "p-error",
-      "name": "30 · State / wallet failure",
+      "name": "30 \u00b7 State / wallet failure",
       "source": "lib/features/billing/presentation/payments_screen.dart"
     },
     {
       "id": "s-error",
-      "name": "13 · State / save failure",
+      "name": "13 \u00b7 State / save failure",
       "source": "lib/features/consultation/presentation/consultation_screen.dart"
     },
     {
       "id": "a-error",
-      "name": "21 · State / queue failure",
+      "name": "21 \u00b7 State / queue failure",
       "source": "lib/features/admin/presentation/admin_work_queue_screen.dart"
     },
     {
       "id": "p-desktop",
-      "name": "31 · Desktop / patient overview",
+      "name": "31 \u00b7 Desktop / patient overview",
       "source": "lib/features/patient_home/presentation/patient_home_screen.dart"
     },
     {
       "id": "s-desktop",
-      "name": "14 · Desktop / staff workspace",
+      "name": "14 \u00b7 Desktop / staff workspace",
       "source": "lib/features/staff_dashboard/presentation/staff_patients_screen.dart"
     },
     {
       "id": "a-desktop",
-      "name": "22 · Desktop / admin work queue",
+      "name": "22 \u00b7 Desktop / admin work queue",
       "source": "lib/features/admin/presentation/admin_work_queue_screen.dart"
+    },
+    {
+      "id": "auth-onboarding-1",
+      "name": "Added \u00b7 Welcome to MyHealth Care",
+      "source": "lib/features/auth/presentation/onboarding_overlay.dart"
+    },
+    {
+      "id": "auth-onboarding-2",
+      "name": "Added \u00b7 Your care team",
+      "source": "lib/features/auth/presentation/onboarding_overlay.dart"
+    },
+    {
+      "id": "auth-onboarding-3",
+      "name": "Added \u00b7 Make it comfortable",
+      "source": "lib/features/auth/presentation/onboarding_overlay.dart"
+    },
+    {
+      "id": "auth-session",
+      "name": "Added \u00b7 Still there?",
+      "source": "lib/features/auth/presentation/session_activity_monitor.dart"
+    },
+    {
+      "id": "auth-reauth",
+      "name": "Added \u00b7 Confirm your password",
+      "source": "lib/features/auth/presentation/reauth_prompt.dart"
+    },
+    {
+      "id": "p-photo",
+      "name": "Added \u00b7 Profile photo",
+      "source": "lib/features/patient/presentation/avatar_photo_sheet.dart"
+    },
+    {
+      "id": "p-photo-error",
+      "name": "Added \u00b7 Photo could not be saved",
+      "source": "lib/features/patient/presentation/avatar_photo_sheet.dart"
+    },
+    {
+      "id": "p-password",
+      "name": "Added \u00b7 Change password",
+      "source": "lib/features/patient/application/profile_screen.dart"
+    },
+    {
+      "id": "p-feedback",
+      "name": "Added \u00b7 Send feedback",
+      "source": "lib/features/feedback/presentation/feedback_sheet.dart"
+    },
+    {
+      "id": "p-visited",
+      "name": "Added \u00b7 Visited doctors",
+      "source": "lib/features/patient/presentation/visited_doctors_screen.dart"
+    },
+    {
+      "id": "p-imaging",
+      "name": "Added \u00b7 Imaging results",
+      "source": "lib/features/records/presentation/radiology_screen.dart"
+    },
+    {
+      "id": "p-allergies",
+      "name": "Added \u00b7 Allergies",
+      "source": "lib/features/patient/presentation/allergies_screen.dart"
+    },
+    {
+      "id": "p-sickleave",
+      "name": "Added \u00b7 Sick leave certificates",
+      "source": "lib/features/care/presentation/sick_leave_screen.dart"
+    },
+    {
+      "id": "p-summary",
+      "name": "Added \u00b7 Health summary",
+      "source": "lib/features/ai_summary/presentation/ai_summary_screen.dart"
+    },
+    {
+      "id": "p-assistant",
+      "name": "Added \u00b7 Care Navigator",
+      "source": "lib/features/ai_chat/presentation/care_navigator_panel.dart"
+    },
+    {
+      "id": "p-topup",
+      "name": "Added \u00b7 Top up wallet",
+      "source": "lib/features/billing/presentation/wallet_topup_sheet.dart"
+    },
+    {
+      "id": "p-methods",
+      "name": "Added \u00b7 Payment methods",
+      "source": "lib/features/billing/presentation/payment_methods_section.dart"
+    },
+    {
+      "id": "p-card-add",
+      "name": "Added \u00b7 Add payment card",
+      "source": "lib/features/billing/presentation/payment_methods_section.dart"
+    },
+    {
+      "id": "p-pay-history",
+      "name": "Added \u00b7 Transaction history",
+      "source": "lib/features/billing/presentation/payment_history.dart"
+    },
+    {
+      "id": "p-family-member",
+      "name": "Added \u00b7 Family member",
+      "source": "lib/features/patient/presentation/family_network_section.dart"
+    },
+    {
+      "id": "p-family-request",
+      "name": "Added \u00b7 Request account access",
+      "source": "lib/features/patient/presentation/linked_family_accounts_section.dart"
+    },
+    {
+      "id": "p-family-consent",
+      "name": "Added \u00b7 Review access request",
+      "source": "lib/features/patient/presentation/linked_family_accounts_section.dart"
+    },
+    {
+      "id": "p-family-revoke",
+      "name": "Added \u00b7 Who has access to me",
+      "source": "lib/features/patient/presentation/linked_family_accounts_section.dart"
+    },
+    {
+      "id": "p-linked-manage",
+      "name": "Added \u00b7 Manage linked account",
+      "source": "lib/features/patient/presentation/linked_account_screen.dart"
+    },
+    {
+      "id": "p-reschedule",
+      "name": "Added \u00b7 Reschedule appointment",
+      "source": "lib/features/appointments/presentation/slot_picker_sheet.dart"
+    },
+    {
+      "id": "p-no-slots",
+      "name": "Added \u00b7 No available times",
+      "source": "lib/features/booking/presentation/booking_screen.dart"
+    },
+    {
+      "id": "p-booking-conflict",
+      "name": "Added \u00b7 That time is no longer available",
+      "source": "lib/features/booking/presentation/booking_screen.dart"
+    },
+    {
+      "id": "p-homevisits-history",
+      "name": "Added \u00b7 Home care requests",
+      "source": "lib/features/care/presentation/home_visit_screen.dart"
+    },
+    {
+      "id": "p-notifications",
+      "name": "Added \u00b7 Notifications",
+      "source": "lib/features/notifications/presentation/notifications_screen.dart"
+    },
+    {
+      "id": "p-reset-prefs",
+      "name": "Added \u00b7 Reset preferences",
+      "source": "lib/features/settings/presentation/preferences_section.dart"
+    },
+    {
+      "id": "s-notifications",
+      "name": "Added \u00b7 Notifications",
+      "source": "lib/features/notifications/presentation/notifications_screen.dart"
+    },
+    {
+      "id": "s-reset-prefs",
+      "name": "Added \u00b7 Reset preferences",
+      "source": "lib/features/settings/presentation/preferences_section.dart"
+    },
+    {
+      "id": "a-notifications",
+      "name": "Added \u00b7 Notifications",
+      "source": "lib/features/notifications/presentation/notifications_screen.dart"
+    },
+    {
+      "id": "a-reset-prefs",
+      "name": "Added \u00b7 Reset preferences",
+      "source": "lib/features/settings/presentation/preferences_section.dart"
+    },
+    {
+      "id": "s-account",
+      "name": "Added \u00b7 Staff account",
+      "source": "lib/features/staff_dashboard/presentation/staff_profile_pages.dart"
+    },
+    {
+      "id": "s-activity",
+      "name": "Added \u00b7 My activity",
+      "source": "lib/features/staff_dashboard/presentation/staff_activity_screen.dart"
+    },
+    {
+      "id": "s-directory",
+      "name": "Added \u00b7 Staff directory",
+      "source": "lib/features/staff_dashboard/presentation/staff_directory_screen.dart"
+    },
+    {
+      "id": "s-analytics",
+      "name": "Added \u00b7 Panel analytics",
+      "source": "lib/features/staff_dashboard/presentation/panel_analytics_screen.dart"
+    },
+    {
+      "id": "s-tools",
+      "name": "Added \u00b7 Clinical actions",
+      "source": "lib/features/staff_dashboard/presentation/staff_quick_actions.dart"
+    },
+    {
+      "id": "s-summary",
+      "name": "Added \u00b7 Patient summary",
+      "source": "lib/features/patient_chart/presentation/patient_summary_screen.dart"
+    },
+    {
+      "id": "s-scribe",
+      "name": "Added \u00b7 Clinical scribe",
+      "source": "lib/features/ai_scribe/presentation/clinical_scribe_screen.dart"
+    },
+    {
+      "id": "s-note",
+      "name": "Added \u00b7 New clinical note",
+      "source": "lib/features/patient_chart/presentation/chart_write_sheets.dart"
+    },
+    {
+      "id": "s-prescribe",
+      "name": "Added \u00b7 Medication order",
+      "source": "lib/features/patient_chart/presentation/chart_write_sheets.dart"
+    },
+    {
+      "id": "s-lab-entry",
+      "name": "Added \u00b7 Enter lab result",
+      "source": "lib/features/patient_chart/presentation/chart_write_sheets.dart"
+    },
+    {
+      "id": "s-transfer",
+      "name": "Added \u00b7 Transfer visit",
+      "source": "lib/features/staff_dashboard/presentation/staff_quick_actions.dart"
+    },
+    {
+      "id": "s-calendar-month",
+      "name": "Added \u00b7 Month schedule",
+      "source": "lib/features/staff_dashboard/presentation/staff_schedule_screen.dart"
+    },
+    {
+      "id": "s-calendar-year",
+      "name": "Added \u00b7 Year schedule",
+      "source": "lib/features/staff_dashboard/presentation/staff_schedule_screen.dart"
+    },
+    {
+      "id": "s-feedback",
+      "name": "Added \u00b7 Send feedback",
+      "source": "lib/features/feedback/presentation/feedback_sheet.dart"
+    },
+    {
+      "id": "s-access-denied",
+      "name": "Added \u00b7 Patient access unavailable",
+      "source": "lib/features/patient_chart/presentation/patient_chart_screen.dart"
+    },
+    {
+      "id": "s-conflict",
+      "name": "Added \u00b7 The chart changed",
+      "source": "lib/features/consultation/presentation/consultation_screen.dart"
+    },
+    {
+      "id": "a-account",
+      "name": "Added \u00b7 Administrator account",
+      "source": "lib/features/admin/presentation/admin_profile_pages.dart"
+    },
+    {
+      "id": "a-forecast",
+      "name": "Added \u00b7 Capacity forecast",
+      "source": "lib/features/admin/presentation/admin_forecast_screen.dart"
+    },
+    {
+      "id": "a-ai-log",
+      "name": "Added \u00b7 AI activity",
+      "source": "lib/features/admin/presentation/admin_ai_log_screen.dart"
+    },
+    {
+      "id": "a-appointments",
+      "name": "Added \u00b7 All appointments",
+      "source": "lib/features/admin/presentation/admin_appointments_screen.dart"
+    },
+    {
+      "id": "a-feedback",
+      "name": "Added \u00b7 Feedback queue",
+      "source": "lib/features/admin/presentation/admin_feedback_screen.dart"
+    },
+    {
+      "id": "a-create-patient",
+      "name": "Added \u00b7 Create patient account",
+      "source": "lib/features/admin/presentation/user_management_screen.dart"
+    },
+    {
+      "id": "a-broadcast",
+      "name": "Added \u00b7 Send announcement",
+      "source": "lib/features/admin/presentation/admin_quick_actions.dart"
+    },
+    {
+      "id": "a-create-invoice",
+      "name": "Added \u00b7 Create invoice",
+      "source": "lib/features/admin/presentation/admin_quick_actions.dart"
+    },
+    {
+      "id": "a-staff-schedule",
+      "name": "Added \u00b7 Clinician schedule",
+      "source": "lib/features/admin/presentation/user_management_screen.dart"
+    },
+    {
+      "id": "a-book-patient",
+      "name": "Added \u00b7 Book for patient",
+      "source": "lib/features/admin/presentation/user_management_screen.dart"
+    },
+    {
+      "id": "a-refer-patient",
+      "name": "Added \u00b7 Refer patient",
+      "source": "lib/features/admin/presentation/user_management_screen.dart"
+    },
+    {
+      "id": "a-refund",
+      "name": "Added \u00b7 Refund settled payment",
+      "source": "lib/features/admin/presentation/admin_billing_screen.dart"
+    },
+    {
+      "id": "a-reconcile",
+      "name": "Added \u00b7 Check pending payments",
+      "source": "lib/features/admin/presentation/admin_billing_screen.dart"
     }
   ]
 }

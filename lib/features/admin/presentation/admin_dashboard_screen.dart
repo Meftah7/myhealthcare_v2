@@ -14,6 +14,7 @@ import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/profile_navigation.dart';
 import '../../../core/presentation/data_state_view.dart';
 import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
@@ -81,6 +82,21 @@ class AdminDashboardScreen extends ConsumerWidget {
         ),
         SectionHeader(t.quickActionsHeader, overline: true),
         const AdminQuickActions(),
+        const SizedBox(height: Space.lg),
+        ProfileNavigationGroup(items: [
+          ProfileNavigationItem(icon: Icons.insights_outlined,
+            label: t.systemAnalyticsTitle,
+            onTap: () => context.push(AppRoutes.adminProfileAnalytics)),
+          ProfileNavigationItem(icon: Icons.query_stats_outlined,
+            label: t.capacityForecastTitle,
+            onTap: () => context.push(AppRoutes.adminProfileForecast)),
+          ProfileNavigationItem(icon: Icons.history_toggle_off_outlined,
+            label: t.aiActivityTitle,
+            onTap: () => context.push(AppRoutes.adminProfileAiLog)),
+          ProfileNavigationItem(icon: Icons.fact_check_outlined,
+            label: t.auditLogTitle,
+            onTap: () => context.push(AppRoutes.adminProfileAudit)),
+        ]),
       ],
     );
   }

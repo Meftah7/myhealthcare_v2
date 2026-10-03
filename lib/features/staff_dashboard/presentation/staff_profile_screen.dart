@@ -14,6 +14,7 @@ import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/profile_navigation.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
@@ -43,7 +44,6 @@ class StaffProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
     final profile = ref.watch(staffProfileProvider);
     final sections = _sections(t);
 
@@ -67,96 +67,35 @@ class StaffProfileScreen extends ConsumerWidget {
               name: clinicianName(u.fullName),
               email: u.email,
               role: t.roleStaff,
+              avatarPath: u.avatarPath,
               avatarSize: 52,
               elevated: false,
             ),
             SectionHeader(t.accountSection, overline: true),
-            ListCard(
-              elevated: false,
-              children: [
-                for (final (icon, title, route) in sections)
-                  ListTile(
-                    dense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: Space.md,
-                      vertical: Space.xxs,
-                    ),
-                    leading: Icon(
-                      icon,
-                      size: 20,
-                      color: theme.colorScheme.primary,
-                    ),
-                    title: Text(title, style: theme.textTheme.titleSmall),
-                    trailing: Icon(
-                      Icons.chevron_right,
-                      size: kTrailingChevronSize,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    onTap: () => unawaited(context.push(route)),
-                  ),
-              ],
-            ),
-
+            ProfileNavigationGroup(items: [
+              for (final (icon, title, route) in sections)
+                ProfileNavigationItem(icon: icon, label: title,
+                  onTap: () => unawaited(context.push(route))),
+            ]),
             SectionHeader(t.settingsSection, overline: true),
-          // Preferences (text size, notifications) stays its own page,
-            // linked from here — it isn't part of the compact Settings block.
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () =>
-                    unawaited(context.push(AppRoutes.staffProfilePreferences)),
-                icon: const Icon(Icons.tune),
-                label: Text(t.preferences),
-              ),
-            ),
-
+            ProfileNavigationGroup(items: [
+              ProfileNavigationItem(icon: Icons.tune,
+                label: t.preferences, subtitle: t.preferencesSubtitleAdmin,
+                onTap: () => unawaited(context.push(AppRoutes.staffProfilePreferences))),
+              ProfileNavigationItem(icon: Icons.forum_outlined,
+                label: t.sendFeedbackTitle,
+                onTap: () => unawaited(showFeedbackSheet(context, ref))),
+            ]),
             const SizedBox(height: Space.lg),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: () => unawaited(showFeedbackSheet(context, ref)),
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.brandViolet,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: Space.md),
-                  shape: const RoundedRectangleBorder(borderRadius: Radii.button),
-                  textStyle: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                icon: const Icon(Icons.forum_outlined),
-                label: Text(t.sendFeedbackTitle),
-              ),
-            ),
-            const SizedBox(height: Space.sm),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: () async {
-                  final ok = await confirm(
-                    context,
-                    title: t.signOutConfirmTitle,
-                    message: t.signOutConfirmBody,
-                    confirmLabel: t.signOut,
-                    destructive: true,
-                  );
-                  if (ok) {
-                    unawaited(ref.read(sessionProvider.notifier).logout());
-                  }
-                },
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.light.error,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: Space.md),
-                  shape: const RoundedRectangleBorder(borderRadius: Radii.button),
-                  textStyle: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                icon: const Icon(Icons.logout),
-                label: Text(t.signOut),
-              ),
-            ),
+            ProfileNavigationGroup(items: [
+              ProfileNavigationItem(icon: Icons.logout, label: t.signOut,
+                destructive: true, onTap: () async {
+                  final ok = await confirm(context,
+                    title: t.signOutConfirmTitle, message: t.signOutConfirmBody,
+                    confirmLabel: t.signOut, destructive: true);
+                  if (ok) unawaited(ref.read(sessionProvider.notifier).logout());
+                }),
+            ]),
           ];
         },
       ),

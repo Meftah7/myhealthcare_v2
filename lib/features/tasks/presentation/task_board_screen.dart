@@ -29,7 +29,7 @@ class TaskBoardScreen extends ConsumerWidget {
     return AppScaffold(
       hero: true,
       title: t.taskBoardTitle,
-      actions: [_PrioritiseButton(), const StaffTopActions()],
+      actions: const [StaffTopActions()],
       body: tasks.when(
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
@@ -56,6 +56,10 @@ class TaskBoardScreen extends ConsumerWidget {
                   Space.xxl,
                 ),
                 children: [
+                  Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: _PrioritiseButton(),
+                  ),
                   InlineBanner.info(
                     t.priorityBlendNote((weight * 100).round()),
                   ),
