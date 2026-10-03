@@ -1,8 +1,4 @@
-/// Adaptive navigation shell (DESIGN.md §6).
-///
-/// One widget tree, re-flowed by window size class: `NavigationBar` at the
-/// bottom on compact, an icon `NavigationRail` on medium, and an **extended**
-/// rail from expanded up. Used by every role shell in router.dart.
+/// Persistent bottom section navigation for every role shell in router.dart.
 library;
 
 import 'package:flutter/material.dart';
@@ -10,7 +6,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/presentation/app_scaffold.dart';
 import '../../core/presentation/readable_label.dart';
-import '../theme/theme.dart';
 
 /// One navigation destination in a role shell.
 class AppDestination {
@@ -80,7 +75,6 @@ class _AppShellState extends State<AppShell> {
   }
 
   Widget _content(BuildContext context) {
-    final size = WindowSize.of(context);
     final current = widget.navigationShell.currentIndex;
     final hairline = Theme.of(context).colorScheme.outlineVariant;
 
@@ -97,161 +91,16 @@ class _AppShellState extends State<AppShell> {
       );
     }
 
-    if (size.isCompact) {
-      return Scaffold(
-        body: body,
-        bottomNavigationBar: DecoratedBox(
-          decoration: BoxDecoration(
-            border: Border(top: BorderSide(color: hairline)),
-          ),
-          child: CompactNavigation(
-            destinations: widget.destinations,
-            currentIndex: current,
-            onSelected: _go,
-          ),
-        ),
-      );
-    }
-
-    // Extended from `expanded` up (DESIGN.md §6.4) — at 840dp there is room for
-    // a 256dp labelled rail and a full content column beside it.
-    final extended =
-        size.isExpanded ||
-        size.isLarge ||
-        MediaQuery.textScalerOf(context).scale(13) / 13 > 1.3;
-
     return Scaffold(
-      body: Row(
-        children: [
-          _Rail(
-            destinations: widget.destinations,
-            currentIndex: current,
-            onSelected: _go,
-            extended: extended,
-          ),
-          VerticalDivider(width: 1, color: hairline),
-          Expanded(child: body),
-        ],
-      ),
-    );
-  }
-}
-
-/// The rail, with the brand lockup on top and room to scroll.
-///
-/// A plain [NavigationRail] overflows on a short landscape window (a 600×420
-/// tablet with five destinations); the scroll view plus [IntrinsicHeight] is
-/// the documented fix, and costs nothing when everything already fits.
-class _Rail extends StatelessWidget {
-  const _Rail({
-    required this.destinations,
-    required this.currentIndex,
-    required this.onSelected,
-    required this.extended,
-  });
-
-  final List<AppDestination> destinations;
-  final int currentIndex;
-  final ValueChanged<int> onSelected;
-  final bool extended;
-
-  @override
-  Widget build(BuildContext context) {
-    if (extended) {
-      final theme = Theme.of(context);
-      final scheme = theme.colorScheme;
-      return SizedBox(
-        width: 248,
-        child: ColoredBox(
-          color: scheme.surfaceContainerLowest,
-          child: SafeArea(
-            child: ListView(
-              padding: const EdgeInsets.all(Space.lg),
-              children: [
-                const AppBrandLockup(),
-                const SizedBox(height: Space.xl),
-                for (final (i, destination) in destinations.indexed) ...[
-                  Material(
-                    color: currentIndex == i
-                        ? scheme.primaryContainer
-                        : Colors.transparent,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: Radii.cardSmall,
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: Space.sm,
-                      ),
-                      selected: currentIndex == i,
-                      selectedColor: scheme.primary,
-                      selectedTileColor: Colors.transparent,
-                      leading: Icon(
-                        currentIndex == i
-                            ? destination.selectedIcon
-                            : destination.icon,
-                        size: 20,
-                        color: currentIndex == i
-                            ? scheme.primary
-                            : scheme.onSurfaceVariant,
-                      ),
-                      title: ReadableLabel(
-                        destination.label,
-                        style: theme.textTheme.labelLarge,
-                      ),
-                      onTap: () => onSelected(i),
-                    ),
-                  ),
-                  const SizedBox(height: Space.xs),
-                ],
-              ],
-            ),
-          ),
+      body: body,
+      bottomNavigationBar: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border(top: BorderSide(color: hairline)),
         ),
-      );
-    }
-    return LayoutBuilder(
-      builder: (context, constraints) => SingleChildScrollView(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(minHeight: constraints.maxHeight),
-          child: IntrinsicHeight(
-            child: NavigationRail(
-              selectedIndex: currentIndex,
-              onDestinationSelected: onSelected,
-              extended: extended,
-              // An extended rail draws its own inline labels, so the label
-              // type must be `none` there; the icon rail stacks them
-              // underneath.
-              labelType: extended
-                  ? NavigationRailLabelType.none
-                  : NavigationRailLabelType.all,
-              leading: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  Space.sm,
-                  Space.md,
-                  Space.sm,
-                  Space.lg,
-                ),
-                child: extended
-                    ? const SizedBox(
-                        width: 200,
-                        child: Align(
-                          alignment: AlignmentDirectional.centerStart,
-                          child: AppBrandLockup(),
-                        ),
-                      )
-                    : const AppLogo(height: 28),
-              ),
-              destinations: [
-                for (final d in destinations)
-                  NavigationRailDestination(
-                    icon: Icon(d.icon),
-                    selectedIcon: Icon(d.selectedIcon),
-                    label: Text(d.label),
-                  ),
-              ],
-            ),
-          ),
+        child: CompactNavigation(
+          destinations: widget.destinations,
+          currentIndex: current,
+          onSelected: _go,
         ),
       ),
     );
