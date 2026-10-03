@@ -8,6 +8,7 @@ import 'package:myhealthcare/app/app.dart';
 import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:myhealthcare/features/nutrition/application/macro_calculator.dart';
+import 'package:myhealthcare/features/nutrition/application/nutrition_providers.dart';
 import 'package:myhealthcare/features/nutrition/presentation/nutrition_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -149,9 +150,10 @@ void main() {
     // The bottom nav is still visible (Nutrition is a shell branch).
     expect(find.text('Appointment'), findsWidgets);
 
-    // Tabs, in order: Calculator → Meal plan → Foods.
+    // Tabs, in order: Calculator → Daily targets → Foods.
     expect(find.text('Calculator'), findsWidgets);
-    expect(find.text('Example split'), findsWidgets);
+    expect(find.text('Example split'), findsNothing);
+    expect(find.text('Daily targets'), findsOneWidget);
 
     // Calculator is the default view; calculate.
     await tester.tap(find.text('Calculator').first);
@@ -165,15 +167,13 @@ void main() {
     expect(find.text('Preferences'), findsOneWidget); // was "Split"
     expect(find.textContaining('kcal / day'), findsWidgets);
 
-    // The Meal plan reads the calculator's targets and splits them per meal —
-    // just the daily breakdown, no recipe cards.
-    await tester.tap(find.text('Example split').first);
+    // The daily-target view reads the saved calculator result.
+    await tester.tap(find.text('Daily targets').first);
     await _settle(tester);
-    await tester.tap(find.widgetWithText(FilledButton, 'Build my day'));
-    await _settle(tester);
-    expect(find.text('Your day'), findsOneWidget);
-    expect(find.text('Breakfast'), findsWidgets);
-    expect(find.text('Lunch'), findsWidgets);
+    final targets = container.read(macroTargetsProvider)!;
+    expect(find.text('${targets.targetCalories}'), findsOneWidget);
+    expect(find.text('Build my day'), findsNothing);
+    expect(find.text('Example split'), findsNothing);
 
     // Foods view: the full database, a category filter, six figures per item.
     await tester.tap(find.text('Foods').first);
@@ -190,9 +190,7 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
   });
 
-  testWidgets('Nutrition targets and meal plan survive closing the app', (
-    tester,
-  ) async {
+  testWidgets('Nutrition targets survive closing the app', (tester) async {
     tester.view.physicalSize = const Size(1200, 2600);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -233,7 +231,7 @@ void main() {
       return container;
     }
 
-    // First "session": calculate targets and build the meal plan.
+    // First session: calculate and save targets.
     final first = await launch();
     await tester.tap(find.text('Nutrition').first);
     await _settle(tester);
@@ -245,28 +243,24 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Calculate estimate'));
     await _settle(tester);
     expect(find.text('Daily targets'), findsWidgets);
-    await tester.tap(find.text('Example split').first);
-    await _settle(tester);
-    await tester.tap(find.widgetWithText(FilledButton, 'Build my day'));
-    await _settle(tester);
-    expect(find.text('Your day'), findsOneWidget);
-
+    final savedTargets = first.read(macroTargetsProvider)!;
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
     first.dispose();
 
     // A fresh "session" — new ProviderContainer, same SharedPreferences and
-    // database, as if the app had been closed and reopened. Both should
-    // already be there, with no Calculate / Build my day needed.
+    // database, as if the app had been closed and reopened. Targets
+    // should already be available without calculating again.
     final second = await launch();
     addTearDown(second.dispose);
     await tester.tap(find.text('Nutrition').first);
     await _settle(tester);
     expect(find.text('Daily targets'), findsWidgets);
-    await tester.tap(find.text('Example split').first);
+    await tester.tap(find.text('Daily targets').first);
     await _settle(tester);
-    expect(find.text('Your day'), findsOneWidget);
-    expect(find.text('Breakfast'), findsWidgets);
+    expect(find.text('${savedTargets.targetCalories}'), findsOneWidget);
+    expect(second.read(macroTargetsProvider)!.protein, savedTargets.protein);
+    expect(find.text('Example split'), findsNothing);
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));

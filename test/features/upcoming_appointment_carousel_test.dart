@@ -85,32 +85,34 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('swipe, arrows and pause work, and swiping resets the timer', (
-    tester,
-  ) async {
-    await _mount(tester);
-    await tester.pump(const Duration(seconds: 3));
-    await tester.fling(
-      find.byType(UpcomingAppointmentCarousel),
-      const Offset(-200, 0),
-      900,
-    );
-    await tester.pump(const Duration(milliseconds: 400));
-    expect(find.text('2 of 3'), findsOneWidget);
-    await tester.pump(const Duration(seconds: 2));
-    expect(find.text('2 of 3'), findsOneWidget);
-    await tester.ensureVisible(find.byTooltip('Pause appointment slideshow'));
-    await tester.tap(find.byTooltip('Pause appointment slideshow'));
-    await tester.pump(const Duration(seconds: 10));
-    expect(find.text('2 of 3'), findsOneWidget);
-    await tester.tap(find.byTooltip('Previous appointment'));
-    await tester.pump(const Duration(milliseconds: 400));
-    expect(find.text('1 of 3'), findsOneWidget);
-    await tester.tap(find.byTooltip('Resume appointment slideshow'));
-    await tester.pump(const Duration(seconds: 4));
-    expect(find.text('2 of 3'), findsOneWidget);
-    await tester.pumpWidget(const SizedBox());
-  });
+  testWidgets(
+    'swipe and arrows work without pause, and swiping resets the timer',
+    (tester) async {
+      await _mount(tester);
+      await tester.pump(const Duration(seconds: 3));
+      await tester.fling(
+        find.byType(UpcomingAppointmentCarousel),
+        const Offset(-200, 0),
+        900,
+      );
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.text('2 of 3'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 2));
+      expect(find.text('2 of 3'), findsOneWidget);
+      expect(find.byTooltip('Pause appointment slideshow'), findsNothing);
+      expect(find.byIcon(Icons.pause), findsNothing);
+      await tester.ensureVisible(find.byTooltip('Previous appointment'));
+      await tester.tap(find.byTooltip('Previous appointment'));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.text('1 of 3'), findsOneWidget);
+      await tester.tap(find.byTooltip('Next appointment'));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.text('2 of 3'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 4));
+      expect(find.text('3 of 3'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
 
   testWidgets('one appointment stays still without carousel controls', (
     tester,

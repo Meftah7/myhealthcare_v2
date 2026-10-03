@@ -1,11 +1,5 @@
-/// Nutrition — a calorie/macro calculator, an allergen-safe meal plan, and a
-/// searchable food database. Ported from the standalone Nutrition project and
-/// rebuilt on the app's design system; runs the same on phone, tablet,
-/// desktop and web.
-///
-/// Tabs, in order: Calculator → Meal plan → Foods. The Calculator's result
-/// feeds the Meal plan (portions are matched to the day's targets and split
-/// across the meals).
+/// Nutrition: Calculator → Daily targets → Foods. Saved calculator inputs
+/// feed the daily targets, alongside a searchable food database.
 library;
 
 import 'dart:async';
@@ -25,7 +19,7 @@ import '../application/macro_calculator.dart';
 import '../application/nutrition_providers.dart';
 import '../domain/nutrition_data.dart';
 
-enum _View { overview, calculator, meals, foods }
+enum _View { calculator, overview, foods }
 
 class NutritionScreen extends StatefulWidget {
   const NutritionScreen({super.key});
@@ -35,7 +29,7 @@ class NutritionScreen extends StatefulWidget {
 }
 
 class _NutritionScreenState extends State<NutritionScreen> {
-  _View _view = _View.overview;
+  _View _view = _View.calculator;
 
   @override
   Widget build(BuildContext context) {
@@ -60,9 +54,8 @@ class _NutritionScreenState extends State<NutritionScreen> {
                   child: PillSegmented<_View>(
                     compact: true,
                     segments: [
-                      (_View.overview, t.dailyTargetsSection),
                       (_View.calculator, t.calculatorSegment),
-                      (_View.meals, t.mealPlanSegment),
+                      (_View.overview, t.dailyTargetsSection),
                       (_View.foods, t.foodsSegment),
                     ],
                     selected: _view,
@@ -84,7 +77,6 @@ class _NutritionScreenState extends State<NutritionScreen> {
                     onFoods: () => setState(() => _view = _View.foods),
                   ),
                   _View.calculator => const _CalculatorView(),
-                  _View.meals => const _MealPlanView(),
                   _View.foods => const _FoodsView(),
                 },
               ),
@@ -166,46 +158,6 @@ class _NutritionOverview extends ConsumerWidget {
             ],
           ),
         ),
-        SectionHeader(t.mealPlanSegment),
-        for (final meal in [
-          MealType.breakfast,
-          MealType.lunch,
-          MealType.dinner,
-        ]) ...[
-          AppCard(
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainer,
-                    borderRadius: Radii.cardSmall,
-                  ),
-                  child: Icon(
-                    Icons.restaurant_outlined,
-                    color: theme.colorScheme.primary,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: Space.sm),
-                Expanded(
-                  child: Text(
-                    _mealLabel(t, meal),
-                    style: theme.textTheme.titleSmall,
-                  ),
-                ),
-                Text(
-                  targets == null
-                      ? '—'
-                      : '${(targets.targetCalories * const MealSplit().fractionFor(meal)).round()} ${t.macroCalories}',
-                  style: theme.textTheme.bodySmall,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: Space.sm),
-        ],
         OutlinedButton(onPressed: onFoods, child: Text(t.foodsSegment)),
       ],
     );
@@ -819,162 +771,3 @@ class _Pill extends StatelessWidget {
     );
   }
 }
-
-// ---------------------------------------------------------------------------
-// Meal plan — allergen-safe suggestions matched to the day's targets
-// ---------------------------------------------------------------------------
-
-class _MealPlanView extends ConsumerStatefulWidget {
-  const _MealPlanView();
-
-  @override
-  ConsumerState<_MealPlanView> createState() => _MealPlanViewState();
-}
-
-class _MealPlanViewState extends ConsumerState<_MealPlanView> {
-  bool? _includeSweetOverride;
-
-  bool get _includeSweet =>
-      _includeSweetOverride ?? ref.read(savedIncludeSweetProvider);
-
-  void _generate() {
-    unawaited(
-      ref
-          .read(mealPlanProvider.notifier)
-          .generate(MealPlanRequest(includeSweet: _includeSweet)),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final t = AppLocalizations.of(context)!;
-    final plan = ref.watch(mealPlanProvider);
-    final targets = ref.watch(macroTargetsProvider);
-
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(Space.md, 0, Space.md, Space.xxl),
-      children: [
-        SectionHeader(t.preferencesSection, overline: true),
-        AppCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(t.includeDessertTitle),
-                subtitle: Text(t.includeDessertSubtitle),
-                value: _includeSweet,
-                onChanged: (v) => setState(() => _includeSweetOverride = v),
-              ),
-              const SizedBox(height: Space.xs),
-              FilledButton.icon(
-                onPressed: _generate,
-                icon: const Icon(Icons.restaurant_menu),
-                label: Text(t.buildMyDayButton),
-              ),
-            ],
-          ),
-        ),
-
-        if (targets == null) ...[
-          const SizedBox(height: Space.sm),
-          AppCard(
-            color: theme.colorScheme.surfaceContainerHighest,
-            child: Row(
-              children: [
-                Icon(
-                  Icons.tips_and_updates_outlined,
-                  size: 18,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: Space.sm),
-                Expanded(
-                  child: Text(
-                    t.runCalculatorFirstNote,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-
-        if (plan != null && targets != null && plan.perMeal != null) ...[
-          const SizedBox(height: Space.lg),
-          _DailySplitCard(targets: targets, perMeal: plan.perMeal!),
-        ],
-      ],
-    );
-  }
-}
-
-/// The daily targets and how they divide across the meals.
-class _DailySplitCard extends StatelessWidget {
-  const _DailySplitCard({required this.targets, required this.perMeal});
-
-  final MacroResult targets;
-  final List<MealTargets> perMeal;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final t = AppLocalizations.of(context)!;
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(t.yourDayTitle, style: theme.textTheme.titleSmall),
-          const SizedBox(height: Space.xxs),
-          Text(
-            // P/C/F/kcal kept as the universal Latin macro shorthand used by
-            // nutrition apps generally, rather than invented Arabic initials.
-            '${targets.targetCalories} kcal · P ${targets.protein} g · '
-            'C ${targets.carbs} g · F ${targets.fat} g',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: scheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: Space.sm),
-          const Divider(height: 1),
-          const SizedBox(height: Space.sm),
-          for (final m in perMeal)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: Space.xxs),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 78,
-                    child: Text(
-                      _mealLabel(t, m.type),
-                      style: theme.textTheme.labelMedium,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      '${m.calories} kcal   ·   P ${m.protein} · '
-                      'C ${m.carbs} · F ${m.fat} g',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                        fontFeatures: kTabularFigures,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-String _mealLabel(AppLocalizations t, MealType type) => switch (type) {
-  MealType.breakfast => t.mealBreakfast,
-  MealType.lunch => t.mealLunch,
-  MealType.dinner => t.mealDinner,
-  MealType.sweet => t.mealDessert,
-};

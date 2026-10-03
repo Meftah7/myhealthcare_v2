@@ -220,10 +220,12 @@ class _PersonalInfoSectionState extends ConsumerState<PersonalInfoSection> {
         DropdownButtonFormField<Gender>(
           isExpanded: true,
           itemHeight: null,
-          initialValue: _gender,
+          initialValue: _gender == Gender.male || _gender == Gender.female
+              ? _gender
+              : null,
           decoration: InputDecoration(labelText: t.genderFieldLabel),
           items: [
-            for (final g in Gender.values)
+            for (final g in [Gender.male, Gender.female])
               DropdownMenuItem(value: g, child: Text(g.label(context))),
           ],
           onChanged: (v) => setState(() => _gender = v),

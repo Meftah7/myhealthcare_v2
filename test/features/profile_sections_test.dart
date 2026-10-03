@@ -9,6 +9,7 @@ import 'package:myhealthcare/app/settings/ui_prefs.dart';
 import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/core/presentation/app_card.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
+import 'package:myhealthcare/domain/enums.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/mfa.dart';
@@ -91,7 +92,10 @@ void main() {
     expect(find.byType(Slider), findsOneWidget);
     expect(find.widgetWithText(SwitchListTile, 'SMS'), findsOneWidget);
     expect(find.widgetWithText(SwitchListTile, 'Email'), findsOneWidget);
-    expect(find.widgetWithText(SwitchListTile, 'Browser alerts'), findsOneWidget);
+    expect(
+      find.widgetWithText(SwitchListTile, 'Browser alerts'),
+      findsOneWidget,
+    );
     expect(find.widgetWithText(SwitchListTile, 'Push'), findsNothing);
     expect(find.byType(BackButton), findsOneWidget);
     await tester.tap(find.byType(BackButton));
@@ -112,6 +116,18 @@ void main() {
     await _settle(tester);
     expect(find.widgetWithText(AppBar, 'Personal info'), findsOneWidget);
     expect(find.widgetWithText(TextField, 'First name'), findsOneWidget);
+    final genderField = tester.widget<DropdownButtonFormField<Gender>>(
+      find.byType(DropdownButtonFormField<Gender>),
+    );
+    // Check the actual choices without changing persisted profile data.
+    final dropdown = tester.widget<DropdownButton<Gender>>(
+      find.byType(DropdownButton<Gender>),
+    );
+    expect(dropdown.items!.map((item) => item.value), [
+      Gender.male,
+      Gender.female,
+    ]);
+    expect(genderField.enabled, isTrue);
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));

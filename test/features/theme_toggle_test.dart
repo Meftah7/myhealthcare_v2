@@ -78,17 +78,8 @@ void main() {
         reason: 'first-launch colour should be the light-theme onSurface',
       );
 
-      // Preferences now owns the appearance controls for every workspace.
-      Future<void> chooseTheme(String label) async {
-        await tester.tap(find.byIcon(Icons.settings_outlined).first);
-        await _pump(tester);
-        await tester.ensureVisible(find.text(label));
-        await tester.tap(find.text(label));
-        await _pump(tester);
-        await tester.tap(find.byType(BackButton));
-        await _pump(tester);
-      }
-      await chooseTheme('Dark');
+      await tester.tap(find.byTooltip('Switch to dark mode').first);
+      await _pump(tester);
 
       final afterDark = nameColor();
       expect(
@@ -102,7 +93,8 @@ void main() {
 
       // And back to light — this is the exact "change mode" step the report
       // describes as breaking.
-      await chooseTheme('Light');
+      await tester.tap(find.byTooltip('Switch to light mode').first);
+      await _pump(tester);
       final backToLight = nameColor();
       expect(
         backToLight,

@@ -1,6 +1,6 @@
 /// The persistent top-bar action group for every staff screen (staff-dashboard
-/// rebuild): a live presence menu, a light/dark toggle, and a shortcut to
-/// Profile — always top-right, in the same place, on every page.
+/// rebuild): a live presence menu, notifications and a light/dark toggle,
+/// always top-right, in the same place, on every page.
 ///
 /// Mirrors the patient app's `PatientTopActions` and the FirstSemMyHealth
 /// doctor header (presence dropdown + dark-mode + account).
@@ -13,10 +13,10 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/i18n/enum_labels.dart';
-import '../../../core/presentation/circle_icon_button.dart';
 import '../../../domain/enums.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../patient_home/presentation/notifications_button.dart';
+import '../../settings/presentation/theme_mode_icon_toggle.dart';
 import '../application/staff_providers.dart';
 
 /// Drop straight into `AppBar.actions`: `actions: const [StaffTopActions()]`.
@@ -28,41 +28,22 @@ class StaffTopActions extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final t = AppLocalizations.of(context)!;
     if (MediaQuery.sizeOf(context).width < 360) {
-      return Row(
+      return const Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const PresenceMenu(),
-          PopupMenuButton<String>(
-            tooltip: t.moreActionsTooltip,
-            onSelected: (value) => context.push(
-              value == 'notifications'
-                  ? AppRoutes.staffNotifications
-                  : AppRoutes.staffProfilePreferences,
-            ),
-            itemBuilder: (_) => [
-              PopupMenuItem(
-                value: 'notifications',
-                child: Text(t.notificationsTooltip),
-              ),
-              PopupMenuItem(value: 'preferences', child: Text(t.preferences)),
-            ],
-          ),
+          PresenceMenu(showNotifications: true),
+          ThemeModeIconToggle(),
         ],
       );
     }
-    return Row(
+    return const Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const PresenceMenu(),
-        const NotificationsButton(route: AppRoutes.staffNotifications),
-        CircleIconButton(
-          icon: Icons.settings_outlined,
-          tooltip: t.preferences,
-          onPressed: () => context.push(AppRoutes.staffProfilePreferences),
-        ),
-        const SizedBox(width: Space.xs),
+        PresenceMenu(),
+        NotificationsButton(route: AppRoutes.staffNotifications),
+        ThemeModeIconToggle(),
+        SizedBox(width: Space.xs),
       ],
     );
   }
@@ -102,7 +83,9 @@ class StaffTopActions extends ConsumerWidget {
 /// A compact pill in the app bar showing the signed-in clinician's presence,
 /// tap to change it.
 class PresenceMenu extends ConsumerWidget {
-  const PresenceMenu({super.key});
+  const PresenceMenu({this.showNotifications = false, super.key});
+
+  final bool showNotifications;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -113,11 +96,19 @@ class PresenceMenu extends ConsumerWidget {
     final meta = presenceMeta(context, current);
     final compact = WindowSize.of(context).isCompact;
 
-    return PopupMenuButton<PresenceStatus>(
-      tooltip: t.setYourAvailabilityTooltip,
+    return PopupMenuButton<Object>(
+      tooltip: showNotifications
+          ? t.moreActionsTooltip
+          : t.setYourAvailabilityTooltip,
       position: PopupMenuPosition.under,
-      onSelected: (status) async {
-        final result = await ref.read(staffOpsProvider).setPresence(status);
+      onSelected: (value) async {
+        if (value == 'notifications') {
+          await context.push(AppRoutes.staffNotifications);
+          return;
+        }
+        final result = await ref
+            .read(staffOpsProvider)
+            .setPresence(value as PresenceStatus);
         if (context.mounted && result.isErr) {
           ScaffoldMessenger.of(
             context,
@@ -125,6 +116,13 @@ class PresenceMenu extends ConsumerWidget {
         }
       },
       itemBuilder: (context) => [
+        if (showNotifications) ...[
+          PopupMenuItem(
+            value: 'notifications',
+            child: Text(t.notificationsTooltip),
+          ),
+          const PopupMenuDivider(),
+        ],
         for (final status in PresenceStatus.values)
           PopupMenuItem(
             value: status,
