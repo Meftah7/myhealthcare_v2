@@ -14,10 +14,11 @@ import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/confirm_dialog.dart';
+import '../../../core/presentation/feedback.dart';
+import '../../../core/presentation/readable_label.dart';
 import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
-import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -63,10 +64,16 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
           segments: [
             (_AppointmentFilter.upcoming, t.upcomingLabel),
             (_AppointmentFilter.past, t.pastSectionLabel),
-            (_AppointmentFilter.cancelled, AppointmentStatus.cancelled.label(context)),
+            (
+              _AppointmentFilter.cancelled,
+              AppointmentStatus.cancelled.label(context),
+            ),
           ],
           selected: _filter,
-          onChanged: (value) => setState(() { _filter = value; _visiblePast = _pageSize; }),
+          onChanged: (value) => setState(() {
+            _filter = value;
+            _visiblePast = _pageSize;
+          }),
         ),
         ...appts.when(
           loading: () => const [
@@ -85,27 +92,56 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
             bool currentVisit(Appointment a) =>
                 a.isInProgress ||
                 ((a.status == AppointmentStatus.booked ||
-                    a.status == AppointmentStatus.confirmed) &&
+                        a.status == AppointmentStatus.confirmed) &&
                     !a.slotEnd.isBefore(now));
-            final filtered = list.where((a) => switch (_filter) {
-              _AppointmentFilter.upcoming => currentVisit(a),
-              _AppointmentFilter.past => !currentVisit(a) && a.status != AppointmentStatus.cancelled,
-              _AppointmentFilter.cancelled => a.status == AppointmentStatus.cancelled,
-            }).toList()..sort((a, b) => _filter == _AppointmentFilter.upcoming
-                ? a.slotStart.compareTo(b.slotStart) : b.slotStart.compareTo(a.slotStart));
+            final filtered =
+                list
+                    .where(
+                      (a) => switch (_filter) {
+                        _AppointmentFilter.upcoming => currentVisit(a),
+                        _AppointmentFilter.past =>
+                          !currentVisit(a) &&
+                              a.status != AppointmentStatus.cancelled,
+                        _AppointmentFilter.cancelled =>
+                          a.status == AppointmentStatus.cancelled,
+                      },
+                    )
+                    .toList()
+                  ..sort(
+                    (a, b) => _filter == _AppointmentFilter.upcoming
+                        ? a.slotStart.compareTo(b.slotStart)
+                        : b.slotStart.compareTo(a.slotStart),
+                  );
             final visible = filtered.take(_visiblePast).toList();
             final remaining = filtered.length - visible.length;
             return [
               const SizedBox(height: Space.md),
               if (filtered.isEmpty)
-                _EmptyNote(_filter == _AppointmentFilter.upcoming ? t.nothingBookedNote : t.noAppointmentsInView)
+                _EmptyNote(
+                  _filter == _AppointmentFilter.upcoming
+                      ? t.nothingBookedNote
+                      : t.noAppointmentsInView,
+                )
               else ...[
-                CardColumns(children: [for (final a in visible) _ApptCard(a,
-                  upcoming: currentVisit(a), doctor: doctors[a.staffId]?.name,
-                  department: departments[a.departmentId])]),
-                if (remaining > 0) Center(child: TextButton(
-                  onPressed: () => setState(() => _visiblePast += _pageSize),
-                  child: Text(t.showOlderVisitsAction(remaining)))),
+                CardColumns(
+                  children: [
+                    for (final a in visible)
+                      _ApptCard(
+                        a,
+                        upcoming: currentVisit(a),
+                        doctor: doctors[a.staffId]?.name,
+                        department: departments[a.departmentId],
+                      ),
+                  ],
+                ),
+                if (remaining > 0)
+                  Center(
+                    child: TextButton(
+                      onPressed: () =>
+                          setState(() => _visiblePast += _pageSize),
+                      child: Text(t.showOlderVisitsAction(remaining)),
+                    ),
+                  ),
               ],
             ];
           },
@@ -115,7 +151,6 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
       ],
     );
   }
-
 }
 
 /// The Appointments entry point (redesign v2): "Book Now" jumps straight to
@@ -127,34 +162,24 @@ class _EntryButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: EntryCard(
-              icon: Icons.bolt_outlined,
-              title: t.bookNowTitle,
-              subtitle: t.bookNowSubtitle,
-              filled: true,
-              onTap: () =>
-                  context.push(AppRoutes.patientBook, extra: BookingMode.now),
-            ),
-          ),
-          const SizedBox(width: Space.sm),
-          Expanded(
-            child: EntryCard(
-              icon: Icons.calendar_month_outlined,
-              title: t.scheduleTitle,
-              subtitle: t.scheduleSubtitle,
-              onTap: () => context.push(
-                AppRoutes.patientBook,
-                extra: BookingMode.schedule,
-              ),
-            ),
-          ),
-        ],
-      ),
+    return AdaptiveFormRow(
+      children: [
+        EntryCard(
+          icon: Icons.bolt_outlined,
+          title: t.bookNowTitle,
+          subtitle: t.bookNowSubtitle,
+          filled: true,
+          onTap: () =>
+              context.push(AppRoutes.patientBook, extra: BookingMode.now),
+        ),
+        EntryCard(
+          icon: Icons.calendar_month_outlined,
+          title: t.scheduleTitle,
+          subtitle: t.scheduleSubtitle,
+          onTap: () =>
+              context.push(AppRoutes.patientBook, extra: BookingMode.schedule),
+        ),
+      ],
     );
   }
 }
@@ -196,24 +221,62 @@ class _ApptCard extends ConsumerWidget {
     final t = AppLocalizations.of(context)!;
     return AppCard(
       onTap: () => context.push(AppRoutes.patientAppointmentDetail(appt.id)),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Container(width: 40, height: 40,
-          decoration: BoxDecoration(color: theme.colorScheme.primaryContainer, borderRadius: Radii.cardSmall),
-          child: Icon(Icons.calendar_today_outlined, size: 20, color: theme.colorScheme.primary)),
-        const SizedBox(width: Space.sm),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(doctor ?? visitTypeLabel(appt.visitType), style: theme.textTheme.titleSmall),
-          const SizedBox(height: Space.xxs),
-          Text([?department, fmtRelativeDay(appt.slotStart), fmtTime(appt.slotStart)].join(' · '),
-            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-          if (appt.bookedForName != null) Text(t.bookedForName(appt.bookedForName!), style: theme.textTheme.bodySmall),
-          const SizedBox(height: Space.xs),
-          Wrap(spacing: Space.xs, runSpacing: Space.xxs, children: [
-            AppointmentStatusPill(appt.status, dense: true),
-            if (upcoming && appt.riskBand != null) RiskBadge(appt.riskBand!),
-          ]),
-        ])),
-      ]),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer,
+              borderRadius: Radii.cardSmall,
+            ),
+            child: Icon(
+              Icons.calendar_today_outlined,
+              size: 20,
+              color: theme.colorScheme.primary,
+            ),
+          ),
+          const SizedBox(width: Space.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  doctor ?? visitTypeLabel(appt.visitType),
+                  style: theme.textTheme.titleSmall,
+                ),
+                const SizedBox(height: Space.xxs),
+                ReadableLabel(
+                  [
+                    ?department,
+                    fmtRelativeDay(appt.slotStart),
+                    fmtTime(appt.slotStart),
+                  ].join(' · '),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                if (appt.bookedForName != null)
+                  Text(
+                    t.bookedForName(appt.bookedForName!),
+                    style: theme.textTheme.bodySmall,
+                  ),
+                const SizedBox(height: Space.xs),
+                Wrap(
+                  spacing: Space.xs,
+                  runSpacing: Space.xxs,
+                  children: [
+                    AppointmentStatusPill(appt.status, dense: true),
+                    if (upcoming && appt.riskBand != null)
+                      RiskBadge(appt.riskBand!),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

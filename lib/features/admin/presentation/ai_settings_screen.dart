@@ -9,6 +9,7 @@ import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
+import '../../../core/presentation/readable_label.dart';
 import '../../../core/presentation/states.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../services/ai/ai_models.dart';
@@ -43,8 +44,8 @@ class AiSettingsScreen extends ConsumerWidget {
                 child: Column(
                   children: [
                     SwitchListTile(
-                      title: Text(t.aiFeaturesEnabledTitle),
-                      subtitle: Text(t.aiFeaturesEnabledSubtitle),
+                      title: ReadableLabel(t.aiFeaturesEnabledTitle),
+                      subtitle: ReadableLabel(t.aiFeaturesEnabledSubtitle),
                       value: s.aiEnabled,
                       onChanged: (v) =>
                           controller.update(s.copyWith(aiEnabled: v)),

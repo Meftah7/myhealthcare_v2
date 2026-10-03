@@ -175,13 +175,18 @@ abstract final class AppTheme {
         // Persistent, visible label — never placeholder-only (§8).
         floatingLabelBehavior: FloatingLabelBehavior.always,
         floatingLabelStyle: text.labelLarge?.copyWith(color: scheme.primary),
+        errorMaxLines: 4,
+        helperMaxLines: 4,
         helperStyle: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
       ),
 
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size(0, 50),
-          padding: const EdgeInsets.symmetric(horizontal: Space.lg),
+          padding: const EdgeInsets.symmetric(
+            horizontal: Space.md,
+            vertical: Space.sm,
+          ),
           textStyle: text.labelLarge,
           elevation: 0,
           shape: const RoundedRectangleBorder(borderRadius: Radii.button),
@@ -190,7 +195,10 @@ abstract final class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           minimumSize: const Size(0, 50),
-          padding: const EdgeInsets.symmetric(horizontal: Space.lg),
+          padding: const EdgeInsets.symmetric(
+            horizontal: Space.md,
+            vertical: Space.sm,
+          ),
           textStyle: text.labelLarge,
           side: BorderSide(color: hairline),
           shape: const RoundedRectangleBorder(borderRadius: Radii.button),
@@ -199,6 +207,10 @@ abstract final class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           minimumSize: const Size(0, 48),
+          padding: const EdgeInsets.symmetric(
+            horizontal: Space.sm,
+            vertical: Space.sm,
+          ),
           textStyle: text.labelLarge,
           shape: const RoundedRectangleBorder(borderRadius: Radii.button),
         ),

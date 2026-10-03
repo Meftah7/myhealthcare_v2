@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme/theme.dart';
 import 'app_card.dart';
+import 'readable_label.dart';
 
 class QuickActionTile extends StatelessWidget {
   const QuickActionTile({
@@ -38,7 +39,7 @@ class QuickActionTile extends StatelessWidget {
             child: Icon(icon, size: 20, color: scheme.primary),
           ),
           const SizedBox(height: Space.xs),
-          Text(
+          ReadableLabel(
             label,
             textAlign: TextAlign.center,
             style: theme.textTheme.labelMedium,
@@ -56,7 +57,7 @@ class QuickActionGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, constraints) {
-      final scale = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 2.0);
+      final scale = MediaQuery.textScalerOf(context).scale(13) / 13;
       final columns = (constraints.maxWidth / (100 * scale)).floor().clamp(
         1,
         3,

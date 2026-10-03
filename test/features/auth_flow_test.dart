@@ -69,16 +69,16 @@ void main() {
     expect(find.text('Nutrition'), findsWidgets);
     expect(find.text('Appointment'), findsWidgets);
 
-    // The three persistent top actions ride along on every patient page.
-    expect(find.byTooltip('Profile'), findsOneWidget);
+    // Notifications and Preferences remain accessible on patient pages.
+    expect(find.byTooltip('Preferences'), findsOneWidget);
     expect(
-      find.byTooltip('Switch to dark mode').evaluate().isNotEmpty ||
-          find.byTooltip('Switch to light mode').evaluate().isNotEmpty,
+      find.byIcon(Icons.notifications).evaluate().isNotEmpty ||
+          find.byIcon(Icons.notifications_outlined).evaluate().isNotEmpty,
       isTrue,
     );
     await tester.tap(find.text('Appointment').first);
     await _pump(tester);
-    expect(find.byTooltip('Profile'), findsOneWidget);
+    expect(find.byTooltip('Preferences'), findsOneWidget);
 
     // Tear the tree down inside the test so the drift stream behind the
     // notifications badge is cancelled (and its cleanup timer flushed) before

@@ -275,6 +275,8 @@
   },
   "previousAppointment": "الموعد السابق",
   "nextAppointment": "الموعد التالي",
+  "pauseAppointments": "إيقاف عرض المواعيد مؤقتاً",
+  "resumeAppointments": "استئناف عرض المواعيد",
   "ticketOverline": "التذكرة",
   "roomNumber": "غرفة {room}",
   "@roomNumber": {

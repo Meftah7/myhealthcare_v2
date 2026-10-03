@@ -188,7 +188,7 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Structure with AI'));
     await _settle(tester);
 
-    expect(find.text('STRUCTURED NOTE'), findsOneWidget);
+    expect(find.text('Structured note'), findsOneWidget);
     await tester.tap(find.widgetWithText(FilledButton, 'Save as visit note'));
     await _settle(tester);
     expect(find.textContaining('Saved to the patient record'), findsOneWidget);

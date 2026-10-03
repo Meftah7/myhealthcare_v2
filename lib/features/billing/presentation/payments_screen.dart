@@ -13,6 +13,8 @@ import '../../../app/theme/theme.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/readable_label.dart';
+import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -99,7 +101,7 @@ class PaymentsScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        ReadableLabel(
                           t.outstandingBalance,
                           style: theme.textTheme.labelLarge,
                         ),
@@ -174,7 +176,9 @@ class _BalanceCard extends ConsumerWidget {
           const SizedBox(height: Space.xs),
           Text(
             money(balance),
-            style: theme.textTheme.headlineSmall?.copyWith(color: scheme.primary),
+            style: theme.textTheme.headlineSmall?.copyWith(
+              color: scheme.primary,
+            ),
           ),
           const SizedBox(height: Space.sm),
           OutlinedButton.icon(
@@ -203,16 +207,12 @@ class _InvoiceGrid extends StatelessWidget {
     return Column(
       children: [
         for (var row = 0; row < invoices.length; row += 2)
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          AdaptiveFormRow(
             children: [
-              Expanded(child: _InvoiceCard(invoices[row])),
-              const SizedBox(width: Space.sm),
-              Expanded(
-                child: row + 1 < invoices.length
-                    ? _InvoiceCard(invoices[row + 1])
-                    : const SizedBox.shrink(),
-              ),
+              _InvoiceCard(invoices[row]),
+              row + 1 < invoices.length
+                  ? _InvoiceCard(invoices[row + 1])
+                  : const SizedBox.shrink(),
             ],
           ),
       ],
@@ -394,13 +394,10 @@ class _AmountRow extends StatelessWidget {
           );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: AdaptiveFormRow(
+        minChildWidth: 140,
         children: [
-          Flexible(
-            child: Text(label, style: style, overflow: TextOverflow.ellipsis),
-          ),
-          const SizedBox(width: Space.sm),
+          Text(label, style: style),
           Text(value, style: style),
         ],
       ),

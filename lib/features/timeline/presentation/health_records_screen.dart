@@ -11,6 +11,7 @@ import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/responsive.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../billing/presentation/payments_screen.dart';
 import '../../patient/application/patient_data_providers.dart';
@@ -41,7 +42,6 @@ class _HealthRecordsScreenState extends State<HealthRecordsScreen> {
   Widget build(BuildContext context) {
     final gutter = WindowSize.of(context).gutter;
     final t = AppLocalizations.of(context)!;
-    final largeText = MediaQuery.textScalerOf(context).scale(1) > 1.0;
 
     return AppScaffold(
       hero: true,
@@ -54,102 +54,61 @@ class _HealthRecordsScreenState extends State<HealthRecordsScreen> {
               label: Text(t.importPdfAction),
             )
           : null,
-      body: Column(
-        children: [
-          Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: Space.maxContentWidth,
-              ),
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(
-                  gutter,
-                  Space.sm,
-                  gutter,
-                  Space.sm,
-                ),
-                child: Column(
-                  children: [
-                    const _AllergiesAlert(),
-                    Align(
-                      alignment: AlignmentDirectional.centerEnd,
-                      child: TextButton.icon(
-                        icon: const Icon(Icons.folder_shared_outlined),
-                        label: Text(t.sectionYourHealth),
-                        onPressed: () => showModalBottomSheet<void>(
-                          context: context,
-                          showDragHandle: true,
-                          isScrollControlled: true,
-                          builder: (_) => SafeArea(
-                            child: SingleChildScrollView(
-                              padding: const EdgeInsets.all(Space.md),
-                              child: const _DocumentsStrip(),
-                            ),
+      body: ScrollableHeaderBody(
+        header: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: Space.maxContentWidth),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(gutter, Space.sm, gutter, Space.sm),
+              child: Column(
+                children: [
+                  const _AllergiesAlert(),
+                  Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: TextButton.icon(
+                      icon: const Icon(Icons.folder_shared_outlined),
+                      label: Text(t.sectionYourHealth),
+                      onPressed: () => showModalBottomSheet<void>(
+                        context: context,
+                        showDragHandle: true,
+                        isScrollControlled: true,
+                        builder: (_) => SafeArea(
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.all(Space.md),
+                            child: const _DocumentsStrip(),
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: Space.sm),
-                    SizedBox(
-                      width: double.infinity,
-                      // Labels follow the user's text size. Past the
-                      // Default tier the icons drop out to give the words
-                      // the width, and a long label wraps instead of being
-                      // shrunk.
-                      child: SegmentedButton<_RecordsView>(
-                        segments: [
-                          ButtonSegment(
-                            value: _RecordsView.timeline,
-                            icon: largeText
-                                ? null
-                                : const Icon(Icons.timeline_outlined),
-                            label: Text(
-                              t.timelineSegment,
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          ButtonSegment(
-                            value: _RecordsView.medications,
-                            icon: largeText
-                                ? null
-                                : const Icon(Icons.medication_outlined),
-                            label: Text(
-                              t.medicationsSegment,
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          ButtonSegment(
-                            value: _RecordsView.bills,
-                            icon: largeText
-                                ? null
-                                : const Icon(Icons.receipt_long_outlined),
-                            label: Text(
-                              t.billsSegment,
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ],
-                        selected: {_view},
-                        showSelectedIcon: false,
-                        onSelectionChanged: (s) =>
-                            setState(() => _view = s.first),
-                      ),
+                  ),
+                  const SizedBox(height: Space.sm),
+                  SizedBox(
+                    width: double.infinity,
+                    // Labels follow the user's text size. Past the
+                    // Default tier the icons drop out to give the words
+                    // the width, and a long label wraps instead of being
+                    // shrunk.
+                    child: PillSegmented<_RecordsView>(
+                      compact: true,
+                      segments: [
+                        (_RecordsView.timeline, t.timelineSegment),
+                        (_RecordsView.medications, t.medicationsSegment),
+                        (_RecordsView.bills, t.billsSegment),
+                      ],
+                      selected: _view,
+                      onChanged: (value) => setState(() => _view = value),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
-          Expanded(
-            child: switch (_view) {
-              _RecordsView.timeline => const TimelineScreen(embedded: true),
-              _RecordsView.medications => const MedicationsScreen(
-                embedded: true,
-              ),
-              _RecordsView.bills => const PaymentsScreen(embedded: true),
-            },
-          ),
-        ],
+        ),
+        body: switch (_view) {
+          _RecordsView.timeline => const TimelineScreen(embedded: true),
+          _RecordsView.medications => const MedicationsScreen(embedded: true),
+          _RecordsView.bills => const PaymentsScreen(embedded: true),
+        },
       ),
       centerBody: false,
     );
@@ -182,16 +141,7 @@ class _DocumentsStrip extends ConsumerWidget {
 
     // IntrinsicHeight so both cells in a row match the taller button — the
     // "Vital signs report" label wraps to two lines where the others don't.
-    Widget shortcutRow(Widget a, Widget b) => IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(child: a),
-          const SizedBox(width: Space.sm),
-          Expanded(child: b),
-        ],
-      ),
-    );
+    Widget shortcutRow(Widget a, Widget b) => AdaptiveFormRow(children: [a, b]);
 
     return Column(
       children: [

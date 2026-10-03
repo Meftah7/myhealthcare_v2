@@ -10,6 +10,8 @@ import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/operational_list.dart';
+import '../../../core/presentation/readable_label.dart';
+import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
 import '../../../core/utils/format.dart';
@@ -67,7 +69,7 @@ class _AdminForecastScreenState extends ConsumerState<AdminForecastScreen> {
                       Space.xxl,
                     ),
                     children: [
-                      Text(
+                      ReadableLabel(
                         t.forecastExplainerNote,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
@@ -86,21 +88,12 @@ class _AdminForecastScreenState extends ConsumerState<AdminForecastScreen> {
                         for (var r = 0; r < f.days.length; r += 2)
                           Padding(
                             padding: const EdgeInsets.only(bottom: Space.sm),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            child: AdaptiveFormRow(
                               children: [
-                                Expanded(
-                                  child: _DayCard(day: f.days[r], theme: theme),
-                                ),
-                                const SizedBox(width: Space.sm),
-                                Expanded(
-                                  child: r + 1 < f.days.length
-                                      ? _DayCard(
-                                          day: f.days[r + 1],
-                                          theme: theme,
-                                        )
-                                      : const SizedBox.shrink(),
-                                ),
+                                _DayCard(day: f.days[r], theme: theme),
+                                r + 1 < f.days.length
+                                    ? _DayCard(day: f.days[r + 1], theme: theme)
+                                    : const SizedBox.shrink(),
                               ],
                             ),
                           ),

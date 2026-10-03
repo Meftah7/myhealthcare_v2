@@ -10,8 +10,10 @@ import '../../../app/theme/theme.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
-import '../../../core/presentation/states.dart';
 import '../../../core/presentation/feedback.dart';
+import '../../../core/presentation/readable_label.dart';
+import '../../../core/presentation/responsive.dart';
+import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -126,6 +128,7 @@ class _State extends ConsumerState<UserManagementScreen>
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'users-add',
         onPressed: _onAddPressed,
         icon: Icon(add.icon),
         label: Text(add.label),
@@ -236,7 +239,7 @@ class _UserCard extends ConsumerWidget {
                     : scheme.onSurfaceVariant,
               ),
             ),
-            title: Text(user.fullName),
+            title: ReadableLabel(user.fullName),
             subtitle: Row(
               children: [
                 Expanded(
@@ -1390,23 +1393,18 @@ class _DayRow extends StatelessWidget {
             ),
             if (day.active) ...[
               const SizedBox(height: Space.xs),
-              Row(
+              AdaptiveFormRow(
                 children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: onPickStart,
-                      child: Text(
-                        '${t.startTimeLabel}: ${fmtMinutes(day.startMinutes)}',
-                      ),
+                  OutlinedButton(
+                    onPressed: onPickStart,
+                    child: Text(
+                      '${t.startTimeLabel}: ${fmtMinutes(day.startMinutes)}',
                     ),
                   ),
-                  const SizedBox(width: Space.sm),
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: onPickEnd,
-                      child: Text(
-                        '${t.endTimeLabel}: ${fmtMinutes(day.endMinutes)}',
-                      ),
+                  OutlinedButton(
+                    onPressed: onPickEnd,
+                    child: Text(
+                      '${t.endTimeLabel}: ${fmtMinutes(day.endMinutes)}',
                     ),
                   ),
                 ],

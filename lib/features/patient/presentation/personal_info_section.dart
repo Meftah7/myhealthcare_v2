@@ -13,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/feedback.dart';
+import '../../../core/presentation/responsive.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/date_input.dart';
 import '../../../domain/entities/entities.dart';
@@ -177,20 +178,15 @@ class _PersonalInfoSectionState extends ConsumerState<PersonalInfoSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
+        AdaptiveFormRow(
           children: [
-            Expanded(
-              child: TextField(
-                controller: _firstName,
-                decoration: InputDecoration(labelText: t.firstNameLabel),
-              ),
+            TextField(
+              controller: _firstName,
+              decoration: InputDecoration(labelText: t.firstNameLabel),
             ),
-            const SizedBox(width: Space.sm),
-            Expanded(
-              child: TextField(
-                controller: _lastName,
-                decoration: InputDecoration(labelText: t.lastNameLabel),
-              ),
+            TextField(
+              controller: _lastName,
+              decoration: InputDecoration(labelText: t.lastNameLabel),
             ),
           ],
         ),
@@ -222,6 +218,8 @@ class _PersonalInfoSectionState extends ConsumerState<PersonalInfoSection> {
         ),
         const SizedBox(height: Space.sm),
         DropdownButtonFormField<Gender>(
+          isExpanded: true,
+          itemHeight: null,
           initialValue: _gender,
           decoration: InputDecoration(labelText: t.genderFieldLabel),
           items: [
@@ -247,26 +245,21 @@ class _PersonalInfoSectionState extends ConsumerState<PersonalInfoSection> {
           ),
         ),
         const SizedBox(height: Space.md),
-        Row(
+        AdaptiveFormRow(
           children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: _isDirty && !_busy ? _cancel : null,
-                child: Text(t.cancel),
-              ),
+            OutlinedButton(
+              onPressed: _isDirty && !_busy ? _cancel : null,
+              child: Text(t.cancel),
             ),
-            const SizedBox(width: Space.sm),
-            Expanded(
-              child: FilledButton(
-                onPressed: canSave ? _save : null,
-                child: _busy
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(t.saveButton),
-              ),
+            FilledButton(
+              onPressed: canSave ? _save : null,
+              child: _busy
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(t.saveButton),
             ),
           ],
         ),

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/feedback.dart';
+import '../../../core/presentation/responsive.dart';
 import '../../../core/result.dart';
 import '../../../domain/enums.dart';
 import '../../../domain/repositories/auth_repository.dart';
@@ -181,73 +182,63 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 decoration: InputDecoration(labelText: t.phoneOptional),
               ),
               const SizedBox(height: Space.md),
-              Row(
+              AdaptiveFormRow(
                 children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: _pickDob,
-                      icon: const Icon(Icons.cake_outlined),
-                      label: Text(
-                        _dob == null
-                            ? t.dateOfBirth
-                            : '${_dob!.year}-${_dob!.month.toString().padLeft(2, '0')}-${_dob!.day.toString().padLeft(2, '0')}',
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                  OutlinedButton.icon(
+                    onPressed: _pickDob,
+                    icon: const Icon(Icons.cake_outlined),
+                    label: Text(
+                      _dob == null
+                          ? t.dateOfBirth
+                          : '${_dob!.year}-${_dob!.month.toString().padLeft(2, '0')}-${_dob!.day.toString().padLeft(2, '0')}',
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const SizedBox(width: Space.sm),
-                  Expanded(
-                    child: DropdownButtonFormField<Gender>(
-                      initialValue: _gender,
-                      isExpanded: true,
-                      decoration: InputDecoration(labelText: t.gender),
-                      items: [
-                        DropdownMenuItem(
-                          value: Gender.male,
-                          child: Text(t.genderMale),
-                        ),
-                        DropdownMenuItem(
-                          value: Gender.female,
-                          child: Text(t.genderFemale),
-                        ),
-                      ],
-                      onChanged: (v) => setState(() => _gender = v),
-                    ),
+                  DropdownButtonFormField<Gender>(
+                    initialValue: _gender,
+                    isExpanded: true,
+                    decoration: InputDecoration(labelText: t.gender),
+                    items: [
+                      DropdownMenuItem(
+                        value: Gender.male,
+                        child: Text(t.genderMale),
+                      ),
+                      DropdownMenuItem(
+                        value: Gender.female,
+                        child: Text(t.genderFemale),
+                      ),
+                    ],
+                    onChanged: (v) => setState(() => _gender = v),
                   ),
                 ],
               ),
               const SizedBox(height: Space.md),
-              Row(
+              AdaptiveFormRow(
                 children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _nationalId,
-                      decoration: InputDecoration(
-                        labelText: t.nationalIdOptional,
-                      ),
+                  TextFormField(
+                    controller: _nationalId,
+                    decoration: InputDecoration(
+                      labelText: t.nationalIdOptional,
                     ),
                   ),
-                  const SizedBox(width: Space.sm),
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      initialValue: _bloodType,
-                      isExpanded: true,
-                      decoration: InputDecoration(labelText: t.bloodType),
-                      items: [
-                        for (final b in const [
-                          'O+',
-                          'O-',
-                          'A+',
-                          'A-',
-                          'B+',
-                          'B-',
-                          'AB+',
-                          'AB-',
-                        ])
-                          DropdownMenuItem(value: b, child: Text(b)),
-                      ],
-                      onChanged: (v) => setState(() => _bloodType = v),
-                    ),
+                  DropdownButtonFormField<String>(
+                    initialValue: _bloodType,
+                    isExpanded: true,
+                    decoration: InputDecoration(labelText: t.bloodType),
+                    items: [
+                      for (final b in const [
+                        'O+',
+                        'O-',
+                        'A+',
+                        'A-',
+                        'B+',
+                        'B-',
+                        'AB+',
+                        'AB-',
+                      ])
+                        DropdownMenuItem(value: b, child: Text(b)),
+                    ],
+                    onChanged: (v) => setState(() => _bloodType = v),
                   ),
                 ],
               ),

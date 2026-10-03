@@ -76,7 +76,7 @@ void main() {
     }
 
     // Account details is its own page.
-    await tester.tap(find.text('Account'));
+    await tester.tap(find.widgetWithText(ListTile, 'Account'));
     await _settle(tester);
     expect(find.text('Specialty'), findsOneWidget);
     expect(find.text('Department'), findsOneWidget);

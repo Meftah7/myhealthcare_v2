@@ -18,11 +18,12 @@ import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/data_state_view.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/presentation/paging_widgets.dart';
+import '../../../core/presentation/readable_label.dart';
 import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
-import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -64,7 +65,6 @@ class StaffDashboardScreen extends ConsumerWidget {
           ..invalidate(staffTasksProvider);
       },
       children: [
-
         const _NextPatientHero(),
 
         SectionColumns(
@@ -107,7 +107,6 @@ class StaffDashboardScreen extends ConsumerWidget {
             SectionHeader(t.quickActionsHeader, overline: true),
             const StaffQuickActions(),
           ],
-
         ),
       ],
     );
@@ -670,7 +669,7 @@ class _AwaitingReply extends ConsumerWidget {
                         : Icons.mark_email_unread_outlined,
                     color: overdue ? theme.colorScheme.error : null,
                   ),
-                  title: Text(patient),
+                  title: ReadableLabel(patient),
                   subtitle: Text(
                     [
                       if (covering)

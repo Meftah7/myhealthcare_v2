@@ -15,6 +15,7 @@ import 'package:myhealthcare/l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/mfa.dart';
+import '../support/navigation.dart';
 import '../support/test_database.dart';
 
 Future<void> _settle(WidgetTester tester) async {
@@ -62,17 +63,6 @@ Future<void> _signIn(WidgetTester tester, {required String email}) async {
   await _settle(tester);
 }
 
-Iterable<String> _navLabels(WidgetTester tester) => tester
-    .widgetList<Text>(
-      find.descendant(
-        of: find.byWidgetPredicate(
-          (w) => w is NavigationBar || w is NavigationRail,
-        ),
-        matching: find.byType(Text),
-      ),
-    )
-    .map((t) => t.data ?? '');
-
 void main() {
   testWidgets('arabic: nav labels localize and patient home never overflows', (
     tester,
@@ -88,15 +78,15 @@ void main() {
     final ar = lookupAppLocalizations(const Locale('ar'));
 
     // Before: the (hardcoded) English labels are visible.
-    expect(_navLabels(tester), contains('Home'));
+    expect(await compactNavigationLabels(tester), contains('Home'));
 
     // Switch to Arabic.
     await container.read(localeProvider.notifier).set(const Locale('ar'));
     await _settle(tester);
 
     // Issue 1 — the bottom navigation bar follows the locale.
-    expect(_navLabels(tester), contains(ar.navHome));
-    expect(_navLabels(tester), isNot(contains('Home')));
+    expect(await compactNavigationLabels(tester), contains(ar.navHome));
+    expect(await compactNavigationLabels(tester), isNot(contains('Home')));
 
     // Issue 2 — nothing overflows on the Arabic home screen: the carousel
     // card height must account for Arabic fallback font metrics. Drain the
@@ -123,7 +113,7 @@ void main() {
     await _settle(tester);
 
     // Issue 1 — the staff rail follows the locale too.
-    expect(_navLabels(tester), contains(ar.navPatients));
+    expect(await compactNavigationLabels(tester), contains(ar.navPatients));
 
     // Issue 3 — the staff Patients screen is Arabic.
     container.read(routerProvider).go(AppRoutes.staffPatients);

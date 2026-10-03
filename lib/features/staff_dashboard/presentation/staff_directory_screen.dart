@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/readable_label.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -108,7 +109,7 @@ class _StaffCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                ReadableLabel(
                   clinicianName(staff.fullName),
                   style: theme.textTheme.titleSmall,
                 ),
@@ -121,8 +122,12 @@ class _StaffCard extends StatelessWidget {
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
+                if (phone != null)
+                  ReadableLabel(phone, style: theme.textTheme.labelSmall),
                 const SizedBox(height: Space.xxs),
-                Row(
+                Wrap(
+                  spacing: Space.xs,
+                  runSpacing: Space.xs,
                   children: [
                     Icon(meta.icon, size: 14, color: meta.color),
                     const SizedBox(width: Space.xxs),
@@ -132,13 +137,6 @@ class _StaffCard extends StatelessWidget {
               ],
             ),
           ),
-          if (phone != null)
-            Text(
-              phone,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
         ],
       ),
     );

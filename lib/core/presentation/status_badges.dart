@@ -8,6 +8,7 @@ import '../../app/theme/theme.dart';
 import '../../domain/enums.dart';
 import '../../l10n/app_localizations.dart';
 import '../i18n/enum_labels.dart';
+import 'readable_label.dart';
 
 /// The one status badge in the app: a filled container carrying an icon **and**
 /// a word (DESIGN.md §1 rule 3 — status is never colour alone, because ~8% of
@@ -242,7 +243,7 @@ class AiDisclaimerBanner extends StatelessWidget {
           ),
           const SizedBox(width: Space.xs),
           Expanded(
-            child: Text(
+            child: ReadableLabel(
               AppLocalizations.of(context)!.aiDisclaimer,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onTertiaryContainer,

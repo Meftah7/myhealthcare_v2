@@ -10,6 +10,7 @@ import '../../../app/theme/theme.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/readable_label.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/enums.dart';
@@ -107,7 +108,7 @@ class _AdminAppointmentsScreenState
                         Row(
                           children: [
                             Expanded(
-                              child: Text(
+                              child: ReadableLabel(
                                 patients[a.patientId] ?? t.rolePatient,
                                 style: theme.textTheme.titleSmall,
                               ),

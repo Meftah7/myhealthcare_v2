@@ -1364,6 +1364,18 @@ abstract class AppLocalizations {
   /// **'Next appointment'**
   String get nextAppointment;
 
+  /// No description provided for @pauseAppointments.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause appointment slideshow'**
+  String get pauseAppointments;
+
+  /// No description provided for @resumeAppointments.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume appointment slideshow'**
+  String get resumeAppointments;
+
   /// No description provided for @ticketOverline.
   ///
   /// In en, this message translates to:

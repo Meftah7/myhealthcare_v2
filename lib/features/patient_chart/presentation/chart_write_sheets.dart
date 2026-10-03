@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/feedback.dart';
+import '../../../core/presentation/responsive.dart';
 import '../../../core/result.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/chart_providers.dart';
@@ -361,48 +362,38 @@ class _LabSheetState extends ConsumerState<_LabSheet> {
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: Space.sm),
-        Row(
+        AdaptiveFormRow(
           children: [
-            Expanded(
-              child: TextField(
-                controller: _value,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: InputDecoration(labelText: t.valueLabel),
-                onChanged: (_) => setState(() {}),
+            TextField(
+              controller: _value,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
               ),
+              decoration: InputDecoration(labelText: t.valueLabel),
+              onChanged: (_) => setState(() {}),
             ),
-            const SizedBox(width: Space.sm),
-            Expanded(
-              child: TextField(
-                controller: _unit,
-                decoration: InputDecoration(labelText: t.unitLabel),
-              ),
+            TextField(
+              controller: _unit,
+              decoration: InputDecoration(labelText: t.unitLabel),
             ),
           ],
         ),
         const SizedBox(height: Space.sm),
-        Row(
+        AdaptiveFormRow(
           children: [
-            Expanded(
-              child: TextField(
-                controller: _low,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: InputDecoration(labelText: t.refLowLabel),
+            TextField(
+              controller: _low,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
               ),
+              decoration: InputDecoration(labelText: t.refLowLabel),
             ),
-            const SizedBox(width: Space.sm),
-            Expanded(
-              child: TextField(
-                controller: _high,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: InputDecoration(labelText: t.refHighLabel),
+            TextField(
+              controller: _high,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
               ),
+              decoration: InputDecoration(labelText: t.refHighLabel),
             ),
           ],
         ),
@@ -503,20 +494,15 @@ class _SickLeaveSheetState extends ConsumerState<_SickLeaveSheet> {
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: Space.sm),
-        Row(
+        AdaptiveFormRow(
           children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: () => _pick(isFrom: true),
-                child: Text(t.fromDateLabel(df.formatMediumDate(_from))),
-              ),
+            OutlinedButton(
+              onPressed: () => _pick(isFrom: true),
+              child: Text(t.fromDateLabel(df.formatMediumDate(_from))),
             ),
-            const SizedBox(width: Space.sm),
-            Expanded(
-              child: OutlinedButton(
-                onPressed: () => _pick(isFrom: false),
-                child: Text(t.toDateLabel(df.formatMediumDate(_to))),
-              ),
+            OutlinedButton(
+              onPressed: () => _pick(isFrom: false),
+              child: Text(t.toDateLabel(df.formatMediumDate(_to))),
             ),
           ],
         ),

@@ -52,135 +52,132 @@ class AiSummaryScreen extends ConsumerWidget {
                 },
         ),
       ],
-      body: Column(
-        children: [
-          const AiDisclaimerBanner(),
-          Expanded(
-            child: summary.when(
-              loading: () => const SkeletonList(),
-              error: (e, _) => ErrorStateView(
-                message: t.couldNotGenerateSummary('$e'),
-                onRetry: () => ref.invalidate(patientAiSummaryProvider),
-              ),
-              data: (s) => Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    maxWidth: Space.maxContentWidth,
-                  ),
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(
-                      Space.md,
-                      Space.md,
-                      Space.md,
-                      Space.xxl,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: Space.maxContentWidth),
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(
+              Space.md,
+              Space.md,
+              Space.md,
+              Space.xxl,
+            ),
+            children: [
+              const AiDisclaimerBanner(),
+              const SizedBox(height: Space.sm),
+              summary.when(
+                loading: () => const SkeletonList(),
+                error: (e, _) => ErrorStateView(
+                  message: t.couldNotGenerateSummary('$e'),
+                  onRetry: () => ref.invalidate(patientAiSummaryProvider),
+                ),
+                data: (s) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AppCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            s.summaryMarkdown,
+                            style: theme.textTheme.bodyLarge,
+                          ),
+                          const SizedBox(height: Space.sm),
+                          Text(
+                            t.generatedMeta(
+                              fmtDateTime(s.generatedAt),
+                              s.modelId,
+                              s.promptVersion,
+                            ),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    children: [
+
+                    if (s.redFlags.isNotEmpty) ...[
+                      SectionHeader(t.thingsToCheckHeader, overline: true),
                       AppCard(
+                        padding: const EdgeInsets.all(Space.md),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              s.summaryMarkdown,
-                              style: theme.textTheme.bodyLarge,
-                            ),
-                            const SizedBox(height: Space.sm),
-                            Text(
-                              t.generatedMeta(
-                                fmtDateTime(s.generatedAt),
-                                s.modelId,
-                                s.promptVersion,
+                            for (final f in s.redFlags)
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  bottom: Space.xs,
+                                ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    SeverityChip(f.severity),
+                                    const SizedBox(width: Space.xs),
+                                    Expanded(
+                                      child: Text(
+                                        f.description,
+                                        style: theme.textTheme.bodyMedium,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
                           ],
                         ),
                       ),
-
-                      if (s.redFlags.isNotEmpty) ...[
-                        SectionHeader(t.thingsToCheckHeader, overline: true),
-                        AppCard(
-                          padding: const EdgeInsets.all(Space.md),
-                          child: Column(
-                            children: [
-                              for (final f in s.redFlags)
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                    bottom: Space.xs,
-                                  ),
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      SeverityChip(f.severity),
-                                      const SizedBox(width: Space.xs),
-                                      Expanded(
-                                        child: Text(
-                                          f.description,
-                                          style: theme.textTheme.bodyMedium,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
-
-                      if (s.trends.isNotEmpty) ...[
-                        SectionHeader(t.trendsHeader, overline: true),
-                        AppCard(
-                          padding: EdgeInsets.zero,
-                          child: Column(
-                            children: [
-                              for (final t in s.trends)
-                                ListTile(
-                                  dense: true,
-                                  leading: Icon(_trendIcon(t.direction)),
-                                  title: Text(t.metric),
-                                  subtitle: Text(t.summary),
-                                  onTap: () =>
-                                      context.go(AppRoutes.patientVitals),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
-
-                      if (s.keyEvents.isNotEmpty) ...[
-                        SectionHeader(t.keyEventsHeader, overline: true),
-                        AppCard(
-                          padding: EdgeInsets.zero,
-                          child: Column(
-                            children: [
-                              for (final e in s.keyEvents)
-                                ListTile(
-                                  dense: true,
-                                  leading: const Icon(Icons.star_outline),
-                                  title: Text(e.title),
-                                  subtitle: Text(
-                                    '${fmtDate(e.date)}'
-                                    '${e.description == null ? '' : ' · ${e.description}'}',
-                                  ),
-                                  onTap: e.recordId == null
-                                      ? null
-                                      : () => context.push(
-                                          AppRoutes.patientRecord(e.recordId!),
-                                        ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
                     ],
-                  ),
+
+                    if (s.trends.isNotEmpty) ...[
+                      SectionHeader(t.trendsHeader, overline: true),
+                      AppCard(
+                        padding: EdgeInsets.zero,
+                        child: Column(
+                          children: [
+                            for (final t in s.trends)
+                              ListTile(
+                                dense: true,
+                                leading: Icon(_trendIcon(t.direction)),
+                                title: Text(t.metric),
+                                subtitle: Text(t.summary),
+                                onTap: () =>
+                                    context.go(AppRoutes.patientVitals),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    if (s.keyEvents.isNotEmpty) ...[
+                      SectionHeader(t.keyEventsHeader, overline: true),
+                      AppCard(
+                        padding: EdgeInsets.zero,
+                        child: Column(
+                          children: [
+                            for (final e in s.keyEvents)
+                              ListTile(
+                                dense: true,
+                                leading: const Icon(Icons.star_outline),
+                                title: Text(e.title),
+                                subtitle: Text(
+                                  '${fmtDate(e.date)}'
+                                  '${e.description == null ? '' : ' · ${e.description}'}',
+                                ),
+                                onTap: e.recordId == null
+                                    ? null
+                                    : () => context.push(
+                                        AppRoutes.patientRecord(e.recordId!),
+                                      ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
       centerBody: false,
     );

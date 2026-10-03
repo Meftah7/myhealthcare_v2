@@ -24,7 +24,7 @@ The plugin uses no network access and preserves other file contents. Re-running 
 
 - Chromium rendered all **141 frames** with no zero-sized layers or child bounds outside their parents; see [layout-check.json](layout-check.json). All **821 navigation targets** resolve to design frames.
 - Earlier Figma readbacks verified node IDs, dimensions and descendant counts for the original 56 frames; see `figma-state-built.json`. Remote screenshots and the expanded board remain unverified.
-- Flutter SDK is unavailable in this checkout. The upgrade's Dart sources pass a syntax-parser check and referenced localization keys/routes exist. Flutter analysis, widget tests, builds, live screenshots, Arabic RTL, dark mode and large-text checks remain pending.
+- Flutter 3.44.4 / Dart 3.12.2 was recovered in a temporary SDK. Analysis reports no errors or warnings, and the web release build succeeds. The English/Arabic small-phone route matrix passes at combined text scales of 130%, 260% and 390%; see the [readability audit](../SMALL_PHONE_READABILITY_AUDIT.md) for coverage and limits. Physical-device and complete visual-state checks remain pending.
 - The [full-app audit](../CURRENT_UI_VS_REDESIGN_AUDIT.md) and [78-frame baseline comparison](FRAME_BY_FRAME_AUDIT.md) explain the requirements behind this upgrade. They are historical comparison records, not a fresh visual audit of all 141 frames.
 
 ## Regenerate

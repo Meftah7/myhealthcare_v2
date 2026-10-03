@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/readable_label.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../l10n/app_localizations.dart';
@@ -81,7 +82,7 @@ class AdminAccountPage extends ConsumerWidget {
   }
 
   Widget _row(String label, String value) =>
-      ListTile(dense: true, title: Text(label), subtitle: Text(value));
+      ListTile(dense: true, title: Text(label), subtitle: ReadableLabel(value));
 }
 
 /// Device preferences — theme, text size, language, alerts, sounds.

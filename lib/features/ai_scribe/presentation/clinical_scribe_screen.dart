@@ -3,15 +3,15 @@
 library;
 
 import 'package:flutter/material.dart';
-
-import '../../../core/presentation/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
-import '../../../core/presentation/status_badges.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/feedback.dart';
+import '../../../core/presentation/readable_label.dart';
+import '../../../core/presentation/status_badges.dart';
 import '../../../core/result.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../patient_chart/application/chart_providers.dart';
@@ -163,7 +163,7 @@ class _ClinicalScribeScreenState extends ConsumerState<ClinicalScribeScreen> {
                             decoration: InputDecoration(
                               labelText: t.dictationLabel,
                               alignLabelWithHint: true,
-                              hintText: t.dictationHint,
+                              hint: ReadableLabel(t.dictationHint),
                             ),
                           ),
                           const SizedBox(height: Space.md),

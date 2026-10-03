@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/app.dart';
+import 'package:myhealthcare/app/shell/app_shell.dart';
 import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/core/presentation/responsive.dart';
 import 'package:myhealthcare/core/presentation/two_pane.dart';
@@ -123,7 +124,7 @@ void main() {
         expect(
           find.byWidgetPredicate(
             (widget) =>
-                widget is NavigationBar ||
+                widget is CompactNavigation ||
                 widget is NavigationRail ||
                 (widget is SizedBox && widget.width == 248),
           ),
@@ -142,7 +143,7 @@ void main() {
         keyboardInset: 280,
       );
       expect(tester.takeException(), isNull);
-      expect(find.byType(NavigationBar), findsOneWidget);
+      expect(find.byType(CompactNavigation), findsOneWidget);
       await _teardown(tester);
     });
   });
@@ -151,7 +152,7 @@ void main() {
     testWidgets('compact (<600) puts the bar at the bottom', (tester) async {
       await _signInPatient(tester, size: const Size(400, 900));
 
-      expect(find.byType(NavigationBar), findsOneWidget);
+      expect(find.byType(CompactNavigation), findsOneWidget);
       expect(find.byType(NavigationRail), findsNothing);
 
       await _teardown(tester);
@@ -253,6 +254,18 @@ void main() {
         email: 'staff1@myhealth.demo',
         size: const Size(400, 900),
       );
+      if (find.byType(NavigationBar).evaluate().isEmpty) {
+        await tester.tap(
+          find
+              .descendant(
+                of: find.byType(CompactNavigation),
+                matching: find.byType(ListTile),
+              )
+              .first,
+        );
+        await _settle(tester);
+        await tester.ensureVisible(find.text('Patients').last);
+      }
       await tester.tap(find.text('Patients').last);
       await _settle(tester);
 

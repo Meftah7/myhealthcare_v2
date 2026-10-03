@@ -113,82 +113,86 @@ class _SplashOverlayState extends State<SplashOverlay>
           child: ColoredBox(
             color: scheme.surface.withValues(alpha: leaving),
             child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    width: 260,
-                    height: 260,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // Brand bloom: a wide radial wash that makes the mark
-                        // feel lit rather than pasted onto the surface.
-                        Opacity(
-                          opacity: (_bloomIn.value * 0.9 * leaving).clamp(
-                            0.0,
-                            1.0,
-                          ),
-                          child: Transform.scale(
-                            scale: bloomScale,
-                            child: const DecoratedBox(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: AppColors.brandGlow,
-                              ),
-                              child: SizedBox.expand(),
-                            ),
-                          ),
-                        ),
-                        Opacity(
-                          opacity: markOpacity.clamp(0.0, 1.0),
-                          child: Transform.scale(
-                            scale: markScale,
-                            child: Container(
-                              width: 104,
-                              height: 104,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(30),
-                                gradient: AppColors.brandGradient,
-                                boxShadow: Shadows.glow(AppColors.brandViolet),
-                              ),
-                              padding: const EdgeInsets.all(18),
-                              child: const AppLogo(
-                                semanticLabel: 'MyHealth Care',
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Opacity(
-                    opacity: wordOpacity.clamp(0.0, 1.0),
-                    child: Transform.translate(
-                      offset: Offset(0, wordRise),
-                      child: Column(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 260,
+                      height: 260,
+                      child: Stack(
+                        alignment: Alignment.center,
                         children: [
-                          Text(
-                            'Welcome',
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              color: scheme.onSurface,
-                              letterSpacing: 0.2,
+                          // Brand bloom: a wide radial wash that makes the mark
+                          // feel lit rather than pasted onto the surface.
+                          Opacity(
+                            opacity: (_bloomIn.value * 0.9 * leaving).clamp(
+                              0.0,
+                              1.0,
+                            ),
+                            child: Transform.scale(
+                              scale: bloomScale,
+                              child: const DecoratedBox(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: AppColors.brandGlow,
+                                ),
+                                child: SizedBox.expand(),
+                              ),
                             ),
                           ),
-                          const SizedBox(height: Space.xs),
-                          Text(
-                            'MyHealth Care',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: scheme.onSurfaceVariant,
-                              letterSpacing: 2.4,
+                          Opacity(
+                            opacity: markOpacity.clamp(0.0, 1.0),
+                            child: Transform.scale(
+                              scale: markScale,
+                              child: Container(
+                                width: 104,
+                                height: 104,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(30),
+                                  gradient: AppColors.brandGradient,
+                                  boxShadow: Shadows.glow(
+                                    AppColors.brandViolet,
+                                  ),
+                                ),
+                                padding: const EdgeInsets.all(18),
+                                child: const AppLogo(
+                                  semanticLabel: 'MyHealth Care',
+                                ),
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                ],
+                    Opacity(
+                      opacity: wordOpacity.clamp(0.0, 1.0),
+                      child: Transform.translate(
+                        offset: Offset(0, wordRise),
+                        child: Column(
+                          children: [
+                            Text(
+                              'Welcome',
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                color: scheme.onSurface,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                            const SizedBox(height: Space.xs),
+                            Text(
+                              'MyHealth Care',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                                letterSpacing: 2.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

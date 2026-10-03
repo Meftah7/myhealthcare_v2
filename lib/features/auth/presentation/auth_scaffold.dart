@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/readable_label.dart';
 import 'auth_app_bar_actions.dart';
 
 class AuthScaffold extends StatelessWidget {
@@ -91,7 +92,7 @@ class AuthScaffold extends StatelessWidget {
                               ),
                               const SizedBox(width: Space.sm),
                               Expanded(
-                                child: Text(
+                                child: ReadableLabel(
                                   'MyHealth Care',
                                   style: theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
@@ -102,7 +103,7 @@ class AuthScaffold extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: Space.md),
-                          Text(
+                          ReadableLabel(
                             title,
                             style: theme.textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.w600,
@@ -111,7 +112,7 @@ class AuthScaffold extends StatelessWidget {
                           ),
                           if (subtitle != null) ...[
                             const SizedBox(height: Space.xxs),
-                            Text(
+                            ReadableLabel(
                               subtitle!,
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: scheme.onSurfaceVariant,

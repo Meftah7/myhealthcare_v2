@@ -80,6 +80,10 @@ void main() {
     // is a full-screen push now, not a bottom tab (patient dashboard rebuild).
     await tester.tap(find.text('Home').first);
     await _settle(tester);
+    await tester.ensureVisible(find.text('More actions'));
+    await tester.tap(find.text('More actions'));
+    await _settle(tester);
+    await tester.ensureVisible(find.text('Vitals').first);
     await tester.tap(find.text('Vitals').first);
     await _settle(tester);
     expect(find.widgetWithText(AppBar, 'Vitals'), findsOneWidget);

@@ -5,6 +5,8 @@
 library;
 
 import 'package:flutter/material.dart';
+
+import '../../../core/presentation/responsive.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -97,12 +99,7 @@ class TimelineScreen extends ConsumerWidget {
     );
 
     if (embedded) {
-      return Column(
-        children: [
-          _Filters(),
-          Expanded(child: feed),
-        ],
-      );
+      return ScrollableHeaderBody(header: _Filters(), body: feed);
     }
 
     return AppScaffold(
@@ -144,10 +141,9 @@ class _Filters extends ConsumerWidget {
             onChanged: (v) => ref.read(_queryProvider.notifier).state = v,
           ),
           const SizedBox(height: Space.xs),
-          SizedBox(
-            height: 40,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
               children: [
                 for (final rt in RecordType.values)
                   Padding(

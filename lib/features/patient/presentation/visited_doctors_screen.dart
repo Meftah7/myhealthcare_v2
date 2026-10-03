@@ -10,6 +10,7 @@ import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/readable_label.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../l10n/app_localizations.dart';
@@ -99,8 +100,11 @@ class _DoctorCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(doctor.name, style: theme.textTheme.titleMedium),
-                    Text(
+                    ReadableLabel(
+                      doctor.name,
+                      style: theme.textTheme.titleMedium,
+                    ),
+                    ReadableLabel(
                       doctor.departmentName ?? t.generalDepartmentFallback,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: scheme.onSurfaceVariant,
@@ -172,10 +176,12 @@ class _Fact extends StatelessWidget {
       children: [
         Icon(icon, size: 14, color: scheme.onSurfaceVariant),
         const SizedBox(width: Space.xxs),
-        Text(
-          label,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: scheme.onSurfaceVariant,
+        Flexible(
+          child: ReadableLabel(
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
           ),
         ),
       ],

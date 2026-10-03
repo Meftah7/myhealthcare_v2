@@ -11,6 +11,7 @@ import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/mfa.dart';
+import '../support/navigation.dart';
 import '../support/test_database.dart';
 
 Future<void> _pump(WidgetTester tester) async {
@@ -177,9 +178,7 @@ void main() {
       await _pump(tester);
       await _login(tester, 'admin@myhealth.demo');
 
-      await tester.tap(
-        find.widgetWithText(NavigationDestination, 'Departments'),
-      );
+      await selectCompactDestination(tester, 'Departments');
       await _pump(tester);
 
       await expectLater(tester, meetsGuideline(textContrastGuideline));

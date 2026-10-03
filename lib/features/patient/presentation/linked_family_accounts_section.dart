@@ -15,8 +15,10 @@ import '../../../app/theme/theme.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
-import '../../../core/presentation/states.dart';
 import '../../../core/presentation/feedback.dart';
+import '../../../core/presentation/readable_label.dart';
+import '../../../core/presentation/responsive.dart';
+import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
 import '../../../domain/enums.dart';
 import '../../../domain/repositories/patient_repository.dart';
@@ -46,9 +48,9 @@ class LinkedFamilyAccountsSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
+        AdaptiveFormRow(
           children: [
-            Expanded(child: _Label(t.linkedAccountsTitle)),
+            _Label(t.linkedAccountsTitle),
             TextButton.icon(
               onPressed: () => _openLinkSheet(context, ref),
               icon: const Icon(Icons.link, size: 18),
@@ -131,7 +133,7 @@ class _Label extends StatelessWidget {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: Space.xs, top: Space.xs),
-      child: Text(
+      child: ReadableLabel(
         text.toUpperCase(),
         style: theme.textTheme.labelSmall?.copyWith(
           color: theme.colorScheme.onSurfaceVariant,
@@ -222,42 +224,33 @@ class _IncomingRequestCard extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: Space.sm),
-            Row(
+            AdaptiveFormRow(
               children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () async {
-                      final result = await ref
-                          .read(familyLinkControllerProvider)
-                          .decline(view.link.id);
-                      if (context.mounted && result.isErr) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(result.failureOrNull!.message),
-                          ),
-                        );
-                      }
-                    },
-                    child: Text(t.declineButton),
-                  ),
+                OutlinedButton(
+                  onPressed: () async {
+                    final result = await ref
+                        .read(familyLinkControllerProvider)
+                        .decline(view.link.id);
+                    if (context.mounted && result.isErr) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(result.failureOrNull!.message)),
+                      );
+                    }
+                  },
+                  child: Text(t.declineButton),
                 ),
-                const SizedBox(width: Space.sm),
-                Expanded(
-                  child: FilledButton(
-                    onPressed: () async {
-                      final result = await ref
-                          .read(familyLinkControllerProvider)
-                          .accept(view.link.id);
-                      if (context.mounted && result.isErr) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(result.failureOrNull!.message),
-                          ),
-                        );
-                      }
-                    },
-                    child: Text(t.acceptButton),
-                  ),
+                FilledButton(
+                  onPressed: () async {
+                    final result = await ref
+                        .read(familyLinkControllerProvider)
+                        .accept(view.link.id);
+                    if (context.mounted && result.isErr) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(result.failureOrNull!.message)),
+                      );
+                    }
+                  },
+                  child: Text(t.acceptButton),
                 ),
               ],
             ),

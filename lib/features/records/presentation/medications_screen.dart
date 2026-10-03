@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/readable_label.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -108,7 +109,7 @@ class _MedTile extends StatelessWidget {
         m.isCurrent ? Icons.medication : Icons.medication_outlined,
         color: m.isCurrent ? theme.colorScheme.primary : null,
       ),
-      title: Text(m.name),
+      title: ReadableLabel(m.name),
       subtitle: Text(sub, style: theme.textTheme.bodySmall),
     );
   }

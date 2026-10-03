@@ -13,6 +13,7 @@ import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/readable_label.dart';
 import '../../../core/presentation/states.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../patient/application/patient_data_providers.dart';
@@ -157,7 +158,7 @@ class _NoAllergiesCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                ReadableLabel(
                   t.noAllergiesRecordedTitle,
                   style: theme.textTheme.titleMedium,
                 ),

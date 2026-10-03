@@ -12,8 +12,9 @@ import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/confirm_dialog.dart';
-import '../../../core/presentation/states.dart';
 import '../../../core/presentation/feedback.dart';
+import '../../../core/presentation/readable_label.dart';
+import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../l10n/app_localizations.dart';
@@ -46,6 +47,7 @@ class DepartmentsScreen extends ConsumerWidget {
       title: t.departmentsLabel,
       actions: const [AdminTopActions()],
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'departments-add',
         onPressed: () => _edit(context, ref, null),
         icon: const Icon(Icons.add),
         label: Text(t.newDepartmentAction),
@@ -98,14 +100,14 @@ class DepartmentsScreen extends ConsumerWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
+                                ReadableLabel(
                                   d.name,
                                   style: theme.textTheme.titleSmall?.copyWith(
                                     color: scheme.onSurface,
                                   ),
                                 ),
                                 if (d.description != null)
-                                  Text(
+                                  ReadableLabel(
                                     d.description!,
                                     style: theme.textTheme.bodySmall?.copyWith(
                                       color: scheme.onSurfaceVariant,

@@ -16,8 +16,9 @@ import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/confirm_dialog.dart';
-import '../../../core/presentation/states.dart';
 import '../../../core/presentation/feedback.dart';
+import '../../../core/presentation/readable_label.dart';
+import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -169,7 +170,7 @@ class _InvoiceCard extends ConsumerWidget {
           Row(
             children: [
               Expanded(
-                child: Text(
+                child: ReadableLabel(
                   patientName ?? t.rolePatient,
                   style: theme.textTheme.titleSmall,
                 ),

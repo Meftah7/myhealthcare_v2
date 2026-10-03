@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme/theme.dart';
 import '../../l10n/app_localizations.dart';
+import 'readable_label.dart';
 
 /// Icon + one line + an optional single action.
 class EmptyState extends StatelessWidget {
@@ -119,7 +120,7 @@ class _CenteredState extends StatelessWidget {
                   child: Icon(icon, size: 28, color: fg),
                 ),
                 const SizedBox(height: Space.md),
-                Text(
+                ReadableLabel(
                   title,
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyLarge?.copyWith(

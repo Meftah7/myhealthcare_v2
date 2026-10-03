@@ -10,6 +10,8 @@ import '../../../app/theme/theme.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/readable_label.dart';
+import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../l10n/app_localizations.dart';
@@ -36,54 +38,38 @@ class _StaffActivityScreenState extends ConsumerState<StaffActivityScreen> {
 
     return AppScaffold(
       title: t.myActivityTitle,
-      body: Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.fromLTRB(gutter, Space.sm, gutter, Space.sm),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxWidth: Space.maxContentWidth,
-                ),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: SegmentedButton<_ActivityView>(
-                    segments: [
-                      ButtonSegment(
-                        value: _ActivityView.records,
-                        icon: const Icon(Icons.description_outlined),
-                        label: Text(t.recordsTab),
-                      ),
-                      ButtonSegment(
-                        value: _ActivityView.prescriptions,
-                        icon: const Icon(Icons.medication_outlined),
-                        label: Text(t.prescriptionsTab),
-                      ),
-                    ],
-                    selected: {_view},
-                    showSelectedIcon: false,
-                    onSelectionChanged: (s) => setState(() => _view = s.first),
-                  ),
+      body: ScrollableHeaderBody(
+        header: Padding(
+          padding: EdgeInsets.fromLTRB(gutter, Space.sm, gutter, Space.sm),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: Space.maxContentWidth,
+              ),
+              child: SizedBox(
+                width: double.infinity,
+                child: PillSegmented<_ActivityView>(
+                  compact: true,
+                  segments: [
+                    (_ActivityView.records, t.recordsTab),
+                    (_ActivityView.prescriptions, t.prescriptionsTab),
+                  ],
+                  selected: _view,
+                  onChanged: (value) => setState(() => _view = value),
                 ),
               ),
             ),
           ),
-          Expanded(
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxWidth: Space.maxContentWidth,
-                ),
-                child: switch (_view) {
-                  _ActivityView.records => _RecordsList(names: names),
-                  _ActivityView.prescriptions => _PrescriptionsList(
-                    names: names,
-                  ),
-                },
-              ),
-            ),
+        ),
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: Space.maxContentWidth),
+            child: switch (_view) {
+              _ActivityView.records => _RecordsList(names: names),
+              _ActivityView.prescriptions => _PrescriptionsList(names: names),
+            },
           ),
-        ],
+        ),
       ),
       centerBody: false,
     );
@@ -131,7 +117,10 @@ class _RecordsList extends ConsumerWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(r.title, style: theme.textTheme.titleSmall),
+                        child: ReadableLabel(
+                          r.title,
+                          style: theme.textTheme.titleSmall,
+                        ),
                       ),
                       if (r.hasAbnormalLabs)
                         Icon(

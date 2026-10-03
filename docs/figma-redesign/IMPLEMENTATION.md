@@ -17,7 +17,7 @@ The approved visual direction is implemented through the app's shared theme, nav
 - All 141 local frames pass Chromium geometry checks; all 821 linked review targets resolve.
 - Changed Dart files pass a tree-sitter syntax check. Referenced localization keys and route constants were checked against project declarations; these checks do not replace Dart analysis.
 - Added three widget regression cases in `test/features/profile_billing_upgrade_test.dart`: malformed photo fallback/edit accessibility, invoice failure preserving wallet/cards, and invoice loading preserving wallet access. Profile navigation tests now scroll to Preferences before tapping.
-- `flutter analyze` cannot run: `flutter: command not found`. New and existing tests, builds and live app checks were **not run for this upgrade**. Flutter-enabled validation must include 320–1440dp layouts, 200% text, Arabic RTL, light/dark/high contrast, keyboard access and permission/mutation failure cases.
+- Runtime validation now uses the pinned Flutter 3.44.4 / Dart 3.12.2 SDK. Analysis has no errors or warnings, the web release build succeeds, and all 24 English/Arabic main-route readability cases pass at 320px with combined text scales up to 390%. Carousel interaction tests and the existing viewport/keyboard regression checks were also run. See [small-phone audit](../SMALL_PHONE_READABILITY_AUDIT.md) for the precise scope; physical-device and complete visual-state coverage remain pending.
 - The expanded local board and plugin bundle have not been written to the remote Figma file. The remote file retains its original 56 frames.
 
 ## Integration decisions

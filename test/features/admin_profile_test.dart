@@ -82,9 +82,9 @@ void main() {
     );
     expect(find.byType(GradientHeroCard), findsOneWidget);
     // Phase 6: exception queues lead, not system totals.
-    expect(find.text('NEEDS ATTENTION'), findsOneWidget);
+    expect(find.text('Needs attention'), findsOneWidget);
     expect(find.text('SYSTEM HEALTH'), findsNothing);
-    expect(find.text('QUICK ACTIONS'), findsOneWidget);
+    expect(find.text('Quick actions'), findsOneWidget);
 
     // The five nav tabs.
     for (final tab in const [
@@ -123,7 +123,7 @@ void main() {
       'AI activity',
       'Preferences',
     ]) {
-      expect(find.text(row), findsOneWidget);
+      expect(find.widgetWithText(ListTile, row), findsOneWidget);
     }
 
     // A report page opens with a back button and returns here.

@@ -12,8 +12,9 @@ import 'package:go_router/go_router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
-import '../../../core/presentation/states.dart';
 import '../../../core/presentation/feedback.dart';
+import '../../../core/presentation/readable_label.dart';
+import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -89,7 +90,9 @@ class NotificationsScreen extends ConsumerWidget {
                           final result = await ref
                               .read(notificationControllerProvider)
                               .markAllRead();
-                          if (result case Err(:final failure) when context.mounted) {
+                          if (result case Err(
+                            :final failure,
+                          ) when context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
@@ -193,19 +196,18 @@ class _NotificationTile extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          notification.title,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: unread
-                                ? FontWeight.w700
-                                : FontWeight.w500,
-                          ),
+                      ReadableLabel(
+                        notification.title,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: unread
+                              ? FontWeight.w700
+                              : FontWeight.w500,
                         ),
                       ),
-                      const SizedBox(width: Space.xs),
+                      const SizedBox(height: Space.xs),
                       Text(
                         fmtTimeAgo(notification.createdAt),
                         style: theme.textTheme.labelSmall?.copyWith(

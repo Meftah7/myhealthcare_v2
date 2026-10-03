@@ -8,6 +8,8 @@ import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/paging_widgets.dart';
+import '../../../core/presentation/readable_label.dart';
+import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../l10n/app_localizations.dart';
@@ -76,13 +78,11 @@ class AuditLogScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
+                        AdaptiveFormRow(
                           children: [
-                            Expanded(
-                              child: Text(
-                                e.action,
-                                style: theme.textTheme.titleSmall,
-                              ),
+                            ReadableLabel(
+                              e.action,
+                              style: theme.textTheme.titleSmall,
                             ),
                             Text(
                               fmtDateTime(e.at),

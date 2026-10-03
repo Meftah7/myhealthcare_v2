@@ -16,8 +16,9 @@ import '../../../app/theme/theme.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
-import '../../../core/presentation/states.dart';
 import '../../../core/presentation/feedback.dart';
+import '../../../core/presentation/responsive.dart';
+import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/date_input.dart';
 import '../../../core/utils/ids.dart';
@@ -391,26 +392,21 @@ class _FamilyMemberFormState extends ConsumerState<_FamilyMemberForm> {
               onChanged: _onRelationshipChanged,
             ),
             const SizedBox(height: Space.sm),
-            Row(
+            AdaptiveFormRow(
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: _firstName,
-                    decoration: InputDecoration(
-                      labelText: t.firstNameRequiredLabel,
-                    ),
-                    onChanged: (_) => setState(() {}),
+                TextField(
+                  controller: _firstName,
+                  decoration: InputDecoration(
+                    labelText: t.firstNameRequiredLabel,
                   ),
+                  onChanged: (_) => setState(() {}),
                 ),
-                const SizedBox(width: Space.sm),
-                Expanded(
-                  child: TextField(
-                    controller: _lastName,
-                    decoration: InputDecoration(
-                      labelText: t.lastNameRequiredLabel,
-                    ),
-                    onChanged: (_) => setState(() {}),
+                TextField(
+                  controller: _lastName,
+                  decoration: InputDecoration(
+                    labelText: t.lastNameRequiredLabel,
                   ),
+                  onChanged: (_) => setState(() {}),
                 ),
               ],
             ),

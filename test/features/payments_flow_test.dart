@@ -60,14 +60,24 @@ void main() {
     await passMfa(tester);
     await _settle(tester);
 
-    // Payments is a Home quick action near the bottom of a lazy list.
-    final tile = find.text('Payments');
+    // Additional quick actions expand in place on Home.
     await tester.scrollUntilVisible(
-      tile,
-      240,
-      scrollable: find.byType(Scrollable).first,
+      find.text('More actions'),
+      180,
+      scrollable: find
+          .descendant(
+            of: find.byType(CustomScrollView),
+            matching: find.byType(Scrollable),
+          )
+          .first,
     );
+    await tester.ensureVisible(find.text('More actions'));
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.tap(find.text('More actions'));
     await _settle(tester);
+    final tile = find.text('Payments');
+    await tester.ensureVisible(tile.first);
+    await tester.pump(const Duration(milliseconds: 100));
     await tester.tap(tile.first);
     await _settle(tester);
 
@@ -84,5 +94,7 @@ void main() {
     // The bottom nav stays visible on Payments (it nests under the Home branch).
     expect(find.text('Appointment'), findsWidgets);
     expect(find.text('Records'), findsWidgets);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
   });
 }

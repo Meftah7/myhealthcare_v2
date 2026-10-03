@@ -10,6 +10,7 @@ import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/readable_label.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -109,8 +110,11 @@ class _ImagingCard extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(record.title, style: theme.textTheme.titleSmall),
-                    Text(
+                    ReadableLabel(
+                      record.title,
+                      style: theme.textTheme.titleSmall,
+                    ),
+                    ReadableLabel(
                       '${fmtDate(record.occurredAt)}'
                       '${record.sourceFacility == null ? '' : ' · ${record.sourceFacility}'}',
                       style: theme.textTheme.bodySmall?.copyWith(

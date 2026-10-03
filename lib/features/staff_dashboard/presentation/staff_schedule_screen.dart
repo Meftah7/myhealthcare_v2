@@ -19,6 +19,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../l10n/app_localizations.dart';
@@ -631,95 +632,95 @@ class _DayViewState extends ConsumerState<_DayView> {
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: Space.maxContentWidth),
-        child: Column(
-          children: [
-            _WeekStrip(
-              focused: focused,
-              onPrevious: () => _shiftDay(-1),
-              onNext: () => _shiftDay(1),
-            ),
-            if (month.isLoading)
-              const LinearProgressIndicator(minHeight: 2)
-            else
-              const SizedBox(height: 2),
-            if (isToday) const ScheduleQueueStrip(),
-            _ZoomBar(onOut: () => _zoom(1 / 1.25), onIn: () => _zoom(1.25)),
-            Expanded(
-              child: SingleChildScrollView(
-                controller: _scroll,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    Space.md,
-                    Space.sm,
-                    Space.md,
-                    Space.xxl,
-                  ),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final laneWidth = constraints.maxWidth - _timeGutter;
-                      final compact = hourHeight < scheduleCompactBelow;
-                      return SizedBox(
-                        height: 24 * hourHeight,
-                        child: Stack(
-                          children: [
-                            // Hour rules + labels.
-                            for (var h = 0; h < 24; h++)
-                              Positioned(
-                                top: h * hourHeight,
-                                left: 0,
-                                right: 0,
-                                child: _HourRule(hour: h),
-                              ),
-
-                            for (final slot in _layoutDay(
-                              appts,
-                              hourHeight,
-                              compact,
-                            ))
-                              Positioned(
-                                top: slot.top,
-                                left:
-                                    _timeGutter +
-                                    slot.column * (laneWidth / slot.columns),
-                                width: laneWidth / slot.columns - 4,
-                                child: ConstrainedBox(
-                                  constraints: BoxConstraints(
-                                    minHeight: slot.slotHeight,
-                                  ),
-                                  child: ScheduleAppointmentCard(
-                                    key: ValueKey(slot.appointment.id),
-                                    appointment: slot.appointment,
-                                    compact: compact,
-                                  ),
-                                ),
-                              ),
-
-                            if (isToday)
-                              Positioned(
-                                top: _yFor(_now, hourHeight) - 9,
-                                left: 0,
-                                right: 0,
-                                child: _NowLine(now: _now),
-                              ),
-                          ],
-                        ),
-                      );
-                    },
+        child: ScrollableHeaderBody(
+          header: Column(
+            children: [
+              _WeekStrip(
+                focused: focused,
+                onPrevious: () => _shiftDay(-1),
+                onNext: () => _shiftDay(1),
+              ),
+              if (month.isLoading)
+                const LinearProgressIndicator(minHeight: 2)
+              else
+                const SizedBox(height: 2),
+              if (isToday) const ScheduleQueueStrip(),
+              _ZoomBar(onOut: () => _zoom(1 / 1.25), onIn: () => _zoom(1.25)),
+              if (appts.isEmpty && !month.isLoading)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: Space.sm),
+                  child: Text(
+                    t.nothingBookedThisDay,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
+            ],
+          ),
+          body: SingleChildScrollView(
+            controller: _scroll,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                Space.md,
+                Space.sm,
+                Space.md,
+                Space.xxl,
+              ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final laneWidth = constraints.maxWidth - _timeGutter;
+                  final compact = hourHeight < scheduleCompactBelow;
+                  return SizedBox(
+                    height: 24 * hourHeight,
+                    child: Stack(
+                      children: [
+                        // Hour rules + labels.
+                        for (var h = 0; h < 24; h++)
+                          Positioned(
+                            top: h * hourHeight,
+                            left: 0,
+                            right: 0,
+                            child: _HourRule(hour: h),
+                          ),
+
+                        for (final slot in _layoutDay(
+                          appts,
+                          hourHeight,
+                          compact,
+                        ))
+                          Positioned(
+                            top: slot.top,
+                            left:
+                                _timeGutter +
+                                slot.column * (laneWidth / slot.columns),
+                            width: laneWidth / slot.columns - 4,
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minHeight: slot.slotHeight,
+                              ),
+                              child: ScheduleAppointmentCard(
+                                key: ValueKey(slot.appointment.id),
+                                appointment: slot.appointment,
+                                compact: compact,
+                              ),
+                            ),
+                          ),
+
+                        if (isToday)
+                          Positioned(
+                            top: _yFor(_now, hourHeight) - 9,
+                            left: 0,
+                            right: 0,
+                            child: _NowLine(now: _now),
+                          ),
+                      ],
+                    ),
+                  );
+                },
               ),
             ),
-            if (appts.isEmpty && !month.isLoading)
-              Padding(
-                padding: const EdgeInsets.only(bottom: Space.sm),
-                child: Text(
-                  t.nothingBookedThisDay,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-          ],
+          ),
         ),
       ),
     );

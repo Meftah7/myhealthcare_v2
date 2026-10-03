@@ -17,6 +17,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../patient/presentation/patient_top_actions.dart';
@@ -57,6 +58,7 @@ class _NutritionScreenState extends State<NutritionScreen> {
                 child: SizedBox(
                   width: double.infinity,
                   child: PillSegmented<_View>(
+                    compact: true,
                     segments: [
                       (_View.overview, t.dailyTargetsSection),
                       (_View.calculator, t.calculatorSegment),
@@ -280,7 +282,6 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
     final theme = Theme.of(context);
     final t = AppLocalizations.of(context)!;
     final result = ref.watch(macroTargetsProvider);
-    final cols = WindowSize.of(context).isCompact ? 2 : 3;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(Space.md, 0, Space.md, Space.xxl),
@@ -290,58 +291,48 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
+              AdaptiveFormRow(
                 children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _age,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      decoration: InputDecoration(labelText: t.ageLabel),
-                    ),
+                  TextField(
+                    controller: _age,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    decoration: InputDecoration(labelText: t.ageLabel),
                   ),
-                  const SizedBox(width: Space.sm),
-                  Expanded(
-                    child: DropdownButtonFormField<Sex>(
-                      initialValue: _i.sex,
-                      decoration: InputDecoration(labelText: t.sexLabel),
-                      items: [
-                        DropdownMenuItem(
-                          value: Sex.male,
-                          child: Text(t.genderMale),
-                        ),
-                        DropdownMenuItem(
-                          value: Sex.female,
-                          child: Text(t.genderFemale),
-                        ),
-                      ],
-                      onChanged: (v) =>
-                          v == null ? null : _update(_i.copyWith(sex: v)),
-                    ),
+                  DropdownButtonFormField<Sex>(
+                    initialValue: _i.sex,
+                    decoration: InputDecoration(labelText: t.sexLabel),
+                    items: [
+                      DropdownMenuItem(
+                        value: Sex.male,
+                        child: Text(t.genderMale),
+                      ),
+                      DropdownMenuItem(
+                        value: Sex.female,
+                        child: Text(t.genderFemale),
+                      ),
+                    ],
+                    onChanged: (v) =>
+                        v == null ? null : _update(_i.copyWith(sex: v)),
                   ),
                 ],
               ),
               const SizedBox(height: Space.sm),
-              Row(
+              AdaptiveFormRow(
                 children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _weight,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      decoration: InputDecoration(labelText: t.weightKgLabel),
+                  TextField(
+                    controller: _weight,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
                     ),
+                    decoration: InputDecoration(labelText: t.weightKgLabel),
                   ),
-                  const SizedBox(width: Space.sm),
-                  Expanded(
-                    child: TextField(
-                      controller: _height,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      decoration: InputDecoration(labelText: t.heightCmLabel),
+                  TextField(
+                    controller: _height,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
                     ),
+                    decoration: InputDecoration(labelText: t.heightCmLabel),
                   ),
                 ],
               ),
@@ -430,10 +421,9 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
             ),
           ),
           const SizedBox(height: Space.xs),
-          SizedBox(
-            height: 40,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
               children: [
                 for (final p in MacroPreset.values)
                   Padding(
@@ -449,13 +439,7 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
           ),
           const SizedBox(height: Space.md),
           SectionHeader(t.dailyTargetsSection, overline: true),
-          GridView.count(
-            crossAxisCount: cols,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: Space.sm,
-            mainAxisSpacing: Space.sm,
-            childAspectRatio: 1.5,
+          AdaptiveColumns(
             children: [
               _MacroCard(
                 t.macroCalories,
@@ -604,11 +588,10 @@ class _FoodsView extends ConsumerWidget {
           ),
         ),
         if (categories.isNotEmpty)
-          SizedBox(
-            height: 40,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: Space.md),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: Space.md),
+            child: Row(
               children: [
                 Padding(
                   padding: const EdgeInsetsDirectional.only(end: Space.xs),
@@ -785,15 +768,7 @@ class _PillGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 3,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: Space.xs,
-      mainAxisSpacing: Space.xs,
-      mainAxisExtent: 54,
-      children: pills,
-    );
+    return AdaptiveColumns(minChildWidth: 110, gap: Space.xs, children: pills);
   }
 }
 

@@ -21,6 +21,7 @@ import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
+import '../../../core/presentation/readable_label.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../services/notifications/device_notifier.dart';
 
@@ -116,8 +117,10 @@ class PreferencesSection extends ConsumerWidget {
                 max: (TextScaleLevel.values.length - 1).toDouble(),
                 divisions: TextScaleLevel.values.length - 1,
                 label: _textScaleLabel(context, textSize),
-                semanticFormatterCallback: (value) => _textScaleLabel(context,
-                  TextScaleLevel.values[value.round()]),
+                semanticFormatterCallback: (value) => _textScaleLabel(
+                  context,
+                  TextScaleLevel.values[value.round()],
+                ),
                 onChanged: (v) => ref
                     .read(textScaleProvider.notifier)
                     .set(TextScaleLevel.values[v.round()]),
@@ -365,7 +368,9 @@ class _BlockLabel extends StatelessWidget {
       children: [
         Icon(icon, size: 20, color: theme.colorScheme.onSurfaceVariant),
         const SizedBox(width: Space.sm),
-        Text(label, style: theme.textTheme.titleSmall),
+        Expanded(
+          child: ReadableLabel(label, style: theme.textTheme.titleSmall),
+        ),
       ],
     );
   }
@@ -440,9 +445,10 @@ class _AlertPermissionStatusState
         AlertPermission.granted => Text(t.alertsAllowed, style: style),
         AlertPermission.denied => Text(t.alertsBlocked, style: style),
         AlertPermission.unsupported => Text(t.alertsUnsupported, style: style),
-        AlertPermission.notRequested => Row(
+        AlertPermission.notRequested => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(child: Text(t.alertsNotRequested, style: style)),
+            Text(t.alertsNotRequested, style: style),
             TextButton(onPressed: _request, child: Text(t.allowAlertsAction)),
           ],
         ),

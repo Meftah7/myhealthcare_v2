@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/presentation/readable_label.dart';
 import '../../../l10n/app_localizations.dart';
 
 /// The [AppBar.actions] list every auth screen shares.
@@ -56,7 +57,7 @@ class AuthLanguagePill extends ConsumerWidget {
                 ),
                 const SizedBox(width: 6),
                 Flexible(
-                  child: Text(
+                  child: ReadableLabel(
                     label,
                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
                       color: scheme.onSurfaceVariant,

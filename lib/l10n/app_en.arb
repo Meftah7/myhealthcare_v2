@@ -275,6 +275,8 @@
   },
   "previousAppointment": "Previous appointment",
   "nextAppointment": "Next appointment",
+  "pauseAppointments": "Pause appointment slideshow",
+  "resumeAppointments": "Resume appointment slideshow",
   "ticketOverline": "TICKET",
   "roomNumber": "Room {room}",
   "@roomNumber": {

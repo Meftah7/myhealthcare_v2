@@ -12,6 +12,31 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme/theme.dart';
 
+/// Keeps filters reachable without letting enlarged text consume the body.
+class ScrollableHeaderBody extends StatelessWidget {
+  const ScrollableHeaderBody({
+    required this.header,
+    required this.body,
+    super.key,
+  });
+
+  final Widget header;
+  final Widget body;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) => Column(
+      children: [
+        ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: constraints.maxHeight * .4),
+          child: SingleChildScrollView(child: header),
+        ),
+        Expanded(child: body),
+      ],
+    ),
+  );
+}
+
 /// Splits a screen's sections into two columns once the window is `expanded`
 /// or wider, and stacks them in one column below that.
 ///
@@ -158,29 +183,10 @@ class TileGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final columns = WindowSize.of(context).tileColumns;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Never let the configured column count squeeze a tile below the width
-        // its label needs — a 600dp tablet in portrait gets two, not three.
-        final scale = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 2.0);
-        final fit = (constraints.maxWidth / (minTileWidth * scale)).floor();
-        final crossAxisCount = fit.clamp(1, columns);
-        return GridView.count(
-          crossAxisCount: crossAxisCount,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: EdgeInsets.zero,
-          mainAxisSpacing: Space.sm,
-          crossAxisSpacing: Space.sm,
-          // A real extent, so a tall label grows the row instead of clipping.
-          childAspectRatio:
-              (constraints.maxWidth - (Space.sm * (crossAxisCount - 1))) /
-              crossAxisCount /
-              rowHeight(context),
-          children: children,
-        );
-      },
+    return AdaptiveColumns(
+      minChildWidth: minTileWidth,
+      maxColumns: WindowSize.of(context).tileColumns,
+      children: children,
     );
   }
 }
@@ -195,29 +201,68 @@ class MetricRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // IntrinsicHeight, not `CrossAxisAlignment.stretch` alone: a Row can only
-    // stretch its children to a *bounded* height, and inside a scroll view
-    // there isn't one. This measures the tallest tile and levels the rest to
-    // it, which is what makes a row of figures read as one object.
-    final row = IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          for (var i = 0; i < children.length; i++) ...[
-            if (i > 0) const SizedBox(width: Space.sm),
-            Expanded(child: children[i]),
-          ],
-        ],
-      ),
-    );
-    final cap =
-        maxTileWidth * children.length + Space.sm * (children.length - 1);
-    return Align(
-      alignment: AlignmentDirectional.centerStart,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: cap),
-        child: row,
-      ),
+    return AdaptiveColumns(
+      minChildWidth: 156,
+      maxColumns: children.length,
+      children: children,
     );
   }
+}
+
+/// Content-height columns: narrow windows and enlarged text reduce the column
+/// count. Unlike aspect-ratio grids, cards grow to fit their actual contents.
+class AdaptiveColumns extends StatelessWidget {
+  const AdaptiveColumns({
+    required this.children,
+    this.minChildWidth = 180,
+    this.maxColumns = 3,
+    this.gap = Space.sm,
+    super.key,
+  });
+
+  final List<Widget> children;
+  final double minChildWidth;
+  final int maxColumns;
+  final double gap;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final scale = math.max(
+        1.0,
+        MediaQuery.textScalerOf(context).scale(16) / 16,
+      );
+      final count =
+          ((constraints.maxWidth + gap) / (minChildWidth * scale + gap))
+              .floor()
+              .clamp(1, math.max(1, maxColumns));
+      final width = (constraints.maxWidth - gap * (count - 1)) / count;
+      return Wrap(
+        spacing: gap,
+        runSpacing: gap,
+        children: [
+          for (final child in children) SizedBox(width: width, child: child),
+        ],
+      );
+    },
+  );
+}
+
+/// Equal-width controls reflow into full-width rows before labels are cramped.
+class AdaptiveFormRow extends StatelessWidget {
+  const AdaptiveFormRow({
+    required this.children,
+    this.minChildWidth = 200,
+    super.key,
+  });
+
+  final List<Widget> children;
+  final double minChildWidth;
+
+  @override
+  Widget build(BuildContext context) => AdaptiveColumns(
+    minChildWidth: minChildWidth,
+    maxColumns: children.length,
+    children: children,
+  );
 }

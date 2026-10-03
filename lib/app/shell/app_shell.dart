@@ -9,11 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/presentation/app_scaffold.dart';
+import '../../core/presentation/readable_label.dart';
 import '../theme/theme.dart';
-
-/// Navigation labels remain meaningful through the supported 200% text size.
-/// The bar grows with them instead of silently shrinking accessibility text.
-const double _navMaxTextScale = 2;
 
 /// One navigation destination in a role shell.
 class AppDestination {
@@ -101,36 +98,16 @@ class _AppShellState extends State<AppShell> {
     }
 
     if (size.isCompact) {
-      final navScaler = MediaQuery.textScalerOf(
-        context,
-      ).clamp(maxScaleFactor: _navMaxTextScale);
       return Scaffold(
         body: body,
-        // Labels follow the user's text size through the supported 2x tier;
-        // the bar grows taller so a
-        // long label like "Appointments" can wrap to a second line.
-        bottomNavigationBar: MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaler: navScaler),
-          child: DecoratedBox(
-            // The bar is flat (DESIGN.md §4.3); the hairline is what separates
-            // it from the content, not a shadow strip.
-            decoration: BoxDecoration(
-              border: Border(top: BorderSide(color: hairline)),
-            ),
-            child: NavigationBar(
-              height: 64 + 32 * navScaler.scale(1),
-              selectedIndex: current,
-              onDestinationSelected: _go,
-              destinations: [
-                for (final d in widget.destinations)
-                  NavigationDestination(
-                    icon: Icon(d.icon),
-                    selectedIcon: Icon(d.selectedIcon),
-                    label: d.label,
-                    tooltip: d.label,
-                  ),
-              ],
-            ),
+        bottomNavigationBar: DecoratedBox(
+          decoration: BoxDecoration(
+            border: Border(top: BorderSide(color: hairline)),
+          ),
+          child: CompactNavigation(
+            destinations: widget.destinations,
+            currentIndex: current,
+            onSelected: _go,
           ),
         ),
       );
@@ -138,7 +115,10 @@ class _AppShellState extends State<AppShell> {
 
     // Extended from `expanded` up (DESIGN.md §6.4) — at 840dp there is room for
     // a 256dp labelled rail and a full content column beside it.
-    final extended = size.isExpanded || size.isLarge;
+    final extended =
+        size.isExpanded ||
+        size.isLarge ||
+        MediaQuery.textScalerOf(context).scale(13) / 13 > 1.3;
 
     return Scaffold(
       body: Row(
@@ -215,7 +195,7 @@ class _Rail extends StatelessWidget {
                             ? scheme.primary
                             : scheme.onSurfaceVariant,
                       ),
-                      title: Text(
+                      title: ReadableLabel(
                         destination.label,
                         style: theme.textTheme.labelLarge,
                       ),
@@ -230,59 +210,151 @@ class _Rail extends StatelessWidget {
         ),
       );
     }
-    // Same supported 2x ceiling as the compact bottom bar. The rail scrolls,
-    // so taller wrapped labels remain reachable.
-    return MediaQuery(
-      data: MediaQuery.of(context).copyWith(
-        textScaler: MediaQuery.textScalerOf(
-          context,
-        ).clamp(maxScaleFactor: _navMaxTextScale),
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) => SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: IntrinsicHeight(
-              child: NavigationRail(
-                selectedIndex: currentIndex,
-                onDestinationSelected: onSelected,
-                extended: extended,
-                // An extended rail draws its own inline labels, so the label
-                // type must be `none` there; the icon rail stacks them
-                // underneath.
-                labelType: extended
-                    ? NavigationRailLabelType.none
-                    : NavigationRailLabelType.all,
-                leading: Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    Space.sm,
-                    Space.md,
-                    Space.sm,
-                    Space.lg,
-                  ),
-                  child: extended
-                      ? const SizedBox(
-                          width: 200,
-                          child: Align(
-                            alignment: AlignmentDirectional.centerStart,
-                            child: AppBrandLockup(),
-                          ),
-                        )
-                      : const AppLogo(height: 28),
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: IntrinsicHeight(
+            child: NavigationRail(
+              selectedIndex: currentIndex,
+              onDestinationSelected: onSelected,
+              extended: extended,
+              // An extended rail draws its own inline labels, so the label
+              // type must be `none` there; the icon rail stacks them
+              // underneath.
+              labelType: extended
+                  ? NavigationRailLabelType.none
+                  : NavigationRailLabelType.all,
+              leading: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  Space.sm,
+                  Space.md,
+                  Space.sm,
+                  Space.lg,
                 ),
-                destinations: [
-                  for (final d in destinations)
-                    NavigationRailDestination(
-                      icon: Icon(d.icon),
-                      selectedIcon: Icon(d.selectedIcon),
-                      label: Text(d.label),
-                    ),
-                ],
+                child: extended
+                    ? const SizedBox(
+                        width: 200,
+                        child: Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: AppBrandLockup(),
+                        ),
+                      )
+                    : const AppLogo(height: 28),
               ),
+              destinations: [
+                for (final d in destinations)
+                  NavigationRailDestination(
+                    icon: Icon(d.icon),
+                    selectedIcon: Icon(d.selectedIcon),
+                    label: Text(d.label),
+                  ),
+              ],
             ),
           ),
         ),
       ),
     );
   }
+}
+
+/// Full-size navigation labels: when five labels cannot fit, a single labelled
+/// destination button opens the complete navigation list instead of shrinking.
+class CompactNavigation extends StatelessWidget {
+  const CompactNavigation({
+    required this.destinations,
+    required this.currentIndex,
+    required this.onSelected,
+    super.key,
+  });
+
+  final List<AppDestination> destinations;
+  final int currentIndex;
+  final ValueChanged<int> onSelected;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final theme = Theme.of(context);
+      final scaler = MediaQuery.textScalerOf(context);
+      final style = theme.textTheme.labelMedium?.copyWith(fontSize: 11);
+      final slotWidth = constraints.maxWidth / destinations.length - 8;
+      var fits = scaler.scale(11) / 11 <= 1.3;
+      for (final destination in destinations) {
+        final painter = TextPainter(
+          text: TextSpan(text: destination.label, style: style),
+          textDirection: Directionality.of(context),
+          textScaler: scaler,
+        )..layout();
+        fits = fits && painter.width <= slotWidth;
+        painter.dispose();
+      }
+      if (fits) {
+        return NavigationBar(
+          height: 80,
+          selectedIndex: currentIndex,
+          onDestinationSelected: onSelected,
+          destinations: [
+            for (final d in destinations)
+              NavigationDestination(
+                icon: Icon(d.icon),
+                selectedIcon: Icon(d.selectedIcon),
+                label: d.label,
+                tooltip: d.label,
+              ),
+          ],
+        );
+      }
+      final selected = destinations[currentIndex];
+      return Material(
+        color: theme.colorScheme.surfaceContainerLowest,
+        child: SafeArea(
+          top: false,
+          child: ListTile(
+            minTileHeight: 64,
+            leading: Icon(
+              selected.selectedIcon,
+              color: theme.colorScheme.primary,
+            ),
+            title: ReadableLabel(
+              selected.label,
+              style: theme.textTheme.titleSmall,
+            ),
+            trailing: const Icon(Icons.unfold_more),
+            onTap: () async {
+              final index = await showModalBottomSheet<int>(
+                context: context,
+                showDragHandle: true,
+                isScrollControlled: true,
+                builder: (context) => SafeArea(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.sizeOf(context).height * .7,
+                    ),
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: [
+                        for (final (i, destination) in destinations.indexed)
+                          ListTile(
+                            minTileHeight: 56,
+                            selected: i == currentIndex,
+                            leading: Icon(destination.icon),
+                            title: ReadableLabel(destination.label),
+                            trailing: i == currentIndex
+                                ? const Icon(Icons.check)
+                                : null,
+                            onTap: () => Navigator.of(context).pop(i),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+              if (index != null) onSelected(index);
+            },
+          ),
+        ),
+      );
+    },
+  );
 }

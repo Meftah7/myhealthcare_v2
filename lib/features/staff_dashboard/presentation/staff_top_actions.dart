@@ -29,6 +29,29 @@ class StaffTopActions extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
+    if (MediaQuery.sizeOf(context).width < 360) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const PresenceMenu(),
+          PopupMenuButton<String>(
+            tooltip: t.moreActionsTooltip,
+            onSelected: (value) => context.push(
+              value == 'notifications'
+                  ? AppRoutes.staffNotifications
+                  : AppRoutes.staffProfilePreferences,
+            ),
+            itemBuilder: (_) => [
+              PopupMenuItem(
+                value: 'notifications',
+                child: Text(t.notificationsTooltip),
+              ),
+              PopupMenuItem(value: 'preferences', child: Text(t.preferences)),
+            ],
+          ),
+        ],
+      );
+    }
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [

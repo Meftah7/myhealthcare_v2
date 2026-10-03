@@ -6,8 +6,6 @@
 library;
 
 import 'package:flutter/material.dart';
-
-import '../../../core/presentation/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -17,9 +15,11 @@ import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/feedback.dart';
+import '../../../core/presentation/readable_label.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
-import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/clinic_hours.dart';
 import '../../../core/utils/format.dart';
@@ -267,7 +267,12 @@ class _BookingForSelector extends ConsumerWidget {
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
                 const SizedBox(width: Space.sm),
-                Text(t.whoIsThisFor, style: theme.textTheme.titleMedium),
+                Expanded(
+                  child: Text(
+                    t.whoIsThisFor,
+                    style: theme.textTheme.titleMedium,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: Space.sm),
@@ -407,7 +412,9 @@ class _StepCard extends StatelessWidget {
                       ),
               ),
               const SizedBox(width: Space.sm),
-              Text(title, style: theme.textTheme.titleMedium),
+              Expanded(
+                child: ReadableLabel(title, style: theme.textTheme.titleMedium),
+              ),
             ],
           ),
           const SizedBox(height: Space.sm),

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/readable_label.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../l10n/app_localizations.dart';
@@ -54,15 +55,12 @@ class ThreadTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        thread.counterpartName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleSmall,
-                      ),
+                    ReadableLabel(
+                      thread.counterpartName,
+                      style: theme.textTheme.titleSmall,
                     ),
                     Text(
                       fmtTimeAgo(last.sentAt),

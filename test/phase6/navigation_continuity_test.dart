@@ -3,12 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/app.dart';
 import 'package:myhealthcare/app/router.dart';
+import 'package:myhealthcare/app/shell/app_shell.dart';
 import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/core/presentation/app_card.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/mfa.dart';
+import '../support/navigation.dart';
 import '../support/test_database.dart';
 
 Future<void> _settle(WidgetTester tester) async {
@@ -63,12 +65,12 @@ void main() {
       await tester.tap(find.byType(AppCard).first);
       await _settle(tester);
 
-      expect(find.byType(NavigationBar), findsOneWidget);
+      expect(find.byType(CompactNavigation), findsOneWidget);
       expect(find.text('Open chart'), findsOneWidget);
 
-      await tester.tap(find.text('Tasks').last);
+      await selectCompactDestination(tester, 'Tasks');
       await _settle(tester);
-      expect(find.byType(NavigationBar), findsOneWidget);
+      expect(find.byType(CompactNavigation), findsOneWidget);
       expect(find.text('Open chart'), findsOneWidget);
 
       await tester.pumpWidget(const SizedBox());

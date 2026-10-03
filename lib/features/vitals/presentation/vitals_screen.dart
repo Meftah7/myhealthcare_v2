@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/readable_label.dart';
 import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
@@ -162,7 +163,7 @@ class _VitalsChart extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('$title  ·  $unit', style: theme.textTheme.titleMedium),
+          ReadableLabel('$title  ·  $unit', style: theme.textTheme.titleMedium),
           const SizedBox(height: Space.md),
           SizedBox(
             // A little taller where there's room — a trend line in 160dp on a

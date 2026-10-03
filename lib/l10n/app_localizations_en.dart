@@ -664,6 +664,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nextAppointment => 'Next appointment';
 
   @override
+  String get pauseAppointments => 'Pause appointment slideshow';
+
+  @override
+  String get resumeAppointments => 'Resume appointment slideshow';
+
+  @override
   String get ticketOverline => 'TICKET';
 
   @override

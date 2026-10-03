@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import '../../app/theme/theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../utils/format.dart';
+import 'readable_label.dart';
 
 /// One size for every "this row opens something" chevron. Picked once here
 /// because the app previously drew them at 17, 18 and 24 on rows that sit a few
@@ -133,14 +134,14 @@ class GradientHeroCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      ReadableLabel(
                         title,
                         style: theme.textTheme.titleMedium?.copyWith(
                           color: Colors.white,
                         ),
                       ),
                       const SizedBox(height: 2),
-                      Text(
+                      ReadableLabel(
                         subtitle,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: Colors.white.withValues(alpha: 0.82),
@@ -214,7 +215,7 @@ class SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final label = Text(
+    final label = ReadableLabel(
       title,
       style: theme.textTheme.titleSmall?.copyWith(
         fontSize: overline ? 16 : 15,
@@ -306,17 +307,10 @@ class NavRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  title,
-                  maxLines: dense ? 1 : 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleSmall,
-                ),
+                ReadableLabel(title, style: theme.textTheme.titleSmall),
                 if (subtitle != null)
-                  Text(
+                  ReadableLabel(
                     subtitle!,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: scheme.onSurfaceVariant,
                     ),
@@ -530,7 +524,10 @@ class ProfileHeader extends StatelessWidget {
     );
     return AppCard(
       elevated: elevated,
-      child: Row(
+      child: Flex(
+        direction: MediaQuery.textScalerOf(context).scale(14) / 14 > 1.3
+            ? Axis.vertical
+            : Axis.horizontal,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
@@ -571,12 +568,13 @@ class ProfileHeader extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: Space.md),
-          Expanded(
+          const SizedBox(width: Space.md, height: Space.sm),
+          Flexible(
+            flex: MediaQuery.textScalerOf(context).scale(14) / 14 > 1.3 ? 0 : 1,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: theme.textTheme.titleLarge),
+                ReadableLabel(name, style: theme.textTheme.titleLarge),
                 if (role != null) ...[
                   const SizedBox(height: Space.xxs),
                   Container(
@@ -588,7 +586,7 @@ class ProfileHeader extends StatelessWidget {
                       color: scheme.secondaryContainer,
                       borderRadius: Radii.pill,
                     ),
-                    child: Text(
+                    child: ReadableLabel(
                       role!,
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: scheme.onSecondaryContainer,
@@ -597,7 +595,7 @@ class ProfileHeader extends StatelessWidget {
                   ),
                 ],
                 const SizedBox(height: Space.xxs),
-                Text(
+                ReadableLabel(
                   email,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: scheme.onSurfaceVariant,
@@ -674,7 +672,7 @@ class InlineBanner extends StatelessWidget {
               Icon(icon, size: 18, color: fg),
               const SizedBox(width: Space.xs),
               Expanded(
-                child: Text(
+                child: ReadableLabel(
                   message,
                   style: theme.textTheme.bodyMedium?.copyWith(color: fg),
                 ),
@@ -714,6 +712,7 @@ class PillSegmented<T> extends StatelessWidget {
     required this.segments,
     required this.selected,
     required this.onChanged,
+    this.compact = false,
     super.key,
   });
 
@@ -721,59 +720,106 @@ class PillSegmented<T> extends StatelessWidget {
   final T selected;
   final ValueChanged<T> onChanged;
 
+  /// Pinned screen filters use a menu when enlarged labels cannot share a row.
+  final bool compact;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return Row(
-      children: [
-        for (final (index, item) in segments.indexed)
-          Expanded(
-            child: Padding(
-              padding: EdgeInsetsDirectional.only(
-                end: index == segments.length - 1 ? 0 : Space.xs,
-              ),
-              child: Semantics(
-                button: true,
-                selected: item.$1 == selected,
-                child: Pressable(
-                  onTap: () => onChanged(item.$1),
-                  child: AnimatedContainer(
-                    duration: Motion.fast,
-                    curve: Motion.standard,
-                    constraints: const BoxConstraints(minHeight: 48),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: Space.xs,
-                      vertical: Space.xs,
-                    ),
-                    decoration: BoxDecoration(
-                      color: item.$1 == selected
-                          ? scheme.primary
-                          : scheme.surfaceContainerLowest,
-                      borderRadius: Radii.chip,
-                      border: Border.all(
-                        color: item.$1 == selected
-                            ? scheme.primary
-                            : scheme.outlineVariant,
-                      ),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      item.$2,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: item.$1 == selected
-                            ? scheme.onPrimary
-                            : scheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+    Widget option((T, String) item) => Semantics(
+      button: true,
+      selected: item.$1 == selected,
+      child: Pressable(
+        onTap: () => onChanged(item.$1),
+        child: AnimatedContainer(
+          duration: Motion.fast,
+          curve: Motion.standard,
+          constraints: const BoxConstraints(minHeight: 48),
+          padding: const EdgeInsets.all(Space.sm),
+          decoration: BoxDecoration(
+            color: item.$1 == selected
+                ? scheme.primary
+                : scheme.surfaceContainerLowest,
+            borderRadius: Radii.chip,
+            border: Border.all(
+              color: item.$1 == selected
+                  ? scheme.primary
+                  : scheme.outlineVariant,
             ),
           ),
-      ],
+          alignment: Alignment.center,
+          child: ReadableLabel(
+            item.$2,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: item.$1 == selected
+                  ? scheme.onPrimary
+                  : scheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final style = theme.textTheme.labelMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+        );
+        var widest = 0.0;
+        for (final item in segments) {
+          final painter = TextPainter(
+            text: TextSpan(text: item.$2, style: style),
+            textDirection: Directionality.of(context),
+            textScaler: MediaQuery.textScalerOf(context),
+          )..layout();
+          if (painter.width > widest) widest = painter.width;
+          painter.dispose();
+        }
+        final needsStack =
+            (widest + Space.sm * 2) * segments.length +
+                Space.xs * (segments.length - 1) >
+            constraints.maxWidth;
+        if (needsStack && compact) {
+          return DropdownButtonFormField<T>(
+            key: ValueKey(selected),
+            initialValue: selected,
+            isExpanded: true,
+            isDense: false,
+            itemHeight: null,
+            items: [
+              for (final item in segments)
+                DropdownMenuItem(
+                  value: item.$1,
+                  child: ReadableLabel(item.$2, style: style),
+                ),
+            ],
+            onChanged: (value) {
+              if (value != null) onChanged(value);
+            },
+          );
+        }
+        if (needsStack) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (final (index, item) in segments.indexed) ...[
+                if (index > 0) const SizedBox(height: Space.xs),
+                option(item),
+              ],
+            ],
+          );
+        }
+        return Row(
+          children: [
+            for (final (index, item) in segments.indexed) ...[
+              if (index > 0) const SizedBox(width: Space.xs),
+              Expanded(child: option(item)),
+            ],
+          ],
+        );
+      },
     );
   }
 }
@@ -824,13 +870,11 @@ class MetricTile extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Text(
+                child: ReadableLabel(
                   label,
                   style: theme.textTheme.labelMedium?.copyWith(
                     color: scheme.onSurfaceVariant,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               if (icon != null) ...[
@@ -860,8 +904,6 @@ class MetricTile extends StatelessWidget {
               if (number == null) {
                 return Text(
                   localizeDigits(value),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   style: style?.copyWith(fontFeatures: kTabularFigures),
                 );
               }

@@ -10,9 +10,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
-import '../../../core/presentation/paging_widgets.dart';
-import '../../../core/presentation/states.dart';
 import '../../../core/presentation/feedback.dart';
+import '../../../core/presentation/paging_widgets.dart';
+import '../../../core/presentation/responsive.dart';
+import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -122,26 +123,19 @@ class _RequestCard extends ConsumerWidget {
           const SizedBox(height: Space.sm),
           Text(request.reason, style: theme.textTheme.bodyMedium),
           const SizedBox(height: Space.sm),
-          Row(
+          AdaptiveFormRow(
             children: [
-              Expanded(
-                child: FilledButton(
-                  onPressed: () => _action(context, ref),
-                  child: Text(t.actionButton),
-                ),
+              FilledButton(
+                onPressed: () => _action(context, ref),
+                child: Text(t.actionButton),
               ),
-              const SizedBox(width: Space.sm),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => _reject(context, ref),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: scheme.error,
-                    side: BorderSide(
-                      color: scheme.error.withValues(alpha: 0.4),
-                    ),
-                  ),
-                  child: Text(t.rejectAction),
+              OutlinedButton(
+                onPressed: () => _reject(context, ref),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: scheme.error,
+                  side: BorderSide(color: scheme.error.withValues(alpha: 0.4)),
                 ),
+                child: Text(t.rejectAction),
               ),
             ],
           ),

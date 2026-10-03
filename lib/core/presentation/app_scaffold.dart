@@ -13,6 +13,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../app/theme/theme.dart';
+import 'readable_label.dart';
 
 /// Bumped by the shell when the active navigation destination is tapped a
 /// second time; every [AppScaffold] below it scrolls back to the top.
@@ -257,6 +258,117 @@ class _AppScaffoldState extends State<AppScaffold> {
       painter.dispose();
     }
 
+    // Put the title below the action row when a small phone cannot carry both.
+    // The header has natural text height and can scroll in a short viewport.
+    var readableHeader = false;
+    if (size.isCompact && hasAppBar) {
+      final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
+      readableHeader =
+          scale > 1.3 ||
+          (MediaQuery.sizeOf(context).width < 360 &&
+              (widget.actions?.isNotEmpty ?? false));
+      if (widget.title != null) {
+        final painter = TextPainter(
+          text: TextSpan(
+            text: widget.title,
+            style: hero
+                ? theme.textTheme.headlineSmall
+                : theme.textTheme.titleLarge,
+          ),
+          textDirection: Directionality.of(context),
+          textScaler: MediaQuery.textScalerOf(context),
+        )..layout();
+        final available =
+            MediaQuery.sizeOf(context).width -
+            gutter * 2 -
+            ((widget.actions?.isNotEmpty ?? false) ? 160 : 0) -
+            ((widget.leading != null || Navigator.canPop(context)) ? 56 : 0);
+        readableHeader =
+            readableHeader || painter.minIntrinsicWidth > available;
+        painter.dispose();
+      }
+    }
+    if (readableHeader) {
+      final heading =
+          widget.titleWidget ??
+          (widget.title == null
+              ? null
+              : ReadableLabel(
+                  widget.title!,
+                  style: hero
+                      ? theme.textTheme.headlineSmall?.copyWith(
+                          color: scheme.onPrimaryContainer,
+                        )
+                      : theme.textTheme.titleLarge,
+                ));
+      return Scaffold(
+        body: LayoutBuilder(
+          builder: (context, constraints) => Column(
+            children: [
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: hero ? scheme.primaryContainer : scheme.surface,
+                  borderRadius: hero
+                      ? const BorderRadius.vertical(bottom: Radius.circular(24))
+                      : null,
+                ),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: constraints.maxHeight * .45,
+                  ),
+                  child: SingleChildScrollView(
+                    child: SafeArea(
+                      bottom: false,
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          gutter,
+                          Space.xs,
+                          gutter,
+                          Space.md,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              children: [
+                                if (widget.leading != null)
+                                  widget.leading!
+                                else if (widget.automaticallyImplyLeading &&
+                                    Navigator.canPop(context))
+                                  const BackButton(),
+                                Expanded(
+                                  child: Wrap(
+                                    alignment: WrapAlignment.end,
+                                    children: widget.actions ?? const [],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (widget.heroOverline != null)
+                              ReadableLabel(
+                                widget.heroOverline!,
+                                style: theme.textTheme.bodyMedium,
+                              ),
+                            if (heading != null)
+                              Semantics(namesRoute: true, child: heading),
+                            if (widget.bottom != null) widget.bottom!,
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(child: content),
+            ],
+          ),
+        ),
+        floatingActionButton: widget.floatingActionButton,
+        floatingActionButtonLocation: widget.floatingActionButtonLocation,
+      );
+    }
+
     return Scaffold(
       appBar: !hasAppBar
           ? null
@@ -434,17 +546,13 @@ class AppBrandLockup extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              ReadableLabel(
                 'MyHealth Care',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.titleMedium,
               ),
               if (subtitle != null)
-                Text(
+                ReadableLabel(
                   subtitle!,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -479,7 +587,7 @@ class PageGreeting extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // The small line sets context, the big line is the thing you read.
-        Text(
+        ReadableLabel(
           overline.toUpperCase(),
           style: theme.textTheme.labelSmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
@@ -487,7 +595,7 @@ class PageGreeting extends StatelessWidget {
           ),
         ),
         const SizedBox(height: Space.xxs),
-        Text(
+        ReadableLabel(
           greeting,
           style: size.isCompact
               ? theme.textTheme.headlineSmall

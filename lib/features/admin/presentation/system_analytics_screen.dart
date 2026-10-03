@@ -11,6 +11,7 @@ import '../../../core/di.dart';
 import '../../../core/observability/operational_metrics.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../staff_dashboard/application/staff_providers.dart';
@@ -49,13 +50,7 @@ class SystemAnalyticsScreen extends ConsumerWidget {
                   loading: () => const LoadingSkeleton(height: 160),
                   error: (e, _) =>
                       InlineBanner.error(t.couldNotLoadSystemStats),
-                  data: (s) => GridView.count(
-                    crossAxisCount: 3,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    mainAxisSpacing: Space.sm,
-                    crossAxisSpacing: Space.sm,
-                    childAspectRatio: 1.5,
+                  data: (s) => AdaptiveColumns(
                     children: [
                       MetricTile(
                         value: '${s.patients}',

@@ -87,7 +87,7 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(find.text('QUICK ACTIONS'), findsOneWidget);
+    expect(find.text('Quick actions'), findsOneWidget);
     expect(find.text('Broadcast'), findsOneWidget);
     expect(find.text('Create invoice'), findsOneWidget);
 

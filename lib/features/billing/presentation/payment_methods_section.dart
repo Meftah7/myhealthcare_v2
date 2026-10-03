@@ -9,8 +9,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/confirm_dialog.dart';
-import '../../../core/presentation/states.dart';
 import '../../../core/presentation/feedback.dart';
+import '../../../core/presentation/responsive.dart';
+import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/card_input.dart';
 import '../../../domain/entities/entities.dart';
@@ -297,47 +298,42 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
                   },
                 ),
                 const SizedBox(height: Space.sm),
-                Row(
+                AdaptiveFormRow(
                   children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _expiry,
-                        keyboardType: TextInputType.number,
-                        autocorrect: false,
-                        enableSuggestions: false,
-                        autofillHints: const [
-                          AutofillHints.creditCardExpirationDate,
-                        ],
-                        inputFormatters: const [ExpiryInputFormatter()],
-                        decoration: InputDecoration(
-                          labelText: t.expiryLabel,
-                          hintText: 'MM/YY',
-                        ),
-                        validator: _validateExpiry,
+                    TextFormField(
+                      controller: _expiry,
+                      keyboardType: TextInputType.number,
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      autofillHints: const [
+                        AutofillHints.creditCardExpirationDate,
+                      ],
+                      inputFormatters: const [ExpiryInputFormatter()],
+                      decoration: InputDecoration(
+                        labelText: t.expiryLabel,
+                        hintText: 'MM/YY',
                       ),
+                      validator: _validateExpiry,
                     ),
-                    const SizedBox(width: Space.sm),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _cvc,
-                        keyboardType: TextInputType.number,
-                        obscureText: true,
-                        autocorrect: false,
-                        enableSuggestions: false,
-                        autofillHints: const [
-                          AutofillHints.creditCardSecurityCode,
-                        ],
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                          LengthLimitingTextInputFormatter(4),
-                        ],
-                        decoration: InputDecoration(
-                          labelText: _brand == CardBrand.amex ? 'CID' : 'CVC',
-                        ),
-                        validator: (v) => RegExp(r'^\d{3,4}$').hasMatch(v ?? '')
-                            ? null
-                            : t.digitsRange,
+                    TextFormField(
+                      controller: _cvc,
+                      keyboardType: TextInputType.number,
+                      obscureText: true,
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      autofillHints: const [
+                        AutofillHints.creditCardSecurityCode,
+                      ],
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(4),
+                      ],
+                      decoration: InputDecoration(
+                        labelText: _brand == CardBrand.amex ? 'CID' : 'CVC',
                       ),
+                      validator: (v) => RegExp(r'^\d{3,4}$').hasMatch(v ?? '')
+                          ? null
+                          : t.digitsRange,
                     ),
                   ],
                 ),

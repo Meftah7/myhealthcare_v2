@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/staff_providers.dart';
@@ -40,13 +41,7 @@ class PanelAnalyticsScreen extends ConsumerWidget {
               ),
               children: [
                 SectionHeader(t.lastNDays(s.windowDays), overline: true),
-                GridView.count(
-                  crossAxisCount: 2,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  mainAxisSpacing: Space.sm,
-                  crossAxisSpacing: Space.sm,
-                  childAspectRatio: 1.7,
+                AdaptiveColumns(
                   children: [
                     MetricTile(
                       value: '${(s.noShowRate * 100).toStringAsFixed(1)}%',

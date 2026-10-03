@@ -13,8 +13,8 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
-import '../../../core/presentation/quick_actions.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/quick_actions.dart';
 import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
@@ -28,6 +28,7 @@ import '../../patient/application/family_link_providers.dart';
 import '../../patient/application/patient_data_providers.dart';
 import '../../patient/presentation/patient_top_actions.dart';
 import 'needs_attention_strip.dart';
+import 'upcoming_appointment_carousel.dart';
 
 class PatientHomeScreen extends ConsumerWidget {
   const PatientHomeScreen({super.key});
@@ -63,8 +64,7 @@ class PatientHomeScreen extends ConsumerWidget {
         const _AllergyAlert(),
         const NeedsAttentionStrip(),
 
-        // The screen's anchor (Phase 6): the next appointment, stable and
-        // first — what's happening before what you can do.
+        // The screen's anchor: all upcoming appointments, soonest first.
         SectionHeader(t.sectionUpcomingAppointments, overline: true),
         const _UpcomingAppointment(),
 
@@ -436,11 +436,7 @@ class _QuickActions extends StatelessWidget {
   }
 }
 
-/// The patient's booked appointments as an auto-advancing card carousel
-/// (redesign v3, matching the FirstSemMyHealth "active ticket" strip): a
-/// prominent ticket number, the room, date/time and doctor, with page dots
-/// and a "1 of N" count. It never moves on its own — an appointment card
-/// has to stay put long enough to read; the user swipes or uses the arrows.
+/// Fetch the patient's active appointments; the carousel owns selection and timing.
 class _UpcomingAppointment extends ConsumerWidget {
   const _UpcomingAppointment();
 
@@ -448,8 +444,6 @@ class _UpcomingAppointment extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
     final doctors = ref.watch(doctorDirectoryProvider).valueOrNull ?? const {};
-    final scheme = Theme.of(context).colorScheme;
-    final theme = Theme.of(context);
     return ref
         .watch(patientAppointmentsProvider)
         .when(
@@ -477,82 +471,12 @@ class _UpcomingAppointment extends ConsumerWidget {
                 onTap: () => context.push(AppRoutes.patientBook),
               );
             }
-            final appointment = active.first;
-            final detail = AppRoutes.patientAppointmentDetail(appointment.id);
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                AppCard(
-                  color: scheme.brightness == Brightness.light
-                      ? AppColors.seed
-                      : AppColors.brandBlue,
-                  borderColor: Colors.transparent,
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        t.sectionUpcomingAppointments,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: Colors.white70,
-                        ),
-                      ),
-                      const SizedBox(height: Space.xs),
-                      Text(
-                        doctors[appointment.staffId]?.name ??
-                            visitTypeLabel(appointment.visitType),
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: Space.sm),
-                      Text(
-                        '${fmtRelativeDay(appointment.slotStart)} · ${fmtTime(appointment.slotStart)} · ${t.roomNumber(appointment.roomNumber ?? t.none)}',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.white70,
-                        ),
-                      ),
-                      if (appointment.bookedForName != null) ...[
-                        const SizedBox(height: Space.xs),
-                        Text(
-                          t.bookedForName(appointment.bookedForName!),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                      const SizedBox(height: Space.md),
-                      Wrap(
-                        spacing: Space.xs,
-                        runSpacing: Space.xs,
-                        children: [
-                          OutlinedButton.icon(
-                            onPressed: () => context.push(detail),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.white,
-                              side: const BorderSide(color: Colors.white54),
-                            ),
-                            icon: const Icon(
-                              Icons.confirmation_number_outlined,
-                              size: 18,
-                            ),
-                            label: Text(t.ticketOverline),
-                          ),
-                          TextButton(
-                            onPressed: () =>
-                                context.go(AppRoutes.patientAppointments),
-                            style: TextButton.styleFrom(
-                              foregroundColor: Colors.white,
-                            ),
-                            child: Text(t.appointmentsTitle),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: Space.sm),
-              ],
+            return UpcomingAppointmentCarousel(
+              appointments: active,
+              doctorNames: {
+                for (final entry in doctors.entries)
+                  entry.key: entry.value.name,
+              },
             );
           },
         );

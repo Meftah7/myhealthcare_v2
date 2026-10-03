@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/feedback.dart';
+import '../../../core/presentation/responsive.dart';
 import '../../../core/result.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../l10n/app_localizations.dart';
@@ -131,6 +132,8 @@ class _HealthDetailsSectionState extends ConsumerState<HealthDetailsSection> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         DropdownButtonFormField<String?>(
+          isExpanded: true,
+          itemHeight: null,
           initialValue: _bloodType,
           decoration: InputDecoration(labelText: t.bloodTypeLabel),
           items: [
@@ -170,26 +173,21 @@ class _HealthDetailsSectionState extends ConsumerState<HealthDetailsSection> {
           ),
         ),
         const SizedBox(height: Space.md),
-        Row(
+        AdaptiveFormRow(
           children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: _isDirty && !_busy ? _cancel : null,
-                child: Text(t.cancel),
-              ),
+            OutlinedButton(
+              onPressed: _isDirty && !_busy ? _cancel : null,
+              child: Text(t.cancel),
             ),
-            const SizedBox(width: Space.sm),
-            Expanded(
-              child: FilledButton(
-                onPressed: _isDirty && !_busy ? _save : null,
-                child: _busy
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(t.saveButton),
-              ),
+            FilledButton(
+              onPressed: _isDirty && !_busy ? _save : null,
+              child: _busy
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(t.saveButton),
             ),
           ],
         ),

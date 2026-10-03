@@ -7,9 +7,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
-import '../../../core/presentation/paging_widgets.dart';
-import '../../../core/presentation/states.dart';
 import '../../../core/presentation/feedback.dart';
+import '../../../core/presentation/paging_widgets.dart';
+import '../../../core/presentation/readable_label.dart';
+import '../../../core/presentation/responsive.dart';
+import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -147,7 +149,10 @@ class _QueueCard extends ConsumerWidget {
           Row(
             children: [
               Expanded(
-                child: Text(patientName, style: theme.textTheme.titleMedium),
+                child: ReadableLabel(
+                  patientName,
+                  style: theme.textTheme.titleMedium,
+                ),
               ),
               HomeVisitStatusChip(status: request.status),
             ],
@@ -181,22 +186,17 @@ class _QueueCard extends ConsumerWidget {
           ],
           if (request.status == HomeVisitStatus.requested) ...[
             const SizedBox(height: Space.sm),
-            Row(
+            AdaptiveFormRow(
               children: [
-                Expanded(
-                  child: FilledButton(
-                    onPressed: () =>
-                        _decide(context, ref, HomeVisitStatus.scheduled),
-                    child: Text(t.scheduleButton),
-                  ),
+                FilledButton(
+                  onPressed: () =>
+                      _decide(context, ref, HomeVisitStatus.scheduled),
+                  child: Text(t.scheduleButton),
                 ),
-                const SizedBox(width: Space.sm),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () =>
-                        _decide(context, ref, HomeVisitStatus.declined),
-                    child: Text(t.declineButton),
-                  ),
+                OutlinedButton(
+                  onPressed: () =>
+                      _decide(context, ref, HomeVisitStatus.declined),
+                  child: Text(t.declineButton),
                 ),
               ],
             ),

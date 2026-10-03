@@ -661,6 +661,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nextAppointment => 'الموعد التالي';
 
   @override
+  String get pauseAppointments => 'إيقاف عرض المواعيد مؤقتاً';
+
+  @override
+  String get resumeAppointments => 'استئناف عرض المواعيد';
+
+  @override
   String get ticketOverline => 'التذكرة';
 
   @override

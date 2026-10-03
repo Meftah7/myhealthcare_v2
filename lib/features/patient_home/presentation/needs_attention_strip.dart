@@ -14,6 +14,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/readable_label.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../billing/application/billing_providers.dart';
 import '../../billing/presentation/payments_screen.dart';
@@ -32,7 +33,7 @@ class NeedsAttentionStrip extends ConsumerWidget {
     Widget row(IconData icon, String text, String route, {bool tab = false}) =>
         ListTile(
           leading: Icon(icon),
-          title: Text(text),
+          title: ReadableLabel(text),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => tab ? context.go(route) : context.push(route),
         );
