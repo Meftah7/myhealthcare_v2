@@ -88,6 +88,8 @@ dependencies:
   pdf: ^3.13.0
   cryptography: ^2.9.0
   mobile_scanner: ^7.4.2
+  zxing2: ^0.2.4
+  image: ^4.10.1
 
 dev_dependencies:
   flutter_test:

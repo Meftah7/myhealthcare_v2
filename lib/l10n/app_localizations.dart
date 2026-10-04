@@ -8257,6 +8257,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The camera isn\'t available. Allow camera access, or type the code instead.'**
   String get cameraUnavailable;
+
+  /// No description provided for @verifyFromPictureAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify from a picture of the QR'**
+  String get verifyFromPictureAction;
+
+  /// No description provided for @noQrInPicture.
+  ///
+  /// In en, this message translates to:
+  /// **'No QR code found in that picture. Try a clearer screenshot or photo.'**
+  String get noQrInPicture;
 }
 
 class _AppLocalizationsDelegate

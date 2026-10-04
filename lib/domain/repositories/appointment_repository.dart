@@ -200,6 +200,15 @@ abstract interface class AppointmentRepository {
     int minSample = 5,
   });
 
+  /// Marks as no-shows the visits nobody turned up for: still booked or
+  /// confirmed, never checked in or called in, and more than [grace] past
+  /// their start time. A system rule, not a user action — each change is
+  /// audited as `appointment.auto_no_show`. Returns how many were marked.
+  Future<Result<int>> markOverdueNoShows({
+    Duration grace = const Duration(minutes: 30),
+    DateTime? now,
+  });
+
   /// Free slots for a staff member on [day], derived from their schedule
   /// templates minus booked appointments.
   Future<Result<List<OpenSlot>>> openSlots(String staffId, DateTime day);

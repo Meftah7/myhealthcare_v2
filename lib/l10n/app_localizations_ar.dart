@@ -4717,4 +4717,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get cameraUnavailable =>
       'الكاميرا غير متاحة. اسمح بالوصول إلى الكاميرا أو اكتب الرمز يدويًا.';
+
+  @override
+  String get verifyFromPictureAction => 'التحقق من صورة رمز QR';
+
+  @override
+  String get noQrInPicture =>
+      'لم يُعثر على رمز QR في الصورة. جرّب لقطة شاشة أو صورة أوضح.';
 }

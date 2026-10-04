@@ -53,6 +53,8 @@ Future<void> main() async {
   // only, creates synthetic data. The router holds on the splash until it
   // finishes, so nothing reads partially initialized data.
   container.read(appBootstrapProvider);
+  // Missed visits keep being marked while the app is open.
+  container.read(noShowSweepProvider);
 
   runApp(
     UncontrolledProviderScope(

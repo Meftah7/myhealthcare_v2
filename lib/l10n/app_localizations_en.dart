@@ -4659,4 +4659,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get cameraUnavailable =>
       'The camera isn\'t available. Allow camera access, or type the code instead.';
+
+  @override
+  String get verifyFromPictureAction => 'Verify from a picture of the QR';
+
+  @override
+  String get noQrInPicture =>
+      'No QR code found in that picture. Try a clearer screenshot or photo.';
 }

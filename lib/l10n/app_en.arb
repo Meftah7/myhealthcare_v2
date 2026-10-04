@@ -2110,5 +2110,7 @@
   "refillNoDoctor": "No doctor to send this to yet. Please ask at your next visit.",
   "scanQrTitle": "Scan QR code",
   "scanQrHint": "Point the camera at the QR code on the document.",
-  "cameraUnavailable": "The camera isn't available. Allow camera access, or type the code instead."
+  "cameraUnavailable": "The camera isn't available. Allow camera access, or type the code instead.",
+  "verifyFromPictureAction": "Verify from a picture of the QR",
+  "noQrInPicture": "No QR code found in that picture. Try a clearer screenshot or photo."
 }

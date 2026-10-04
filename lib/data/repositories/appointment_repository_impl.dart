@@ -249,6 +249,47 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
   }
 
   @override
+  Future<Result<int>> markOverdueNoShows({
+    Duration grace = const Duration(minutes: 30),
+    DateTime? now,
+  }) {
+    return Result.guardAsync(() async {
+      final cutoff = (now ?? DateTime.now()).subtract(grace);
+      return _db.transaction(() async {
+        final overdue =
+            await (_db.select(_db.appointments)..where(
+                  (a) =>
+                      a.status.isInValues(const [
+                        AppointmentStatus.booked,
+                        AppointmentStatus.confirmed,
+                      ]) &
+                      a.checkedInAt.isNull() &
+                      a.calledInAt.isNull() &
+                      a.slotStart.isSmallerThanValue(cutoff),
+                ))
+                .get();
+        for (final row in overdue) {
+          await (_db.update(
+            _db.appointments,
+          )..where((a) => a.id.equals(row.id))).write(
+            const AppointmentsCompanion(
+              status: Value(AppointmentStatus.noShow),
+            ),
+          );
+          await _access.audit(
+            'appointment.auto_no_show',
+            entityType: 'appointment',
+            entityId: row.id,
+            subjectPatientId: row.patientId,
+            detail: 'Not arrived ${grace.inMinutes} min after the start time',
+          );
+        }
+        return overdue.length;
+      });
+    });
+  }
+
+  @override
   Future<Result<List<OpenSlot>>> openSlots(String staffId, DateTime day) {
     return Result.guardAsync(() async {
       await _access.principal();

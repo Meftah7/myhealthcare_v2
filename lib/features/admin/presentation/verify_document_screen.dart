@@ -2,6 +2,7 @@
 /// verification code and see what the genuine document states.
 library;
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -13,6 +14,7 @@ import '../../../core/utils/format.dart';
 import '../../../domain/repositories/document_verification_repository.dart';
 import '../../../domain/repositories/export_repository.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../services/qr/qr_image_decoder.dart';
 import 'qr_scan_screen.dart';
 
 /// Opens the verify screen as a full-screen page.
@@ -39,6 +41,24 @@ class _VerifyDocumentScreenState extends ConsumerState<VerifyDocumentScreen> {
   void dispose() {
     _code.dispose();
     super.dispose();
+  }
+
+  /// Read the QR from a screenshot or photo, then check it.
+  Future<void> _fromPicture() async {
+    final t = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+    final file = await FilePicker.pickFile(type: FileType.image);
+    if (file == null || !mounted) return;
+    setState(() => _busy = true);
+    final value = await decodeQrFromImage(await file.readAsBytes());
+    if (!mounted) return;
+    setState(() => _busy = false);
+    if (value == null) {
+      messenger.showSnackBar(SnackBar(content: Text(t.noQrInPicture)));
+      return;
+    }
+    _code.text = value.replaceFirst('MHC-VERIFY:', '');
+    await _verify();
   }
 
   /// Scan the document's QR, then check it straight away.
@@ -109,6 +129,14 @@ class _VerifyDocumentScreenState extends ConsumerState<VerifyDocumentScreen> {
                   )
                 : const Icon(Icons.verified_outlined),
             label: Text(t.verifyAction),
+          ),
+          const SizedBox(height: Space.xs),
+          // Works everywhere, including laptops whose webcam can't see a QR
+          // shown on their own screen: a screenshot or photo of the QR.
+          OutlinedButton.icon(
+            onPressed: _busy ? null : _fromPicture,
+            icon: const Icon(Icons.image_search_outlined),
+            label: Text(t.verifyFromPictureAction),
           ),
           const SizedBox(height: Space.lg),
           if (result != null)

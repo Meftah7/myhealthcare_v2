@@ -445,4 +445,26 @@ final appBootstrapProvider = FutureProvider<void>((ref) async {
   await deliverDueReminders(ref);
   // Payments a previous run sent but never heard back about.
   await reconcilePendingPayments(ref);
+  // Visits nobody turned up for. `main()` repeats this every minute.
+  await sweepNoShows(ref);
+});
+
+/// Marks visits as no-shows 30 minutes after their start when the patient
+/// never arrived and nobody marked them. Never fails the caller.
+Future<void> sweepNoShows(Ref ref) async {
+  try {
+    await ref.read(appointmentRepositoryProvider).markOverdueNoShows();
+  } on Object {
+    // Best effort: the next sweep tries again.
+  }
+}
+
+/// Repeats [sweepNoShows] every minute while the app runs. Started from
+/// `main()` only, so widget tests never inherit a live periodic timer.
+final noShowSweepProvider = Provider<void>((ref) {
+  final timer = Timer.periodic(
+    const Duration(minutes: 1),
+    (_) => sweepNoShows(ref),
+  );
+  ref.onDispose(timer.cancel);
 });
