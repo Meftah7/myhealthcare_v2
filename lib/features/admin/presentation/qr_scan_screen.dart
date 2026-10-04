@@ -36,9 +36,12 @@ class _QrScanScreenState extends State<QrScanScreen> {
   void initState() {
     super.initState();
     if (kIsWeb) {
-      // Browsers without a built-in barcode detector fall back to ZXing,
-      // which the plugin would fetch from unpkg — blocked by the app's
-      // Content-Security-Policy. A copy is served with the app instead.
+      // The bundled library exposes ZXing, not ZXingWASM. Select its matching
+      // backend explicitly; the plugin's automatic WASM fallback otherwise
+      // loads this file but cannot decode frames. Keep scanning local for CSP.
+      MobileScannerPlatform.instance.setWebBarcodeReader(
+        WebBarcodeReader.zxingJs,
+      );
       MobileScannerPlatform.instance.setBarcodeLibraryScriptUrl(
         'zxing/zxing.min.js',
       );
