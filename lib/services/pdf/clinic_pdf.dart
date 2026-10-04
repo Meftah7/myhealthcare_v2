@@ -138,7 +138,7 @@ class ClinicPdf {
           pw.SizedBox(height: 12),
           _provenanceBlock(provenance, s),
           pw.SizedBox(height: 18),
-          ...body,
+          for (final w in body) ..._flatten(w),
         ],
       ),
     );
@@ -451,8 +451,10 @@ class ClinicPdf {
     if (_cachedLogo != null) return _cachedLogo;
     try {
       // A PDF page is always white paper, regardless of the app's theme —
-      // always the light-background mark.
-      final data = await rootBundle.load('assets/images/logo_light.png');
+      // always the light-background mark. A 128px copy: it prints at 26pt
+      // (sharp at 300dpi), and the full 1024px logo made every document
+      // ~300KB larger and several times slower to build.
+      final data = await rootBundle.load('assets/images/logo_pdf.png');
       return _cachedLogo = pw.MemoryImage(data.buffer.asUint8List());
     } catch (_) {
       // A missing asset must never sink a report — just drop the mark.
@@ -501,27 +503,50 @@ class ClinicPdf {
 // --- reusable body blocks the reports share --------------------------------
 
 /// A titled section with a hairline rule under the heading.
-pw.Widget pdfSection(String heading, pw.Widget child) {
-  return pw.Column(
-    crossAxisAlignment: pw.CrossAxisAlignment.start,
-    children: [
-      pw.Text(
-        heading.toUpperCase(),
-        style: const pw.TextStyle(
-          fontSize: 9,
-          fontWeight: pw.FontWeight.bold,
-          color: _muted,
-          letterSpacing: 1,
-        ),
+pw.Widget pdfSection(String heading, pw.Widget child) =>
+    _PdfSection(heading, child);
+
+class _PdfSection extends pw.StatelessWidget {
+  _PdfSection(this.heading, this.child);
+
+  final String heading;
+  final pw.Widget child;
+
+  List<pw.Widget> get _head => [
+    pw.Text(
+      heading.toUpperCase(),
+      style: const pw.TextStyle(
+        fontSize: 9,
+        fontWeight: pw.FontWeight.bold,
+        color: _muted,
+        letterSpacing: 1,
       ),
-      pw.SizedBox(height: 3),
-      pw.Divider(color: _hairline, thickness: 1, height: 1),
-      pw.SizedBox(height: 8),
-      child,
-      pw.SizedBox(height: 18),
-    ],
+    ),
+    pw.SizedBox(height: 3),
+    pw.Divider(color: _hairline, thickness: 1, height: 1),
+    pw.SizedBox(height: 8),
+  ];
+
+  @override
+  pw.Widget build(pw.Context context) => pw.Column(
+    crossAxisAlignment: pw.CrossAxisAlignment.start,
+    children: [..._head, child, pw.SizedBox(height: 18)],
   );
 }
+
+/// Lays a document body out as separate page-flow items. A table nested in a
+/// section's column cannot break across pages — a long reading history would
+/// make the page builder give up after 20 pages — so sections and their
+/// columns are unpacked and every table sits directly in the flow.
+List<pw.Widget> _flatten(pw.Widget w) => switch (w) {
+  _PdfSection(:final child) => [
+    ...w._head,
+    ..._flatten(child),
+    pw.SizedBox(height: 18),
+  ],
+  pw.Column(:final children) => [for (final c in children) ..._flatten(c)],
+  _ => [w],
+};
 
 /// A key/value row, used for summary blocks.
 pw.Widget pdfKeyValue(String key, String value, {pw.TextStyle? valueStyle}) {

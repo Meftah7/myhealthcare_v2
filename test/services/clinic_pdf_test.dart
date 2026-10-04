@@ -93,4 +93,27 @@ void main() {
     );
     expect(_isPdf(bytes), isTrue);
   });
+
+  test('a long vitals history breaks across pages, quickly', () async {
+    // 150 readings run to several pages. The history table used to sit
+    // inside an unsplittable section, so this failed with "more than 20
+    // pages" after a long wait.
+    final readings = [
+      for (var i = 0; i < 150; i++)
+        Vitals(
+          id: 'v$i',
+          patientId: 'p',
+          recordedAt: now.subtract(Duration(days: i)),
+          systolic: 110 + i % 40,
+          diastolic: 75,
+          heartRate: 70,
+        ),
+    ];
+    final sw = Stopwatch()..start();
+    final bytes = await vitalsReportPdf(patient: identity, readings: readings);
+    expect(_isPdf(bytes), isTrue);
+    expect(sw.elapsed, lessThan(const Duration(seconds: 5)));
+    // The small PDF logo keeps documents light.
+    expect(bytes.length, lessThan(200 * 1024));
+  });
 }
