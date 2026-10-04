@@ -461,6 +461,7 @@ class AdminActions {
     required String reason,
     String? departmentId,
     String? sourceAppointmentId,
+    ReferralUrgency urgency = ReferralUrgency.routine,
   }) async {
     final denied = _denyUnlessAdmin<MedicalRecord>();
     if (denied != null) return denied;
@@ -487,6 +488,8 @@ class AdminActions {
                   authorStaffId: adminId,
                   body: trimmedReason,
                   sourceFacility: external ? destination : null,
+                  referralUrgency: urgency,
+                  appointmentId: sourceAppointmentId,
                   idempotencyKey: key,
                 ),
               ),
@@ -584,6 +587,10 @@ class AdminActions {
           reason: request.reason,
           departmentId: departmentId,
           sourceAppointmentId: request.appointmentId,
+          // The requesting doctor's priority carries onto the letter.
+          urgency: request.priority == WorkPriority.urgent
+              ? ReferralUrgency.urgent
+              : ReferralUrgency.routine,
         );
         if (referral case Err(:final failure)) throw failure;
         final decision = await _ref

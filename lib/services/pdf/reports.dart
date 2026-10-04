@@ -378,6 +378,7 @@ Future<Uint8List> sickLeavePdf({
   required SickLeaveCertificate certificate,
   required String issuingClinician,
   String? clinicianLicence,
+  String? verificationCode,
   bool arabic = false,
 }) {
   final s = PdfStrings.of(arabic: arabic);
@@ -419,6 +420,7 @@ Future<Uint8List> sickLeavePdf({
         day(c.issuedAt),
         licenceNo: clinicianLicence,
       ),
+      if (verificationCode != null) _verificationBlock(s, verificationCode),
     ],
   );
 }
@@ -433,6 +435,8 @@ Future<Uint8List> referralLetterPdf({
   DateTime? date,
   String? reference,
   String? clinicianLicence,
+  ReferralUrgency? urgency,
+  String? verificationCode,
   bool arabic = false,
 }) {
   final s = PdfStrings.of(arabic: arabic);
@@ -459,6 +463,14 @@ Future<Uint8List> referralLetterPdf({
             pw.Text(s.referralBody, style: _bodyStyle),
             pw.SizedBox(height: 12),
             pdfKeyValue(s.referredTo, destination),
+            if (urgency != null)
+              pdfKeyValue(
+                s.urgency,
+                referralUrgencyLabel(urgency, s),
+                valueStyle: urgency == ReferralUrgency.routine
+                    ? null
+                    : pdfOutOfRange,
+              ),
             pdfKeyValue(s.referralReason, reason),
             pdfKeyValue(s.date, day(issued)),
           ],
@@ -471,7 +483,54 @@ Future<Uint8List> referralLetterPdf({
         day(issued),
         licenceNo: clinicianLicence,
       ),
+      if (verificationCode != null) _verificationBlock(s, verificationCode),
     ],
+  );
+}
+
+String referralUrgencyLabel(ReferralUrgency u, PdfStrings s) => switch (u) {
+  ReferralUrgency.routine => s.urgencyRoutine,
+  ReferralUrgency.urgent => s.urgencyUrgent,
+  ReferralUrgency.emergency => s.urgencyEmergency,
+};
+
+/// The document's verification code, as text and as a QR code.
+pw.Widget _verificationBlock(PdfStrings s, String code) {
+  return pdfSection(
+    s.verificationHeading,
+    pw.Row(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.BarcodeWidget(
+          barcode: pw.Barcode.qrCode(),
+          data: 'MHC-VERIFY:$code',
+          width: 64,
+          height: 64,
+        ),
+        pw.SizedBox(width: 12),
+        pw.Expanded(
+          child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pdfKeyValue(
+                s.verificationCode,
+                code,
+                valueStyle: const pw.TextStyle(
+                  fontSize: 12,
+                  fontWeight: pw.FontWeight.bold,
+                  color: pdfInk,
+                  letterSpacing: 1,
+                ),
+              ),
+              pw.Text(
+                s.verificationHelp,
+                style: const pw.TextStyle(fontSize: 9, color: pdfMuted),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
   );
 }
 

@@ -31,6 +31,7 @@ import '../../care/application/care_providers.dart';
 import '../application/admin_providers.dart';
 import 'departments_screen.dart';
 import 'user_management_screen.dart';
+import 'verify_document_screen.dart';
 
 class AdminQuickActions extends ConsumerWidget {
   const AdminQuickActions({super.key});
@@ -84,6 +85,11 @@ class AdminQuickActions extends ConsumerWidget {
             ? t.referralsAction
             : t.referralsActionWithCount(referrals),
         onTap: () => unawaited(context.push(AppRoutes.adminReferralRequests)),
+      ),
+      _QuickAction(
+        icon: Icons.verified_outlined,
+        label: t.verifyDocumentTitle,
+        onTap: () => unawaited(openVerifyDocument(context)),
       ),
       _QuickAction(
         icon: Icons.apartment_outlined,

@@ -4503,4 +4503,64 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get slotReasonEarliest => 'Earliest available time';
+
+  @override
+  String get referralUrgencyLabel => 'Urgency';
+
+  @override
+  String get referralUrgencyRoutine => 'Routine';
+
+  @override
+  String get referralUrgencyUrgent => 'Urgent';
+
+  @override
+  String get referralUrgencyEmergency => 'Emergency';
+
+  @override
+  String get verifyDocumentTitle => 'Verify document';
+
+  @override
+  String get verifyDocumentHint =>
+      'Enter the verification code printed on the certificate or referral letter.';
+
+  @override
+  String get verifyCodeLabel => 'Verification code';
+
+  @override
+  String get verifyAction => 'Verify';
+
+  @override
+  String get verifyGenuine => 'Genuine document';
+
+  @override
+  String get verifyGenuineBody =>
+      'Compare the paper with the details below. If anything differs, the paper is not the current version.';
+
+  @override
+  String get verifyNotFound =>
+      'No document has this code. It may be mistyped or not genuine.';
+
+  @override
+  String get verifyPatient => 'Patient';
+
+  @override
+  String get verifyIssuedBy => 'Issued by';
+
+  @override
+  String get verifyIssuedOn => 'Issued on';
+
+  @override
+  String get verifyDocumentType => 'Document';
+
+  @override
+  String get verifyTypeCertificate => 'Medical certificate';
+
+  @override
+  String get verifyTypeReferral => 'Referral letter';
+
+  @override
+  String get visitSickLeaveHeading => 'Sick leave';
+
+  @override
+  String get visitInvoicesHeading => 'Bills';
 }

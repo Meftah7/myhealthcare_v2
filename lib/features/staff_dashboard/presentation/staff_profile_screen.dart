@@ -22,6 +22,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
 import '../../feedback/presentation/feedback_sheet.dart';
 import '../application/staff_providers.dart';
+import '../../admin/presentation/verify_document_screen.dart';
 
 class StaffProfileScreen extends ConsumerWidget {
   const StaffProfileScreen({super.key});
@@ -82,6 +83,9 @@ class StaffProfileScreen extends ConsumerWidget {
               ProfileNavigationItem(icon: Icons.tune,
                 label: t.preferences, subtitle: t.preferencesSubtitleAdmin,
                 onTap: () => unawaited(context.push(AppRoutes.staffProfilePreferences))),
+              ProfileNavigationItem(icon: Icons.verified_outlined,
+                label: t.verifyDocumentTitle,
+                onTap: () => unawaited(openVerifyDocument(context))),
               ProfileNavigationItem(icon: Icons.forum_outlined,
                 label: t.sendFeedbackTitle,
                 onTap: () => unawaited(showFeedbackSheet(context, ref))),

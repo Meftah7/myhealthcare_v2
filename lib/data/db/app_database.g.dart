@@ -7275,6 +7275,18 @@ class $MedicalRecordsTable extends MedicalRecords
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  @override
+  late final GeneratedColumnWithTypeConverter<ReferralUrgency?, String>
+  referralUrgency =
+      GeneratedColumn<String>(
+        'referral_urgency',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      ).withConverter<ReferralUrgency?>(
+        $MedicalRecordsTable.$converterreferralUrgencyn,
+      );
   static const VerificationMeta _attachmentPathMeta = const VerificationMeta(
     'attachmentPath',
   );
@@ -7396,6 +7408,7 @@ class $MedicalRecordsTable extends MedicalRecords
     body,
     occurredAt,
     sourceFacility,
+    referralUrgency,
     attachmentPath,
     extractedText,
     uploadedByPatient,
@@ -7590,6 +7603,12 @@ class $MedicalRecordsTable extends MedicalRecords
         DriftSqlType.string,
         data['${effectivePrefix}source_facility'],
       ),
+      referralUrgency: $MedicalRecordsTable.$converterreferralUrgencyn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}referral_urgency'],
+        ),
+      ),
       attachmentPath: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}attachment_path'],
@@ -7638,6 +7657,14 @@ class $MedicalRecordsTable extends MedicalRecords
 
   static JsonTypeConverter2<RecordType, String, String> $converterrecordType =
       const EnumNameConverter<RecordType>(RecordType.values);
+  static JsonTypeConverter2<ReferralUrgency, String, String>
+  $converterreferralUrgency = const EnumNameConverter<ReferralUrgency>(
+    ReferralUrgency.values,
+  );
+  static JsonTypeConverter2<ReferralUrgency?, String?, String?>
+  $converterreferralUrgencyn = JsonTypeConverter2.asNullable(
+    $converterreferralUrgency,
+  );
   static JsonTypeConverter2<ImportReviewStatus, String, String>
   $converterreviewStatus = const EnumNameConverter<ImportReviewStatus>(
     ImportReviewStatus.values,
@@ -7660,6 +7687,9 @@ class MedicalRecordRow extends DataClass
   final String? body;
   final DateTime occurredAt;
   final String? sourceFacility;
+
+  /// For a referral: how soon the patient should be seen. Stored by name.
+  final ReferralUrgency? referralUrgency;
 
   /// Local path to an imported file (PDF, image), copied into app storage.
   final String? attachmentPath;
@@ -7693,6 +7723,7 @@ class MedicalRecordRow extends DataClass
     this.body,
     required this.occurredAt,
     this.sourceFacility,
+    this.referralUrgency,
     this.attachmentPath,
     this.extractedText,
     required this.uploadedByPatient,
@@ -7726,6 +7757,11 @@ class MedicalRecordRow extends DataClass
     map['occurred_at'] = Variable<DateTime>(occurredAt);
     if (!nullToAbsent || sourceFacility != null) {
       map['source_facility'] = Variable<String>(sourceFacility);
+    }
+    if (!nullToAbsent || referralUrgency != null) {
+      map['referral_urgency'] = Variable<String>(
+        $MedicalRecordsTable.$converterreferralUrgencyn.toSql(referralUrgency),
+      );
     }
     if (!nullToAbsent || attachmentPath != null) {
       map['attachment_path'] = Variable<String>(attachmentPath);
@@ -7772,6 +7808,9 @@ class MedicalRecordRow extends DataClass
       sourceFacility: sourceFacility == null && nullToAbsent
           ? const Value.absent()
           : Value(sourceFacility),
+      referralUrgency: referralUrgency == null && nullToAbsent
+          ? const Value.absent()
+          : Value(referralUrgency),
       attachmentPath: attachmentPath == null && nullToAbsent
           ? const Value.absent()
           : Value(attachmentPath),
@@ -7813,6 +7852,9 @@ class MedicalRecordRow extends DataClass
       body: serializer.fromJson<String?>(json['body']),
       occurredAt: serializer.fromJson<DateTime>(json['occurredAt']),
       sourceFacility: serializer.fromJson<String?>(json['sourceFacility']),
+      referralUrgency: $MedicalRecordsTable.$converterreferralUrgencyn.fromJson(
+        serializer.fromJson<String?>(json['referralUrgency']),
+      ),
       attachmentPath: serializer.fromJson<String?>(json['attachmentPath']),
       extractedText: serializer.fromJson<String?>(json['extractedText']),
       uploadedByPatient: serializer.fromJson<bool>(json['uploadedByPatient']),
@@ -7845,6 +7887,9 @@ class MedicalRecordRow extends DataClass
       'body': serializer.toJson<String?>(body),
       'occurredAt': serializer.toJson<DateTime>(occurredAt),
       'sourceFacility': serializer.toJson<String?>(sourceFacility),
+      'referralUrgency': serializer.toJson<String?>(
+        $MedicalRecordsTable.$converterreferralUrgencyn.toJson(referralUrgency),
+      ),
       'attachmentPath': serializer.toJson<String?>(attachmentPath),
       'extractedText': serializer.toJson<String?>(extractedText),
       'uploadedByPatient': serializer.toJson<bool>(uploadedByPatient),
@@ -7869,6 +7914,7 @@ class MedicalRecordRow extends DataClass
     Value<String?> body = const Value.absent(),
     DateTime? occurredAt,
     Value<String?> sourceFacility = const Value.absent(),
+    Value<ReferralUrgency?> referralUrgency = const Value.absent(),
     Value<String?> attachmentPath = const Value.absent(),
     Value<String?> extractedText = const Value.absent(),
     bool? uploadedByPatient,
@@ -7894,6 +7940,9 @@ class MedicalRecordRow extends DataClass
     sourceFacility: sourceFacility.present
         ? sourceFacility.value
         : this.sourceFacility,
+    referralUrgency: referralUrgency.present
+        ? referralUrgency.value
+        : this.referralUrgency,
     attachmentPath: attachmentPath.present
         ? attachmentPath.value
         : this.attachmentPath,
@@ -7933,6 +7982,9 @@ class MedicalRecordRow extends DataClass
       sourceFacility: data.sourceFacility.present
           ? data.sourceFacility.value
           : this.sourceFacility,
+      referralUrgency: data.referralUrgency.present
+          ? data.referralUrgency.value
+          : this.referralUrgency,
       attachmentPath: data.attachmentPath.present
           ? data.attachmentPath.value
           : this.attachmentPath,
@@ -7973,6 +8025,7 @@ class MedicalRecordRow extends DataClass
           ..write('body: $body, ')
           ..write('occurredAt: $occurredAt, ')
           ..write('sourceFacility: $sourceFacility, ')
+          ..write('referralUrgency: $referralUrgency, ')
           ..write('attachmentPath: $attachmentPath, ')
           ..write('extractedText: $extractedText, ')
           ..write('uploadedByPatient: $uploadedByPatient, ')
@@ -7997,6 +8050,7 @@ class MedicalRecordRow extends DataClass
     body,
     occurredAt,
     sourceFacility,
+    referralUrgency,
     attachmentPath,
     extractedText,
     uploadedByPatient,
@@ -8020,6 +8074,7 @@ class MedicalRecordRow extends DataClass
           other.body == this.body &&
           other.occurredAt == this.occurredAt &&
           other.sourceFacility == this.sourceFacility &&
+          other.referralUrgency == this.referralUrgency &&
           other.attachmentPath == this.attachmentPath &&
           other.extractedText == this.extractedText &&
           other.uploadedByPatient == this.uploadedByPatient &&
@@ -8041,6 +8096,7 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
   final Value<String?> body;
   final Value<DateTime> occurredAt;
   final Value<String?> sourceFacility;
+  final Value<ReferralUrgency?> referralUrgency;
   final Value<String?> attachmentPath;
   final Value<String?> extractedText;
   final Value<bool> uploadedByPatient;
@@ -8061,6 +8117,7 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
     this.body = const Value.absent(),
     this.occurredAt = const Value.absent(),
     this.sourceFacility = const Value.absent(),
+    this.referralUrgency = const Value.absent(),
     this.attachmentPath = const Value.absent(),
     this.extractedText = const Value.absent(),
     this.uploadedByPatient = const Value.absent(),
@@ -8082,6 +8139,7 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
     this.body = const Value.absent(),
     required DateTime occurredAt,
     this.sourceFacility = const Value.absent(),
+    this.referralUrgency = const Value.absent(),
     this.attachmentPath = const Value.absent(),
     this.extractedText = const Value.absent(),
     this.uploadedByPatient = const Value.absent(),
@@ -8107,6 +8165,7 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
     Expression<String>? body,
     Expression<DateTime>? occurredAt,
     Expression<String>? sourceFacility,
+    Expression<String>? referralUrgency,
     Expression<String>? attachmentPath,
     Expression<String>? extractedText,
     Expression<bool>? uploadedByPatient,
@@ -8128,6 +8187,7 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
       if (body != null) 'body': body,
       if (occurredAt != null) 'occurred_at': occurredAt,
       if (sourceFacility != null) 'source_facility': sourceFacility,
+      if (referralUrgency != null) 'referral_urgency': referralUrgency,
       if (attachmentPath != null) 'attachment_path': attachmentPath,
       if (extractedText != null) 'extracted_text': extractedText,
       if (uploadedByPatient != null) 'uploaded_by_patient': uploadedByPatient,
@@ -8152,6 +8212,7 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
     Value<String?>? body,
     Value<DateTime>? occurredAt,
     Value<String?>? sourceFacility,
+    Value<ReferralUrgency?>? referralUrgency,
     Value<String?>? attachmentPath,
     Value<String?>? extractedText,
     Value<bool>? uploadedByPatient,
@@ -8173,6 +8234,7 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
       body: body ?? this.body,
       occurredAt: occurredAt ?? this.occurredAt,
       sourceFacility: sourceFacility ?? this.sourceFacility,
+      referralUrgency: referralUrgency ?? this.referralUrgency,
       attachmentPath: attachmentPath ?? this.attachmentPath,
       extractedText: extractedText ?? this.extractedText,
       uploadedByPatient: uploadedByPatient ?? this.uploadedByPatient,
@@ -8217,6 +8279,13 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
     }
     if (sourceFacility.present) {
       map['source_facility'] = Variable<String>(sourceFacility.value);
+    }
+    if (referralUrgency.present) {
+      map['referral_urgency'] = Variable<String>(
+        $MedicalRecordsTable.$converterreferralUrgencyn.toSql(
+          referralUrgency.value,
+        ),
+      );
     }
     if (attachmentPath.present) {
       map['attachment_path'] = Variable<String>(attachmentPath.value);
@@ -8265,6 +8334,7 @@ class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordRow> {
           ..write('body: $body, ')
           ..write('occurredAt: $occurredAt, ')
           ..write('sourceFacility: $sourceFacility, ')
+          ..write('referralUrgency: $referralUrgency, ')
           ..write('attachmentPath: $attachmentPath, ')
           ..write('extractedText: $extractedText, ')
           ..write('uploadedByPatient: $uploadedByPatient, ')
@@ -13203,6 +13273,497 @@ class DocumentFilesCompanion extends UpdateCompanion<DocumentFileRow> {
           ..write('sha256: $sha256, ')
           ..write('bytes: $bytes, ')
           ..write('storedAt: $storedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DocumentVerificationsTable extends DocumentVerifications
+    with TableInfo<$DocumentVerificationsTable, DocumentVerificationRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DocumentVerificationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _codeMeta = const VerificationMeta('code');
+  @override
+  late final GeneratedColumn<String> code = GeneratedColumn<String>(
+    'code',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _documentTypeMeta = const VerificationMeta(
+    'documentType',
+  );
+  @override
+  late final GeneratedColumn<String> documentType = GeneratedColumn<String>(
+    'document_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _entityIdMeta = const VerificationMeta(
+    'entityId',
+  );
+  @override
+  late final GeneratedColumn<String> entityId = GeneratedColumn<String>(
+    'entity_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _patientIdMeta = const VerificationMeta(
+    'patientId',
+  );
+  @override
+  late final GeneratedColumn<String> patientId = GeneratedColumn<String>(
+    'patient_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _issuerMeta = const VerificationMeta('issuer');
+  @override
+  late final GeneratedColumn<String> issuer = GeneratedColumn<String>(
+    'issuer',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _summaryMeta = const VerificationMeta(
+    'summary',
+  );
+  @override
+  late final GeneratedColumn<String> summary = GeneratedColumn<String>(
+    'summary',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _issuedAtMeta = const VerificationMeta(
+    'issuedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> issuedAt = GeneratedColumn<DateTime>(
+    'issued_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    code,
+    documentType,
+    entityId,
+    patientId,
+    issuer,
+    summary,
+    issuedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'document_verifications';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DocumentVerificationRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('code')) {
+      context.handle(
+        _codeMeta,
+        code.isAcceptableOrUnknown(data['code']!, _codeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_codeMeta);
+    }
+    if (data.containsKey('document_type')) {
+      context.handle(
+        _documentTypeMeta,
+        documentType.isAcceptableOrUnknown(
+          data['document_type']!,
+          _documentTypeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_documentTypeMeta);
+    }
+    if (data.containsKey('entity_id')) {
+      context.handle(
+        _entityIdMeta,
+        entityId.isAcceptableOrUnknown(data['entity_id']!, _entityIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entityIdMeta);
+    }
+    if (data.containsKey('patient_id')) {
+      context.handle(
+        _patientIdMeta,
+        patientId.isAcceptableOrUnknown(data['patient_id']!, _patientIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_patientIdMeta);
+    }
+    if (data.containsKey('issuer')) {
+      context.handle(
+        _issuerMeta,
+        issuer.isAcceptableOrUnknown(data['issuer']!, _issuerMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_issuerMeta);
+    }
+    if (data.containsKey('summary')) {
+      context.handle(
+        _summaryMeta,
+        summary.isAcceptableOrUnknown(data['summary']!, _summaryMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_summaryMeta);
+    }
+    if (data.containsKey('issued_at')) {
+      context.handle(
+        _issuedAtMeta,
+        issuedAt.isAcceptableOrUnknown(data['issued_at']!, _issuedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_issuedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {code};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {documentType, entityId},
+  ];
+  @override
+  DocumentVerificationRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DocumentVerificationRow(
+      code: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}code'],
+      )!,
+      documentType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}document_type'],
+      )!,
+      entityId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}entity_id'],
+      )!,
+      patientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}patient_id'],
+      )!,
+      issuer: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}issuer'],
+      )!,
+      summary: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}summary'],
+      )!,
+      issuedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}issued_at'],
+      )!,
+    );
+  }
+
+  @override
+  $DocumentVerificationsTable createAlias(String alias) {
+    return $DocumentVerificationsTable(attachedDatabase, alias);
+  }
+}
+
+class DocumentVerificationRow extends DataClass
+    implements Insertable<DocumentVerificationRow> {
+  /// Short code printed (and QR-encoded) on the document.
+  final String code;
+
+  /// `ExportDocument` name.
+  final String documentType;
+  final String entityId;
+  final String patientId;
+
+  /// The issuer as printed (clinician name).
+  final String issuer;
+
+  /// What the genuine document states, one fact per line.
+  final String summary;
+  final DateTime issuedAt;
+  const DocumentVerificationRow({
+    required this.code,
+    required this.documentType,
+    required this.entityId,
+    required this.patientId,
+    required this.issuer,
+    required this.summary,
+    required this.issuedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['code'] = Variable<String>(code);
+    map['document_type'] = Variable<String>(documentType);
+    map['entity_id'] = Variable<String>(entityId);
+    map['patient_id'] = Variable<String>(patientId);
+    map['issuer'] = Variable<String>(issuer);
+    map['summary'] = Variable<String>(summary);
+    map['issued_at'] = Variable<DateTime>(issuedAt);
+    return map;
+  }
+
+  DocumentVerificationsCompanion toCompanion(bool nullToAbsent) {
+    return DocumentVerificationsCompanion(
+      code: Value(code),
+      documentType: Value(documentType),
+      entityId: Value(entityId),
+      patientId: Value(patientId),
+      issuer: Value(issuer),
+      summary: Value(summary),
+      issuedAt: Value(issuedAt),
+    );
+  }
+
+  factory DocumentVerificationRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DocumentVerificationRow(
+      code: serializer.fromJson<String>(json['code']),
+      documentType: serializer.fromJson<String>(json['documentType']),
+      entityId: serializer.fromJson<String>(json['entityId']),
+      patientId: serializer.fromJson<String>(json['patientId']),
+      issuer: serializer.fromJson<String>(json['issuer']),
+      summary: serializer.fromJson<String>(json['summary']),
+      issuedAt: serializer.fromJson<DateTime>(json['issuedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'code': serializer.toJson<String>(code),
+      'documentType': serializer.toJson<String>(documentType),
+      'entityId': serializer.toJson<String>(entityId),
+      'patientId': serializer.toJson<String>(patientId),
+      'issuer': serializer.toJson<String>(issuer),
+      'summary': serializer.toJson<String>(summary),
+      'issuedAt': serializer.toJson<DateTime>(issuedAt),
+    };
+  }
+
+  DocumentVerificationRow copyWith({
+    String? code,
+    String? documentType,
+    String? entityId,
+    String? patientId,
+    String? issuer,
+    String? summary,
+    DateTime? issuedAt,
+  }) => DocumentVerificationRow(
+    code: code ?? this.code,
+    documentType: documentType ?? this.documentType,
+    entityId: entityId ?? this.entityId,
+    patientId: patientId ?? this.patientId,
+    issuer: issuer ?? this.issuer,
+    summary: summary ?? this.summary,
+    issuedAt: issuedAt ?? this.issuedAt,
+  );
+  DocumentVerificationRow copyWithCompanion(
+    DocumentVerificationsCompanion data,
+  ) {
+    return DocumentVerificationRow(
+      code: data.code.present ? data.code.value : this.code,
+      documentType: data.documentType.present
+          ? data.documentType.value
+          : this.documentType,
+      entityId: data.entityId.present ? data.entityId.value : this.entityId,
+      patientId: data.patientId.present ? data.patientId.value : this.patientId,
+      issuer: data.issuer.present ? data.issuer.value : this.issuer,
+      summary: data.summary.present ? data.summary.value : this.summary,
+      issuedAt: data.issuedAt.present ? data.issuedAt.value : this.issuedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DocumentVerificationRow(')
+          ..write('code: $code, ')
+          ..write('documentType: $documentType, ')
+          ..write('entityId: $entityId, ')
+          ..write('patientId: $patientId, ')
+          ..write('issuer: $issuer, ')
+          ..write('summary: $summary, ')
+          ..write('issuedAt: $issuedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    code,
+    documentType,
+    entityId,
+    patientId,
+    issuer,
+    summary,
+    issuedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DocumentVerificationRow &&
+          other.code == this.code &&
+          other.documentType == this.documentType &&
+          other.entityId == this.entityId &&
+          other.patientId == this.patientId &&
+          other.issuer == this.issuer &&
+          other.summary == this.summary &&
+          other.issuedAt == this.issuedAt);
+}
+
+class DocumentVerificationsCompanion
+    extends UpdateCompanion<DocumentVerificationRow> {
+  final Value<String> code;
+  final Value<String> documentType;
+  final Value<String> entityId;
+  final Value<String> patientId;
+  final Value<String> issuer;
+  final Value<String> summary;
+  final Value<DateTime> issuedAt;
+  final Value<int> rowid;
+  const DocumentVerificationsCompanion({
+    this.code = const Value.absent(),
+    this.documentType = const Value.absent(),
+    this.entityId = const Value.absent(),
+    this.patientId = const Value.absent(),
+    this.issuer = const Value.absent(),
+    this.summary = const Value.absent(),
+    this.issuedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DocumentVerificationsCompanion.insert({
+    required String code,
+    required String documentType,
+    required String entityId,
+    required String patientId,
+    required String issuer,
+    required String summary,
+    required DateTime issuedAt,
+    this.rowid = const Value.absent(),
+  }) : code = Value(code),
+       documentType = Value(documentType),
+       entityId = Value(entityId),
+       patientId = Value(patientId),
+       issuer = Value(issuer),
+       summary = Value(summary),
+       issuedAt = Value(issuedAt);
+  static Insertable<DocumentVerificationRow> custom({
+    Expression<String>? code,
+    Expression<String>? documentType,
+    Expression<String>? entityId,
+    Expression<String>? patientId,
+    Expression<String>? issuer,
+    Expression<String>? summary,
+    Expression<DateTime>? issuedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (code != null) 'code': code,
+      if (documentType != null) 'document_type': documentType,
+      if (entityId != null) 'entity_id': entityId,
+      if (patientId != null) 'patient_id': patientId,
+      if (issuer != null) 'issuer': issuer,
+      if (summary != null) 'summary': summary,
+      if (issuedAt != null) 'issued_at': issuedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DocumentVerificationsCompanion copyWith({
+    Value<String>? code,
+    Value<String>? documentType,
+    Value<String>? entityId,
+    Value<String>? patientId,
+    Value<String>? issuer,
+    Value<String>? summary,
+    Value<DateTime>? issuedAt,
+    Value<int>? rowid,
+  }) {
+    return DocumentVerificationsCompanion(
+      code: code ?? this.code,
+      documentType: documentType ?? this.documentType,
+      entityId: entityId ?? this.entityId,
+      patientId: patientId ?? this.patientId,
+      issuer: issuer ?? this.issuer,
+      summary: summary ?? this.summary,
+      issuedAt: issuedAt ?? this.issuedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (code.present) {
+      map['code'] = Variable<String>(code.value);
+    }
+    if (documentType.present) {
+      map['document_type'] = Variable<String>(documentType.value);
+    }
+    if (entityId.present) {
+      map['entity_id'] = Variable<String>(entityId.value);
+    }
+    if (patientId.present) {
+      map['patient_id'] = Variable<String>(patientId.value);
+    }
+    if (issuer.present) {
+      map['issuer'] = Variable<String>(issuer.value);
+    }
+    if (summary.present) {
+      map['summary'] = Variable<String>(summary.value);
+    }
+    if (issuedAt.present) {
+      map['issued_at'] = Variable<DateTime>(issuedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DocumentVerificationsCompanion(')
+          ..write('code: $code, ')
+          ..write('documentType: $documentType, ')
+          ..write('entityId: $entityId, ')
+          ..write('patientId: $patientId, ')
+          ..write('issuer: $issuer, ')
+          ..write('summary: $summary, ')
+          ..write('issuedAt: $issuedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -27225,6 +27786,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SignedNoteAmendmentsTable signedNoteAmendments =
       $SignedNoteAmendmentsTable(this);
   late final $DocumentFilesTable documentFiles = $DocumentFilesTable(this);
+  late final $DocumentVerificationsTable documentVerifications =
+      $DocumentVerificationsTable(this);
   late final $AiSummariesTable aiSummaries = $AiSummariesTable(this);
   late final $StaffTasksTable staffTasks = $StaffTasksTable(this);
   late final $RiskFlagsTable riskFlags = $RiskFlagsTable(this);
@@ -27280,6 +27843,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     signedNotes,
     signedNoteAmendments,
     documentFiles,
+    documentVerifications,
     aiSummaries,
     staffTasks,
     riskFlags,
@@ -27485,6 +28049,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('document_files', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('document_verifications', kind: UpdateKind.delete)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(

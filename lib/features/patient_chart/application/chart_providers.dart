@@ -220,6 +220,19 @@ class ChartActions {
   }) async {
     final denied = await _denyWithoutAccess<SickLeaveCertificate>();
     if (denied != null) return denied;
+    // Issued during a visit → attach it to that visit, so the patient finds
+    // it there. Only the visit in progress right now counts; a link is never
+    // guessed from dates.
+    final today = await _ref
+        .read(appointmentRepositoryProvider)
+        .forStaffOnDay(_authorId, DateTime.now());
+    final visit = today.valueOrNull
+        ?.where(
+          (a) =>
+              a.patientId == _patientId &&
+              a.status == AppointmentStatus.inProgress,
+        )
+        .firstOrNull;
     final result = await _ref
         .read(sickLeaveRepositoryProvider)
         .issue(
@@ -229,6 +242,7 @@ class ChartActions {
             diagnosis: diagnosis,
             fromDate: fromDate,
             toDate: toDate,
+            appointmentId: visit?.id,
             notes: notes,
           ),
         );

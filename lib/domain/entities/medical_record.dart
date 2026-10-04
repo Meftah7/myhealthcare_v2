@@ -59,6 +59,9 @@ abstract class MedicalRecord with _$MedicalRecord {
     String? appointmentId,
     String? body,
     String? sourceFacility,
+
+    /// For a referral: how soon the patient should be seen.
+    ReferralUrgency? referralUrgency,
     String? attachmentPath,
     String? extractedText,
 

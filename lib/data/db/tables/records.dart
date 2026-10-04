@@ -31,6 +31,9 @@ class MedicalRecords extends Table {
   DateTimeColumn get occurredAt => dateTime()();
   TextColumn get sourceFacility => text().nullable()();
 
+  /// For a referral: how soon the patient should be seen. Stored by name.
+  TextColumn get referralUrgency => textEnum<ReferralUrgency>().nullable()();
+
   /// Local path to an imported file (PDF, image), copied into app storage.
   TextColumn get attachmentPath => text().nullable()();
 
@@ -241,4 +244,33 @@ class SignedNoteAmendments extends Table {
 
   @override
   Set<Column<Object>> get primaryKey => {id};
+}
+
+/// A code printed on an issued document (sick leave, referral) so staff can
+/// confirm it is genuine: the row holds what the real document says.
+@DataClassName('DocumentVerificationRow')
+class DocumentVerifications extends Table {
+  /// Short code printed (and QR-encoded) on the document.
+  TextColumn get code => text()();
+
+  /// `ExportDocument` name.
+  TextColumn get documentType => text()();
+  TextColumn get entityId => text()();
+  TextColumn get patientId =>
+      text().references(Users, #id, onDelete: KeyAction.cascade)();
+
+  /// The issuer as printed (clinician name).
+  TextColumn get issuer => text()();
+
+  /// What the genuine document states, one fact per line.
+  TextColumn get summary => text()();
+  DateTimeColumn get issuedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {code};
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {documentType, entityId},
+  ];
 }

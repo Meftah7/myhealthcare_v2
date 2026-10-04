@@ -44,6 +44,9 @@ enum ReferralRequestStatus {
 /// How soon owned clinical work (a result review, referral, task) is due.
 enum WorkPriority { routine, priority, urgent }
 
+/// How soon a referred patient should be seen (printed on the letter).
+enum ReferralUrgency { routine, urgent, emergency }
+
 /// A result review's lifecycle (Phase 4). unassigned → assigned → inReview →
 /// resolved; any open state may be escalated to a covering clinician, and an
 /// escalated review goes back into review or is resolved.

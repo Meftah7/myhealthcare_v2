@@ -4562,4 +4562,64 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get slotReasonEarliest => 'أقرب وقت متاح';
+
+  @override
+  String get referralUrgencyLabel => 'درجة الاستعجال';
+
+  @override
+  String get referralUrgencyRoutine => 'روتيني';
+
+  @override
+  String get referralUrgencyUrgent => 'عاجل';
+
+  @override
+  String get referralUrgencyEmergency => 'طارئ';
+
+  @override
+  String get verifyDocumentTitle => 'التحقق من وثيقة';
+
+  @override
+  String get verifyDocumentHint =>
+      'أدخل رمز التحقق المطبوع على الشهادة أو خطاب الإحالة.';
+
+  @override
+  String get verifyCodeLabel => 'رمز التحقق';
+
+  @override
+  String get verifyAction => 'تحقق';
+
+  @override
+  String get verifyGenuine => 'وثيقة صحيحة';
+
+  @override
+  String get verifyGenuineBody =>
+      'قارن الورقة بالتفاصيل أدناه. إذا اختلف أي شيء فالورقة ليست النسخة الحالية.';
+
+  @override
+  String get verifyNotFound =>
+      'لا توجد وثيقة بهذا الرمز. قد يكون الرمز خاطئًا أو الوثيقة غير صحيحة.';
+
+  @override
+  String get verifyPatient => 'المريض';
+
+  @override
+  String get verifyIssuedBy => 'صادرة عن';
+
+  @override
+  String get verifyIssuedOn => 'تاريخ الإصدار';
+
+  @override
+  String get verifyDocumentType => 'الوثيقة';
+
+  @override
+  String get verifyTypeCertificate => 'شهادة طبية';
+
+  @override
+  String get verifyTypeReferral => 'خطاب إحالة';
+
+  @override
+  String get visitSickLeaveHeading => 'الإجازة المرضية';
+
+  @override
+  String get visitInvoicesHeading => 'الفواتير';
 }

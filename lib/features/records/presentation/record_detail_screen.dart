@@ -3,7 +3,9 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
 import '../../../core/failures.dart';
@@ -111,13 +113,19 @@ class RecordDetailScreen extends ConsumerWidget {
                       ),
                   ],
                 ),
-                if (r.appointmentId != null) ...[
+                if (r.appointmentId case final visitId?) ...[
                   const SizedBox(height: Space.xs),
-                  Text(
-                    t.fromYourVisitOn(fmtDate(r.occurredAt)),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.primary,
+                  // Opens the visit, where everything from it is listed.
+                  TextButton.icon(
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
                     ),
+                    onPressed: () => context.push(
+                      AppRoutes.patientAppointmentDetail(visitId),
+                    ),
+                    icon: const Icon(Icons.event_note_outlined, size: 18),
+                    label: Text(t.fromYourVisitOn(fmtDate(r.occurredAt))),
                   ),
                 ],
                 if (r.body != null) ...[

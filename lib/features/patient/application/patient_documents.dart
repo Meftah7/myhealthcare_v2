@@ -47,6 +47,28 @@ final pdfIdentityProvider = FutureProvider<PdfIdentity>((ref) async {
   );
 });
 
+/// Registers an issued document and returns its printed verification code.
+/// A failure leaves the code off rather than blocking the patient's export.
+Future<String?> _verificationCode(
+  WidgetRef ref, {
+  required ExportDocument document,
+  required String entityId,
+  required String patientId,
+  required String issuer,
+  required List<String> summary,
+}) async {
+  final r = await ref
+      .read(documentVerificationRepositoryProvider)
+      .issue(
+        document: document,
+        entityId: entityId,
+        patientId: patientId,
+        issuer: issuer,
+        summary: summary,
+      );
+  return r.valueOrNull;
+}
+
 /// A clinician's licence number, or null when unknown or unreadable.
 Future<String?> _licence(WidgetRef ref, String? staffId) async {
   if (staffId == null) return null;
@@ -162,6 +184,21 @@ Future<Uint8List> buildReferralLetter(
   );
   final doctors = await ref.read(doctorDirectoryProvider.future);
   final clinician = doctors[record.authorStaffId]?.name;
+  final issuer = clinician ?? ClinicPdf.clinicName;
+  final day = DateFormat('d MMM yyyy');
+  final code = await _verificationCode(
+    ref,
+    document: ExportDocument.referralLetter,
+    entityId: record.id,
+    patientId: record.patientId,
+    issuer: issuer,
+    summary: [
+      'Referral letter issued ${day.format(record.occurredAt)}',
+      'Referred to: ${record.sourceFacility ?? 'External service'}',
+      if (record.referralUrgency case final u?) 'Urgency: ${u.name}',
+      'Reason: ${(record.body ?? '').trim()}',
+    ],
+  );
   return referralLetterPdf(
     patient: identity,
     destination:
@@ -173,6 +210,8 @@ Future<Uint8List> buildReferralLetter(
     date: record.occurredAt,
     reference: record.id,
     clinicianLicence: await _licence(ref, record.authorStaffId),
+    urgency: record.referralUrgency,
+    verificationCode: code,
     arabic: _ar,
   );
 }
@@ -191,13 +230,28 @@ Future<Uint8List> buildSickLeave(
     entityId: certificate.id,
   );
   final doctors = await ref.read(doctorDirectoryProvider.future);
+  final clinician =
+      doctors[certificate.issuedByStaffId]?.name ??
+      (_ar ? 'الطبيب المعالج' : 'Attending clinician');
+  final day = DateFormat('d MMM yyyy');
+  final code = await _verificationCode(
+    ref,
+    document: ExportDocument.sickLeaveCertificate,
+    entityId: certificate.id,
+    patientId: certificate.patientId,
+    issuer: clinician,
+    summary: [
+      'Medical certificate issued ${day.format(certificate.issuedAt)}',
+      'Unfit for work or study: ${day.format(certificate.fromDate)} – ${day.format(certificate.toDate)} (${certificate.days} days)',
+      'Reason: ${certificate.diagnosis}',
+    ],
+  );
   return sickLeavePdf(
     patient: identity,
     certificate: certificate,
-    issuingClinician:
-        doctors[certificate.issuedByStaffId]?.name ??
-        (_ar ? 'الطبيب المعالج' : 'Attending clinician'),
+    issuingClinician: clinician,
     clinicianLicence: await _licence(ref, certificate.issuedByStaffId),
+    verificationCode: code,
     arabic: _ar,
   );
 }

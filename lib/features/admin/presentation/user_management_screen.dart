@@ -1021,6 +1021,7 @@ class _ReferPatientSheetState extends ConsumerState<_ReferPatientSheet> {
   bool _external = false;
   String? _departmentId;
   String _hospital = kReferralHospitals.first;
+  ReferralUrgency _urgency = ReferralUrgency.routine;
   final _reason = TextEditingController();
   bool _busy = false;
 
@@ -1046,6 +1047,7 @@ class _ReferPatientSheetState extends ConsumerState<_ReferPatientSheet> {
           destination: destination,
           external: _external,
           reason: _reason.text.trim(),
+          urgency: _urgency,
         );
     if (!mounted) return;
     setState(() => _busy = false);
@@ -1144,6 +1146,23 @@ class _ReferPatientSheetState extends ConsumerState<_ReferPatientSheet> {
                 alignLabelWithHint: true,
               ),
               onChanged: (_) => setState(() {}),
+            ),
+            const SizedBox(height: Space.sm),
+            DropdownButtonFormField<ReferralUrgency>(
+              initialValue: _urgency,
+              decoration: InputDecoration(labelText: t.referralUrgencyLabel),
+              items: [
+                for (final u in ReferralUrgency.values)
+                  DropdownMenuItem(
+                    value: u,
+                    child: Text(switch (u) {
+                      ReferralUrgency.routine => t.referralUrgencyRoutine,
+                      ReferralUrgency.urgent => t.referralUrgencyUrgent,
+                      ReferralUrgency.emergency => t.referralUrgencyEmergency,
+                    }),
+                  ),
+              ],
+              onChanged: (v) => setState(() => _urgency = v ?? _urgency),
             ),
             const SizedBox(height: Space.lg),
             FilledButton(

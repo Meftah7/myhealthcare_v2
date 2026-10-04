@@ -7975,6 +7975,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Earliest available time'**
   String get slotReasonEarliest;
+
+  /// No description provided for @referralUrgencyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Urgency'**
+  String get referralUrgencyLabel;
+
+  /// No description provided for @referralUrgencyRoutine.
+  ///
+  /// In en, this message translates to:
+  /// **'Routine'**
+  String get referralUrgencyRoutine;
+
+  /// No description provided for @referralUrgencyUrgent.
+  ///
+  /// In en, this message translates to:
+  /// **'Urgent'**
+  String get referralUrgencyUrgent;
+
+  /// No description provided for @referralUrgencyEmergency.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency'**
+  String get referralUrgencyEmergency;
+
+  /// No description provided for @verifyDocumentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify document'**
+  String get verifyDocumentTitle;
+
+  /// No description provided for @verifyDocumentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the verification code printed on the certificate or referral letter.'**
+  String get verifyDocumentHint;
+
+  /// No description provided for @verifyCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification code'**
+  String get verifyCodeLabel;
+
+  /// No description provided for @verifyAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify'**
+  String get verifyAction;
+
+  /// No description provided for @verifyGenuine.
+  ///
+  /// In en, this message translates to:
+  /// **'Genuine document'**
+  String get verifyGenuine;
+
+  /// No description provided for @verifyGenuineBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare the paper with the details below. If anything differs, the paper is not the current version.'**
+  String get verifyGenuineBody;
+
+  /// No description provided for @verifyNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No document has this code. It may be mistyped or not genuine.'**
+  String get verifyNotFound;
+
+  /// No description provided for @verifyPatient.
+  ///
+  /// In en, this message translates to:
+  /// **'Patient'**
+  String get verifyPatient;
+
+  /// No description provided for @verifyIssuedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued by'**
+  String get verifyIssuedBy;
+
+  /// No description provided for @verifyIssuedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued on'**
+  String get verifyIssuedOn;
+
+  /// No description provided for @verifyDocumentType.
+  ///
+  /// In en, this message translates to:
+  /// **'Document'**
+  String get verifyDocumentType;
+
+  /// No description provided for @verifyTypeCertificate.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical certificate'**
+  String get verifyTypeCertificate;
+
+  /// No description provided for @verifyTypeReferral.
+  ///
+  /// In en, this message translates to:
+  /// **'Referral letter'**
+  String get verifyTypeReferral;
+
+  /// No description provided for @visitSickLeaveHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Sick leave'**
+  String get visitSickLeaveHeading;
+
+  /// No description provided for @visitInvoicesHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Bills'**
+  String get visitInvoicesHeading;
 }
 
 class _AppLocalizationsDelegate

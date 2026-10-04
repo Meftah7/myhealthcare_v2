@@ -12,6 +12,10 @@ import '../../../core/utils/format.dart';
 import '../../../domain/enums.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/appointment_records_provider.dart';
+import '../../../core/i18n/enum_labels.dart';
+import '../../billing/presentation/payments_screen.dart' show money;
+import '../../patient/application/patient_documents.dart';
+import '../../patient/presentation/document_download_button.dart';
 
 class AppointmentRecordsSection extends ConsumerWidget {
   const AppointmentRecordsSection({required this.appointmentId, super.key});
@@ -98,6 +102,38 @@ class AppointmentRecordsSection extends ConsumerWidget {
                             ),
                           ),
                     ],
+                  if (bundle.sickLeave.isNotEmpty) ...[
+                    heading(t.visitSickLeaveHeading),
+                    for (final cert in bundle.sickLeave)
+                      ListTile(
+                        title: Text(cert.diagnosis),
+                        subtitle: Text(
+                          '${fmtDate(cert.fromDate)} – ${fmtDate(cert.toDate)}',
+                        ),
+                        trailing: DocumentDownloadButton(
+                          label: t.certificatePdfLabel,
+                          filename: 'sick-leave-${fmtDate(cert.fromDate)}.pdf',
+                          build: () => buildSickLeave(ref, cert),
+                          dense: true,
+                        ),
+                      ),
+                  ],
+                  if (bundle.invoices.isNotEmpty) ...[
+                    heading(t.visitInvoicesHeading),
+                    for (final invoice in bundle.invoices)
+                      ListTile(
+                        title: Text(money(invoice.totalAmount)),
+                        subtitle: Text(
+                          invoiceStatusLabel(
+                            context,
+                            invoice.status,
+                            overdue: invoice.isOverdue,
+                          ),
+                        ),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => context.push(AppRoutes.patientBilling),
+                      ),
+                  ],
                   if (bundle.vitals.isNotEmpty) ...[
                     heading(t.vitalsRecordedTitle),
                     for (final v in bundle.vitals)

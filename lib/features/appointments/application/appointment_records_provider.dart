@@ -14,11 +14,20 @@ class AppointmentRecords {
     required this.records,
     required this.vitals,
     required this.medications,
+    this.sickLeave = const [],
+    this.invoices = const [],
   });
   final List<MedicalRecord> records;
   final List<Vitals> vitals;
   final List<Medication> medications;
-  bool get isEmpty => records.isEmpty && vitals.isEmpty && medications.isEmpty;
+  final List<SickLeaveCertificate> sickLeave;
+  final List<Invoice> invoices;
+  bool get isEmpty =>
+      records.isEmpty &&
+      vitals.isEmpty &&
+      medications.isEmpty &&
+      sickLeave.isEmpty &&
+      invoices.isEmpty;
 }
 
 T _unwrap<T>(Result<T> result) => switch (result) {
@@ -48,9 +57,21 @@ final appointmentRecordsProvider = FutureProvider.autoDispose
             .watch(medicationRepositoryProvider)
             .forPatient(patientId, activeOnly: false),
       );
+      // Certificates and bills are extras: if either can't be read, the
+      // clinical content still shows.
+      final sickLeave =
+          (await ref.watch(sickLeaveRepositoryProvider).forPatient(patientId))
+              .valueOrNull ??
+          const <SickLeaveCertificate>[];
+      final invoices =
+          (await ref.watch(billingRepositoryProvider).forPatient(patientId))
+              .valueOrNull ??
+          const <Invoice>[];
       return AppointmentRecords(
         records: records,
         vitals: vitals.where((v) => v.appointmentId == id).toList(),
         medications: medications.where((m) => m.appointmentId == id).toList(),
+        sickLeave: sickLeave.where((c) => c.appointmentId == id).toList(),
+        invoices: invoices.where((i) => i.appointmentId == id).toList(),
       );
     });

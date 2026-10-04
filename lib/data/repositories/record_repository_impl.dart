@@ -297,6 +297,7 @@ class RecordRepositoryImpl implements RecordRepository {
                 appointmentId: Value(record.appointmentId),
                 body: Value(record.body),
                 sourceFacility: Value(record.sourceFacility),
+                referralUrgency: Value(record.referralUrgency),
                 attachmentPath: Value(record.attachmentPath),
                 uploadedByPatient: Value(record.uploadedByPatient),
                 extractedText: Value(record.extractedText),

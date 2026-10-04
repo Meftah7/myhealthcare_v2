@@ -18,6 +18,7 @@ class NewRecord {
     this.appointmentId,
     this.body,
     this.sourceFacility,
+    this.referralUrgency,
     this.attachmentPath,
     this.extractedText,
     this.labValues = const [],
@@ -34,6 +35,7 @@ class NewRecord {
   final String? appointmentId;
   final String? body;
   final String? sourceFacility;
+  final ReferralUrgency? referralUrgency;
   final String? attachmentPath;
   final String? extractedText;
   final List<NewLabValue> labValues;

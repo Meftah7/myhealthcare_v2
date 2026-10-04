@@ -18,6 +18,8 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import '../../core/app_environment.dart';
+
 import 'pdf_strings.dart';
 
 /// The patient identity block printed at the top of every document.
@@ -180,6 +182,7 @@ class ClinicPdf {
                       s.clinicTagline,
                       style: const pw.TextStyle(fontSize: 8, color: _muted),
                     ),
+
                   ],
                 ),
               ],
@@ -407,7 +410,18 @@ class ClinicPdf {
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           pw.Text(
-            s.disclaimer,
+            '${ClinicPdf.clinicName}  ·  ${s.clinicContact}',
+            style: const pw.TextStyle(
+              fontSize: 7.5,
+              color: _muted,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+          pw.SizedBox(height: 2),
+          pw.Text(
+            configuredAppMode.isDemo
+                ? '${s.disclaimer} ${s.demoNote}'
+                : s.disclaimer,
             style: const pw.TextStyle(fontSize: 7.5, color: _muted),
           ),
           pw.SizedBox(height: 3),

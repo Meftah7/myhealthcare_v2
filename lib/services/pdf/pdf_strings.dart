@@ -24,9 +24,19 @@ class PdfStrings {
       _t('Integrated clinic & patient portal', 'عيادة متكاملة وبوابة للمرضى');
   String get disclaimer => _t(
     'This document is generated from the patient record and is not a '
-        'substitute for direct clinical advice. Synthetic demonstration data.',
+        'substitute for direct clinical advice.',
     'هذه الوثيقة مستخرجة من سجل المريض ولا تغني عن الاستشارة الطبية '
-        'المباشرة. بيانات تجريبية.',
+        'المباشرة.',
+  );
+
+  /// Printed only while the app runs on seeded demo data.
+  String get demoNote => _t('Synthetic demonstration data.', 'بيانات تجريبية.');
+
+  /// Demo placeholder — replace with the clinic's real details before
+  /// release.
+  String get clinicContact => _t(
+    'Manama, Kingdom of Bahrain  ·  +973 1700 0000  ·  care@myhealth.demo',
+    'المنامة، مملكة البحرين  ·  0000 1700 973+  ·  care@myhealth.demo',
   );
   String get patient => _t('PATIENT', 'المريض');
   String id(String v) => _t('ID $v', 'الرقم $v');
@@ -235,4 +245,21 @@ class PdfStrings {
       _t('Medications from this visit', 'أدوية هذه الزيارة');
   String get nothingRecorded =>
       _t('Nothing was recorded for this visit.', 'لم يُسجل شيء لهذه الزيارة.');
+
+  // --- referral urgency & verification --------------------------------------
+  String get urgency => _t('Urgency', 'درجة الاستعجال');
+  String get urgencyRoutine => _t('Routine', 'روتيني');
+  String get urgencyUrgent =>
+      _t('Urgent — please see soon', 'عاجل — يرجى الفحص قريبًا');
+  String get urgencyEmergency =>
+      _t('Emergency — see immediately', 'طارئ — يرجى الفحص فورًا');
+  String get verificationHeading =>
+      _t('Verify this document', 'التحقق من الوثيقة');
+  String get verificationCode => _t('Verification code', 'رمز التحقق');
+  String get verificationHelp => _t(
+    'Clinic staff can confirm this document is genuine by entering the code '
+        '(or scanning the QR) in MyHealth Care → Verify document.',
+    'يمكن لموظفي العيادة التأكد من صحة هذه الوثيقة بإدخال الرمز (أو مسح رمز '
+        'QR) في MyHealth Care ← التحقق من وثيقة.',
+  );
 }

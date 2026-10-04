@@ -119,6 +119,33 @@ void main() {
     },
   );
 
+  test('a completed visit lists its own bill and sick leave', () async {
+    final c = await patientContainer();
+    final db = c.read(appDatabaseProvider);
+    final appts = await c.read(ownAppointmentsProvider.future);
+    final visit = appts.firstWhere(
+      (a) => a.status == AppointmentStatus.completed,
+    );
+    await db
+        .into(db.sickLeaveCertificates)
+        .insert(
+          SickLeaveCertificatesCompanion.insert(
+            id: 'sick_visit_test',
+            patientId: visit.patientId,
+            issuedByStaffId: visit.staffId,
+            diagnosis: 'Influenza',
+            fromDate: visit.slotStart,
+            toDate: visit.slotStart.add(const Duration(days: 2)),
+            appointmentId: Value(visit.id),
+          ),
+        );
+    final bundle = await c.read(appointmentRecordsProvider(visit.id).future);
+    // The seeder bills every completed visit.
+    expect(bundle.invoices, isNotEmpty);
+    expect(bundle.invoices.every((i) => i.appointmentId == visit.id), isTrue);
+    expect(bundle.sickLeave.map((s) => s.id), ['sick_visit_test']);
+  });
+
   test(
     'unknown and unfinished appointments cannot expose encounter records',
     () async {

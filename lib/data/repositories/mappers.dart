@@ -248,6 +248,7 @@ MedicalRecord recordFrom(MedicalRecordRow row, List<LabValueRow> labs) =>
       appointmentId: row.appointmentId,
       body: row.body,
       sourceFacility: row.sourceFacility,
+      referralUrgency: row.referralUrgency,
       attachmentPath: row.attachmentPath,
       uploadedByPatient: row.uploadedByPatient,
       extractedText: row.extractedText,

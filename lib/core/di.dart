@@ -17,6 +17,7 @@ import '../data/repositories/auth_repository_impl.dart';
 import '../data/repositories/billing_repository_impl.dart';
 import '../data/repositories/care_repository_impl.dart';
 import '../data/repositories/consultation_repository_impl.dart';
+import '../data/repositories/document_verification_repository_impl.dart';
 import '../data/repositories/export_repository_impl.dart';
 import '../data/repositories/family_link_repository_impl.dart';
 import '../data/repositories/identity_repository_impl.dart';
@@ -28,6 +29,7 @@ import '../data/repositories/system_repository_impl.dart';
 import '../data/repositories/task_repository_impl.dart';
 import '../data/seed/seeder.dart';
 import '../data/sync/outbox.dart';
+import '../domain/repositories/document_verification_repository.dart';
 import '../domain/repositories/repositories.dart';
 import '../services/ai/ai_key_store.dart';
 import '../services/auth/access_policy.dart';
@@ -300,6 +302,14 @@ final encounterRepositoryProvider = Provider<EncounterRepository>(
     walkIns: ref.watch(walkInTicketRepositoryProvider),
   ),
 );
+
+final documentVerificationRepositoryProvider =
+    Provider<DocumentVerificationRepository>(
+      (ref) => DocumentVerificationRepositoryImpl(
+        ref.watch(appDatabaseProvider),
+        access: ref.watch(accessPolicyProvider),
+      ),
+    );
 
 final exportRepositoryProvider = Provider<ExportRepository>(
   (ref) => ExportRepositoryImpl(

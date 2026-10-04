@@ -57,6 +57,7 @@ part 'app_database.g.dart';
     SignedNotes,
     SignedNoteAmendments,
     DocumentFiles,
+    DocumentVerifications,
     // AI
     AiSummaries,
     StaffTasks,
@@ -178,7 +179,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 26;
+  int get schemaVersion => 27;
 
   /// True when [table] already has a column named [columnName] — lets a
   /// migration step that already partly ran (e.g. the app/tab was closed or
@@ -717,6 +718,14 @@ class AppDatabase extends _$AppDatabase {
               ))
               .write(VitalsCompanion(appointmentId: Value(visit.id)));
         }
+      }
+      if (from < 27) {
+        await _addColumnIfMissing(
+          m,
+          medicalRecords,
+          medicalRecords.referralUrgency,
+        );
+        await _createTableIfMissing(m, documentVerifications);
       }
     }),
     beforeOpen: (details) async {
