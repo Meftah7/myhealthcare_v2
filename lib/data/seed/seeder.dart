@@ -372,7 +372,7 @@ class Seeder {
 
       // A completed visit leaves a note; chronic reviews add labs + vitals.
       if (status == AppointmentStatus.completed) {
-        records += await _seedVisitRecords(p, doc, slotStart);
+        records += await _seedVisitRecords(p, doc, slotStart, apptId);
         await _seedInvoice(p, apptId, slotStart);
       }
 
@@ -892,7 +892,12 @@ class Seeder {
     'Vaccination and administration',
   ];
 
-  Future<int> _seedVisitRecords(_Patient p, _Staff doc, DateTime at) async {
+  Future<int> _seedVisitRecords(
+    _Patient p,
+    _Staff doc,
+    DateTime at,
+    String appointmentId,
+  ) async {
     var records = 0;
 
     await _db
@@ -900,6 +905,7 @@ class Seeder {
         .insert(
           MedicalRecordsCompanion.insert(
             id: 'rec_${p.id}_${at.millisecondsSinceEpoch}',
+            appointmentId: Value(appointmentId),
             patientId: p.id,
             recordType: RecordType.visitNote,
             title: 'Clinic visit',
@@ -922,6 +928,7 @@ class Seeder {
           .insert(
             MedicalRecordsCompanion.insert(
               id: 'rec_${p.id}_${at.millisecondsSinceEpoch}_img',
+              appointmentId: Value(appointmentId),
               patientId: p.id,
               recordType: RecordType.imaging,
               title: study.name,
@@ -941,6 +948,7 @@ class Seeder {
         .insert(
           VitalsCompanion.insert(
             id: 'vit_${p.id}_${at.millisecondsSinceEpoch}',
+            appointmentId: Value(appointmentId),
             patientId: p.id,
             recordedAt: at,
             systolic: Value(
@@ -984,6 +992,7 @@ class Seeder {
           .insert(
             MedicalRecordsCompanion.insert(
               id: recId,
+              appointmentId: Value(appointmentId),
               patientId: p.id,
               recordType: RecordType.labResult,
               title: 'Laboratory panel',

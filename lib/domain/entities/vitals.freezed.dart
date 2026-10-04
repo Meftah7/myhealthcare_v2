@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Vitals {
 
- String get id; String get patientId; DateTime get recordedAt; int? get systolic; int? get diastolic; int? get heartRate; double? get tempC; double? get weightKg; double? get heightCm; int? get spo2; double? get glucose; String? get recordedByStaffId;
+ String get id; String get patientId; DateTime get recordedAt; String? get appointmentId; int? get systolic; int? get diastolic; int? get heartRate; double? get tempC; double? get weightKg; double? get heightCm; int? get spo2; double? get glucose; String? get recordedByStaffId;
 /// Create a copy of Vitals
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $VitalsCopyWith<Vitals> get copyWith => _$VitalsCopyWithImpl<Vitals>(this as Vit
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Vitals&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.recordedAt, recordedAt) || other.recordedAt == recordedAt)&&(identical(other.systolic, systolic) || other.systolic == systolic)&&(identical(other.diastolic, diastolic) || other.diastolic == diastolic)&&(identical(other.heartRate, heartRate) || other.heartRate == heartRate)&&(identical(other.tempC, tempC) || other.tempC == tempC)&&(identical(other.weightKg, weightKg) || other.weightKg == weightKg)&&(identical(other.heightCm, heightCm) || other.heightCm == heightCm)&&(identical(other.spo2, spo2) || other.spo2 == spo2)&&(identical(other.glucose, glucose) || other.glucose == glucose)&&(identical(other.recordedByStaffId, recordedByStaffId) || other.recordedByStaffId == recordedByStaffId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Vitals&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.recordedAt, recordedAt) || other.recordedAt == recordedAt)&&(identical(other.appointmentId, appointmentId) || other.appointmentId == appointmentId)&&(identical(other.systolic, systolic) || other.systolic == systolic)&&(identical(other.diastolic, diastolic) || other.diastolic == diastolic)&&(identical(other.heartRate, heartRate) || other.heartRate == heartRate)&&(identical(other.tempC, tempC) || other.tempC == tempC)&&(identical(other.weightKg, weightKg) || other.weightKg == weightKg)&&(identical(other.heightCm, heightCm) || other.heightCm == heightCm)&&(identical(other.spo2, spo2) || other.spo2 == spo2)&&(identical(other.glucose, glucose) || other.glucose == glucose)&&(identical(other.recordedByStaffId, recordedByStaffId) || other.recordedByStaffId == recordedByStaffId));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,patientId,recordedAt,systolic,diastolic,heartRate,tempC,weightKg,heightCm,spo2,glucose,recordedByStaffId);
+int get hashCode => Object.hash(runtimeType,id,patientId,recordedAt,appointmentId,systolic,diastolic,heartRate,tempC,weightKg,heightCm,spo2,glucose,recordedByStaffId);
 
 @override
 String toString() {
-  return 'Vitals(id: $id, patientId: $patientId, recordedAt: $recordedAt, systolic: $systolic, diastolic: $diastolic, heartRate: $heartRate, tempC: $tempC, weightKg: $weightKg, heightCm: $heightCm, spo2: $spo2, glucose: $glucose, recordedByStaffId: $recordedByStaffId)';
+  return 'Vitals(id: $id, patientId: $patientId, recordedAt: $recordedAt, appointmentId: $appointmentId, systolic: $systolic, diastolic: $diastolic, heartRate: $heartRate, tempC: $tempC, weightKg: $weightKg, heightCm: $heightCm, spo2: $spo2, glucose: $glucose, recordedByStaffId: $recordedByStaffId)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $VitalsCopyWith<$Res>  {
   factory $VitalsCopyWith(Vitals value, $Res Function(Vitals) _then) = _$VitalsCopyWithImpl;
 @useResult
 $Res call({
- String id, String patientId, DateTime recordedAt, int? systolic, int? diastolic, int? heartRate, double? tempC, double? weightKg, double? heightCm, int? spo2, double? glucose, String? recordedByStaffId
+ String id, String patientId, DateTime recordedAt, String? appointmentId, int? systolic, int? diastolic, int? heartRate, double? tempC, double? weightKg, double? heightCm, int? spo2, double? glucose, String? recordedByStaffId
 });
 
 
@@ -62,12 +62,13 @@ class _$VitalsCopyWithImpl<$Res>
 
 /// Create a copy of Vitals
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? patientId = null,Object? recordedAt = null,Object? systolic = freezed,Object? diastolic = freezed,Object? heartRate = freezed,Object? tempC = freezed,Object? weightKg = freezed,Object? heightCm = freezed,Object? spo2 = freezed,Object? glucose = freezed,Object? recordedByStaffId = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? patientId = null,Object? recordedAt = null,Object? appointmentId = freezed,Object? systolic = freezed,Object? diastolic = freezed,Object? heartRate = freezed,Object? tempC = freezed,Object? weightKg = freezed,Object? heightCm = freezed,Object? spo2 = freezed,Object? glucose = freezed,Object? recordedByStaffId = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,patientId: null == patientId ? _self.patientId : patientId // ignore: cast_nullable_to_non_nullable
 as String,recordedAt: null == recordedAt ? _self.recordedAt : recordedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,systolic: freezed == systolic ? _self.systolic : systolic // ignore: cast_nullable_to_non_nullable
+as DateTime,appointmentId: freezed == appointmentId ? _self.appointmentId : appointmentId // ignore: cast_nullable_to_non_nullable
+as String?,systolic: freezed == systolic ? _self.systolic : systolic // ignore: cast_nullable_to_non_nullable
 as int?,diastolic: freezed == diastolic ? _self.diastolic : diastolic // ignore: cast_nullable_to_non_nullable
 as int?,heartRate: freezed == heartRate ? _self.heartRate : heartRate // ignore: cast_nullable_to_non_nullable
 as int?,tempC: freezed == tempC ? _self.tempC : tempC // ignore: cast_nullable_to_non_nullable
@@ -161,10 +162,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String patientId,  DateTime recordedAt,  int? systolic,  int? diastolic,  int? heartRate,  double? tempC,  double? weightKg,  double? heightCm,  int? spo2,  double? glucose,  String? recordedByStaffId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String patientId,  DateTime recordedAt,  String? appointmentId,  int? systolic,  int? diastolic,  int? heartRate,  double? tempC,  double? weightKg,  double? heightCm,  int? spo2,  double? glucose,  String? recordedByStaffId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Vitals() when $default != null:
-return $default(_that.id,_that.patientId,_that.recordedAt,_that.systolic,_that.diastolic,_that.heartRate,_that.tempC,_that.weightKg,_that.heightCm,_that.spo2,_that.glucose,_that.recordedByStaffId);case _:
+return $default(_that.id,_that.patientId,_that.recordedAt,_that.appointmentId,_that.systolic,_that.diastolic,_that.heartRate,_that.tempC,_that.weightKg,_that.heightCm,_that.spo2,_that.glucose,_that.recordedByStaffId);case _:
   return orElse();
 
 }
@@ -182,10 +183,10 @@ return $default(_that.id,_that.patientId,_that.recordedAt,_that.systolic,_that.d
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String patientId,  DateTime recordedAt,  int? systolic,  int? diastolic,  int? heartRate,  double? tempC,  double? weightKg,  double? heightCm,  int? spo2,  double? glucose,  String? recordedByStaffId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String patientId,  DateTime recordedAt,  String? appointmentId,  int? systolic,  int? diastolic,  int? heartRate,  double? tempC,  double? weightKg,  double? heightCm,  int? spo2,  double? glucose,  String? recordedByStaffId)  $default,) {final _that = this;
 switch (_that) {
 case _Vitals():
-return $default(_that.id,_that.patientId,_that.recordedAt,_that.systolic,_that.diastolic,_that.heartRate,_that.tempC,_that.weightKg,_that.heightCm,_that.spo2,_that.glucose,_that.recordedByStaffId);case _:
+return $default(_that.id,_that.patientId,_that.recordedAt,_that.appointmentId,_that.systolic,_that.diastolic,_that.heartRate,_that.tempC,_that.weightKg,_that.heightCm,_that.spo2,_that.glucose,_that.recordedByStaffId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -202,10 +203,10 @@ return $default(_that.id,_that.patientId,_that.recordedAt,_that.systolic,_that.d
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String patientId,  DateTime recordedAt,  int? systolic,  int? diastolic,  int? heartRate,  double? tempC,  double? weightKg,  double? heightCm,  int? spo2,  double? glucose,  String? recordedByStaffId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String patientId,  DateTime recordedAt,  String? appointmentId,  int? systolic,  int? diastolic,  int? heartRate,  double? tempC,  double? weightKg,  double? heightCm,  int? spo2,  double? glucose,  String? recordedByStaffId)?  $default,) {final _that = this;
 switch (_that) {
 case _Vitals() when $default != null:
-return $default(_that.id,_that.patientId,_that.recordedAt,_that.systolic,_that.diastolic,_that.heartRate,_that.tempC,_that.weightKg,_that.heightCm,_that.spo2,_that.glucose,_that.recordedByStaffId);case _:
+return $default(_that.id,_that.patientId,_that.recordedAt,_that.appointmentId,_that.systolic,_that.diastolic,_that.heartRate,_that.tempC,_that.weightKg,_that.heightCm,_that.spo2,_that.glucose,_that.recordedByStaffId);case _:
   return null;
 
 }
@@ -217,12 +218,13 @@ return $default(_that.id,_that.patientId,_that.recordedAt,_that.systolic,_that.d
 
 
 class _Vitals extends Vitals {
-  const _Vitals({required this.id, required this.patientId, required this.recordedAt, this.systolic, this.diastolic, this.heartRate, this.tempC, this.weightKg, this.heightCm, this.spo2, this.glucose, this.recordedByStaffId}): super._();
+  const _Vitals({required this.id, required this.patientId, required this.recordedAt, this.appointmentId, this.systolic, this.diastolic, this.heartRate, this.tempC, this.weightKg, this.heightCm, this.spo2, this.glucose, this.recordedByStaffId}): super._();
   
 
 @override final  String id;
 @override final  String patientId;
 @override final  DateTime recordedAt;
+@override final  String? appointmentId;
 @override final  int? systolic;
 @override final  int? diastolic;
 @override final  int? heartRate;
@@ -243,16 +245,16 @@ _$VitalsCopyWith<_Vitals> get copyWith => __$VitalsCopyWithImpl<_Vitals>(this, _
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Vitals&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.recordedAt, recordedAt) || other.recordedAt == recordedAt)&&(identical(other.systolic, systolic) || other.systolic == systolic)&&(identical(other.diastolic, diastolic) || other.diastolic == diastolic)&&(identical(other.heartRate, heartRate) || other.heartRate == heartRate)&&(identical(other.tempC, tempC) || other.tempC == tempC)&&(identical(other.weightKg, weightKg) || other.weightKg == weightKg)&&(identical(other.heightCm, heightCm) || other.heightCm == heightCm)&&(identical(other.spo2, spo2) || other.spo2 == spo2)&&(identical(other.glucose, glucose) || other.glucose == glucose)&&(identical(other.recordedByStaffId, recordedByStaffId) || other.recordedByStaffId == recordedByStaffId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Vitals&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.recordedAt, recordedAt) || other.recordedAt == recordedAt)&&(identical(other.appointmentId, appointmentId) || other.appointmentId == appointmentId)&&(identical(other.systolic, systolic) || other.systolic == systolic)&&(identical(other.diastolic, diastolic) || other.diastolic == diastolic)&&(identical(other.heartRate, heartRate) || other.heartRate == heartRate)&&(identical(other.tempC, tempC) || other.tempC == tempC)&&(identical(other.weightKg, weightKg) || other.weightKg == weightKg)&&(identical(other.heightCm, heightCm) || other.heightCm == heightCm)&&(identical(other.spo2, spo2) || other.spo2 == spo2)&&(identical(other.glucose, glucose) || other.glucose == glucose)&&(identical(other.recordedByStaffId, recordedByStaffId) || other.recordedByStaffId == recordedByStaffId));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,patientId,recordedAt,systolic,diastolic,heartRate,tempC,weightKg,heightCm,spo2,glucose,recordedByStaffId);
+int get hashCode => Object.hash(runtimeType,id,patientId,recordedAt,appointmentId,systolic,diastolic,heartRate,tempC,weightKg,heightCm,spo2,glucose,recordedByStaffId);
 
 @override
 String toString() {
-  return 'Vitals(id: $id, patientId: $patientId, recordedAt: $recordedAt, systolic: $systolic, diastolic: $diastolic, heartRate: $heartRate, tempC: $tempC, weightKg: $weightKg, heightCm: $heightCm, spo2: $spo2, glucose: $glucose, recordedByStaffId: $recordedByStaffId)';
+  return 'Vitals(id: $id, patientId: $patientId, recordedAt: $recordedAt, appointmentId: $appointmentId, systolic: $systolic, diastolic: $diastolic, heartRate: $heartRate, tempC: $tempC, weightKg: $weightKg, heightCm: $heightCm, spo2: $spo2, glucose: $glucose, recordedByStaffId: $recordedByStaffId)';
 }
 
 
@@ -263,7 +265,7 @@ abstract mixin class _$VitalsCopyWith<$Res> implements $VitalsCopyWith<$Res> {
   factory _$VitalsCopyWith(_Vitals value, $Res Function(_Vitals) _then) = __$VitalsCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String patientId, DateTime recordedAt, int? systolic, int? diastolic, int? heartRate, double? tempC, double? weightKg, double? heightCm, int? spo2, double? glucose, String? recordedByStaffId
+ String id, String patientId, DateTime recordedAt, String? appointmentId, int? systolic, int? diastolic, int? heartRate, double? tempC, double? weightKg, double? heightCm, int? spo2, double? glucose, String? recordedByStaffId
 });
 
 
@@ -280,12 +282,13 @@ class __$VitalsCopyWithImpl<$Res>
 
 /// Create a copy of Vitals
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? patientId = null,Object? recordedAt = null,Object? systolic = freezed,Object? diastolic = freezed,Object? heartRate = freezed,Object? tempC = freezed,Object? weightKg = freezed,Object? heightCm = freezed,Object? spo2 = freezed,Object? glucose = freezed,Object? recordedByStaffId = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? patientId = null,Object? recordedAt = null,Object? appointmentId = freezed,Object? systolic = freezed,Object? diastolic = freezed,Object? heartRate = freezed,Object? tempC = freezed,Object? weightKg = freezed,Object? heightCm = freezed,Object? spo2 = freezed,Object? glucose = freezed,Object? recordedByStaffId = freezed,}) {
   return _then(_Vitals(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,patientId: null == patientId ? _self.patientId : patientId // ignore: cast_nullable_to_non_nullable
 as String,recordedAt: null == recordedAt ? _self.recordedAt : recordedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,systolic: freezed == systolic ? _self.systolic : systolic // ignore: cast_nullable_to_non_nullable
+as DateTime,appointmentId: freezed == appointmentId ? _self.appointmentId : appointmentId // ignore: cast_nullable_to_non_nullable
+as String?,systolic: freezed == systolic ? _self.systolic : systolic // ignore: cast_nullable_to_non_nullable
 as int?,diastolic: freezed == diastolic ? _self.diastolic : diastolic // ignore: cast_nullable_to_non_nullable
 as int?,heartRate: freezed == heartRate ? _self.heartRate : heartRate // ignore: cast_nullable_to_non_nullable
 as int?,tempC: freezed == tempC ? _self.tempC : tempC // ignore: cast_nullable_to_non_nullable

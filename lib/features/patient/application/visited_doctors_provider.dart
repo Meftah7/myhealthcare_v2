@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../core/di.dart';
 import 'patient_data_providers.dart';
 
 bool get _ar => Intl.getCurrentLocale().startsWith('ar');
@@ -32,17 +33,11 @@ class VisitedDoctor {
   bool get hasUpcoming => nextVisit != null;
 }
 
-/// A visit "counts" once it has happened — completed, or simply a past slot
-/// that wasn't cancelled. No-shows still mean the patient has met the doctor.
-bool _isVisited(Appointment a) {
-  if (a.status == AppointmentStatus.cancelled) return false;
-  return a.status == AppointmentStatus.completed ||
-      a.status == AppointmentStatus.noShow ||
-      a.slotEnd.isBefore(DateTime.now());
-}
+/// Only a completed visit establishes that the patient has seen the doctor.
+bool _isVisited(Appointment a) => a.status == AppointmentStatus.completed;
 
 final visitedDoctorsProvider = FutureProvider<List<VisitedDoctor>>((ref) async {
-  final appts = await ref.watch(patientAppointmentsProvider.future);
+  final appts = await ref.watch(ownAppointmentsProvider.future);
   final doctors = await ref.watch(doctorDirectoryProvider.future);
   final departments = await ref.watch(departmentDirectoryProvider.future);
 
@@ -56,6 +51,10 @@ final visitedDoctorsProvider = FutureProvider<List<VisitedDoctor>>((ref) async {
     final visits = entry.value.where(_isVisited).toList()
       ..sort((a, b) => b.slotStart.compareTo(a.slotStart));
     if (visits.isEmpty) continue;
+    final profile =
+        (await ref.watch(userRepositoryProvider).staffById(entry.key))
+            .valueOrNull;
+    if (profile == null || !profile.isDoctor) continue;
 
     final upcoming = entry.value.where((a) => a.isUpcoming).toList()
       ..sort((a, b) => a.slotStart.compareTo(b.slotStart));

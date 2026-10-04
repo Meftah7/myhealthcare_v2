@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/app.dart';
 import 'package:myhealthcare/core/di.dart';
+import 'package:myhealthcare/core/presentation/quick_actions.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:myhealthcare/features/nutrition/application/macro_calculator.dart';
 import 'package:myhealthcare/features/nutrition/application/nutrition_providers.dart';
@@ -112,10 +113,25 @@ void main() {
     await _settle(tester);
     expect(find.widgetWithText(AppBar, 'Records'), findsOneWidget);
 
-    // Timeline view first: the record search bar is present.
-    expect(find.byType(SearchBar), findsOneWidget);
+    // The hub leads with eligible doctor chats and all eight health actions.
+    expect(find.text('Chat with your doctors'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Your health'), 240);
+    expect(find.byType(QuickActionTile), findsNWidgets(8));
+    for (final label in [
+      'Home care',
+      'Medication',
+      'Bills',
+      'Visited doctors',
+      'Imaging',
+      'Sick leave',
+      'Vital signs report',
+      'Allergies',
+    ]) {
+      expect(find.text(label), findsWidgets);
+    }
 
     // Switch to Medications.
+    await tester.ensureVisible(find.text('Medication'));
     await tester.tap(find.text('Medication'));
     await _settle(tester);
     expect(find.byType(SearchBar), findsNothing);
@@ -126,6 +142,15 @@ void main() {
     await tester.tap(find.text('Bills'));
     await _settle(tester);
     expect(find.textContaining('BD '), findsWidgets);
+
+    // History and imports remain available from the hub.
+    await tester.tap(find.text('Back to Records'));
+    await _settle(tester);
+    await tester.scrollUntilVisible(find.text('Timeline'), 240);
+    expect(find.text('Import PDF'), findsWidgets);
+    await tester.tap(find.text('Timeline'));
+    await _settle(tester);
+    expect(find.byType(SearchBar), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));

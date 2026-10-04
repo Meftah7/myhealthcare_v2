@@ -11,6 +11,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import '../../../core/failures.dart';
+import '../../../core/presentation/quick_actions.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../services/pdf/clinic_pdf.dart';
 
@@ -21,6 +22,7 @@ class DocumentDownloadButton extends StatefulWidget {
     required this.build,
     this.icon = Icons.picture_as_pdf_outlined,
     this.dense = false,
+    this.asQuickAction = false,
     super.key,
   });
 
@@ -31,6 +33,7 @@ class DocumentDownloadButton extends StatefulWidget {
 
   /// Render as a compact icon button (list rows) rather than a full button.
   final bool dense;
+  final bool asQuickAction;
 
   @override
   State<DocumentDownloadButton> createState() => _DocumentDownloadButtonState();
@@ -71,6 +74,13 @@ class _DocumentDownloadButtonState extends State<DocumentDownloadButton> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.asQuickAction) {
+      return QuickActionTile(
+        icon: _busy ? Icons.hourglass_top : widget.icon,
+        label: widget.label,
+        onTap: _busy ? null : _run,
+      );
+    }
     if (widget.dense) {
       return IconButton(
         onPressed: _busy ? null : _run,

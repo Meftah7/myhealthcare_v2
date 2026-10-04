@@ -123,6 +123,31 @@ class CareMessageRepositoryImpl implements CareMessageRepository {
   final IdempotencyGuard _idempotency;
   final Outbox _outbox;
 
+  Future<Set<String>> _visitedDoctorIds(String patientId) async {
+    final visits =
+        await (_db.select(_db.appointments)..where(
+              (a) =>
+                  a.patientId.equals(patientId) &
+                  a.status.equalsValue(AppointmentStatus.completed),
+            ))
+            .get();
+    final profiles = await (_db.select(
+      _db.staffProfiles,
+    )..where((s) => s.userId.isIn(visits.map((a) => a.staffId)))).get();
+    return {
+      for (final s in profiles)
+        if (s.jobTitle != kNurseJobTitle) s.userId,
+    };
+  }
+
+  Future<void> _requireCompletedVisit(String patientId, String staffId) async {
+    if (!(await _visitedDoctorIds(patientId)).contains(staffId)) {
+      throw const AccessDeniedFailure(
+        'Messaging is available after a completed visit with this doctor.',
+      );
+    }
+  }
+
   /// A thread belongs to its patient (readable by the patient and their
   /// proxies) and to its clinician (readable by that clinician only).
   Future<void> _authorizeThread({
@@ -149,6 +174,7 @@ class CareMessageRepositoryImpl implements CareMessageRepository {
       );
     } else {
       await _access.readPatient(patientId, entityType: 'care_message');
+      if (staffId != null) await _requireCompletedVisit(patientId, staffId);
     }
   }
 
@@ -159,7 +185,15 @@ class CareMessageRepositoryImpl implements CareMessageRepository {
     } on Failure catch (f) {
       return Err(f);
     }
-    return _threads(byPatient: patientId);
+    return Result.guardAsync(() async {
+      final eligible = await _visitedDoctorIds(patientId);
+      final result = await _threads(byPatient: patientId);
+      return switch (result) {
+        Ok(:final value) =>
+          value.where((t) => eligible.contains(t.staffId)).toList(),
+        Err(:final failure) => throw failure,
+      };
+    });
   }
 
   @override
@@ -447,6 +481,7 @@ class CareMessageRepositoryImpl implements CareMessageRepository {
     required String staffId,
     required bool fromStaff,
   }) async {
+    if (!fromStaff) await _requireCompletedVisit(patientId, staffId);
     final actor = await _access.principal();
     if (actor == null) return null;
     if (fromStaff && actor.isStaff && actor.accountId != staffId) {
@@ -485,12 +520,6 @@ class CareMessageRepositoryImpl implements CareMessageRepository {
       Permission.messageCareTeam,
       entityType: 'care_message',
     );
-    if (!await _access.hasCareRelationship(
-      staffId: staffId,
-      patientId: patientId,
-    )) {
-      throw const AccessDeniedFailure('You cannot message this clinician.');
-    }
     return subject.actingAccountId;
   }
 }

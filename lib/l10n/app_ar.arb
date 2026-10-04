@@ -1987,5 +1987,14 @@
   "settingsDeviceScope": "على هذا الجهاز",
   "settingsDeviceScopeCaption": "تُحفظ في هذا المتصفح وتُستخدم لكل من يسجّل الدخول هنا.",
   "settingsAccountScope": "لحسابك",
-  "settingsAccountScopeCaption": "تُحفظ لك على هذا الجهاز. من يسجّل الدخول هنا غيرك يحتفظ باختياراته."
+  "settingsAccountScopeCaption": "تُحفظ لك على هذا الجهاز. من يسجّل الدخول هنا غيرك يحتفظ باختياراته.",
+  "recordsDoctorChatTitle": "تحدث مع أطبائك",
+  "recordsDoctorChatNote": "راسل الأطباء الذين زرتهم في موعد مكتمل. للطوارئ، اتصل على 999.",
+  "recordsNoVisitedDoctors": "سيظهر أطباؤك هنا بعد أول زيارة مكتملة.",
+  "recordsYourHealthTitle": "صحتك",
+  "recordsBackToOverview": "العودة إلى السجلات",
+  "appointmentRecordsTitle": "سجلات هذا الموعد",
+  "appointmentRecordsEmpty": "لا توجد سجلات مرتبطة بهذا الموعد حتى الآن.",
+  "appointmentClinicVisit": "زيارة العيادة",
+  "appointmentLaboratoryPanel": "الفحوصات المخبرية"
 }

@@ -104,6 +104,12 @@ class NewLabValue {
 abstract interface class RecordRepository {
   Future<Result<MedicalRecord>> byId(String id);
 
+  /// All records explicitly linked to this encounter, regardless of age.
+  Future<Result<List<MedicalRecord>>> forAppointment(
+    String patientId,
+    String appointmentId,
+  );
+
   /// Chronological record feed, newest first, paginated (P2-08, P1-14).
   Future<Result<List<MedicalRecord>>> timeline(
     String patientId, {

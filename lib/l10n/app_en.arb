@@ -2043,5 +2043,14 @@
   "settingsDeviceScope": "On this device",
   "settingsDeviceScopeCaption": "Saved in this browser and used by anyone who signs in here.",
   "settingsAccountScope": "For your account",
-  "settingsAccountScopeCaption": "Saved for you on this device. Someone else signing in here keeps their own choices."
+  "settingsAccountScopeCaption": "Saved for you on this device. Someone else signing in here keeps their own choices.",
+  "recordsDoctorChatTitle": "Chat with your doctors",
+  "recordsDoctorChatNote": "Message doctors you have seen at a completed appointment. For emergencies, call 999.",
+  "recordsNoVisitedDoctors": "Your doctors will appear here after your first completed visit.",
+  "recordsYourHealthTitle": "Your health",
+  "recordsBackToOverview": "Back to Records",
+  "appointmentRecordsTitle": "Records from this appointment",
+  "appointmentRecordsEmpty": "No records have been linked to this appointment yet.",
+  "appointmentClinicVisit": "Clinic visit",
+  "appointmentLaboratoryPanel": "Laboratory panel"
 }

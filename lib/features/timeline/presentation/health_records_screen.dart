@@ -1,93 +1,122 @@
-/// Health Records — the patient's clinical history, in views chosen with a top
-/// toggle (timeline, medications, bills), plus document tools and alerts:
-/// allergies, imaging results and an exportable vital-signs report (P10).
+/// Doctor conversations, health shortcuts, and the existing record history.
 library;
 
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/quick_actions.dart';
+import '../../../core/presentation/readable_label.dart';
 import '../../../core/presentation/responsive.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../billing/presentation/payments_screen.dart';
+import '../../care/application/care_providers.dart';
+import '../../care/presentation/patient_doctor_chat_section.dart';
 import '../../patient/application/patient_data_providers.dart';
 import '../../patient/application/patient_documents.dart';
+import '../../patient/application/visited_doctors_provider.dart';
 import '../../patient/presentation/document_download_button.dart';
 import '../../patient/presentation/patient_top_actions.dart';
 import '../../records/presentation/medications_screen.dart';
 import 'import_record_sheet.dart';
 import 'timeline_screen.dart';
 
-enum _RecordsView { timeline, medications, bills }
+enum _RecordsView { overview, timeline, medications, bills }
 
-class HealthRecordsScreen extends StatefulWidget {
+class HealthRecordsScreen extends ConsumerStatefulWidget {
   const HealthRecordsScreen({this.startOnMedications = false, super.key});
-
   final bool startOnMedications;
-
   @override
-  State<HealthRecordsScreen> createState() => _HealthRecordsScreenState();
+  ConsumerState<HealthRecordsScreen> createState() =>
+      _HealthRecordsScreenState();
 }
 
-class _HealthRecordsScreenState extends State<HealthRecordsScreen> {
+class _HealthRecordsScreenState extends ConsumerState<HealthRecordsScreen> {
   late _RecordsView _view = widget.startOnMedications
       ? _RecordsView.medications
-      : _RecordsView.timeline;
+      : _RecordsView.overview;
+  @override
+  void didUpdateWidget(covariant HealthRecordsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.startOnMedications != oldWidget.startOnMedications) {
+      _view = widget.startOnMedications
+          ? _RecordsView.medications
+          : _RecordsView.overview;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final gutter = WindowSize.of(context).gutter;
     final t = AppLocalizations.of(context)!;
-
+    if (_view == _RecordsView.overview)
+      return AppScaffold(
+        title: t.recordsTitle,
+        actions: const [PatientTopActions()],
+        onRefresh: () async {
+          ref.invalidate(patientAppointmentsProvider);
+          ref.invalidate(visitedDoctorsProvider);
+          ref.invalidate(patientThreadsProvider);
+          ref.invalidate(patientProfileProvider);
+        },
+        children: [
+          const PatientDoctorChatSection(),
+          const SizedBox(height: Space.lg),
+          ReadableLabel(
+            t.recordsYourHealthTitle,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: Space.sm),
+          const _AllergiesAlert(),
+          _HealthActions(
+            onMedications: () =>
+                setState(() => _view = _RecordsView.medications),
+          ),
+          const SizedBox(height: Space.lg),
+          Wrap(
+            spacing: Space.sm,
+            runSpacing: Space.sm,
+            children: [
+              OutlinedButton.icon(
+                onPressed: () => setState(() => _view = _RecordsView.timeline),
+                icon: const Icon(Icons.timeline_outlined),
+                label: Text(t.timelineSegment),
+              ),
+              OutlinedButton.icon(
+                onPressed: () => showImportRecordSheet(context),
+                icon: const Icon(Icons.upload_file_outlined),
+                label: Text(t.importPdfAction),
+              ),
+            ],
+          ),
+        ],
+      );
     return AppScaffold(
-      hero: true,
       title: t.recordsTitle,
       actions: const [PatientTopActions()],
-      floatingActionButton: _view == _RecordsView.timeline
-          ? FloatingActionButton.extended(
-              onPressed: () => showImportRecordSheet(context),
-              icon: const Icon(Icons.upload_file_outlined),
-              label: Text(t.importPdfAction),
-            )
-          : null,
       body: ScrollableHeaderBody(
         header: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: Space.maxContentWidth),
             child: Padding(
-              padding: EdgeInsets.fromLTRB(gutter, Space.sm, gutter, Space.sm),
+              padding: EdgeInsets.symmetric(
+                horizontal: WindowSize.of(context).gutter,
+                vertical: Space.sm,
+              ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const _AllergiesAlert(),
-                  Align(
-                    alignment: AlignmentDirectional.centerEnd,
-                    child: TextButton.icon(
-                      icon: const Icon(Icons.folder_shared_outlined),
-                      label: Text(t.sectionYourHealth),
-                      onPressed: () => showModalBottomSheet<void>(
-                        context: context,
-                        showDragHandle: true,
-                        isScrollControlled: true,
-                        builder: (_) => SafeArea(
-                          child: SingleChildScrollView(
-                            padding: const EdgeInsets.all(Space.md),
-                            child: const _DocumentsStrip(),
-                          ),
-                        ),
-                      ),
-                    ),
+                  TextButton.icon(
+                    onPressed: () =>
+                        setState(() => _view = _RecordsView.overview),
+                    icon: const Icon(Icons.arrow_back),
+                    label: ReadableLabel(t.recordsBackToOverview),
                   ),
-                  const SizedBox(height: Space.sm),
                   SizedBox(
                     width: double.infinity,
-                    // Labels follow the user's text size. Past the
-                    // Default tier the icons drop out to give the words
-                    // the width, and a long label wraps instead of being
-                    // shrunk.
                     child: PillSegmented<_RecordsView>(
                       compact: true,
                       segments: [
@@ -108,117 +137,122 @@ class _HealthRecordsScreenState extends State<HealthRecordsScreen> {
           _RecordsView.timeline => const TimelineScreen(embedded: true),
           _RecordsView.medications => const MedicationsScreen(embedded: true),
           _RecordsView.bills => const PaymentsScreen(embedded: true),
+          _RecordsView.overview => const SizedBox.shrink(),
         },
       ),
+      floatingActionButton: _view == _RecordsView.timeline
+          ? FloatingActionButton.extended(
+              onPressed: () => showImportRecordSheet(context),
+              icon: const Icon(Icons.upload_file_outlined),
+              label: Text(t.importPdfAction),
+            )
+          : null,
       centerBody: false,
     );
   }
 }
 
-/// Shortcuts to patient documents and allergy details.
-class _DocumentsStrip extends ConsumerWidget {
-  const _DocumentsStrip();
-
+class _HealthActions extends ConsumerWidget {
+  const _HealthActions({required this.onMedications});
+  final VoidCallback onMedications;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
-
-    // Four shortcuts to the record documents, all the same shape and size:
-    // imaging and sick leave were already a matched pair — the vital-signs
-    // report and allergies now join them on the same 2×2 grid instead of
-    // trailing off in a smaller, differently-styled row.
-    Widget shortcut(IconData icon, String label, VoidCallback onTap) =>
-        OutlinedButton.icon(
-          onPressed: onTap,
-          icon: Icon(icon, size: 18),
-          label: Text(
-            label,
-            maxLines: 2,
-            textAlign: TextAlign.center,
-            overflow: TextOverflow.ellipsis,
-          ),
+    Widget tile(IconData icon, String label, String route) => QuickActionTile(
+      icon: icon,
+      label: label,
+      onTap: () => context.push(route),
+    );
+    final children = <Widget>[
+      tile(
+        Icons.home_outlined,
+        t.quickActionHomeCare,
+        AppRoutes.patientHomeVisit,
+      ),
+      QuickActionTile(
+        icon: Icons.medication_outlined,
+        label: t.medicationsSegment,
+        onTap: onMedications,
+      ),
+      tile(
+        Icons.receipt_long_outlined,
+        t.billsSegment,
+        AppRoutes.patientBilling,
+      ),
+      tile(
+        Icons.groups_outlined,
+        t.quickActionVisitedDoctors,
+        AppRoutes.patientVisitedDoctors,
+      ),
+      tile(Icons.image_outlined, t.imagingTitle, AppRoutes.patientImaging),
+      tile(
+        Icons.event_busy_outlined,
+        t.quickActionSickLeave,
+        AppRoutes.patientSickLeave,
+      ),
+      DocumentDownloadButton(
+        asQuickAction: true,
+        label: t.vitalSignsReportLabel,
+        filename: 'vital-signs-report.pdf',
+        icon: Icons.monitor_heart_outlined,
+        build: () => buildVitalsReport(ref),
+      ),
+      tile(
+        Icons.medical_information_outlined,
+        t.allergiesLabel,
+        AppRoutes.patientAllergies,
+      ),
+    ];
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final scale = MediaQuery.textScalerOf(context).scale(13) / 13;
+        final columns = constraints.maxWidth >= 700
+            ? 4
+            : (constraints.maxWidth < 300 && scale > 1.5 ? 1 : 2);
+        final width =
+            (constraints.maxWidth - Space.sm * (columns - 1)) / columns;
+        return Wrap(
+          spacing: Space.sm,
+          runSpacing: Space.sm,
+          children: [
+            for (final child in children)
+              SizedBox(
+                width: width,
+                height: math.max(width, 116 * scale),
+                child: child,
+              ),
+          ],
         );
-
-    // IntrinsicHeight so both cells in a row match the taller button — the
-    // "Vital signs report" label wraps to two lines where the others don't.
-    Widget shortcutRow(Widget a, Widget b) => AdaptiveFormRow(children: [a, b]);
-
-    return Column(
-      children: [
-        shortcutRow(
-          shortcut(
-            Icons.image_outlined,
-            t.imagingTitle,
-            () => context.push(AppRoutes.patientImaging),
-          ),
-          shortcut(
-            Icons.event_busy_outlined,
-            t.quickActionSickLeave,
-            () => context.push(AppRoutes.patientSickLeave),
-          ),
-        ),
-        const SizedBox(height: Space.sm),
-        shortcutRow(
-          DocumentDownloadButton(
-            label: t.vitalSignsReportLabel,
-            filename: 'vital-signs-report.pdf',
-            icon: Icons.monitor_heart_outlined,
-            build: () => buildVitalsReport(ref),
-          ),
-          shortcut(
-            Icons.medical_information_outlined,
-            t.allergiesLabel,
-            () => context.push(AppRoutes.patientAllergies),
-          ),
-        ),
-      ],
+      },
     );
   }
 }
 
-/// Clinically relevant allergies stay visible above the records filters.
 class _AllergiesAlert extends ConsumerWidget {
   const _AllergiesAlert();
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
     final t = AppLocalizations.of(context)!;
     final allergies =
         ref.watch(patientProfileProvider).valueOrNull?.allergies ??
         const <String>[];
     if (allergies.isEmpty) return const SizedBox.shrink();
+    final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: Space.sm),
       child: AppCard(
-        onTap: () => context.push(AppRoutes.patientAllergies),
         color: scheme.errorContainer,
-        borderColor: scheme.error.withValues(alpha: 0.35),
-        padding: const EdgeInsets.symmetric(
-          horizontal: Space.md,
-          vertical: Space.sm,
-        ),
+        onTap: () => context.push(AppRoutes.patientAllergies),
         child: Row(
           children: [
-            Icon(
-              Icons.warning_amber_rounded,
-              size: 20,
-              color: scheme.onErrorContainer,
-            ),
+            Icon(Icons.warning_amber_rounded, color: scheme.onErrorContainer),
             const SizedBox(width: Space.sm),
             Expanded(
               child: Text(
                 t.allergiesInline(allergies.join(', ')),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: scheme.onErrorContainer,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(color: scheme.onErrorContainer),
               ),
             ),
-            Icon(Icons.chevron_right, color: scheme.onErrorContainer),
           ],
         ),
       ),

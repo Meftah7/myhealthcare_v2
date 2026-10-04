@@ -41,6 +41,24 @@ class RecordRepositoryImpl implements RecordRepository {
   final AppDatabase _db;
   final AccessPolicy _access;
 
+  @override
+  Future<Result<List<MedicalRecord>>> forAppointment(
+    String patientId,
+    String appointmentId,
+  ) => Result.guardAsync(() async {
+    await _access.readPatient(patientId, entityType: 'medical_record');
+    final rows =
+        await (_db.select(_db.medicalRecords)
+              ..where(
+                (r) =>
+                    r.patientId.equals(patientId) &
+                    r.appointmentId.equals(appointmentId),
+              )
+              ..orderBy([(r) => OrderingTerm.desc(r.occurredAt)]))
+            .get();
+    return _hydrate(rows);
+  });
+
   Future<List<MedicalRecord>> _hydrate(List<MedicalRecordRow> rows) async {
     if (rows.isEmpty) return const [];
     final ids = rows.map((r) => r.id).toList();
@@ -565,9 +583,9 @@ class VitalsRepositoryImpl implements VitalsRepository {
       // managing proxy) may log home readings, never as a clinician.
       final actor = await _access.principal();
       if (actor != null && actor.isPatient) {
-        if (v.recordedByStaffId != null) {
+        if (v.recordedByStaffId != null || v.appointmentId != null) {
           throw const ValidationFailure(
-            'Home readings cannot name a clinician.',
+            'Home readings cannot name a clinician or clinic appointment.',
           );
         }
         await _access.actForPatient(
@@ -584,6 +602,16 @@ class VitalsRepositoryImpl implements VitalsRepository {
         );
       }
       final id = v.id.isEmpty ? newId('vit') : v.id;
+      if (v.appointmentId case final appointmentId?) {
+        final appointment = await (_db.select(
+          _db.appointments,
+        )..where((a) => a.id.equals(appointmentId))).getSingleOrNull();
+        if (appointment == null || appointment.patientId != v.patientId) {
+          throw const ValidationFailure(
+            'The appointment must belong to this patient.',
+          );
+        }
+      }
       await _db
           .into(_db.vitals)
           .insert(
@@ -591,6 +619,7 @@ class VitalsRepositoryImpl implements VitalsRepository {
               id: id,
               patientId: v.patientId,
               recordedAt: v.recordedAt,
+              appointmentId: Value(v.appointmentId),
               systolic: Value(v.systolic),
               diastolic: Value(v.diastolic),
               heartRate: Value(v.heartRate),

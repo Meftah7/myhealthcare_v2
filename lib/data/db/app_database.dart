@@ -178,7 +178,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 25;
+  int get schemaVersion => 26;
 
   /// True when [table] already has a column named [columnName] — lets a
   /// migration step that already partly ran (e.g. the app/tab was closed or
@@ -687,6 +687,36 @@ class AppDatabase extends _$AppDatabase {
         // history.
         await backfillResultReviews();
         await installIntegrityRules();
+      }
+      if (from < 26) {
+        await _addColumnIfMissing(m, vitals, vitals.appointmentId);
+        // Recover only known demo seed IDs. Never infer links for real
+        // unlinked records from matching dates or names.
+        final visits =
+            await (select(appointments)..where(
+                  (a) => a.status.equalsValue(AppointmentStatus.completed),
+                ))
+                .get();
+        for (final visit in visits) {
+          final stamp = visit.slotStart.millisecondsSinceEpoch;
+          final base = 'rec_${visit.patientId}_$stamp';
+          await (update(medicalRecords)..where(
+                (r) =>
+                    r.id.isIn([base, '${base}_lab', '${base}_img']) &
+                    r.patientId.equals(visit.patientId) &
+                    r.authorStaffId.equals(visit.staffId) &
+                    r.appointmentId.isNull(),
+              ))
+              .write(MedicalRecordsCompanion(appointmentId: Value(visit.id)));
+          await (update(vitals)..where(
+                (v) =>
+                    v.id.equals('vit_${visit.patientId}_$stamp') &
+                    v.patientId.equals(visit.patientId) &
+                    v.recordedByStaffId.equals(visit.staffId) &
+                    v.appointmentId.isNull(),
+              ))
+              .write(VitalsCompanion(appointmentId: Value(visit.id)));
+        }
       }
     }),
     beforeOpen: (details) async {

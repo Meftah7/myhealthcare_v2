@@ -23,6 +23,8 @@ import '../../../l10n/app_localizations.dart';
 import '../../feedback/presentation/feedback_sheet.dart';
 import '../../patient/application/patient_data_providers.dart';
 import 'appointments_screen.dart' show ApptActions;
+import 'appointment_records_section.dart';
+import '../application/appointment_records_provider.dart';
 
 class AppointmentDetailScreen extends ConsumerWidget {
   const AppointmentDetailScreen({required this.appointmentId, super.key});
@@ -39,7 +41,10 @@ class AppointmentDetailScreen extends ConsumerWidget {
 
     return AppScaffold(
       title: t.appointmentDetailTitle,
-      onRefresh: () async => ref.invalidate(patientAppointmentsProvider),
+      onRefresh: () async {
+        ref.invalidate(patientAppointmentsProvider);
+        ref.invalidate(appointmentRecordsProvider(appointmentId));
+      },
       children: async.when(
         loading: () => const [SkeletonList()],
         error: (e, _) => [
@@ -107,6 +112,10 @@ class AppointmentDetailScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: Space.sm),
+            if (appt.status == AppointmentStatus.completed) ...[
+              AppointmentRecordsSection(appointmentId: appt.id),
+              const SizedBox(height: Space.md),
+            ],
             AppCard(
               padding: const EdgeInsets.all(Space.md),
               child: Column(

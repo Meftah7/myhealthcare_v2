@@ -11,6 +11,7 @@ abstract class Vitals with _$Vitals {
     required String id,
     required String patientId,
     required DateTime recordedAt,
+    String? appointmentId,
     int? systolic,
     int? diastolic,
     int? heartRate,

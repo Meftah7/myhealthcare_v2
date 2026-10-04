@@ -151,6 +151,11 @@ class Vitals extends Table {
   TextColumn get patientId =>
       text().references(Users, #id, onDelete: KeyAction.cascade)();
   DateTimeColumn get recordedAt => dateTime()();
+  TextColumn get appointmentId => text().nullable().references(
+    Appointments,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
 
   IntColumn get systolic => integer().nullable()();
   IntColumn get diastolic => integer().nullable()();

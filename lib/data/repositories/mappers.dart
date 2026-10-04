@@ -263,6 +263,7 @@ extension VitalsRowX on VitalsRow {
     id: id,
     patientId: patientId,
     recordedAt: recordedAt,
+    appointmentId: appointmentId,
     systolic: systolic,
     diastolic: diastolic,
     heartRate: heartRate,

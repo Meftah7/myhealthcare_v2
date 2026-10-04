@@ -1,6 +1,8 @@
 // Care-services repositories on an in-memory database (P10 Batch B).
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:drift/drift.dart' show Value;
+import 'package:myhealthcare/data/db/app_database.dart';
 import 'package:myhealthcare/data/repositories/auth_repository_impl.dart';
 import 'package:myhealthcare/data/repositories/care_repository_impl.dart';
 import 'package:myhealthcare/domain/enums.dart';
@@ -18,9 +20,10 @@ void main() {
 
   late String patientId;
   late String staffId;
+  late AppDatabase db;
 
   setUp(() async {
-    final db = newTestDatabase();
+    db = newTestDatabase();
     addTearDown(db.close);
     auth = AuthRepositoryImpl(db);
     users = UserRepositoryImpl(db);
@@ -40,6 +43,19 @@ void main() {
       email: 'dr@care.test',
       temporaryPassword: 'temp12345',
     )).valueOrNull!.id;
+    await db
+        .into(db.appointments)
+        .insert(
+          AppointmentsCompanion.insert(
+            id: 'completed-visit',
+            patientId: patientId,
+            staffId: staffId,
+            slotStart: DateTime(2026, 3, 1),
+            slotEnd: DateTime(2026, 3, 1, 1),
+            visitType: VisitType.followUp,
+            status: const Value(AppointmentStatus.completed),
+          ),
+        );
   });
 
   group('SickLeaveRepository', () {
@@ -82,6 +98,29 @@ void main() {
   });
 
   group('CareMessageRepository', () {
+    test(
+      'future, missed, cancelled and unfinished visits cannot start a chat',
+      () async {
+        for (final status in AppointmentStatus.values.where(
+          (s) => s != AppointmentStatus.completed,
+        )) {
+          await (db.update(db.appointments)
+                ..where((a) => a.id.equals('completed-visit')))
+              .write(AppointmentsCompanion(status: Value(status)));
+          final result = await messages.send(
+            patientId: patientId,
+            staffId: staffId,
+            fromStaff: false,
+            body: 'Question',
+          );
+          expect(result.isErr, isTrue, reason: status.name);
+          expect(
+            (await messages.threadsForPatient(patientId)).valueOrNull,
+            isEmpty,
+          );
+        }
+      },
+    );
     test('send builds a thread; markRead clears the other side', () async {
       await messages.send(
         patientId: patientId,

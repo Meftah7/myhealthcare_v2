@@ -4449,4 +4449,34 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsAccountScopeCaption =>
       'Saved for you on this device. Someone else signing in here keeps their own choices.';
+
+  @override
+  String get recordsDoctorChatTitle => 'Chat with your doctors';
+
+  @override
+  String get recordsDoctorChatNote =>
+      'Message doctors you have seen at a completed appointment. For emergencies, call 999.';
+
+  @override
+  String get recordsNoVisitedDoctors =>
+      'Your doctors will appear here after your first completed visit.';
+
+  @override
+  String get recordsYourHealthTitle => 'Your health';
+
+  @override
+  String get recordsBackToOverview => 'Back to Records';
+
+  @override
+  String get appointmentRecordsTitle => 'Records from this appointment';
+
+  @override
+  String get appointmentRecordsEmpty =>
+      'No records have been linked to this appointment yet.';
+
+  @override
+  String get appointmentClinicVisit => 'Clinic visit';
+
+  @override
+  String get appointmentLaboratoryPanel => 'Laboratory panel';
 }

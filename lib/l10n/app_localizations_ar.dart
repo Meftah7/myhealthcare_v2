@@ -4508,4 +4508,34 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settingsAccountScopeCaption =>
       'تُحفظ لك على هذا الجهاز. من يسجّل الدخول هنا غيرك يحتفظ باختياراته.';
+
+  @override
+  String get recordsDoctorChatTitle => 'تحدث مع أطبائك';
+
+  @override
+  String get recordsDoctorChatNote =>
+      'راسل الأطباء الذين زرتهم في موعد مكتمل. للطوارئ، اتصل على 999.';
+
+  @override
+  String get recordsNoVisitedDoctors =>
+      'سيظهر أطباؤك هنا بعد أول زيارة مكتملة.';
+
+  @override
+  String get recordsYourHealthTitle => 'صحتك';
+
+  @override
+  String get recordsBackToOverview => 'العودة إلى السجلات';
+
+  @override
+  String get appointmentRecordsTitle => 'سجلات هذا الموعد';
+
+  @override
+  String get appointmentRecordsEmpty =>
+      'لا توجد سجلات مرتبطة بهذا الموعد حتى الآن.';
+
+  @override
+  String get appointmentClinicVisit => 'زيارة العيادة';
+
+  @override
+  String get appointmentLaboratoryPanel => 'الفحوصات المخبرية';
 }

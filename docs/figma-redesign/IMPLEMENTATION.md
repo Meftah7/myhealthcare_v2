@@ -2,13 +2,23 @@
 
 The approved visual direction is implemented through the app's shared theme, navigation, cards, headers and forms. On 3 October 2026, the source-level audit was followed by another UI upgrade and expansion of the local reference from 78 to 141 frames. Existing business workflows remain in their mapped Flutter screens, sheets and dialogs; reference coverage is not a claim of pixel-perfect parity or runtime verification.
 
+## Patient records update — 4 October 2026
+
+The latest requested Records layout takes precedence over the earlier `p-records` reference: doctor conversations appear first, followed by eight square Home-style shortcuts for Home care, Medication, Bills, Visited doctors, Imaging, Sick leave, Vital signs report and Allergies. Timeline, PDF import, medication history, allergy warnings and the existing messaging screen remain accessible. Enlarged text uses the existing readable labels and scrollable filter header.
+
+Completed appointment details now show only explicitly linked clinic visits, laboratory panels, imaging, prescriptions (including discontinued medicines), vaccinations, discharge records, referrals and vitals. Missing categories are hidden; an encounter with no linked records says so. Record rows open their existing detail view. Historical appointments are queried directly rather than filtered from the first timeline page. Vitals gain a nullable appointment link in schema version 26; the upgrade recovers known synthetic seed IDs and leaves ordinary unlinked records untouched.
+
+Only the account holder's completed visits qualify doctors for patient chat. Future, cancelled, missed and unfinished appointments, nurses and a dependent's visits do not qualify. Patient sends and thread reads enforce this rule through providers and the repository; staff coverage workflows retain their existing permissions.
+
+Validation: the release web build succeeds with the GitHub Pages base path and demo mode. Chromium checks confirmed the Records hub and linked records on a completed appointment at 390px and 1440px. All 26 focused records, chat, document/navigation and database migration tests pass. The broader security/clinical regression run also passed its existing cases. Dart analysis reports no errors or warnings (informational style findings remain). The six English/Arabic patient readability runs at 320px found no problems on Records or its medication view after the fixes; two runs still fail on unchanged Nutrition layouts at OS text scale 2.0. Physical-device checks remain pending.
+
 ## Current upgrade
 
 - Patient, staff and admin Profile use the same grouped destination rows. Patient photo editing has an explicit menu entry and an accessible camera action; unreadable photos fall back to initials. Photo selection remains device-local, with actual disabled busy controls and a scrollable sheet.
 - Preferences keeps working theme, language, five text sizes, motion, contrast, notification/sound and reset controls. Labels are consistent and the text-size slider exposes meaningful spoken values.
 - Personal information marks immutable email and National ID fields with lock icons. Account/detail forms across roles have a 720dp reading width.
 - Payments puts open invoices and the amount owed before history. Wallet funds, top-up and saved cards load independently of invoice success; invoice failure no longer hides those controls.
-- Health Records moves document tools into a sheet while preserving the allergy warning above its filters. Staff task prioritisation and notifications' mark-all-read actions move out of crowded app bars.
+- The prior Health Records upgrade moved document tools into a sheet; the 4 October update above replaces this with the requested chat and health hub. Staff task prioritisation and notifications' mark-all-read actions move out of crowded app bars.
 - Admin Dashboard adds direct Analytics, Forecast, AI Activity and Audit destinations without displacing its attention queue.
 - The local preview now shows missing profile, family, billing, clinical, scheduling, session, notification and admin workflows. Authenticated password changes and staff/admin profile links point to the correct review destinations.
 

@@ -40,6 +40,14 @@ Future<void> _requireCareRelationship(
   required String patientId,
   required String staffId,
 }) async {
+  final user = ref.read(currentUserProvider);
+  if (user?.isPatient ?? false) {
+    final doctors = await ref.read(messageableDoctorsProvider.future);
+    if (!doctors.any((d) => d.id == staffId)) {
+      throw const AuthFailure('Messaging is available after a completed visit with this doctor.');
+    }
+    return;
+  }
   final allowed = _unwrap(
     await ref
         .read(appointmentRepositoryProvider)

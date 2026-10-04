@@ -9923,6 +9923,20 @@ class $VitalsTable extends Vitals with TableInfo<$VitalsTable, VitalsRow> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _appointmentIdMeta = const VerificationMeta(
+    'appointmentId',
+  );
+  @override
+  late final GeneratedColumn<String> appointmentId = GeneratedColumn<String>(
+    'appointment_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES appointments (id) ON DELETE SET NULL',
+    ),
+  );
   static const VerificationMeta _systolicMeta = const VerificationMeta(
     'systolic',
   );
@@ -10027,6 +10041,7 @@ class $VitalsTable extends Vitals with TableInfo<$VitalsTable, VitalsRow> {
     id,
     patientId,
     recordedAt,
+    appointmentId,
     systolic,
     diastolic,
     heartRate,
@@ -10069,6 +10084,15 @@ class $VitalsTable extends Vitals with TableInfo<$VitalsTable, VitalsRow> {
       );
     } else if (isInserting) {
       context.missing(_recordedAtMeta);
+    }
+    if (data.containsKey('appointment_id')) {
+      context.handle(
+        _appointmentIdMeta,
+        appointmentId.isAcceptableOrUnknown(
+          data['appointment_id']!,
+          _appointmentIdMeta,
+        ),
+      );
     }
     if (data.containsKey('systolic')) {
       context.handle(
@@ -10148,6 +10172,10 @@ class $VitalsTable extends Vitals with TableInfo<$VitalsTable, VitalsRow> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}recorded_at'],
       )!,
+      appointmentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}appointment_id'],
+      ),
       systolic: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}systolic'],
@@ -10197,6 +10225,7 @@ class VitalsRow extends DataClass implements Insertable<VitalsRow> {
   final String id;
   final String patientId;
   final DateTime recordedAt;
+  final String? appointmentId;
   final int? systolic;
   final int? diastolic;
   final int? heartRate;
@@ -10212,6 +10241,7 @@ class VitalsRow extends DataClass implements Insertable<VitalsRow> {
     required this.id,
     required this.patientId,
     required this.recordedAt,
+    this.appointmentId,
     this.systolic,
     this.diastolic,
     this.heartRate,
@@ -10228,6 +10258,9 @@ class VitalsRow extends DataClass implements Insertable<VitalsRow> {
     map['id'] = Variable<String>(id);
     map['patient_id'] = Variable<String>(patientId);
     map['recorded_at'] = Variable<DateTime>(recordedAt);
+    if (!nullToAbsent || appointmentId != null) {
+      map['appointment_id'] = Variable<String>(appointmentId);
+    }
     if (!nullToAbsent || systolic != null) {
       map['systolic'] = Variable<int>(systolic);
     }
@@ -10263,6 +10296,9 @@ class VitalsRow extends DataClass implements Insertable<VitalsRow> {
       id: Value(id),
       patientId: Value(patientId),
       recordedAt: Value(recordedAt),
+      appointmentId: appointmentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(appointmentId),
       systolic: systolic == null && nullToAbsent
           ? const Value.absent()
           : Value(systolic),
@@ -10300,6 +10336,7 @@ class VitalsRow extends DataClass implements Insertable<VitalsRow> {
       id: serializer.fromJson<String>(json['id']),
       patientId: serializer.fromJson<String>(json['patientId']),
       recordedAt: serializer.fromJson<DateTime>(json['recordedAt']),
+      appointmentId: serializer.fromJson<String?>(json['appointmentId']),
       systolic: serializer.fromJson<int?>(json['systolic']),
       diastolic: serializer.fromJson<int?>(json['diastolic']),
       heartRate: serializer.fromJson<int?>(json['heartRate']),
@@ -10320,6 +10357,7 @@ class VitalsRow extends DataClass implements Insertable<VitalsRow> {
       'id': serializer.toJson<String>(id),
       'patientId': serializer.toJson<String>(patientId),
       'recordedAt': serializer.toJson<DateTime>(recordedAt),
+      'appointmentId': serializer.toJson<String?>(appointmentId),
       'systolic': serializer.toJson<int?>(systolic),
       'diastolic': serializer.toJson<int?>(diastolic),
       'heartRate': serializer.toJson<int?>(heartRate),
@@ -10336,6 +10374,7 @@ class VitalsRow extends DataClass implements Insertable<VitalsRow> {
     String? id,
     String? patientId,
     DateTime? recordedAt,
+    Value<String?> appointmentId = const Value.absent(),
     Value<int?> systolic = const Value.absent(),
     Value<int?> diastolic = const Value.absent(),
     Value<int?> heartRate = const Value.absent(),
@@ -10349,6 +10388,9 @@ class VitalsRow extends DataClass implements Insertable<VitalsRow> {
     id: id ?? this.id,
     patientId: patientId ?? this.patientId,
     recordedAt: recordedAt ?? this.recordedAt,
+    appointmentId: appointmentId.present
+        ? appointmentId.value
+        : this.appointmentId,
     systolic: systolic.present ? systolic.value : this.systolic,
     diastolic: diastolic.present ? diastolic.value : this.diastolic,
     heartRate: heartRate.present ? heartRate.value : this.heartRate,
@@ -10368,6 +10410,9 @@ class VitalsRow extends DataClass implements Insertable<VitalsRow> {
       recordedAt: data.recordedAt.present
           ? data.recordedAt.value
           : this.recordedAt,
+      appointmentId: data.appointmentId.present
+          ? data.appointmentId.value
+          : this.appointmentId,
       systolic: data.systolic.present ? data.systolic.value : this.systolic,
       diastolic: data.diastolic.present ? data.diastolic.value : this.diastolic,
       heartRate: data.heartRate.present ? data.heartRate.value : this.heartRate,
@@ -10388,6 +10433,7 @@ class VitalsRow extends DataClass implements Insertable<VitalsRow> {
           ..write('id: $id, ')
           ..write('patientId: $patientId, ')
           ..write('recordedAt: $recordedAt, ')
+          ..write('appointmentId: $appointmentId, ')
           ..write('systolic: $systolic, ')
           ..write('diastolic: $diastolic, ')
           ..write('heartRate: $heartRate, ')
@@ -10406,6 +10452,7 @@ class VitalsRow extends DataClass implements Insertable<VitalsRow> {
     id,
     patientId,
     recordedAt,
+    appointmentId,
     systolic,
     diastolic,
     heartRate,
@@ -10423,6 +10470,7 @@ class VitalsRow extends DataClass implements Insertable<VitalsRow> {
           other.id == this.id &&
           other.patientId == this.patientId &&
           other.recordedAt == this.recordedAt &&
+          other.appointmentId == this.appointmentId &&
           other.systolic == this.systolic &&
           other.diastolic == this.diastolic &&
           other.heartRate == this.heartRate &&
@@ -10438,6 +10486,7 @@ class VitalsCompanion extends UpdateCompanion<VitalsRow> {
   final Value<String> id;
   final Value<String> patientId;
   final Value<DateTime> recordedAt;
+  final Value<String?> appointmentId;
   final Value<int?> systolic;
   final Value<int?> diastolic;
   final Value<int?> heartRate;
@@ -10452,6 +10501,7 @@ class VitalsCompanion extends UpdateCompanion<VitalsRow> {
     this.id = const Value.absent(),
     this.patientId = const Value.absent(),
     this.recordedAt = const Value.absent(),
+    this.appointmentId = const Value.absent(),
     this.systolic = const Value.absent(),
     this.diastolic = const Value.absent(),
     this.heartRate = const Value.absent(),
@@ -10467,6 +10517,7 @@ class VitalsCompanion extends UpdateCompanion<VitalsRow> {
     required String id,
     required String patientId,
     required DateTime recordedAt,
+    this.appointmentId = const Value.absent(),
     this.systolic = const Value.absent(),
     this.diastolic = const Value.absent(),
     this.heartRate = const Value.absent(),
@@ -10484,6 +10535,7 @@ class VitalsCompanion extends UpdateCompanion<VitalsRow> {
     Expression<String>? id,
     Expression<String>? patientId,
     Expression<DateTime>? recordedAt,
+    Expression<String>? appointmentId,
     Expression<int>? systolic,
     Expression<int>? diastolic,
     Expression<int>? heartRate,
@@ -10499,6 +10551,7 @@ class VitalsCompanion extends UpdateCompanion<VitalsRow> {
       if (id != null) 'id': id,
       if (patientId != null) 'patient_id': patientId,
       if (recordedAt != null) 'recorded_at': recordedAt,
+      if (appointmentId != null) 'appointment_id': appointmentId,
       if (systolic != null) 'systolic': systolic,
       if (diastolic != null) 'diastolic': diastolic,
       if (heartRate != null) 'heart_rate': heartRate,
@@ -10516,6 +10569,7 @@ class VitalsCompanion extends UpdateCompanion<VitalsRow> {
     Value<String>? id,
     Value<String>? patientId,
     Value<DateTime>? recordedAt,
+    Value<String?>? appointmentId,
     Value<int?>? systolic,
     Value<int?>? diastolic,
     Value<int?>? heartRate,
@@ -10531,6 +10585,7 @@ class VitalsCompanion extends UpdateCompanion<VitalsRow> {
       id: id ?? this.id,
       patientId: patientId ?? this.patientId,
       recordedAt: recordedAt ?? this.recordedAt,
+      appointmentId: appointmentId ?? this.appointmentId,
       systolic: systolic ?? this.systolic,
       diastolic: diastolic ?? this.diastolic,
       heartRate: heartRate ?? this.heartRate,
@@ -10555,6 +10610,9 @@ class VitalsCompanion extends UpdateCompanion<VitalsRow> {
     }
     if (recordedAt.present) {
       map['recorded_at'] = Variable<DateTime>(recordedAt.value);
+    }
+    if (appointmentId.present) {
+      map['appointment_id'] = Variable<String>(appointmentId.value);
     }
     if (systolic.present) {
       map['systolic'] = Variable<int>(systolic.value);
@@ -10595,6 +10653,7 @@ class VitalsCompanion extends UpdateCompanion<VitalsRow> {
           ..write('id: $id, ')
           ..write('patientId: $patientId, ')
           ..write('recordedAt: $recordedAt, ')
+          ..write('appointmentId: $appointmentId, ')
           ..write('systolic: $systolic, ')
           ..write('diastolic: $diastolic, ')
           ..write('heartRate: $heartRate, ')
@@ -27384,6 +27443,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('vitals', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'appointments',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('vitals', kind: UpdateKind.update)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(

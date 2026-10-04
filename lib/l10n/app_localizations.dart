@@ -7879,6 +7879,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Saved for you on this device. Someone else signing in here keeps their own choices.'**
   String get settingsAccountScopeCaption;
+
+  /// No description provided for @recordsDoctorChatTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat with your doctors'**
+  String get recordsDoctorChatTitle;
+
+  /// No description provided for @recordsDoctorChatNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Message doctors you have seen at a completed appointment. For emergencies, call 999.'**
+  String get recordsDoctorChatNote;
+
+  /// No description provided for @recordsNoVisitedDoctors.
+  ///
+  /// In en, this message translates to:
+  /// **'Your doctors will appear here after your first completed visit.'**
+  String get recordsNoVisitedDoctors;
+
+  /// No description provided for @recordsYourHealthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your health'**
+  String get recordsYourHealthTitle;
+
+  /// No description provided for @recordsBackToOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Records'**
+  String get recordsBackToOverview;
+
+  /// No description provided for @appointmentRecordsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Records from this appointment'**
+  String get appointmentRecordsTitle;
+
+  /// No description provided for @appointmentRecordsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No records have been linked to this appointment yet.'**
+  String get appointmentRecordsEmpty;
+
+  /// No description provided for @appointmentClinicVisit.
+  ///
+  /// In en, this message translates to:
+  /// **'Clinic visit'**
+  String get appointmentClinicVisit;
+
+  /// No description provided for @appointmentLaboratoryPanel.
+  ///
+  /// In en, this message translates to:
+  /// **'Laboratory panel'**
+  String get appointmentLaboratoryPanel;
 }
 
 class _AppLocalizationsDelegate
