@@ -182,7 +182,6 @@ class ClinicPdf {
                       s.clinicTagline,
                       style: const pw.TextStyle(fontSize: 8, color: _muted),
                     ),
-
                   ],
                 ),
               ],

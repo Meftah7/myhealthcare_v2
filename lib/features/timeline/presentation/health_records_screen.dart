@@ -13,7 +13,6 @@ import '../../../core/presentation/quick_actions.dart';
 import '../../../core/presentation/readable_label.dart';
 import '../../../core/presentation/responsive.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../billing/presentation/payments_screen.dart';
 import '../../care/application/care_providers.dart';
 import '../../care/presentation/patient_doctor_chat_section.dart';
 import '../../patient/application/patient_data_providers.dart';
@@ -22,9 +21,8 @@ import '../../patient/application/visited_doctors_provider.dart';
 import '../../patient/presentation/document_download_button.dart';
 import '../../patient/presentation/patient_top_actions.dart';
 import '../../records/presentation/medications_screen.dart';
-import 'timeline_screen.dart';
 
-enum _RecordsView { overview, timeline, medications, bills }
+enum _RecordsView { overview, medications }
 
 class HealthRecordsScreen extends ConsumerStatefulWidget {
   const HealthRecordsScreen({this.startOnMedications = false, super.key});
@@ -74,18 +72,6 @@ class _HealthRecordsScreenState extends ConsumerState<HealthRecordsScreen> {
             onMedications: () =>
                 setState(() => _view = _RecordsView.medications),
           ),
-          const SizedBox(height: Space.lg),
-          Wrap(
-            spacing: Space.sm,
-            runSpacing: Space.sm,
-            children: [
-              OutlinedButton.icon(
-                onPressed: () => setState(() => _view = _RecordsView.timeline),
-                icon: const Icon(Icons.timeline_outlined),
-                label: Text(t.timelineSegment),
-              ),
-            ],
-          ),
         ],
       );
     return AppScaffold(
@@ -109,30 +95,16 @@ class _HealthRecordsScreenState extends ConsumerState<HealthRecordsScreen> {
                     icon: const Icon(Icons.arrow_back),
                     label: ReadableLabel(t.recordsBackToOverview),
                   ),
-                  SizedBox(
-                    width: double.infinity,
-                    child: PillSegmented<_RecordsView>(
-                      compact: true,
-                      segments: [
-                        (_RecordsView.timeline, t.timelineSegment),
-                        (_RecordsView.medications, t.medicationsSegment),
-                        (_RecordsView.bills, t.billsSegment),
-                      ],
-                      selected: _view,
-                      onChanged: (value) => setState(() => _view = value),
-                    ),
+                  ReadableLabel(
+                    t.medicationsSegment,
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ],
               ),
             ),
           ),
         ),
-        body: switch (_view) {
-          _RecordsView.timeline => const TimelineScreen(embedded: true),
-          _RecordsView.medications => const MedicationsScreen(embedded: true),
-          _RecordsView.bills => const PaymentsScreen(embedded: true),
-          _RecordsView.overview => const SizedBox.shrink(),
-        },
+        body: const MedicationsScreen(embedded: true),
       ),
       centerBody: false,
     );

@@ -8119,6 +8119,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Upload a PDF for a simple explanation'**
   String get uploadPdfForAiTooltip;
+
+  /// No description provided for @documentReadyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your document is ready'**
+  String get documentReadyTitle;
+
+  /// No description provided for @openPdfAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Open PDF'**
+  String get openPdfAction;
+
+  /// No description provided for @downloadPdfAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get downloadPdfAction;
+
+  /// No description provided for @sharePdfAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Share or save'**
+  String get sharePdfAction;
+
+  /// No description provided for @pdfPreviewUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The preview can\'t be shown on this device. You can still share or save the PDF.'**
+  String get pdfPreviewUnavailable;
+
+  /// No description provided for @medHowToTake.
+  ///
+  /// In en, this message translates to:
+  /// **'How to take: {instructions}'**
+  String medHowToTake(String instructions);
+
+  /// No description provided for @medNoInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap for details'**
+  String get medNoInstructions;
+
+  /// No description provided for @medStatusCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Currently taking'**
+  String get medStatusCurrent;
+
+  /// No description provided for @medStatusFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished'**
+  String get medStatusFinished;
+
+  /// No description provided for @medDoseLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Dose'**
+  String get medDoseLabel;
+
+  /// No description provided for @medHowOftenLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'How often'**
+  String get medHowOftenLabel;
+
+  /// No description provided for @medPeriodLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Period'**
+  String get medPeriodLabel;
+
+  /// No description provided for @medPrescribedByLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Prescribed by'**
+  String get medPrescribedByLabel;
+
+  /// No description provided for @medAskDoctor.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask your doctor'**
+  String get medAskDoctor;
+
+  /// No description provided for @medSafetyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Take it exactly as prescribed. Don\'t stop or change the dose without talking to your doctor.'**
+  String get medSafetyNote;
+
+  /// No description provided for @requestRefillAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Request a refill'**
+  String get requestRefillAction;
+
+  /// No description provided for @refillRequestMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Refill request: {medication}. My supply has run out or is running low — please renew my prescription.'**
+  String refillRequestMessage(String medication);
+
+  /// No description provided for @refillRequestSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Refill request sent to {doctor}. Their reply will appear in your doctor chats.'**
+  String refillRequestSent(String doctor);
+
+  /// No description provided for @refillRequestFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send the refill request. Please try again.'**
+  String get refillRequestFailed;
+
+  /// No description provided for @refillNoDoctor.
+  ///
+  /// In en, this message translates to:
+  /// **'No doctor to send this to yet. Please ask at your next visit.'**
+  String get refillNoDoctor;
 }
 
 class _AppLocalizationsDelegate

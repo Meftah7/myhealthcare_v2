@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/app.dart';
 import 'package:myhealthcare/core/di.dart';
+import 'package:myhealthcare/features/care/application/care_providers.dart';
 import 'package:myhealthcare/core/presentation/quick_actions.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:myhealthcare/features/nutrition/application/macro_calculator.dart';
@@ -110,7 +111,7 @@ void main() {
     });
   });
 
-  testWidgets('Health Records toggles between timeline and medications', (
+  testWidgets('Health Records opens medications with their instructions', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(1200, 2200);
@@ -154,24 +155,37 @@ void main() {
     // Seeded chronic patient is on medication.
     expect(find.text('Current'), findsOneWidget);
 
-    // Switch to Bills — the invoice list is here now too.
-    await tester.tap(find.text('Bills'));
-    await _settle(tester);
-    expect(find.textContaining('BD '), findsWidgets);
+    // The medications page shows medications only — no other tabs.
+    expect(find.text('Bills'), findsNothing);
+    expect(find.text('Timeline'), findsNothing);
 
-    // History and imports remain available from the hub.
+    // A medicine opens its instructions and the refill request.
+    await tester.tap(
+      find
+          .descendant(
+            of: find.byType(ScrollToTopSignal),
+            matching: find.byType(ListTile),
+          )
+          .first,
+    );
+    await _settle(tester);
+    expect(find.text('How often'), findsOneWidget);
+    expect(find.text('Request a refill'), findsOneWidget);
+    await tester.tap(find.text('Request a refill'));
+    await _settle(tester);
+    expect(find.textContaining('Refill request sent'), findsOneWidget);
+    // It reached the doctor as a chat message.
+    final threads = await container.read(patientThreadsProvider.future);
+    expect(
+      threads.any((t) => t.lastMessage.body.startsWith('Refill request:')),
+      isTrue,
+    );
+
+    // Back on the hub: no timeline, and PDF import lives in the AI chat.
     await tester.tap(find.text('Back to Records'));
     await _settle(tester);
-    await tester.scrollUntilVisible(
-      find.text('Timeline'),
-      240,
-      scrollable: _content(),
-    );
-    // Importing a PDF moved to the AI chat.
+    expect(find.text('Timeline'), findsNothing);
     expect(find.text('Import PDF'), findsNothing);
-    await tester.tap(find.text('Timeline'));
-    await _settle(tester);
-    expect(find.byType(SearchBar), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));

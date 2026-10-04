@@ -4579,4 +4579,74 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get uploadPdfForAiTooltip => 'Upload a PDF for a simple explanation';
+
+  @override
+  String get documentReadyTitle => 'Your document is ready';
+
+  @override
+  String get openPdfAction => 'Open PDF';
+
+  @override
+  String get downloadPdfAction => 'Download';
+
+  @override
+  String get sharePdfAction => 'Share or save';
+
+  @override
+  String get pdfPreviewUnavailable =>
+      'The preview can\'t be shown on this device. You can still share or save the PDF.';
+
+  @override
+  String medHowToTake(String instructions) {
+    return 'How to take: $instructions';
+  }
+
+  @override
+  String get medNoInstructions => 'Tap for details';
+
+  @override
+  String get medStatusCurrent => 'Currently taking';
+
+  @override
+  String get medStatusFinished => 'Finished';
+
+  @override
+  String get medDoseLabel => 'Dose';
+
+  @override
+  String get medHowOftenLabel => 'How often';
+
+  @override
+  String get medPeriodLabel => 'Period';
+
+  @override
+  String get medPrescribedByLabel => 'Prescribed by';
+
+  @override
+  String get medAskDoctor => 'Ask your doctor';
+
+  @override
+  String get medSafetyNote =>
+      'Take it exactly as prescribed. Don\'t stop or change the dose without talking to your doctor.';
+
+  @override
+  String get requestRefillAction => 'Request a refill';
+
+  @override
+  String refillRequestMessage(String medication) {
+    return 'Refill request: $medication. My supply has run out or is running low — please renew my prescription.';
+  }
+
+  @override
+  String refillRequestSent(String doctor) {
+    return 'Refill request sent to $doctor. Their reply will appear in your doctor chats.';
+  }
+
+  @override
+  String get refillRequestFailed =>
+      'Couldn\'t send the refill request. Please try again.';
+
+  @override
+  String get refillNoDoctor =>
+      'No doctor to send this to yet. Please ask at your next visit.';
 }

@@ -4638,4 +4638,73 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get uploadPdfForAiTooltip => 'ارفع ملف PDF للحصول على شرح مبسط';
+
+  @override
+  String get documentReadyTitle => 'الوثيقة جاهزة';
+
+  @override
+  String get openPdfAction => 'فتح ملف PDF';
+
+  @override
+  String get downloadPdfAction => 'تنزيل';
+
+  @override
+  String get sharePdfAction => 'مشاركة أو حفظ';
+
+  @override
+  String get pdfPreviewUnavailable =>
+      'لا يمكن عرض المعاينة على هذا الجهاز. يمكنك مشاركة الملف أو حفظه.';
+
+  @override
+  String medHowToTake(String instructions) {
+    return 'طريقة الاستخدام: $instructions';
+  }
+
+  @override
+  String get medNoInstructions => 'اضغط للتفاصيل';
+
+  @override
+  String get medStatusCurrent => 'تتناوله حاليًا';
+
+  @override
+  String get medStatusFinished => 'انتهى';
+
+  @override
+  String get medDoseLabel => 'الجرعة';
+
+  @override
+  String get medHowOftenLabel => 'عدد المرات';
+
+  @override
+  String get medPeriodLabel => 'المدة';
+
+  @override
+  String get medPrescribedByLabel => 'وصفه';
+
+  @override
+  String get medAskDoctor => 'اسأل طبيبك';
+
+  @override
+  String get medSafetyNote =>
+      'تناوله كما وُصف تمامًا. لا توقفه ولا تغيّر الجرعة دون استشارة طبيبك.';
+
+  @override
+  String get requestRefillAction => 'طلب إعادة صرف';
+
+  @override
+  String refillRequestMessage(String medication) {
+    return 'طلب إعادة صرف: $medication. نفد الدواء أو أوشك على النفاد — يرجى تجديد الوصفة.';
+  }
+
+  @override
+  String refillRequestSent(String doctor) {
+    return 'تم إرسال طلب إعادة الصرف إلى $doctor. سيظهر الرد في محادثاتك مع الأطباء.';
+  }
+
+  @override
+  String get refillRequestFailed => 'تعذر إرسال الطلب. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get refillNoDoctor =>
+      'لا يوجد طبيب لإرسال الطلب إليه بعد. يرجى السؤال في زيارتك القادمة.';
 }

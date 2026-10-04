@@ -13,6 +13,7 @@ import 'package:printing/printing.dart';
 import '../../../core/failures.dart';
 import '../../../core/presentation/quick_actions.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../services/pdf/pdf_browser.dart';
 
 class DocumentDownloadButton extends StatefulWidget {
   const DocumentDownloadButton({
@@ -141,16 +142,107 @@ class DocumentPreviewScreen extends StatelessWidget {
   final String filename;
   final String title;
 
+  Future<void> _share() => Printing.sharePdf(bytes: bytes, filename: filename);
+
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    if (kIsWeb) {
+      return _WebDocumentReady(title: title, bytes: bytes, filename: filename);
+    }
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(
+        title: Text(title),
+        actions: [
+          // Always a way out, even if page rendering is unavailable.
+          IconButton(
+            tooltip: t.sharePdfAction,
+            onPressed: _share,
+            icon: const Icon(Icons.ios_share),
+          ),
+        ],
+      ),
       body: PdfPreview(
         build: (_) async => bytes,
         pdfFileName: filename,
         canChangePageFormat: false,
         canChangeOrientation: false,
         canDebug: false,
+        onError: (context, error) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(t.pdfPreviewUnavailable, textAlign: TextAlign.center),
+                const SizedBox(height: 12),
+                FilledButton.icon(
+                  onPressed: _share,
+                  icon: const Icon(Icons.ios_share),
+                  label: Text(t.sharePdfAction),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// On the web: the document is ready — open it in the browser's viewer or
+/// download it. Both are taps, so the browser never blocks them.
+class _WebDocumentReady extends StatelessWidget {
+  const _WebDocumentReady({
+    required this.title,
+    required this.bytes,
+    required this.filename,
+  });
+
+  final String title;
+  final Uint8List bytes;
+  final String filename;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.picture_as_pdf_outlined,
+                size: 56,
+                color: theme.colorScheme.primary,
+              ),
+              const SizedBox(height: 12),
+              Text(t.documentReadyTitle, style: theme.textTheme.titleMedium),
+              const SizedBox(height: 4),
+              Text(filename, style: theme.textTheme.bodySmall),
+              const SizedBox(height: 20),
+              FilledButton.icon(
+                onPressed: () {
+                  if (!openPdfInBrowser(bytes)) {
+                    downloadPdfInBrowser(bytes, filename);
+                  }
+                },
+                icon: const Icon(Icons.open_in_new),
+                label: Text(t.openPdfAction),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: () => downloadPdfInBrowser(bytes, filename),
+                icon: const Icon(Icons.download_outlined),
+                label: Text(t.downloadPdfAction),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
