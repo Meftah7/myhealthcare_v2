@@ -6,14 +6,13 @@
 /// document could not be built) and offers "Try again" when that can help.
 library;
 
-import 'dart:typed_data';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:printing/printing.dart';
 
 import '../../../core/failures.dart';
 import '../../../core/presentation/quick_actions.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../services/pdf/clinic_pdf.dart';
 
 class DocumentDownloadButton extends StatefulWidget {
   const DocumentDownloadButton({
@@ -47,8 +46,19 @@ class _DocumentDownloadButtonState extends State<DocumentDownloadButton> {
     setState(() => _busy = true);
     try {
       final bytes = await widget.build();
-      await ClinicPdf.present(bytes, filename: widget.filename);
-    } on Object catch (error) {
+      if (!mounted) return;
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          fullscreenDialog: true,
+          builder: (_) => DocumentPreviewScreen(
+            bytes: bytes,
+            filename: widget.filename,
+            title: widget.label,
+          ),
+        ),
+      );
+    } on Object catch (error, stack) {
+      debugPrint('Document "${widget.filename}" failed: $error\n$stack');
       if (mounted) {
         final t = AppLocalizations.of(context)!;
         // Say which boundary stopped it; offer a retry only when one could
@@ -110,6 +120,37 @@ class _DocumentDownloadButtonState extends State<DocumentDownloadButton> {
         maxLines: 2,
         textAlign: TextAlign.center,
         overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+}
+
+/// Shows a generated PDF in-app, with share / save and print actions.
+///
+/// Works the same on mobile, desktop and web — unlike the bare print
+/// dialog, which on desktop shows no preview and saves nothing.
+class DocumentPreviewScreen extends StatelessWidget {
+  const DocumentPreviewScreen({
+    required this.bytes,
+    required this.filename,
+    required this.title,
+    super.key,
+  });
+
+  final Uint8List bytes;
+  final String filename;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: PdfPreview(
+        build: (_) async => bytes,
+        pdfFileName: filename,
+        canChangePageFormat: false,
+        canChangeOrientation: false,
+        canDebug: false,
       ),
     );
   }

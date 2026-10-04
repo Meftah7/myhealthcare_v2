@@ -22,6 +22,8 @@ import '../../../domain/enums.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../feedback/presentation/feedback_sheet.dart';
 import '../../patient/application/patient_data_providers.dart';
+import '../../patient/application/patient_documents.dart';
+import '../../patient/presentation/document_download_button.dart';
 import 'appointments_screen.dart' show ApptActions;
 import 'appointment_records_section.dart';
 import '../application/appointment_records_provider.dart';
@@ -114,6 +116,12 @@ class AppointmentDetailScreen extends ConsumerWidget {
             const SizedBox(height: Space.sm),
             if (appt.status == AppointmentStatus.completed) ...[
               AppointmentRecordsSection(appointmentId: appt.id),
+              const SizedBox(height: Space.sm),
+              DocumentDownloadButton(
+                label: t.visitSummaryAction,
+                filename: 'visit-${appt.id}.pdf',
+                build: () => buildVisitSummary(ref, appt),
+              ),
               const SizedBox(height: Space.md),
             ],
             AppCard(

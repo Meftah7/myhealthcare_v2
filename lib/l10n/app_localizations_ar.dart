@@ -4538,4 +4538,28 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get appointmentLaboratoryPanel => 'الفحوصات المخبرية';
+
+  @override
+  String get visitSummaryAction => 'ملخص الزيارة (PDF)';
+
+  @override
+  String get recommendedHint =>
+      'اقتراحات مبنية على الزيارات السابقة. يمكنك اختيار أي وقت.';
+
+  @override
+  String get slotReasonReliable => 'نسبة حضور عالية في هذا الوقت';
+
+  @override
+  String slotReasonShortWait(int minutes) {
+    return 'انتظار قصير (حوالي $minutes دقيقة)';
+  }
+
+  @override
+  String get slotReasonYourTime => 'قريب من وقت زياراتك المعتاد';
+
+  @override
+  String get slotReasonPopular => 'وقت مفضّل لدى المراجعين';
+
+  @override
+  String get slotReasonEarliest => 'أقرب وقت متاح';
 }

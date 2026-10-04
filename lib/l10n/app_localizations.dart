@@ -7933,6 +7933,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Laboratory panel'**
   String get appointmentLaboratoryPanel;
+
+  /// No description provided for @visitSummaryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit summary (PDF)'**
+  String get visitSummaryAction;
+
+  /// No description provided for @recommendedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested from past visits. You can choose any time.'**
+  String get recommendedHint;
+
+  /// No description provided for @slotReasonReliable.
+  ///
+  /// In en, this message translates to:
+  /// **'Usually well attended'**
+  String get slotReasonReliable;
+
+  /// No description provided for @slotReasonShortWait.
+  ///
+  /// In en, this message translates to:
+  /// **'Short wait (about {minutes} min)'**
+  String slotReasonShortWait(int minutes);
+
+  /// No description provided for @slotReasonYourTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Near your usual visit time'**
+  String get slotReasonYourTime;
+
+  /// No description provided for @slotReasonPopular.
+  ///
+  /// In en, this message translates to:
+  /// **'A popular time at the clinic'**
+  String get slotReasonPopular;
+
+  /// No description provided for @slotReasonEarliest.
+  ///
+  /// In en, this message translates to:
+  /// **'Earliest available time'**
+  String get slotReasonEarliest;
 }
 
 class _AppLocalizationsDelegate

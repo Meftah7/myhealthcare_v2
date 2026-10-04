@@ -8,6 +8,37 @@ import '../enums.dart';
 import 'notification_repository.dart';
 
 /// A bookable time window produced by the slot generator (P4-12).
+/// How one weekday × hour has gone in the past: counts and averages only,
+/// never individual appointments — so a patient may read it to rank slots.
+class SlotDemandStat {
+  const SlotDemandStat({
+    required this.weekday,
+    required this.hour,
+    required this.booked,
+    required this.attended,
+    required this.noShows,
+    this.avgWaitMinutes,
+  });
+
+  /// `DateTime.weekday` (1 = Monday).
+  final int weekday;
+  final int hour;
+
+  /// Past visits in this cell, cancelled ones included.
+  final int booked;
+  final int attended;
+  final int noShows;
+
+  /// Mean minutes from the booked time to being called in, when known.
+  final double? avgWaitMinutes;
+
+  /// Share of resolved visits (attended + missed) that were attended.
+  double? get attendanceRate {
+    final resolved = attended + noShows;
+    return resolved == 0 ? null : attended / resolved;
+  }
+}
+
 class OpenSlot {
   const OpenSlot({
     required this.staffId,
@@ -158,6 +189,16 @@ abstract interface class AppointmentRepository {
   Future<Result<List<Appointment>>> inRange(DateTime from, DateTime to);
 
   Stream<List<Appointment>> watchForStaffOnDay(String staffId, DateTime day);
+
+  /// Past demand by weekday × hour over the last [lookback] — for one
+  /// clinician, or the whole clinic when [staffId] is null. Cells with fewer
+  /// than [minSample] visits are left out, so no answer can point at a
+  /// single person's visit. Any signed-in user may read it.
+  Future<Result<List<SlotDemandStat>>> slotDemandStats({
+    String? staffId,
+    Duration lookback = const Duration(days: 365),
+    int minSample = 5,
+  });
 
   /// Free slots for a staff member on [day], derived from their schedule
   /// templates minus booked appointments.

@@ -26,6 +26,7 @@ import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../services/scheduling/slot_recommender.dart';
 import '../../patient/application/family_link_providers.dart';
 import '../../patient/application/patient_data_providers.dart';
 import '../../patient/presentation/patient_top_actions.dart';
@@ -737,7 +738,6 @@ class _SlotList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final slots = ref.watch(rankedSlotsProvider);
-    final theme = Theme.of(context);
     final t = AppLocalizations.of(context)!;
 
     return slots.when(
@@ -753,49 +753,16 @@ class _SlotList extends ConsumerWidget {
             message: t.noOpenTimesThatDay,
           );
         }
-        final best = list.first;
         final byTime = [...list]
           ..sort((a, b) => a.slot.start.compareTo(b.slot.start));
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SectionHeader(t.recommendedSection, overline: true),
-            AppCard(
-              color: theme.colorScheme.secondaryContainer,
-              padding: const EdgeInsets.all(Space.md),
-              onTap: () => _review(context, ref, best),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.star_rounded,
-                    color: theme.colorScheme.onSecondaryContainer,
-                  ),
-                  const SizedBox(width: Space.sm),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          fmtTime(best.slot.start),
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: theme.colorScheme.onSecondaryContainer,
-                          ),
-                        ),
-                        Text(
-                          best.reason,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSecondaryContainer,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (best.hasRiskEstimate) RiskBadge(best.band),
-                ],
-              ),
+            _SuggestedTimes(
+              ranked: list,
+              onPick: (slot) => _review(context, ref, slot),
             ),
-            const SizedBox(height: Space.md),
             SectionHeader(t.allOpenTimesSection, overline: true),
             const SizedBox(height: Space.xs),
             Wrap(
@@ -990,6 +957,98 @@ class _Row extends StatelessWidget {
           Expanded(child: Text(value, style: theme.textTheme.bodyMedium)),
         ],
       ),
+    );
+  }
+}
+
+/// Up to three suggested times with the reasons behind them. Suggestions
+/// only: the full list of open times always follows, and any can be booked.
+class _SuggestedTimes extends ConsumerWidget {
+  const _SuggestedTimes({required this.ranked, required this.onPick});
+
+  final List<RankedSlot> ranked;
+  final ValueChanged<RankedSlot> onPick;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    // While loading or on failure, show nothing — the open times below are
+    // always enough to book.
+    final recs = ref.watch(slotRecommendationsProvider).valueOrNull;
+    if (recs == null || recs.isEmpty) return const SizedBox.shrink();
+
+    String reason(SlotReason r, SlotRecommendation rec) => switch (r) {
+      SlotReason.reliableHour => t.slotReasonReliable,
+      SlotReason.shortWait => t.slotReasonShortWait(rec.avgWaitMinutes ?? 0),
+      SlotReason.yourUsualTime => t.slotReasonYourTime,
+      SlotReason.popularTime => t.slotReasonPopular,
+      SlotReason.earliest => t.slotReasonEarliest,
+    };
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SectionHeader(t.recommendedSection, overline: true),
+        Text(
+          t.recommendedHint,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: Space.xs),
+        for (final (i, rec) in recs.indexed) ...[
+          Builder(
+            builder: (context) {
+              final slot = ranked.firstWhere(
+                (r) => identical(r.slot, rec.slot),
+              );
+              final top = i == 0;
+              final ink = top
+                  ? theme.colorScheme.onSecondaryContainer
+                  : theme.colorScheme.onSurface;
+              return AppCard(
+                color: top ? theme.colorScheme.secondaryContainer : null,
+                padding: const EdgeInsets.all(Space.md),
+                onTap: () => onPick(slot),
+                child: Row(
+                  children: [
+                    Icon(
+                      top ? Icons.star_rounded : Icons.schedule_rounded,
+                      color: ink,
+                    ),
+                    const SizedBox(width: Space.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            fmtTime(rec.slot.start),
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: ink,
+                            ),
+                          ),
+                          Text(
+                            [
+                              for (final r in rec.reasons) reason(r, rec),
+                            ].join(' · '),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: ink,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (slot.hasRiskEstimate) RiskBadge(slot.band),
+                  ],
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: Space.xs),
+        ],
+        const SizedBox(height: Space.sm),
+      ],
     );
   }
 }

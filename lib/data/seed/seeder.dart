@@ -38,6 +38,7 @@ class SeedResult {
 class Seeder {
   Seeder(this._db, {int seed = 20260101, this.seedingEnabled = kDebugMode})
     : _rng = Random(seed),
+      _patternRng = Random(seed + 1),
       // Cheap work factor for the ~72 demo accounts — the hash string records
       // the count, so login (which reads it back) still verifies fine.
       _hasher = const PasswordHasher(iterations: 1000);
@@ -45,6 +46,7 @@ class Seeder {
   final AppDatabase _db;
   final bool seedingEnabled;
   final Random _rng;
+  final Random _patternRng;
   final PasswordHasher _hasher;
 
   /// Facility-wide ticket count per (day, hour) bucket — resets at midnight,
@@ -326,11 +328,12 @@ class Seeder {
       );
       final risk = _noShowProbability(p, leadDays: isFuture ? leadDays : 7);
 
+      final hour = _pick(_demoHours);
       final slotStart = DateTime(
         when.year,
         when.month,
         when.day,
-        8 + _rng.nextInt(12), // 08:00–19:xx, within the 08:00–20:00 day
+        hour, // 08:00–19:xx, within the 08:00–20:00 day
         _pick(const [0, 20, 40]),
       );
       final apptId = 'appt_${p.id}_${appts.toString().padLeft(2, '0')}';
@@ -365,6 +368,13 @@ class Seeder {
               riskBand: Value(_band(risk)),
               remindersSent: Value(isFuture ? 0 : 1 + _rng.nextInt(2)),
               ticketTag: Value('${hourLetterFor(slotStart)}-$ticketNo'),
+              // When a past visit was called in — the waiting time the
+              // booking suggestions learn from.
+              calledInAt: Value(
+                !isFuture && status == AppointmentStatus.completed
+                    ? slotStart.add(Duration(minutes: _demoWait(hour)))
+                    : null,
+              ),
               roomNumber: Value(doc.roomNumber),
             ),
           );
@@ -1061,6 +1071,24 @@ class Seeder {
     if (r < pNoShow * 0.85) return AppointmentStatus.noShow;
     if (r < pNoShow * 0.85 + 0.05) return AppointmentStatus.cancelled;
     return AppointmentStatus.completed;
+  }
+
+  /// Demo demand pattern: mornings book up first, with a smaller late-
+  /// afternoon peak after work. Picked uniformly, so repeats weight an hour.
+  static const _demoHours = [
+    8, 9, 9, 10, 10, 10, 11, 11, 12, 13, 14, 15, 16, 16, 17, 17, 18, 19, //
+  ];
+
+  /// Minutes from the booked time to being called in: the busy late
+  /// morning runs behind, early and mid-afternoon run close to time. Uses
+  /// its own generator so the rest of the demo data is unchanged.
+  int _demoWait(int hour) {
+    final (base, spread) = switch (hour) {
+      10 || 11 => (20, 20),
+      12 || 16 || 17 => (10, 12),
+      _ => (2, 8),
+    };
+    return base + _patternRng.nextInt(spread + 1);
   }
 
   int _vital(

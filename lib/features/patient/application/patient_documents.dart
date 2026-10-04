@@ -20,6 +20,7 @@ import '../../../domain/repositories/export_repository.dart';
 import '../../../domain/repositories/record_repository.dart';
 import '../../../services/pdf/clinic_pdf.dart';
 import '../../../services/pdf/reports.dart';
+import '../../appointments/application/appointment_records_provider.dart';
 import 'patient_data_providers.dart';
 
 bool get _ar => Intl.getCurrentLocale().startsWith('ar');
@@ -27,14 +28,64 @@ bool get _ar => Intl.getCurrentLocale().startsWith('ar');
 /// The signed-in patient's identity, shaped for [ClinicPdf].
 final pdfIdentityProvider = FutureProvider<PdfIdentity>((ref) async {
   final p = await ref.watch(patientProfileProvider.future);
+  // Medications are context, not the document's subject — a failed read
+  // must not stop the export.
+  final meds = await ref
+      .watch(patientMedicationsProvider.future)
+      .catchError((Object _) => <Medication>[]);
   return PdfIdentity(
     name: p.fullName,
     patientId: p.id,
     bloodType: p.bloodType,
     dob: p.user.dob,
     allergies: p.allergies,
+    conditions: p.chronicConditions,
+    medications: [
+      for (final m in meds)
+        if (m.isActive) [m.name, ?m.dose, ?m.frequency].join(' · '),
+    ],
   );
 });
+
+/// A clinician's licence number, or null when unknown or unreadable.
+Future<String?> _licence(WidgetRef ref, String? staffId) async {
+  if (staffId == null) return null;
+  final r = await ref.read(userRepositoryProvider).staffById(staffId);
+  return r.valueOrNull?.licenseNo;
+}
+
+/// For each analyte in [record], its most recent value from an earlier
+/// record — so the patient can see the direction of change.
+Future<Map<String, PreviousLab>> _previousLabs(
+  WidgetRef ref,
+  MedicalRecord record,
+) async {
+  if (record.labValues.isEmpty) return const {};
+  final wanted = {for (final v in record.labValues) v.analyte.toLowerCase()};
+  final history = await ref
+      .read(patientTimelineProvider.future)
+      .catchError((Object _) => <MedicalRecord>[]);
+  final earlier =
+      history
+          .where(
+            (r) =>
+                r.id != record.id &&
+                r.labValues.isNotEmpty &&
+                r.occurredAt.isBefore(record.occurredAt),
+          )
+          .toList()
+        ..sort((a, b) => b.occurredAt.compareTo(a.occurredAt));
+  final out = <String, PreviousLab>{};
+  for (final r in earlier) {
+    for (final v in r.labValues) {
+      final key = v.analyte.toLowerCase();
+      if (wanted.contains(key) && !out.containsKey(key)) {
+        out[key] = (value: v.value, unit: v.unit, at: r.occurredAt);
+      }
+    }
+  }
+  return out;
+}
 
 /// The document's identity strip is the signed-in patient, so it may only
 /// carry that patient's records.
@@ -89,6 +140,7 @@ Future<Uint8List> buildRadiologyReport(
     patient: identity,
     record: record,
     reportingClinician: doctors[record.authorStaffId]?.name,
+    clinicianLicence: await _licence(ref, record.authorStaffId),
     arabic: _ar,
   );
 }
@@ -120,6 +172,7 @@ Future<Uint8List> buildReferralLetter(
     referringClinic: clinician ?? ClinicPdf.clinicName,
     date: record.occurredAt,
     reference: record.id,
+    clinicianLicence: await _licence(ref, record.authorStaffId),
     arabic: _ar,
   );
 }
@@ -144,6 +197,7 @@ Future<Uint8List> buildSickLeave(
     issuingClinician:
         doctors[certificate.issuedByStaffId]?.name ??
         (_ar ? 'الطبيب المعالج' : 'Attending clinician'),
+    clinicianLicence: await _licence(ref, certificate.issuedByStaffId),
     arabic: _ar,
   );
 }
@@ -170,6 +224,7 @@ Future<Uint8List> buildRecordSummary(
     recordTypeLabel: recordTypeLabel,
     authorName: doctors[record.authorStaffId]?.name,
     reviewerName: doctors[record.reviewedByStaffId]?.name,
+    previousLabs: await _previousLabs(ref, record),
     arabic: _ar,
   );
 }
@@ -187,4 +242,40 @@ Future<Uint8List> openOriginalFile(WidgetRef ref, MedicalRecord record) async {
     Ok(:final SourceFile value) => value.bytes,
     Err(:final failure) => throw failure,
   };
+}
+
+/// Builds a summary of one completed [appointment]: vitals, notes, results
+/// and medications linked to it, plus the next booked visit.
+Future<Uint8List> buildVisitSummary(
+  WidgetRef ref,
+  Appointment appointment,
+) async {
+  final identity = await ref.read(pdfIdentityProvider.future);
+  _samePatient(identity, appointment.patientId);
+  await _authorize(
+    ref,
+    appointment.patientId,
+    ExportDocument.visitSummary,
+    entityId: appointment.id,
+  );
+  final bundle = await ref.read(
+    appointmentRecordsProvider(appointment.id).future,
+  );
+  final doctors = await ref.read(doctorDirectoryProvider.future);
+  final departments = await ref.read(departmentDirectoryProvider.future);
+  final next = await ref
+      .read(nextAppointmentProvider.future)
+      .catchError((Object _) => null);
+  return visitSummaryPdf(
+    patient: identity,
+    appointment: appointment,
+    records: bundle.records,
+    vitals: bundle.vitals,
+    medications: bundle.medications,
+    clinicianName: doctors[appointment.staffId]?.name,
+    clinicianLicence: await _licence(ref, appointment.staffId),
+    departmentName: departments[appointment.departmentId],
+    nextAppointment: next,
+    arabic: _ar,
+  );
 }

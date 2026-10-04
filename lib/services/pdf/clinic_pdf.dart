@@ -17,7 +17,6 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 
 import 'pdf_strings.dart';
 
@@ -29,6 +28,8 @@ class PdfIdentity {
     this.bloodType,
     this.dob,
     this.allergies = const [],
+    this.conditions = const [],
+    this.medications = const [],
   });
 
   final String name;
@@ -36,6 +37,12 @@ class PdfIdentity {
   final String? bloodType;
   final DateTime? dob;
   final List<String> allergies;
+
+  /// Long-term conditions, printed so any reader sees the context.
+  final List<String> conditions;
+
+  /// Active medications, one line each ("Metformin 500 mg · twice daily").
+  final List<String> medications;
 }
 
 /// Who issued a document, where its content came from, when, and in what
@@ -136,11 +143,6 @@ class ClinicPdf {
     return doc.save();
   }
 
-  /// Opens the platform print / preview / share sheet for [bytes].
-  static Future<void> present(Uint8List bytes, {required String filename}) {
-    return Printing.layoutPdf(onLayout: (_) async => bytes, name: filename);
-  }
-
   // --- chrome ---------------------------------------------------------------
 
   static pw.Widget _letterhead(
@@ -237,6 +239,7 @@ class ClinicPdf {
     final facts = <String>[
       s.id(_shortId(p.patientId)),
       if (p.dob != null) s.dob(pdfDate(p.dob!, arabic: s.isArabic)),
+      if (p.dob != null) s.age(_ageYears(p.dob!)),
       if (p.bloodType != null && p.bloodType!.isNotEmpty)
         s.bloodType(p.bloodType!),
     ];
@@ -264,19 +267,56 @@ class ClinicPdf {
         pw.SizedBox(height: 2),
         pw.Text(
           facts.join('   ·   '),
-          style: const pw.TextStyle(fontSize: 9, color: _muted),
+          style: const pw.TextStyle(fontSize: 10, color: _muted),
         ),
         pw.SizedBox(height: 8),
         _allergyBanner(p.allergies, s),
+        if (p.conditions.isNotEmpty) ...[
+          pw.SizedBox(height: 6),
+          _contextLine(s.conditions, p.conditions.join(', ')),
+        ],
+        if (p.medications.isNotEmpty) ...[
+          pw.SizedBox(height: 4),
+          _contextLine(s.medications, p.medications.join('  ·  ')),
+        ],
       ],
     );
+  }
+
+  static pw.Widget _contextLine(String label, String value) {
+    return pw.RichText(
+      text: pw.TextSpan(
+        children: [
+          pw.TextSpan(
+            text: '$label  ',
+            style: const pw.TextStyle(
+              fontSize: 8,
+              fontWeight: pw.FontWeight.bold,
+              color: _muted,
+              letterSpacing: 0.5,
+            ),
+          ),
+          pw.TextSpan(
+            text: value,
+            style: const pw.TextStyle(fontSize: 10, color: _ink),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static int _ageYears(DateTime dob) {
+    final now = DateTime.now();
+    final hadBirthday =
+        now.month > dob.month || (now.month == dob.month && now.day >= dob.day);
+    return now.year - dob.year - (hadBirthday ? 0 : 1);
   }
 
   static pw.Widget _allergyBanner(List<String> allergies, PdfStrings s) {
     if (allergies.isEmpty) {
       return pw.Text(
         s.noAllergies,
-        style: const pw.TextStyle(fontSize: 8, color: _muted),
+        style: const pw.TextStyle(fontSize: 9.5, color: _muted),
       );
     }
     return pw.Container(
@@ -301,7 +341,7 @@ class ClinicPdf {
             ),
             pw.TextSpan(
               text: allergies.join(', '),
-              style: const pw.TextStyle(fontSize: 9, color: _alertInk),
+              style: const pw.TextStyle(fontSize: 10.5, color: _alertInk),
             ),
           ],
         ),
@@ -341,7 +381,13 @@ class ClinicPdf {
           pdfKeyValue(s.reference, p.reference),
           if (p.originalFile != null)
             pdfKeyValue(s.originalFile, p.originalFile!),
-          if (p.sha256 != null) pdfKeyValue(s.fingerprint, p.sha256!),
+          // Small enough to stay on one line, so it can be copied whole.
+          if (p.sha256 != null)
+            pdfKeyValue(
+              s.fingerprint,
+              p.sha256!,
+              valueStyle: const pw.TextStyle(fontSize: 8, color: _ink),
+            ),
         ],
       ),
     );
@@ -362,7 +408,7 @@ class ClinicPdf {
         children: [
           pw.Text(
             s.disclaimer,
-            style: const pw.TextStyle(fontSize: 6.5, color: _muted),
+            style: const pw.TextStyle(fontSize: 7.5, color: _muted),
           ),
           pw.SizedBox(height: 3),
           pw.Row(
@@ -370,11 +416,11 @@ class ClinicPdf {
             children: [
               pw.Text(
                 s.generated(pdfStamp(generatedAt, arabic: s.isArabic)),
-                style: const pw.TextStyle(fontSize: 6.5, color: _muted),
+                style: const pw.TextStyle(fontSize: 7.5, color: _muted),
               ),
               pw.Text(
                 s.page(context.pageNumber, context.pagesCount),
-                style: const pw.TextStyle(fontSize: 6.5, color: _muted),
+                style: const pw.TextStyle(fontSize: 7.5, color: _muted),
               ),
             ],
           ),
@@ -448,7 +494,7 @@ pw.Widget pdfSection(String heading, pw.Widget child) {
       pw.Text(
         heading.toUpperCase(),
         style: const pw.TextStyle(
-          fontSize: 8,
+          fontSize: 9,
           fontWeight: pw.FontWeight.bold,
           color: _muted,
           letterSpacing: 1,
@@ -464,23 +510,24 @@ pw.Widget pdfSection(String heading, pw.Widget child) {
 }
 
 /// A key/value row, used for summary blocks.
-pw.Widget pdfKeyValue(String key, String value) {
+pw.Widget pdfKeyValue(String key, String value, {pw.TextStyle? valueStyle}) {
   return pw.Padding(
     padding: const pw.EdgeInsets.only(bottom: 4),
     child: pw.Row(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         pw.SizedBox(
-          width: 130,
+          width: 140,
           child: pw.Text(
             key,
-            style: const pw.TextStyle(fontSize: 9, color: _muted),
+            style: const pw.TextStyle(fontSize: 10, color: _muted),
           ),
         ),
         pw.Expanded(
           child: pw.Text(
             value,
-            style: const pw.TextStyle(fontSize: 9, color: _ink),
+            style:
+                valueStyle ?? const pw.TextStyle(fontSize: 10.5, color: _ink),
           ),
         ),
       ],
@@ -493,3 +540,30 @@ const pdfInk = _ink;
 const pdfMuted = _muted;
 const pdfHairline = _hairline;
 const pdfHeaderFill = PdfColor.fromInt(0xFFF2F2F7);
+const pdfAlertInk = _alertInk;
+const pdfAlertBg = _alertBg;
+
+/// Style for a value outside its range: bold, in the alert colour.
+const pdfOutOfRange = pw.TextStyle(
+  fontSize: 10.5,
+  color: _alertInk,
+  fontWeight: pw.FontWeight.bold,
+);
+
+/// A shaded note box — used for "what this means" explanations.
+pw.Widget pdfNote(String text, {bool alert = false}) {
+  return pw.Container(
+    width: double.infinity,
+    margin: const pw.EdgeInsets.only(top: 8),
+    padding: const pw.EdgeInsets.all(8),
+    decoration: pw.BoxDecoration(
+      color: alert ? _alertBg : _panel,
+      borderRadius: pw.BorderRadius.circular(4),
+      border: pw.Border.all(color: alert ? _alertInk : _hairline, width: 0.5),
+    ),
+    child: pw.Text(
+      text,
+      style: pw.TextStyle(fontSize: 10, color: alert ? _alertInk : _ink),
+    ),
+  );
+}

@@ -14,6 +14,7 @@ import '../../../domain/enums.dart';
 import '../../../domain/repositories/appointment_repository.dart';
 import '../../../services/ml/feature_extractor.dart';
 import '../../../services/ml/no_show_predictor.dart';
+import '../../../services/scheduling/slot_recommender.dart';
 import '../../auth/application/session.dart';
 import '../../patient/application/family_link_providers.dart';
 import '../../patient/application/patient_data_providers.dart';
@@ -212,6 +213,46 @@ final rankedSlotsProvider = FutureProvider<List<RankedSlot>>((ref) async {
     return r != 0 ? r : a.slot.start.compareTo(b.slot.start);
   });
   return ranked;
+});
+
+/// Up to three suggested times for the current draft, from aggregate clinic
+/// history (attendance and waiting time per weekday × hour) and the
+/// patient's own visits. Suggestions only — every open slot stays bookable.
+final slotRecommendationsProvider = FutureProvider<List<SlotRecommendation>>((
+  ref,
+) async {
+  final ranked = await ref.watch(rankedSlotsProvider.future);
+  if (ranked.isEmpty) return const [];
+  final slots = [for (final r in ranked) r.slot];
+  final now = DateTime.now();
+  if (!phase8CapabilityEnabled('slot-recommendation')) {
+    return recommendSlots(
+      slots: slots,
+      staffStats: const [],
+      clinicStats: const [],
+      patientHistory: const [],
+      now: now,
+    );
+  }
+  final draft = ref.watch(bookingDraftProvider);
+  final appts = ref.watch(appointmentRepositoryProvider);
+  // History only improves the order; if it can't be read, fall back to the
+  // earliest times rather than failing the booking step.
+  final staffStats =
+      (await appts.slotDemandStats(staffId: draft.staffId)).valueOrNull ??
+      const <SlotDemandStat>[];
+  final clinicStats =
+      (await appts.slotDemandStats()).valueOrNull ?? const <SlotDemandStat>[];
+  final history = await ref
+      .watch(_bookingSubjectHistoryProvider.future)
+      .catchError((Object _) => <Appointment>[]);
+  return recommendSlots(
+    slots: slots,
+    staffStats: staffStats,
+    clinicStats: clinicStats,
+    patientHistory: history,
+    now: now,
+  );
 });
 
 String _reasonFor(NoShowPrediction pred, OpenSlot slot) {

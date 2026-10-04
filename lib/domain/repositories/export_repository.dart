@@ -11,6 +11,7 @@ enum ExportDocument {
   sickLeaveCertificate,
   recordSummary,
   originalFile,
+  visitSummary,
 }
 
 abstract interface class ExportRepository {

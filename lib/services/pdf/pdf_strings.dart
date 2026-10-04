@@ -171,4 +171,68 @@ class PdfStrings {
       ? const ['التحليل', 'القيمة', 'المرجع', 'التقييم']
       : const ['Analyte', 'Value', 'Reference', 'Flag'];
   String get noRange => _t('No range', 'بلا نطاق');
+
+  // --- patient-facing interpretation (Phase 2) ------------------------------
+  String age(int years) => _t('Age $years', 'العمر $years');
+  String get conditions => _t('CONDITIONS', 'الحالات المزمنة');
+  String get medications => _t('CURRENT MEDICATIONS', 'الأدوية الحالية');
+  String get flagNormal => _t('Normal', 'طبيعي');
+  String get flagLow => _t('Low', 'منخفض');
+  String get flagHigh => _t('High', 'مرتفع');
+  String get flagCritical => _t('Critical', 'حرج');
+  String get previous => _t('Previous', 'السابقة');
+  List<String> get labHeadersWithPrevious => isArabic
+      ? const ['التحليل', 'القيمة', 'المرجع', 'التقييم', 'السابقة']
+      : const ['Analyte', 'Value', 'Reference', 'Flag', 'Previous'];
+  String get whatThisMeans => _t('What this means', 'ماذا يعني هذا');
+  String abnormalNote(int n) => _t(
+    '$n result${n == 1 ? ' is' : 's are'} outside the reference range '
+        '(highlighted). One result on its own is not a diagnosis — please '
+        'discuss it with your doctor.',
+    '$n من النتائج خارج النطاق المرجعي (مظللة). النتيجة الواحدة وحدها ليست '
+        'تشخيصًا — يرجى مناقشتها مع طبيبك.',
+  );
+  String get criticalNote => _t(
+    'A result is marked critical. If you have not already been contacted, '
+        'contact the clinic today.',
+    'إحدى النتائج حرجة. إن لم يتواصل معك أحد بعد، تواصل مع العيادة اليوم.',
+  );
+  String get allNormalNote => _t(
+    'All results with a reference range are within it.',
+    'جميع النتائج ذات النطاق المرجعي ضمن الحدود.',
+  );
+  String get typicalRange =>
+      _t('Typical adult range', 'النطاق المعتاد للبالغين');
+  String get vitalsRangeNote => _t(
+    'Ranges are typical for adults at rest and are a guide only. Values '
+        'outside them are highlighted; your doctor may set different targets '
+        'for you.',
+    'النطاقات معتادة للبالغين في حالة الراحة وهي للإرشاد فقط. القيم خارجها '
+        'مظللة، وقد يحدد طبيبك أهدافًا مختلفة لك.',
+  );
+  String truncated(int shown, int total) => _t(
+    'Showing the first $shown of $total characters. The full text is in the '
+        'original file.',
+    'يُعرض أول $shown من أصل $total حرفًا. النص الكامل في الملف الأصلي.',
+  );
+  String get licenceNo => _t('Licence no.', 'رقم الترخيص');
+  String get nextAppointment => _t('Next appointment', 'الموعد القادم');
+  String get followUp => _t('Follow-up', 'المتابعة');
+  String get noFollowUp => _t(
+    'No upcoming appointment is booked. Book one in the app if your doctor '
+        'asked you to return.',
+    'لا يوجد موعد قادم. احجز موعدًا من التطبيق إذا طلب طبيبك المراجعة.',
+  );
+
+  // --- visit summary --------------------------------------------------------
+  String get visitTitle => _t('Visit summary', 'ملخص الزيارة');
+  String get visit => _t('Visit', 'الزيارة');
+  String get department => _t('Department', 'القسم');
+  String get vitalsAtVisit =>
+      _t('Vital signs at this visit', 'العلامات الحيوية في الزيارة');
+  String get visitRecords => _t('Notes and results', 'الملاحظات والنتائج');
+  String get visitMedications =>
+      _t('Medications from this visit', 'أدوية هذه الزيارة');
+  String get nothingRecorded =>
+      _t('Nothing was recorded for this visit.', 'لم يُسجل شيء لهذه الزيارة.');
 }

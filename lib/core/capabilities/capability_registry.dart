@@ -51,6 +51,14 @@ const phase8Capabilities = <CapabilityDefinition>[
     fallback: 'Show deterministic history without AI narration.',
   ),
   CapabilityDefinition(
+    id: 'slot-recommendation',
+    label: 'Suggested booking times',
+    owner: 'Patient product owner',
+    mode: CapabilityMode.offline,
+    reviewState: CapabilityReviewState.notRequired,
+    fallback: 'Suggest the earliest open times; every slot stays bookable.',
+  ),
+  CapabilityDefinition(
     id: 'no-show-risk',
     label: 'No-show operational estimate',
     owner: 'Unassigned qualified model owner',

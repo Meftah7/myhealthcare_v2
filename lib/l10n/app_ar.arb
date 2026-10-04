@@ -1996,5 +1996,12 @@
   "appointmentRecordsTitle": "سجلات هذا الموعد",
   "appointmentRecordsEmpty": "لا توجد سجلات مرتبطة بهذا الموعد حتى الآن.",
   "appointmentClinicVisit": "زيارة العيادة",
-  "appointmentLaboratoryPanel": "الفحوصات المخبرية"
+  "appointmentLaboratoryPanel": "الفحوصات المخبرية",
+  "visitSummaryAction": "ملخص الزيارة (PDF)",
+  "recommendedHint": "اقتراحات مبنية على الزيارات السابقة. يمكنك اختيار أي وقت.",
+  "slotReasonReliable": "نسبة حضور عالية في هذا الوقت",
+  "slotReasonShortWait": "انتظار قصير (حوالي {minutes} دقيقة)",
+  "slotReasonYourTime": "قريب من وقت زياراتك المعتاد",
+  "slotReasonPopular": "وقت مفضّل لدى المراجعين",
+  "slotReasonEarliest": "أقرب وقت متاح"
 }

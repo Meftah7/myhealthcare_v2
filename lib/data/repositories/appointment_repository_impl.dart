@@ -187,6 +187,68 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
   }
 
   @override
+  Future<Result<List<SlotDemandStat>>> slotDemandStats({
+    String? staffId,
+    Duration lookback = const Duration(days: 365),
+    int minSample = 5,
+  }) {
+    return Result.guardAsync(() async {
+      await _access.principal();
+      final now = DateTime.now();
+      final query = _db.select(_db.appointments)
+        ..where(
+          (a) =>
+              a.slotStart.isBiggerOrEqualValue(now.subtract(lookback)) &
+              a.slotStart.isSmallerThanValue(now) &
+              a.status.isInValues(const [
+                AppointmentStatus.completed,
+                AppointmentStatus.noShow,
+                AppointmentStatus.cancelled,
+              ]),
+        );
+      if (staffId != null) query.where((a) => a.staffId.equals(staffId));
+      final rows = await query.get();
+
+      // Aggregate here so no individual visit leaves the data layer.
+      final cells = <(int, int), List<AppointmentRow>>{};
+      for (final r in rows) {
+        cells
+            .putIfAbsent((r.slotStart.weekday, r.slotStart.hour), () => [])
+            .add(r);
+      }
+      return [
+        for (final MapEntry(key: (weekday, hour), value: visits)
+            in cells.entries)
+          if (visits.length >= minSample) _statFor(weekday, hour, visits),
+      ];
+    });
+  }
+
+  static SlotDemandStat _statFor(
+    int weekday,
+    int hour,
+    List<AppointmentRow> visits,
+  ) {
+    final waits = [
+      for (final v in visits)
+        if (v.status == AppointmentStatus.completed && v.calledInAt != null)
+          v.calledInAt!.difference(v.slotStart).inMinutes.clamp(0, 240),
+    ];
+    return SlotDemandStat(
+      weekday: weekday,
+      hour: hour,
+      booked: visits.length,
+      attended: visits
+          .where((v) => v.status == AppointmentStatus.completed)
+          .length,
+      noShows: visits.where((v) => v.status == AppointmentStatus.noShow).length,
+      avgWaitMinutes: waits.isEmpty
+          ? null
+          : waits.reduce((a, b) => a + b) / waits.length,
+    );
+  }
+
+  @override
   Future<Result<List<OpenSlot>>> openSlots(String staffId, DateTime day) {
     return Result.guardAsync(() async {
       await _access.principal();

@@ -2052,5 +2052,13 @@
   "appointmentRecordsTitle": "Records from this appointment",
   "appointmentRecordsEmpty": "No records have been linked to this appointment yet.",
   "appointmentClinicVisit": "Clinic visit",
-  "appointmentLaboratoryPanel": "Laboratory panel"
+  "appointmentLaboratoryPanel": "Laboratory panel",
+  "visitSummaryAction": "Visit summary (PDF)",
+  "recommendedHint": "Suggested from past visits. You can choose any time.",
+  "slotReasonReliable": "Usually well attended",
+  "slotReasonShortWait": "Short wait (about {minutes} min)",
+  "@slotReasonShortWait": {"placeholders": {"minutes": {"type": "int"}}},
+  "slotReasonYourTime": "Near your usual visit time",
+  "slotReasonPopular": "A popular time at the clinic",
+  "slotReasonEarliest": "Earliest available time"
 }

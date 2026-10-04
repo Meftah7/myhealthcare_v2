@@ -4479,4 +4479,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appointmentLaboratoryPanel => 'Laboratory panel';
+
+  @override
+  String get visitSummaryAction => 'Visit summary (PDF)';
+
+  @override
+  String get recommendedHint =>
+      'Suggested from past visits. You can choose any time.';
+
+  @override
+  String get slotReasonReliable => 'Usually well attended';
+
+  @override
+  String slotReasonShortWait(int minutes) {
+    return 'Short wait (about $minutes min)';
+  }
+
+  @override
+  String get slotReasonYourTime => 'Near your usual visit time';
+
+  @override
+  String get slotReasonPopular => 'A popular time at the clinic';
+
+  @override
+  String get slotReasonEarliest => 'Earliest available time';
 }
