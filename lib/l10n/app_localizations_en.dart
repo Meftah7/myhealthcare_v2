@@ -4649,4 +4649,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get refillNoDoctor =>
       'No doctor to send this to yet. Please ask at your next visit.';
+
+  @override
+  String get scanQrTitle => 'Scan QR code';
+
+  @override
+  String get scanQrHint => 'Point the camera at the QR code on the document.';
+
+  @override
+  String get cameraUnavailable =>
+      'The camera isn\'t available. Allow camera access, or type the code instead.';
 }

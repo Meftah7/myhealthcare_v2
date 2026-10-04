@@ -1,0 +1,5 @@
+zxing.min.js is @zxing/library 0.23.0 (umd/index.min.js), served with the app
+so the QR scanner works under the app's Content-Security-Policy.
+Licensed under the Apache License, Version 2.0:
+https://www.apache.org/licenses/LICENSE-2.0
+Source: https://github.com/zxing-js/library

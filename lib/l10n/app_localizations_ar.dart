@@ -4707,4 +4707,14 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get refillNoDoctor =>
       'لا يوجد طبيب لإرسال الطلب إليه بعد. يرجى السؤال في زيارتك القادمة.';
+
+  @override
+  String get scanQrTitle => 'مسح رمز QR';
+
+  @override
+  String get scanQrHint => 'وجّه الكاميرا نحو رمز QR الموجود على الوثيقة.';
+
+  @override
+  String get cameraUnavailable =>
+      'الكاميرا غير متاحة. اسمح بالوصول إلى الكاميرا أو اكتب الرمز يدويًا.';
 }

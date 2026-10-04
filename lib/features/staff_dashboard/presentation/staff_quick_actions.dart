@@ -24,6 +24,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../care/application/care_providers.dart';
 import '../../patient_chart/presentation/chart_write_sheets.dart';
 import '../application/staff_providers.dart';
+import '../../admin/presentation/verify_document_screen.dart';
 
 class StaffQuickActions extends ConsumerWidget {
   const StaffQuickActions({super.key});
@@ -32,6 +33,11 @@ class StaffQuickActions extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
     final actions = <_QuickAction>[
+      _QuickAction(
+        icon: Icons.verified_outlined,
+        label: t.verifyDocumentTitle,
+        onTap: () => unawaited(openVerifyDocument(context)),
+      ),
       _QuickAction(
         icon: Icons.note_add_outlined,
         label: t.newNoteAction,

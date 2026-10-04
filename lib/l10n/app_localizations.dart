@@ -8239,6 +8239,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No doctor to send this to yet. Please ask at your next visit.'**
   String get refillNoDoctor;
+
+  /// No description provided for @scanQrTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan QR code'**
+  String get scanQrTitle;
+
+  /// No description provided for @scanQrHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Point the camera at the QR code on the document.'**
+  String get scanQrHint;
+
+  /// No description provided for @cameraUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The camera isn\'t available. Allow camera access, or type the code instead.'**
+  String get cameraUnavailable;
 }
 
 class _AppLocalizationsDelegate

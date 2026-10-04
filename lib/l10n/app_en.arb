@@ -2107,5 +2107,8 @@
   "refillRequestSent": "Refill request sent to {doctor}. Their reply will appear in your doctor chats.",
   "@refillRequestSent": {"placeholders": {"doctor": {"type": "String"}}},
   "refillRequestFailed": "Couldn't send the refill request. Please try again.",
-  "refillNoDoctor": "No doctor to send this to yet. Please ask at your next visit."
+  "refillNoDoctor": "No doctor to send this to yet. Please ask at your next visit.",
+  "scanQrTitle": "Scan QR code",
+  "scanQrHint": "Point the camera at the QR code on the document.",
+  "cameraUnavailable": "The camera isn't available. Allow camera access, or type the code instead."
 }

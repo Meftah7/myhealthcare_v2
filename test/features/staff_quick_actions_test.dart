@@ -98,6 +98,28 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
   });
 
+  testWidgets('Verify document is the first staff quick action', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 2600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final container = await _signInStaff(tester);
+    addTearDown(container.dispose);
+
+    await tester.tap(find.text('Verify document').first);
+    await _settle(tester);
+    expect(find.widgetWithText(AppBar, 'Verify document'), findsOneWidget);
+    expect(find.text('Verification code'), findsOneWidget);
+    // A QR scan button sits in the code field on phones and the web.
+    expect(find.byIcon(Icons.qr_code_scanner), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
   testWidgets('staff directory lists clinicians with presence', (tester) async {
     tester.view.physicalSize = const Size(1400, 2600);
     tester.view.devicePixelRatio = 1.0;

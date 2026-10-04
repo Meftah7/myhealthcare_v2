@@ -46,6 +46,11 @@ class AdminQuickActions extends ConsumerWidget {
 
     final actions = <_QuickAction>[
       _QuickAction(
+        icon: Icons.verified_outlined,
+        label: t.verifyDocumentTitle,
+        onTap: () => unawaited(openVerifyDocument(context)),
+      ),
+      _QuickAction(
         icon: Icons.person_add_alt,
         label: t.addUserAction,
         onTap: () => unawaited(_addUser(context, ref)),
@@ -85,11 +90,6 @@ class AdminQuickActions extends ConsumerWidget {
             ? t.referralsAction
             : t.referralsActionWithCount(referrals),
         onTap: () => unawaited(context.push(AppRoutes.adminReferralRequests)),
-      ),
-      _QuickAction(
-        icon: Icons.verified_outlined,
-        label: t.verifyDocumentTitle,
-        onTap: () => unawaited(openVerifyDocument(context)),
       ),
       _QuickAction(
         icon: Icons.apartment_outlined,

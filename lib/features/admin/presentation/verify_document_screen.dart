@@ -13,6 +13,7 @@ import '../../../core/utils/format.dart';
 import '../../../domain/repositories/document_verification_repository.dart';
 import '../../../domain/repositories/export_repository.dart';
 import '../../../l10n/app_localizations.dart';
+import 'qr_scan_screen.dart';
 
 /// Opens the verify screen as a full-screen page.
 Future<void> openVerifyDocument(BuildContext context) => Navigator.of(
@@ -38,6 +39,14 @@ class _VerifyDocumentScreenState extends ConsumerState<VerifyDocumentScreen> {
   void dispose() {
     _code.dispose();
     super.dispose();
+  }
+
+  /// Scan the document's QR, then check it straight away.
+  Future<void> _scan() async {
+    final value = await scanQrCode(context);
+    if (value == null || !mounted) return;
+    _code.text = value.replaceFirst('MHC-VERIFY:', '');
+    await _verify();
   }
 
   Future<void> _verify() async {
@@ -79,6 +88,13 @@ class _VerifyDocumentScreenState extends ConsumerState<VerifyDocumentScreen> {
             decoration: InputDecoration(
               labelText: t.verifyCodeLabel,
               hintText: 'ABCDE-FGHJK',
+              suffixIcon: qrScanSupported
+                  ? IconButton(
+                      tooltip: t.scanQrTitle,
+                      icon: const Icon(Icons.qr_code_scanner),
+                      onPressed: _busy ? null : _scan,
+                    )
+                  : null,
             ),
             onSubmitted: (_) => _verify(),
           ),
