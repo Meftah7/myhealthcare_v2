@@ -4563,4 +4563,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get visitInvoicesHeading => 'Bills';
+
+  @override
+  String get mealTargetsHeading => 'Per meal';
+
+  @override
+  String get chatWithDoctorAction => 'Chat with doctor';
+
+  @override
+  String get chatNoMessagesYet =>
+      'No messages yet. Use \"Chat with doctor\" to message a doctor you have visited.';
+
+  @override
+  String get chooseDoctorTitle => 'Choose a doctor';
+
+  @override
+  String get uploadPdfForAiTooltip => 'Upload a PDF for a simple explanation';
 }

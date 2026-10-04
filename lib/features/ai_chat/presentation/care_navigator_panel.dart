@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../timeline/presentation/import_record_sheet.dart';
 import '../application/care_navigator.dart';
 
 class CareNavigatorPanel extends ConsumerStatefulWidget {
@@ -149,6 +150,21 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
             padding: const EdgeInsets.all(Space.sm),
             child: Row(
               children: [
+                IconButton(
+                  tooltip: t.uploadPdfForAiTooltip,
+                  onPressed: chat.sending
+                      ? null
+                      : () async {
+                          final record = await showImportRecordSheet(context);
+                          if (record == null) return;
+                          unawaited(
+                            ref
+                                .read(careNavigatorProvider.notifier)
+                                .explainDocument(record),
+                          );
+                        },
+                  icon: const Icon(Icons.upload_file_outlined),
+                ),
                 Expanded(
                   child: TextField(
                     controller: _input,

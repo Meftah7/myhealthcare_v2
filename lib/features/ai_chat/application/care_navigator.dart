@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/capabilities/capability_registry.dart';
 import '../../../core/di.dart';
+import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
 import '../../admin/application/settings_providers.dart';
 import '../../auth/application/session.dart';
@@ -133,6 +134,129 @@ class CareNavigator extends Notifier<CareNavigatorState> {
   }
 
   void reset() => state = const CareNavigatorState(messages: [_greeting]);
+
+  /// The patient uploaded [record] (a PDF) from the chat: say so, then
+  /// explain what it says in plain words. Never a diagnosis.
+  Future<void> explainDocument(MedicalRecord record) async {
+    if (state.sending) return;
+    final text = (record.extractedText ?? '').trim();
+    state = state.copyWith(
+      sending: true,
+      messages: [
+        ...state.messages,
+        ChatMessage(ChatRole.user, '📄 ${record.title}'),
+      ],
+    );
+    String reply;
+    var usedAi = false;
+    if (text.isEmpty) {
+      reply = _noTextReply;
+    } else {
+      try {
+        final live = await _liveConfig();
+        if (live != null) {
+          reply = await _askGeminiAbout(text, live.$1, live.$2);
+          usedAi = true;
+        } else {
+          reply = explainDocumentOffline(text, title: record.title);
+        }
+      } catch (_) {
+        reply = explainDocumentOffline(text, title: record.title);
+      }
+    }
+    state = state.copyWith(
+      sending: false,
+      messages: [...state.messages, ChatMessage(ChatRole.model, reply)],
+    );
+    unawaited(
+      ref
+          .read(aiUsageRepositoryProvider)
+          .log(
+            feature: AiFeature.careNavigator,
+            usedLiveModel: usedAi,
+            userId: ref.read(currentUserProvider)?.id,
+            summary: record.title,
+          ),
+    );
+  }
+
+  /// `(apiKey, model)` when live AI may be used, else null.
+  Future<(String, String)?> _liveConfig() async {
+    final settings = await ref.read(appSettingsProvider.future);
+    final key = await ref.read(aiKeyStoreProvider).read();
+    if (!phase8CapabilityEnabled('live-clinical-ai') ||
+        !settings.usesRealAi ||
+        key == null ||
+        key.isEmpty) {
+      return null;
+    }
+    return (key, settings.modelId);
+  }
+
+  Future<String> _askGeminiAbout(
+    String documentText,
+    String apiKey,
+    String model,
+  ) async {
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: 'https://generativelanguage.googleapis.com/v1beta',
+        connectTimeout: const Duration(seconds: 10),
+        receiveTimeout: const Duration(seconds: 40),
+      ),
+    );
+    final clipped = documentText.length > 12000
+        ? documentText.substring(0, 12000)
+        : documentText;
+    final res = await dio.post<Map<String, dynamic>>(
+      '/models/$model:generateContent',
+      options: Options(headers: {'x-goog-api-key': apiKey}),
+      data: {
+        'systemInstruction': {
+          'parts': [
+            {'text': _documentPrompt},
+          ],
+        },
+        'contents': [
+          {
+            'role': 'user',
+            'parts': [
+              {'text': clipped},
+            ],
+          },
+        ],
+        'generationConfig': {'temperature': 0.2, 'maxOutputTokens': 600},
+      },
+    );
+    final candidates = res.data?['candidates'];
+    final first = (candidates is List && candidates.isNotEmpty)
+        ? candidates.first
+        : null;
+    final content = first is Map ? first['content'] : null;
+    final parts = content is Map ? content['parts'] : null;
+    final part = (parts is List && parts.isNotEmpty) ? parts.first : null;
+    final out = part is Map ? part['text'] : null;
+    if (out is! String || out.trim().isEmpty) {
+      throw StateError('empty reply');
+    }
+    return out.trim();
+  }
+
+  static const _documentPrompt =
+      'You explain a medical document to the patient it belongs to. Write in '
+      'plain, everyday language a 12-year-old could follow, in the same '
+      'language as the document. Give: 1) what kind of document it is, '
+      '2) the main findings, naming any result marked high, low or abnormal '
+      'and what that measurement is in simple words, 3) a one-line overall '
+      'conclusion. 4-8 short sentences or bullets. Do NOT diagnose, do not '
+      'suggest treatment or medication changes. End by suggesting they '
+      'discuss it with their doctor. If the text is not a medical document, '
+      'say so briefly.';
+
+  static const _noTextReply =
+      "I saved the file to your Records, but I couldn't read any text in it "
+      '(it may be a scanned image). Your doctor can still open the original '
+      'file.';
 
   /// Returns `(reply, usedLiveModel)`.
   Future<(String, bool)> _answer(String text) async {
@@ -329,6 +453,84 @@ class CareNavigator extends Notifier<CareNavigatorState> {
     return 'I can point you to Appointments, Records, Nutrition, Payments, '
         'Notifications or your Profile. Which would you like?';
   }
+}
+
+/// What common lab tests measure, in plain words — for the offline
+/// explanation.
+const _plainTests = <String, String>{
+  'hba1c': 'average blood sugar over the last 2–3 months',
+  'glucose': 'sugar in the blood',
+  'cholesterol': 'fat in the blood',
+  'ldl': 'the "bad" cholesterol',
+  'hdl': 'the "good" cholesterol',
+  'triglyceride': 'another type of fat in the blood',
+  'hemoglobin': 'the part of red blood cells that carries oxygen',
+  'haemoglobin': 'the part of red blood cells that carries oxygen',
+  'ferritin': 'the body\'s iron stores',
+  'vitamin d': 'vitamin D, important for bones',
+  'b12': 'vitamin B12, important for nerves and blood',
+  'tsh': 'thyroid function',
+  'creatinine': 'how well the kidneys filter',
+  'egfr': 'how well the kidneys filter',
+  'alt': 'liver health',
+  'ast': 'liver health',
+  'wbc': 'white blood cells, which fight infection',
+  'white blood': 'white blood cells, which fight infection',
+  'platelet': 'cells that help blood clot',
+  'sodium': 'a salt that balances body fluids',
+  'potassium': 'a salt important for the heart and muscles',
+  'crp': 'inflammation in the body',
+};
+
+/// A plain-language explanation of a document's text without a live model:
+/// the tests it mentions, what they measure, and any marked high or low.
+String explainDocumentOffline(String text, {required String title}) {
+  final lines = text.split(RegExp(r'[\r\n]+'));
+  final found = <String, String>{};
+  final high = <String>{};
+  final low = <String>{};
+  for (final raw in lines) {
+    final line = raw.toLowerCase();
+    for (final MapEntry(key: test, value: meaning) in _plainTests.entries) {
+      if (!RegExp('\\b${RegExp.escape(test)}').hasMatch(line)) continue;
+      found.putIfAbsent(test, () => meaning);
+      if (RegExp(r'\b(high|elevated|h)\b|↑').hasMatch(line)) high.add(test);
+      if (RegExp(r'\b(low|decreased|l)\b|↓').hasMatch(line)) low.add(test);
+    }
+  }
+  String name(String t) => t.length <= 4 ? t.toUpperCase() : t;
+  final out = StringBuffer('Here is a simple summary of "$title".\n\n');
+  if (found.isEmpty) {
+    out.write(
+      "I couldn't spot specific test results in it, so I can't summarise "
+      'the findings myself. ',
+    );
+  } else {
+    out.write('It includes:\n');
+    for (final MapEntry(key: t, value: meaning) in found.entries.take(8)) {
+      out.write('• ${name(t)} — $meaning\n');
+    }
+    out.write('\n');
+    if (high.isEmpty && low.isEmpty) {
+      out.write(
+        'Nothing is clearly marked high or low, which usually means the '
+        'results are within the expected range. ',
+      );
+    } else {
+      if (high.isNotEmpty) {
+        out.write('Marked high: ${high.map(name).join(', ')}. ');
+      }
+      if (low.isNotEmpty) {
+        out.write('Marked low: ${low.map(name).join(', ')}. ');
+      }
+      out.write('One result outside the range is not a diagnosis on its own. ');
+    }
+  }
+  out.write(
+    '\n\nIt is saved in your Records, and a clinician will review it. '
+    'Please talk it through with your doctor.',
+  );
+  return out.toString();
 }
 
 final careNavigatorProvider =

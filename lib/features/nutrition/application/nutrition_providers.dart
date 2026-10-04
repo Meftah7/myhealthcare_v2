@@ -220,6 +220,8 @@ class MealTargets {
     required this.protein,
     required this.carbs,
     required this.fat,
+    this.maxSugar = 0,
+    this.maxSatFat = 0,
   });
 
   final MealType type;
@@ -227,6 +229,10 @@ class MealTargets {
   final int protein;
   final int carbs;
   final int fat;
+
+  /// This meal's share of the daily sugar / saturated-fat caps.
+  final int maxSugar;
+  final int maxSatFat;
 }
 
 /// Meal-planner input: whether the day is split into three meals or four.
@@ -275,6 +281,8 @@ GeneratedMealPlan _buildPlan(MacroResult? targets, bool includeSweet) {
           protein: (targets.protein * split.fractionFor(t)).round(),
           carbs: (targets.carbs * split.fractionFor(t)).round(),
           fat: (targets.fat * split.fractionFor(t)).round(),
+          maxSugar: (targets.maxSugar * split.fractionFor(t)).round(),
+          maxSatFat: (targets.maxSatFat * split.fractionFor(t)).round(),
         ),
     ];
   }

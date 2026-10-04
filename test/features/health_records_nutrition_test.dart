@@ -15,6 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/mfa.dart';
 import '../support/test_database.dart';
+import 'package:myhealthcare/core/presentation/app_scaffold.dart';
 
 Future<void> _settle(WidgetTester tester) async {
   for (var i = 0; i < 24; i++) {
@@ -57,6 +58,17 @@ Future<ProviderContainer> _signIn(WidgetTester tester) async {
   await _settle(tester);
   return container;
 }
+
+/// The page's own vertical list — not the navigation sidebar shown on wide
+/// windows.
+Finder _content() => find
+    .descendant(
+      of: find.byType(ScrollToTopSignal),
+      matching: find.byWidgetPredicate(
+        (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+      ),
+    )
+    .first;
 
 void main() {
   group('macro calculator', () {
@@ -115,7 +127,11 @@ void main() {
 
     // The hub leads with eligible doctor chats and all eight health actions.
     expect(find.text('Chat with your doctors'), findsOneWidget);
-    await tester.scrollUntilVisible(find.text('Your health'), 240);
+    await tester.scrollUntilVisible(
+      find.text('Your health'),
+      240,
+      scrollable: _content(),
+    );
     expect(find.byType(QuickActionTile), findsNWidgets(8));
     for (final label in [
       'Home care',
@@ -146,8 +162,13 @@ void main() {
     // History and imports remain available from the hub.
     await tester.tap(find.text('Back to Records'));
     await _settle(tester);
-    await tester.scrollUntilVisible(find.text('Timeline'), 240);
-    expect(find.text('Import PDF'), findsWidgets);
+    await tester.scrollUntilVisible(
+      find.text('Timeline'),
+      240,
+      scrollable: _content(),
+    );
+    // Importing a PDF moved to the AI chat.
+    expect(find.text('Import PDF'), findsNothing);
     await tester.tap(find.text('Timeline'));
     await _settle(tester);
     expect(find.byType(SearchBar), findsOneWidget);

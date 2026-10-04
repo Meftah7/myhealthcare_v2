@@ -2079,5 +2079,10 @@
   "verifyTypeCertificate": "Medical certificate",
   "verifyTypeReferral": "Referral letter",
   "visitSickLeaveHeading": "Sick leave",
-  "visitInvoicesHeading": "Bills"
+  "visitInvoicesHeading": "Bills",
+  "mealTargetsHeading": "Per meal",
+  "chatWithDoctorAction": "Chat with doctor",
+  "chatNoMessagesYet": "No messages yet. Use \"Chat with doctor\" to message a doctor you have visited.",
+  "chooseDoctorTitle": "Choose a doctor",
+  "uploadPdfForAiTooltip": "Upload a PDF for a simple explanation"
 }

@@ -22,7 +22,6 @@ import '../../patient/application/visited_doctors_provider.dart';
 import '../../patient/presentation/document_download_button.dart';
 import '../../patient/presentation/patient_top_actions.dart';
 import '../../records/presentation/medications_screen.dart';
-import 'import_record_sheet.dart';
 import 'timeline_screen.dart';
 
 enum _RecordsView { overview, timeline, medications, bills }
@@ -85,11 +84,6 @@ class _HealthRecordsScreenState extends ConsumerState<HealthRecordsScreen> {
                 icon: const Icon(Icons.timeline_outlined),
                 label: Text(t.timelineSegment),
               ),
-              OutlinedButton.icon(
-                onPressed: () => showImportRecordSheet(context),
-                icon: const Icon(Icons.upload_file_outlined),
-                label: Text(t.importPdfAction),
-              ),
             ],
           ),
         ],
@@ -140,13 +134,6 @@ class _HealthRecordsScreenState extends ConsumerState<HealthRecordsScreen> {
           _RecordsView.overview => const SizedBox.shrink(),
         },
       ),
-      floatingActionButton: _view == _RecordsView.timeline
-          ? FloatingActionButton.extended(
-              onPressed: () => showImportRecordSheet(context),
-              icon: const Icon(Icons.upload_file_outlined),
-              label: Text(t.importPdfAction),
-            )
-          : null,
       centerBody: false,
     );
   }

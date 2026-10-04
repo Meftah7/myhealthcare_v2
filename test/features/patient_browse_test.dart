@@ -69,12 +69,8 @@ void main() {
     await tester.tap(find.text('Records').first);
     await _settle(tester);
     expect(find.widgetWithText(AppBar, 'Records'), findsOneWidget);
-    // Seeded chronic patient has visit notes / lab panels.
-    expect(
-      find.byType(ListTile),
-      findsWidgets,
-      reason: 'timeline should list records',
-    );
+    // The hub offers the doctor chat (conversations + "Chat with doctor").
+    expect(find.text('Chat with doctor'), findsOneWidget);
 
     // Go back to Home, then to Vitals via the Quick Actions tile — Vitals
     // is a full-screen push now, not a bottom tab (patient dashboard rebuild).

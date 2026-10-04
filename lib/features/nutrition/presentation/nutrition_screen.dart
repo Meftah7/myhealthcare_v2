@@ -152,13 +152,87 @@ class _NutritionOverview extends ConsumerWidget {
                     Text('${t.macroProtein} · ${targets.protein} g'),
                     Text('${t.macroCarbs} · ${targets.carbs} g'),
                     Text('${t.macroFat} · ${targets.fat} g'),
+                    Text('${t.macroSugar} · ≤ ${targets.maxSugar} g'),
+                    Text('${t.macroSatFat} · ≤ ${targets.maxSatFat} g'),
                   ],
                 ),
               ],
             ],
           ),
         ),
+        if (targets != null) ...[
+          const SizedBox(height: Space.md),
+          const _MealTargetsSection(),
+        ],
+        const SizedBox(height: Space.md),
         OutlinedButton(onPressed: onFoods, child: Text(t.foodsSegment)),
+      ],
+    );
+  }
+}
+
+/// The day's targets split into breakfast, lunch and dinner — plus a dessert
+/// when the patient includes one — each with all six figures.
+class _MealTargetsSection extends ConsumerWidget {
+  const _MealTargetsSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final meals = ref.watch(mealPlanProvider)?.perMeal;
+    if (meals == null) return const SizedBox.shrink();
+    final hasDessert = meals.any((m) => m.type == MealType.sweet);
+
+    String name(MealType type) => switch (type) {
+      MealType.breakfast => t.mealBreakfast,
+      MealType.lunch => t.mealLunch,
+      MealType.dinner => t.mealDinner,
+      MealType.sweet => t.mealDessert,
+    };
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SectionHeader(t.mealTargetsHeading, overline: true),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(t.includeDessertTitle),
+          subtitle: Text(t.includeDessertSubtitle),
+          value: hasDessert,
+          onChanged: (on) => unawaited(
+            ref
+                .read(mealPlanProvider.notifier)
+                .generate(MealPlanRequest(includeSweet: on)),
+          ),
+        ),
+        for (final meal in meals) ...[
+          AppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name(meal.type), style: theme.textTheme.titleSmall),
+                const SizedBox(height: Space.xs),
+                _PillGrid(
+                  pills: [
+                    _Pill(
+                      t.macroCalories,
+                      '${meal.calories}',
+                      accent: scheme.primary,
+                    ),
+                    _Pill(t.macroProtein, '${meal.protein} g'),
+                    _Pill(t.macroCarbs, '${meal.carbs} g'),
+                    _Pill(t.macroFat, '${meal.fat} g'),
+                    _Pill(t.macroSugar, '≤ ${meal.maxSugar} g'),
+                    _Pill(t.macroSatFat, '≤ ${meal.maxSatFat} g'),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: Space.sm),
+        ],
       ],
     );
   }

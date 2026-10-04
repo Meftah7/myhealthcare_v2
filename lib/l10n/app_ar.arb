@@ -2022,5 +2022,10 @@
   "verifyTypeCertificate": "شهادة طبية",
   "verifyTypeReferral": "خطاب إحالة",
   "visitSickLeaveHeading": "الإجازة المرضية",
-  "visitInvoicesHeading": "الفواتير"
+  "visitInvoicesHeading": "الفواتير",
+  "mealTargetsHeading": "لكل وجبة",
+  "chatWithDoctorAction": "الدردشة مع الطبيب",
+  "chatNoMessagesYet": "لا توجد رسائل بعد. استخدم \"الدردشة مع الطبيب\" لمراسلة طبيب زرته.",
+  "chooseDoctorTitle": "اختر طبيبًا",
+  "uploadPdfForAiTooltip": "ارفع ملف PDF للحصول على شرح مبسط"
 }

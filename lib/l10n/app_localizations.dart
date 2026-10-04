@@ -8089,6 +8089,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Bills'**
   String get visitInvoicesHeading;
+
+  /// No description provided for @mealTargetsHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Per meal'**
+  String get mealTargetsHeading;
+
+  /// No description provided for @chatWithDoctorAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat with doctor'**
+  String get chatWithDoctorAction;
+
+  /// No description provided for @chatNoMessagesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet. Use \"Chat with doctor\" to message a doctor you have visited.'**
+  String get chatNoMessagesYet;
+
+  /// No description provided for @chooseDoctorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a doctor'**
+  String get chooseDoctorTitle;
+
+  /// No description provided for @uploadPdfForAiTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload a PDF for a simple explanation'**
+  String get uploadPdfForAiTooltip;
 }
 
 class _AppLocalizationsDelegate

@@ -4622,4 +4622,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get visitInvoicesHeading => 'الفواتير';
+
+  @override
+  String get mealTargetsHeading => 'لكل وجبة';
+
+  @override
+  String get chatWithDoctorAction => 'الدردشة مع الطبيب';
+
+  @override
+  String get chatNoMessagesYet =>
+      'لا توجد رسائل بعد. استخدم \"الدردشة مع الطبيب\" لمراسلة طبيب زرته.';
+
+  @override
+  String get chooseDoctorTitle => 'اختر طبيبًا';
+
+  @override
+  String get uploadPdfForAiTooltip => 'ارفع ملف PDF للحصول على شرح مبسط';
 }

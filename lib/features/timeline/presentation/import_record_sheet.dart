@@ -6,7 +6,8 @@
 /// record (in the app's database, on every platform) and fingerprinted, so it
 /// can be opened again exactly as imported. The record is marked "not
 /// reviewed by a clinician" until one reviews it. Nothing is uploaded to any
-/// outside service.
+/// outside service by the import itself — the AI chat may send the text to
+/// the live model to explain it, only when an admin has enabled live AI.
 ///
 /// Failures never lose what was entered: a file that can't be read, or a
 /// save that fails, leaves every field as it was with the reason and a way
@@ -27,6 +28,7 @@ import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
+import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
 import '../../../domain/repositories/record_repository.dart';
 import '../../../l10n/app_localizations.dart';
@@ -34,8 +36,9 @@ import '../../auth/application/session.dart';
 import '../../patient/application/family_link_providers.dart';
 import '../../patient/application/patient_data_providers.dart';
 
-Future<void> showImportRecordSheet(BuildContext context) {
-  return showModalBottomSheet<void>(
+/// Returns the saved record, or null if the patient closed the sheet.
+Future<MedicalRecord?> showImportRecordSheet(BuildContext context) {
+  return showModalBottomSheet<MedicalRecord>(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
@@ -191,12 +194,12 @@ class _ImportRecordSheetState extends ConsumerState<_ImportRecordSheet> {
         );
     if (!mounted) return;
     switch (result) {
-      case Ok():
+      case Ok(:final value):
         ref.invalidate(patientTimelinePageProvider);
         if (patientId != user.id) {
           ref.invalidate(linkedTimelinePageProvider(patientId));
         }
-        Navigator.of(context).pop();
+        Navigator.of(context).pop(value);
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(t.importedRecordSavedMessage)));
