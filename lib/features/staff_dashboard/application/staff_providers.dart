@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/audio/app_sounds.dart';
 import '../../../core/data/contracts.dart';
 import '../../../core/di.dart';
+import '../../../core/failures.dart';
 import '../../../core/result.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
@@ -117,9 +118,15 @@ final staffPrescriptionsIssuedProvider = FutureProvider<List<Medication>>((
   );
 });
 
-/// The whole patient panel (small single-clinic demo) (P5-06).
+/// Only patients whose charts the signed-in clinician may access (P5-06).
 final staffPanelProvider = FutureProvider<List<Patient>>((ref) async {
-  return _unwrap(await ref.watch(patientRepositoryProvider).all(limit: 500));
+  _staffId(ref);
+  final visible = await ref
+      .watch(accessPolicyProvider)
+      .clinicallyVisiblePatientIds();
+  final repo = ref.watch(patientRepositoryProvider);
+  if (visible == null) return _unwrap(await repo.all(limit: 500));
+  return [for (final id in visible) _unwrap(await repo.byId(id))];
 });
 
 /// Free-text patient search backing the staff patient list (P5-06).
@@ -204,10 +211,7 @@ final staffTasksProvider = FutureProvider<List<StaffTask>>((ref) async {
     await ref.watch(taskRepositoryProvider).forStaff(id, openOnly: true),
   );
   final weight = await ref.watch(aiTaskWeightProvider.future);
-  tasks.sort(
-    (a, b) =>
-        b.effectivePriority(weight).compareTo(a.effectivePriority(weight)),
-  );
+  tasks.sort((a, b) => compareStaffTasks(a, b, aiWeight: weight));
   return tasks;
 });
 
@@ -228,20 +232,28 @@ class StaffOps {
     final patients = await _ref.read(staffPanelProvider.future);
     final detector = _ref.read(riskDetectionServiceProvider);
 
-    for (final p in patients) {
-      await detector.runAndPersist(p);
+    try {
+      for (final p in patients) {
+        _unwrap(await detector.runAndPersist(p));
+      }
+      final flags = _unwrap(
+        await _ref.read(riskRepositoryProvider).unacknowledged(),
+      );
+      final panelIds = patients.map((p) => p.id).toSet();
+      final panelFlags = flags
+          .where((f) => panelIds.contains(f.patientId))
+          .toList();
+      _unwrap(
+        await _ref
+            .read(taskGeneratorProvider)
+            .generateFor(staffId: staffId, flags: panelFlags),
+      );
+      return panelFlags.length;
+    } finally {
+      _ref
+        ..invalidate(unacknowledgedFlagsProvider)
+        ..invalidate(staffTasksProvider);
     }
-    final flags = _unwrap(
-      await _ref.read(riskRepositoryProvider).unacknowledged(),
-    );
-    await _ref
-        .read(taskGeneratorProvider)
-        .generateFor(staffId: staffId, flags: flags);
-
-    _ref
-      ..invalidate(unacknowledgedFlagsProvider)
-      ..invalidate(staffTasksProvider);
-    return flags.length;
   }
 
   /// P5-10: score open tasks with the (deterministic mock) AI ranker and store
@@ -253,23 +265,41 @@ class StaffOps {
       await _ref.read(taskRepositoryProvider).forStaff(staffId, openOnly: true),
     );
     final repo = _ref.read(taskRepositoryProvider);
-    for (final (task, score, rationale) in _rankTasks(tasks)) {
-      await repo.applyAiPriority(
-        id: task.id,
-        staffId: staffId,
-        score: score,
-        rationale: rationale,
-        expectedVersion: task.version,
+    var completed = 0;
+    // Covering work belongs to its owner; the ranker may update only own work.
+    final owned = tasks.where((t) => t.staffId == staffId).toList();
+    try {
+      for (final (task, score, rationale) in _rankTasks(owned)) {
+        _unwrap(
+          await repo.applyAiPriority(
+            id: task.id,
+            staffId: staffId,
+            score: score,
+            rationale: rationale,
+            expectedVersion: task.version,
+          ),
+        );
+        completed++;
+      }
+    } on Failure catch (failure) {
+      if (completed == 0) rethrow;
+      throw PartialOperationFailure(
+        completed: completed,
+        total: owned.length,
+        failure: failure,
       );
+    } finally {
+      _ref.invalidate(staffTasksProvider);
     }
-    _ref.invalidate(staffTasksProvider);
   }
 
   Future<void> acknowledgeFlag(String flagId) async {
     final staffId = _ref.read(currentUserProvider)!.id;
-    await _ref
-        .read(riskRepositoryProvider)
-        .acknowledge(id: flagId, staffId: staffId);
+    _unwrap(
+      await _ref
+          .read(riskRepositoryProvider)
+          .acknowledge(id: flagId, staffId: staffId),
+    );
     _ref
       ..invalidate(unacknowledgedFlagsProvider)
       ..invalidate(staffTasksProvider);

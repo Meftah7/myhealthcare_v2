@@ -12,6 +12,7 @@ import 'dart:typed_data';
 
 import 'package:pdf/widgets.dart' as pw;
 
+import '../../domain/clinical/lab_history.dart';
 import '../../domain/entities/entities.dart';
 import '../../domain/enums.dart';
 import 'clinic_pdf.dart';
@@ -92,9 +93,16 @@ pw.Widget _labResults(
   PdfStrings s, {
   Map<String, PreviousLab> previousLabs = const {},
 }) {
-  final showPrevious = values.any(
-    (v) => previousLabs.containsKey(v.analyte.toLowerCase()),
-  );
+  PreviousLab? previous(LabValue v) {
+    final p =
+        previousLabs[labHistoryKey(v)] ?? previousLabs[v.analyte.toLowerCase()];
+    return (v.unit?.trim().isNotEmpty ?? false) &&
+            p?.unit?.trim() == v.unit?.trim()
+        ? p
+        : null;
+  }
+
+  final showPrevious = values.any((v) => previous(v) != null);
   final abnormal = values.where((v) => _labAbnormal(v.abnormalFlag)).length;
   final critical = values.any((v) => v.abnormalFlag == AbnormalFlag.critical);
   final withRange = values.any((v) => v.abnormalFlag != AbnormalFlag.unknown);
@@ -126,7 +134,7 @@ pw.Widget _labResults(
               },
               _labFlag(v.abnormalFlag, s),
               if (showPrevious)
-                switch (previousLabs[v.analyte.toLowerCase()]) {
+                switch (previous(v)) {
                   final p? =>
                     '${p.value}${p.unit == null ? '' : ' ${p.unit}'} '
                         '(${pdfShortDate(p.at, arabic: s.isArabic)})',

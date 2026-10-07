@@ -89,3 +89,15 @@ class RiskFlags extends Table {
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
+
+/// Source-specific identities that were already represented by a legacy
+/// broad flag. Keep that flag and its generated task IDs unchanged.
+class RiskSourceAliases extends Table {
+  TextColumn get sourceKey => text()();
+  TextColumn get canonicalKey => text()();
+  TextColumn get patientId =>
+      text().references(Users, #id, onDelete: KeyAction.cascade)();
+
+  @override
+  Set<Column<Object>> get primaryKey => {sourceKey};
+}

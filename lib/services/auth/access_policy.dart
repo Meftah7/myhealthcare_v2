@@ -21,15 +21,18 @@ import 'package:drift/drift.dart';
 import '../../core/failures.dart';
 import '../../core/utils/ids.dart';
 import '../../data/db/app_database.dart';
+import '../../domain/entities/staff.dart';
 import '../../domain/enums.dart';
 import '../../domain/identity/identity.dart';
+import '../../domain/identity/operational_roles.dart';
 import '../../domain/identity/permissions.dart';
 import '../../domain/identity/principal.dart';
+import 'access_snapshot.dart';
 import 'auth_context.dart';
 
 /// A live query gated on [authorize]: nothing reaches a listener until the
-/// check passes, and a denial arrives as the stream's error (then the stream
-/// closes).
+/// check passes for each emission. A denial arrives as an error and closes
+/// the stream.
 ///
 /// Broadcast, like drift's own query streams: the query subscription opens
 /// in the same call as the first listen and is cancelled with the last one,
@@ -49,11 +52,24 @@ Stream<T> authorizedStream<T>(
     onListen: () {
       authorized = false;
       held.clear();
-      final subscription = open().listen(
-        (event) => authorized ? controller.add(event) : held.add(event),
-        onError: controller.addError,
-        onDone: () => unawaited(controller.close()),
-      );
+      final subscription = open()
+          .asyncMap((event) async {
+            await authorize();
+            return event;
+          })
+          .listen(
+            (event) => authorized ? controller.add(event) : held.add(event),
+            onError: (Object error, StackTrace stack) {
+              final subscription = inner;
+              inner = null;
+              unawaited(subscription?.cancel());
+              if (!controller.isClosed) {
+                controller.addError(error, stack);
+                unawaited(controller.close());
+              }
+            },
+            onDone: () => unawaited(controller.close()),
+          );
       inner = subscription;
       unawaited(
         authorize().then(
@@ -106,6 +122,140 @@ class AccessPolicy {
 
   bool get isEnforced => _context != null;
 
+  Future<AccessSnapshot> authorizationSnapshot() async {
+    final p = await principal();
+    if (p == null) throw const SessionExpiredFailure();
+    final now = DateTime.now();
+    final expiries = <DateTime>[];
+    final manageProxies = <String>{};
+    final credentials = <String>{};
+    final scopedGrants = <String>{};
+    final grantRows =
+        await (_db.select(_db.scopedGrants)..where(
+              (g) => g.accountId.equals(p.accountId) & g.revokedAt.isNull(),
+            ))
+            .get();
+    for (final grant in grantRows) {
+      if (grant.startsAt.isAfter(now)) {
+        expiries.add(grant.startsAt);
+      } else if (grant.expiresAt == null || grant.expiresAt!.isAfter(now)) {
+        scopedGrants.add(
+          '${grant.id}/${grant.permission}/${grant.scope}/${grant.scopeId}',
+        );
+        if (grant.expiresAt != null) expiries.add(grant.expiresAt!);
+      }
+    }
+    if (p.isPatient) {
+      final grants =
+          await (_db.select(_db.familyLinks)..where(
+                (g) =>
+                    g.viewerPatientId.equals(p.accountId) &
+                    g.status.equalsValue(FamilyLinkStatus.accepted),
+              ))
+              .get();
+      manageProxies.addAll(
+        grants
+            .where((g) => g.permission == FamilyLinkPermission.manage)
+            .map((g) => g.ownerPatientId),
+      );
+    }
+    if (p.isStaff || p.isAdmin) {
+      final profile = await (_db.select(
+        _db.staffProfiles,
+      )..where((s) => s.userId.equals(p.accountId))).getSingleOrNull();
+      final assignments = await (_db.select(
+        _db.careTeamAssignments,
+      )..where((a) => a.staffId.equals(p.accountId))).get();
+      for (final a in assignments) {
+        if (a.assignedAt.isAfter(now)) expiries.add(a.assignedAt);
+        if (a.endedAt != null && a.endedAt!.isAfter(now)) {
+          expiries.add(a.endedAt!);
+        }
+      }
+      final rows = await (_db.select(
+        _db.staffCredentials,
+      )..where((c) => c.staffId.equals(p.accountId))).get();
+      for (final c in rows) {
+        if (c.revokedAt == null &&
+            c.verifiedAt != null &&
+            (c.validUntil == null || c.validUntil!.isAfter(now))) {
+          credentials.add(
+            '${c.id}/${c.kind.name}/${c.identifier}/${profile != null && profile.jobTitle != kNurseJobTitle}',
+          );
+          if (c.validUntil != null) expiries.add(c.validUntil!);
+        }
+      }
+    }
+    expiries.sort();
+    return AccessSnapshot(
+      sessionId: p.sessionId,
+      patients: (await clinicallyVisiblePatientIds())!,
+      permissions: p.permissions,
+      manageProxies: manageProxies,
+      credentials: credentials,
+      scopedGrants: scopedGrants,
+      signingPatients: p.isAdmin
+          ? await _carePatientIds(p.accountId)
+          : const {},
+      nextExpiry: expiries.firstOrNull,
+    );
+  }
+
+  /// React to access-table changes even when no clinical row changes. Expiry
+  /// wakes at the actual deadline rather than waiting for another DB write.
+  Stream<AccessSnapshot> watchAuthorization() {
+    late final StreamController<AccessSnapshot> controller;
+    StreamSubscription<List<QueryRow>>? changes;
+    Timer? expiry;
+    var closed = false;
+    var pending = Future<void>.value();
+    void refresh() {
+      pending = pending.then((_) async {
+        if (closed) return;
+        try {
+          final snapshot = await authorizationSnapshot();
+          if (closed) return;
+          expiry?.cancel();
+          if (snapshot.nextExpiry case final deadline?) {
+            final delay = deadline.difference(DateTime.now());
+            expiry = Timer(delay.isNegative ? Duration.zero : delay, refresh);
+          }
+          controller.add(snapshot);
+        } on Object catch (error, stack) {
+          if (!closed) controller.addError(error, stack);
+        }
+      });
+    }
+
+    controller = StreamController<AccessSnapshot>(
+      onListen: () {
+        changes = _db
+            .customSelect(
+              'SELECT 1',
+              readsFrom: {
+                _db.users,
+                _db.staffProfiles,
+                _db.familyLinks,
+                _db.careTeamAssignments,
+                _db.appointments,
+                _db.walkInTickets,
+                _db.staffCredentials,
+                _db.scopedGrants,
+              },
+            )
+            .watch()
+            .listen((_) => refresh(), onError: controller.addError);
+      },
+      onCancel: () async {
+        closed = true;
+        expiry?.cancel();
+        await changes?.cancel();
+        unawaited(controller.close());
+      },
+    );
+    return controller.stream;
+  }
+
   /// The acting account, for stamping `...ByAccountId` columns. Null when
   /// unenforced.
   String? get actingAccountId => _context?.principal?.accountId;
@@ -129,7 +279,22 @@ class AccessPolicy {
         'Your account is no longer available. Please sign in again.',
       );
     }
-    return principal;
+    // A profile change must narrow an already-open session too.
+    var isNurse = false;
+    if (row.role == UserRole.staff) {
+      final profile = await (_db.select(
+        _db.staffProfiles,
+      )..where((p) => p.userId.equals(row.id))).getSingleOrNull();
+      isNurse = profile?.jobTitle == kNurseJobTitle;
+    }
+    final currentGrants = RolePermissions.forRole(row.role, isNurse: isNurse);
+    return Principal(
+      accountId: principal.accountId,
+      role: principal.role,
+      permissions: principal.permissions.intersection(currentGrants),
+      sessionId: principal.sessionId,
+      authenticatedAt: principal.authenticatedAt,
+    );
   }
 
   /// Require [permission] of the signed-in principal.
@@ -146,6 +311,115 @@ class AccessPolicy {
         'missing permission ${permission.name}',
         entityType: entityType,
         entityId: entityId,
+      );
+    }
+    return p;
+  }
+
+  /// Operational grants authorize a narrow action, never general chart access.
+  /// Department scope is derived from the visit, not a caller-supplied label.
+  Future<Principal?> requireScoped(
+    Permission permission, {
+    String? patientId,
+    String? appointmentId,
+  }) async {
+    final p = await principal();
+    if (p == null) return null;
+    if (!OperationalRoles.scopedPermissions.contains(permission) ||
+        p.isPatient) {
+      return _deny(
+        p,
+        'not an operational permission',
+        entityType: 'scoped_grant',
+        subjectPatientId: patientId,
+      );
+    }
+    String? departmentId;
+    if (appointmentId != null) {
+      final visit = await (_db.select(
+        _db.appointments,
+      )..where((a) => a.id.equals(appointmentId))).getSingleOrNull();
+      if (visit == null || visit.patientId != patientId) {
+        return _deny(
+          p,
+          'visit and patient mismatch',
+          entityType: 'scoped_grant',
+          subjectPatientId: patientId,
+        );
+      }
+      departmentId = visit.departmentId;
+    }
+    final now = DateTime.now();
+    final grants =
+        await (_db.select(_db.scopedGrants)..where(
+              (g) =>
+                  g.accountId.equals(p.accountId) &
+                  g.permission.equals(permission.name) &
+                  g.revokedAt.isNull() &
+                  g.startsAt.isSmallerOrEqualValue(now) &
+                  (g.expiresAt.isNull() | g.expiresAt.isBiggerThanValue(now)),
+            ))
+            .get();
+    if (!grants.any(
+      (g) =>
+          (g.scope == GrantScope.clinic.name && g.scopeId.isEmpty) ||
+          (g.scope == GrantScope.patient.name &&
+              patientId != null &&
+              g.scopeId == patientId) ||
+          (g.scope == GrantScope.department.name &&
+              departmentId != null &&
+              g.scopeId == departmentId),
+    )) {
+      return _deny(
+        p,
+        'missing scoped ${permission.name}',
+        entityType: 'scoped_grant',
+        subjectPatientId: patientId,
+      );
+    }
+    return p;
+  }
+
+  /// Clinical signing is independent of account role or operational presets.
+  /// Even an administrator needs an explicit signing grant, verified medical
+  /// licence, staff profile and a current care relationship.
+  Future<Principal?> requireClinicalDocumentSigner({
+    required String patientId,
+    required String appointmentId,
+  }) async {
+    final p = await requireScoped(
+      Permission.signClinicalDocument,
+      patientId: patientId,
+      appointmentId: appointmentId,
+    );
+    if (p == null) return null;
+    final profile = await (_db.select(
+      _db.staffProfiles,
+    )..where((s) => s.userId.equals(p.accountId))).getSingleOrNull();
+    final now = DateTime.now();
+    final credentials =
+        await (_db.select(_db.staffCredentials)..where(
+              (c) =>
+                  c.staffId.equals(p.accountId) &
+                  c.kind.equalsValue(CredentialKind.medicalLicense) &
+                  c.verifiedAt.isNotNull() &
+                  c.verifiedAt.isSmallerOrEqualValue(now) &
+                  c.revokedAt.isNull() &
+                  (c.validUntil.isNull() | c.validUntil.isBiggerThanValue(now)),
+            ))
+            .get();
+    if (profile == null ||
+        profile.jobTitle == kNurseJobTitle ||
+        !credentials.any((c) => c.identifier.trim().isNotEmpty) ||
+        !await hasCareRelationship(
+          staffId: p.accountId,
+          patientId: patientId,
+        )) {
+      return _deny(
+        p,
+        'clinical document signer is not qualified',
+        entityType: 'document',
+        subjectPatientId: patientId,
       );
     }
     return p;
@@ -240,17 +514,21 @@ class AccessPolicy {
       return {p.accountId, for (final g in grants) g.ownerPatientId};
     }
     if (!p.isStaff || !p.can(Permission.readPatientChart)) return {};
+    return _carePatientIds(p.accountId);
+  }
+
+  Future<Set<String>> _carePatientIds(String accountId) async {
     final now = DateTime.now();
     final appts =
         await (_db.selectOnly(_db.appointments, distinct: true)
               ..addColumns([_db.appointments.patientId])
-              ..where(_db.appointments.staffId.equals(p.accountId)))
+              ..where(_db.appointments.staffId.equals(accountId)))
             .map((r) => r.read(_db.appointments.patientId)!)
             .get();
     final assigned =
         await (_db.select(_db.careTeamAssignments)..where(
               (c) =>
-                  c.staffId.equals(p.accountId) &
+                  c.staffId.equals(accountId) &
                   c.assignedAt.isSmallerOrEqualValue(now) &
                   (c.endedAt.isNull() | c.endedAt.isBiggerThanValue(now)),
             ))
@@ -258,8 +536,8 @@ class AccessPolicy {
     final walkIns =
         await (_db.select(_db.walkInTickets)..where(
               (w) =>
-                  w.claimedByStaffId.equals(p.accountId) |
-                  w.createdByStaffId.equals(p.accountId),
+                  w.claimedByStaffId.equals(accountId) |
+                  w.createdByStaffId.equals(accountId),
             ))
             .get();
     return {
@@ -445,6 +723,9 @@ class AccessPolicy {
   /// appointment, an active care-team assignment, or a walk-in the clinician
   /// raised or claimed. (A message thread is not one: threads may only open
   /// on top of an existing relationship.)
+  /// Historical appointments/walk-ins currently retain access; assignments
+  /// alone stop granting access at endedAt. Changing that retention policy
+  /// requires a separately agreed clinic policy.
   Future<bool> hasCareRelationship({
     required String staffId,
     required String patientId,

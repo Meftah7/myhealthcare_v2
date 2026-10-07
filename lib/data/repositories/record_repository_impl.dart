@@ -276,7 +276,41 @@ class RecordRepositoryImpl implements RecordRepository {
           scope: 'record.add',
           actorAccountId: createdBy,
         );
-        if (prior != null) return prior;
+        if (prior != null) {
+          final previous = await (_db.select(
+            _db.medicalRecords,
+          )..where((r) => r.id.equals(prior))).getSingle();
+          if (previous.patientId != record.patientId) {
+            throw const ConflictFailure(
+              'This save attempt belongs to another patient.',
+            );
+          }
+          return prior;
+        }
+        if (file != null && !record.allowDuplicate) {
+          final duplicate =
+              await (_db.select(_db.documentFiles).join([
+                      innerJoin(
+                        _db.medicalRecords,
+                        _db.medicalRecords.id.equalsExp(
+                          _db.documentFiles.recordId,
+                        ),
+                      ),
+                    ])
+                    ..where(
+                      _db.medicalRecords.patientId.equals(record.patientId) &
+                          _db.documentFiles.sha256.equals(
+                            sha256.convert(file.bytes).toString(),
+                          ),
+                    )
+                    ..limit(1))
+                  .getSingleOrNull();
+          if (duplicate != null) {
+            throw DuplicateUploadFailure(
+              duplicate.readTable(_db.documentFiles).recordId,
+            );
+          }
+        }
         final id = newId('rec');
         await IdempotencyGuard(_db).remember(
           record.idempotencyKey,

@@ -50,3 +50,21 @@ abstract class StaffTask with _$StaffTask {
     return ruleScore * (1 - aiWeight) + ai * aiWeight;
   }
 }
+
+/// Explicit urgency and deadlines precede supporting AI/rule scores.
+int compareStaffTasks(StaffTask a, StaffTask b, {required double aiWeight}) {
+  final priority = b.priority.index.compareTo(a.priority.index);
+  if (priority != 0) return priority;
+  final aDue = a.dueAt;
+  final bDue = b.dueAt;
+  if (aDue != bDue) {
+    if (aDue == null) return 1;
+    if (bDue == null) return -1;
+    final deadline = aDue.compareTo(bDue);
+    if (deadline != 0) return deadline;
+  }
+  final score = b
+      .effectivePriority(aiWeight)
+      .compareTo(a.effectivePriority(aiWeight));
+  return score != 0 ? score : a.id.compareTo(b.id);
+}

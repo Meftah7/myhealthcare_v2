@@ -11,6 +11,7 @@ import 'package:myhealthcare/domain/entities/entities.dart';
 import 'package:myhealthcare/domain/enums.dart';
 import 'package:myhealthcare/domain/repositories/auth_repository.dart';
 import 'package:myhealthcare/domain/repositories/record_repository.dart';
+import 'package:myhealthcare/domain/risk_sources.dart';
 import 'package:myhealthcare/services/rules/risk_detection_service.dart';
 import 'package:myhealthcare/services/rules/task_generator.dart';
 
@@ -71,7 +72,8 @@ void main() {
     final flags = await detector.scan(p);
     final bp = flags.firstWhere((f) => f.kind == RiskFlagKind.abnormalVitals);
     expect(bp.severity, Severity.urgent);
-    expect(bp.dedupeKey, '${p.id}:vitals:bp');
+    final source = (await vitals.forPatient(p.id)).valueOrNull!.single;
+    expect(bp.dedupeKey, RiskSources.key('${p.id}:vitals:bp', source.id));
   });
 
   test('flags a critical lab and a medication gap', () async {
@@ -133,7 +135,10 @@ void main() {
     await detector.runAndPersist(p);
 
     final stored = (await risk.forPatient(p.id)).valueOrNull!;
-    expect(stored.where((f) => f.dedupeKey.endsWith('spo2')), hasLength(1));
+    expect(
+      stored.where((f) => f.dedupeKey.contains(':vitals:spo2:source:')),
+      hasLength(1),
+    );
   });
 
   test('task generator turns flags into scored staff tasks', () async {

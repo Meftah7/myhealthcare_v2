@@ -70,6 +70,11 @@ class FailureFeedback {
 
 FailureFeedback describeFailure(AppLocalizations t, Object error) {
   return switch (error) {
+    PartialOperationFailure(:final completed, :final total, :final failure) =>
+      FailureFeedback(
+        '${t.partialOperationProgress(completed, total)} ${describeFailure(t, failure).message}',
+        describeFailure(t, failure).action,
+      ),
     AccessDeniedFailure() => FailureFeedback(
       t.accessDeniedBody,
       RecoveryAction.none,

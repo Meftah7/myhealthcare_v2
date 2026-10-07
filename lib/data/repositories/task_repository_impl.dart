@@ -20,11 +20,35 @@ class TaskRepositoryImpl implements TaskRepository {
   final AppDatabase _db;
   final AccessPolicy _access;
 
-  Future<void> _ownTasks(String staffId) => _access.selfOrAdmin(
-    staffId,
-    Permission.viewOperationalReports,
-    entityType: 'task',
-  );
+  Future<void> _ownTasks(String staffId) async {
+    await _access.requireStaffOrAdmin(entityType: 'task');
+    await _access.selfOrAdmin(
+      staffId,
+      Permission.viewOperationalReports,
+      entityType: 'task',
+    );
+  }
+
+  Future<List<StaffTask>> _visibleTasks(List<StaffTaskRow> rows) async {
+    final visible = await _access.clinicallyVisiblePatientIds();
+    final principal = await _access.principal();
+    return [
+      for (final row in rows)
+        if (row.patientId == null ||
+            visible == null ||
+            visible.contains(row.patientId))
+          row.toEntity()
+        else if (principal?.isAdmin ?? false)
+          row.toEntity().copyWith(
+            patientId: null,
+            title: 'Clinical task',
+            kind: TaskKind.other,
+            aiRationale: null,
+            aiPriorityScore: null,
+            ruleScore: 0,
+          ),
+    ];
+  }
 
   SimpleSelectStatement<$StaffTasksTable, StaffTaskRow> _query(
     String staffId, {
@@ -56,7 +80,7 @@ class TaskRepositoryImpl implements TaskRepository {
     return Result.guardAsync(() async {
       await _ownTasks(staffId);
       final rows = await _query(staffId, openOnly: openOnly).get();
-      return rows.map((r) => r.toEntity()).toList();
+      return _visibleTasks(rows);
     });
   }
 
@@ -67,39 +91,80 @@ class TaskRepositoryImpl implements TaskRepository {
   }) {
     return authorizedStream(
       () => _ownTasks(staffId),
-      () => _query(
-        staffId,
-        openOnly: openOnly,
-      ).watch().map((rows) => rows.map((r) => r.toEntity()).toList()),
+      () => _query(staffId, openOnly: openOnly).watch().asyncMap(_visibleTasks),
     );
   }
 
   @override
   Future<Result<void>> upsert(StaffTask task) {
     return Result.guardAsync(() async {
-      await _access.selfOrAdmin(
-        task.staffId,
-        Permission.manageUsers,
-        entityType: 'task',
-        entityId: task.id,
-      );
-      await _db
-          .into(_db.staffTasks)
-          .insertOnConflictUpdate(
-            StaffTasksCompanion.insert(
-              id: task.id,
-              staffId: task.staffId,
-              title: task.title,
-              kind: task.kind,
-              status: Value(task.status),
-              ruleScore: Value(task.ruleScore),
-              patientId: Value(task.patientId),
-              dueAt: Value(task.dueAt),
-              aiPriorityScore: Value(task.aiPriorityScore),
-              aiRationale: Value(task.aiRationale),
-              createdAt: Value(task.createdAt),
-            ),
-          );
+      if (task.patientId != null) {
+        await _access.clinicalWrite(
+          staffId: task.staffId,
+          patientId: task.patientId!,
+          permission: Permission.manageTasks,
+          entityType: 'task',
+          entityId: task.id,
+        );
+      } else {
+        await _access.actAsStaff(
+          task.staffId,
+          Permission.manageTasks,
+          entityType: 'task',
+          entityId: task.id,
+        );
+      }
+      await _db.transaction(() async {
+        final existing = await (_db.select(
+          _db.staffTasks,
+        )..where((t) => t.id.equals(task.id))).getSingleOrNull();
+        if (existing != null) {
+          if (existing.staffId != task.staffId ||
+              existing.patientId != task.patientId) {
+            throw const AccessDeniedFailure();
+          }
+          // Regeneration may refresh source fields, never clinician work.
+          final priority = existing.priority.index >= task.priority.index
+              ? existing.priority
+              : task.priority;
+          if (existing.title != task.title ||
+              existing.kind != task.kind ||
+              existing.ruleScore != task.ruleScore ||
+              existing.priority != priority) {
+            await (_db.update(
+              _db.staffTasks,
+            )..where((t) => t.id.equals(task.id))).write(
+              StaffTasksCompanion(
+                title: Value(task.title),
+                kind: Value(task.kind),
+                ruleScore: Value(task.ruleScore),
+                priority: Value(priority),
+              ),
+            );
+          }
+          return;
+        }
+        await _db
+            .into(_db.staffTasks)
+            .insert(
+              StaffTasksCompanion.insert(
+                id: task.id,
+                staffId: task.staffId,
+                title: task.title,
+                kind: task.kind,
+                status: Value(task.status),
+                ruleScore: Value(task.ruleScore),
+                patientId: Value(task.patientId),
+                dueAt: Value(task.dueAt),
+                priority: Value(task.priority),
+                coverageStaffId: Value(task.coverageStaffId),
+                escalatedAt: Value(task.escalatedAt),
+                aiPriorityScore: Value(task.aiPriorityScore),
+                aiRationale: Value(task.aiRationale),
+                createdAt: Value(task.createdAt),
+              ),
+            );
+      });
     });
   }
 
@@ -125,6 +190,13 @@ class TaskRepositoryImpl implements TaskRepository {
                         t.coverageStaffId.equals(staffId)),
               ))
               .getSingleOrNull();
+      if (task?.patientId != null) {
+        await _access.readPatient(
+          task!.patientId!,
+          entityType: 'task',
+          entityId: id,
+        );
+      }
       if (task != null &&
           task.status != status &&
           !(_taskSteps[task.status]?.contains(status) ?? false)) {
@@ -184,6 +256,17 @@ class TaskRepositoryImpl implements TaskRepository {
         entityType: 'task',
         entityId: id,
       );
+      final task =
+          await (_db.select(_db.staffTasks)
+                ..where((t) => t.id.equals(id) & t.staffId.equals(staffId)))
+              .getSingleOrNull();
+      if (task?.patientId != null) {
+        await _access.readPatient(
+          task!.patientId!,
+          entityType: 'task',
+          entityId: id,
+        );
+      }
       final updated =
           await (_db.update(_db.staffTasks)..where(
                 (t) =>
@@ -243,6 +326,13 @@ class TaskRepositoryImpl implements TaskRepository {
         _db.staffTasks,
       )..where((t) => t.id.equals(id))).getSingleOrNull();
       if (task == null) throw const NotFoundFailure('Task not found.');
+      if (task.patientId != null) {
+        await _access.readPatient(
+          task.patientId!,
+          entityType: 'task',
+          entityId: id,
+        );
+      }
       if (task.status == TaskStatus.done ||
           task.status == TaskStatus.dismissed) {
         throw const ValidationFailure('A closed task cannot be escalated.');
@@ -310,7 +400,10 @@ class RiskRepositoryImpl implements RiskRepository {
   Future<Result<List<RiskFlag>>> unacknowledged() {
     return Result.guardAsync(() async {
       await _access.requireStaffOrAdmin(entityType: 'risk_flag');
-      final rows = await _unackQuery().get();
+      final visible = await _access.clinicallyVisiblePatientIds();
+      final query = _unackQuery();
+      if (visible != null) query.where((f) => f.patientId.isIn(visible));
+      final rows = await query.get();
       return rows.map((r) => r.toEntity()).toList();
     });
   }
@@ -324,45 +417,62 @@ class RiskRepositoryImpl implements RiskRepository {
   }
 
   Stream<List<RiskFlag>> _watchUnacknowledged() {
-    return _unackQuery().watch().map(
-      (rows) => rows.map((r) => r.toEntity()).toList(),
-    );
+    return _unackQuery().watch().asyncMap((rows) async {
+      final visible = await _access.clinicallyVisiblePatientIds();
+      return rows
+          .where((r) => visible == null || visible.contains(r.patientId))
+          .map((r) => r.toEntity())
+          .toList();
+    });
   }
 
   @override
-  Future<Result<void>> upsertByDedupeKey(RiskFlag flag) {
+  Future<Result<void>> upsertByDedupeKey(RiskFlag incoming) {
     return Result.guardAsync(() async {
-      // Flags are derived from data the caller can already read.
-      await _access.readPatient(flag.patientId, entityType: 'risk_flag');
-      final existing = await (_db.select(
-        _db.riskFlags,
-      )..where((f) => f.dedupeKey.equals(flag.dedupeKey))).getSingleOrNull();
-      if (existing != null) {
-        await (_db.update(
-          _db.riskFlags,
-        )..where((f) => f.id.equals(existing.id))).write(
-          RiskFlagsCompanion(
-            severity: Value(flag.severity),
-            rationale: Value(flag.rationale),
-            detectedAt: Value(flag.detectedAt),
-          ),
+      await _access.readPatient(incoming.patientId, entityType: 'risk_flag');
+      await _db.transaction(() async {
+        final alias =
+            await (_db.select(_db.riskSourceAliases)..where(
+                  (a) =>
+                      a.sourceKey.equals(incoming.dedupeKey) &
+                      a.patientId.equals(incoming.patientId),
+                ))
+                .getSingleOrNull();
+        final flag = incoming.copyWith(
+          dedupeKey: alias?.canonicalKey ?? incoming.dedupeKey,
         );
-        return;
-      }
-      await _db
-          .into(_db.riskFlags)
-          .insert(
-            RiskFlagsCompanion.insert(
-              id: flag.id,
-              patientId: flag.patientId,
-              kind: flag.kind,
-              severity: flag.severity,
-              rationale: flag.rationale,
-              dedupeKey: flag.dedupeKey,
-              detectedAt: Value(flag.detectedAt),
-              source: Value(flag.source),
+        final existing = await (_db.select(
+          _db.riskFlags,
+        )..where((f) => f.dedupeKey.equals(flag.dedupeKey))).getSingleOrNull();
+        if (existing != null) {
+          // An old aggregate may alias several reports. Preserve its exact
+          // history rather than replacing its rationale once per source.
+          if (alias != null) return;
+          await (_db.update(
+            _db.riskFlags,
+          )..where((f) => f.id.equals(existing.id))).write(
+            RiskFlagsCompanion(
+              severity: Value(flag.severity),
+              rationale: Value(flag.rationale),
             ),
           );
+          return;
+        }
+        await _db
+            .into(_db.riskFlags)
+            .insert(
+              RiskFlagsCompanion.insert(
+                id: flag.id,
+                patientId: flag.patientId,
+                kind: flag.kind,
+                severity: flag.severity,
+                rationale: flag.rationale,
+                dedupeKey: flag.dedupeKey,
+                detectedAt: Value(flag.detectedAt),
+                source: Value(flag.source),
+              ),
+            );
+      });
     });
   }
 
@@ -383,18 +493,6 @@ class RiskRepositoryImpl implements RiskRepository {
         entityType: 'risk_flag',
         entityId: id,
       );
-      final relationship =
-          await (_db.select(_db.appointments)
-                ..where(
-                  (a) =>
-                      a.staffId.equals(staffId) &
-                      a.patientId.equals(flag.patientId),
-                )
-                ..limit(1))
-              .getSingleOrNull();
-      if (relationship == null) {
-        throw const AuthFailure('You are not assigned to this patient.');
-      }
       final updated =
           await (_db.update(
             _db.riskFlags,

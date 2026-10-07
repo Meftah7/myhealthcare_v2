@@ -9,8 +9,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
-import '../../../core/presentation/states.dart';
 import '../../../core/presentation/feedback.dart';
+import '../../../core/presentation/states.dart';
+import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
@@ -91,11 +92,17 @@ class _PrioritiseButtonState extends ConsumerState<_PrioritiseButton> {
     setState(() => _busy = true);
     final t = AppLocalizations.of(context)!;
     try {
-      await ref.read(staffOpsProvider).prioritiseWithAi();
+      final result = await Result.guardAsync(
+        () => ref.read(staffOpsProvider).prioritiseWithAi(),
+      );
       if (mounted) {
-        ScaffoldMessenger.of(
+        showMutationFeedback(
           context,
-        ).showSnackBar(SnackBar(content: Text(t.tasksReprioritised)));
+          result,
+          success: t.tasksReprioritised,
+          onRetry: _run,
+          onReload: () => ref.invalidate(staffTasksProvider),
+        );
       }
     } finally {
       if (mounted) setState(() => _busy = false);

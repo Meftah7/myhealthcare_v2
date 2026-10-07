@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/data/contracts.dart';
 import '../../../core/di.dart';
 import '../../../core/failures.dart';
 import '../../../core/i18n/enum_labels.dart';
@@ -15,14 +16,20 @@ import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
+import '../../../domain/clinical/lab_history.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
+import '../../patient/application/family_link_providers.dart';
+import '../../patient/application/patient_data_providers.dart';
 import '../../patient/application/patient_documents.dart';
 import '../../patient/presentation/document_download_button.dart';
 import '../../patient/presentation/patient_top_actions.dart';
+import '../application/records_providers.dart';
 import 'lab_values_table.dart';
+import 'record_activity_panel.dart';
+import 'record_filters_sheet.dart';
 
 final recordDetailProvider = FutureProvider.family<MedicalRecord, String>((
   ref,
@@ -30,10 +37,7 @@ final recordDetailProvider = FutureProvider.family<MedicalRecord, String>((
 ) async {
   final result = await ref.watch(recordRepositoryProvider).byId(id);
   return switch (result) {
-    Ok(:final value)
-        when value.patientId == ref.watch(currentUserProvider)?.id =>
-      value,
-    Ok() => throw const AuthFailure('You cannot access this record.'),
+    Ok(:final value) => value,
     Err(:final failure) => throw failure,
   };
 });
@@ -73,6 +77,7 @@ class RecordDetailScreen extends ConsumerWidget {
                 Space.xxl,
               ),
               children: [
+                _RecordSubject(patientId: r.patientId),
                 Text(r.title, style: theme.textTheme.headlineSmall),
                 const SizedBox(height: Space.xs),
                 Text(
@@ -88,22 +93,14 @@ class RecordDetailScreen extends ConsumerWidget {
                     AppLocalizations.of(context)!.uploadedByPatientNote,
                   ),
                   const SizedBox(height: Space.sm),
-                  ImportProvenanceCard(record: r),
+                  ImportProvenanceCard(record: r, showReview: false),
                 ],
                 const SizedBox(height: Space.sm),
+                SectionHeader(t.recordsOriginals, overline: true),
                 Wrap(
                   spacing: Space.xs,
                   runSpacing: Space.xs,
                   children: [
-                    DocumentDownloadButton(
-                      label: t.exportRecordAction,
-                      filename: 'record-${r.id}.pdf',
-                      build: () => buildRecordSummary(
-                        ref,
-                        r,
-                        recordTypeLabel: r.recordType.label(context),
-                      ),
-                    ),
                     if (r.sourceDocument != null)
                       DocumentDownloadButton(
                         label: t.openOriginalAction,
@@ -113,6 +110,7 @@ class RecordDetailScreen extends ConsumerWidget {
                       ),
                   ],
                 ),
+                if (r.sourceDocument == null) Text(t.recordsNoOriginal),
                 if (r.appointmentId case final visitId?) ...[
                   const SizedBox(height: Space.xs),
                   // Opens the visit, where everything from it is listed.
@@ -128,6 +126,7 @@ class RecordDetailScreen extends ConsumerWidget {
                     label: Text(t.fromYourVisitOn(fmtDate(r.occurredAt))),
                   ),
                 ],
+                SectionHeader(t.recordsRecordedInformation, overline: true),
                 if (r.body != null) ...[
                   const SizedBox(height: Space.md),
                   AppCard(
@@ -151,6 +150,7 @@ class RecordDetailScreen extends ConsumerWidget {
                   const SizedBox(height: Space.md),
                   SectionHeader(t.resultsSection, overline: true),
                   AppCard(child: LabValuesTable(labs: r.labValues)),
+                  _LabHistory(recordId: r.id),
                 ],
                 if (r.extractedText != null) ...[
                   const SizedBox(height: Space.md),
@@ -165,6 +165,21 @@ class RecordDetailScreen extends ConsumerWidget {
                     ),
                   ),
                 ],
+                SectionHeader(t.recordsClinicalReview, overline: true),
+                _ClinicalReview(record: r),
+                SectionHeader(t.recordsGeneratedSummary, overline: true),
+                Text(t.recordsGeneratedNotice),
+                DocumentDownloadButton(
+                  label: t.exportRecordAction,
+                  filename: 'record-${r.id}.pdf',
+                  build: () => buildRecordSummary(
+                    ref,
+                    r,
+                    recordTypeLabel: r.recordType.label(context),
+                  ),
+                ),
+                const SizedBox(height: Space.md),
+                RecordActivityPanel(record: r),
               ],
             ),
           ),
@@ -178,44 +193,30 @@ class RecordDetailScreen extends ConsumerWidget {
 /// Where an imported record came from — issuer, when it was imported, the
 /// original file — and whether a clinician has reviewed it.
 class ImportProvenanceCard extends StatelessWidget {
-  const ImportProvenanceCard({required this.record, super.key});
+  const ImportProvenanceCard({
+    required this.record,
+    this.showReview = true,
+    super.key,
+  });
 
   final MedicalRecord record;
+  final bool showReview;
 
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final doc = record.sourceDocument;
-    final (status, icon) = switch (record.reviewStatus) {
-      ImportReviewStatus.pendingReview || ImportReviewStatus.notRequired => (
-        t.importStatusPending,
-        Icons.hourglass_top_outlined,
-      ),
-      ImportReviewStatus.reviewed => (
-        t.importStatusReviewed,
-        Icons.verified_outlined,
-      ),
-      ImportReviewStatus.rejected => (
-        t.importStatusRejected,
-        Icons.block_outlined,
-      ),
-    };
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(t.provenanceHeader, style: theme.textTheme.titleSmall),
           const SizedBox(height: Space.xs),
-          Row(
-            children: [
-              Icon(icon, size: 18),
-              const SizedBox(width: Space.xs),
-              Expanded(child: Text(status)),
-            ],
-          ),
-          if (record.reviewNote != null && record.reviewNote!.isNotEmpty)
-            Text(record.reviewNote!, style: theme.textTheme.bodySmall),
+          if (showReview) ...[
+            Text(recordReviewLabel(t, record.reviewStatus)),
+            if (record.reviewNote != null) Text(record.reviewNote!),
+          ],
           if (record.sourceFacility != null)
             Text(t.provenanceIssuer(record.sourceFacility!)),
           Text(t.provenanceImportedOn(fmtDate(record.createdAt))),
@@ -232,5 +233,96 @@ class ImportProvenanceCard extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _RecordSubject extends ConsumerWidget {
+  const _RecordSubject({required this.patientId});
+  final String patientId;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
+    final profile = patientId == ref.watch(currentUserProvider)?.id
+        ? ref.watch(patientProfileProvider)
+        : ref.watch(linkedPatientProvider(patientId));
+    return profile.when(
+      loading: () => const LinearProgressIndicator(),
+      error: (_, _) => Text(t.recordsSubjectUnavailable),
+      data: (p) => Text('${t.importForLabel}: ${p.fullName}'),
+    );
+  }
+}
+
+class _ClinicalReview extends ConsumerWidget {
+  const _ClinicalReview({required this.record});
+  final MedicalRecord record;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
+    final names = ref.watch(doctorDirectoryProvider).valueOrNull ?? {};
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(recordReviewLabel(t, record.reviewStatus)),
+          if (record.reviewedByStaffId != null)
+            Text(
+              names[record.reviewedByStaffId]?.name ?? t.recordsUnknownAuthor,
+            ),
+          if (record.reviewedAt != null) Text(fmtDate(record.reviewedAt!)),
+          if (record.reviewNote != null) Text(record.reviewNote!),
+        ],
+      ),
+    );
+  }
+}
+
+final _labHistoryProvider =
+    FutureProvider.family<Map<String, LabObservation>, String>((ref, id) async {
+      final record = await ref.watch(recordDetailProvider(id).future);
+      final repo = ref.watch(recordRepositoryProvider);
+      var request = const PageRequest(size: PageLimits.maxSize);
+      final history = <MedicalRecord>[];
+      while (true) {
+        final page = recordValue(
+          await repo.timelinePage(record.patientId, page: request),
+        );
+        history.addAll(page.items);
+        if (!page.hasMore) break;
+        request = request.next;
+      }
+      return comparableLabHistory(record, history);
+    });
+
+class _LabHistory extends ConsumerWidget {
+  const _LabHistory({required this.recordId});
+  final String recordId;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
+    final record = ref.watch(recordDetailProvider(recordId)).requireValue;
+    return ref
+        .watch(_labHistoryProvider(recordId))
+        .when(
+          loading: () => const LinearProgressIndicator(),
+          error: (_, _) => TextButton(
+            onPressed: () => ref.invalidate(_labHistoryProvider(recordId)),
+            child: Text(t.recordsTrendsUnavailable),
+          ),
+          data: (previous) => Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (final lab in record.labValues)
+                Padding(
+                  padding: const EdgeInsets.only(top: Space.xs),
+                  child: Text(
+                    previous[labHistoryKey(lab)] != null
+                        ? '${lab.analyte} – ${t.recordsPreviousResult}: ${previous[labHistoryKey(lab)]!.value} ${previous[labHistoryKey(lab)]!.unit} (${fmtDate(previous[labHistoryKey(lab)]!.at)})'
+                        : '${lab.analyte}: ${t.recordsNoComparableResult}',
+                  ),
+                ),
+            ],
+          ),
+        );
   }
 }

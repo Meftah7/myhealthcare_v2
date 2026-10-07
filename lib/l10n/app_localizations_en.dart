@@ -4666,4 +4666,243 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get noQrInPicture =>
       'No QR code found in that picture. Try a clearer screenshot or photo.';
+
+  @override
+  String partialOperationProgress(int completed, int total) {
+    return 'Saved $completed of $total updates before stopping.';
+  }
+
+  @override
+  String get recordsUploadDocument => 'Upload document';
+
+  @override
+  String get recordsAll => 'All records';
+
+  @override
+  String get recordsResults => 'Results';
+
+  @override
+  String get recordsDocuments => 'Documents';
+
+  @override
+  String get recordsUploads => 'Uploads';
+
+  @override
+  String get couldNotLoadAllergies => 'Could not load allergy information.';
+
+  @override
+  String get recordsFamilyUnavailable => 'Family access unavailable. Retry';
+
+  @override
+  String get recordsSubjectUnavailable =>
+      'Patient information unavailable. Retry before continuing.';
+
+  @override
+  String get recordsPrescriptionVisit => 'Open prescription visit';
+
+  @override
+  String get recordsFilters => 'Filters';
+
+  @override
+  String get recordsDateRange => 'Date range';
+
+  @override
+  String get recordsClearDates => 'Clear dates';
+
+  @override
+  String get recordsFacility => 'Facility';
+
+  @override
+  String get recordsAuthor => 'Author';
+
+  @override
+  String get recordsAny => 'Any';
+
+  @override
+  String get recordsUnknownAuthor => 'Author unavailable';
+
+  @override
+  String get recordsReviewState => 'Review state';
+
+  @override
+  String get recordsReviewNotRequired => 'Review not required';
+
+  @override
+  String get recordsUnreadOnly => 'Unread only';
+
+  @override
+  String get recordsClearFilters => 'Clear filters';
+
+  @override
+  String get recordsApplyFilters => 'Done';
+
+  @override
+  String get recordsRead => 'Read';
+
+  @override
+  String get recordsUnread => 'Unread';
+
+  @override
+  String get recordsMarkRead => 'Mark as read';
+
+  @override
+  String get recordsMarkUnread => 'Mark as unread';
+
+  @override
+  String get recordsReadStateUnavailable => 'Read state unavailable. Retry';
+
+  @override
+  String get recordsDuplicate =>
+      'This original file is already uploaded for this patient. Keep another copy only if intended.';
+
+  @override
+  String get recordsKeepDuplicate =>
+      'I intend to upload another copy for this patient';
+
+  @override
+  String get recordsRequestCorrection => 'Request a correction';
+
+  @override
+  String get recordsCorrectionNotice =>
+      'Describe what needs correction. This request does not edit the original record or signed note.';
+
+  @override
+  String get recordsCorrectionReason => 'What needs correction?';
+
+  @override
+  String get recordsCorrectionRequired => 'Describe the correction you need.';
+
+  @override
+  String get recordsSubmitCorrection => 'Submit request';
+
+  @override
+  String get recordsCorrectionSaved => 'Correction request saved for review.';
+
+  @override
+  String get recordsCorrectionPending =>
+      'Correction requested · Pending review';
+
+  @override
+  String get recordsCorrectionsUnavailable =>
+      'Correction requests unavailable. Retry';
+
+  @override
+  String get recordsOriginals => 'Original documents';
+
+  @override
+  String get recordsNoOriginal => 'No original file is stored for this record.';
+
+  @override
+  String get recordsRecordedInformation => 'Recorded information';
+
+  @override
+  String get recordsClinicalReview => 'Clinician review';
+
+  @override
+  String get recordsGeneratedSummary => 'Generated summary';
+
+  @override
+  String get recordsGeneratedNotice =>
+      'The downloadable summary is generated from recorded information. It is separate from the original document and clinician review.';
+
+  @override
+  String get recordsPreviousResult => 'Previous matching result';
+
+  @override
+  String get recordsNoComparableResult =>
+      'No earlier result with the same test and recorded unit.';
+
+  @override
+  String get recordsTrendsUnavailable => 'Previous results unavailable. Retry';
+
+  @override
+  String get documentValidityLegacy =>
+      'Legacy registry entry — no immutable issued version';
+
+  @override
+  String get documentValidityValid => 'Valid issued version';
+
+  @override
+  String get documentValidityRevoked => 'Revoked document';
+
+  @override
+  String get documentValiditySuperseded => 'Replaced by a newer version';
+
+  @override
+  String get documentPoliciesTitle => 'Document policies';
+
+  @override
+  String get policyReviewIntro =>
+      'Review the proposed sick-leave rules and wording for each language and audience. Approval records your clinic\'s acceptance of this version. It does not issue a document.';
+
+  @override
+  String get policyEnableExplanation =>
+      'Enable clinic-wide policy management for this administrator to edit and approve templates. This does not grant clinical signing authority.';
+
+  @override
+  String get policyEnableManagement => 'Enable policy management';
+
+  @override
+  String get policyManagementEnabled =>
+      'Policy management enabled for this administrator';
+
+  @override
+  String get policyGrantReason =>
+      'Administrator explicitly enabled document policy management from the review screen.';
+
+  @override
+  String get policyDraft => 'Draft — not approved';
+
+  @override
+  String get policyApproved => 'Approved';
+
+  @override
+  String get policyRetired => 'Replaced policy version';
+
+  @override
+  String get policyClinicCopy => 'Clinic copy';
+
+  @override
+  String get policyEmployerCopy => 'Employer copy';
+
+  @override
+  String get policySchoolCopy => 'School copy';
+
+  @override
+  String get policySigningRule =>
+      'Signing requires a separate signing grant, a verified current medical licence, a clinician profile and a care relationship. Nurses and unqualified administrators cannot sign.';
+
+  @override
+  String get policyClinicDisclosure =>
+      'The clinic copy may include the clinical reason within clinical access rules.';
+
+  @override
+  String get policyExternalDisclosure =>
+      'Employer and school copies include identity, attendance/leave dates, clinic, signer and verification. They omit diagnosis, medicines, allergies and unrelated clinical history.';
+
+  @override
+  String get policyWording => 'Document wording';
+
+  @override
+  String get policyAcceptance =>
+      'I am authorized to approve these signing, disclosure and wording rules for the clinic. I have reviewed this saved version.';
+
+  @override
+  String get policySaveDraft => 'Save draft';
+
+  @override
+  String get policyDraftSaved => 'Draft saved — approval still required';
+
+  @override
+  String get policyApproveVersion => 'Approve this version';
+
+  @override
+  String get policyCreateVersion => 'Create a new draft version';
+
+  @override
+  String get policyWordingHint =>
+      'Keep the fields in braces. The app fills them when a document is issued; diagnosis is only allowed in the clinic copy.';
+
+  @override
+  String get policyNoPolicies => 'No document policies available.';
 }

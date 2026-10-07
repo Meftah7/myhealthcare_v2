@@ -136,13 +136,16 @@ void main() {
         await tester.tap(find.widgetWithText(FilledButton, 'Verify'));
         await _settle(tester);
         expect(
-          find.text('Genuine document'),
+          find.text('Legacy registry entry — no immutable issued version'),
           findsOneWidget,
           reason:
               '$email: ${tester.widgetList<Text>(find.byType(Text)).map((t) => t.data).join(" | ")}',
         );
         expect(find.text(code), findsOneWidget);
-        expect(find.textContaining(certificate.diagnosis), findsWidgets);
+        expect(
+          find.textContaining(certificate.diagnosis),
+          email == 'admin@myhealth.demo' ? findsNothing : findsWidgets,
+        );
       }
       await tester.pumpWidget(const SizedBox());
       await tester.pump();

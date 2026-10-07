@@ -18,6 +18,7 @@ enum Permission {
   messageCareTeam,
   manageProxyGrants,
   uploadDocuments,
+  requestRecordCorrection,
   requestHomeVisit,
 
   // --- Clinical ------------------------------------------------------------
@@ -57,6 +58,15 @@ enum Permission {
   manageCareTeams,
   manageClinicSchedules,
   viewOperationalReports,
+
+  // Explicit scoped grants; account roles do not grant these automatically.
+  prepareDocument,
+  issueAdministrativeDocument,
+  reprintApprovedDocument,
+  manageDocumentTemplates,
+  assignOperationalWork,
+  revokeDocument,
+  signClinicalDocument,
 }
 
 /// Grants per role. Staff grants depend on the clinical job title: a nurse
@@ -70,6 +80,7 @@ abstract final class RolePermissions {
     Permission.messageCareTeam,
     Permission.manageProxyGrants,
     Permission.uploadDocuments,
+    Permission.requestRecordCorrection,
     Permission.requestHomeVisit,
   };
 

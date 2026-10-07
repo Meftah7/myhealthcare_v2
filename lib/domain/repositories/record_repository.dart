@@ -25,6 +25,7 @@ class NewRecord {
     this.uploadedByPatient = false,
     this.sourceFile,
     this.idempotencyKey,
+    this.allowDuplicate = false,
   });
 
   final String patientId;
@@ -47,6 +48,9 @@ class NewRecord {
   /// Reuse across retries of the same save: a retry returns the record the
   /// first attempt created instead of filing it twice.
   final IdempotencyKey? idempotencyKey;
+
+  /// Only after the patient intentionally chooses to keep another copy.
+  final bool allowDuplicate;
 }
 
 /// An imported file, as picked. Stored in the database, fingerprinted, and

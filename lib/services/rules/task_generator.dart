@@ -5,6 +5,11 @@
 /// blends an `aiPriorityScore` on top — but the board is useful with AI off.
 library;
 
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
+
+import '../../core/failures.dart';
 import '../../core/result.dart';
 import '../../domain/entities/entities.dart';
 import '../../domain/enums.dart';
@@ -24,7 +29,8 @@ class TaskGenerator {
 
   /// Generates tasks for [staffId] from the given patients' current flags.
   /// Idempotent: a task's id is derived from `staffId + flag dedupeKey`, so
-  /// re-running updates rather than duplicates.
+  /// re-running refreshes source fields without resetting workflow state.
+  /// A new clinical episode must supply a new dedupeKey.
   Future<Result<int>> generateFor({
     required String staffId,
     required List<RiskFlag> flags,
@@ -32,8 +38,13 @@ class TaskGenerator {
     return Result.guardAsync(() async {
       var written = 0;
       for (final f in flags.where((f) => !f.isAcknowledged)) {
-        final id = 'task_${staffId}_${_stableHash(f.dedupeKey)}';
-        await tasks.upsert(
+        // Keep legacy IDs intact; source-specific work uses a collision-
+        // resistant identity so distinct readings cannot share one task.
+        final hash = f.dedupeKey.contains(':source:')
+            ? sha256.convert(utf8.encode(f.dedupeKey)).toString()
+            : _stableHash(f.dedupeKey);
+        final id = 'task_${staffId}_$hash';
+        final result = await tasks.upsert(
           StaffTask(
             id: id,
             staffId: staffId,
@@ -42,12 +53,25 @@ class TaskGenerator {
             kind: _kindFor(f.kind),
             status: TaskStatus.open,
             ruleScore: _scoreFor(f.severity),
+            priority: switch (f.severity) {
+              Severity.urgent => WorkPriority.urgent,
+              Severity.warning => WorkPriority.priority,
+              Severity.info => WorkPriority.routine,
+            },
             createdAt: f.detectedAt,
             dueAt: f.severity == Severity.urgent
-                ? DateTime.now().add(const Duration(days: 1))
-                : DateTime.now().add(const Duration(days: 7)),
+                ? f.detectedAt.add(const Duration(days: 1))
+                : f.detectedAt.add(const Duration(days: 7)),
           ),
         );
+        if (result case Err(:final failure)) {
+          if (written == 0) throw failure;
+          throw PartialOperationFailure(
+            completed: written,
+            total: flags.where((f) => !f.isAcknowledged).length,
+            failure: failure,
+          );
+        }
         written++;
       }
       return written;

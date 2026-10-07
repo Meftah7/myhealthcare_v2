@@ -14,17 +14,17 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/presentation/quick_actions.dart';
 import '../../../core/presentation/states.dart';
-import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../admin/presentation/verify_document_screen.dart';
 import '../../care/application/care_providers.dart';
 import '../../patient_chart/presentation/chart_write_sheets.dart';
 import '../application/staff_providers.dart';
-import '../../admin/presentation/verify_document_screen.dart';
 
 class StaffQuickActions extends ConsumerWidget {
   const StaffQuickActions({super.key});
@@ -126,10 +126,23 @@ class StaffQuickActions extends ConsumerWidget {
     final messenger = ScaffoldMessenger.of(context)
       ..removeCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(t.scanningPanelForRisks)));
-    final count = await ref.read(staffOpsProvider).refreshPanel();
-    messenger
-      ..removeCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(t.panelScanCompleteFlags(count))));
+    final result = await Result.guardAsync(
+      () => ref.read(staffOpsProvider).refreshPanel(),
+    );
+    if (!context.mounted) return;
+    messenger.removeCurrentSnackBar();
+    showMutationFeedback(
+      context,
+      result,
+      success: result.isOk
+          ? t.panelScanCompleteFlags(result.valueOrNull!)
+          : null,
+      onRetry: () => unawaited(_runPanelScan(context, ref)),
+      onReload: () {
+        ref.invalidate(staffPanelProvider);
+        ref.invalidate(staffTasksProvider);
+      },
+    );
   }
 
   Future<void> _pickPatientThen(

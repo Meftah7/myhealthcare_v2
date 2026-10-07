@@ -6,6 +6,7 @@ import 'package:drift/drift.dart';
 
 import '../../../domain/enums.dart';
 import 'appointments.dart';
+import 'document_workflow.dart';
 import 'users.dart';
 
 @DataClassName('MedicalRecordRow')
@@ -89,6 +90,33 @@ class DocumentFiles extends Table {
   BlobColumn get bytes => blob()();
   DateTimeColumn get storedAt => dateTime()();
 
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+/// Read state belongs to the viewing account, including family proxies.
+@DataClassName('RecordReadRow')
+class RecordReads extends Table {
+  TextColumn get recordId =>
+      text().references(MedicalRecords, #id, onDelete: KeyAction.cascade)();
+  TextColumn get accountId =>
+      text().references(Users, #id, onDelete: KeyAction.cascade)();
+  DateTimeColumn get readAt => dateTime()();
+  @override
+  Set<Column<Object>> get primaryKey => {recordId, accountId};
+}
+
+/// A request is separate from the immutable clinical record and signed note.
+@DataClassName('RecordCorrectionRow')
+class RecordCorrections extends Table {
+  TextColumn get id => text()();
+  TextColumn get recordId =>
+      text().references(MedicalRecords, #id, onDelete: KeyAction.cascade)();
+  TextColumn get patientId => text().references(Users, #id)();
+  TextColumn get requestedByAccountId => text().references(Users, #id)();
+  TextColumn get reason => text().withLength(min: 1, max: 2000)();
+  DateTimeColumn get createdAt => dateTime()();
+  TextColumn get status => text().withDefault(const Constant('pending'))();
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
@@ -265,6 +293,14 @@ class DocumentVerifications extends Table {
   /// What the genuine document states, one fact per line.
   TextColumn get summary => text()();
   DateTimeColumn get issuedAt => dateTime()();
+  TextColumn get issuedVersionId =>
+      text().nullable().references(IssuedDocumentVersions, #id)();
+
+  /// Legacy rows retain their codes and are explicitly distinguished.
+  TextColumn get validity => text().withDefault(const Constant('legacy'))();
+  DateTimeColumn get revokedAt => dateTime().nullable()();
+  TextColumn get revokedBy => text().nullable().references(Users, #id)();
+  TextColumn get revocationReason => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {code};

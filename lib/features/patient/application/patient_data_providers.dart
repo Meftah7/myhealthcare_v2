@@ -51,6 +51,30 @@ final patientTimelineProvider = FutureProvider<List<MedicalRecord>>(
   (ref) async => (await ref.watch(patientTimelinePageProvider.future)).items,
 );
 
+/// Search must include older records, not just the pages already displayed.
+/// Every additional page goes through the repository's authorization checks.
+final patientRecordHistoryProvider = FutureProvider<List<MedicalRecord>>((
+  ref,
+) async {
+  final id = _requirePatient(ref);
+  final repo = ref.watch(recordRepositoryProvider);
+  var page = await ref.watch(patientTimelinePageProvider.future);
+  final records = [...page.items];
+  var cancelled = false;
+  ref.onDispose(() => cancelled = true);
+  while (page.hasMore) {
+    if (cancelled) throw StateError('Record history request cancelled');
+    page = _unwrap(
+      await repo.timelinePage(
+        id,
+        page: PageRequest(offset: records.length, size: PageLimits.maxSize),
+      ),
+    );
+    records.addAll(page.items);
+  }
+  return records;
+});
+
 final patientVitalsProvider = FutureProvider<List<Vitals>>((ref) async {
   final id = _requirePatient(ref);
   return _unwrap(await ref.watch(vitalsRepositoryProvider).forPatient(id));
@@ -105,20 +129,16 @@ final ownAppointmentsProvider = FutureProvider<List<Appointment>>((ref) async {
   ];
 });
 
-/// One appointment from the signed-in patient's own list, by id — derived
-/// from [patientAppointmentsProvider] rather than a fresh query, and so also
-/// naturally scoped to the current patient (an id that isn't theirs is
-/// invisible here, the same as it not existing). Backs the appointment
-/// detail screen.
+/// Loads a visit through current self or proxy authorization.
 final patientAppointmentByIdProvider =
-    Provider.family<AsyncValue<Appointment?>, String>((ref, id) {
-      final list = ref.watch(patientAppointmentsProvider);
-      return list.whenData((xs) {
-        for (final a in xs) {
-          if (a.id == id) return a;
-        }
-        return null;
-      });
+    FutureProvider.family<Appointment?, String>((ref, id) async {
+      _requirePatient(ref);
+      final result = await ref.watch(appointmentRepositoryProvider).byId(id);
+      return switch (result) {
+        Ok(:final value) => value,
+        Err(failure: NotFoundFailure()) => null,
+        Err(:final failure) => throw failure,
+      };
     });
 
 /// staffId → display name ("Dr …") + department id, for labelling appointments.

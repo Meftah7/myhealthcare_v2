@@ -27,6 +27,19 @@ class DatabaseFailure extends Failure {
   const DatabaseFailure(super.message, {super.cause, super.stackTrace});
 }
 
+/// A batch stopped after some writes committed. Preserve the underlying
+/// failure so conflicts still offer Reload rather than retrying stale work.
+class PartialOperationFailure extends Failure {
+  PartialOperationFailure({
+    required this.completed,
+    required this.total,
+    required this.failure,
+  }) : super(failure.message);
+  final int completed;
+  final int total;
+  final Failure failure;
+}
+
 /// Network transport error talking to the AI API (timeout, offline, 5xx).
 class NetworkFailure extends Failure {
   const NetworkFailure(super.message, {super.cause, super.stackTrace});
@@ -74,6 +87,12 @@ class ConflictFailure extends Failure {
   });
 
   final int? currentVersion;
+}
+
+class DuplicateUploadFailure extends ConflictFailure {
+  const DuplicateUploadFailure(this.recordId)
+    : super('This original file has already been uploaded for this patient.');
+  final String recordId;
 }
 
 /// The authoritative store can't be reached right now (no connection, or the

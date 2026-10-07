@@ -6,9 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/app.dart';
 import 'package:myhealthcare/core/di.dart';
-import 'package:myhealthcare/features/care/application/care_providers.dart';
+import 'package:myhealthcare/core/presentation/app_scaffold.dart';
 import 'package:myhealthcare/core/presentation/quick_actions.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
+import 'package:myhealthcare/features/care/application/care_providers.dart';
 import 'package:myhealthcare/features/nutrition/application/macro_calculator.dart';
 import 'package:myhealthcare/features/nutrition/application/nutrition_providers.dart';
 import 'package:myhealthcare/features/nutrition/presentation/nutrition_screen.dart';
@@ -16,7 +17,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/mfa.dart';
 import '../support/test_database.dart';
-import 'package:myhealthcare/core/presentation/app_scaffold.dart';
 
 Future<void> _settle(WidgetTester tester) async {
   for (var i = 0; i < 24; i++) {
@@ -69,7 +69,7 @@ Finder _content() => find
         (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
       ),
     )
-    .first;
+    .last;
 
 void main() {
   group('macro calculator', () {
@@ -126,13 +126,19 @@ void main() {
     await _settle(tester);
     expect(find.widgetWithText(AppBar, 'Records'), findsOneWidget);
 
-    // The hub leads with eligible doctor chats and all eight health actions.
-    expect(find.text('Chat with your doctors'), findsOneWidget);
+    // History and upload lead; the existing health shortcuts are secondary.
+    expect(find.byType(SearchBar), findsOneWidget);
+    expect(find.text('Upload document'), findsOneWidget);
+    expect(find.text('All records'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('Your health'),
       240,
       scrollable: _content(),
     );
+    await tester.ensureVisible(find.text('Your health'));
+    await _settle(tester);
+    await tester.tap(find.text('Your health'));
+    await _settle(tester);
     expect(find.byType(QuickActionTile), findsNWidgets(8));
     for (final label in [
       'Home care',
@@ -148,8 +154,10 @@ void main() {
     }
 
     // Switch to Medications.
-    await tester.ensureVisible(find.text('Medication'));
-    await tester.tap(find.text('Medication'));
+    await tester.ensureVisible(
+      find.widgetWithText(QuickActionTile, 'Medication'),
+    );
+    await tester.tap(find.widgetWithText(QuickActionTile, 'Medication'));
     await _settle(tester);
     expect(find.byType(SearchBar), findsNothing);
     // Seeded chronic patient is on medication.
@@ -181,11 +189,12 @@ void main() {
       isTrue,
     );
 
-    // Back on the hub: no timeline, and PDF import lives in the AI chat.
+    // Returning restores the record history and its upload action.
     await tester.tap(find.text('Back to Records'));
     await _settle(tester);
     expect(find.text('Timeline'), findsNothing);
-    expect(find.text('Import PDF'), findsNothing);
+    expect(find.byType(SearchBar), findsOneWidget);
+    expect(find.text('Upload document'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));

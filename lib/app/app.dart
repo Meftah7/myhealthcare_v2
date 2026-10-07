@@ -9,6 +9,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/presentation/appointment_confirmation_overlay.dart';
+import '../features/auth/application/session.dart';
 import '../features/auth/presentation/onboarding_overlay.dart';
 import '../features/auth/presentation/session_activity_monitor.dart';
 import '../features/auth/presentation/splash_overlay.dart';
@@ -25,6 +26,9 @@ class MyHealthCareApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final highContrast = ref.watch(highContrastProvider);
     return MaterialApp.router(
+      // Dispose the navigator, open dialogs/PDF previews and widget-local
+      // chart state when a session is locked or the acting account changes.
+      key: ValueKey(ref.watch(currentUserProvider)?.id),
       title: 'MyHealth Care',
       debugShowCheckedModeBanner: false,
       theme: highContrast ? AppTheme.lightHighContrast : AppTheme.light,

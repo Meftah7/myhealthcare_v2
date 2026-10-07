@@ -85,6 +85,7 @@ class Seeder {
     return _db.transaction(() async {
       await _wipe();
       final result = await _generate();
+      await _db.installProposedDocumentPolicies();
       await _setSeedVersion(seedVersion);
       return result;
     });
@@ -98,6 +99,7 @@ class Seeder {
     return _db.transaction(() async {
       await _wipe();
       final result = await _generate();
+      await _db.installProposedDocumentPolicies();
       await _setSeedVersion(seedVersion);
       return result;
     });
@@ -1233,6 +1235,15 @@ class Seeder {
     }
     // Children first; app_settings kept (holds seedVersion).
     final tables = <TableInfo<Table, Object?>>[
+      _db.documentDeliveryEvents,
+      _db.documentArtifacts,
+      _db.documentVerifications,
+      _db.issuedDocumentVersions,
+      _db.documentRequests,
+      _db.documentTemplates,
+      _db.scopedGrants,
+      _db.taskHistory,
+      _db.taskSources,
       _db.outboxEvents,
       _db.idempotencyRecords,
       _db.paymentTransactions,

@@ -16,6 +16,7 @@ import '../../../core/result.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/identity/permissions.dart';
 import '../../../domain/repositories/auth_repository.dart';
+import '../../../services/auth/access_snapshot.dart';
 import '../../../services/auth/recovery_delivery.dart';
 import '../../nutrition/application/nutrition_providers.dart';
 
@@ -53,6 +54,7 @@ class SessionController extends Notifier<Session> {
   /// Written by older builds; removed so no account ID lingers on disk.
   static const _legacyPrefsKey = 'session.userId';
   StreamSubscription<User?>? _accountChanges;
+  StreamSubscription<AccessSnapshot>? _accessChanges;
 
   @override
   Session build() {
@@ -72,6 +74,7 @@ class SessionController extends Notifier<Session> {
     ref.onDispose(() {
       context.removeListener(onContextChanged);
       unawaited(_accountChanges?.cancel());
+      unawaited(_accessChanges?.cancel());
     });
     return const Session();
   }
@@ -85,7 +88,7 @@ class SessionController extends Notifier<Session> {
         .read(authRepositoryProvider)
         .login(email: email, password: password);
     if (result case Ok(:final value)) {
-      _begin(value, resumeFrom: previous);
+      await _begin(value, resumeFrom: previous);
     }
     return result;
   }
@@ -94,7 +97,7 @@ class SessionController extends Notifier<Session> {
     final result = await ref
         .read(authRepositoryProvider)
         .registerPatient(registration);
-    if (result case Ok(:final value)) _begin(value.user);
+    if (result case Ok(:final value)) await _begin(value.user);
     return result;
   }
 
@@ -102,7 +105,7 @@ class SessionController extends Notifier<Session> {
   /// the auth repository, which refuses in production.
   Future<Result<User>> switchTo(User user) async {
     final result = await ref.read(authRepositoryProvider).demoSignIn(user.id);
-    if (result case Ok(:final value)) _begin(value);
+    if (result case Ok(:final value)) await _begin(value);
     return result;
   }
 
@@ -114,10 +117,17 @@ class SessionController extends Notifier<Session> {
   /// End the session and return to sign-in. [inactivity] surfaces the "your
   /// session ended after 24 minutes of inactivity" notice on the login screen
   /// and remembers [location] so the same account can resume there.
-  Future<void> endSession({bool inactivity = false, String? location}) async {
+  Future<void> endSession({
+    bool inactivity = false,
+    String? location,
+    bool accessChanged = false,
+  }) async {
+    if (state.user == null) return;
     final accountId = state.user?.id;
     final accountChanges = _accountChanges;
+    final accessChanges = _accessChanges;
     _accountChanges = null;
+    _accessChanges = null;
     // Lock the UI before waiting on storage/stream cleanup. A slow plugin or
     // database listener must never extend an expired session.
     state = Session(
@@ -125,10 +135,21 @@ class SessionController extends Notifier<Session> {
       resumeAccountId: inactivity ? accountId : null,
       resumeLocation: inactivity ? location : null,
     );
-    await ref
+    final signOut = ref
         .read(authRepositoryProvider)
-        .signOut(reason: inactivity ? 'idle_timeout' : 'signed_out');
+        .signOut(
+          reason: accessChanged
+              ? 'access_changed'
+              : inactivity
+              ? 'idle_timeout'
+              : 'signed_out',
+        );
+    // signOut clears the principal synchronously. Discard caches before its
+    // audit/storage work completes, so no clinical cache waits on I/O.
+    discardUserScopedState(ref.container);
+    await signOut;
     await accountChanges?.cancel();
+    await accessChanges?.cancel();
     try {
       await _discardUserState(accountId);
     } on StateError {
@@ -139,7 +160,10 @@ class SessionController extends Notifier<Session> {
 
   Future<void> logout() => endSession();
 
-  void _begin(User user, {Session? resumeFrom}) {
+  Future<void> _begin(User user, {Session? resumeFrom}) async {
+    final policy = ref.read(accessPolicyProvider);
+    var previousAccess = await policy.authorizationSnapshot();
+    final sessionId = previousAccess.sessionId;
     final previousUser = state.user;
     // A different account on this device must never see the last one's
     // state — even a session that ended without a clean sign-out.
@@ -153,6 +177,25 @@ class SessionController extends Notifier<Session> {
       resumeLocation: resume,
     );
     _watchAccount(user.id);
+    unawaited(_accessChanges?.cancel());
+    _accessChanges = policy.watchAuthorization().listen(
+      (snapshot) {
+        if (ref.read(authContextProvider).principal?.sessionId != sessionId) {
+          return;
+        }
+        if (state.user?.id == user.id &&
+            snapshot.losesAccessFrom(previousAccess)) {
+          unawaited(endSession(accessChanged: true));
+        }
+        previousAccess = snapshot;
+      },
+      onError: (Object _) {
+        if (state.user?.id == user.id &&
+            ref.read(authContextProvider).principal?.sessionId == sessionId) {
+          unawaited(endSession(accessChanged: true));
+        }
+      },
+    );
   }
 
   Future<void> _discardUserState(String? accountId) async {

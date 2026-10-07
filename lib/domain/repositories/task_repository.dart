@@ -10,6 +10,9 @@ abstract interface class TaskRepository {
 
   Stream<List<StaffTask>> watchForStaff(String staffId, {bool openOnly});
 
+  /// Insert missing work, or refresh title/kind/rule score on existing work.
+  /// Status, deadline, ownership, cover and AI fields are preserved on conflict.
+  /// Source urgency may increase priority but cannot lower it.
   Future<Result<void>> upsert(StaffTask task);
 
   Future<Result<void>> setStatus({

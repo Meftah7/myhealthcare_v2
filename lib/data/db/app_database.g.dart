@@ -13279,6 +13279,3146 @@ class DocumentFilesCompanion extends UpdateCompanion<DocumentFileRow> {
   }
 }
 
+class $RecordReadsTable extends RecordReads
+    with TableInfo<$RecordReadsTable, RecordReadRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RecordReadsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _recordIdMeta = const VerificationMeta(
+    'recordId',
+  );
+  @override
+  late final GeneratedColumn<String> recordId = GeneratedColumn<String>(
+    'record_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES medical_records (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _accountIdMeta = const VerificationMeta(
+    'accountId',
+  );
+  @override
+  late final GeneratedColumn<String> accountId = GeneratedColumn<String>(
+    'account_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _readAtMeta = const VerificationMeta('readAt');
+  @override
+  late final GeneratedColumn<DateTime> readAt = GeneratedColumn<DateTime>(
+    'read_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [recordId, accountId, readAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'record_reads';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RecordReadRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('record_id')) {
+      context.handle(
+        _recordIdMeta,
+        recordId.isAcceptableOrUnknown(data['record_id']!, _recordIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_recordIdMeta);
+    }
+    if (data.containsKey('account_id')) {
+      context.handle(
+        _accountIdMeta,
+        accountId.isAcceptableOrUnknown(data['account_id']!, _accountIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_accountIdMeta);
+    }
+    if (data.containsKey('read_at')) {
+      context.handle(
+        _readAtMeta,
+        readAt.isAcceptableOrUnknown(data['read_at']!, _readAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_readAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {recordId, accountId};
+  @override
+  RecordReadRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RecordReadRow(
+      recordId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}record_id'],
+      )!,
+      accountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}account_id'],
+      )!,
+      readAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}read_at'],
+      )!,
+    );
+  }
+
+  @override
+  $RecordReadsTable createAlias(String alias) {
+    return $RecordReadsTable(attachedDatabase, alias);
+  }
+}
+
+class RecordReadRow extends DataClass implements Insertable<RecordReadRow> {
+  final String recordId;
+  final String accountId;
+  final DateTime readAt;
+  const RecordReadRow({
+    required this.recordId,
+    required this.accountId,
+    required this.readAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['record_id'] = Variable<String>(recordId);
+    map['account_id'] = Variable<String>(accountId);
+    map['read_at'] = Variable<DateTime>(readAt);
+    return map;
+  }
+
+  RecordReadsCompanion toCompanion(bool nullToAbsent) {
+    return RecordReadsCompanion(
+      recordId: Value(recordId),
+      accountId: Value(accountId),
+      readAt: Value(readAt),
+    );
+  }
+
+  factory RecordReadRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RecordReadRow(
+      recordId: serializer.fromJson<String>(json['recordId']),
+      accountId: serializer.fromJson<String>(json['accountId']),
+      readAt: serializer.fromJson<DateTime>(json['readAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'recordId': serializer.toJson<String>(recordId),
+      'accountId': serializer.toJson<String>(accountId),
+      'readAt': serializer.toJson<DateTime>(readAt),
+    };
+  }
+
+  RecordReadRow copyWith({
+    String? recordId,
+    String? accountId,
+    DateTime? readAt,
+  }) => RecordReadRow(
+    recordId: recordId ?? this.recordId,
+    accountId: accountId ?? this.accountId,
+    readAt: readAt ?? this.readAt,
+  );
+  RecordReadRow copyWithCompanion(RecordReadsCompanion data) {
+    return RecordReadRow(
+      recordId: data.recordId.present ? data.recordId.value : this.recordId,
+      accountId: data.accountId.present ? data.accountId.value : this.accountId,
+      readAt: data.readAt.present ? data.readAt.value : this.readAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RecordReadRow(')
+          ..write('recordId: $recordId, ')
+          ..write('accountId: $accountId, ')
+          ..write('readAt: $readAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(recordId, accountId, readAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RecordReadRow &&
+          other.recordId == this.recordId &&
+          other.accountId == this.accountId &&
+          other.readAt == this.readAt);
+}
+
+class RecordReadsCompanion extends UpdateCompanion<RecordReadRow> {
+  final Value<String> recordId;
+  final Value<String> accountId;
+  final Value<DateTime> readAt;
+  final Value<int> rowid;
+  const RecordReadsCompanion({
+    this.recordId = const Value.absent(),
+    this.accountId = const Value.absent(),
+    this.readAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  RecordReadsCompanion.insert({
+    required String recordId,
+    required String accountId,
+    required DateTime readAt,
+    this.rowid = const Value.absent(),
+  }) : recordId = Value(recordId),
+       accountId = Value(accountId),
+       readAt = Value(readAt);
+  static Insertable<RecordReadRow> custom({
+    Expression<String>? recordId,
+    Expression<String>? accountId,
+    Expression<DateTime>? readAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (recordId != null) 'record_id': recordId,
+      if (accountId != null) 'account_id': accountId,
+      if (readAt != null) 'read_at': readAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  RecordReadsCompanion copyWith({
+    Value<String>? recordId,
+    Value<String>? accountId,
+    Value<DateTime>? readAt,
+    Value<int>? rowid,
+  }) {
+    return RecordReadsCompanion(
+      recordId: recordId ?? this.recordId,
+      accountId: accountId ?? this.accountId,
+      readAt: readAt ?? this.readAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (recordId.present) {
+      map['record_id'] = Variable<String>(recordId.value);
+    }
+    if (accountId.present) {
+      map['account_id'] = Variable<String>(accountId.value);
+    }
+    if (readAt.present) {
+      map['read_at'] = Variable<DateTime>(readAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RecordReadsCompanion(')
+          ..write('recordId: $recordId, ')
+          ..write('accountId: $accountId, ')
+          ..write('readAt: $readAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $RecordCorrectionsTable extends RecordCorrections
+    with TableInfo<$RecordCorrectionsTable, RecordCorrectionRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RecordCorrectionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _recordIdMeta = const VerificationMeta(
+    'recordId',
+  );
+  @override
+  late final GeneratedColumn<String> recordId = GeneratedColumn<String>(
+    'record_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES medical_records (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _patientIdMeta = const VerificationMeta(
+    'patientId',
+  );
+  @override
+  late final GeneratedColumn<String> patientId = GeneratedColumn<String>(
+    'patient_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _requestedByAccountIdMeta =
+      const VerificationMeta('requestedByAccountId');
+  @override
+  late final GeneratedColumn<String> requestedByAccountId =
+      GeneratedColumn<String>(
+        'requested_by_account_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES users (id)',
+        ),
+      );
+  static const VerificationMeta _reasonMeta = const VerificationMeta('reason');
+  @override
+  late final GeneratedColumn<String> reason = GeneratedColumn<String>(
+    'reason',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 2000,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    recordId,
+    patientId,
+    requestedByAccountId,
+    reason,
+    createdAt,
+    status,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'record_corrections';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RecordCorrectionRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('record_id')) {
+      context.handle(
+        _recordIdMeta,
+        recordId.isAcceptableOrUnknown(data['record_id']!, _recordIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_recordIdMeta);
+    }
+    if (data.containsKey('patient_id')) {
+      context.handle(
+        _patientIdMeta,
+        patientId.isAcceptableOrUnknown(data['patient_id']!, _patientIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_patientIdMeta);
+    }
+    if (data.containsKey('requested_by_account_id')) {
+      context.handle(
+        _requestedByAccountIdMeta,
+        requestedByAccountId.isAcceptableOrUnknown(
+          data['requested_by_account_id']!,
+          _requestedByAccountIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_requestedByAccountIdMeta);
+    }
+    if (data.containsKey('reason')) {
+      context.handle(
+        _reasonMeta,
+        reason.isAcceptableOrUnknown(data['reason']!, _reasonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_reasonMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  RecordCorrectionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RecordCorrectionRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      recordId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}record_id'],
+      )!,
+      patientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}patient_id'],
+      )!,
+      requestedByAccountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}requested_by_account_id'],
+      )!,
+      reason: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reason'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+    );
+  }
+
+  @override
+  $RecordCorrectionsTable createAlias(String alias) {
+    return $RecordCorrectionsTable(attachedDatabase, alias);
+  }
+}
+
+class RecordCorrectionRow extends DataClass
+    implements Insertable<RecordCorrectionRow> {
+  final String id;
+  final String recordId;
+  final String patientId;
+  final String requestedByAccountId;
+  final String reason;
+  final DateTime createdAt;
+  final String status;
+  const RecordCorrectionRow({
+    required this.id,
+    required this.recordId,
+    required this.patientId,
+    required this.requestedByAccountId,
+    required this.reason,
+    required this.createdAt,
+    required this.status,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['record_id'] = Variable<String>(recordId);
+    map['patient_id'] = Variable<String>(patientId);
+    map['requested_by_account_id'] = Variable<String>(requestedByAccountId);
+    map['reason'] = Variable<String>(reason);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['status'] = Variable<String>(status);
+    return map;
+  }
+
+  RecordCorrectionsCompanion toCompanion(bool nullToAbsent) {
+    return RecordCorrectionsCompanion(
+      id: Value(id),
+      recordId: Value(recordId),
+      patientId: Value(patientId),
+      requestedByAccountId: Value(requestedByAccountId),
+      reason: Value(reason),
+      createdAt: Value(createdAt),
+      status: Value(status),
+    );
+  }
+
+  factory RecordCorrectionRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RecordCorrectionRow(
+      id: serializer.fromJson<String>(json['id']),
+      recordId: serializer.fromJson<String>(json['recordId']),
+      patientId: serializer.fromJson<String>(json['patientId']),
+      requestedByAccountId: serializer.fromJson<String>(
+        json['requestedByAccountId'],
+      ),
+      reason: serializer.fromJson<String>(json['reason']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      status: serializer.fromJson<String>(json['status']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'recordId': serializer.toJson<String>(recordId),
+      'patientId': serializer.toJson<String>(patientId),
+      'requestedByAccountId': serializer.toJson<String>(requestedByAccountId),
+      'reason': serializer.toJson<String>(reason),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'status': serializer.toJson<String>(status),
+    };
+  }
+
+  RecordCorrectionRow copyWith({
+    String? id,
+    String? recordId,
+    String? patientId,
+    String? requestedByAccountId,
+    String? reason,
+    DateTime? createdAt,
+    String? status,
+  }) => RecordCorrectionRow(
+    id: id ?? this.id,
+    recordId: recordId ?? this.recordId,
+    patientId: patientId ?? this.patientId,
+    requestedByAccountId: requestedByAccountId ?? this.requestedByAccountId,
+    reason: reason ?? this.reason,
+    createdAt: createdAt ?? this.createdAt,
+    status: status ?? this.status,
+  );
+  RecordCorrectionRow copyWithCompanion(RecordCorrectionsCompanion data) {
+    return RecordCorrectionRow(
+      id: data.id.present ? data.id.value : this.id,
+      recordId: data.recordId.present ? data.recordId.value : this.recordId,
+      patientId: data.patientId.present ? data.patientId.value : this.patientId,
+      requestedByAccountId: data.requestedByAccountId.present
+          ? data.requestedByAccountId.value
+          : this.requestedByAccountId,
+      reason: data.reason.present ? data.reason.value : this.reason,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      status: data.status.present ? data.status.value : this.status,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RecordCorrectionRow(')
+          ..write('id: $id, ')
+          ..write('recordId: $recordId, ')
+          ..write('patientId: $patientId, ')
+          ..write('requestedByAccountId: $requestedByAccountId, ')
+          ..write('reason: $reason, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('status: $status')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    recordId,
+    patientId,
+    requestedByAccountId,
+    reason,
+    createdAt,
+    status,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RecordCorrectionRow &&
+          other.id == this.id &&
+          other.recordId == this.recordId &&
+          other.patientId == this.patientId &&
+          other.requestedByAccountId == this.requestedByAccountId &&
+          other.reason == this.reason &&
+          other.createdAt == this.createdAt &&
+          other.status == this.status);
+}
+
+class RecordCorrectionsCompanion extends UpdateCompanion<RecordCorrectionRow> {
+  final Value<String> id;
+  final Value<String> recordId;
+  final Value<String> patientId;
+  final Value<String> requestedByAccountId;
+  final Value<String> reason;
+  final Value<DateTime> createdAt;
+  final Value<String> status;
+  final Value<int> rowid;
+  const RecordCorrectionsCompanion({
+    this.id = const Value.absent(),
+    this.recordId = const Value.absent(),
+    this.patientId = const Value.absent(),
+    this.requestedByAccountId = const Value.absent(),
+    this.reason = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.status = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  RecordCorrectionsCompanion.insert({
+    required String id,
+    required String recordId,
+    required String patientId,
+    required String requestedByAccountId,
+    required String reason,
+    required DateTime createdAt,
+    this.status = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       recordId = Value(recordId),
+       patientId = Value(patientId),
+       requestedByAccountId = Value(requestedByAccountId),
+       reason = Value(reason),
+       createdAt = Value(createdAt);
+  static Insertable<RecordCorrectionRow> custom({
+    Expression<String>? id,
+    Expression<String>? recordId,
+    Expression<String>? patientId,
+    Expression<String>? requestedByAccountId,
+    Expression<String>? reason,
+    Expression<DateTime>? createdAt,
+    Expression<String>? status,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (recordId != null) 'record_id': recordId,
+      if (patientId != null) 'patient_id': patientId,
+      if (requestedByAccountId != null)
+        'requested_by_account_id': requestedByAccountId,
+      if (reason != null) 'reason': reason,
+      if (createdAt != null) 'created_at': createdAt,
+      if (status != null) 'status': status,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  RecordCorrectionsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? recordId,
+    Value<String>? patientId,
+    Value<String>? requestedByAccountId,
+    Value<String>? reason,
+    Value<DateTime>? createdAt,
+    Value<String>? status,
+    Value<int>? rowid,
+  }) {
+    return RecordCorrectionsCompanion(
+      id: id ?? this.id,
+      recordId: recordId ?? this.recordId,
+      patientId: patientId ?? this.patientId,
+      requestedByAccountId: requestedByAccountId ?? this.requestedByAccountId,
+      reason: reason ?? this.reason,
+      createdAt: createdAt ?? this.createdAt,
+      status: status ?? this.status,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (recordId.present) {
+      map['record_id'] = Variable<String>(recordId.value);
+    }
+    if (patientId.present) {
+      map['patient_id'] = Variable<String>(patientId.value);
+    }
+    if (requestedByAccountId.present) {
+      map['requested_by_account_id'] = Variable<String>(
+        requestedByAccountId.value,
+      );
+    }
+    if (reason.present) {
+      map['reason'] = Variable<String>(reason.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RecordCorrectionsCompanion(')
+          ..write('id: $id, ')
+          ..write('recordId: $recordId, ')
+          ..write('patientId: $patientId, ')
+          ..write('requestedByAccountId: $requestedByAccountId, ')
+          ..write('reason: $reason, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('status: $status, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DocumentTemplatesTable extends DocumentTemplates
+    with TableInfo<$DocumentTemplatesTable, DocumentTemplateRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DocumentTemplatesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _documentTypeMeta = const VerificationMeta(
+    'documentType',
+  );
+  @override
+  late final GeneratedColumn<String> documentType = GeneratedColumn<String>(
+    'document_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _languageMeta = const VerificationMeta(
+    'language',
+  );
+  @override
+  late final GeneratedColumn<String> language = GeneratedColumn<String>(
+    'language',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _disclosureProfileMeta = const VerificationMeta(
+    'disclosureProfile',
+  );
+  @override
+  late final GeneratedColumn<String> disclosureProfile =
+      GeneratedColumn<String>(
+        'disclosure_profile',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _wordingMeta = const VerificationMeta(
+    'wording',
+  );
+  @override
+  late final GeneratedColumn<String> wording = GeneratedColumn<String>(
+    'wording',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _clinicalSignatureRequiredMeta =
+      const VerificationMeta('clinicalSignatureRequired');
+  @override
+  late final GeneratedColumn<bool> clinicalSignatureRequired =
+      GeneratedColumn<bool>(
+        'clinical_signature_required',
+        aliasedName,
+        false,
+        type: DriftSqlType.bool,
+        requiredDuringInsert: true,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("clinical_signature_required" IN (0, 1))',
+        ),
+      );
+  static const VerificationMeta _requiredCredentialMeta =
+      const VerificationMeta('requiredCredential');
+  @override
+  late final GeneratedColumn<String> requiredCredential =
+      GeneratedColumn<String>(
+        'required_credential',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _approvedByMeta = const VerificationMeta(
+    'approvedBy',
+  );
+  @override
+  late final GeneratedColumn<String> approvedBy = GeneratedColumn<String>(
+    'approved_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _approvedAtMeta = const VerificationMeta(
+    'approvedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> approvedAt = GeneratedColumn<DateTime>(
+    'approved_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _retiredAtMeta = const VerificationMeta(
+    'retiredAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> retiredAt = GeneratedColumn<DateTime>(
+    'retired_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    documentType,
+    version,
+    language,
+    disclosureProfile,
+    wording,
+    clinicalSignatureRequired,
+    requiredCredential,
+    approvedBy,
+    approvedAt,
+    retiredAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'document_templates';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DocumentTemplateRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('document_type')) {
+      context.handle(
+        _documentTypeMeta,
+        documentType.isAcceptableOrUnknown(
+          data['document_type']!,
+          _documentTypeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_documentTypeMeta);
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_versionMeta);
+    }
+    if (data.containsKey('language')) {
+      context.handle(
+        _languageMeta,
+        language.isAcceptableOrUnknown(data['language']!, _languageMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_languageMeta);
+    }
+    if (data.containsKey('disclosure_profile')) {
+      context.handle(
+        _disclosureProfileMeta,
+        disclosureProfile.isAcceptableOrUnknown(
+          data['disclosure_profile']!,
+          _disclosureProfileMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_disclosureProfileMeta);
+    }
+    if (data.containsKey('wording')) {
+      context.handle(
+        _wordingMeta,
+        wording.isAcceptableOrUnknown(data['wording']!, _wordingMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_wordingMeta);
+    }
+    if (data.containsKey('clinical_signature_required')) {
+      context.handle(
+        _clinicalSignatureRequiredMeta,
+        clinicalSignatureRequired.isAcceptableOrUnknown(
+          data['clinical_signature_required']!,
+          _clinicalSignatureRequiredMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_clinicalSignatureRequiredMeta);
+    }
+    if (data.containsKey('required_credential')) {
+      context.handle(
+        _requiredCredentialMeta,
+        requiredCredential.isAcceptableOrUnknown(
+          data['required_credential']!,
+          _requiredCredentialMeta,
+        ),
+      );
+    }
+    if (data.containsKey('approved_by')) {
+      context.handle(
+        _approvedByMeta,
+        approvedBy.isAcceptableOrUnknown(data['approved_by']!, _approvedByMeta),
+      );
+    }
+    if (data.containsKey('approved_at')) {
+      context.handle(
+        _approvedAtMeta,
+        approvedAt.isAcceptableOrUnknown(data['approved_at']!, _approvedAtMeta),
+      );
+    }
+    if (data.containsKey('retired_at')) {
+      context.handle(
+        _retiredAtMeta,
+        retiredAt.isAcceptableOrUnknown(data['retired_at']!, _retiredAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {documentType, version, language, disclosureProfile},
+  ];
+  @override
+  DocumentTemplateRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DocumentTemplateRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      documentType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}document_type'],
+      )!,
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+      language: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}language'],
+      )!,
+      disclosureProfile: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}disclosure_profile'],
+      )!,
+      wording: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}wording'],
+      )!,
+      clinicalSignatureRequired: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}clinical_signature_required'],
+      )!,
+      requiredCredential: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}required_credential'],
+      ),
+      approvedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}approved_by'],
+      ),
+      approvedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}approved_at'],
+      ),
+      retiredAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}retired_at'],
+      ),
+    );
+  }
+
+  @override
+  $DocumentTemplatesTable createAlias(String alias) {
+    return $DocumentTemplatesTable(attachedDatabase, alias);
+  }
+}
+
+class DocumentTemplateRow extends DataClass
+    implements Insertable<DocumentTemplateRow> {
+  final String id;
+  final String documentType;
+  final int version;
+  final String language;
+  final String disclosureProfile;
+  final String wording;
+  final bool clinicalSignatureRequired;
+  final String? requiredCredential;
+  final String? approvedBy;
+  final DateTime? approvedAt;
+  final DateTime? retiredAt;
+  const DocumentTemplateRow({
+    required this.id,
+    required this.documentType,
+    required this.version,
+    required this.language,
+    required this.disclosureProfile,
+    required this.wording,
+    required this.clinicalSignatureRequired,
+    this.requiredCredential,
+    this.approvedBy,
+    this.approvedAt,
+    this.retiredAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['document_type'] = Variable<String>(documentType);
+    map['version'] = Variable<int>(version);
+    map['language'] = Variable<String>(language);
+    map['disclosure_profile'] = Variable<String>(disclosureProfile);
+    map['wording'] = Variable<String>(wording);
+    map['clinical_signature_required'] = Variable<bool>(
+      clinicalSignatureRequired,
+    );
+    if (!nullToAbsent || requiredCredential != null) {
+      map['required_credential'] = Variable<String>(requiredCredential);
+    }
+    if (!nullToAbsent || approvedBy != null) {
+      map['approved_by'] = Variable<String>(approvedBy);
+    }
+    if (!nullToAbsent || approvedAt != null) {
+      map['approved_at'] = Variable<DateTime>(approvedAt);
+    }
+    if (!nullToAbsent || retiredAt != null) {
+      map['retired_at'] = Variable<DateTime>(retiredAt);
+    }
+    return map;
+  }
+
+  DocumentTemplatesCompanion toCompanion(bool nullToAbsent) {
+    return DocumentTemplatesCompanion(
+      id: Value(id),
+      documentType: Value(documentType),
+      version: Value(version),
+      language: Value(language),
+      disclosureProfile: Value(disclosureProfile),
+      wording: Value(wording),
+      clinicalSignatureRequired: Value(clinicalSignatureRequired),
+      requiredCredential: requiredCredential == null && nullToAbsent
+          ? const Value.absent()
+          : Value(requiredCredential),
+      approvedBy: approvedBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(approvedBy),
+      approvedAt: approvedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(approvedAt),
+      retiredAt: retiredAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(retiredAt),
+    );
+  }
+
+  factory DocumentTemplateRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DocumentTemplateRow(
+      id: serializer.fromJson<String>(json['id']),
+      documentType: serializer.fromJson<String>(json['documentType']),
+      version: serializer.fromJson<int>(json['version']),
+      language: serializer.fromJson<String>(json['language']),
+      disclosureProfile: serializer.fromJson<String>(json['disclosureProfile']),
+      wording: serializer.fromJson<String>(json['wording']),
+      clinicalSignatureRequired: serializer.fromJson<bool>(
+        json['clinicalSignatureRequired'],
+      ),
+      requiredCredential: serializer.fromJson<String?>(
+        json['requiredCredential'],
+      ),
+      approvedBy: serializer.fromJson<String?>(json['approvedBy']),
+      approvedAt: serializer.fromJson<DateTime?>(json['approvedAt']),
+      retiredAt: serializer.fromJson<DateTime?>(json['retiredAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'documentType': serializer.toJson<String>(documentType),
+      'version': serializer.toJson<int>(version),
+      'language': serializer.toJson<String>(language),
+      'disclosureProfile': serializer.toJson<String>(disclosureProfile),
+      'wording': serializer.toJson<String>(wording),
+      'clinicalSignatureRequired': serializer.toJson<bool>(
+        clinicalSignatureRequired,
+      ),
+      'requiredCredential': serializer.toJson<String?>(requiredCredential),
+      'approvedBy': serializer.toJson<String?>(approvedBy),
+      'approvedAt': serializer.toJson<DateTime?>(approvedAt),
+      'retiredAt': serializer.toJson<DateTime?>(retiredAt),
+    };
+  }
+
+  DocumentTemplateRow copyWith({
+    String? id,
+    String? documentType,
+    int? version,
+    String? language,
+    String? disclosureProfile,
+    String? wording,
+    bool? clinicalSignatureRequired,
+    Value<String?> requiredCredential = const Value.absent(),
+    Value<String?> approvedBy = const Value.absent(),
+    Value<DateTime?> approvedAt = const Value.absent(),
+    Value<DateTime?> retiredAt = const Value.absent(),
+  }) => DocumentTemplateRow(
+    id: id ?? this.id,
+    documentType: documentType ?? this.documentType,
+    version: version ?? this.version,
+    language: language ?? this.language,
+    disclosureProfile: disclosureProfile ?? this.disclosureProfile,
+    wording: wording ?? this.wording,
+    clinicalSignatureRequired:
+        clinicalSignatureRequired ?? this.clinicalSignatureRequired,
+    requiredCredential: requiredCredential.present
+        ? requiredCredential.value
+        : this.requiredCredential,
+    approvedBy: approvedBy.present ? approvedBy.value : this.approvedBy,
+    approvedAt: approvedAt.present ? approvedAt.value : this.approvedAt,
+    retiredAt: retiredAt.present ? retiredAt.value : this.retiredAt,
+  );
+  DocumentTemplateRow copyWithCompanion(DocumentTemplatesCompanion data) {
+    return DocumentTemplateRow(
+      id: data.id.present ? data.id.value : this.id,
+      documentType: data.documentType.present
+          ? data.documentType.value
+          : this.documentType,
+      version: data.version.present ? data.version.value : this.version,
+      language: data.language.present ? data.language.value : this.language,
+      disclosureProfile: data.disclosureProfile.present
+          ? data.disclosureProfile.value
+          : this.disclosureProfile,
+      wording: data.wording.present ? data.wording.value : this.wording,
+      clinicalSignatureRequired: data.clinicalSignatureRequired.present
+          ? data.clinicalSignatureRequired.value
+          : this.clinicalSignatureRequired,
+      requiredCredential: data.requiredCredential.present
+          ? data.requiredCredential.value
+          : this.requiredCredential,
+      approvedBy: data.approvedBy.present
+          ? data.approvedBy.value
+          : this.approvedBy,
+      approvedAt: data.approvedAt.present
+          ? data.approvedAt.value
+          : this.approvedAt,
+      retiredAt: data.retiredAt.present ? data.retiredAt.value : this.retiredAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DocumentTemplateRow(')
+          ..write('id: $id, ')
+          ..write('documentType: $documentType, ')
+          ..write('version: $version, ')
+          ..write('language: $language, ')
+          ..write('disclosureProfile: $disclosureProfile, ')
+          ..write('wording: $wording, ')
+          ..write('clinicalSignatureRequired: $clinicalSignatureRequired, ')
+          ..write('requiredCredential: $requiredCredential, ')
+          ..write('approvedBy: $approvedBy, ')
+          ..write('approvedAt: $approvedAt, ')
+          ..write('retiredAt: $retiredAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    documentType,
+    version,
+    language,
+    disclosureProfile,
+    wording,
+    clinicalSignatureRequired,
+    requiredCredential,
+    approvedBy,
+    approvedAt,
+    retiredAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DocumentTemplateRow &&
+          other.id == this.id &&
+          other.documentType == this.documentType &&
+          other.version == this.version &&
+          other.language == this.language &&
+          other.disclosureProfile == this.disclosureProfile &&
+          other.wording == this.wording &&
+          other.clinicalSignatureRequired == this.clinicalSignatureRequired &&
+          other.requiredCredential == this.requiredCredential &&
+          other.approvedBy == this.approvedBy &&
+          other.approvedAt == this.approvedAt &&
+          other.retiredAt == this.retiredAt);
+}
+
+class DocumentTemplatesCompanion extends UpdateCompanion<DocumentTemplateRow> {
+  final Value<String> id;
+  final Value<String> documentType;
+  final Value<int> version;
+  final Value<String> language;
+  final Value<String> disclosureProfile;
+  final Value<String> wording;
+  final Value<bool> clinicalSignatureRequired;
+  final Value<String?> requiredCredential;
+  final Value<String?> approvedBy;
+  final Value<DateTime?> approvedAt;
+  final Value<DateTime?> retiredAt;
+  final Value<int> rowid;
+  const DocumentTemplatesCompanion({
+    this.id = const Value.absent(),
+    this.documentType = const Value.absent(),
+    this.version = const Value.absent(),
+    this.language = const Value.absent(),
+    this.disclosureProfile = const Value.absent(),
+    this.wording = const Value.absent(),
+    this.clinicalSignatureRequired = const Value.absent(),
+    this.requiredCredential = const Value.absent(),
+    this.approvedBy = const Value.absent(),
+    this.approvedAt = const Value.absent(),
+    this.retiredAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DocumentTemplatesCompanion.insert({
+    required String id,
+    required String documentType,
+    required int version,
+    required String language,
+    required String disclosureProfile,
+    required String wording,
+    required bool clinicalSignatureRequired,
+    this.requiredCredential = const Value.absent(),
+    this.approvedBy = const Value.absent(),
+    this.approvedAt = const Value.absent(),
+    this.retiredAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       documentType = Value(documentType),
+       version = Value(version),
+       language = Value(language),
+       disclosureProfile = Value(disclosureProfile),
+       wording = Value(wording),
+       clinicalSignatureRequired = Value(clinicalSignatureRequired);
+  static Insertable<DocumentTemplateRow> custom({
+    Expression<String>? id,
+    Expression<String>? documentType,
+    Expression<int>? version,
+    Expression<String>? language,
+    Expression<String>? disclosureProfile,
+    Expression<String>? wording,
+    Expression<bool>? clinicalSignatureRequired,
+    Expression<String>? requiredCredential,
+    Expression<String>? approvedBy,
+    Expression<DateTime>? approvedAt,
+    Expression<DateTime>? retiredAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (documentType != null) 'document_type': documentType,
+      if (version != null) 'version': version,
+      if (language != null) 'language': language,
+      if (disclosureProfile != null) 'disclosure_profile': disclosureProfile,
+      if (wording != null) 'wording': wording,
+      if (clinicalSignatureRequired != null)
+        'clinical_signature_required': clinicalSignatureRequired,
+      if (requiredCredential != null) 'required_credential': requiredCredential,
+      if (approvedBy != null) 'approved_by': approvedBy,
+      if (approvedAt != null) 'approved_at': approvedAt,
+      if (retiredAt != null) 'retired_at': retiredAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DocumentTemplatesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? documentType,
+    Value<int>? version,
+    Value<String>? language,
+    Value<String>? disclosureProfile,
+    Value<String>? wording,
+    Value<bool>? clinicalSignatureRequired,
+    Value<String?>? requiredCredential,
+    Value<String?>? approvedBy,
+    Value<DateTime?>? approvedAt,
+    Value<DateTime?>? retiredAt,
+    Value<int>? rowid,
+  }) {
+    return DocumentTemplatesCompanion(
+      id: id ?? this.id,
+      documentType: documentType ?? this.documentType,
+      version: version ?? this.version,
+      language: language ?? this.language,
+      disclosureProfile: disclosureProfile ?? this.disclosureProfile,
+      wording: wording ?? this.wording,
+      clinicalSignatureRequired:
+          clinicalSignatureRequired ?? this.clinicalSignatureRequired,
+      requiredCredential: requiredCredential ?? this.requiredCredential,
+      approvedBy: approvedBy ?? this.approvedBy,
+      approvedAt: approvedAt ?? this.approvedAt,
+      retiredAt: retiredAt ?? this.retiredAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (documentType.present) {
+      map['document_type'] = Variable<String>(documentType.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (language.present) {
+      map['language'] = Variable<String>(language.value);
+    }
+    if (disclosureProfile.present) {
+      map['disclosure_profile'] = Variable<String>(disclosureProfile.value);
+    }
+    if (wording.present) {
+      map['wording'] = Variable<String>(wording.value);
+    }
+    if (clinicalSignatureRequired.present) {
+      map['clinical_signature_required'] = Variable<bool>(
+        clinicalSignatureRequired.value,
+      );
+    }
+    if (requiredCredential.present) {
+      map['required_credential'] = Variable<String>(requiredCredential.value);
+    }
+    if (approvedBy.present) {
+      map['approved_by'] = Variable<String>(approvedBy.value);
+    }
+    if (approvedAt.present) {
+      map['approved_at'] = Variable<DateTime>(approvedAt.value);
+    }
+    if (retiredAt.present) {
+      map['retired_at'] = Variable<DateTime>(retiredAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DocumentTemplatesCompanion(')
+          ..write('id: $id, ')
+          ..write('documentType: $documentType, ')
+          ..write('version: $version, ')
+          ..write('language: $language, ')
+          ..write('disclosureProfile: $disclosureProfile, ')
+          ..write('wording: $wording, ')
+          ..write('clinicalSignatureRequired: $clinicalSignatureRequired, ')
+          ..write('requiredCredential: $requiredCredential, ')
+          ..write('approvedBy: $approvedBy, ')
+          ..write('approvedAt: $approvedAt, ')
+          ..write('retiredAt: $retiredAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DocumentRequestsTable extends DocumentRequests
+    with TableInfo<$DocumentRequestsTable, DocumentRequestRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DocumentRequestsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _patientIdMeta = const VerificationMeta(
+    'patientId',
+  );
+  @override
+  late final GeneratedColumn<String> patientId = GeneratedColumn<String>(
+    'patient_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _appointmentIdMeta = const VerificationMeta(
+    'appointmentId',
+  );
+  @override
+  late final GeneratedColumn<String> appointmentId = GeneratedColumn<String>(
+    'appointment_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES appointments (id)',
+    ),
+  );
+  static const VerificationMeta _templateIdMeta = const VerificationMeta(
+    'templateId',
+  );
+  @override
+  late final GeneratedColumn<String> templateId = GeneratedColumn<String>(
+    'template_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES document_templates (id)',
+    ),
+  );
+  static const VerificationMeta _requestedByMeta = const VerificationMeta(
+    'requestedBy',
+  );
+  @override
+  late final GeneratedColumn<String> requestedBy = GeneratedColumn<String>(
+    'requested_by',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('draft'),
+  );
+  static const VerificationMeta _contentJsonMeta = const VerificationMeta(
+    'contentJson',
+  );
+  @override
+  late final GeneratedColumn<String> contentJson = GeneratedColumn<String>(
+    'content_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _idempotencyKeyMeta = const VerificationMeta(
+    'idempotencyKey',
+  );
+  @override
+  late final GeneratedColumn<String> idempotencyKey = GeneratedColumn<String>(
+    'idempotency_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    patientId,
+    appointmentId,
+    templateId,
+    requestedBy,
+    status,
+    contentJson,
+    idempotencyKey,
+    version,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'document_requests';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DocumentRequestRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('patient_id')) {
+      context.handle(
+        _patientIdMeta,
+        patientId.isAcceptableOrUnknown(data['patient_id']!, _patientIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_patientIdMeta);
+    }
+    if (data.containsKey('appointment_id')) {
+      context.handle(
+        _appointmentIdMeta,
+        appointmentId.isAcceptableOrUnknown(
+          data['appointment_id']!,
+          _appointmentIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('template_id')) {
+      context.handle(
+        _templateIdMeta,
+        templateId.isAcceptableOrUnknown(data['template_id']!, _templateIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_templateIdMeta);
+    }
+    if (data.containsKey('requested_by')) {
+      context.handle(
+        _requestedByMeta,
+        requestedBy.isAcceptableOrUnknown(
+          data['requested_by']!,
+          _requestedByMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_requestedByMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('content_json')) {
+      context.handle(
+        _contentJsonMeta,
+        contentJson.isAcceptableOrUnknown(
+          data['content_json']!,
+          _contentJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_contentJsonMeta);
+    }
+    if (data.containsKey('idempotency_key')) {
+      context.handle(
+        _idempotencyKeyMeta,
+        idempotencyKey.isAcceptableOrUnknown(
+          data['idempotency_key']!,
+          _idempotencyKeyMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_idempotencyKeyMeta);
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DocumentRequestRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DocumentRequestRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      patientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}patient_id'],
+      )!,
+      appointmentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}appointment_id'],
+      ),
+      templateId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}template_id'],
+      )!,
+      requestedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}requested_by'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      contentJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content_json'],
+      )!,
+      idempotencyKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}idempotency_key'],
+      )!,
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $DocumentRequestsTable createAlias(String alias) {
+    return $DocumentRequestsTable(attachedDatabase, alias);
+  }
+}
+
+class DocumentRequestRow extends DataClass
+    implements Insertable<DocumentRequestRow> {
+  final String id;
+  final String patientId;
+  final String? appointmentId;
+  final String templateId;
+  final String requestedBy;
+  final String status;
+  final String contentJson;
+  final String idempotencyKey;
+  final int version;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const DocumentRequestRow({
+    required this.id,
+    required this.patientId,
+    this.appointmentId,
+    required this.templateId,
+    required this.requestedBy,
+    required this.status,
+    required this.contentJson,
+    required this.idempotencyKey,
+    required this.version,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['patient_id'] = Variable<String>(patientId);
+    if (!nullToAbsent || appointmentId != null) {
+      map['appointment_id'] = Variable<String>(appointmentId);
+    }
+    map['template_id'] = Variable<String>(templateId);
+    map['requested_by'] = Variable<String>(requestedBy);
+    map['status'] = Variable<String>(status);
+    map['content_json'] = Variable<String>(contentJson);
+    map['idempotency_key'] = Variable<String>(idempotencyKey);
+    map['version'] = Variable<int>(version);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  DocumentRequestsCompanion toCompanion(bool nullToAbsent) {
+    return DocumentRequestsCompanion(
+      id: Value(id),
+      patientId: Value(patientId),
+      appointmentId: appointmentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(appointmentId),
+      templateId: Value(templateId),
+      requestedBy: Value(requestedBy),
+      status: Value(status),
+      contentJson: Value(contentJson),
+      idempotencyKey: Value(idempotencyKey),
+      version: Value(version),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory DocumentRequestRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DocumentRequestRow(
+      id: serializer.fromJson<String>(json['id']),
+      patientId: serializer.fromJson<String>(json['patientId']),
+      appointmentId: serializer.fromJson<String?>(json['appointmentId']),
+      templateId: serializer.fromJson<String>(json['templateId']),
+      requestedBy: serializer.fromJson<String>(json['requestedBy']),
+      status: serializer.fromJson<String>(json['status']),
+      contentJson: serializer.fromJson<String>(json['contentJson']),
+      idempotencyKey: serializer.fromJson<String>(json['idempotencyKey']),
+      version: serializer.fromJson<int>(json['version']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'patientId': serializer.toJson<String>(patientId),
+      'appointmentId': serializer.toJson<String?>(appointmentId),
+      'templateId': serializer.toJson<String>(templateId),
+      'requestedBy': serializer.toJson<String>(requestedBy),
+      'status': serializer.toJson<String>(status),
+      'contentJson': serializer.toJson<String>(contentJson),
+      'idempotencyKey': serializer.toJson<String>(idempotencyKey),
+      'version': serializer.toJson<int>(version),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  DocumentRequestRow copyWith({
+    String? id,
+    String? patientId,
+    Value<String?> appointmentId = const Value.absent(),
+    String? templateId,
+    String? requestedBy,
+    String? status,
+    String? contentJson,
+    String? idempotencyKey,
+    int? version,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => DocumentRequestRow(
+    id: id ?? this.id,
+    patientId: patientId ?? this.patientId,
+    appointmentId: appointmentId.present
+        ? appointmentId.value
+        : this.appointmentId,
+    templateId: templateId ?? this.templateId,
+    requestedBy: requestedBy ?? this.requestedBy,
+    status: status ?? this.status,
+    contentJson: contentJson ?? this.contentJson,
+    idempotencyKey: idempotencyKey ?? this.idempotencyKey,
+    version: version ?? this.version,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  DocumentRequestRow copyWithCompanion(DocumentRequestsCompanion data) {
+    return DocumentRequestRow(
+      id: data.id.present ? data.id.value : this.id,
+      patientId: data.patientId.present ? data.patientId.value : this.patientId,
+      appointmentId: data.appointmentId.present
+          ? data.appointmentId.value
+          : this.appointmentId,
+      templateId: data.templateId.present
+          ? data.templateId.value
+          : this.templateId,
+      requestedBy: data.requestedBy.present
+          ? data.requestedBy.value
+          : this.requestedBy,
+      status: data.status.present ? data.status.value : this.status,
+      contentJson: data.contentJson.present
+          ? data.contentJson.value
+          : this.contentJson,
+      idempotencyKey: data.idempotencyKey.present
+          ? data.idempotencyKey.value
+          : this.idempotencyKey,
+      version: data.version.present ? data.version.value : this.version,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DocumentRequestRow(')
+          ..write('id: $id, ')
+          ..write('patientId: $patientId, ')
+          ..write('appointmentId: $appointmentId, ')
+          ..write('templateId: $templateId, ')
+          ..write('requestedBy: $requestedBy, ')
+          ..write('status: $status, ')
+          ..write('contentJson: $contentJson, ')
+          ..write('idempotencyKey: $idempotencyKey, ')
+          ..write('version: $version, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    patientId,
+    appointmentId,
+    templateId,
+    requestedBy,
+    status,
+    contentJson,
+    idempotencyKey,
+    version,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DocumentRequestRow &&
+          other.id == this.id &&
+          other.patientId == this.patientId &&
+          other.appointmentId == this.appointmentId &&
+          other.templateId == this.templateId &&
+          other.requestedBy == this.requestedBy &&
+          other.status == this.status &&
+          other.contentJson == this.contentJson &&
+          other.idempotencyKey == this.idempotencyKey &&
+          other.version == this.version &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class DocumentRequestsCompanion extends UpdateCompanion<DocumentRequestRow> {
+  final Value<String> id;
+  final Value<String> patientId;
+  final Value<String?> appointmentId;
+  final Value<String> templateId;
+  final Value<String> requestedBy;
+  final Value<String> status;
+  final Value<String> contentJson;
+  final Value<String> idempotencyKey;
+  final Value<int> version;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const DocumentRequestsCompanion({
+    this.id = const Value.absent(),
+    this.patientId = const Value.absent(),
+    this.appointmentId = const Value.absent(),
+    this.templateId = const Value.absent(),
+    this.requestedBy = const Value.absent(),
+    this.status = const Value.absent(),
+    this.contentJson = const Value.absent(),
+    this.idempotencyKey = const Value.absent(),
+    this.version = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DocumentRequestsCompanion.insert({
+    required String id,
+    required String patientId,
+    this.appointmentId = const Value.absent(),
+    required String templateId,
+    required String requestedBy,
+    this.status = const Value.absent(),
+    required String contentJson,
+    required String idempotencyKey,
+    this.version = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       patientId = Value(patientId),
+       templateId = Value(templateId),
+       requestedBy = Value(requestedBy),
+       contentJson = Value(contentJson),
+       idempotencyKey = Value(idempotencyKey),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<DocumentRequestRow> custom({
+    Expression<String>? id,
+    Expression<String>? patientId,
+    Expression<String>? appointmentId,
+    Expression<String>? templateId,
+    Expression<String>? requestedBy,
+    Expression<String>? status,
+    Expression<String>? contentJson,
+    Expression<String>? idempotencyKey,
+    Expression<int>? version,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (patientId != null) 'patient_id': patientId,
+      if (appointmentId != null) 'appointment_id': appointmentId,
+      if (templateId != null) 'template_id': templateId,
+      if (requestedBy != null) 'requested_by': requestedBy,
+      if (status != null) 'status': status,
+      if (contentJson != null) 'content_json': contentJson,
+      if (idempotencyKey != null) 'idempotency_key': idempotencyKey,
+      if (version != null) 'version': version,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DocumentRequestsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? patientId,
+    Value<String?>? appointmentId,
+    Value<String>? templateId,
+    Value<String>? requestedBy,
+    Value<String>? status,
+    Value<String>? contentJson,
+    Value<String>? idempotencyKey,
+    Value<int>? version,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return DocumentRequestsCompanion(
+      id: id ?? this.id,
+      patientId: patientId ?? this.patientId,
+      appointmentId: appointmentId ?? this.appointmentId,
+      templateId: templateId ?? this.templateId,
+      requestedBy: requestedBy ?? this.requestedBy,
+      status: status ?? this.status,
+      contentJson: contentJson ?? this.contentJson,
+      idempotencyKey: idempotencyKey ?? this.idempotencyKey,
+      version: version ?? this.version,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (patientId.present) {
+      map['patient_id'] = Variable<String>(patientId.value);
+    }
+    if (appointmentId.present) {
+      map['appointment_id'] = Variable<String>(appointmentId.value);
+    }
+    if (templateId.present) {
+      map['template_id'] = Variable<String>(templateId.value);
+    }
+    if (requestedBy.present) {
+      map['requested_by'] = Variable<String>(requestedBy.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (contentJson.present) {
+      map['content_json'] = Variable<String>(contentJson.value);
+    }
+    if (idempotencyKey.present) {
+      map['idempotency_key'] = Variable<String>(idempotencyKey.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DocumentRequestsCompanion(')
+          ..write('id: $id, ')
+          ..write('patientId: $patientId, ')
+          ..write('appointmentId: $appointmentId, ')
+          ..write('templateId: $templateId, ')
+          ..write('requestedBy: $requestedBy, ')
+          ..write('status: $status, ')
+          ..write('contentJson: $contentJson, ')
+          ..write('idempotencyKey: $idempotencyKey, ')
+          ..write('version: $version, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $IssuedDocumentVersionsTable extends IssuedDocumentVersions
+    with TableInfo<$IssuedDocumentVersionsTable, IssuedDocumentVersionRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $IssuedDocumentVersionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _requestIdMeta = const VerificationMeta(
+    'requestId',
+  );
+  @override
+  late final GeneratedColumn<String> requestId = GeneratedColumn<String>(
+    'request_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES document_requests (id)',
+    ),
+  );
+  static const VerificationMeta _patientIdMeta = const VerificationMeta(
+    'patientId',
+  );
+  @override
+  late final GeneratedColumn<String> patientId = GeneratedColumn<String>(
+    'patient_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _templateIdMeta = const VerificationMeta(
+    'templateId',
+  );
+  @override
+  late final GeneratedColumn<String> templateId = GeneratedColumn<String>(
+    'template_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES document_templates (id)',
+    ),
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _documentTypeMeta = const VerificationMeta(
+    'documentType',
+  );
+  @override
+  late final GeneratedColumn<String> documentType = GeneratedColumn<String>(
+    'document_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _languageMeta = const VerificationMeta(
+    'language',
+  );
+  @override
+  late final GeneratedColumn<String> language = GeneratedColumn<String>(
+    'language',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _disclosureProfileMeta = const VerificationMeta(
+    'disclosureProfile',
+  );
+  @override
+  late final GeneratedColumn<String> disclosureProfile =
+      GeneratedColumn<String>(
+        'disclosure_profile',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _patientSnapshotJsonMeta =
+      const VerificationMeta('patientSnapshotJson');
+  @override
+  late final GeneratedColumn<String> patientSnapshotJson =
+      GeneratedColumn<String>(
+        'patient_snapshot_json',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _issuerSnapshotJsonMeta =
+      const VerificationMeta('issuerSnapshotJson');
+  @override
+  late final GeneratedColumn<String> issuerSnapshotJson =
+      GeneratedColumn<String>(
+        'issuer_snapshot_json',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _contentJsonMeta = const VerificationMeta(
+    'contentJson',
+  );
+  @override
+  late final GeneratedColumn<String> contentJson = GeneratedColumn<String>(
+    'content_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _templateSnapshotJsonMeta =
+      const VerificationMeta('templateSnapshotJson');
+  @override
+  late final GeneratedColumn<String> templateSnapshotJson =
+      GeneratedColumn<String>(
+        'template_snapshot_json',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _issuerAccountIdMeta = const VerificationMeta(
+    'issuerAccountId',
+  );
+  @override
+  late final GeneratedColumn<String> issuerAccountId = GeneratedColumn<String>(
+    'issuer_account_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _supersedesIdMeta = const VerificationMeta(
+    'supersedesId',
+  );
+  @override
+  late final GeneratedColumn<String> supersedesId = GeneratedColumn<String>(
+    'supersedes_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES issued_document_versions (id)',
+    ),
+  );
+  static const VerificationMeta _idempotencyKeyMeta = const VerificationMeta(
+    'idempotencyKey',
+  );
+  @override
+  late final GeneratedColumn<String> idempotencyKey = GeneratedColumn<String>(
+    'idempotency_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _issuedAtMeta = const VerificationMeta(
+    'issuedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> issuedAt = GeneratedColumn<DateTime>(
+    'issued_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    requestId,
+    patientId,
+    templateId,
+    version,
+    documentType,
+    language,
+    disclosureProfile,
+    patientSnapshotJson,
+    issuerSnapshotJson,
+    contentJson,
+    templateSnapshotJson,
+    issuerAccountId,
+    supersedesId,
+    idempotencyKey,
+    issuedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'issued_document_versions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<IssuedDocumentVersionRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('request_id')) {
+      context.handle(
+        _requestIdMeta,
+        requestId.isAcceptableOrUnknown(data['request_id']!, _requestIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_requestIdMeta);
+    }
+    if (data.containsKey('patient_id')) {
+      context.handle(
+        _patientIdMeta,
+        patientId.isAcceptableOrUnknown(data['patient_id']!, _patientIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_patientIdMeta);
+    }
+    if (data.containsKey('template_id')) {
+      context.handle(
+        _templateIdMeta,
+        templateId.isAcceptableOrUnknown(data['template_id']!, _templateIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_templateIdMeta);
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_versionMeta);
+    }
+    if (data.containsKey('document_type')) {
+      context.handle(
+        _documentTypeMeta,
+        documentType.isAcceptableOrUnknown(
+          data['document_type']!,
+          _documentTypeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_documentTypeMeta);
+    }
+    if (data.containsKey('language')) {
+      context.handle(
+        _languageMeta,
+        language.isAcceptableOrUnknown(data['language']!, _languageMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_languageMeta);
+    }
+    if (data.containsKey('disclosure_profile')) {
+      context.handle(
+        _disclosureProfileMeta,
+        disclosureProfile.isAcceptableOrUnknown(
+          data['disclosure_profile']!,
+          _disclosureProfileMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_disclosureProfileMeta);
+    }
+    if (data.containsKey('patient_snapshot_json')) {
+      context.handle(
+        _patientSnapshotJsonMeta,
+        patientSnapshotJson.isAcceptableOrUnknown(
+          data['patient_snapshot_json']!,
+          _patientSnapshotJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_patientSnapshotJsonMeta);
+    }
+    if (data.containsKey('issuer_snapshot_json')) {
+      context.handle(
+        _issuerSnapshotJsonMeta,
+        issuerSnapshotJson.isAcceptableOrUnknown(
+          data['issuer_snapshot_json']!,
+          _issuerSnapshotJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_issuerSnapshotJsonMeta);
+    }
+    if (data.containsKey('content_json')) {
+      context.handle(
+        _contentJsonMeta,
+        contentJson.isAcceptableOrUnknown(
+          data['content_json']!,
+          _contentJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_contentJsonMeta);
+    }
+    if (data.containsKey('template_snapshot_json')) {
+      context.handle(
+        _templateSnapshotJsonMeta,
+        templateSnapshotJson.isAcceptableOrUnknown(
+          data['template_snapshot_json']!,
+          _templateSnapshotJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_templateSnapshotJsonMeta);
+    }
+    if (data.containsKey('issuer_account_id')) {
+      context.handle(
+        _issuerAccountIdMeta,
+        issuerAccountId.isAcceptableOrUnknown(
+          data['issuer_account_id']!,
+          _issuerAccountIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_issuerAccountIdMeta);
+    }
+    if (data.containsKey('supersedes_id')) {
+      context.handle(
+        _supersedesIdMeta,
+        supersedesId.isAcceptableOrUnknown(
+          data['supersedes_id']!,
+          _supersedesIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('idempotency_key')) {
+      context.handle(
+        _idempotencyKeyMeta,
+        idempotencyKey.isAcceptableOrUnknown(
+          data['idempotency_key']!,
+          _idempotencyKeyMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_idempotencyKeyMeta);
+    }
+    if (data.containsKey('issued_at')) {
+      context.handle(
+        _issuedAtMeta,
+        issuedAt.isAcceptableOrUnknown(data['issued_at']!, _issuedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_issuedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {requestId, version},
+  ];
+  @override
+  IssuedDocumentVersionRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return IssuedDocumentVersionRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      requestId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}request_id'],
+      )!,
+      patientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}patient_id'],
+      )!,
+      templateId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}template_id'],
+      )!,
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+      documentType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}document_type'],
+      )!,
+      language: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}language'],
+      )!,
+      disclosureProfile: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}disclosure_profile'],
+      )!,
+      patientSnapshotJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}patient_snapshot_json'],
+      )!,
+      issuerSnapshotJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}issuer_snapshot_json'],
+      )!,
+      contentJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content_json'],
+      )!,
+      templateSnapshotJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}template_snapshot_json'],
+      )!,
+      issuerAccountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}issuer_account_id'],
+      )!,
+      supersedesId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}supersedes_id'],
+      ),
+      idempotencyKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}idempotency_key'],
+      )!,
+      issuedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}issued_at'],
+      )!,
+    );
+  }
+
+  @override
+  $IssuedDocumentVersionsTable createAlias(String alias) {
+    return $IssuedDocumentVersionsTable(attachedDatabase, alias);
+  }
+}
+
+class IssuedDocumentVersionRow extends DataClass
+    implements Insertable<IssuedDocumentVersionRow> {
+  final String id;
+  final String requestId;
+  final String patientId;
+  final String templateId;
+  final int version;
+  final String documentType;
+  final String language;
+  final String disclosureProfile;
+  final String patientSnapshotJson;
+  final String issuerSnapshotJson;
+  final String contentJson;
+  final String templateSnapshotJson;
+  final String issuerAccountId;
+  final String? supersedesId;
+  final String idempotencyKey;
+  final DateTime issuedAt;
+  const IssuedDocumentVersionRow({
+    required this.id,
+    required this.requestId,
+    required this.patientId,
+    required this.templateId,
+    required this.version,
+    required this.documentType,
+    required this.language,
+    required this.disclosureProfile,
+    required this.patientSnapshotJson,
+    required this.issuerSnapshotJson,
+    required this.contentJson,
+    required this.templateSnapshotJson,
+    required this.issuerAccountId,
+    this.supersedesId,
+    required this.idempotencyKey,
+    required this.issuedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['request_id'] = Variable<String>(requestId);
+    map['patient_id'] = Variable<String>(patientId);
+    map['template_id'] = Variable<String>(templateId);
+    map['version'] = Variable<int>(version);
+    map['document_type'] = Variable<String>(documentType);
+    map['language'] = Variable<String>(language);
+    map['disclosure_profile'] = Variable<String>(disclosureProfile);
+    map['patient_snapshot_json'] = Variable<String>(patientSnapshotJson);
+    map['issuer_snapshot_json'] = Variable<String>(issuerSnapshotJson);
+    map['content_json'] = Variable<String>(contentJson);
+    map['template_snapshot_json'] = Variable<String>(templateSnapshotJson);
+    map['issuer_account_id'] = Variable<String>(issuerAccountId);
+    if (!nullToAbsent || supersedesId != null) {
+      map['supersedes_id'] = Variable<String>(supersedesId);
+    }
+    map['idempotency_key'] = Variable<String>(idempotencyKey);
+    map['issued_at'] = Variable<DateTime>(issuedAt);
+    return map;
+  }
+
+  IssuedDocumentVersionsCompanion toCompanion(bool nullToAbsent) {
+    return IssuedDocumentVersionsCompanion(
+      id: Value(id),
+      requestId: Value(requestId),
+      patientId: Value(patientId),
+      templateId: Value(templateId),
+      version: Value(version),
+      documentType: Value(documentType),
+      language: Value(language),
+      disclosureProfile: Value(disclosureProfile),
+      patientSnapshotJson: Value(patientSnapshotJson),
+      issuerSnapshotJson: Value(issuerSnapshotJson),
+      contentJson: Value(contentJson),
+      templateSnapshotJson: Value(templateSnapshotJson),
+      issuerAccountId: Value(issuerAccountId),
+      supersedesId: supersedesId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(supersedesId),
+      idempotencyKey: Value(idempotencyKey),
+      issuedAt: Value(issuedAt),
+    );
+  }
+
+  factory IssuedDocumentVersionRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return IssuedDocumentVersionRow(
+      id: serializer.fromJson<String>(json['id']),
+      requestId: serializer.fromJson<String>(json['requestId']),
+      patientId: serializer.fromJson<String>(json['patientId']),
+      templateId: serializer.fromJson<String>(json['templateId']),
+      version: serializer.fromJson<int>(json['version']),
+      documentType: serializer.fromJson<String>(json['documentType']),
+      language: serializer.fromJson<String>(json['language']),
+      disclosureProfile: serializer.fromJson<String>(json['disclosureProfile']),
+      patientSnapshotJson: serializer.fromJson<String>(
+        json['patientSnapshotJson'],
+      ),
+      issuerSnapshotJson: serializer.fromJson<String>(
+        json['issuerSnapshotJson'],
+      ),
+      contentJson: serializer.fromJson<String>(json['contentJson']),
+      templateSnapshotJson: serializer.fromJson<String>(
+        json['templateSnapshotJson'],
+      ),
+      issuerAccountId: serializer.fromJson<String>(json['issuerAccountId']),
+      supersedesId: serializer.fromJson<String?>(json['supersedesId']),
+      idempotencyKey: serializer.fromJson<String>(json['idempotencyKey']),
+      issuedAt: serializer.fromJson<DateTime>(json['issuedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'requestId': serializer.toJson<String>(requestId),
+      'patientId': serializer.toJson<String>(patientId),
+      'templateId': serializer.toJson<String>(templateId),
+      'version': serializer.toJson<int>(version),
+      'documentType': serializer.toJson<String>(documentType),
+      'language': serializer.toJson<String>(language),
+      'disclosureProfile': serializer.toJson<String>(disclosureProfile),
+      'patientSnapshotJson': serializer.toJson<String>(patientSnapshotJson),
+      'issuerSnapshotJson': serializer.toJson<String>(issuerSnapshotJson),
+      'contentJson': serializer.toJson<String>(contentJson),
+      'templateSnapshotJson': serializer.toJson<String>(templateSnapshotJson),
+      'issuerAccountId': serializer.toJson<String>(issuerAccountId),
+      'supersedesId': serializer.toJson<String?>(supersedesId),
+      'idempotencyKey': serializer.toJson<String>(idempotencyKey),
+      'issuedAt': serializer.toJson<DateTime>(issuedAt),
+    };
+  }
+
+  IssuedDocumentVersionRow copyWith({
+    String? id,
+    String? requestId,
+    String? patientId,
+    String? templateId,
+    int? version,
+    String? documentType,
+    String? language,
+    String? disclosureProfile,
+    String? patientSnapshotJson,
+    String? issuerSnapshotJson,
+    String? contentJson,
+    String? templateSnapshotJson,
+    String? issuerAccountId,
+    Value<String?> supersedesId = const Value.absent(),
+    String? idempotencyKey,
+    DateTime? issuedAt,
+  }) => IssuedDocumentVersionRow(
+    id: id ?? this.id,
+    requestId: requestId ?? this.requestId,
+    patientId: patientId ?? this.patientId,
+    templateId: templateId ?? this.templateId,
+    version: version ?? this.version,
+    documentType: documentType ?? this.documentType,
+    language: language ?? this.language,
+    disclosureProfile: disclosureProfile ?? this.disclosureProfile,
+    patientSnapshotJson: patientSnapshotJson ?? this.patientSnapshotJson,
+    issuerSnapshotJson: issuerSnapshotJson ?? this.issuerSnapshotJson,
+    contentJson: contentJson ?? this.contentJson,
+    templateSnapshotJson: templateSnapshotJson ?? this.templateSnapshotJson,
+    issuerAccountId: issuerAccountId ?? this.issuerAccountId,
+    supersedesId: supersedesId.present ? supersedesId.value : this.supersedesId,
+    idempotencyKey: idempotencyKey ?? this.idempotencyKey,
+    issuedAt: issuedAt ?? this.issuedAt,
+  );
+  IssuedDocumentVersionRow copyWithCompanion(
+    IssuedDocumentVersionsCompanion data,
+  ) {
+    return IssuedDocumentVersionRow(
+      id: data.id.present ? data.id.value : this.id,
+      requestId: data.requestId.present ? data.requestId.value : this.requestId,
+      patientId: data.patientId.present ? data.patientId.value : this.patientId,
+      templateId: data.templateId.present
+          ? data.templateId.value
+          : this.templateId,
+      version: data.version.present ? data.version.value : this.version,
+      documentType: data.documentType.present
+          ? data.documentType.value
+          : this.documentType,
+      language: data.language.present ? data.language.value : this.language,
+      disclosureProfile: data.disclosureProfile.present
+          ? data.disclosureProfile.value
+          : this.disclosureProfile,
+      patientSnapshotJson: data.patientSnapshotJson.present
+          ? data.patientSnapshotJson.value
+          : this.patientSnapshotJson,
+      issuerSnapshotJson: data.issuerSnapshotJson.present
+          ? data.issuerSnapshotJson.value
+          : this.issuerSnapshotJson,
+      contentJson: data.contentJson.present
+          ? data.contentJson.value
+          : this.contentJson,
+      templateSnapshotJson: data.templateSnapshotJson.present
+          ? data.templateSnapshotJson.value
+          : this.templateSnapshotJson,
+      issuerAccountId: data.issuerAccountId.present
+          ? data.issuerAccountId.value
+          : this.issuerAccountId,
+      supersedesId: data.supersedesId.present
+          ? data.supersedesId.value
+          : this.supersedesId,
+      idempotencyKey: data.idempotencyKey.present
+          ? data.idempotencyKey.value
+          : this.idempotencyKey,
+      issuedAt: data.issuedAt.present ? data.issuedAt.value : this.issuedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('IssuedDocumentVersionRow(')
+          ..write('id: $id, ')
+          ..write('requestId: $requestId, ')
+          ..write('patientId: $patientId, ')
+          ..write('templateId: $templateId, ')
+          ..write('version: $version, ')
+          ..write('documentType: $documentType, ')
+          ..write('language: $language, ')
+          ..write('disclosureProfile: $disclosureProfile, ')
+          ..write('patientSnapshotJson: $patientSnapshotJson, ')
+          ..write('issuerSnapshotJson: $issuerSnapshotJson, ')
+          ..write('contentJson: $contentJson, ')
+          ..write('templateSnapshotJson: $templateSnapshotJson, ')
+          ..write('issuerAccountId: $issuerAccountId, ')
+          ..write('supersedesId: $supersedesId, ')
+          ..write('idempotencyKey: $idempotencyKey, ')
+          ..write('issuedAt: $issuedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    requestId,
+    patientId,
+    templateId,
+    version,
+    documentType,
+    language,
+    disclosureProfile,
+    patientSnapshotJson,
+    issuerSnapshotJson,
+    contentJson,
+    templateSnapshotJson,
+    issuerAccountId,
+    supersedesId,
+    idempotencyKey,
+    issuedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is IssuedDocumentVersionRow &&
+          other.id == this.id &&
+          other.requestId == this.requestId &&
+          other.patientId == this.patientId &&
+          other.templateId == this.templateId &&
+          other.version == this.version &&
+          other.documentType == this.documentType &&
+          other.language == this.language &&
+          other.disclosureProfile == this.disclosureProfile &&
+          other.patientSnapshotJson == this.patientSnapshotJson &&
+          other.issuerSnapshotJson == this.issuerSnapshotJson &&
+          other.contentJson == this.contentJson &&
+          other.templateSnapshotJson == this.templateSnapshotJson &&
+          other.issuerAccountId == this.issuerAccountId &&
+          other.supersedesId == this.supersedesId &&
+          other.idempotencyKey == this.idempotencyKey &&
+          other.issuedAt == this.issuedAt);
+}
+
+class IssuedDocumentVersionsCompanion
+    extends UpdateCompanion<IssuedDocumentVersionRow> {
+  final Value<String> id;
+  final Value<String> requestId;
+  final Value<String> patientId;
+  final Value<String> templateId;
+  final Value<int> version;
+  final Value<String> documentType;
+  final Value<String> language;
+  final Value<String> disclosureProfile;
+  final Value<String> patientSnapshotJson;
+  final Value<String> issuerSnapshotJson;
+  final Value<String> contentJson;
+  final Value<String> templateSnapshotJson;
+  final Value<String> issuerAccountId;
+  final Value<String?> supersedesId;
+  final Value<String> idempotencyKey;
+  final Value<DateTime> issuedAt;
+  final Value<int> rowid;
+  const IssuedDocumentVersionsCompanion({
+    this.id = const Value.absent(),
+    this.requestId = const Value.absent(),
+    this.patientId = const Value.absent(),
+    this.templateId = const Value.absent(),
+    this.version = const Value.absent(),
+    this.documentType = const Value.absent(),
+    this.language = const Value.absent(),
+    this.disclosureProfile = const Value.absent(),
+    this.patientSnapshotJson = const Value.absent(),
+    this.issuerSnapshotJson = const Value.absent(),
+    this.contentJson = const Value.absent(),
+    this.templateSnapshotJson = const Value.absent(),
+    this.issuerAccountId = const Value.absent(),
+    this.supersedesId = const Value.absent(),
+    this.idempotencyKey = const Value.absent(),
+    this.issuedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  IssuedDocumentVersionsCompanion.insert({
+    required String id,
+    required String requestId,
+    required String patientId,
+    required String templateId,
+    required int version,
+    required String documentType,
+    required String language,
+    required String disclosureProfile,
+    required String patientSnapshotJson,
+    required String issuerSnapshotJson,
+    required String contentJson,
+    required String templateSnapshotJson,
+    required String issuerAccountId,
+    this.supersedesId = const Value.absent(),
+    required String idempotencyKey,
+    required DateTime issuedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       requestId = Value(requestId),
+       patientId = Value(patientId),
+       templateId = Value(templateId),
+       version = Value(version),
+       documentType = Value(documentType),
+       language = Value(language),
+       disclosureProfile = Value(disclosureProfile),
+       patientSnapshotJson = Value(patientSnapshotJson),
+       issuerSnapshotJson = Value(issuerSnapshotJson),
+       contentJson = Value(contentJson),
+       templateSnapshotJson = Value(templateSnapshotJson),
+       issuerAccountId = Value(issuerAccountId),
+       idempotencyKey = Value(idempotencyKey),
+       issuedAt = Value(issuedAt);
+  static Insertable<IssuedDocumentVersionRow> custom({
+    Expression<String>? id,
+    Expression<String>? requestId,
+    Expression<String>? patientId,
+    Expression<String>? templateId,
+    Expression<int>? version,
+    Expression<String>? documentType,
+    Expression<String>? language,
+    Expression<String>? disclosureProfile,
+    Expression<String>? patientSnapshotJson,
+    Expression<String>? issuerSnapshotJson,
+    Expression<String>? contentJson,
+    Expression<String>? templateSnapshotJson,
+    Expression<String>? issuerAccountId,
+    Expression<String>? supersedesId,
+    Expression<String>? idempotencyKey,
+    Expression<DateTime>? issuedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (requestId != null) 'request_id': requestId,
+      if (patientId != null) 'patient_id': patientId,
+      if (templateId != null) 'template_id': templateId,
+      if (version != null) 'version': version,
+      if (documentType != null) 'document_type': documentType,
+      if (language != null) 'language': language,
+      if (disclosureProfile != null) 'disclosure_profile': disclosureProfile,
+      if (patientSnapshotJson != null)
+        'patient_snapshot_json': patientSnapshotJson,
+      if (issuerSnapshotJson != null)
+        'issuer_snapshot_json': issuerSnapshotJson,
+      if (contentJson != null) 'content_json': contentJson,
+      if (templateSnapshotJson != null)
+        'template_snapshot_json': templateSnapshotJson,
+      if (issuerAccountId != null) 'issuer_account_id': issuerAccountId,
+      if (supersedesId != null) 'supersedes_id': supersedesId,
+      if (idempotencyKey != null) 'idempotency_key': idempotencyKey,
+      if (issuedAt != null) 'issued_at': issuedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  IssuedDocumentVersionsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? requestId,
+    Value<String>? patientId,
+    Value<String>? templateId,
+    Value<int>? version,
+    Value<String>? documentType,
+    Value<String>? language,
+    Value<String>? disclosureProfile,
+    Value<String>? patientSnapshotJson,
+    Value<String>? issuerSnapshotJson,
+    Value<String>? contentJson,
+    Value<String>? templateSnapshotJson,
+    Value<String>? issuerAccountId,
+    Value<String?>? supersedesId,
+    Value<String>? idempotencyKey,
+    Value<DateTime>? issuedAt,
+    Value<int>? rowid,
+  }) {
+    return IssuedDocumentVersionsCompanion(
+      id: id ?? this.id,
+      requestId: requestId ?? this.requestId,
+      patientId: patientId ?? this.patientId,
+      templateId: templateId ?? this.templateId,
+      version: version ?? this.version,
+      documentType: documentType ?? this.documentType,
+      language: language ?? this.language,
+      disclosureProfile: disclosureProfile ?? this.disclosureProfile,
+      patientSnapshotJson: patientSnapshotJson ?? this.patientSnapshotJson,
+      issuerSnapshotJson: issuerSnapshotJson ?? this.issuerSnapshotJson,
+      contentJson: contentJson ?? this.contentJson,
+      templateSnapshotJson: templateSnapshotJson ?? this.templateSnapshotJson,
+      issuerAccountId: issuerAccountId ?? this.issuerAccountId,
+      supersedesId: supersedesId ?? this.supersedesId,
+      idempotencyKey: idempotencyKey ?? this.idempotencyKey,
+      issuedAt: issuedAt ?? this.issuedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (requestId.present) {
+      map['request_id'] = Variable<String>(requestId.value);
+    }
+    if (patientId.present) {
+      map['patient_id'] = Variable<String>(patientId.value);
+    }
+    if (templateId.present) {
+      map['template_id'] = Variable<String>(templateId.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (documentType.present) {
+      map['document_type'] = Variable<String>(documentType.value);
+    }
+    if (language.present) {
+      map['language'] = Variable<String>(language.value);
+    }
+    if (disclosureProfile.present) {
+      map['disclosure_profile'] = Variable<String>(disclosureProfile.value);
+    }
+    if (patientSnapshotJson.present) {
+      map['patient_snapshot_json'] = Variable<String>(
+        patientSnapshotJson.value,
+      );
+    }
+    if (issuerSnapshotJson.present) {
+      map['issuer_snapshot_json'] = Variable<String>(issuerSnapshotJson.value);
+    }
+    if (contentJson.present) {
+      map['content_json'] = Variable<String>(contentJson.value);
+    }
+    if (templateSnapshotJson.present) {
+      map['template_snapshot_json'] = Variable<String>(
+        templateSnapshotJson.value,
+      );
+    }
+    if (issuerAccountId.present) {
+      map['issuer_account_id'] = Variable<String>(issuerAccountId.value);
+    }
+    if (supersedesId.present) {
+      map['supersedes_id'] = Variable<String>(supersedesId.value);
+    }
+    if (idempotencyKey.present) {
+      map['idempotency_key'] = Variable<String>(idempotencyKey.value);
+    }
+    if (issuedAt.present) {
+      map['issued_at'] = Variable<DateTime>(issuedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('IssuedDocumentVersionsCompanion(')
+          ..write('id: $id, ')
+          ..write('requestId: $requestId, ')
+          ..write('patientId: $patientId, ')
+          ..write('templateId: $templateId, ')
+          ..write('version: $version, ')
+          ..write('documentType: $documentType, ')
+          ..write('language: $language, ')
+          ..write('disclosureProfile: $disclosureProfile, ')
+          ..write('patientSnapshotJson: $patientSnapshotJson, ')
+          ..write('issuerSnapshotJson: $issuerSnapshotJson, ')
+          ..write('contentJson: $contentJson, ')
+          ..write('templateSnapshotJson: $templateSnapshotJson, ')
+          ..write('issuerAccountId: $issuerAccountId, ')
+          ..write('supersedesId: $supersedesId, ')
+          ..write('idempotencyKey: $idempotencyKey, ')
+          ..write('issuedAt: $issuedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $DocumentVerificationsTable extends DocumentVerifications
     with TableInfo<$DocumentVerificationsTable, DocumentVerificationRow> {
   @override
@@ -13361,6 +16501,68 @@ class $DocumentVerificationsTable extends DocumentVerifications
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _issuedVersionIdMeta = const VerificationMeta(
+    'issuedVersionId',
+  );
+  @override
+  late final GeneratedColumn<String> issuedVersionId = GeneratedColumn<String>(
+    'issued_version_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES issued_document_versions (id)',
+    ),
+  );
+  static const VerificationMeta _validityMeta = const VerificationMeta(
+    'validity',
+  );
+  @override
+  late final GeneratedColumn<String> validity = GeneratedColumn<String>(
+    'validity',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('legacy'),
+  );
+  static const VerificationMeta _revokedAtMeta = const VerificationMeta(
+    'revokedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> revokedAt = GeneratedColumn<DateTime>(
+    'revoked_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _revokedByMeta = const VerificationMeta(
+    'revokedBy',
+  );
+  @override
+  late final GeneratedColumn<String> revokedBy = GeneratedColumn<String>(
+    'revoked_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _revocationReasonMeta = const VerificationMeta(
+    'revocationReason',
+  );
+  @override
+  late final GeneratedColumn<String> revocationReason = GeneratedColumn<String>(
+    'revocation_reason',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     code,
@@ -13370,6 +16572,11 @@ class $DocumentVerificationsTable extends DocumentVerifications
     issuer,
     summary,
     issuedAt,
+    issuedVersionId,
+    validity,
+    revokedAt,
+    revokedBy,
+    revocationReason,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -13442,6 +16649,42 @@ class $DocumentVerificationsTable extends DocumentVerifications
     } else if (isInserting) {
       context.missing(_issuedAtMeta);
     }
+    if (data.containsKey('issued_version_id')) {
+      context.handle(
+        _issuedVersionIdMeta,
+        issuedVersionId.isAcceptableOrUnknown(
+          data['issued_version_id']!,
+          _issuedVersionIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('validity')) {
+      context.handle(
+        _validityMeta,
+        validity.isAcceptableOrUnknown(data['validity']!, _validityMeta),
+      );
+    }
+    if (data.containsKey('revoked_at')) {
+      context.handle(
+        _revokedAtMeta,
+        revokedAt.isAcceptableOrUnknown(data['revoked_at']!, _revokedAtMeta),
+      );
+    }
+    if (data.containsKey('revoked_by')) {
+      context.handle(
+        _revokedByMeta,
+        revokedBy.isAcceptableOrUnknown(data['revoked_by']!, _revokedByMeta),
+      );
+    }
+    if (data.containsKey('revocation_reason')) {
+      context.handle(
+        _revocationReasonMeta,
+        revocationReason.isAcceptableOrUnknown(
+          data['revocation_reason']!,
+          _revocationReasonMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -13486,6 +16729,26 @@ class $DocumentVerificationsTable extends DocumentVerifications
         DriftSqlType.dateTime,
         data['${effectivePrefix}issued_at'],
       )!,
+      issuedVersionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}issued_version_id'],
+      ),
+      validity: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}validity'],
+      )!,
+      revokedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}revoked_at'],
+      ),
+      revokedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}revoked_by'],
+      ),
+      revocationReason: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}revocation_reason'],
+      ),
     );
   }
 
@@ -13511,6 +16774,13 @@ class DocumentVerificationRow extends DataClass
   /// What the genuine document states, one fact per line.
   final String summary;
   final DateTime issuedAt;
+  final String? issuedVersionId;
+
+  /// Legacy rows retain their codes and are explicitly distinguished.
+  final String validity;
+  final DateTime? revokedAt;
+  final String? revokedBy;
+  final String? revocationReason;
   const DocumentVerificationRow({
     required this.code,
     required this.documentType,
@@ -13519,6 +16789,11 @@ class DocumentVerificationRow extends DataClass
     required this.issuer,
     required this.summary,
     required this.issuedAt,
+    this.issuedVersionId,
+    required this.validity,
+    this.revokedAt,
+    this.revokedBy,
+    this.revocationReason,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -13530,6 +16805,19 @@ class DocumentVerificationRow extends DataClass
     map['issuer'] = Variable<String>(issuer);
     map['summary'] = Variable<String>(summary);
     map['issued_at'] = Variable<DateTime>(issuedAt);
+    if (!nullToAbsent || issuedVersionId != null) {
+      map['issued_version_id'] = Variable<String>(issuedVersionId);
+    }
+    map['validity'] = Variable<String>(validity);
+    if (!nullToAbsent || revokedAt != null) {
+      map['revoked_at'] = Variable<DateTime>(revokedAt);
+    }
+    if (!nullToAbsent || revokedBy != null) {
+      map['revoked_by'] = Variable<String>(revokedBy);
+    }
+    if (!nullToAbsent || revocationReason != null) {
+      map['revocation_reason'] = Variable<String>(revocationReason);
+    }
     return map;
   }
 
@@ -13542,6 +16830,19 @@ class DocumentVerificationRow extends DataClass
       issuer: Value(issuer),
       summary: Value(summary),
       issuedAt: Value(issuedAt),
+      issuedVersionId: issuedVersionId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(issuedVersionId),
+      validity: Value(validity),
+      revokedAt: revokedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(revokedAt),
+      revokedBy: revokedBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(revokedBy),
+      revocationReason: revocationReason == null && nullToAbsent
+          ? const Value.absent()
+          : Value(revocationReason),
     );
   }
 
@@ -13558,6 +16859,11 @@ class DocumentVerificationRow extends DataClass
       issuer: serializer.fromJson<String>(json['issuer']),
       summary: serializer.fromJson<String>(json['summary']),
       issuedAt: serializer.fromJson<DateTime>(json['issuedAt']),
+      issuedVersionId: serializer.fromJson<String?>(json['issuedVersionId']),
+      validity: serializer.fromJson<String>(json['validity']),
+      revokedAt: serializer.fromJson<DateTime?>(json['revokedAt']),
+      revokedBy: serializer.fromJson<String?>(json['revokedBy']),
+      revocationReason: serializer.fromJson<String?>(json['revocationReason']),
     );
   }
   @override
@@ -13571,6 +16877,11 @@ class DocumentVerificationRow extends DataClass
       'issuer': serializer.toJson<String>(issuer),
       'summary': serializer.toJson<String>(summary),
       'issuedAt': serializer.toJson<DateTime>(issuedAt),
+      'issuedVersionId': serializer.toJson<String?>(issuedVersionId),
+      'validity': serializer.toJson<String>(validity),
+      'revokedAt': serializer.toJson<DateTime?>(revokedAt),
+      'revokedBy': serializer.toJson<String?>(revokedBy),
+      'revocationReason': serializer.toJson<String?>(revocationReason),
     };
   }
 
@@ -13582,6 +16893,11 @@ class DocumentVerificationRow extends DataClass
     String? issuer,
     String? summary,
     DateTime? issuedAt,
+    Value<String?> issuedVersionId = const Value.absent(),
+    String? validity,
+    Value<DateTime?> revokedAt = const Value.absent(),
+    Value<String?> revokedBy = const Value.absent(),
+    Value<String?> revocationReason = const Value.absent(),
   }) => DocumentVerificationRow(
     code: code ?? this.code,
     documentType: documentType ?? this.documentType,
@@ -13590,6 +16906,15 @@ class DocumentVerificationRow extends DataClass
     issuer: issuer ?? this.issuer,
     summary: summary ?? this.summary,
     issuedAt: issuedAt ?? this.issuedAt,
+    issuedVersionId: issuedVersionId.present
+        ? issuedVersionId.value
+        : this.issuedVersionId,
+    validity: validity ?? this.validity,
+    revokedAt: revokedAt.present ? revokedAt.value : this.revokedAt,
+    revokedBy: revokedBy.present ? revokedBy.value : this.revokedBy,
+    revocationReason: revocationReason.present
+        ? revocationReason.value
+        : this.revocationReason,
   );
   DocumentVerificationRow copyWithCompanion(
     DocumentVerificationsCompanion data,
@@ -13604,6 +16929,15 @@ class DocumentVerificationRow extends DataClass
       issuer: data.issuer.present ? data.issuer.value : this.issuer,
       summary: data.summary.present ? data.summary.value : this.summary,
       issuedAt: data.issuedAt.present ? data.issuedAt.value : this.issuedAt,
+      issuedVersionId: data.issuedVersionId.present
+          ? data.issuedVersionId.value
+          : this.issuedVersionId,
+      validity: data.validity.present ? data.validity.value : this.validity,
+      revokedAt: data.revokedAt.present ? data.revokedAt.value : this.revokedAt,
+      revokedBy: data.revokedBy.present ? data.revokedBy.value : this.revokedBy,
+      revocationReason: data.revocationReason.present
+          ? data.revocationReason.value
+          : this.revocationReason,
     );
   }
 
@@ -13616,7 +16950,12 @@ class DocumentVerificationRow extends DataClass
           ..write('patientId: $patientId, ')
           ..write('issuer: $issuer, ')
           ..write('summary: $summary, ')
-          ..write('issuedAt: $issuedAt')
+          ..write('issuedAt: $issuedAt, ')
+          ..write('issuedVersionId: $issuedVersionId, ')
+          ..write('validity: $validity, ')
+          ..write('revokedAt: $revokedAt, ')
+          ..write('revokedBy: $revokedBy, ')
+          ..write('revocationReason: $revocationReason')
           ..write(')'))
         .toString();
   }
@@ -13630,6 +16969,11 @@ class DocumentVerificationRow extends DataClass
     issuer,
     summary,
     issuedAt,
+    issuedVersionId,
+    validity,
+    revokedAt,
+    revokedBy,
+    revocationReason,
   );
   @override
   bool operator ==(Object other) =>
@@ -13641,7 +16985,12 @@ class DocumentVerificationRow extends DataClass
           other.patientId == this.patientId &&
           other.issuer == this.issuer &&
           other.summary == this.summary &&
-          other.issuedAt == this.issuedAt);
+          other.issuedAt == this.issuedAt &&
+          other.issuedVersionId == this.issuedVersionId &&
+          other.validity == this.validity &&
+          other.revokedAt == this.revokedAt &&
+          other.revokedBy == this.revokedBy &&
+          other.revocationReason == this.revocationReason);
 }
 
 class DocumentVerificationsCompanion
@@ -13653,6 +17002,11 @@ class DocumentVerificationsCompanion
   final Value<String> issuer;
   final Value<String> summary;
   final Value<DateTime> issuedAt;
+  final Value<String?> issuedVersionId;
+  final Value<String> validity;
+  final Value<DateTime?> revokedAt;
+  final Value<String?> revokedBy;
+  final Value<String?> revocationReason;
   final Value<int> rowid;
   const DocumentVerificationsCompanion({
     this.code = const Value.absent(),
@@ -13662,6 +17016,11 @@ class DocumentVerificationsCompanion
     this.issuer = const Value.absent(),
     this.summary = const Value.absent(),
     this.issuedAt = const Value.absent(),
+    this.issuedVersionId = const Value.absent(),
+    this.validity = const Value.absent(),
+    this.revokedAt = const Value.absent(),
+    this.revokedBy = const Value.absent(),
+    this.revocationReason = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   DocumentVerificationsCompanion.insert({
@@ -13672,6 +17031,11 @@ class DocumentVerificationsCompanion
     required String issuer,
     required String summary,
     required DateTime issuedAt,
+    this.issuedVersionId = const Value.absent(),
+    this.validity = const Value.absent(),
+    this.revokedAt = const Value.absent(),
+    this.revokedBy = const Value.absent(),
+    this.revocationReason = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : code = Value(code),
        documentType = Value(documentType),
@@ -13688,6 +17052,11 @@ class DocumentVerificationsCompanion
     Expression<String>? issuer,
     Expression<String>? summary,
     Expression<DateTime>? issuedAt,
+    Expression<String>? issuedVersionId,
+    Expression<String>? validity,
+    Expression<DateTime>? revokedAt,
+    Expression<String>? revokedBy,
+    Expression<String>? revocationReason,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -13698,6 +17067,11 @@ class DocumentVerificationsCompanion
       if (issuer != null) 'issuer': issuer,
       if (summary != null) 'summary': summary,
       if (issuedAt != null) 'issued_at': issuedAt,
+      if (issuedVersionId != null) 'issued_version_id': issuedVersionId,
+      if (validity != null) 'validity': validity,
+      if (revokedAt != null) 'revoked_at': revokedAt,
+      if (revokedBy != null) 'revoked_by': revokedBy,
+      if (revocationReason != null) 'revocation_reason': revocationReason,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -13710,6 +17084,11 @@ class DocumentVerificationsCompanion
     Value<String>? issuer,
     Value<String>? summary,
     Value<DateTime>? issuedAt,
+    Value<String?>? issuedVersionId,
+    Value<String>? validity,
+    Value<DateTime?>? revokedAt,
+    Value<String?>? revokedBy,
+    Value<String?>? revocationReason,
     Value<int>? rowid,
   }) {
     return DocumentVerificationsCompanion(
@@ -13720,6 +17099,11 @@ class DocumentVerificationsCompanion
       issuer: issuer ?? this.issuer,
       summary: summary ?? this.summary,
       issuedAt: issuedAt ?? this.issuedAt,
+      issuedVersionId: issuedVersionId ?? this.issuedVersionId,
+      validity: validity ?? this.validity,
+      revokedAt: revokedAt ?? this.revokedAt,
+      revokedBy: revokedBy ?? this.revokedBy,
+      revocationReason: revocationReason ?? this.revocationReason,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -13748,6 +17132,21 @@ class DocumentVerificationsCompanion
     if (issuedAt.present) {
       map['issued_at'] = Variable<DateTime>(issuedAt.value);
     }
+    if (issuedVersionId.present) {
+      map['issued_version_id'] = Variable<String>(issuedVersionId.value);
+    }
+    if (validity.present) {
+      map['validity'] = Variable<String>(validity.value);
+    }
+    if (revokedAt.present) {
+      map['revoked_at'] = Variable<DateTime>(revokedAt.value);
+    }
+    if (revokedBy.present) {
+      map['revoked_by'] = Variable<String>(revokedBy.value);
+    }
+    if (revocationReason.present) {
+      map['revocation_reason'] = Variable<String>(revocationReason.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -13764,18 +17163,23 @@ class DocumentVerificationsCompanion
           ..write('issuer: $issuer, ')
           ..write('summary: $summary, ')
           ..write('issuedAt: $issuedAt, ')
+          ..write('issuedVersionId: $issuedVersionId, ')
+          ..write('validity: $validity, ')
+          ..write('revokedAt: $revokedAt, ')
+          ..write('revokedBy: $revokedBy, ')
+          ..write('revocationReason: $revocationReason, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
 }
 
-class $AiSummariesTable extends AiSummaries
-    with TableInfo<$AiSummariesTable, AiSummaryRow> {
+class $ScopedGrantsTable extends ScopedGrants
+    with TableInfo<$ScopedGrantsTable, ScopedGrantRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $AiSummariesTable(this.attachedDatabase, [this._alias]);
+  $ScopedGrantsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -13785,107 +17189,116 @@ class $AiSummariesTable extends AiSummaries
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _patientIdMeta = const VerificationMeta(
-    'patientId',
+  static const VerificationMeta _accountIdMeta = const VerificationMeta(
+    'accountId',
   );
   @override
-  late final GeneratedColumn<String> patientId = GeneratedColumn<String>(
-    'patient_id',
+  late final GeneratedColumn<String> accountId = GeneratedColumn<String>(
+    'account_id',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
     defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES users (id) ON DELETE CASCADE',
+      'REFERENCES users (id)',
     ),
   );
-  static const VerificationMeta _generatedAtMeta = const VerificationMeta(
-    'generatedAt',
+  static const VerificationMeta _permissionMeta = const VerificationMeta(
+    'permission',
   );
   @override
-  late final GeneratedColumn<DateTime> generatedAt = GeneratedColumn<DateTime>(
-    'generated_at',
+  late final GeneratedColumn<String> permission = GeneratedColumn<String>(
+    'permission',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _scopeMeta = const VerificationMeta('scope');
+  @override
+  late final GeneratedColumn<String> scope = GeneratedColumn<String>(
+    'scope',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _scopeIdMeta = const VerificationMeta(
+    'scopeId',
+  );
+  @override
+  late final GeneratedColumn<String> scopeId = GeneratedColumn<String>(
+    'scope_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _grantedByMeta = const VerificationMeta(
+    'grantedBy',
+  );
+  @override
+  late final GeneratedColumn<String> grantedBy = GeneratedColumn<String>(
+    'granted_by',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _startsAtMeta = const VerificationMeta(
+    'startsAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> startsAt = GeneratedColumn<DateTime>(
+    'starts_at',
     aliasedName,
     false,
     type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
-  );
-  static const VerificationMeta _modelIdMeta = const VerificationMeta(
-    'modelId',
-  );
-  @override
-  late final GeneratedColumn<String> modelId = GeneratedColumn<String>(
-    'model_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _promptVersionMeta = const VerificationMeta(
-    'promptVersion',
+  static const VerificationMeta _expiresAtMeta = const VerificationMeta(
+    'expiresAt',
   );
   @override
-  late final GeneratedColumn<String> promptVersion = GeneratedColumn<String>(
-    'prompt_version',
+  late final GeneratedColumn<DateTime> expiresAt = GeneratedColumn<DateTime>(
+    'expires_at',
     aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
   );
-  static const VerificationMeta _summaryMarkdownMeta = const VerificationMeta(
-    'summaryMarkdown',
+  static const VerificationMeta _revokedAtMeta = const VerificationMeta(
+    'revokedAt',
   );
   @override
-  late final GeneratedColumn<String> summaryMarkdown = GeneratedColumn<String>(
-    'summary_markdown',
+  late final GeneratedColumn<DateTime> revokedAt = GeneratedColumn<DateTime>(
+    'revoked_at',
     aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
   );
-  static const VerificationMeta _keyEventsJsonMeta = const VerificationMeta(
-    'keyEventsJson',
+  static const VerificationMeta _revokedByMeta = const VerificationMeta(
+    'revokedBy',
   );
   @override
-  late final GeneratedColumn<String> keyEventsJson = GeneratedColumn<String>(
-    'key_events_json',
+  late final GeneratedColumn<String> revokedBy = GeneratedColumn<String>(
+    'revoked_by',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    defaultValue: const Constant('[]'),
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
   );
-  static const VerificationMeta _trendsJsonMeta = const VerificationMeta(
-    'trendsJson',
-  );
+  static const VerificationMeta _reasonMeta = const VerificationMeta('reason');
   @override
-  late final GeneratedColumn<String> trendsJson = GeneratedColumn<String>(
-    'trends_json',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant('[]'),
-  );
-  static const VerificationMeta _redFlagsJsonMeta = const VerificationMeta(
-    'redFlagsJson',
-  );
-  @override
-  late final GeneratedColumn<String> redFlagsJson = GeneratedColumn<String>(
-    'red_flags_json',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant('[]'),
-  );
-  static const VerificationMeta _inputHashMeta = const VerificationMeta(
-    'inputHash',
-  );
-  @override
-  late final GeneratedColumn<String> inputHash = GeneratedColumn<String>(
-    'input_hash',
+  late final GeneratedColumn<String> reason = GeneratedColumn<String>(
+    'reason',
     aliasedName,
     false,
     type: DriftSqlType.string,
@@ -13894,24 +17307,25 @@ class $AiSummariesTable extends AiSummaries
   @override
   List<GeneratedColumn> get $columns => [
     id,
-    patientId,
-    generatedAt,
-    modelId,
-    promptVersion,
-    summaryMarkdown,
-    keyEventsJson,
-    trendsJson,
-    redFlagsJson,
-    inputHash,
+    accountId,
+    permission,
+    scope,
+    scopeId,
+    grantedBy,
+    startsAt,
+    expiresAt,
+    revokedAt,
+    revokedBy,
+    reason,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'ai_summaries';
+  static const String $name = 'scoped_grants';
   @override
   VerificationContext validateIntegrity(
-    Insertable<AiSummaryRow> instance, {
+    Insertable<ScopedGrantRow> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -13921,84 +17335,79 @@ class $AiSummariesTable extends AiSummaries
     } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (data.containsKey('patient_id')) {
+    if (data.containsKey('account_id')) {
       context.handle(
-        _patientIdMeta,
-        patientId.isAcceptableOrUnknown(data['patient_id']!, _patientIdMeta),
+        _accountIdMeta,
+        accountId.isAcceptableOrUnknown(data['account_id']!, _accountIdMeta),
       );
     } else if (isInserting) {
-      context.missing(_patientIdMeta);
+      context.missing(_accountIdMeta);
     }
-    if (data.containsKey('generated_at')) {
+    if (data.containsKey('permission')) {
       context.handle(
-        _generatedAtMeta,
-        generatedAt.isAcceptableOrUnknown(
-          data['generated_at']!,
-          _generatedAtMeta,
-        ),
-      );
-    }
-    if (data.containsKey('model_id')) {
-      context.handle(
-        _modelIdMeta,
-        modelId.isAcceptableOrUnknown(data['model_id']!, _modelIdMeta),
+        _permissionMeta,
+        permission.isAcceptableOrUnknown(data['permission']!, _permissionMeta),
       );
     } else if (isInserting) {
-      context.missing(_modelIdMeta);
+      context.missing(_permissionMeta);
     }
-    if (data.containsKey('prompt_version')) {
+    if (data.containsKey('scope')) {
       context.handle(
-        _promptVersionMeta,
-        promptVersion.isAcceptableOrUnknown(
-          data['prompt_version']!,
-          _promptVersionMeta,
-        ),
+        _scopeMeta,
+        scope.isAcceptableOrUnknown(data['scope']!, _scopeMeta),
       );
     } else if (isInserting) {
-      context.missing(_promptVersionMeta);
+      context.missing(_scopeMeta);
     }
-    if (data.containsKey('summary_markdown')) {
+    if (data.containsKey('scope_id')) {
       context.handle(
-        _summaryMarkdownMeta,
-        summaryMarkdown.isAcceptableOrUnknown(
-          data['summary_markdown']!,
-          _summaryMarkdownMeta,
-        ),
+        _scopeIdMeta,
+        scopeId.isAcceptableOrUnknown(data['scope_id']!, _scopeIdMeta),
       );
     } else if (isInserting) {
-      context.missing(_summaryMarkdownMeta);
+      context.missing(_scopeIdMeta);
     }
-    if (data.containsKey('key_events_json')) {
+    if (data.containsKey('granted_by')) {
       context.handle(
-        _keyEventsJsonMeta,
-        keyEventsJson.isAcceptableOrUnknown(
-          data['key_events_json']!,
-          _keyEventsJsonMeta,
-        ),
-      );
-    }
-    if (data.containsKey('trends_json')) {
-      context.handle(
-        _trendsJsonMeta,
-        trendsJson.isAcceptableOrUnknown(data['trends_json']!, _trendsJsonMeta),
-      );
-    }
-    if (data.containsKey('red_flags_json')) {
-      context.handle(
-        _redFlagsJsonMeta,
-        redFlagsJson.isAcceptableOrUnknown(
-          data['red_flags_json']!,
-          _redFlagsJsonMeta,
-        ),
-      );
-    }
-    if (data.containsKey('input_hash')) {
-      context.handle(
-        _inputHashMeta,
-        inputHash.isAcceptableOrUnknown(data['input_hash']!, _inputHashMeta),
+        _grantedByMeta,
+        grantedBy.isAcceptableOrUnknown(data['granted_by']!, _grantedByMeta),
       );
     } else if (isInserting) {
-      context.missing(_inputHashMeta);
+      context.missing(_grantedByMeta);
+    }
+    if (data.containsKey('starts_at')) {
+      context.handle(
+        _startsAtMeta,
+        startsAt.isAcceptableOrUnknown(data['starts_at']!, _startsAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_startsAtMeta);
+    }
+    if (data.containsKey('expires_at')) {
+      context.handle(
+        _expiresAtMeta,
+        expiresAt.isAcceptableOrUnknown(data['expires_at']!, _expiresAtMeta),
+      );
+    }
+    if (data.containsKey('revoked_at')) {
+      context.handle(
+        _revokedAtMeta,
+        revokedAt.isAcceptableOrUnknown(data['revoked_at']!, _revokedAtMeta),
+      );
+    }
+    if (data.containsKey('revoked_by')) {
+      context.handle(
+        _revokedByMeta,
+        revokedBy.isAcceptableOrUnknown(data['revoked_by']!, _revokedByMeta),
+      );
+    }
+    if (data.containsKey('reason')) {
+      context.handle(
+        _reasonMeta,
+        reason.isAcceptableOrUnknown(data['reason']!, _reasonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_reasonMeta);
     }
     return context;
   }
@@ -14006,134 +17415,151 @@ class $AiSummariesTable extends AiSummaries
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  AiSummaryRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+  ScopedGrantRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return AiSummaryRow(
+    return ScopedGrantRow(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
-      patientId: attachedDatabase.typeMapping.read(
+      accountId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}patient_id'],
+        data['${effectivePrefix}account_id'],
       )!,
-      generatedAt: attachedDatabase.typeMapping.read(
+      permission: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}permission'],
+      )!,
+      scope: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope'],
+      )!,
+      scopeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope_id'],
+      )!,
+      grantedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}granted_by'],
+      )!,
+      startsAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
-        data['${effectivePrefix}generated_at'],
+        data['${effectivePrefix}starts_at'],
       )!,
-      modelId: attachedDatabase.typeMapping.read(
+      expiresAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}expires_at'],
+      ),
+      revokedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}revoked_at'],
+      ),
+      revokedBy: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}model_id'],
-      )!,
-      promptVersion: attachedDatabase.typeMapping.read(
+        data['${effectivePrefix}revoked_by'],
+      ),
+      reason: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}prompt_version'],
-      )!,
-      summaryMarkdown: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}summary_markdown'],
-      )!,
-      keyEventsJson: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}key_events_json'],
-      )!,
-      trendsJson: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}trends_json'],
-      )!,
-      redFlagsJson: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}red_flags_json'],
-      )!,
-      inputHash: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}input_hash'],
+        data['${effectivePrefix}reason'],
       )!,
     );
   }
 
   @override
-  $AiSummariesTable createAlias(String alias) {
-    return $AiSummariesTable(attachedDatabase, alias);
+  $ScopedGrantsTable createAlias(String alias) {
+    return $ScopedGrantsTable(attachedDatabase, alias);
   }
 }
 
-class AiSummaryRow extends DataClass implements Insertable<AiSummaryRow> {
+class ScopedGrantRow extends DataClass implements Insertable<ScopedGrantRow> {
   final String id;
-  final String patientId;
-  final DateTime generatedAt;
+  final String accountId;
+  final String permission;
+  final String scope;
 
-  /// Traceability (P3-14).
-  final String modelId;
-  final String promptVersion;
-  final String summaryMarkdown;
-
-  /// JSON arrays — parsed into typed models by the AI layer.
-  final String keyEventsJson;
-  final String trendsJson;
-  final String redFlagsJson;
-
-  /// Hash of the context the summary was generated from (cache key).
-  final String inputHash;
-  const AiSummaryRow({
+  /// Empty only for clinic scope; otherwise a patient or department id.
+  final String scopeId;
+  final String grantedBy;
+  final DateTime startsAt;
+  final DateTime? expiresAt;
+  final DateTime? revokedAt;
+  final String? revokedBy;
+  final String reason;
+  const ScopedGrantRow({
     required this.id,
-    required this.patientId,
-    required this.generatedAt,
-    required this.modelId,
-    required this.promptVersion,
-    required this.summaryMarkdown,
-    required this.keyEventsJson,
-    required this.trendsJson,
-    required this.redFlagsJson,
-    required this.inputHash,
+    required this.accountId,
+    required this.permission,
+    required this.scope,
+    required this.scopeId,
+    required this.grantedBy,
+    required this.startsAt,
+    this.expiresAt,
+    this.revokedAt,
+    this.revokedBy,
+    required this.reason,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
-    map['patient_id'] = Variable<String>(patientId);
-    map['generated_at'] = Variable<DateTime>(generatedAt);
-    map['model_id'] = Variable<String>(modelId);
-    map['prompt_version'] = Variable<String>(promptVersion);
-    map['summary_markdown'] = Variable<String>(summaryMarkdown);
-    map['key_events_json'] = Variable<String>(keyEventsJson);
-    map['trends_json'] = Variable<String>(trendsJson);
-    map['red_flags_json'] = Variable<String>(redFlagsJson);
-    map['input_hash'] = Variable<String>(inputHash);
+    map['account_id'] = Variable<String>(accountId);
+    map['permission'] = Variable<String>(permission);
+    map['scope'] = Variable<String>(scope);
+    map['scope_id'] = Variable<String>(scopeId);
+    map['granted_by'] = Variable<String>(grantedBy);
+    map['starts_at'] = Variable<DateTime>(startsAt);
+    if (!nullToAbsent || expiresAt != null) {
+      map['expires_at'] = Variable<DateTime>(expiresAt);
+    }
+    if (!nullToAbsent || revokedAt != null) {
+      map['revoked_at'] = Variable<DateTime>(revokedAt);
+    }
+    if (!nullToAbsent || revokedBy != null) {
+      map['revoked_by'] = Variable<String>(revokedBy);
+    }
+    map['reason'] = Variable<String>(reason);
     return map;
   }
 
-  AiSummariesCompanion toCompanion(bool nullToAbsent) {
-    return AiSummariesCompanion(
+  ScopedGrantsCompanion toCompanion(bool nullToAbsent) {
+    return ScopedGrantsCompanion(
       id: Value(id),
-      patientId: Value(patientId),
-      generatedAt: Value(generatedAt),
-      modelId: Value(modelId),
-      promptVersion: Value(promptVersion),
-      summaryMarkdown: Value(summaryMarkdown),
-      keyEventsJson: Value(keyEventsJson),
-      trendsJson: Value(trendsJson),
-      redFlagsJson: Value(redFlagsJson),
-      inputHash: Value(inputHash),
+      accountId: Value(accountId),
+      permission: Value(permission),
+      scope: Value(scope),
+      scopeId: Value(scopeId),
+      grantedBy: Value(grantedBy),
+      startsAt: Value(startsAt),
+      expiresAt: expiresAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(expiresAt),
+      revokedAt: revokedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(revokedAt),
+      revokedBy: revokedBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(revokedBy),
+      reason: Value(reason),
     );
   }
 
-  factory AiSummaryRow.fromJson(
+  factory ScopedGrantRow.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return AiSummaryRow(
+    return ScopedGrantRow(
       id: serializer.fromJson<String>(json['id']),
-      patientId: serializer.fromJson<String>(json['patientId']),
-      generatedAt: serializer.fromJson<DateTime>(json['generatedAt']),
-      modelId: serializer.fromJson<String>(json['modelId']),
-      promptVersion: serializer.fromJson<String>(json['promptVersion']),
-      summaryMarkdown: serializer.fromJson<String>(json['summaryMarkdown']),
-      keyEventsJson: serializer.fromJson<String>(json['keyEventsJson']),
-      trendsJson: serializer.fromJson<String>(json['trendsJson']),
-      redFlagsJson: serializer.fromJson<String>(json['redFlagsJson']),
-      inputHash: serializer.fromJson<String>(json['inputHash']),
+      accountId: serializer.fromJson<String>(json['accountId']),
+      permission: serializer.fromJson<String>(json['permission']),
+      scope: serializer.fromJson<String>(json['scope']),
+      scopeId: serializer.fromJson<String>(json['scopeId']),
+      grantedBy: serializer.fromJson<String>(json['grantedBy']),
+      startsAt: serializer.fromJson<DateTime>(json['startsAt']),
+      expiresAt: serializer.fromJson<DateTime?>(json['expiresAt']),
+      revokedAt: serializer.fromJson<DateTime?>(json['revokedAt']),
+      revokedBy: serializer.fromJson<String?>(json['revokedBy']),
+      reason: serializer.fromJson<String>(json['reason']),
     );
   }
   @override
@@ -14141,81 +17567,76 @@ class AiSummaryRow extends DataClass implements Insertable<AiSummaryRow> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
-      'patientId': serializer.toJson<String>(patientId),
-      'generatedAt': serializer.toJson<DateTime>(generatedAt),
-      'modelId': serializer.toJson<String>(modelId),
-      'promptVersion': serializer.toJson<String>(promptVersion),
-      'summaryMarkdown': serializer.toJson<String>(summaryMarkdown),
-      'keyEventsJson': serializer.toJson<String>(keyEventsJson),
-      'trendsJson': serializer.toJson<String>(trendsJson),
-      'redFlagsJson': serializer.toJson<String>(redFlagsJson),
-      'inputHash': serializer.toJson<String>(inputHash),
+      'accountId': serializer.toJson<String>(accountId),
+      'permission': serializer.toJson<String>(permission),
+      'scope': serializer.toJson<String>(scope),
+      'scopeId': serializer.toJson<String>(scopeId),
+      'grantedBy': serializer.toJson<String>(grantedBy),
+      'startsAt': serializer.toJson<DateTime>(startsAt),
+      'expiresAt': serializer.toJson<DateTime?>(expiresAt),
+      'revokedAt': serializer.toJson<DateTime?>(revokedAt),
+      'revokedBy': serializer.toJson<String?>(revokedBy),
+      'reason': serializer.toJson<String>(reason),
     };
   }
 
-  AiSummaryRow copyWith({
+  ScopedGrantRow copyWith({
     String? id,
-    String? patientId,
-    DateTime? generatedAt,
-    String? modelId,
-    String? promptVersion,
-    String? summaryMarkdown,
-    String? keyEventsJson,
-    String? trendsJson,
-    String? redFlagsJson,
-    String? inputHash,
-  }) => AiSummaryRow(
+    String? accountId,
+    String? permission,
+    String? scope,
+    String? scopeId,
+    String? grantedBy,
+    DateTime? startsAt,
+    Value<DateTime?> expiresAt = const Value.absent(),
+    Value<DateTime?> revokedAt = const Value.absent(),
+    Value<String?> revokedBy = const Value.absent(),
+    String? reason,
+  }) => ScopedGrantRow(
     id: id ?? this.id,
-    patientId: patientId ?? this.patientId,
-    generatedAt: generatedAt ?? this.generatedAt,
-    modelId: modelId ?? this.modelId,
-    promptVersion: promptVersion ?? this.promptVersion,
-    summaryMarkdown: summaryMarkdown ?? this.summaryMarkdown,
-    keyEventsJson: keyEventsJson ?? this.keyEventsJson,
-    trendsJson: trendsJson ?? this.trendsJson,
-    redFlagsJson: redFlagsJson ?? this.redFlagsJson,
-    inputHash: inputHash ?? this.inputHash,
+    accountId: accountId ?? this.accountId,
+    permission: permission ?? this.permission,
+    scope: scope ?? this.scope,
+    scopeId: scopeId ?? this.scopeId,
+    grantedBy: grantedBy ?? this.grantedBy,
+    startsAt: startsAt ?? this.startsAt,
+    expiresAt: expiresAt.present ? expiresAt.value : this.expiresAt,
+    revokedAt: revokedAt.present ? revokedAt.value : this.revokedAt,
+    revokedBy: revokedBy.present ? revokedBy.value : this.revokedBy,
+    reason: reason ?? this.reason,
   );
-  AiSummaryRow copyWithCompanion(AiSummariesCompanion data) {
-    return AiSummaryRow(
+  ScopedGrantRow copyWithCompanion(ScopedGrantsCompanion data) {
+    return ScopedGrantRow(
       id: data.id.present ? data.id.value : this.id,
-      patientId: data.patientId.present ? data.patientId.value : this.patientId,
-      generatedAt: data.generatedAt.present
-          ? data.generatedAt.value
-          : this.generatedAt,
-      modelId: data.modelId.present ? data.modelId.value : this.modelId,
-      promptVersion: data.promptVersion.present
-          ? data.promptVersion.value
-          : this.promptVersion,
-      summaryMarkdown: data.summaryMarkdown.present
-          ? data.summaryMarkdown.value
-          : this.summaryMarkdown,
-      keyEventsJson: data.keyEventsJson.present
-          ? data.keyEventsJson.value
-          : this.keyEventsJson,
-      trendsJson: data.trendsJson.present
-          ? data.trendsJson.value
-          : this.trendsJson,
-      redFlagsJson: data.redFlagsJson.present
-          ? data.redFlagsJson.value
-          : this.redFlagsJson,
-      inputHash: data.inputHash.present ? data.inputHash.value : this.inputHash,
+      accountId: data.accountId.present ? data.accountId.value : this.accountId,
+      permission: data.permission.present
+          ? data.permission.value
+          : this.permission,
+      scope: data.scope.present ? data.scope.value : this.scope,
+      scopeId: data.scopeId.present ? data.scopeId.value : this.scopeId,
+      grantedBy: data.grantedBy.present ? data.grantedBy.value : this.grantedBy,
+      startsAt: data.startsAt.present ? data.startsAt.value : this.startsAt,
+      expiresAt: data.expiresAt.present ? data.expiresAt.value : this.expiresAt,
+      revokedAt: data.revokedAt.present ? data.revokedAt.value : this.revokedAt,
+      revokedBy: data.revokedBy.present ? data.revokedBy.value : this.revokedBy,
+      reason: data.reason.present ? data.reason.value : this.reason,
     );
   }
 
   @override
   String toString() {
-    return (StringBuffer('AiSummaryRow(')
+    return (StringBuffer('ScopedGrantRow(')
           ..write('id: $id, ')
-          ..write('patientId: $patientId, ')
-          ..write('generatedAt: $generatedAt, ')
-          ..write('modelId: $modelId, ')
-          ..write('promptVersion: $promptVersion, ')
-          ..write('summaryMarkdown: $summaryMarkdown, ')
-          ..write('keyEventsJson: $keyEventsJson, ')
-          ..write('trendsJson: $trendsJson, ')
-          ..write('redFlagsJson: $redFlagsJson, ')
-          ..write('inputHash: $inputHash')
+          ..write('accountId: $accountId, ')
+          ..write('permission: $permission, ')
+          ..write('scope: $scope, ')
+          ..write('scopeId: $scopeId, ')
+          ..write('grantedBy: $grantedBy, ')
+          ..write('startsAt: $startsAt, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('revokedAt: $revokedAt, ')
+          ..write('revokedBy: $revokedBy, ')
+          ..write('reason: $reason')
           ..write(')'))
         .toString();
   }
@@ -14223,127 +17644,138 @@ class AiSummaryRow extends DataClass implements Insertable<AiSummaryRow> {
   @override
   int get hashCode => Object.hash(
     id,
-    patientId,
-    generatedAt,
-    modelId,
-    promptVersion,
-    summaryMarkdown,
-    keyEventsJson,
-    trendsJson,
-    redFlagsJson,
-    inputHash,
+    accountId,
+    permission,
+    scope,
+    scopeId,
+    grantedBy,
+    startsAt,
+    expiresAt,
+    revokedAt,
+    revokedBy,
+    reason,
   );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is AiSummaryRow &&
+      (other is ScopedGrantRow &&
           other.id == this.id &&
-          other.patientId == this.patientId &&
-          other.generatedAt == this.generatedAt &&
-          other.modelId == this.modelId &&
-          other.promptVersion == this.promptVersion &&
-          other.summaryMarkdown == this.summaryMarkdown &&
-          other.keyEventsJson == this.keyEventsJson &&
-          other.trendsJson == this.trendsJson &&
-          other.redFlagsJson == this.redFlagsJson &&
-          other.inputHash == this.inputHash);
+          other.accountId == this.accountId &&
+          other.permission == this.permission &&
+          other.scope == this.scope &&
+          other.scopeId == this.scopeId &&
+          other.grantedBy == this.grantedBy &&
+          other.startsAt == this.startsAt &&
+          other.expiresAt == this.expiresAt &&
+          other.revokedAt == this.revokedAt &&
+          other.revokedBy == this.revokedBy &&
+          other.reason == this.reason);
 }
 
-class AiSummariesCompanion extends UpdateCompanion<AiSummaryRow> {
+class ScopedGrantsCompanion extends UpdateCompanion<ScopedGrantRow> {
   final Value<String> id;
-  final Value<String> patientId;
-  final Value<DateTime> generatedAt;
-  final Value<String> modelId;
-  final Value<String> promptVersion;
-  final Value<String> summaryMarkdown;
-  final Value<String> keyEventsJson;
-  final Value<String> trendsJson;
-  final Value<String> redFlagsJson;
-  final Value<String> inputHash;
+  final Value<String> accountId;
+  final Value<String> permission;
+  final Value<String> scope;
+  final Value<String> scopeId;
+  final Value<String> grantedBy;
+  final Value<DateTime> startsAt;
+  final Value<DateTime?> expiresAt;
+  final Value<DateTime?> revokedAt;
+  final Value<String?> revokedBy;
+  final Value<String> reason;
   final Value<int> rowid;
-  const AiSummariesCompanion({
+  const ScopedGrantsCompanion({
     this.id = const Value.absent(),
-    this.patientId = const Value.absent(),
-    this.generatedAt = const Value.absent(),
-    this.modelId = const Value.absent(),
-    this.promptVersion = const Value.absent(),
-    this.summaryMarkdown = const Value.absent(),
-    this.keyEventsJson = const Value.absent(),
-    this.trendsJson = const Value.absent(),
-    this.redFlagsJson = const Value.absent(),
-    this.inputHash = const Value.absent(),
+    this.accountId = const Value.absent(),
+    this.permission = const Value.absent(),
+    this.scope = const Value.absent(),
+    this.scopeId = const Value.absent(),
+    this.grantedBy = const Value.absent(),
+    this.startsAt = const Value.absent(),
+    this.expiresAt = const Value.absent(),
+    this.revokedAt = const Value.absent(),
+    this.revokedBy = const Value.absent(),
+    this.reason = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  AiSummariesCompanion.insert({
+  ScopedGrantsCompanion.insert({
     required String id,
-    required String patientId,
-    this.generatedAt = const Value.absent(),
-    required String modelId,
-    required String promptVersion,
-    required String summaryMarkdown,
-    this.keyEventsJson = const Value.absent(),
-    this.trendsJson = const Value.absent(),
-    this.redFlagsJson = const Value.absent(),
-    required String inputHash,
+    required String accountId,
+    required String permission,
+    required String scope,
+    required String scopeId,
+    required String grantedBy,
+    required DateTime startsAt,
+    this.expiresAt = const Value.absent(),
+    this.revokedAt = const Value.absent(),
+    this.revokedBy = const Value.absent(),
+    required String reason,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
-       patientId = Value(patientId),
-       modelId = Value(modelId),
-       promptVersion = Value(promptVersion),
-       summaryMarkdown = Value(summaryMarkdown),
-       inputHash = Value(inputHash);
-  static Insertable<AiSummaryRow> custom({
+       accountId = Value(accountId),
+       permission = Value(permission),
+       scope = Value(scope),
+       scopeId = Value(scopeId),
+       grantedBy = Value(grantedBy),
+       startsAt = Value(startsAt),
+       reason = Value(reason);
+  static Insertable<ScopedGrantRow> custom({
     Expression<String>? id,
-    Expression<String>? patientId,
-    Expression<DateTime>? generatedAt,
-    Expression<String>? modelId,
-    Expression<String>? promptVersion,
-    Expression<String>? summaryMarkdown,
-    Expression<String>? keyEventsJson,
-    Expression<String>? trendsJson,
-    Expression<String>? redFlagsJson,
-    Expression<String>? inputHash,
+    Expression<String>? accountId,
+    Expression<String>? permission,
+    Expression<String>? scope,
+    Expression<String>? scopeId,
+    Expression<String>? grantedBy,
+    Expression<DateTime>? startsAt,
+    Expression<DateTime>? expiresAt,
+    Expression<DateTime>? revokedAt,
+    Expression<String>? revokedBy,
+    Expression<String>? reason,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (patientId != null) 'patient_id': patientId,
-      if (generatedAt != null) 'generated_at': generatedAt,
-      if (modelId != null) 'model_id': modelId,
-      if (promptVersion != null) 'prompt_version': promptVersion,
-      if (summaryMarkdown != null) 'summary_markdown': summaryMarkdown,
-      if (keyEventsJson != null) 'key_events_json': keyEventsJson,
-      if (trendsJson != null) 'trends_json': trendsJson,
-      if (redFlagsJson != null) 'red_flags_json': redFlagsJson,
-      if (inputHash != null) 'input_hash': inputHash,
+      if (accountId != null) 'account_id': accountId,
+      if (permission != null) 'permission': permission,
+      if (scope != null) 'scope': scope,
+      if (scopeId != null) 'scope_id': scopeId,
+      if (grantedBy != null) 'granted_by': grantedBy,
+      if (startsAt != null) 'starts_at': startsAt,
+      if (expiresAt != null) 'expires_at': expiresAt,
+      if (revokedAt != null) 'revoked_at': revokedAt,
+      if (revokedBy != null) 'revoked_by': revokedBy,
+      if (reason != null) 'reason': reason,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
-  AiSummariesCompanion copyWith({
+  ScopedGrantsCompanion copyWith({
     Value<String>? id,
-    Value<String>? patientId,
-    Value<DateTime>? generatedAt,
-    Value<String>? modelId,
-    Value<String>? promptVersion,
-    Value<String>? summaryMarkdown,
-    Value<String>? keyEventsJson,
-    Value<String>? trendsJson,
-    Value<String>? redFlagsJson,
-    Value<String>? inputHash,
+    Value<String>? accountId,
+    Value<String>? permission,
+    Value<String>? scope,
+    Value<String>? scopeId,
+    Value<String>? grantedBy,
+    Value<DateTime>? startsAt,
+    Value<DateTime?>? expiresAt,
+    Value<DateTime?>? revokedAt,
+    Value<String?>? revokedBy,
+    Value<String>? reason,
     Value<int>? rowid,
   }) {
-    return AiSummariesCompanion(
+    return ScopedGrantsCompanion(
       id: id ?? this.id,
-      patientId: patientId ?? this.patientId,
-      generatedAt: generatedAt ?? this.generatedAt,
-      modelId: modelId ?? this.modelId,
-      promptVersion: promptVersion ?? this.promptVersion,
-      summaryMarkdown: summaryMarkdown ?? this.summaryMarkdown,
-      keyEventsJson: keyEventsJson ?? this.keyEventsJson,
-      trendsJson: trendsJson ?? this.trendsJson,
-      redFlagsJson: redFlagsJson ?? this.redFlagsJson,
-      inputHash: inputHash ?? this.inputHash,
+      accountId: accountId ?? this.accountId,
+      permission: permission ?? this.permission,
+      scope: scope ?? this.scope,
+      scopeId: scopeId ?? this.scopeId,
+      grantedBy: grantedBy ?? this.grantedBy,
+      startsAt: startsAt ?? this.startsAt,
+      expiresAt: expiresAt ?? this.expiresAt,
+      revokedAt: revokedAt ?? this.revokedAt,
+      revokedBy: revokedBy ?? this.revokedBy,
+      reason: reason ?? this.reason,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -14354,32 +17786,35 @@ class AiSummariesCompanion extends UpdateCompanion<AiSummaryRow> {
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
-    if (patientId.present) {
-      map['patient_id'] = Variable<String>(patientId.value);
+    if (accountId.present) {
+      map['account_id'] = Variable<String>(accountId.value);
     }
-    if (generatedAt.present) {
-      map['generated_at'] = Variable<DateTime>(generatedAt.value);
+    if (permission.present) {
+      map['permission'] = Variable<String>(permission.value);
     }
-    if (modelId.present) {
-      map['model_id'] = Variable<String>(modelId.value);
+    if (scope.present) {
+      map['scope'] = Variable<String>(scope.value);
     }
-    if (promptVersion.present) {
-      map['prompt_version'] = Variable<String>(promptVersion.value);
+    if (scopeId.present) {
+      map['scope_id'] = Variable<String>(scopeId.value);
     }
-    if (summaryMarkdown.present) {
-      map['summary_markdown'] = Variable<String>(summaryMarkdown.value);
+    if (grantedBy.present) {
+      map['granted_by'] = Variable<String>(grantedBy.value);
     }
-    if (keyEventsJson.present) {
-      map['key_events_json'] = Variable<String>(keyEventsJson.value);
+    if (startsAt.present) {
+      map['starts_at'] = Variable<DateTime>(startsAt.value);
     }
-    if (trendsJson.present) {
-      map['trends_json'] = Variable<String>(trendsJson.value);
+    if (expiresAt.present) {
+      map['expires_at'] = Variable<DateTime>(expiresAt.value);
     }
-    if (redFlagsJson.present) {
-      map['red_flags_json'] = Variable<String>(redFlagsJson.value);
+    if (revokedAt.present) {
+      map['revoked_at'] = Variable<DateTime>(revokedAt.value);
     }
-    if (inputHash.present) {
-      map['input_hash'] = Variable<String>(inputHash.value);
+    if (revokedBy.present) {
+      map['revoked_by'] = Variable<String>(revokedBy.value);
+    }
+    if (reason.present) {
+      map['reason'] = Variable<String>(reason.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -14389,17 +17824,1037 @@ class AiSummariesCompanion extends UpdateCompanion<AiSummaryRow> {
 
   @override
   String toString() {
-    return (StringBuffer('AiSummariesCompanion(')
+    return (StringBuffer('ScopedGrantsCompanion(')
           ..write('id: $id, ')
-          ..write('patientId: $patientId, ')
-          ..write('generatedAt: $generatedAt, ')
-          ..write('modelId: $modelId, ')
-          ..write('promptVersion: $promptVersion, ')
-          ..write('summaryMarkdown: $summaryMarkdown, ')
-          ..write('keyEventsJson: $keyEventsJson, ')
-          ..write('trendsJson: $trendsJson, ')
-          ..write('redFlagsJson: $redFlagsJson, ')
-          ..write('inputHash: $inputHash, ')
+          ..write('accountId: $accountId, ')
+          ..write('permission: $permission, ')
+          ..write('scope: $scope, ')
+          ..write('scopeId: $scopeId, ')
+          ..write('grantedBy: $grantedBy, ')
+          ..write('startsAt: $startsAt, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('revokedAt: $revokedAt, ')
+          ..write('revokedBy: $revokedBy, ')
+          ..write('reason: $reason, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DocumentArtifactsTable extends DocumentArtifacts
+    with TableInfo<$DocumentArtifactsTable, DocumentArtifactRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DocumentArtifactsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _issuedVersionIdMeta = const VerificationMeta(
+    'issuedVersionId',
+  );
+  @override
+  late final GeneratedColumn<String> issuedVersionId = GeneratedColumn<String>(
+    'issued_version_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES issued_document_versions (id)',
+    ),
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
+  static const VerificationMeta _bytesMeta = const VerificationMeta('bytes');
+  @override
+  late final GeneratedColumn<Uint8List> bytes = GeneratedColumn<Uint8List>(
+    'bytes',
+    aliasedName,
+    true,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sha256Meta = const VerificationMeta('sha256');
+  @override
+  late final GeneratedColumn<String> sha256 = GeneratedColumn<String>(
+    'sha256',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _failureMeta = const VerificationMeta(
+    'failure',
+  );
+  @override
+  late final GeneratedColumn<String> failure = GeneratedColumn<String>(
+    'failure',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _renderedAtMeta = const VerificationMeta(
+    'renderedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> renderedAt = GeneratedColumn<DateTime>(
+    'rendered_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    issuedVersionId,
+    status,
+    bytes,
+    sha256,
+    failure,
+    renderedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'document_artifacts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DocumentArtifactRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('issued_version_id')) {
+      context.handle(
+        _issuedVersionIdMeta,
+        issuedVersionId.isAcceptableOrUnknown(
+          data['issued_version_id']!,
+          _issuedVersionIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_issuedVersionIdMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('bytes')) {
+      context.handle(
+        _bytesMeta,
+        bytes.isAcceptableOrUnknown(data['bytes']!, _bytesMeta),
+      );
+    }
+    if (data.containsKey('sha256')) {
+      context.handle(
+        _sha256Meta,
+        sha256.isAcceptableOrUnknown(data['sha256']!, _sha256Meta),
+      );
+    }
+    if (data.containsKey('failure')) {
+      context.handle(
+        _failureMeta,
+        failure.isAcceptableOrUnknown(data['failure']!, _failureMeta),
+      );
+    }
+    if (data.containsKey('rendered_at')) {
+      context.handle(
+        _renderedAtMeta,
+        renderedAt.isAcceptableOrUnknown(data['rendered_at']!, _renderedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {issuedVersionId};
+  @override
+  DocumentArtifactRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DocumentArtifactRow(
+      issuedVersionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}issued_version_id'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      bytes: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}bytes'],
+      ),
+      sha256: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sha256'],
+      ),
+      failure: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}failure'],
+      ),
+      renderedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}rendered_at'],
+      ),
+    );
+  }
+
+  @override
+  $DocumentArtifactsTable createAlias(String alias) {
+    return $DocumentArtifactsTable(attachedDatabase, alias);
+  }
+}
+
+class DocumentArtifactRow extends DataClass
+    implements Insertable<DocumentArtifactRow> {
+  final String issuedVersionId;
+  final String status;
+  final Uint8List? bytes;
+  final String? sha256;
+  final String? failure;
+  final DateTime? renderedAt;
+  const DocumentArtifactRow({
+    required this.issuedVersionId,
+    required this.status,
+    this.bytes,
+    this.sha256,
+    this.failure,
+    this.renderedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['issued_version_id'] = Variable<String>(issuedVersionId);
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || bytes != null) {
+      map['bytes'] = Variable<Uint8List>(bytes);
+    }
+    if (!nullToAbsent || sha256 != null) {
+      map['sha256'] = Variable<String>(sha256);
+    }
+    if (!nullToAbsent || failure != null) {
+      map['failure'] = Variable<String>(failure);
+    }
+    if (!nullToAbsent || renderedAt != null) {
+      map['rendered_at'] = Variable<DateTime>(renderedAt);
+    }
+    return map;
+  }
+
+  DocumentArtifactsCompanion toCompanion(bool nullToAbsent) {
+    return DocumentArtifactsCompanion(
+      issuedVersionId: Value(issuedVersionId),
+      status: Value(status),
+      bytes: bytes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bytes),
+      sha256: sha256 == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sha256),
+      failure: failure == null && nullToAbsent
+          ? const Value.absent()
+          : Value(failure),
+      renderedAt: renderedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(renderedAt),
+    );
+  }
+
+  factory DocumentArtifactRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DocumentArtifactRow(
+      issuedVersionId: serializer.fromJson<String>(json['issuedVersionId']),
+      status: serializer.fromJson<String>(json['status']),
+      bytes: serializer.fromJson<Uint8List?>(json['bytes']),
+      sha256: serializer.fromJson<String?>(json['sha256']),
+      failure: serializer.fromJson<String?>(json['failure']),
+      renderedAt: serializer.fromJson<DateTime?>(json['renderedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'issuedVersionId': serializer.toJson<String>(issuedVersionId),
+      'status': serializer.toJson<String>(status),
+      'bytes': serializer.toJson<Uint8List?>(bytes),
+      'sha256': serializer.toJson<String?>(sha256),
+      'failure': serializer.toJson<String?>(failure),
+      'renderedAt': serializer.toJson<DateTime?>(renderedAt),
+    };
+  }
+
+  DocumentArtifactRow copyWith({
+    String? issuedVersionId,
+    String? status,
+    Value<Uint8List?> bytes = const Value.absent(),
+    Value<String?> sha256 = const Value.absent(),
+    Value<String?> failure = const Value.absent(),
+    Value<DateTime?> renderedAt = const Value.absent(),
+  }) => DocumentArtifactRow(
+    issuedVersionId: issuedVersionId ?? this.issuedVersionId,
+    status: status ?? this.status,
+    bytes: bytes.present ? bytes.value : this.bytes,
+    sha256: sha256.present ? sha256.value : this.sha256,
+    failure: failure.present ? failure.value : this.failure,
+    renderedAt: renderedAt.present ? renderedAt.value : this.renderedAt,
+  );
+  DocumentArtifactRow copyWithCompanion(DocumentArtifactsCompanion data) {
+    return DocumentArtifactRow(
+      issuedVersionId: data.issuedVersionId.present
+          ? data.issuedVersionId.value
+          : this.issuedVersionId,
+      status: data.status.present ? data.status.value : this.status,
+      bytes: data.bytes.present ? data.bytes.value : this.bytes,
+      sha256: data.sha256.present ? data.sha256.value : this.sha256,
+      failure: data.failure.present ? data.failure.value : this.failure,
+      renderedAt: data.renderedAt.present
+          ? data.renderedAt.value
+          : this.renderedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DocumentArtifactRow(')
+          ..write('issuedVersionId: $issuedVersionId, ')
+          ..write('status: $status, ')
+          ..write('bytes: $bytes, ')
+          ..write('sha256: $sha256, ')
+          ..write('failure: $failure, ')
+          ..write('renderedAt: $renderedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    issuedVersionId,
+    status,
+    $driftBlobEquality.hash(bytes),
+    sha256,
+    failure,
+    renderedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DocumentArtifactRow &&
+          other.issuedVersionId == this.issuedVersionId &&
+          other.status == this.status &&
+          $driftBlobEquality.equals(other.bytes, this.bytes) &&
+          other.sha256 == this.sha256 &&
+          other.failure == this.failure &&
+          other.renderedAt == this.renderedAt);
+}
+
+class DocumentArtifactsCompanion extends UpdateCompanion<DocumentArtifactRow> {
+  final Value<String> issuedVersionId;
+  final Value<String> status;
+  final Value<Uint8List?> bytes;
+  final Value<String?> sha256;
+  final Value<String?> failure;
+  final Value<DateTime?> renderedAt;
+  final Value<int> rowid;
+  const DocumentArtifactsCompanion({
+    this.issuedVersionId = const Value.absent(),
+    this.status = const Value.absent(),
+    this.bytes = const Value.absent(),
+    this.sha256 = const Value.absent(),
+    this.failure = const Value.absent(),
+    this.renderedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DocumentArtifactsCompanion.insert({
+    required String issuedVersionId,
+    this.status = const Value.absent(),
+    this.bytes = const Value.absent(),
+    this.sha256 = const Value.absent(),
+    this.failure = const Value.absent(),
+    this.renderedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : issuedVersionId = Value(issuedVersionId);
+  static Insertable<DocumentArtifactRow> custom({
+    Expression<String>? issuedVersionId,
+    Expression<String>? status,
+    Expression<Uint8List>? bytes,
+    Expression<String>? sha256,
+    Expression<String>? failure,
+    Expression<DateTime>? renderedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (issuedVersionId != null) 'issued_version_id': issuedVersionId,
+      if (status != null) 'status': status,
+      if (bytes != null) 'bytes': bytes,
+      if (sha256 != null) 'sha256': sha256,
+      if (failure != null) 'failure': failure,
+      if (renderedAt != null) 'rendered_at': renderedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DocumentArtifactsCompanion copyWith({
+    Value<String>? issuedVersionId,
+    Value<String>? status,
+    Value<Uint8List?>? bytes,
+    Value<String?>? sha256,
+    Value<String?>? failure,
+    Value<DateTime?>? renderedAt,
+    Value<int>? rowid,
+  }) {
+    return DocumentArtifactsCompanion(
+      issuedVersionId: issuedVersionId ?? this.issuedVersionId,
+      status: status ?? this.status,
+      bytes: bytes ?? this.bytes,
+      sha256: sha256 ?? this.sha256,
+      failure: failure ?? this.failure,
+      renderedAt: renderedAt ?? this.renderedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (issuedVersionId.present) {
+      map['issued_version_id'] = Variable<String>(issuedVersionId.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (bytes.present) {
+      map['bytes'] = Variable<Uint8List>(bytes.value);
+    }
+    if (sha256.present) {
+      map['sha256'] = Variable<String>(sha256.value);
+    }
+    if (failure.present) {
+      map['failure'] = Variable<String>(failure.value);
+    }
+    if (renderedAt.present) {
+      map['rendered_at'] = Variable<DateTime>(renderedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DocumentArtifactsCompanion(')
+          ..write('issuedVersionId: $issuedVersionId, ')
+          ..write('status: $status, ')
+          ..write('bytes: $bytes, ')
+          ..write('sha256: $sha256, ')
+          ..write('failure: $failure, ')
+          ..write('renderedAt: $renderedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DocumentDeliveryEventsTable extends DocumentDeliveryEvents
+    with TableInfo<$DocumentDeliveryEventsTable, DocumentDeliveryEventRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DocumentDeliveryEventsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _issuedVersionIdMeta = const VerificationMeta(
+    'issuedVersionId',
+  );
+  @override
+  late final GeneratedColumn<String> issuedVersionId = GeneratedColumn<String>(
+    'issued_version_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES issued_document_versions (id)',
+    ),
+  );
+  static const VerificationMeta _recipientAccountIdMeta =
+      const VerificationMeta('recipientAccountId');
+  @override
+  late final GeneratedColumn<String> recipientAccountId =
+      GeneratedColumn<String>(
+        'recipient_account_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES users (id)',
+        ),
+      );
+  static const VerificationMeta _channelMeta = const VerificationMeta(
+    'channel',
+  );
+  @override
+  late final GeneratedColumn<String> channel = GeneratedColumn<String>(
+    'channel',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
+  static const VerificationMeta _attemptMeta = const VerificationMeta(
+    'attempt',
+  );
+  @override
+  late final GeneratedColumn<int> attempt = GeneratedColumn<int>(
+    'attempt',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _failureMeta = const VerificationMeta(
+    'failure',
+  );
+  @override
+  late final GeneratedColumn<String> failure = GeneratedColumn<String>(
+    'failure',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _attemptedAtMeta = const VerificationMeta(
+    'attemptedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> attemptedAt = GeneratedColumn<DateTime>(
+    'attempted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    issuedVersionId,
+    recipientAccountId,
+    channel,
+    status,
+    attempt,
+    failure,
+    createdAt,
+    attemptedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'document_delivery_events';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DocumentDeliveryEventRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('issued_version_id')) {
+      context.handle(
+        _issuedVersionIdMeta,
+        issuedVersionId.isAcceptableOrUnknown(
+          data['issued_version_id']!,
+          _issuedVersionIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_issuedVersionIdMeta);
+    }
+    if (data.containsKey('recipient_account_id')) {
+      context.handle(
+        _recipientAccountIdMeta,
+        recipientAccountId.isAcceptableOrUnknown(
+          data['recipient_account_id']!,
+          _recipientAccountIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_recipientAccountIdMeta);
+    }
+    if (data.containsKey('channel')) {
+      context.handle(
+        _channelMeta,
+        channel.isAcceptableOrUnknown(data['channel']!, _channelMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_channelMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('attempt')) {
+      context.handle(
+        _attemptMeta,
+        attempt.isAcceptableOrUnknown(data['attempt']!, _attemptMeta),
+      );
+    }
+    if (data.containsKey('failure')) {
+      context.handle(
+        _failureMeta,
+        failure.isAcceptableOrUnknown(data['failure']!, _failureMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('attempted_at')) {
+      context.handle(
+        _attemptedAtMeta,
+        attemptedAt.isAcceptableOrUnknown(
+          data['attempted_at']!,
+          _attemptedAtMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {issuedVersionId, recipientAccountId, channel},
+  ];
+  @override
+  DocumentDeliveryEventRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DocumentDeliveryEventRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      issuedVersionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}issued_version_id'],
+      )!,
+      recipientAccountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}recipient_account_id'],
+      )!,
+      channel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}channel'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      attempt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}attempt'],
+      )!,
+      failure: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}failure'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      attemptedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}attempted_at'],
+      ),
+    );
+  }
+
+  @override
+  $DocumentDeliveryEventsTable createAlias(String alias) {
+    return $DocumentDeliveryEventsTable(attachedDatabase, alias);
+  }
+}
+
+class DocumentDeliveryEventRow extends DataClass
+    implements Insertable<DocumentDeliveryEventRow> {
+  final String id;
+  final String issuedVersionId;
+  final String recipientAccountId;
+  final String channel;
+  final String status;
+  final int attempt;
+  final String? failure;
+  final DateTime createdAt;
+  final DateTime? attemptedAt;
+  const DocumentDeliveryEventRow({
+    required this.id,
+    required this.issuedVersionId,
+    required this.recipientAccountId,
+    required this.channel,
+    required this.status,
+    required this.attempt,
+    this.failure,
+    required this.createdAt,
+    this.attemptedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['issued_version_id'] = Variable<String>(issuedVersionId);
+    map['recipient_account_id'] = Variable<String>(recipientAccountId);
+    map['channel'] = Variable<String>(channel);
+    map['status'] = Variable<String>(status);
+    map['attempt'] = Variable<int>(attempt);
+    if (!nullToAbsent || failure != null) {
+      map['failure'] = Variable<String>(failure);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || attemptedAt != null) {
+      map['attempted_at'] = Variable<DateTime>(attemptedAt);
+    }
+    return map;
+  }
+
+  DocumentDeliveryEventsCompanion toCompanion(bool nullToAbsent) {
+    return DocumentDeliveryEventsCompanion(
+      id: Value(id),
+      issuedVersionId: Value(issuedVersionId),
+      recipientAccountId: Value(recipientAccountId),
+      channel: Value(channel),
+      status: Value(status),
+      attempt: Value(attempt),
+      failure: failure == null && nullToAbsent
+          ? const Value.absent()
+          : Value(failure),
+      createdAt: Value(createdAt),
+      attemptedAt: attemptedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(attemptedAt),
+    );
+  }
+
+  factory DocumentDeliveryEventRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DocumentDeliveryEventRow(
+      id: serializer.fromJson<String>(json['id']),
+      issuedVersionId: serializer.fromJson<String>(json['issuedVersionId']),
+      recipientAccountId: serializer.fromJson<String>(
+        json['recipientAccountId'],
+      ),
+      channel: serializer.fromJson<String>(json['channel']),
+      status: serializer.fromJson<String>(json['status']),
+      attempt: serializer.fromJson<int>(json['attempt']),
+      failure: serializer.fromJson<String?>(json['failure']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      attemptedAt: serializer.fromJson<DateTime?>(json['attemptedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'issuedVersionId': serializer.toJson<String>(issuedVersionId),
+      'recipientAccountId': serializer.toJson<String>(recipientAccountId),
+      'channel': serializer.toJson<String>(channel),
+      'status': serializer.toJson<String>(status),
+      'attempt': serializer.toJson<int>(attempt),
+      'failure': serializer.toJson<String?>(failure),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'attemptedAt': serializer.toJson<DateTime?>(attemptedAt),
+    };
+  }
+
+  DocumentDeliveryEventRow copyWith({
+    String? id,
+    String? issuedVersionId,
+    String? recipientAccountId,
+    String? channel,
+    String? status,
+    int? attempt,
+    Value<String?> failure = const Value.absent(),
+    DateTime? createdAt,
+    Value<DateTime?> attemptedAt = const Value.absent(),
+  }) => DocumentDeliveryEventRow(
+    id: id ?? this.id,
+    issuedVersionId: issuedVersionId ?? this.issuedVersionId,
+    recipientAccountId: recipientAccountId ?? this.recipientAccountId,
+    channel: channel ?? this.channel,
+    status: status ?? this.status,
+    attempt: attempt ?? this.attempt,
+    failure: failure.present ? failure.value : this.failure,
+    createdAt: createdAt ?? this.createdAt,
+    attemptedAt: attemptedAt.present ? attemptedAt.value : this.attemptedAt,
+  );
+  DocumentDeliveryEventRow copyWithCompanion(
+    DocumentDeliveryEventsCompanion data,
+  ) {
+    return DocumentDeliveryEventRow(
+      id: data.id.present ? data.id.value : this.id,
+      issuedVersionId: data.issuedVersionId.present
+          ? data.issuedVersionId.value
+          : this.issuedVersionId,
+      recipientAccountId: data.recipientAccountId.present
+          ? data.recipientAccountId.value
+          : this.recipientAccountId,
+      channel: data.channel.present ? data.channel.value : this.channel,
+      status: data.status.present ? data.status.value : this.status,
+      attempt: data.attempt.present ? data.attempt.value : this.attempt,
+      failure: data.failure.present ? data.failure.value : this.failure,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      attemptedAt: data.attemptedAt.present
+          ? data.attemptedAt.value
+          : this.attemptedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DocumentDeliveryEventRow(')
+          ..write('id: $id, ')
+          ..write('issuedVersionId: $issuedVersionId, ')
+          ..write('recipientAccountId: $recipientAccountId, ')
+          ..write('channel: $channel, ')
+          ..write('status: $status, ')
+          ..write('attempt: $attempt, ')
+          ..write('failure: $failure, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('attemptedAt: $attemptedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    issuedVersionId,
+    recipientAccountId,
+    channel,
+    status,
+    attempt,
+    failure,
+    createdAt,
+    attemptedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DocumentDeliveryEventRow &&
+          other.id == this.id &&
+          other.issuedVersionId == this.issuedVersionId &&
+          other.recipientAccountId == this.recipientAccountId &&
+          other.channel == this.channel &&
+          other.status == this.status &&
+          other.attempt == this.attempt &&
+          other.failure == this.failure &&
+          other.createdAt == this.createdAt &&
+          other.attemptedAt == this.attemptedAt);
+}
+
+class DocumentDeliveryEventsCompanion
+    extends UpdateCompanion<DocumentDeliveryEventRow> {
+  final Value<String> id;
+  final Value<String> issuedVersionId;
+  final Value<String> recipientAccountId;
+  final Value<String> channel;
+  final Value<String> status;
+  final Value<int> attempt;
+  final Value<String?> failure;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> attemptedAt;
+  final Value<int> rowid;
+  const DocumentDeliveryEventsCompanion({
+    this.id = const Value.absent(),
+    this.issuedVersionId = const Value.absent(),
+    this.recipientAccountId = const Value.absent(),
+    this.channel = const Value.absent(),
+    this.status = const Value.absent(),
+    this.attempt = const Value.absent(),
+    this.failure = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.attemptedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DocumentDeliveryEventsCompanion.insert({
+    required String id,
+    required String issuedVersionId,
+    required String recipientAccountId,
+    required String channel,
+    this.status = const Value.absent(),
+    this.attempt = const Value.absent(),
+    this.failure = const Value.absent(),
+    required DateTime createdAt,
+    this.attemptedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       issuedVersionId = Value(issuedVersionId),
+       recipientAccountId = Value(recipientAccountId),
+       channel = Value(channel),
+       createdAt = Value(createdAt);
+  static Insertable<DocumentDeliveryEventRow> custom({
+    Expression<String>? id,
+    Expression<String>? issuedVersionId,
+    Expression<String>? recipientAccountId,
+    Expression<String>? channel,
+    Expression<String>? status,
+    Expression<int>? attempt,
+    Expression<String>? failure,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? attemptedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (issuedVersionId != null) 'issued_version_id': issuedVersionId,
+      if (recipientAccountId != null)
+        'recipient_account_id': recipientAccountId,
+      if (channel != null) 'channel': channel,
+      if (status != null) 'status': status,
+      if (attempt != null) 'attempt': attempt,
+      if (failure != null) 'failure': failure,
+      if (createdAt != null) 'created_at': createdAt,
+      if (attemptedAt != null) 'attempted_at': attemptedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DocumentDeliveryEventsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? issuedVersionId,
+    Value<String>? recipientAccountId,
+    Value<String>? channel,
+    Value<String>? status,
+    Value<int>? attempt,
+    Value<String?>? failure,
+    Value<DateTime>? createdAt,
+    Value<DateTime?>? attemptedAt,
+    Value<int>? rowid,
+  }) {
+    return DocumentDeliveryEventsCompanion(
+      id: id ?? this.id,
+      issuedVersionId: issuedVersionId ?? this.issuedVersionId,
+      recipientAccountId: recipientAccountId ?? this.recipientAccountId,
+      channel: channel ?? this.channel,
+      status: status ?? this.status,
+      attempt: attempt ?? this.attempt,
+      failure: failure ?? this.failure,
+      createdAt: createdAt ?? this.createdAt,
+      attemptedAt: attemptedAt ?? this.attemptedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (issuedVersionId.present) {
+      map['issued_version_id'] = Variable<String>(issuedVersionId.value);
+    }
+    if (recipientAccountId.present) {
+      map['recipient_account_id'] = Variable<String>(recipientAccountId.value);
+    }
+    if (channel.present) {
+      map['channel'] = Variable<String>(channel.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (attempt.present) {
+      map['attempt'] = Variable<int>(attempt.value);
+    }
+    if (failure.present) {
+      map['failure'] = Variable<String>(failure.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (attemptedAt.present) {
+      map['attempted_at'] = Variable<DateTime>(attemptedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DocumentDeliveryEventsCompanion(')
+          ..write('id: $id, ')
+          ..write('issuedVersionId: $issuedVersionId, ')
+          ..write('recipientAccountId: $recipientAccountId, ')
+          ..write('channel: $channel, ')
+          ..write('status: $status, ')
+          ..write('attempt: $attempt, ')
+          ..write('failure: $failure, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('attemptedAt: $attemptedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -15306,6 +19761,1542 @@ class StaffTasksCompanion extends UpdateCompanion<StaffTaskRow> {
   }
 }
 
+class $TaskSourcesTable extends TaskSources
+    with TableInfo<$TaskSourcesTable, TaskSourceRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TaskSourcesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _taskIdMeta = const VerificationMeta('taskId');
+  @override
+  late final GeneratedColumn<String> taskId = GeneratedColumn<String>(
+    'task_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES staff_tasks (id)',
+    ),
+  );
+  static const VerificationMeta _sourceTypeMeta = const VerificationMeta(
+    'sourceType',
+  );
+  @override
+  late final GeneratedColumn<String> sourceType = GeneratedColumn<String>(
+    'source_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceIdMeta = const VerificationMeta(
+    'sourceId',
+  );
+  @override
+  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>(
+    'source_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _episodeKeyMeta = const VerificationMeta(
+    'episodeKey',
+  );
+  @override
+  late final GeneratedColumn<String> episodeKey = GeneratedColumn<String>(
+    'episode_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _recordedAtMeta = const VerificationMeta(
+    'recordedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> recordedAt = GeneratedColumn<DateTime>(
+    'recorded_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    taskId,
+    sourceType,
+    sourceId,
+    episodeKey,
+    recordedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'task_sources';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TaskSourceRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('task_id')) {
+      context.handle(
+        _taskIdMeta,
+        taskId.isAcceptableOrUnknown(data['task_id']!, _taskIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_taskIdMeta);
+    }
+    if (data.containsKey('source_type')) {
+      context.handle(
+        _sourceTypeMeta,
+        sourceType.isAcceptableOrUnknown(data['source_type']!, _sourceTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceTypeMeta);
+    }
+    if (data.containsKey('source_id')) {
+      context.handle(
+        _sourceIdMeta,
+        sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceIdMeta);
+    }
+    if (data.containsKey('episode_key')) {
+      context.handle(
+        _episodeKeyMeta,
+        episodeKey.isAcceptableOrUnknown(data['episode_key']!, _episodeKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_episodeKeyMeta);
+    }
+    if (data.containsKey('recorded_at')) {
+      context.handle(
+        _recordedAtMeta,
+        recordedAt.isAcceptableOrUnknown(data['recorded_at']!, _recordedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_recordedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {
+    taskId,
+    sourceType,
+    sourceId,
+    episodeKey,
+  };
+  @override
+  TaskSourceRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TaskSourceRow(
+      taskId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}task_id'],
+      )!,
+      sourceType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_type'],
+      )!,
+      sourceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_id'],
+      )!,
+      episodeKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}episode_key'],
+      )!,
+      recordedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}recorded_at'],
+      )!,
+    );
+  }
+
+  @override
+  $TaskSourcesTable createAlias(String alias) {
+    return $TaskSourcesTable(attachedDatabase, alias);
+  }
+}
+
+class TaskSourceRow extends DataClass implements Insertable<TaskSourceRow> {
+  final String taskId;
+  final String sourceType;
+  final String sourceId;
+  final String episodeKey;
+  final DateTime recordedAt;
+  const TaskSourceRow({
+    required this.taskId,
+    required this.sourceType,
+    required this.sourceId,
+    required this.episodeKey,
+    required this.recordedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['task_id'] = Variable<String>(taskId);
+    map['source_type'] = Variable<String>(sourceType);
+    map['source_id'] = Variable<String>(sourceId);
+    map['episode_key'] = Variable<String>(episodeKey);
+    map['recorded_at'] = Variable<DateTime>(recordedAt);
+    return map;
+  }
+
+  TaskSourcesCompanion toCompanion(bool nullToAbsent) {
+    return TaskSourcesCompanion(
+      taskId: Value(taskId),
+      sourceType: Value(sourceType),
+      sourceId: Value(sourceId),
+      episodeKey: Value(episodeKey),
+      recordedAt: Value(recordedAt),
+    );
+  }
+
+  factory TaskSourceRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TaskSourceRow(
+      taskId: serializer.fromJson<String>(json['taskId']),
+      sourceType: serializer.fromJson<String>(json['sourceType']),
+      sourceId: serializer.fromJson<String>(json['sourceId']),
+      episodeKey: serializer.fromJson<String>(json['episodeKey']),
+      recordedAt: serializer.fromJson<DateTime>(json['recordedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'taskId': serializer.toJson<String>(taskId),
+      'sourceType': serializer.toJson<String>(sourceType),
+      'sourceId': serializer.toJson<String>(sourceId),
+      'episodeKey': serializer.toJson<String>(episodeKey),
+      'recordedAt': serializer.toJson<DateTime>(recordedAt),
+    };
+  }
+
+  TaskSourceRow copyWith({
+    String? taskId,
+    String? sourceType,
+    String? sourceId,
+    String? episodeKey,
+    DateTime? recordedAt,
+  }) => TaskSourceRow(
+    taskId: taskId ?? this.taskId,
+    sourceType: sourceType ?? this.sourceType,
+    sourceId: sourceId ?? this.sourceId,
+    episodeKey: episodeKey ?? this.episodeKey,
+    recordedAt: recordedAt ?? this.recordedAt,
+  );
+  TaskSourceRow copyWithCompanion(TaskSourcesCompanion data) {
+    return TaskSourceRow(
+      taskId: data.taskId.present ? data.taskId.value : this.taskId,
+      sourceType: data.sourceType.present
+          ? data.sourceType.value
+          : this.sourceType,
+      sourceId: data.sourceId.present ? data.sourceId.value : this.sourceId,
+      episodeKey: data.episodeKey.present
+          ? data.episodeKey.value
+          : this.episodeKey,
+      recordedAt: data.recordedAt.present
+          ? data.recordedAt.value
+          : this.recordedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TaskSourceRow(')
+          ..write('taskId: $taskId, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('episodeKey: $episodeKey, ')
+          ..write('recordedAt: $recordedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(taskId, sourceType, sourceId, episodeKey, recordedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TaskSourceRow &&
+          other.taskId == this.taskId &&
+          other.sourceType == this.sourceType &&
+          other.sourceId == this.sourceId &&
+          other.episodeKey == this.episodeKey &&
+          other.recordedAt == this.recordedAt);
+}
+
+class TaskSourcesCompanion extends UpdateCompanion<TaskSourceRow> {
+  final Value<String> taskId;
+  final Value<String> sourceType;
+  final Value<String> sourceId;
+  final Value<String> episodeKey;
+  final Value<DateTime> recordedAt;
+  final Value<int> rowid;
+  const TaskSourcesCompanion({
+    this.taskId = const Value.absent(),
+    this.sourceType = const Value.absent(),
+    this.sourceId = const Value.absent(),
+    this.episodeKey = const Value.absent(),
+    this.recordedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TaskSourcesCompanion.insert({
+    required String taskId,
+    required String sourceType,
+    required String sourceId,
+    required String episodeKey,
+    required DateTime recordedAt,
+    this.rowid = const Value.absent(),
+  }) : taskId = Value(taskId),
+       sourceType = Value(sourceType),
+       sourceId = Value(sourceId),
+       episodeKey = Value(episodeKey),
+       recordedAt = Value(recordedAt);
+  static Insertable<TaskSourceRow> custom({
+    Expression<String>? taskId,
+    Expression<String>? sourceType,
+    Expression<String>? sourceId,
+    Expression<String>? episodeKey,
+    Expression<DateTime>? recordedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (taskId != null) 'task_id': taskId,
+      if (sourceType != null) 'source_type': sourceType,
+      if (sourceId != null) 'source_id': sourceId,
+      if (episodeKey != null) 'episode_key': episodeKey,
+      if (recordedAt != null) 'recorded_at': recordedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TaskSourcesCompanion copyWith({
+    Value<String>? taskId,
+    Value<String>? sourceType,
+    Value<String>? sourceId,
+    Value<String>? episodeKey,
+    Value<DateTime>? recordedAt,
+    Value<int>? rowid,
+  }) {
+    return TaskSourcesCompanion(
+      taskId: taskId ?? this.taskId,
+      sourceType: sourceType ?? this.sourceType,
+      sourceId: sourceId ?? this.sourceId,
+      episodeKey: episodeKey ?? this.episodeKey,
+      recordedAt: recordedAt ?? this.recordedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (taskId.present) {
+      map['task_id'] = Variable<String>(taskId.value);
+    }
+    if (sourceType.present) {
+      map['source_type'] = Variable<String>(sourceType.value);
+    }
+    if (sourceId.present) {
+      map['source_id'] = Variable<String>(sourceId.value);
+    }
+    if (episodeKey.present) {
+      map['episode_key'] = Variable<String>(episodeKey.value);
+    }
+    if (recordedAt.present) {
+      map['recorded_at'] = Variable<DateTime>(recordedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TaskSourcesCompanion(')
+          ..write('taskId: $taskId, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('episodeKey: $episodeKey, ')
+          ..write('recordedAt: $recordedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TaskHistoryTable extends TaskHistory
+    with TableInfo<$TaskHistoryTable, TaskHistoryRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TaskHistoryTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _taskIdMeta = const VerificationMeta('taskId');
+  @override
+  late final GeneratedColumn<String> taskId = GeneratedColumn<String>(
+    'task_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES staff_tasks (id)',
+    ),
+  );
+  static const VerificationMeta _actorAccountIdMeta = const VerificationMeta(
+    'actorAccountId',
+  );
+  @override
+  late final GeneratedColumn<String> actorAccountId = GeneratedColumn<String>(
+    'actor_account_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _actionMeta = const VerificationMeta('action');
+  @override
+  late final GeneratedColumn<String> action = GeneratedColumn<String>(
+    'action',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _beforeJsonMeta = const VerificationMeta(
+    'beforeJson',
+  );
+  @override
+  late final GeneratedColumn<String> beforeJson = GeneratedColumn<String>(
+    'before_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _afterJsonMeta = const VerificationMeta(
+    'afterJson',
+  );
+  @override
+  late final GeneratedColumn<String> afterJson = GeneratedColumn<String>(
+    'after_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _outcomeMeta = const VerificationMeta(
+    'outcome',
+  );
+  @override
+  late final GeneratedColumn<String> outcome = GeneratedColumn<String>(
+    'outcome',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _atMeta = const VerificationMeta('at');
+  @override
+  late final GeneratedColumn<DateTime> at = GeneratedColumn<DateTime>(
+    'at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    taskId,
+    actorAccountId,
+    action,
+    beforeJson,
+    afterJson,
+    outcome,
+    at,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'task_history';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TaskHistoryRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('task_id')) {
+      context.handle(
+        _taskIdMeta,
+        taskId.isAcceptableOrUnknown(data['task_id']!, _taskIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_taskIdMeta);
+    }
+    if (data.containsKey('actor_account_id')) {
+      context.handle(
+        _actorAccountIdMeta,
+        actorAccountId.isAcceptableOrUnknown(
+          data['actor_account_id']!,
+          _actorAccountIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('action')) {
+      context.handle(
+        _actionMeta,
+        action.isAcceptableOrUnknown(data['action']!, _actionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_actionMeta);
+    }
+    if (data.containsKey('before_json')) {
+      context.handle(
+        _beforeJsonMeta,
+        beforeJson.isAcceptableOrUnknown(data['before_json']!, _beforeJsonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_beforeJsonMeta);
+    }
+    if (data.containsKey('after_json')) {
+      context.handle(
+        _afterJsonMeta,
+        afterJson.isAcceptableOrUnknown(data['after_json']!, _afterJsonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_afterJsonMeta);
+    }
+    if (data.containsKey('outcome')) {
+      context.handle(
+        _outcomeMeta,
+        outcome.isAcceptableOrUnknown(data['outcome']!, _outcomeMeta),
+      );
+    }
+    if (data.containsKey('at')) {
+      context.handle(_atMeta, at.isAcceptableOrUnknown(data['at']!, _atMeta));
+    } else if (isInserting) {
+      context.missing(_atMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  TaskHistoryRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TaskHistoryRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      taskId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}task_id'],
+      )!,
+      actorAccountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}actor_account_id'],
+      ),
+      action: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}action'],
+      )!,
+      beforeJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}before_json'],
+      )!,
+      afterJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}after_json'],
+      )!,
+      outcome: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}outcome'],
+      ),
+      at: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}at'],
+      )!,
+    );
+  }
+
+  @override
+  $TaskHistoryTable createAlias(String alias) {
+    return $TaskHistoryTable(attachedDatabase, alias);
+  }
+}
+
+class TaskHistoryRow extends DataClass implements Insertable<TaskHistoryRow> {
+  final String id;
+  final String taskId;
+  final String? actorAccountId;
+  final String action;
+  final String beforeJson;
+  final String afterJson;
+  final String? outcome;
+  final DateTime at;
+  const TaskHistoryRow({
+    required this.id,
+    required this.taskId,
+    this.actorAccountId,
+    required this.action,
+    required this.beforeJson,
+    required this.afterJson,
+    this.outcome,
+    required this.at,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['task_id'] = Variable<String>(taskId);
+    if (!nullToAbsent || actorAccountId != null) {
+      map['actor_account_id'] = Variable<String>(actorAccountId);
+    }
+    map['action'] = Variable<String>(action);
+    map['before_json'] = Variable<String>(beforeJson);
+    map['after_json'] = Variable<String>(afterJson);
+    if (!nullToAbsent || outcome != null) {
+      map['outcome'] = Variable<String>(outcome);
+    }
+    map['at'] = Variable<DateTime>(at);
+    return map;
+  }
+
+  TaskHistoryCompanion toCompanion(bool nullToAbsent) {
+    return TaskHistoryCompanion(
+      id: Value(id),
+      taskId: Value(taskId),
+      actorAccountId: actorAccountId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(actorAccountId),
+      action: Value(action),
+      beforeJson: Value(beforeJson),
+      afterJson: Value(afterJson),
+      outcome: outcome == null && nullToAbsent
+          ? const Value.absent()
+          : Value(outcome),
+      at: Value(at),
+    );
+  }
+
+  factory TaskHistoryRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TaskHistoryRow(
+      id: serializer.fromJson<String>(json['id']),
+      taskId: serializer.fromJson<String>(json['taskId']),
+      actorAccountId: serializer.fromJson<String?>(json['actorAccountId']),
+      action: serializer.fromJson<String>(json['action']),
+      beforeJson: serializer.fromJson<String>(json['beforeJson']),
+      afterJson: serializer.fromJson<String>(json['afterJson']),
+      outcome: serializer.fromJson<String?>(json['outcome']),
+      at: serializer.fromJson<DateTime>(json['at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'taskId': serializer.toJson<String>(taskId),
+      'actorAccountId': serializer.toJson<String?>(actorAccountId),
+      'action': serializer.toJson<String>(action),
+      'beforeJson': serializer.toJson<String>(beforeJson),
+      'afterJson': serializer.toJson<String>(afterJson),
+      'outcome': serializer.toJson<String?>(outcome),
+      'at': serializer.toJson<DateTime>(at),
+    };
+  }
+
+  TaskHistoryRow copyWith({
+    String? id,
+    String? taskId,
+    Value<String?> actorAccountId = const Value.absent(),
+    String? action,
+    String? beforeJson,
+    String? afterJson,
+    Value<String?> outcome = const Value.absent(),
+    DateTime? at,
+  }) => TaskHistoryRow(
+    id: id ?? this.id,
+    taskId: taskId ?? this.taskId,
+    actorAccountId: actorAccountId.present
+        ? actorAccountId.value
+        : this.actorAccountId,
+    action: action ?? this.action,
+    beforeJson: beforeJson ?? this.beforeJson,
+    afterJson: afterJson ?? this.afterJson,
+    outcome: outcome.present ? outcome.value : this.outcome,
+    at: at ?? this.at,
+  );
+  TaskHistoryRow copyWithCompanion(TaskHistoryCompanion data) {
+    return TaskHistoryRow(
+      id: data.id.present ? data.id.value : this.id,
+      taskId: data.taskId.present ? data.taskId.value : this.taskId,
+      actorAccountId: data.actorAccountId.present
+          ? data.actorAccountId.value
+          : this.actorAccountId,
+      action: data.action.present ? data.action.value : this.action,
+      beforeJson: data.beforeJson.present
+          ? data.beforeJson.value
+          : this.beforeJson,
+      afterJson: data.afterJson.present ? data.afterJson.value : this.afterJson,
+      outcome: data.outcome.present ? data.outcome.value : this.outcome,
+      at: data.at.present ? data.at.value : this.at,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TaskHistoryRow(')
+          ..write('id: $id, ')
+          ..write('taskId: $taskId, ')
+          ..write('actorAccountId: $actorAccountId, ')
+          ..write('action: $action, ')
+          ..write('beforeJson: $beforeJson, ')
+          ..write('afterJson: $afterJson, ')
+          ..write('outcome: $outcome, ')
+          ..write('at: $at')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    taskId,
+    actorAccountId,
+    action,
+    beforeJson,
+    afterJson,
+    outcome,
+    at,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TaskHistoryRow &&
+          other.id == this.id &&
+          other.taskId == this.taskId &&
+          other.actorAccountId == this.actorAccountId &&
+          other.action == this.action &&
+          other.beforeJson == this.beforeJson &&
+          other.afterJson == this.afterJson &&
+          other.outcome == this.outcome &&
+          other.at == this.at);
+}
+
+class TaskHistoryCompanion extends UpdateCompanion<TaskHistoryRow> {
+  final Value<String> id;
+  final Value<String> taskId;
+  final Value<String?> actorAccountId;
+  final Value<String> action;
+  final Value<String> beforeJson;
+  final Value<String> afterJson;
+  final Value<String?> outcome;
+  final Value<DateTime> at;
+  final Value<int> rowid;
+  const TaskHistoryCompanion({
+    this.id = const Value.absent(),
+    this.taskId = const Value.absent(),
+    this.actorAccountId = const Value.absent(),
+    this.action = const Value.absent(),
+    this.beforeJson = const Value.absent(),
+    this.afterJson = const Value.absent(),
+    this.outcome = const Value.absent(),
+    this.at = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TaskHistoryCompanion.insert({
+    required String id,
+    required String taskId,
+    this.actorAccountId = const Value.absent(),
+    required String action,
+    required String beforeJson,
+    required String afterJson,
+    this.outcome = const Value.absent(),
+    required DateTime at,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       taskId = Value(taskId),
+       action = Value(action),
+       beforeJson = Value(beforeJson),
+       afterJson = Value(afterJson),
+       at = Value(at);
+  static Insertable<TaskHistoryRow> custom({
+    Expression<String>? id,
+    Expression<String>? taskId,
+    Expression<String>? actorAccountId,
+    Expression<String>? action,
+    Expression<String>? beforeJson,
+    Expression<String>? afterJson,
+    Expression<String>? outcome,
+    Expression<DateTime>? at,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (taskId != null) 'task_id': taskId,
+      if (actorAccountId != null) 'actor_account_id': actorAccountId,
+      if (action != null) 'action': action,
+      if (beforeJson != null) 'before_json': beforeJson,
+      if (afterJson != null) 'after_json': afterJson,
+      if (outcome != null) 'outcome': outcome,
+      if (at != null) 'at': at,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TaskHistoryCompanion copyWith({
+    Value<String>? id,
+    Value<String>? taskId,
+    Value<String?>? actorAccountId,
+    Value<String>? action,
+    Value<String>? beforeJson,
+    Value<String>? afterJson,
+    Value<String?>? outcome,
+    Value<DateTime>? at,
+    Value<int>? rowid,
+  }) {
+    return TaskHistoryCompanion(
+      id: id ?? this.id,
+      taskId: taskId ?? this.taskId,
+      actorAccountId: actorAccountId ?? this.actorAccountId,
+      action: action ?? this.action,
+      beforeJson: beforeJson ?? this.beforeJson,
+      afterJson: afterJson ?? this.afterJson,
+      outcome: outcome ?? this.outcome,
+      at: at ?? this.at,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (taskId.present) {
+      map['task_id'] = Variable<String>(taskId.value);
+    }
+    if (actorAccountId.present) {
+      map['actor_account_id'] = Variable<String>(actorAccountId.value);
+    }
+    if (action.present) {
+      map['action'] = Variable<String>(action.value);
+    }
+    if (beforeJson.present) {
+      map['before_json'] = Variable<String>(beforeJson.value);
+    }
+    if (afterJson.present) {
+      map['after_json'] = Variable<String>(afterJson.value);
+    }
+    if (outcome.present) {
+      map['outcome'] = Variable<String>(outcome.value);
+    }
+    if (at.present) {
+      map['at'] = Variable<DateTime>(at.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TaskHistoryCompanion(')
+          ..write('id: $id, ')
+          ..write('taskId: $taskId, ')
+          ..write('actorAccountId: $actorAccountId, ')
+          ..write('action: $action, ')
+          ..write('beforeJson: $beforeJson, ')
+          ..write('afterJson: $afterJson, ')
+          ..write('outcome: $outcome, ')
+          ..write('at: $at, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AiSummariesTable extends AiSummaries
+    with TableInfo<$AiSummariesTable, AiSummaryRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AiSummariesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _patientIdMeta = const VerificationMeta(
+    'patientId',
+  );
+  @override
+  late final GeneratedColumn<String> patientId = GeneratedColumn<String>(
+    'patient_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _generatedAtMeta = const VerificationMeta(
+    'generatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> generatedAt = GeneratedColumn<DateTime>(
+    'generated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _modelIdMeta = const VerificationMeta(
+    'modelId',
+  );
+  @override
+  late final GeneratedColumn<String> modelId = GeneratedColumn<String>(
+    'model_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _promptVersionMeta = const VerificationMeta(
+    'promptVersion',
+  );
+  @override
+  late final GeneratedColumn<String> promptVersion = GeneratedColumn<String>(
+    'prompt_version',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _summaryMarkdownMeta = const VerificationMeta(
+    'summaryMarkdown',
+  );
+  @override
+  late final GeneratedColumn<String> summaryMarkdown = GeneratedColumn<String>(
+    'summary_markdown',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _keyEventsJsonMeta = const VerificationMeta(
+    'keyEventsJson',
+  );
+  @override
+  late final GeneratedColumn<String> keyEventsJson = GeneratedColumn<String>(
+    'key_events_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
+  static const VerificationMeta _trendsJsonMeta = const VerificationMeta(
+    'trendsJson',
+  );
+  @override
+  late final GeneratedColumn<String> trendsJson = GeneratedColumn<String>(
+    'trends_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
+  static const VerificationMeta _redFlagsJsonMeta = const VerificationMeta(
+    'redFlagsJson',
+  );
+  @override
+  late final GeneratedColumn<String> redFlagsJson = GeneratedColumn<String>(
+    'red_flags_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
+  static const VerificationMeta _inputHashMeta = const VerificationMeta(
+    'inputHash',
+  );
+  @override
+  late final GeneratedColumn<String> inputHash = GeneratedColumn<String>(
+    'input_hash',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    patientId,
+    generatedAt,
+    modelId,
+    promptVersion,
+    summaryMarkdown,
+    keyEventsJson,
+    trendsJson,
+    redFlagsJson,
+    inputHash,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'ai_summaries';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AiSummaryRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('patient_id')) {
+      context.handle(
+        _patientIdMeta,
+        patientId.isAcceptableOrUnknown(data['patient_id']!, _patientIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_patientIdMeta);
+    }
+    if (data.containsKey('generated_at')) {
+      context.handle(
+        _generatedAtMeta,
+        generatedAt.isAcceptableOrUnknown(
+          data['generated_at']!,
+          _generatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('model_id')) {
+      context.handle(
+        _modelIdMeta,
+        modelId.isAcceptableOrUnknown(data['model_id']!, _modelIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_modelIdMeta);
+    }
+    if (data.containsKey('prompt_version')) {
+      context.handle(
+        _promptVersionMeta,
+        promptVersion.isAcceptableOrUnknown(
+          data['prompt_version']!,
+          _promptVersionMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_promptVersionMeta);
+    }
+    if (data.containsKey('summary_markdown')) {
+      context.handle(
+        _summaryMarkdownMeta,
+        summaryMarkdown.isAcceptableOrUnknown(
+          data['summary_markdown']!,
+          _summaryMarkdownMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_summaryMarkdownMeta);
+    }
+    if (data.containsKey('key_events_json')) {
+      context.handle(
+        _keyEventsJsonMeta,
+        keyEventsJson.isAcceptableOrUnknown(
+          data['key_events_json']!,
+          _keyEventsJsonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('trends_json')) {
+      context.handle(
+        _trendsJsonMeta,
+        trendsJson.isAcceptableOrUnknown(data['trends_json']!, _trendsJsonMeta),
+      );
+    }
+    if (data.containsKey('red_flags_json')) {
+      context.handle(
+        _redFlagsJsonMeta,
+        redFlagsJson.isAcceptableOrUnknown(
+          data['red_flags_json']!,
+          _redFlagsJsonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('input_hash')) {
+      context.handle(
+        _inputHashMeta,
+        inputHash.isAcceptableOrUnknown(data['input_hash']!, _inputHashMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_inputHashMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AiSummaryRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AiSummaryRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      patientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}patient_id'],
+      )!,
+      generatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}generated_at'],
+      )!,
+      modelId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}model_id'],
+      )!,
+      promptVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}prompt_version'],
+      )!,
+      summaryMarkdown: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}summary_markdown'],
+      )!,
+      keyEventsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}key_events_json'],
+      )!,
+      trendsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}trends_json'],
+      )!,
+      redFlagsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}red_flags_json'],
+      )!,
+      inputHash: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}input_hash'],
+      )!,
+    );
+  }
+
+  @override
+  $AiSummariesTable createAlias(String alias) {
+    return $AiSummariesTable(attachedDatabase, alias);
+  }
+}
+
+class AiSummaryRow extends DataClass implements Insertable<AiSummaryRow> {
+  final String id;
+  final String patientId;
+  final DateTime generatedAt;
+
+  /// Traceability (P3-14).
+  final String modelId;
+  final String promptVersion;
+  final String summaryMarkdown;
+
+  /// JSON arrays — parsed into typed models by the AI layer.
+  final String keyEventsJson;
+  final String trendsJson;
+  final String redFlagsJson;
+
+  /// Hash of the context the summary was generated from (cache key).
+  final String inputHash;
+  const AiSummaryRow({
+    required this.id,
+    required this.patientId,
+    required this.generatedAt,
+    required this.modelId,
+    required this.promptVersion,
+    required this.summaryMarkdown,
+    required this.keyEventsJson,
+    required this.trendsJson,
+    required this.redFlagsJson,
+    required this.inputHash,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['patient_id'] = Variable<String>(patientId);
+    map['generated_at'] = Variable<DateTime>(generatedAt);
+    map['model_id'] = Variable<String>(modelId);
+    map['prompt_version'] = Variable<String>(promptVersion);
+    map['summary_markdown'] = Variable<String>(summaryMarkdown);
+    map['key_events_json'] = Variable<String>(keyEventsJson);
+    map['trends_json'] = Variable<String>(trendsJson);
+    map['red_flags_json'] = Variable<String>(redFlagsJson);
+    map['input_hash'] = Variable<String>(inputHash);
+    return map;
+  }
+
+  AiSummariesCompanion toCompanion(bool nullToAbsent) {
+    return AiSummariesCompanion(
+      id: Value(id),
+      patientId: Value(patientId),
+      generatedAt: Value(generatedAt),
+      modelId: Value(modelId),
+      promptVersion: Value(promptVersion),
+      summaryMarkdown: Value(summaryMarkdown),
+      keyEventsJson: Value(keyEventsJson),
+      trendsJson: Value(trendsJson),
+      redFlagsJson: Value(redFlagsJson),
+      inputHash: Value(inputHash),
+    );
+  }
+
+  factory AiSummaryRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AiSummaryRow(
+      id: serializer.fromJson<String>(json['id']),
+      patientId: serializer.fromJson<String>(json['patientId']),
+      generatedAt: serializer.fromJson<DateTime>(json['generatedAt']),
+      modelId: serializer.fromJson<String>(json['modelId']),
+      promptVersion: serializer.fromJson<String>(json['promptVersion']),
+      summaryMarkdown: serializer.fromJson<String>(json['summaryMarkdown']),
+      keyEventsJson: serializer.fromJson<String>(json['keyEventsJson']),
+      trendsJson: serializer.fromJson<String>(json['trendsJson']),
+      redFlagsJson: serializer.fromJson<String>(json['redFlagsJson']),
+      inputHash: serializer.fromJson<String>(json['inputHash']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'patientId': serializer.toJson<String>(patientId),
+      'generatedAt': serializer.toJson<DateTime>(generatedAt),
+      'modelId': serializer.toJson<String>(modelId),
+      'promptVersion': serializer.toJson<String>(promptVersion),
+      'summaryMarkdown': serializer.toJson<String>(summaryMarkdown),
+      'keyEventsJson': serializer.toJson<String>(keyEventsJson),
+      'trendsJson': serializer.toJson<String>(trendsJson),
+      'redFlagsJson': serializer.toJson<String>(redFlagsJson),
+      'inputHash': serializer.toJson<String>(inputHash),
+    };
+  }
+
+  AiSummaryRow copyWith({
+    String? id,
+    String? patientId,
+    DateTime? generatedAt,
+    String? modelId,
+    String? promptVersion,
+    String? summaryMarkdown,
+    String? keyEventsJson,
+    String? trendsJson,
+    String? redFlagsJson,
+    String? inputHash,
+  }) => AiSummaryRow(
+    id: id ?? this.id,
+    patientId: patientId ?? this.patientId,
+    generatedAt: generatedAt ?? this.generatedAt,
+    modelId: modelId ?? this.modelId,
+    promptVersion: promptVersion ?? this.promptVersion,
+    summaryMarkdown: summaryMarkdown ?? this.summaryMarkdown,
+    keyEventsJson: keyEventsJson ?? this.keyEventsJson,
+    trendsJson: trendsJson ?? this.trendsJson,
+    redFlagsJson: redFlagsJson ?? this.redFlagsJson,
+    inputHash: inputHash ?? this.inputHash,
+  );
+  AiSummaryRow copyWithCompanion(AiSummariesCompanion data) {
+    return AiSummaryRow(
+      id: data.id.present ? data.id.value : this.id,
+      patientId: data.patientId.present ? data.patientId.value : this.patientId,
+      generatedAt: data.generatedAt.present
+          ? data.generatedAt.value
+          : this.generatedAt,
+      modelId: data.modelId.present ? data.modelId.value : this.modelId,
+      promptVersion: data.promptVersion.present
+          ? data.promptVersion.value
+          : this.promptVersion,
+      summaryMarkdown: data.summaryMarkdown.present
+          ? data.summaryMarkdown.value
+          : this.summaryMarkdown,
+      keyEventsJson: data.keyEventsJson.present
+          ? data.keyEventsJson.value
+          : this.keyEventsJson,
+      trendsJson: data.trendsJson.present
+          ? data.trendsJson.value
+          : this.trendsJson,
+      redFlagsJson: data.redFlagsJson.present
+          ? data.redFlagsJson.value
+          : this.redFlagsJson,
+      inputHash: data.inputHash.present ? data.inputHash.value : this.inputHash,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AiSummaryRow(')
+          ..write('id: $id, ')
+          ..write('patientId: $patientId, ')
+          ..write('generatedAt: $generatedAt, ')
+          ..write('modelId: $modelId, ')
+          ..write('promptVersion: $promptVersion, ')
+          ..write('summaryMarkdown: $summaryMarkdown, ')
+          ..write('keyEventsJson: $keyEventsJson, ')
+          ..write('trendsJson: $trendsJson, ')
+          ..write('redFlagsJson: $redFlagsJson, ')
+          ..write('inputHash: $inputHash')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    patientId,
+    generatedAt,
+    modelId,
+    promptVersion,
+    summaryMarkdown,
+    keyEventsJson,
+    trendsJson,
+    redFlagsJson,
+    inputHash,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AiSummaryRow &&
+          other.id == this.id &&
+          other.patientId == this.patientId &&
+          other.generatedAt == this.generatedAt &&
+          other.modelId == this.modelId &&
+          other.promptVersion == this.promptVersion &&
+          other.summaryMarkdown == this.summaryMarkdown &&
+          other.keyEventsJson == this.keyEventsJson &&
+          other.trendsJson == this.trendsJson &&
+          other.redFlagsJson == this.redFlagsJson &&
+          other.inputHash == this.inputHash);
+}
+
+class AiSummariesCompanion extends UpdateCompanion<AiSummaryRow> {
+  final Value<String> id;
+  final Value<String> patientId;
+  final Value<DateTime> generatedAt;
+  final Value<String> modelId;
+  final Value<String> promptVersion;
+  final Value<String> summaryMarkdown;
+  final Value<String> keyEventsJson;
+  final Value<String> trendsJson;
+  final Value<String> redFlagsJson;
+  final Value<String> inputHash;
+  final Value<int> rowid;
+  const AiSummariesCompanion({
+    this.id = const Value.absent(),
+    this.patientId = const Value.absent(),
+    this.generatedAt = const Value.absent(),
+    this.modelId = const Value.absent(),
+    this.promptVersion = const Value.absent(),
+    this.summaryMarkdown = const Value.absent(),
+    this.keyEventsJson = const Value.absent(),
+    this.trendsJson = const Value.absent(),
+    this.redFlagsJson = const Value.absent(),
+    this.inputHash = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AiSummariesCompanion.insert({
+    required String id,
+    required String patientId,
+    this.generatedAt = const Value.absent(),
+    required String modelId,
+    required String promptVersion,
+    required String summaryMarkdown,
+    this.keyEventsJson = const Value.absent(),
+    this.trendsJson = const Value.absent(),
+    this.redFlagsJson = const Value.absent(),
+    required String inputHash,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       patientId = Value(patientId),
+       modelId = Value(modelId),
+       promptVersion = Value(promptVersion),
+       summaryMarkdown = Value(summaryMarkdown),
+       inputHash = Value(inputHash);
+  static Insertable<AiSummaryRow> custom({
+    Expression<String>? id,
+    Expression<String>? patientId,
+    Expression<DateTime>? generatedAt,
+    Expression<String>? modelId,
+    Expression<String>? promptVersion,
+    Expression<String>? summaryMarkdown,
+    Expression<String>? keyEventsJson,
+    Expression<String>? trendsJson,
+    Expression<String>? redFlagsJson,
+    Expression<String>? inputHash,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (patientId != null) 'patient_id': patientId,
+      if (generatedAt != null) 'generated_at': generatedAt,
+      if (modelId != null) 'model_id': modelId,
+      if (promptVersion != null) 'prompt_version': promptVersion,
+      if (summaryMarkdown != null) 'summary_markdown': summaryMarkdown,
+      if (keyEventsJson != null) 'key_events_json': keyEventsJson,
+      if (trendsJson != null) 'trends_json': trendsJson,
+      if (redFlagsJson != null) 'red_flags_json': redFlagsJson,
+      if (inputHash != null) 'input_hash': inputHash,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AiSummariesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? patientId,
+    Value<DateTime>? generatedAt,
+    Value<String>? modelId,
+    Value<String>? promptVersion,
+    Value<String>? summaryMarkdown,
+    Value<String>? keyEventsJson,
+    Value<String>? trendsJson,
+    Value<String>? redFlagsJson,
+    Value<String>? inputHash,
+    Value<int>? rowid,
+  }) {
+    return AiSummariesCompanion(
+      id: id ?? this.id,
+      patientId: patientId ?? this.patientId,
+      generatedAt: generatedAt ?? this.generatedAt,
+      modelId: modelId ?? this.modelId,
+      promptVersion: promptVersion ?? this.promptVersion,
+      summaryMarkdown: summaryMarkdown ?? this.summaryMarkdown,
+      keyEventsJson: keyEventsJson ?? this.keyEventsJson,
+      trendsJson: trendsJson ?? this.trendsJson,
+      redFlagsJson: redFlagsJson ?? this.redFlagsJson,
+      inputHash: inputHash ?? this.inputHash,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (patientId.present) {
+      map['patient_id'] = Variable<String>(patientId.value);
+    }
+    if (generatedAt.present) {
+      map['generated_at'] = Variable<DateTime>(generatedAt.value);
+    }
+    if (modelId.present) {
+      map['model_id'] = Variable<String>(modelId.value);
+    }
+    if (promptVersion.present) {
+      map['prompt_version'] = Variable<String>(promptVersion.value);
+    }
+    if (summaryMarkdown.present) {
+      map['summary_markdown'] = Variable<String>(summaryMarkdown.value);
+    }
+    if (keyEventsJson.present) {
+      map['key_events_json'] = Variable<String>(keyEventsJson.value);
+    }
+    if (trendsJson.present) {
+      map['trends_json'] = Variable<String>(trendsJson.value);
+    }
+    if (redFlagsJson.present) {
+      map['red_flags_json'] = Variable<String>(redFlagsJson.value);
+    }
+    if (inputHash.present) {
+      map['input_hash'] = Variable<String>(inputHash.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AiSummariesCompanion(')
+          ..write('id: $id, ')
+          ..write('patientId: $patientId, ')
+          ..write('generatedAt: $generatedAt, ')
+          ..write('modelId: $modelId, ')
+          ..write('promptVersion: $promptVersion, ')
+          ..write('summaryMarkdown: $summaryMarkdown, ')
+          ..write('keyEventsJson: $keyEventsJson, ')
+          ..write('trendsJson: $trendsJson, ')
+          ..write('redFlagsJson: $redFlagsJson, ')
+          ..write('inputHash: $inputHash, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $RiskFlagsTable extends RiskFlags
     with TableInfo<$RiskFlagsTable, RiskFlagRow> {
   @override
@@ -15946,6 +21937,284 @@ class RiskFlagsCompanion extends UpdateCompanion<RiskFlagRow> {
           ..write('dedupeKey: $dedupeKey, ')
           ..write('acknowledgedBy: $acknowledgedBy, ')
           ..write('acknowledgedAt: $acknowledgedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $RiskSourceAliasesTable extends RiskSourceAliases
+    with TableInfo<$RiskSourceAliasesTable, RiskSourceAliase> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RiskSourceAliasesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _sourceKeyMeta = const VerificationMeta(
+    'sourceKey',
+  );
+  @override
+  late final GeneratedColumn<String> sourceKey = GeneratedColumn<String>(
+    'source_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _canonicalKeyMeta = const VerificationMeta(
+    'canonicalKey',
+  );
+  @override
+  late final GeneratedColumn<String> canonicalKey = GeneratedColumn<String>(
+    'canonical_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _patientIdMeta = const VerificationMeta(
+    'patientId',
+  );
+  @override
+  late final GeneratedColumn<String> patientId = GeneratedColumn<String>(
+    'patient_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE CASCADE',
+    ),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [sourceKey, canonicalKey, patientId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'risk_source_aliases';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RiskSourceAliase> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('source_key')) {
+      context.handle(
+        _sourceKeyMeta,
+        sourceKey.isAcceptableOrUnknown(data['source_key']!, _sourceKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceKeyMeta);
+    }
+    if (data.containsKey('canonical_key')) {
+      context.handle(
+        _canonicalKeyMeta,
+        canonicalKey.isAcceptableOrUnknown(
+          data['canonical_key']!,
+          _canonicalKeyMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_canonicalKeyMeta);
+    }
+    if (data.containsKey('patient_id')) {
+      context.handle(
+        _patientIdMeta,
+        patientId.isAcceptableOrUnknown(data['patient_id']!, _patientIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_patientIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {sourceKey};
+  @override
+  RiskSourceAliase map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RiskSourceAliase(
+      sourceKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_key'],
+      )!,
+      canonicalKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}canonical_key'],
+      )!,
+      patientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}patient_id'],
+      )!,
+    );
+  }
+
+  @override
+  $RiskSourceAliasesTable createAlias(String alias) {
+    return $RiskSourceAliasesTable(attachedDatabase, alias);
+  }
+}
+
+class RiskSourceAliase extends DataClass
+    implements Insertable<RiskSourceAliase> {
+  final String sourceKey;
+  final String canonicalKey;
+  final String patientId;
+  const RiskSourceAliase({
+    required this.sourceKey,
+    required this.canonicalKey,
+    required this.patientId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['source_key'] = Variable<String>(sourceKey);
+    map['canonical_key'] = Variable<String>(canonicalKey);
+    map['patient_id'] = Variable<String>(patientId);
+    return map;
+  }
+
+  RiskSourceAliasesCompanion toCompanion(bool nullToAbsent) {
+    return RiskSourceAliasesCompanion(
+      sourceKey: Value(sourceKey),
+      canonicalKey: Value(canonicalKey),
+      patientId: Value(patientId),
+    );
+  }
+
+  factory RiskSourceAliase.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RiskSourceAliase(
+      sourceKey: serializer.fromJson<String>(json['sourceKey']),
+      canonicalKey: serializer.fromJson<String>(json['canonicalKey']),
+      patientId: serializer.fromJson<String>(json['patientId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'sourceKey': serializer.toJson<String>(sourceKey),
+      'canonicalKey': serializer.toJson<String>(canonicalKey),
+      'patientId': serializer.toJson<String>(patientId),
+    };
+  }
+
+  RiskSourceAliase copyWith({
+    String? sourceKey,
+    String? canonicalKey,
+    String? patientId,
+  }) => RiskSourceAliase(
+    sourceKey: sourceKey ?? this.sourceKey,
+    canonicalKey: canonicalKey ?? this.canonicalKey,
+    patientId: patientId ?? this.patientId,
+  );
+  RiskSourceAliase copyWithCompanion(RiskSourceAliasesCompanion data) {
+    return RiskSourceAliase(
+      sourceKey: data.sourceKey.present ? data.sourceKey.value : this.sourceKey,
+      canonicalKey: data.canonicalKey.present
+          ? data.canonicalKey.value
+          : this.canonicalKey,
+      patientId: data.patientId.present ? data.patientId.value : this.patientId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RiskSourceAliase(')
+          ..write('sourceKey: $sourceKey, ')
+          ..write('canonicalKey: $canonicalKey, ')
+          ..write('patientId: $patientId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(sourceKey, canonicalKey, patientId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RiskSourceAliase &&
+          other.sourceKey == this.sourceKey &&
+          other.canonicalKey == this.canonicalKey &&
+          other.patientId == this.patientId);
+}
+
+class RiskSourceAliasesCompanion extends UpdateCompanion<RiskSourceAliase> {
+  final Value<String> sourceKey;
+  final Value<String> canonicalKey;
+  final Value<String> patientId;
+  final Value<int> rowid;
+  const RiskSourceAliasesCompanion({
+    this.sourceKey = const Value.absent(),
+    this.canonicalKey = const Value.absent(),
+    this.patientId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  RiskSourceAliasesCompanion.insert({
+    required String sourceKey,
+    required String canonicalKey,
+    required String patientId,
+    this.rowid = const Value.absent(),
+  }) : sourceKey = Value(sourceKey),
+       canonicalKey = Value(canonicalKey),
+       patientId = Value(patientId);
+  static Insertable<RiskSourceAliase> custom({
+    Expression<String>? sourceKey,
+    Expression<String>? canonicalKey,
+    Expression<String>? patientId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (sourceKey != null) 'source_key': sourceKey,
+      if (canonicalKey != null) 'canonical_key': canonicalKey,
+      if (patientId != null) 'patient_id': patientId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  RiskSourceAliasesCompanion copyWith({
+    Value<String>? sourceKey,
+    Value<String>? canonicalKey,
+    Value<String>? patientId,
+    Value<int>? rowid,
+  }) {
+    return RiskSourceAliasesCompanion(
+      sourceKey: sourceKey ?? this.sourceKey,
+      canonicalKey: canonicalKey ?? this.canonicalKey,
+      patientId: patientId ?? this.patientId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (sourceKey.present) {
+      map['source_key'] = Variable<String>(sourceKey.value);
+    }
+    if (canonicalKey.present) {
+      map['canonical_key'] = Variable<String>(canonicalKey.value);
+    }
+    if (patientId.present) {
+      map['patient_id'] = Variable<String>(patientId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RiskSourceAliasesCompanion(')
+          ..write('sourceKey: $sourceKey, ')
+          ..write('canonicalKey: $canonicalKey, ')
+          ..write('patientId: $patientId, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -27786,11 +34055,30 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SignedNoteAmendmentsTable signedNoteAmendments =
       $SignedNoteAmendmentsTable(this);
   late final $DocumentFilesTable documentFiles = $DocumentFilesTable(this);
+  late final $RecordReadsTable recordReads = $RecordReadsTable(this);
+  late final $RecordCorrectionsTable recordCorrections =
+      $RecordCorrectionsTable(this);
+  late final $DocumentTemplatesTable documentTemplates =
+      $DocumentTemplatesTable(this);
+  late final $DocumentRequestsTable documentRequests = $DocumentRequestsTable(
+    this,
+  );
+  late final $IssuedDocumentVersionsTable issuedDocumentVersions =
+      $IssuedDocumentVersionsTable(this);
   late final $DocumentVerificationsTable documentVerifications =
       $DocumentVerificationsTable(this);
-  late final $AiSummariesTable aiSummaries = $AiSummariesTable(this);
+  late final $ScopedGrantsTable scopedGrants = $ScopedGrantsTable(this);
+  late final $DocumentArtifactsTable documentArtifacts =
+      $DocumentArtifactsTable(this);
+  late final $DocumentDeliveryEventsTable documentDeliveryEvents =
+      $DocumentDeliveryEventsTable(this);
   late final $StaffTasksTable staffTasks = $StaffTasksTable(this);
+  late final $TaskSourcesTable taskSources = $TaskSourcesTable(this);
+  late final $TaskHistoryTable taskHistory = $TaskHistoryTable(this);
+  late final $AiSummariesTable aiSummaries = $AiSummariesTable(this);
   late final $RiskFlagsTable riskFlags = $RiskFlagsTable(this);
+  late final $RiskSourceAliasesTable riskSourceAliases =
+      $RiskSourceAliasesTable(this);
   late final $InvoicesTable invoices = $InvoicesTable(this);
   late final $PaymentMethodsTable paymentMethods = $PaymentMethodsTable(this);
   late final $WalletTransactionsTable walletTransactions =
@@ -27843,10 +34131,21 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     signedNotes,
     signedNoteAmendments,
     documentFiles,
+    recordReads,
+    recordCorrections,
+    documentTemplates,
+    documentRequests,
+    issuedDocumentVersions,
     documentVerifications,
-    aiSummaries,
+    scopedGrants,
+    documentArtifacts,
+    documentDeliveryEvents,
     staffTasks,
+    taskSources,
+    taskHistory,
+    aiSummaries,
     riskFlags,
+    riskSourceAliases,
     invoices,
     paymentMethods,
     walletTransactions,
@@ -28052,17 +34351,31 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
-        'users',
+        'medical_records',
         limitUpdateKind: UpdateKind.delete,
       ),
-      result: [TableUpdate('document_verifications', kind: UpdateKind.delete)],
+      result: [TableUpdate('record_reads', kind: UpdateKind.delete)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
         'users',
         limitUpdateKind: UpdateKind.delete,
       ),
-      result: [TableUpdate('ai_summaries', kind: UpdateKind.delete)],
+      result: [TableUpdate('record_reads', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'medical_records',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('record_corrections', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('document_verifications', kind: UpdateKind.delete)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -28083,7 +34396,21 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         'users',
         limitUpdateKind: UpdateKind.delete,
       ),
+      result: [TableUpdate('ai_summaries', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
       result: [TableUpdate('risk_flags', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('risk_source_aliases', kind: UpdateKind.delete)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(

@@ -23,6 +23,7 @@ import '../features/admin/presentation/ai_settings_screen.dart';
 import '../features/admin/presentation/audit_log_screen.dart';
 import '../features/admin/presentation/clinic_hours_screen.dart';
 import '../features/admin/presentation/departments_screen.dart';
+import '../features/admin/presentation/document_policies_screen.dart';
 import '../features/admin/presentation/system_analytics_screen.dart';
 import '../features/admin/presentation/user_management_screen.dart';
 import '../features/ai_chat/presentation/care_navigator_overlay.dart';
@@ -203,6 +204,7 @@ abstract final class AppRoutes {
   static const adminProfileAiLog = '/admin/profile/ai-log';
   static const adminProfilePreferences = '/admin/profile/preferences';
   static const adminProfileClinicHours = '/admin/profile/clinic-hours';
+  static const adminDocumentPolicies = '/admin/profile/document-policies';
 
   // Deprecated aliases — kept so old deep links / the audit `entityId`
   // strings still resolve. Prefer the `adminProfile*` names.
@@ -522,7 +524,9 @@ StatefulShellRoute _patientShell() {
               ),
               GoRoute(
                 path: 'sick-leave',
-                builder: (_, _) => const SickLeaveScreen(),
+                builder: (_, state) => SickLeaveScreen(
+                  patientId: state.uri.queryParameters['patientId'],
+                ),
               ),
               GoRoute(
                 path: 'record/:id',
@@ -825,6 +829,10 @@ StatefulShellRoute _adminShell() {
                 builder: (_, _) => const AdminForecastScreen(),
               ),
               GoRoute(path: 'ai', builder: (_, _) => const AiSettingsScreen()),
+              GoRoute(
+                path: 'document-policies',
+                builder: (_, _) => const DocumentPoliciesScreen(),
+              ),
               GoRoute(
                 path: 'ai-log',
                 builder: (_, _) => const AdminAiLogScreen(),

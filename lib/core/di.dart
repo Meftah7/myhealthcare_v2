@@ -17,20 +17,26 @@ import '../data/repositories/auth_repository_impl.dart';
 import '../data/repositories/billing_repository_impl.dart';
 import '../data/repositories/care_repository_impl.dart';
 import '../data/repositories/consultation_repository_impl.dart';
+import '../data/repositories/document_policy_repository_impl.dart';
 import '../data/repositories/document_verification_repository_impl.dart';
 import '../data/repositories/export_repository_impl.dart';
 import '../data/repositories/family_link_repository_impl.dart';
 import '../data/repositories/identity_repository_impl.dart';
 import '../data/repositories/notification_repository_impl.dart';
 import '../data/repositories/patient_repository_impl.dart';
+import '../data/repositories/record_activity_repository_impl.dart';
 import '../data/repositories/record_repository_impl.dart';
 import '../data/repositories/result_review_repository_impl.dart';
+import '../data/repositories/scoped_grant_repository_impl.dart';
 import '../data/repositories/system_repository_impl.dart';
 import '../data/repositories/task_repository_impl.dart';
 import '../data/seed/seeder.dart';
 import '../data/sync/outbox.dart';
+import '../domain/repositories/document_policy_repository.dart';
 import '../domain/repositories/document_verification_repository.dart';
+import '../domain/repositories/record_activity_repository.dart';
 import '../domain/repositories/repositories.dart';
+import '../domain/repositories/scoped_grant_repository.dart';
 import '../services/ai/ai_key_store.dart';
 import '../services/auth/access_policy.dart';
 import '../services/auth/auth_context.dart';
@@ -86,6 +92,27 @@ final accessPolicyProvider = Provider<AccessPolicy>(
   (ref) => AccessPolicy(
     ref.watch(appDatabaseProvider),
     ref.watch(authContextProvider),
+  ),
+);
+
+final recordActivityRepositoryProvider = Provider<RecordActivityRepository>(
+  (ref) => RecordActivityRepositoryImpl(
+    ref.watch(appDatabaseProvider),
+    ref.watch(accessPolicyProvider),
+  ),
+);
+
+final scopedGrantRepositoryProvider = Provider<ScopedGrantRepository>(
+  (ref) => ScopedGrantRepositoryImpl(
+    ref.watch(appDatabaseProvider),
+    ref.watch(accessPolicyProvider),
+  ),
+);
+
+final documentPolicyRepositoryProvider = Provider<DocumentPolicyRepository>(
+  (ref) => DocumentPolicyRepositoryImpl(
+    ref.watch(appDatabaseProvider),
+    ref.watch(accessPolicyProvider),
   ),
 );
 

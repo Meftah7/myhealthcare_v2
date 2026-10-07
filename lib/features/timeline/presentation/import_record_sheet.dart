@@ -23,6 +23,7 @@ import 'package:syncfusion_flutter_pdf/pdf.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/data/contracts.dart';
 import '../../../core/di.dart';
+import '../../../core/failures.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/feedback.dart';
@@ -35,9 +36,13 @@ import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
 import '../../patient/application/family_link_providers.dart';
 import '../../patient/application/patient_data_providers.dart';
+import '../../records/application/records_providers.dart';
 
 /// Returns the saved record, or null if the patient closed the sheet.
-Future<MedicalRecord?> showImportRecordSheet(BuildContext context) {
+Future<MedicalRecord?> showImportRecordSheet(
+  BuildContext context, {
+  String? patientId,
+}) {
   return showModalBottomSheet<MedicalRecord>(
     context: context,
     isScrollControlled: true,
@@ -46,13 +51,14 @@ Future<MedicalRecord?> showImportRecordSheet(BuildContext context) {
       padding: EdgeInsets.only(
         bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
       ),
-      child: const _ImportRecordSheet(),
+      child: _ImportRecordSheet(patientId: patientId),
     ),
   );
 }
 
 class _ImportRecordSheet extends ConsumerStatefulWidget {
-  const _ImportRecordSheet();
+  const _ImportRecordSheet({this.patientId});
+  final String? patientId;
 
   @override
   ConsumerState<_ImportRecordSheet> createState() => _ImportRecordSheetState();
@@ -68,7 +74,9 @@ class _ImportRecordSheetState extends ConsumerState<_ImportRecordSheet> {
   DateTime _occurredAt = DateTime.now();
 
   /// Whose record this is: the signed-in patient, or someone they manage.
-  String? _patientId;
+  late String? _patientId = widget.patientId;
+  String? _duplicateRecordId;
+  bool _allowDuplicate = false;
 
   bool _reading = false;
   bool _saving = false;
@@ -128,6 +136,8 @@ class _ImportRecordSheetState extends ConsumerState<_ImportRecordSheet> {
         _extractedText = text.trim();
         _reading = false;
         _key = IdempotencyKey.generate();
+        _duplicateRecordId = null;
+        _allowDuplicate = false;
         if (_title.text.trim().isEmpty) {
           _title.text = file.name.replaceAll(
             RegExp(r'\.pdf$', caseSensitive: false),
@@ -190,11 +200,13 @@ class _ImportRecordSheetState extends ConsumerState<_ImportRecordSheet> {
               bytes: bytes,
             ),
             idempotencyKey: _key,
+            allowDuplicate: _allowDuplicate,
           ),
         );
     if (!mounted) return;
     switch (result) {
       case Ok(:final value):
+        ref.invalidate(recordsHistoryProvider);
         ref.invalidate(patientTimelinePageProvider);
         if (patientId != user.id) {
           ref.invalidate(linkedTimelinePageProvider(patientId));
@@ -207,10 +219,12 @@ class _ImportRecordSheetState extends ConsumerState<_ImportRecordSheet> {
         // Everything entered stays; the same key makes "Save" again safe.
         setState(() {
           _saving = false;
-          _error = describeFailure(
-            AppLocalizations.of(context)!,
-            failure,
-          ).message;
+          if (failure is DuplicateUploadFailure) {
+            _duplicateRecordId = failure.recordId;
+          }
+          _error = failure is DuplicateUploadFailure
+              ? t.recordsDuplicate
+              : describeFailure(AppLocalizations.of(context)!, failure).message;
         });
     }
   }
@@ -220,6 +234,12 @@ class _ImportRecordSheetState extends ConsumerState<_ImportRecordSheet> {
     final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final user = ref.watch(currentUserProvider);
+    final profile = ref.watch(recordsProfileProvider);
+    final subjectReady =
+        widget.patientId == null ||
+        (!profile.hasError &&
+            !profile.isLoading &&
+            profile.valueOrNull?.id == widget.patientId);
     final managed = [
       for (final v
           in ref.watch(linkedAccountsProvider).valueOrNull ??
@@ -244,6 +264,18 @@ class _ImportRecordSheetState extends ConsumerState<_ImportRecordSheet> {
             ),
             const SizedBox(height: Space.lg),
 
+            if (widget.patientId != null)
+              ref
+                  .watch(recordsProfileProvider)
+                  .when(
+                    loading: () => const LinearProgressIndicator(),
+                    error: (_, _) => Text(t.recordsSubjectUnavailable),
+                    data: (patient) => Text(
+                      '${t.importForLabel}: ${patient.fullName}',
+                      style: theme.textTheme.titleSmall,
+                    ),
+                  ),
+
             OutlinedButton.icon(
               onPressed: _reading || _saving ? null : _pickFile,
               icon: const Icon(Icons.upload_file_outlined),
@@ -256,7 +288,9 @@ class _ImportRecordSheetState extends ConsumerState<_ImportRecordSheet> {
 
             if (_fileName != null) ...[
               const SizedBox(height: Space.md),
-              if (managed.isNotEmpty && user != null) ...[
+              if (widget.patientId == null &&
+                  managed.isNotEmpty &&
+                  user != null) ...[
                 DropdownButtonFormField<String>(
                   initialValue: _patientId ?? user.id,
                   decoration: InputDecoration(labelText: t.importForLabel),
@@ -273,18 +307,25 @@ class _ImportRecordSheetState extends ConsumerState<_ImportRecordSheet> {
                   ],
                   onChanged: _saving
                       ? null
-                      : (v) => setState(() => _patientId = v),
+                      : (v) => setState(() {
+                          _patientId = v;
+                          _key = IdempotencyKey.generate();
+                          _duplicateRecordId = null;
+                          _allowDuplicate = false;
+                        }),
                 ),
                 const SizedBox(height: Space.sm),
               ],
               TextField(
                 controller: _title,
+                enabled: !_saving,
                 decoration: InputDecoration(labelText: t.titleLabel),
                 onChanged: (_) => setState(() {}),
               ),
               const SizedBox(height: Space.sm),
               TextField(
                 controller: _issuer,
+                enabled: !_saving,
                 textInputAction: TextInputAction.next,
                 decoration: InputDecoration(
                   labelText: t.importIssuerLabel,
@@ -311,7 +352,7 @@ class _ImportRecordSheetState extends ConsumerState<_ImportRecordSheet> {
               ),
               const SizedBox(height: Space.sm),
               OutlinedButton.icon(
-                onPressed: _pickDate,
+                onPressed: _saving ? null : _pickDate,
                 icon: const Icon(Icons.calendar_today_outlined, size: 18),
                 label: Text('${t.dateLabel}: ${fmtDate(_occurredAt)}'),
               ),
@@ -353,12 +394,21 @@ class _ImportRecordSheetState extends ConsumerState<_ImportRecordSheet> {
                 ),
               ),
             ],
+            if (_duplicateRecordId != null)
+              CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(t.recordsKeepDuplicate),
+                value: _allowDuplicate,
+                onChanged: _saving
+                    ? null
+                    : (v) => setState(() => _allowDuplicate = v ?? false),
+              ),
 
             const SizedBox(height: Space.lg),
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: _canSave ? _save : null,
+                onPressed: _canSave && subjectReady ? _save : null,
                 child: _saving
                     ? const SizedBox(
                         height: 20,

@@ -9,8 +9,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
-import '../../../core/presentation/states.dart';
 import '../../../core/presentation/feedback.dart';
+import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -21,6 +21,7 @@ import '../../auth/application/session.dart';
 import '../../patient/application/patient_documents.dart';
 import '../../patient/presentation/document_download_button.dart';
 import '../../records/presentation/lab_values_table.dart';
+import '../../records/presentation/record_activity_panel.dart';
 import '../../records/presentation/record_detail_screen.dart';
 import '../../staff_dashboard/application/staff_providers.dart';
 import '../application/result_review_providers.dart';
@@ -60,6 +61,7 @@ class _ResultSheet extends ConsumerWidget {
         padding: const EdgeInsets.fromLTRB(Space.md, 0, Space.md, Space.xxl),
         children: [
           Text(r.title, style: theme.textTheme.titleLarge),
+          RecordCorrectionList(recordId: r.id),
           const SizedBox(height: Space.xxs),
           Text(
             '${r.recordType.label(context)} · ${fmtDate(r.occurredAt)}'
@@ -158,10 +160,7 @@ Future<void> _decideImport(
     SnackBar(
       content: Text(switch (r) {
         Ok() => t.importReviewSaved,
-        Err(:final failure) => describeFailure(
-          AppLocalizations.of(context)!,
-          failure,
-        ).message,
+        Err(:final failure) => describeFailure(t, failure).message,
       }),
     ),
   );

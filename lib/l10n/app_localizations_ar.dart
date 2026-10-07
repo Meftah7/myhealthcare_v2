@@ -4724,4 +4724,243 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get noQrInPicture =>
       'لم يُعثر على رمز QR في الصورة. جرّب لقطة شاشة أو صورة أوضح.';
+
+  @override
+  String partialOperationProgress(int completed, int total) {
+    return 'تم حفظ $completed من أصل $total تحديثات قبل التوقف.';
+  }
+
+  @override
+  String get recordsUploadDocument => 'رفع مستند';
+
+  @override
+  String get recordsAll => 'كل السجلات';
+
+  @override
+  String get recordsResults => 'النتائج';
+
+  @override
+  String get recordsDocuments => 'المستندات';
+
+  @override
+  String get recordsUploads => 'الملفات المرفوعة';
+
+  @override
+  String get couldNotLoadAllergies => 'تعذر تحميل معلومات الحساسية.';
+
+  @override
+  String get recordsFamilyUnavailable =>
+      'تعذر التحقق من صلاحية الوصول للعائلة. أعد المحاولة';
+
+  @override
+  String get recordsSubjectUnavailable =>
+      'معلومات المريض غير متاحة. أعد المحاولة قبل المتابعة.';
+
+  @override
+  String get recordsPrescriptionVisit => 'فتح زيارة الوصفة';
+
+  @override
+  String get recordsFilters => 'عوامل التصفية';
+
+  @override
+  String get recordsDateRange => 'الفترة الزمنية';
+
+  @override
+  String get recordsClearDates => 'مسح التواريخ';
+
+  @override
+  String get recordsFacility => 'المنشأة';
+
+  @override
+  String get recordsAuthor => 'كاتب السجل';
+
+  @override
+  String get recordsAny => 'الكل';
+
+  @override
+  String get recordsUnknownAuthor => 'اسم الكاتب غير متاح';
+
+  @override
+  String get recordsReviewState => 'حالة المراجعة';
+
+  @override
+  String get recordsReviewNotRequired => 'لا تتطلب مراجعة';
+
+  @override
+  String get recordsUnreadOnly => 'غير المقروءة فقط';
+
+  @override
+  String get recordsClearFilters => 'مسح عوامل التصفية';
+
+  @override
+  String get recordsApplyFilters => 'تم';
+
+  @override
+  String get recordsRead => 'مقروء';
+
+  @override
+  String get recordsUnread => 'غير مقروء';
+
+  @override
+  String get recordsMarkRead => 'وضع علامة مقروء';
+
+  @override
+  String get recordsMarkUnread => 'وضع علامة غير مقروء';
+
+  @override
+  String get recordsReadStateUnavailable =>
+      'حالة القراءة غير متاحة. أعد المحاولة';
+
+  @override
+  String get recordsDuplicate =>
+      'هذا الملف الأصلي مرفوع بالفعل لهذا المريض. احتفظ بنسخة إضافية فقط إذا كنت تقصد ذلك.';
+
+  @override
+  String get recordsKeepDuplicate => 'أقصد رفع نسخة أخرى لهذا المريض';
+
+  @override
+  String get recordsRequestCorrection => 'طلب تصحيح';
+
+  @override
+  String get recordsCorrectionNotice =>
+      'صف ما يحتاج إلى تصحيح. لا يغير هذا الطلب السجل الأصلي أو الملاحظة الموقعة.';
+
+  @override
+  String get recordsCorrectionReason => 'ما الذي يحتاج إلى تصحيح؟';
+
+  @override
+  String get recordsCorrectionRequired => 'صف التصحيح المطلوب.';
+
+  @override
+  String get recordsSubmitCorrection => 'إرسال الطلب';
+
+  @override
+  String get recordsCorrectionSaved => 'تم حفظ طلب التصحيح للمراجعة.';
+
+  @override
+  String get recordsCorrectionPending => 'تم طلب التصحيح · بانتظار المراجعة';
+
+  @override
+  String get recordsCorrectionsUnavailable =>
+      'طلبات التصحيح غير متاحة. أعد المحاولة';
+
+  @override
+  String get recordsOriginals => 'المستندات الأصلية';
+
+  @override
+  String get recordsNoOriginal => 'لا يوجد ملف أصلي محفوظ لهذا السجل.';
+
+  @override
+  String get recordsRecordedInformation => 'المعلومات المسجلة';
+
+  @override
+  String get recordsClinicalReview => 'مراجعة الطبيب';
+
+  @override
+  String get recordsGeneratedSummary => 'ملخص مولد';
+
+  @override
+  String get recordsGeneratedNotice =>
+      'يتم إنشاء الملخص القابل للتنزيل من المعلومات المسجلة. وهو منفصل عن المستند الأصلي ومراجعة الطبيب.';
+
+  @override
+  String get recordsPreviousResult => 'النتيجة السابقة المطابقة';
+
+  @override
+  String get recordsNoComparableResult =>
+      'لا توجد نتيجة سابقة لنفس الفحص والوحدة المسجلة.';
+
+  @override
+  String get recordsTrendsUnavailable =>
+      'النتائج السابقة غير متاحة. أعد المحاولة';
+
+  @override
+  String get documentValidityLegacy =>
+      'قيد قديم في السجل — لا توجد نسخة إصدار ثابتة';
+
+  @override
+  String get documentValidityValid => 'نسخة إصدار صالحة';
+
+  @override
+  String get documentValidityRevoked => 'مستند ملغى';
+
+  @override
+  String get documentValiditySuperseded => 'تم استبداله بنسخة أحدث';
+
+  @override
+  String get documentPoliciesTitle => 'سياسات المستندات';
+
+  @override
+  String get policyReviewIntro =>
+      'راجع قواعد الإجازة المرضية وصياغتها المقترحة لكل لغة وجهة. تسجل الموافقة قبول العيادة لهذه النسخة ولا تصدر مستنداً.';
+
+  @override
+  String get policyEnableExplanation =>
+      'فعّل إدارة السياسات على مستوى العيادة لهذا المسؤول لتعديل القوالب واعتمادها. هذا لا يمنح صلاحية التوقيع السريري.';
+
+  @override
+  String get policyEnableManagement => 'تفعيل إدارة السياسات';
+
+  @override
+  String get policyManagementEnabled => 'إدارة السياسات مفعّلة لهذا المسؤول';
+
+  @override
+  String get policyGrantReason =>
+      'فعّل المسؤول إدارة سياسات المستندات صراحةً من شاشة المراجعة.';
+
+  @override
+  String get policyDraft => 'مسودة — غير معتمدة';
+
+  @override
+  String get policyApproved => 'معتمدة';
+
+  @override
+  String get policyRetired => 'نسخة سياسة مستبدلة';
+
+  @override
+  String get policyClinicCopy => 'نسخة العيادة';
+
+  @override
+  String get policyEmployerCopy => 'نسخة جهة العمل';
+
+  @override
+  String get policySchoolCopy => 'نسخة المدرسة';
+
+  @override
+  String get policySigningRule =>
+      'يتطلب التوقيع صلاحية منفصلة وترخيصاً طبياً سارياً وموثقاً وملف ممارس وعلاقة رعاية. لا يمكن للممرضين أو المسؤولين غير المؤهلين التوقيع.';
+
+  @override
+  String get policyClinicDisclosure =>
+      'يمكن أن تتضمن نسخة العيادة السبب السريري وفق قواعد الوصول السريري.';
+
+  @override
+  String get policyExternalDisclosure =>
+      'تتضمن نسختا جهة العمل والمدرسة الهوية وتواريخ الحضور والإجازة والعيادة والموقّع والتحقق، دون التشخيص أو الأدوية أو الحساسية أو التاريخ السريري غير المرتبط.';
+
+  @override
+  String get policyWording => 'صياغة المستند';
+
+  @override
+  String get policyAcceptance =>
+      'أنا مخوّل باعتماد قواعد التوقيع والإفصاح والصياغة للعيادة، وقد راجعت هذه النسخة المحفوظة.';
+
+  @override
+  String get policySaveDraft => 'حفظ المسودة';
+
+  @override
+  String get policyDraftSaved => 'تم حفظ المسودة — لا تزال الموافقة مطلوبة';
+
+  @override
+  String get policyApproveVersion => 'اعتماد هذه النسخة';
+
+  @override
+  String get policyCreateVersion => 'إنشاء نسخة مسودة جديدة';
+
+  @override
+  String get policyWordingHint =>
+      'احتفظ بالحقول بين الأقواس. يملؤها التطبيق عند إصدار المستند؛ يُسمح بالتشخيص في نسخة العيادة فقط.';
+
+  @override
+  String get policyNoPolicies => 'لا توجد سياسات مستندات متاحة.';
 }

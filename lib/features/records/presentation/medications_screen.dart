@@ -3,7 +3,9 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
@@ -11,10 +13,13 @@ import '../../../core/presentation/readable_label.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../domain/enums.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../care/application/care_providers.dart';
+import '../../patient/application/family_link_providers.dart';
 import '../../patient/application/patient_data_providers.dart';
 import '../../patient/application/visited_doctors_provider.dart';
+import '../application/records_providers.dart';
 
 class MedicationsScreen extends ConsumerWidget {
   const MedicationsScreen({this.embedded = false, super.key});
@@ -36,12 +41,18 @@ class MedicationsScreen extends ConsumerWidget {
 
   Widget _body(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
-    final meds = ref.watch(patientMedicationsProvider);
+    final meds = ref.watch(recordsMedicationsProvider);
     return meds.when(
       loading: () => const SkeletonList(),
       error: (e, _) => ErrorStateView(
         message: t.couldNotLoadMedications,
-        onRetry: () => ref.invalidate(patientMedicationsProvider),
+        onRetry: () {
+          ref.invalidate(patientMedicationsProvider);
+          ref.invalidate(
+            linkedMedicationsProvider(ref.read(recordsPatientIdProvider)),
+          );
+          ref.invalidate(recordsMedicationsProvider);
+        },
       ),
       data: (list) {
         if (list.isEmpty) {
@@ -145,8 +156,9 @@ class _MedicationDetailsState extends ConsumerState<_MedicationDetails> {
         .firstOrNull;
     final pick =
         prescriber ??
-        ([...visited]..sort((a, b) => b.lastVisit.compareTo(a.lastVisit)))
-            .first;
+        ([
+          ...visited,
+        ]..sort((a, b) => b.lastVisit.compareTo(a.lastVisit))).first;
     return (id: pick.staffId, name: pick.name);
   }
 
@@ -188,6 +200,18 @@ class _MedicationDetailsState extends ConsumerState<_MedicationDetails> {
     final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final m = widget.m;
+    final prescriptions =
+        ref
+            .watch(recordsHistoryProvider)
+            .valueOrNull
+            ?.where(
+              (r) =>
+                  m.appointmentId != null &&
+                  r.appointmentId == m.appointmentId &&
+                  r.recordType == RecordType.prescription,
+            )
+            .toList() ??
+        [];
     final prescriber = ref
         .watch(doctorDirectoryProvider)
         .valueOrNull?[m.prescriberId]
@@ -242,17 +266,33 @@ class _MedicationDetailsState extends ConsumerState<_MedicationDetails> {
               ),
             ),
             const SizedBox(height: Space.md),
-            FilledButton.icon(
-              onPressed: _sending ? null : _requestRefill,
-              icon: _sending
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.autorenew),
-              label: Text(t.requestRefillAction),
-            ),
+            for (final prescription in prescriptions)
+              TextButton.icon(
+                onPressed: () =>
+                    context.push(AppRoutes.patientRecord(prescription.id)),
+                icon: const Icon(Icons.receipt_long_outlined),
+                label: Text(prescription.title),
+              ),
+            if (m.appointmentId != null)
+              TextButton.icon(
+                onPressed: () => context.push(
+                  AppRoutes.patientAppointmentDetail(m.appointmentId!),
+                ),
+                icon: const Icon(Icons.event_note_outlined),
+                label: Text(t.recordsPrescriptionVisit),
+              ),
+            if (ref.watch(selectedRecordsPatientProvider) == null)
+              FilledButton.icon(
+                onPressed: _sending ? null : _requestRefill,
+                icon: _sending
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.autorenew),
+                label: Text(t.requestRefillAction),
+              ),
           ],
         ),
       ),

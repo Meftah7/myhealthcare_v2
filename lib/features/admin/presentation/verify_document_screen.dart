@@ -11,6 +11,7 @@ import '../../../core/di.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
+import '../../../domain/repositories/document_service.dart';
 import '../../../domain/repositories/document_verification_repository.dart';
 import '../../../domain/repositories/export_repository.dart';
 import '../../../l10n/app_localizations.dart';
@@ -197,13 +198,28 @@ class _GenuineCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.verified, color: theme.colorScheme.primary),
+              Icon(
+                doc.validity == DocumentValidity.valid
+                    ? Icons.verified
+                    : Icons.info_outline,
+                color: doc.validity == DocumentValidity.revoked
+                    ? theme.colorScheme.error
+                    : theme.colorScheme.primary,
+              ),
               const SizedBox(width: Space.sm),
-              Text(t.verifyGenuine, style: theme.textTheme.titleMedium),
+              Expanded(
+                child: Text(switch (doc.validity) {
+                  DocumentValidity.legacy => t.documentValidityLegacy,
+                  DocumentValidity.valid => t.documentValidityValid,
+                  DocumentValidity.revoked => t.documentValidityRevoked,
+                  DocumentValidity.superseded => t.documentValiditySuperseded,
+                }, style: theme.textTheme.titleMedium),
+              ),
             ],
           ),
           const SizedBox(height: Space.xs),
-          Text(t.verifyGenuineBody, style: theme.textTheme.bodySmall),
+          if (doc.validity == DocumentValidity.valid)
+            Text(t.verifyGenuineBody, style: theme.textTheme.bodySmall),
           const SizedBox(height: Space.md),
           row(t.verifyCodeLabel, doc.code),
           row(t.verifyDocumentType, switch (doc.documentType) {

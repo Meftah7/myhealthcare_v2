@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
+import '../../../core/di.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/readable_label.dart';
@@ -13,19 +14,29 @@ import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../auth/application/session.dart';
+import '../../patient/application/family_link_providers.dart';
 import '../../patient/application/patient_data_providers.dart';
 import '../../patient/application/patient_documents.dart';
 import '../../patient/presentation/document_download_button.dart';
 import '../../patient/presentation/patient_top_actions.dart';
+import '../../records/application/records_providers.dart';
 import '../application/care_providers.dart';
 
 class SickLeaveScreen extends ConsumerWidget {
-  const SickLeaveScreen({super.key});
+  const SickLeaveScreen({this.patientId, super.key});
+  final String? patientId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
-    final certs = ref.watch(patientSickLeaveProvider);
+    final certs = patientId == null
+        ? ref.watch(patientSickLeaveProvider)
+        : ref.watch(_subjectSickLeaveProvider(patientId!));
+    final profile =
+        patientId == null || patientId == ref.watch(currentUserProvider)?.id
+        ? ref.watch(patientProfileProvider)
+        : ref.watch(linkedPatientProvider(patientId!));
     final doctors = ref.watch(doctorDirectoryProvider).valueOrNull ?? const {};
 
     return AppScaffold(
@@ -60,6 +71,7 @@ class SickLeaveScreen extends ConsumerWidget {
                 separatorBuilder: (_, _) => const SizedBox(height: Space.sm),
                 itemBuilder: (context, i) => _CertCard(
                   cert: list[i],
+                  subjectName: profile.valueOrNull?.fullName,
                   doctorName: doctors[list[i].issuedByStaffId]?.name,
                 ),
               ),
@@ -73,10 +85,11 @@ class SickLeaveScreen extends ConsumerWidget {
 }
 
 class _CertCard extends ConsumerWidget {
-  const _CertCard({required this.cert, this.doctorName});
+  const _CertCard({required this.cert, this.doctorName, this.subjectName});
 
   final SickLeaveCertificate cert;
   final String? doctorName;
+  final String? subjectName;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -88,6 +101,7 @@ class _CertCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (subjectName != null) Text('${t.importForLabel}: $subjectName'),
           Row(
             children: [
               Expanded(
@@ -151,3 +165,10 @@ class _CertCard extends ConsumerWidget {
     );
   }
 }
+
+final _subjectSickLeaveProvider =
+    FutureProvider.family<List<SickLeaveCertificate>, String>(
+      (ref, id) async => recordValue(
+        await ref.watch(sickLeaveRepositoryProvider).forPatient(id),
+      ),
+    );

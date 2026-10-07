@@ -12,9 +12,11 @@ import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/data/contracts.dart';
 import '../../../core/di.dart';
 import '../../../core/failures.dart';
 import '../../../core/result.dart';
+import '../../../domain/clinical/lab_history.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/repositories/export_repository.dart';
 import '../../../domain/repositories/record_repository.dart';
@@ -47,6 +49,32 @@ final pdfIdentityProvider = FutureProvider<PdfIdentity>((ref) async {
   );
 });
 
+/// Resolve the actual document subject through authorized repositories.
+final pdfIdentityForPatientProvider =
+    FutureProvider.family<PdfIdentity, String>((ref, id) async {
+      final result = await ref.watch(patientRepositoryProvider).byId(id);
+      final patient = switch (result) {
+        Ok(:final value) => value,
+        Err(:final failure) => throw failure,
+      };
+      final medications =
+          (await ref.watch(medicationRepositoryProvider).forPatient(id))
+              .valueOrNull ??
+          <Medication>[];
+      return PdfIdentity(
+        name: patient.fullName,
+        patientId: id,
+        dob: patient.user.dob,
+        bloodType: patient.bloodType,
+        allergies: patient.allergies,
+        conditions: patient.chronicConditions,
+        medications: [
+          for (final m in medications)
+            if (m.isCurrent) [m.name, ?m.dose, ?m.frequency].join(' / '),
+        ],
+      );
+    });
+
 /// Registers an issued document and returns its printed verification code.
 /// A failure leaves the code off rather than blocking the patient's export.
 Future<String?> _verificationCode(
@@ -76,41 +104,28 @@ Future<String?> _licence(WidgetRef ref, String? staffId) async {
   return r.valueOrNull?.licenseNo;
 }
 
-/// For each analyte in [record], its most recent value from an earlier
-/// record — so the patient can see the direction of change.
 Future<Map<String, PreviousLab>> _previousLabs(
   WidgetRef ref,
   MedicalRecord record,
 ) async {
   if (record.labValues.isEmpty) return const {};
-  final wanted = {for (final v in record.labValues) v.analyte.toLowerCase()};
-  final history = await ref
-      .read(patientTimelineProvider.future)
-      .catchError((Object _) => <MedicalRecord>[]);
-  final earlier =
-      history
-          .where(
-            (r) =>
-                r.id != record.id &&
-                r.labValues.isNotEmpty &&
-                r.occurredAt.isBefore(record.occurredAt),
-          )
-          .toList()
-        ..sort((a, b) => b.occurredAt.compareTo(a.occurredAt));
-  final out = <String, PreviousLab>{};
-  for (final r in earlier) {
-    for (final v in r.labValues) {
-      final key = v.analyte.toLowerCase();
-      if (wanted.contains(key) && !out.containsKey(key)) {
-        out[key] = (value: v.value, unit: v.unit, at: r.occurredAt);
-      }
-    }
+  final repo = ref.read(recordRepositoryProvider);
+  final history = <MedicalRecord>[];
+  var request = const PageRequest(size: PageLimits.maxSize);
+  while (true) {
+    final result = await repo.timelinePage(record.patientId, page: request);
+    final page = switch (result) {
+      Ok(:final value) => value,
+      Err(:final failure) => throw failure,
+    };
+    history.addAll(page.items);
+    if (!page.hasMore) break;
+    request = request.next;
   }
-  return out;
+  return comparableLabHistory(record, history);
 }
 
-/// The document's identity strip is the signed-in patient, so it may only
-/// carry that patient's records.
+/// The document identity must match the authorized record subject.
 void _samePatient(PdfIdentity identity, String patientId) {
   if (identity.patientId != patientId) {
     throw const AccessDeniedFailure(
@@ -141,7 +156,11 @@ Future<Uint8List> buildVitalsReport(WidgetRef ref) async {
   final identity = await ref.read(pdfIdentityProvider.future);
   await _authorize(ref, identity.patientId, ExportDocument.vitalsReport);
   final readings = await ref.read(patientVitalsProvider.future);
-  return vitalsReportPdf(patient: identity, readings: readings, arabic: _ar);
+  return _checkedPdf(
+    ref,
+    identity.patientId,
+    vitalsReportPdf(patient: identity, readings: readings, arabic: _ar),
+  );
 }
 
 /// Builds a radiology report for one imaging [record].
@@ -149,7 +168,10 @@ Future<Uint8List> buildRadiologyReport(
   WidgetRef ref,
   MedicalRecord record,
 ) async {
-  final identity = await ref.read(pdfIdentityProvider.future);
+  record = await _freshRecord(ref, record);
+  final identity = await ref.read(
+    pdfIdentityForPatientProvider(record.patientId).future,
+  );
   _samePatient(identity, record.patientId);
   await _authorize(
     ref,
@@ -158,12 +180,16 @@ Future<Uint8List> buildRadiologyReport(
     entityId: record.id,
   );
   final doctors = await ref.read(doctorDirectoryProvider.future);
-  return radiologyReportPdf(
-    patient: identity,
-    record: record,
-    reportingClinician: doctors[record.authorStaffId]?.name,
-    clinicianLicence: await _licence(ref, record.authorStaffId),
-    arabic: _ar,
+  return _checkedPdf(
+    ref,
+    record.patientId,
+    radiologyReportPdf(
+      patient: identity,
+      record: record,
+      reportingClinician: doctors[record.authorStaffId]?.name,
+      clinicianLicence: await _licence(ref, record.authorStaffId),
+      arabic: _ar,
+    ),
   );
 }
 
@@ -174,7 +200,10 @@ Future<Uint8List> buildReferralLetter(
   WidgetRef ref,
   MedicalRecord record,
 ) async {
-  final identity = await ref.read(pdfIdentityProvider.future);
+  record = await _freshRecord(ref, record);
+  final identity = await ref.read(
+    pdfIdentityForPatientProvider(record.patientId).future,
+  );
   _samePatient(identity, record.patientId);
   await _authorize(
     ref,
@@ -199,20 +228,24 @@ Future<Uint8List> buildReferralLetter(
       'Reason: ${(record.body ?? '').trim()}',
     ],
   );
-  return referralLetterPdf(
-    patient: identity,
-    destination:
-        record.sourceFacility ?? (_ar ? 'جهة خارجية' : 'External service'),
-    reason: (record.body ?? '').trim().isEmpty
-        ? (_ar ? 'راجع سجل المريض.' : 'See patient record.')
-        : record.body!.trim(),
-    referringClinic: clinician ?? ClinicPdf.clinicName,
-    date: record.occurredAt,
-    reference: record.id,
-    clinicianLicence: await _licence(ref, record.authorStaffId),
-    urgency: record.referralUrgency,
-    verificationCode: code,
-    arabic: _ar,
+  return _checkedPdf(
+    ref,
+    record.patientId,
+    referralLetterPdf(
+      patient: identity,
+      destination:
+          record.sourceFacility ?? (_ar ? 'جهة خارجية' : 'External service'),
+      reason: (record.body ?? '').trim().isEmpty
+          ? (_ar ? 'راجع سجل المريض.' : 'See patient record.')
+          : record.body!.trim(),
+      referringClinic: clinician ?? ClinicPdf.clinicName,
+      date: record.occurredAt,
+      reference: record.id,
+      clinicianLicence: await _licence(ref, record.authorStaffId),
+      urgency: record.referralUrgency,
+      verificationCode: code,
+      arabic: _ar,
+    ),
   );
 }
 
@@ -221,7 +254,17 @@ Future<Uint8List> buildSickLeave(
   WidgetRef ref,
   SickLeaveCertificate certificate,
 ) async {
-  final identity = await ref.read(pdfIdentityProvider.future);
+  final current = await ref
+      .read(sickLeaveRepositoryProvider)
+      .byId(certificate.id);
+  certificate = switch (current) {
+    Ok(:final value) when value.patientId == certificate.patientId => value,
+    Err(:final failure) => throw failure,
+    _ => throw const AccessDeniedFailure(),
+  };
+  final identity = await ref.read(
+    pdfIdentityForPatientProvider(certificate.patientId).future,
+  );
   _samePatient(identity, certificate.patientId);
   await _authorize(
     ref,
@@ -246,13 +289,17 @@ Future<Uint8List> buildSickLeave(
       'Reason: ${certificate.diagnosis}',
     ],
   );
-  return sickLeavePdf(
-    patient: identity,
-    certificate: certificate,
-    issuingClinician: clinician,
-    clinicianLicence: await _licence(ref, certificate.issuedByStaffId),
-    verificationCode: code,
-    arabic: _ar,
+  return _checkedPdf(
+    ref,
+    certificate.patientId,
+    sickLeavePdf(
+      patient: identity,
+      certificate: certificate,
+      issuingClinician: clinician,
+      clinicianLicence: await _licence(ref, certificate.issuedByStaffId),
+      verificationCode: code,
+      arabic: _ar,
+    ),
   );
 }
 
@@ -263,7 +310,10 @@ Future<Uint8List> buildRecordSummary(
   MedicalRecord record, {
   required String recordTypeLabel,
 }) async {
-  final identity = await ref.read(pdfIdentityProvider.future);
+  record = await _freshRecord(ref, record);
+  final identity = await ref.read(
+    pdfIdentityForPatientProvider(record.patientId).future,
+  );
   _samePatient(identity, record.patientId);
   await _authorize(
     ref,
@@ -272,14 +322,18 @@ Future<Uint8List> buildRecordSummary(
     entityId: record.id,
   );
   final doctors = await ref.read(doctorDirectoryProvider.future);
-  return recordSummaryPdf(
-    patient: identity,
-    record: record,
-    recordTypeLabel: recordTypeLabel,
-    authorName: doctors[record.authorStaffId]?.name,
-    reviewerName: doctors[record.reviewedByStaffId]?.name,
-    previousLabs: await _previousLabs(ref, record),
-    arabic: _ar,
+  return _checkedPdf(
+    ref,
+    record.patientId,
+    recordSummaryPdf(
+      patient: identity,
+      record: record,
+      recordTypeLabel: recordTypeLabel,
+      authorName: doctors[record.authorStaffId]?.name,
+      reviewerName: doctors[record.reviewedByStaffId]?.name,
+      previousLabs: await _previousLabs(ref, record),
+      arabic: _ar,
+    ),
   );
 }
 
@@ -304,7 +358,17 @@ Future<Uint8List> buildVisitSummary(
   WidgetRef ref,
   Appointment appointment,
 ) async {
-  final identity = await ref.read(pdfIdentityProvider.future);
+  final current = await ref
+      .read(appointmentRepositoryProvider)
+      .byId(appointment.id);
+  appointment = switch (current) {
+    Ok(:final value) when value.patientId == appointment.patientId => value,
+    Err(:final failure) => throw failure,
+    _ => throw const AccessDeniedFailure(),
+  };
+  final identity = await ref.read(
+    pdfIdentityForPatientProvider(appointment.patientId).future,
+  );
   _samePatient(identity, appointment.patientId);
   await _authorize(
     ref,
@@ -320,16 +384,46 @@ Future<Uint8List> buildVisitSummary(
   final next = await ref
       .read(nextAppointmentProvider.future)
       .catchError((Object _) => null);
-  return visitSummaryPdf(
-    patient: identity,
-    appointment: appointment,
-    records: bundle.records,
-    vitals: bundle.vitals,
-    medications: bundle.medications,
-    clinicianName: doctors[appointment.staffId]?.name,
-    clinicianLicence: await _licence(ref, appointment.staffId),
-    departmentName: departments[appointment.departmentId],
-    nextAppointment: next,
-    arabic: _ar,
+  return _checkedPdf(
+    ref,
+    appointment.patientId,
+    visitSummaryPdf(
+      patient: identity,
+      appointment: appointment,
+      records: bundle.records,
+      vitals: bundle.vitals,
+      medications: bundle.medications,
+      clinicianName: doctors[appointment.staffId]?.name,
+      clinicianLicence: await _licence(ref, appointment.staffId),
+      departmentName: departments[appointment.departmentId],
+      nextAppointment: next,
+      arabic: _ar,
+    ),
   );
+}
+
+Future<MedicalRecord> _freshRecord(
+  WidgetRef ref,
+  MedicalRecord intended,
+) async {
+  final result = await ref.read(recordRepositoryProvider).byId(intended.id);
+  return switch (result) {
+    Ok(:final value) when value.patientId == intended.patientId => value,
+    Err(:final failure) => throw failure,
+    _ => throw const AccessDeniedFailure(
+      'This document belongs to another patient.',
+    ),
+  };
+}
+
+Future<Uint8List> _checkedPdf(
+  WidgetRef ref,
+  String patientId,
+  Future<Uint8List> document,
+) async {
+  final bytes = await document;
+  await ref
+      .read(accessPolicyProvider)
+      .readPatient(patientId, entityType: 'export');
+  return bytes;
 }

@@ -37,8 +37,9 @@ T _unwrap<T>(Result<T> result) => switch (result) {
 
 final appointmentRecordsProvider = FutureProvider.autoDispose
     .family<AppointmentRecords, String>((ref, id) async {
-      final appointments = await ref.watch(patientAppointmentsProvider.future);
-      final appointment = appointments.where((a) => a.id == id).firstOrNull;
+      final appointment = await ref.watch(
+        patientAppointmentByIdProvider(id).future,
+      );
       if (appointment == null ||
           appointment.status != AppointmentStatus.completed) {
         throw const AccessDeniedFailure(

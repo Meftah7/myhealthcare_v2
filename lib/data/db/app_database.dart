@@ -11,9 +11,12 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/common.dart' show CommonDatabase;
 
 import '../../core/app_environment.dart';
+import '../../domain/documents/proposed_policies.dart';
 import '../../domain/entities/family_member.dart';
+import '../../domain/entities/medication.dart';
 import '../../domain/enums.dart';
 import '../../domain/identity/identity.dart';
+import '../../domain/risk_sources.dart';
 import '../../services/crypto/device_key_store.dart';
 import 'converters.dart';
 import 'demo_snapshot.dart';
@@ -21,6 +24,7 @@ import 'tables/ai.dart';
 import 'tables/appointments.dart';
 import 'tables/billing.dart';
 import 'tables/care.dart';
+import 'tables/document_workflow.dart';
 import 'tables/family.dart';
 import 'tables/identity.dart';
 import 'tables/notifications.dart';
@@ -57,11 +61,22 @@ part 'app_database.g.dart';
     SignedNotes,
     SignedNoteAmendments,
     DocumentFiles,
+    RecordReads,
+    RecordCorrections,
     DocumentVerifications,
+    ScopedGrants,
+    DocumentTemplates,
+    DocumentRequests,
+    IssuedDocumentVersions,
+    DocumentArtifacts,
+    DocumentDeliveryEvents,
+    TaskSources,
+    TaskHistory,
     // AI
     AiSummaries,
     StaffTasks,
     RiskFlags,
+    RiskSourceAliases,
     // billing
     Invoices,
     PaymentMethods,
@@ -179,7 +194,78 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 27;
+  int get schemaVersion => 30;
+
+  /// Preserve legacy flag/task IDs by aliasing only sources known when the
+  /// old flag was last detected. Later readings/reports get their own work.
+  Future<void> backfillRiskSourceAliases() async {
+    final flags = await select(riskFlags).get();
+    for (final flag in flags) {
+      final prefix = '${flag.patientId}:';
+      if (!flag.dedupeKey.startsWith(prefix) ||
+          flag.dedupeKey.contains(':source:')) {
+        continue;
+      }
+      final rule = flag.dedupeKey.substring(prefix.length);
+      final sources = <String>[];
+      if (rule.startsWith('vitals:')) {
+        final rows =
+            await (select(vitals)..where(
+                  (v) =>
+                      v.patientId.equals(flag.patientId) &
+                      v.recordedAt.isSmallerOrEqualValue(flag.detectedAt),
+                ))
+                .get();
+        sources.addAll(rows.map((v) => v.id));
+      } else if (rule == 'lab:critical' || rule == 'followup:overdue') {
+        final rows =
+            await (select(medicalRecords)..where(
+                  (r) =>
+                      r.patientId.equals(flag.patientId) &
+                      r.createdAt.isSmallerOrEqualValue(flag.detectedAt) &
+                      r.occurredAt.isSmallerOrEqualValue(flag.detectedAt),
+                ))
+                .get();
+        sources.addAll(rows.map((r) => r.id));
+      } else if (rule.startsWith('medgap:')) {
+        final condition = rule.substring('medgap:'.length);
+        final rows =
+            await (select(medications)..where(
+                  (m) =>
+                      m.patientId.equals(flag.patientId) &
+                      m.startDate.isSmallerOrEqualValue(flag.detectedAt) &
+                      (m.endDate.isNull() |
+                          m.endDate.isSmallerOrEqualValue(flag.detectedAt)),
+                ))
+                .get();
+        sources.add(
+          RiskSources.medicationCourse(
+            condition,
+            rows.map(
+              (m) => Medication(
+                id: m.id,
+                patientId: m.patientId,
+                name: m.name,
+                startDate: m.startDate,
+                endDate: m.endDate,
+                isActive: m.isActive,
+              ),
+            ),
+          ),
+        );
+      }
+      for (final source in sources) {
+        await into(riskSourceAliases).insert(
+          RiskSourceAliasesCompanion.insert(
+            sourceKey: RiskSources.key(flag.dedupeKey, source),
+            canonicalKey: flag.dedupeKey,
+            patientId: flag.patientId,
+          ),
+          mode: InsertMode.insertOrIgnore,
+        );
+      }
+    }
+  }
 
   /// True when [table] already has a column named [columnName] — lets a
   /// migration step that already partly ran (e.g. the app/tab was closed or
@@ -244,6 +330,7 @@ class AppDatabase extends _$AppDatabase {
     'patient_profiles': 'user_id',
     'staff_tasks': 'id',
     'result_reviews': 'id',
+    'document_requests': 'id',
   };
 
   /// Rules the database itself enforces, whatever code writes to it:
@@ -313,6 +400,76 @@ class AppDatabase extends _$AppDatabase {
       );
     }
     await _installPaymentRules();
+    for (final table in ['issued_document_versions', 'task_history']) {
+      if (!await _hasTableNamed(table)) continue;
+      for (final action in ['update', 'delete']) {
+        await customStatement(
+          'CREATE TRIGGER IF NOT EXISTS trg_${table}_no_$action '
+          'BEFORE ${action.toUpperCase()} ON $table BEGIN '
+          "SELECT RAISE(ABORT, '$table is immutable'); END",
+        );
+      }
+    }
+    if (await _hasTableNamed('issued_document_versions')) {
+      await customStatement(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_verification_issued_version '
+        'ON document_verifications (issued_version_id) WHERE issued_version_id IS NOT NULL',
+      );
+      await customStatement(
+        'CREATE TRIGGER IF NOT EXISTS trg_approved_template_no_delete '
+        'BEFORE DELETE ON document_templates WHEN OLD.approved_at IS NOT NULL BEGIN '
+        "SELECT RAISE(ABORT, 'approved templates are immutable'); END",
+      );
+      await customStatement(
+        'CREATE TRIGGER IF NOT EXISTS trg_verification_validity_transition '
+        'BEFORE UPDATE ON document_verifications WHEN OLD.issued_version_id IS NOT NULL AND ('
+        "NEW.validity NOT IN ('valid','revoked','superseded') "
+        "OR (OLD.validity = 'revoked' AND NEW.validity != 'revoked') "
+        "OR (OLD.validity = 'superseded' AND NEW.validity = 'valid')) BEGIN "
+        "SELECT RAISE(ABORT, 'invalid document validity transition'); END",
+      );
+      await customStatement(
+        'CREATE TRIGGER IF NOT EXISTS trg_ready_document_artifact_immutable '
+        "BEFORE UPDATE ON document_artifacts WHEN OLD.status = 'ready' AND ("
+        'NEW.bytes IS NOT OLD.bytes OR NEW.sha256 IS NOT OLD.sha256 '
+        'OR NEW.issued_version_id IS NOT OLD.issued_version_id '
+        'OR NEW.status IS NOT OLD.status OR NEW.rendered_at IS NOT OLD.rendered_at) BEGIN '
+        "SELECT RAISE(ABORT, 'ready document artifacts are immutable'); END",
+      );
+      await customStatement(
+        'CREATE TRIGGER IF NOT EXISTS trg_approved_template_no_content_update '
+        'BEFORE UPDATE ON document_templates WHEN OLD.approved_at IS NOT NULL AND ('
+        'NEW.id IS NOT OLD.id OR NEW.document_type IS NOT OLD.document_type '
+        'OR NEW.version IS NOT OLD.version OR NEW.language IS NOT OLD.language '
+        'OR NEW.disclosure_profile IS NOT OLD.disclosure_profile '
+        'OR NEW.wording IS NOT OLD.wording '
+        'OR NEW.clinical_signature_required IS NOT OLD.clinical_signature_required '
+        'OR NEW.required_credential IS NOT OLD.required_credential '
+        'OR NEW.approved_by IS NOT OLD.approved_by OR NEW.approved_at IS NOT OLD.approved_at) BEGIN '
+        "SELECT RAISE(ABORT, 'approved template content is immutable'); END",
+      );
+      await customStatement(
+        'CREATE TRIGGER IF NOT EXISTS trg_bound_verification_no_content_update '
+        'BEFORE UPDATE ON document_verifications '
+        'WHEN OLD.issued_version_id IS NOT NULL AND ('
+        'NEW.code IS NOT OLD.code OR NEW.document_type IS NOT OLD.document_type '
+        'OR NEW.entity_id IS NOT OLD.entity_id OR NEW.patient_id IS NOT OLD.patient_id '
+        'OR NEW.issuer IS NOT OLD.issuer OR NEW.summary IS NOT OLD.summary '
+        'OR NEW.issued_at IS NOT OLD.issued_at '
+        'OR NEW.issued_version_id IS NOT OLD.issued_version_id) BEGIN '
+        "SELECT RAISE(ABORT, 'issued verification content is immutable'); END",
+      );
+      await customStatement(
+        'CREATE TRIGGER IF NOT EXISTS trg_bound_verification_no_delete '
+        'BEFORE DELETE ON document_verifications '
+        'WHEN OLD.issued_version_id IS NOT NULL BEGIN '
+        "SELECT RAISE(ABORT, 'issued verification is immutable'); END",
+      );
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_scoped_grants_account '
+        'ON scoped_grants (account_id, permission, scope, scope_id)',
+      );
+    }
   }
 
   /// Payments (Phase 5): a transaction row is never deleted and never moves
@@ -364,11 +521,33 @@ class AppDatabase extends _$AppDatabase {
   static const signedNoteDeleteTriggers = [
     'trg_signed_notes_no_delete',
     'trg_signed_note_amendments_no_delete',
+    'trg_issued_document_versions_no_delete',
+    'trg_task_history_no_delete',
+    'trg_bound_verification_no_delete',
+    'trg_approved_template_no_delete',
   ];
 
   /// Name of the trigger that blocks audit deletes. Only the demo seeder's
   /// full dataset reset lifts it, and reinstalls it straight after.
   static const auditNoDeleteTrigger = 'trg_audit_log_no_delete';
+
+  Future<void> installProposedDocumentPolicies() async {
+    for (final draft in ProposedDocumentPolicies.sickLeave()) {
+      await into(documentTemplates).insert(
+        DocumentTemplatesCompanion.insert(
+          id: draft.id,
+          documentType: draft.document.name,
+          version: draft.version,
+          language: draft.language,
+          disclosureProfile: draft.disclosure.name,
+          wording: draft.wording,
+          clinicalSignatureRequired: true,
+          requiredCredential: const Value('medicalLicense'),
+        ),
+        mode: InsertMode.insertOrIgnore,
+      );
+    }
+  }
 
   Future<bool> _hasTable(TableInfo<Table, dynamic> table) =>
       _hasTableNamed(table.actualTableName);
@@ -404,6 +583,7 @@ class AppDatabase extends _$AppDatabase {
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) async {
       await m.createAll();
+      await installProposedDocumentPolicies();
       await installIntegrityRules();
     },
     // The whole upgrade runs as one transaction: if any step throws (a
@@ -726,6 +906,60 @@ class AppDatabase extends _$AppDatabase {
           medicalRecords.referralUrgency,
         );
         await _createTableIfMissing(m, documentVerifications);
+      }
+      if (from < 28) {
+        await _createTableIfMissing(m, riskSourceAliases);
+        await backfillRiskSourceAliases();
+      }
+      if (from < 29) {
+        await _createTableIfMissing(m, recordReads);
+        await _createTableIfMissing(m, recordCorrections);
+      }
+      if (from < 30) {
+        for (final table in <TableInfo<Table, dynamic>>[
+          scopedGrants,
+          documentTemplates,
+          documentRequests,
+          issuedDocumentVersions,
+          documentArtifacts,
+          documentDeliveryEvents,
+          taskSources,
+          taskHistory,
+        ]) {
+          await _createTableIfMissing(m, table);
+        }
+        await _addColumnIfMissing(
+          m,
+          documentVerifications,
+          documentVerifications.issuedVersionId,
+        );
+        await _addColumnIfMissing(
+          m,
+          documentVerifications,
+          documentVerifications.validity,
+        );
+        await _addColumnIfMissing(
+          m,
+          documentVerifications,
+          documentVerifications.revokedAt,
+        );
+        await _addColumnIfMissing(
+          m,
+          documentVerifications,
+          documentVerifications.revokedBy,
+        );
+        await _addColumnIfMissing(
+          m,
+          documentVerifications,
+          documentVerifications.revocationReason,
+        );
+        // Preserve old task IDs/workflow; only record their known identity.
+        await customStatement(
+          'INSERT OR IGNORE INTO task_sources '
+          '(task_id, source_type, source_id, episode_key, recorded_at) '
+          "SELECT id, 'legacyTask', id, id, created_at FROM staff_tasks",
+        );
+        await installProposedDocumentPolicies();
       }
     }),
     beforeOpen: (details) async {

@@ -8269,6 +8269,444 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No QR code found in that picture. Try a clearer screenshot or photo.'**
   String get noQrInPicture;
+
+  /// No description provided for @partialOperationProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved {completed} of {total} updates before stopping.'**
+  String partialOperationProgress(int completed, int total);
+
+  /// No description provided for @recordsUploadDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload document'**
+  String get recordsUploadDocument;
+
+  /// No description provided for @recordsAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All records'**
+  String get recordsAll;
+
+  /// No description provided for @recordsResults.
+  ///
+  /// In en, this message translates to:
+  /// **'Results'**
+  String get recordsResults;
+
+  /// No description provided for @recordsDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get recordsDocuments;
+
+  /// No description provided for @recordsUploads.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploads'**
+  String get recordsUploads;
+
+  /// No description provided for @couldNotLoadAllergies.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load allergy information.'**
+  String get couldNotLoadAllergies;
+
+  /// No description provided for @recordsFamilyUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Family access unavailable. Retry'**
+  String get recordsFamilyUnavailable;
+
+  /// No description provided for @recordsSubjectUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Patient information unavailable. Retry before continuing.'**
+  String get recordsSubjectUnavailable;
+
+  /// No description provided for @recordsPrescriptionVisit.
+  ///
+  /// In en, this message translates to:
+  /// **'Open prescription visit'**
+  String get recordsPrescriptionVisit;
+
+  /// No description provided for @recordsFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get recordsFilters;
+
+  /// No description provided for @recordsDateRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Date range'**
+  String get recordsDateRange;
+
+  /// No description provided for @recordsClearDates.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear dates'**
+  String get recordsClearDates;
+
+  /// No description provided for @recordsFacility.
+  ///
+  /// In en, this message translates to:
+  /// **'Facility'**
+  String get recordsFacility;
+
+  /// No description provided for @recordsAuthor.
+  ///
+  /// In en, this message translates to:
+  /// **'Author'**
+  String get recordsAuthor;
+
+  /// No description provided for @recordsAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get recordsAny;
+
+  /// No description provided for @recordsUnknownAuthor.
+  ///
+  /// In en, this message translates to:
+  /// **'Author unavailable'**
+  String get recordsUnknownAuthor;
+
+  /// No description provided for @recordsReviewState.
+  ///
+  /// In en, this message translates to:
+  /// **'Review state'**
+  String get recordsReviewState;
+
+  /// No description provided for @recordsReviewNotRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Review not required'**
+  String get recordsReviewNotRequired;
+
+  /// No description provided for @recordsUnreadOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Unread only'**
+  String get recordsUnreadOnly;
+
+  /// No description provided for @recordsClearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get recordsClearFilters;
+
+  /// No description provided for @recordsApplyFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get recordsApplyFilters;
+
+  /// No description provided for @recordsRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Read'**
+  String get recordsRead;
+
+  /// No description provided for @recordsUnread.
+  ///
+  /// In en, this message translates to:
+  /// **'Unread'**
+  String get recordsUnread;
+
+  /// No description provided for @recordsMarkRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as read'**
+  String get recordsMarkRead;
+
+  /// No description provided for @recordsMarkUnread.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as unread'**
+  String get recordsMarkUnread;
+
+  /// No description provided for @recordsReadStateUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Read state unavailable. Retry'**
+  String get recordsReadStateUnavailable;
+
+  /// No description provided for @recordsDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'This original file is already uploaded for this patient. Keep another copy only if intended.'**
+  String get recordsDuplicate;
+
+  /// No description provided for @recordsKeepDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'I intend to upload another copy for this patient'**
+  String get recordsKeepDuplicate;
+
+  /// No description provided for @recordsRequestCorrection.
+  ///
+  /// In en, this message translates to:
+  /// **'Request a correction'**
+  String get recordsRequestCorrection;
+
+  /// No description provided for @recordsCorrectionNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe what needs correction. This request does not edit the original record or signed note.'**
+  String get recordsCorrectionNotice;
+
+  /// No description provided for @recordsCorrectionReason.
+  ///
+  /// In en, this message translates to:
+  /// **'What needs correction?'**
+  String get recordsCorrectionReason;
+
+  /// No description provided for @recordsCorrectionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe the correction you need.'**
+  String get recordsCorrectionRequired;
+
+  /// No description provided for @recordsSubmitCorrection.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit request'**
+  String get recordsSubmitCorrection;
+
+  /// No description provided for @recordsCorrectionSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction request saved for review.'**
+  String get recordsCorrectionSaved;
+
+  /// No description provided for @recordsCorrectionPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction requested · Pending review'**
+  String get recordsCorrectionPending;
+
+  /// No description provided for @recordsCorrectionsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction requests unavailable. Retry'**
+  String get recordsCorrectionsUnavailable;
+
+  /// No description provided for @recordsOriginals.
+  ///
+  /// In en, this message translates to:
+  /// **'Original documents'**
+  String get recordsOriginals;
+
+  /// No description provided for @recordsNoOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'No original file is stored for this record.'**
+  String get recordsNoOriginal;
+
+  /// No description provided for @recordsRecordedInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded information'**
+  String get recordsRecordedInformation;
+
+  /// No description provided for @recordsClinicalReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Clinician review'**
+  String get recordsClinicalReview;
+
+  /// No description provided for @recordsGeneratedSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Generated summary'**
+  String get recordsGeneratedSummary;
+
+  /// No description provided for @recordsGeneratedNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'The downloadable summary is generated from recorded information. It is separate from the original document and clinician review.'**
+  String get recordsGeneratedNotice;
+
+  /// No description provided for @recordsPreviousResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous matching result'**
+  String get recordsPreviousResult;
+
+  /// No description provided for @recordsNoComparableResult.
+  ///
+  /// In en, this message translates to:
+  /// **'No earlier result with the same test and recorded unit.'**
+  String get recordsNoComparableResult;
+
+  /// No description provided for @recordsTrendsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous results unavailable. Retry'**
+  String get recordsTrendsUnavailable;
+
+  /// No description provided for @documentValidityLegacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Legacy registry entry — no immutable issued version'**
+  String get documentValidityLegacy;
+
+  /// No description provided for @documentValidityValid.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid issued version'**
+  String get documentValidityValid;
+
+  /// No description provided for @documentValidityRevoked.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoked document'**
+  String get documentValidityRevoked;
+
+  /// No description provided for @documentValiditySuperseded.
+  ///
+  /// In en, this message translates to:
+  /// **'Replaced by a newer version'**
+  String get documentValiditySuperseded;
+
+  /// No description provided for @documentPoliciesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Document policies'**
+  String get documentPoliciesTitle;
+
+  /// No description provided for @policyReviewIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the proposed sick-leave rules and wording for each language and audience. Approval records your clinic\'s acceptance of this version. It does not issue a document.'**
+  String get policyReviewIntro;
+
+  /// No description provided for @policyEnableExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable clinic-wide policy management for this administrator to edit and approve templates. This does not grant clinical signing authority.'**
+  String get policyEnableExplanation;
+
+  /// No description provided for @policyEnableManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable policy management'**
+  String get policyEnableManagement;
+
+  /// No description provided for @policyManagementEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Policy management enabled for this administrator'**
+  String get policyManagementEnabled;
+
+  /// No description provided for @policyGrantReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Administrator explicitly enabled document policy management from the review screen.'**
+  String get policyGrantReason;
+
+  /// No description provided for @policyDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft — not approved'**
+  String get policyDraft;
+
+  /// No description provided for @policyApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get policyApproved;
+
+  /// No description provided for @policyRetired.
+  ///
+  /// In en, this message translates to:
+  /// **'Replaced policy version'**
+  String get policyRetired;
+
+  /// No description provided for @policyClinicCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Clinic copy'**
+  String get policyClinicCopy;
+
+  /// No description provided for @policyEmployerCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Employer copy'**
+  String get policyEmployerCopy;
+
+  /// No description provided for @policySchoolCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'School copy'**
+  String get policySchoolCopy;
+
+  /// No description provided for @policySigningRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Signing requires a separate signing grant, a verified current medical licence, a clinician profile and a care relationship. Nurses and unqualified administrators cannot sign.'**
+  String get policySigningRule;
+
+  /// No description provided for @policyClinicDisclosure.
+  ///
+  /// In en, this message translates to:
+  /// **'The clinic copy may include the clinical reason within clinical access rules.'**
+  String get policyClinicDisclosure;
+
+  /// No description provided for @policyExternalDisclosure.
+  ///
+  /// In en, this message translates to:
+  /// **'Employer and school copies include identity, attendance/leave dates, clinic, signer and verification. They omit diagnosis, medicines, allergies and unrelated clinical history.'**
+  String get policyExternalDisclosure;
+
+  /// No description provided for @policyWording.
+  ///
+  /// In en, this message translates to:
+  /// **'Document wording'**
+  String get policyWording;
+
+  /// No description provided for @policyAcceptance.
+  ///
+  /// In en, this message translates to:
+  /// **'I am authorized to approve these signing, disclosure and wording rules for the clinic. I have reviewed this saved version.'**
+  String get policyAcceptance;
+
+  /// No description provided for @policySaveDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Save draft'**
+  String get policySaveDraft;
+
+  /// No description provided for @policyDraftSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft saved — approval still required'**
+  String get policyDraftSaved;
+
+  /// No description provided for @policyApproveVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve this version'**
+  String get policyApproveVersion;
+
+  /// No description provided for @policyCreateVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a new draft version'**
+  String get policyCreateVersion;
+
+  /// No description provided for @policyWordingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the fields in braces. The app fills them when a document is issued; diagnosis is only allowed in the clinic copy.'**
+  String get policyWordingHint;
+
+  /// No description provided for @policyNoPolicies.
+  ///
+  /// In en, this message translates to:
+  /// **'No document policies available.'**
+  String get policyNoPolicies;
 }
 
 class _AppLocalizationsDelegate

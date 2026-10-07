@@ -537,8 +537,18 @@ class _RiskFlags extends ConsumerWidget {
                   trailing: IconButton(
                     tooltip: t.acknowledgeTooltip,
                     icon: const Icon(Icons.done),
-                    onPressed: () =>
-                        ref.read(staffOpsProvider).acknowledgeFlag(f.id),
+                    onPressed: () async {
+                      final result = await Result.guardAsync(
+                        () => ref.read(staffOpsProvider).acknowledgeFlag(f.id),
+                      );
+                      if (!context.mounted) return;
+                      showMutationFeedback(
+                        context,
+                        result,
+                        onReload: () =>
+                            ref.invalidate(unacknowledgedFlagsProvider),
+                      );
+                    },
                   ),
                   onTap: () =>
                       context.go(AppRoutes.staffPatientChart(f.patientId)),
