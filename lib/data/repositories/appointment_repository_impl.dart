@@ -605,6 +605,11 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
                       ]),
                 ))
                 .get();
+        if (actor?.isAdmin == true && affected.isNotEmpty) {
+          throw const ValidationFailure(
+            'Preview affected bookings and assign a replacement before changing availability.',
+          );
+        }
         for (final visit in affected) {
           await _db
               .into(_db.notifications)

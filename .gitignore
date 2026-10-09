@@ -70,3 +70,9 @@ tools/ml/__pycache__/
 
 # Local browser/test profiles
 .tmp/
+
+# Shared server runtime data and encrypted archives belong outside source control.
+services/shared_api/private-data/
+services/shared_api/private-backups/
+*.mhcb
+restored-file-key.txt

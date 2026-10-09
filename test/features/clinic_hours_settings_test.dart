@@ -3,6 +3,8 @@
 // screen lets a day be toggled off.
 
 import 'package:flutter/material.dart';
+import 'package:drift/drift.dart' show Value;
+import 'package:myhealthcare/domain/enums.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -20,6 +22,17 @@ import '../support/test_database.dart';
 /// The clinic schedule is shared data only an administrator may change.
 Future<void> _signInAdmin(ProviderContainer container, AppDatabase db) async {
   await Seeder(db).run();
+  // These persistence fixtures have no affected future bookings.
+  await (db.update(db.appointments)..where(
+        (a) => a.status.isInValues([
+          AppointmentStatus.booked,
+          AppointmentStatus.confirmed,
+          AppointmentStatus.inProgress,
+        ]),
+      ))
+      .write(
+        const AppointmentsCompanion(status: Value(AppointmentStatus.cancelled)),
+      );
   final r = await container
       .read(authRepositoryProvider)
       .login(email: 'admin@myhealth.demo', password: Seeder.demoPassword);

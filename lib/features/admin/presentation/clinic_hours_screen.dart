@@ -24,11 +24,19 @@ class ClinicHoursScreen extends ConsumerWidget {
     final controller = ref.read(clinicScheduleProvider.notifier);
 
     Future<void> save(ClinicSchedule next) async {
-      await controller.set(next);
+      final saved = await controller.set(next);
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(t.clinicHoursSaved)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              saved
+                  ? t.clinicHoursSaved
+                  : (Localizations.localeOf(context).languageCode == 'ar'
+                        ? 'تعذر الحفظ. راجع الحجوزات المتأثرة والتعارضات.'
+                        : 'Could not save. Review affected bookings and conflicts.'),
+            ),
+          ),
+        );
       }
     }
 

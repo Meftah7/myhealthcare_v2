@@ -12,6 +12,7 @@ import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/feedback.dart';
+import '../../../core/presentation/readable_label.dart';
 import '../../../core/result.dart';
 import '../../../data/seed/seeder.dart';
 import '../../../l10n/app_localizations.dart';
@@ -256,8 +257,8 @@ class _DemoQuickActions extends StatelessWidget {
             ],
           ),
           const SizedBox(height: Space.xs),
-          Text(
-            t.demoQuickSignInHint,
+          ReadableLabel(
+            '${t.demoQuickSignInHint}\n${t.localeName == 'ar' ? 'بيانات تجريبية على هذا الجهاز فقط. سجّل الخروج وبدّل الدور في نفس المتصفح لعرض قاعدة البيانات نفسها.' : 'Synthetic data on this device only. Sign out and switch roles in the same browser to demonstrate the same database.'}',
             style: theme.textTheme.bodySmall?.copyWith(
               color: scheme.onSurfaceVariant,
             ),

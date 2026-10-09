@@ -177,22 +177,50 @@ class SettingsRepositoryImpl implements SettingsRepository {
     required int openHour,
     required int closeHour,
   }) {
-    return Result.guardAsync(() async {
-      await _access.require(Permission.manageSettings, entityType: 'settings');
-      if (openHour < 0 || closeHour > 24 || openHour >= closeHour) {
-        throw const ValidationFailure(
-          'Opening time must be before closing time.',
+    return Result.guardAsync(
+      () => _db.transaction(() async {
+        await _access.require(
+          Permission.manageSettings,
+          entityType: 'settings',
         );
-      }
-      await _ensureRow();
-      await (_db.update(_db.appSettings)..where((r) => r.id.equals(1))).write(
-        AppSettingsCompanion(
-          clinicOpenDays: Value((openDays.toList()..sort()).join(',')),
-          clinicOpenHour: Value(openHour),
-          clinicCloseHour: Value(closeHour),
-        ),
-      );
-    });
+        if (openHour < 0 || closeHour > 24 || openHour >= closeHour) {
+          throw const ValidationFailure(
+            'Opening time must be before closing time.',
+          );
+        }
+        if (openDays.any((d) => d < 1 || d > 7))
+          throw const ValidationFailure('Use weekdays 1 through 7.');
+        final bookings =
+            await (_db.select(_db.appointments)..where(
+                  (a) =>
+                      a.slotEnd.isBiggerThanValue(DateTime.now()) &
+                      a.status.isInValues([
+                        AppointmentStatus.booked,
+                        AppointmentStatus.confirmed,
+                        AppointmentStatus.inProgress,
+                      ]),
+                ))
+                .get();
+        if (bookings.any(
+          (a) =>
+              !openDays.contains(a.slotStart.weekday) ||
+              a.slotStart.hour * 60 + a.slotStart.minute < openHour * 60 ||
+              a.slotEnd.hour * 60 + a.slotEnd.minute > closeHour * 60,
+        )) {
+          throw const ValidationFailure(
+            'Preview and replace or reschedule affected bookings before reducing service hours.',
+          );
+        }
+        await _ensureRow();
+        await (_db.update(_db.appSettings)..where((r) => r.id.equals(1))).write(
+          AppSettingsCompanion(
+            clinicOpenDays: Value((openDays.toList()..sort()).join(',')),
+            clinicOpenHour: Value(openHour),
+            clinicCloseHour: Value(closeHour),
+          ),
+        );
+      }),
+    );
   }
 
   @override

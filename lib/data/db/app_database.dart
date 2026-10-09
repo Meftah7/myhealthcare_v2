@@ -97,6 +97,9 @@ part 'app_database.g.dart';
     // system
     AuditLog,
     AppSettings,
+    AdminWorkItems,
+    AdminWorkHistory,
+    ClinicConfigurations,
     Feedbacks,
     AiUsageLog,
     // mutation safety (Phase 2)
@@ -194,7 +197,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 30;
+  int get schemaVersion => 31;
 
   /// Preserve legacy flag/task IDs by aliasing only sources known when the
   /// old flag was last detected. Later readings/reports get their own work.
@@ -978,12 +981,22 @@ class AppDatabase extends _$AppDatabase {
         );
         await installProposedDocumentPolicies();
       }
+      if (from < 31) {
+        await _createTableIfMissing(m, adminWorkItems);
+        await _createTableIfMissing(m, adminWorkHistory);
+        await _createTableIfMissing(m, clinicConfigurations);
+      }
     }),
     beforeOpen: (details) async {
       // Referential integrity is off by default in SQLite.
       await customStatement('PRAGMA foreign_keys = ON');
       await installProposedDocumentPolicies();
       await installIntegrityRules();
+      for (final action in ['UPDATE', 'DELETE']) {
+        await customStatement(
+          'CREATE TRIGGER IF NOT EXISTS admin_work_history_${action.toLowerCase()} BEFORE $action ON admin_work_history BEGIN SELECT RAISE(ABORT, \'Work history is immutable\'); END',
+        );
+      }
     },
   );
 }

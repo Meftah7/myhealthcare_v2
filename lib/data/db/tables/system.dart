@@ -6,6 +6,49 @@ import 'package:drift/drift.dart';
 import '../../../domain/enums.dart';
 import 'users.dart';
 
+/// Operational coordination never replaces the clinical source decision.
+@DataClassName('AdminWorkRow')
+class AdminWorkItems extends Table {
+  TextColumn get id => text()();
+  TextColumn get sourceType => text()();
+  TextColumn get sourceId => text()();
+  TextColumn get ownerId => text().nullable().references(Users, #id)();
+  DateTimeColumn get dueAt => dateTime().nullable()();
+  TextColumn get status => text().withDefault(const Constant('open'))();
+  TextColumn get outcome => text().nullable()();
+  IntColumn get version => integer().withDefault(const Constant(1))();
+  DateTimeColumn get updatedAt => dateTime()();
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+  @override
+  List<Set<Column<Object>>> get uniqueKeys => [
+    {sourceType, sourceId},
+  ];
+}
+
+@DataClassName('AdminWorkHistoryRow')
+class AdminWorkHistory extends Table {
+  TextColumn get id => text()();
+  TextColumn get workId => text().references(AdminWorkItems, #id)();
+  TextColumn get actorId => text().references(Users, #id)();
+  TextColumn get beforeJson => text()();
+  TextColumn get afterJson => text()();
+  TextColumn get reason => text()();
+  DateTimeColumn get at => dateTime()();
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+/// Clinic configuration and account-specific frequent actions, without secrets.
+@DataClassName('ClinicConfigurationRow')
+class ClinicConfigurations extends Table {
+  TextColumn get id => text()();
+  TextColumn get valueJson => text()();
+  DateTimeColumn get updatedAt => dateTime()();
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 /// Append-only trail of security-relevant actions (feeds the privacy chapter).
 @DataClassName('AuditLogRow')
 class AuditLog extends Table {

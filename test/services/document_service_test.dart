@@ -24,6 +24,7 @@ T value<T>(Result<T> result) => switch (result) {
 };
 
 class TestRenderer implements IssuedSickLeaveRenderer {
+  String? capturedClinic;
   bool fail = false;
   int calls = 0;
   String? wording;
@@ -35,10 +36,12 @@ class TestRenderer implements IssuedSickLeaveRenderer {
     required DateTime issuedAt,
     bool draft = false,
     String title = 'Sick leave',
+    String clinicName = 'MyHealth Care',
     String? verificationUrl,
   }) async {
     calls++;
     this.wording = wording;
+    capturedClinic = clinicName;
     if (fail) throw StateError('Renderer unavailable');
     return Uint8List.fromList('%PDF $wording $reference'.codeUnits);
   }
@@ -125,6 +128,71 @@ Future<DocumentRequest> approved(
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  test(
+    'configured clinic identity and verification origin freeze at issuance',
+    () async {
+      final renderer = TestRenderer();
+      final (c, db) = await seededContainer(
+        overrides: [
+          issuedSickLeaveRendererProvider.overrideWithValue(renderer),
+        ],
+      );
+      final visit = await setup(db);
+      await db
+          .into(db.clinicConfigurations)
+          .insert(
+            ClinicConfigurationsCompanion.insert(
+              id: 'clinic',
+              valueJson: jsonEncode({'name': 'Clinic A'}),
+              updatedAt: DateTime.now(),
+            ),
+          );
+      await db
+          .into(db.clinicConfigurations)
+          .insert(
+            ClinicConfigurationsCompanion.insert(
+              id: 'integrations',
+              valueJson: jsonEncode({
+                'verificationOrigin': 'https://verify.example.test',
+              }),
+              updatedAt: DateTime.now(),
+            ),
+          );
+      await signInAs(c, 'staff1@myhealth.demo');
+      final service = c.read(documentServiceProvider);
+      final request = await approved(service, visit);
+      final issued = value(
+        await service.issue(
+          request.id,
+          expectedVersion: request.version,
+          idempotencyKey: 'config-frozen',
+        ),
+      );
+      final stored = await (db.select(
+        db.issuedDocumentVersions,
+      )..where((d) => d.id.equals(issued.id))).getSingle();
+      final snapshot =
+          jsonDecode(stored.templateSnapshotJson) as Map<String, dynamic>;
+      expect(snapshot['clinicName'], 'Clinic A');
+      expect(snapshot['externalBase'], 'https://verify.example.test');
+      await (db.update(
+        db.clinicConfigurations,
+      )..where((c) => c.id.equals('clinic'))).write(
+        ClinicConfigurationsCompanion(
+          valueJson: Value(jsonEncode({'name': 'Clinic B'})),
+        ),
+      );
+      value(await service.render(issued.id));
+      expect(renderer.capturedClinic, 'Clinic A');
+      expect(
+        (await (db.select(
+              db.issuedDocumentVersions,
+            )..where((d) => d.id.equals(issued.id))).getSingle())
+            .templateSnapshotJson,
+        stored.templateSnapshotJson,
+      );
+    },
+  );
 
   test('every proposed bilingual policy satisfies its disclosure rules', () {
     for (final policy in ProposedDocumentPolicies.all()) {

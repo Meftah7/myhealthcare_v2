@@ -5,6 +5,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/i18n/enum_labels.dart';
@@ -15,6 +16,9 @@ import '../../../core/presentation/readable_label.dart';
 import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
+import '../../../core/di.dart';
+import '../../../data/repositories/admin_workspace.dart';
+import '../../../domain/identity/permissions.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
@@ -24,6 +28,9 @@ import '../../appointments/presentation/slot_picker_sheet.dart';
 import '../../auth/presentation/reauth_prompt.dart';
 import '../application/admin_providers.dart';
 import 'admin_top_actions.dart';
+import 'admin_workspace_screens.dart';
+import 'admin_people_profile.dart';
+import '../../staff_dashboard/application/staff_providers.dart';
 
 class UserManagementScreen extends ConsumerStatefulWidget {
   const UserManagementScreen({super.key});
@@ -39,6 +46,10 @@ class _State extends ConsumerState<UserManagementScreen>
   late final TabController _tabs;
   final _search = TextEditingController();
   String _query = '';
+  String _status = 'all';
+  String? _department, _clinician;
+  bool _bulk = false;
+  final _selected = <String>{};
 
   @override
   void initState() {
@@ -133,19 +144,255 @@ class _State extends ConsumerState<UserManagementScreen>
         icon: Icon(add.icon),
         label: Text(add.label),
       ),
-      body: TabBarView(
-        controller: _tabs,
-        children: [for (final r in _roles) _UserList(role: r, query: _query)],
+      body: Column(
+        children: [
+          Flexible(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: [
+                    TextButton(
+                      onPressed: () => setState(() {
+                        _bulk = !_bulk;
+                        _selected.clear();
+                      }),
+                      child: ReadableLabel(
+                        adminText(
+                          context,
+                          _bulk ? 'End selection' : 'Select accounts',
+                          _bulk ? 'إنهاء التحديد' : 'تحديد حسابات',
+                        ),
+                      ),
+                    ),
+                    if (_bulk)
+                      TextButton(
+                        onPressed: _selected.isEmpty
+                            ? null
+                            : _deactivateSelected,
+                        child: Text(
+                          '${adminText(context, 'Preview deactivation', 'معاينة التعطيل')} (${_selected.length})',
+                        ),
+                      ),
+                    for (final s in ['all', 'active', 'inactive'])
+                      ChoiceChip(
+                        label: Text(switch (s) {
+                          'all' => adminText(context, 'All', 'الكل'),
+                          'active' => adminText(context, 'Active', 'نشط'),
+                          _ => adminText(context, 'Inactive', 'غير نشط'),
+                        }),
+                        selected: _status == s,
+                        onSelected: (_) => setState(() => _status = s),
+                      ),
+                    if (_role == UserRole.staff)
+                      SizedBox(
+                        width: 200,
+                        child: DropdownButtonFormField<String>(
+                          initialValue: _department,
+                          isExpanded: true,
+                          decoration: InputDecoration(
+                            labelText: adminText(
+                              context,
+                              'Department',
+                              'القسم',
+                            ),
+                          ),
+                          items: [
+                            DropdownMenuItem(
+                              value: null,
+                              child: Text(
+                                softWrap: false,
+                                overflow: TextOverflow.ellipsis,
+                                adminText(
+                                  context,
+                                  'All departments',
+                                  'كل الأقسام',
+                                ),
+                              ),
+                            ),
+                            for (final d
+                                in ref.watch(departmentsProvider).valueOrNull ??
+                                    <Department>[])
+                              DropdownMenuItem(
+                                value: d.id,
+                                child: Text(d.name),
+                              ),
+                          ],
+                          onChanged: (v) => setState(() => _department = v),
+                        ),
+                      ),
+                    if (_role != UserRole.admin)
+                      SizedBox(
+                        width: 200,
+                        child: DropdownButtonFormField<String>(
+                          initialValue: _clinician,
+                          isExpanded: true,
+                          decoration: InputDecoration(
+                            labelText: adminText(
+                              context,
+                              'Clinician',
+                              'الممارس السريري',
+                            ),
+                          ),
+                          items: [
+                            DropdownMenuItem(
+                              value: null,
+                              child: Text(
+                                softWrap: false,
+                                overflow: TextOverflow.ellipsis,
+                                adminText(
+                                  context,
+                                  'All clinicians',
+                                  'كل الممارسين',
+                                ),
+                              ),
+                            ),
+                            for (final s
+                                in ref
+                                        .watch(staffDirectoryProvider)
+                                        .valueOrNull ??
+                                    <Staff>[])
+                              DropdownMenuItem(
+                                value: s.id,
+                                child: Text(s.fullName),
+                              ),
+                          ],
+                          onChanged: (v) => setState(() => _clinician = v),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: TabBarView(
+              controller: _tabs,
+              children: [
+                for (final r in _roles)
+                  _UserList(
+                    role: r,
+                    query: _query,
+                    status: _status,
+                    department: _department,
+                    clinician: _clinician,
+                    selected: _selected,
+                    bulk: _bulk,
+                    onSelect: (id, v) => setState(() {
+                      v ? _selected.add(id) : _selected.remove(id);
+                    }),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
       centerBody: false,
     );
   }
+
+  Future<void> _deactivateSelected() async {
+    final service = ref.read(adminWorkspaceProvider);
+    final ids = _selected.toList();
+    final preview = await Result.guardAsync(() async {
+      await service.authorize(Permission.manageUsers);
+      final users = <User>[];
+      for (final id in ids) {
+        final r = await ref.read(userRepositoryProvider).byId(id);
+        if (r.isErr) throw r.failureOrNull!;
+        users.add(r.valueOrNull!);
+      }
+      return users;
+    });
+    if (!mounted) return;
+    if (preview.isErr) {
+      showMutationFeedback(context, preview);
+      return;
+    }
+    final yes = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: Text(
+          adminText(
+            c,
+            'Confirm bulk deactivation',
+            'تأكيد تعطيل الحسابات المحددة',
+          ),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final u in preview.valueOrNull!)
+                Text('${u.fullName} · ${u.role.name}'),
+              Text(
+                adminText(
+                  c,
+                  'All selected changes commit together. Active bookings, clinical responsibility and the last administrator are protected; history is retained.',
+                  'تحفظ التغييرات معا. تتم حماية الحجوزات والمسؤولية السريرية وآخر مدير نشط وتبقى السجلات محفوظة.',
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(c),
+            child: Text(adminText(c, 'Cancel', 'إلغاء')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(c, true),
+            child: Text(adminText(c, 'Confirm', 'تأكيد')),
+          ),
+        ],
+      ),
+    );
+    if (yes != true || !mounted) return;
+    final result = await runWithReauth(
+      context,
+      ref,
+      () => Result.guardAsync(
+        () => ref.read(appDatabaseProvider).transaction(() async {
+          for (final id in ids) {
+            final r = await ref
+                .read(userRepositoryProvider)
+                .setActive(id: id, active: false);
+            if (r.isErr) throw r.failureOrNull!;
+          }
+        }),
+      ),
+    );
+    if (!mounted) return;
+    showMutationFeedback(context, result);
+    if (result.isOk) {
+      setState(() => _selected.clear());
+      for (final role in UserRole.values)
+        ref.invalidate(usersByRoleProvider(role));
+    }
+  }
 }
 
 class _UserList extends ConsumerWidget {
-  const _UserList({required this.role, required this.query});
+  const _UserList({
+    required this.role,
+    required this.query,
+    required this.status,
+    this.department,
+    this.clinician,
+    required this.selected,
+    required this.bulk,
+    required this.onSelect,
+  });
   final UserRole role;
   final String query;
+  final String status;
+  final String? department, clinician;
+  final Set<String> selected;
+  final bool bulk;
+  final void Function(String, bool) onSelect;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -159,15 +406,37 @@ class _UserList extends ConsumerWidget {
       ),
       data: (all) {
         final q = query.trim().toLowerCase();
-        final list = q.isEmpty
-            ? all
-            : all
-                  .where(
-                    (u) =>
-                        u.fullName.toLowerCase().contains(q) ||
-                        u.email.toLowerCase().contains(q),
-                  )
-                  .toList();
+        final staff = {
+          for (final s
+              in ref.watch(staffDirectoryProvider).valueOrNull ?? <Staff>[])
+            s.id: s,
+        };
+        final assignments = ref.watch(adminPeopleAssignmentsProvider);
+        if (clinician != null &&
+            role == UserRole.patient &&
+            !assignments.hasValue)
+          return assignments.hasError
+              ? Text('${assignments.error}')
+              : const LinearProgressIndicator();
+        final list = all
+            .where(
+              (u) =>
+                  (u.fullName.toLowerCase().contains(q) ||
+                      u.email.toLowerCase().contains(q)) &&
+                  (status == 'all' || u.isActive == (status == 'active')) &&
+                  (role != UserRole.staff ||
+                      department == null ||
+                      staff[u.id]?.departmentId == department) &&
+                  (clinician == null ||
+                      role == UserRole.admin ||
+                      role == UserRole.staff && u.id == clinician ||
+                      role == UserRole.patient &&
+                          (assignments.valueOrNull ?? []).any(
+                            (a) =>
+                                a.patientId == u.id && a.staffId == clinician,
+                          )),
+            )
+            .toList();
         if (list.isEmpty) {
           return EmptyState(
             icon: Icons.people_outline,
@@ -182,7 +451,18 @@ class _UserList extends ConsumerWidget {
             Space.xxl,
           ),
           itemCount: list.length,
-          itemBuilder: (context, i) => _UserCard(user: list[i]),
+          itemBuilder: (context, i) => bulk
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Checkbox(
+                      value: selected.contains(list[i].id),
+                      onChanged: (v) => onSelect(list[i].id, v == true),
+                    ),
+                    Expanded(child: _UserCard(user: list[i])),
+                  ],
+                )
+              : _UserCard(user: list[i]),
         );
       },
     );
@@ -266,6 +546,15 @@ class _UserCard extends ConsumerWidget {
             ),
             children: [
               _DetailRows(user: user),
+              TextButton.icon(
+                onPressed: () => context.push(
+                  '/admin/users/${Uri.encodeComponent(user.id)}',
+                ),
+                icon: const Icon(Icons.person_outline),
+                label: Text(
+                  adminText(context, 'Scoped profile', 'ملف بصلاحيات محددة'),
+                ),
+              ),
               const SizedBox(height: Space.sm),
               Wrap(
                 spacing: Space.xs,
@@ -332,6 +621,58 @@ class _UserCard extends ConsumerWidget {
   Future<void> _toggleActive(BuildContext context, WidgetRef ref) async {
     final t = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
+    if (user.isActive) {
+      final service = ref.read(adminWorkspaceProvider);
+      final preview = await Result.guardAsync(
+        () => service.affectedBookings(user.id),
+      );
+      if (!context.mounted) return;
+      if (preview.isErr) {
+        showMutationFeedback(context, preview);
+        return;
+      }
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (c) => AlertDialog(
+          title: Text(
+            adminText(c, 'Deactivate this account?', 'تعطيل هذا الحساب؟'),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(user.fullName),
+                Text(
+                  '${adminText(c, 'Affected bookings', 'الحجوزات المتأثرة')}: ${preview.valueOrNull!.length}',
+                ),
+                for (final a in preview.valueOrNull!)
+                  Text('${a.id} · ${fmtDateTime(a.slotStart)}'),
+                Text(
+                  adminText(
+                    c,
+                    'Pending bookings and clinical work require replacement responsibility. History remains available.',
+                    'تتطلب الحجوزات والعمل السريري المعلق تعيين بديل. تبقى السجلات محفوظة.',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(c),
+              child: Text(adminText(c, 'Cancel', 'إلغاء')),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(c, true),
+              child: Text(
+                adminText(c, 'Confirm deactivation', 'تأكيد التعطيل'),
+              ),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true || !context.mounted) return;
+    }
     final r = await runWithReauth(
       context,
       ref,

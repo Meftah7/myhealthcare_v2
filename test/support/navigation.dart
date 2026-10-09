@@ -11,7 +11,16 @@ Future<void> _settle(WidgetTester tester) async {
 /// Select through the actual navigation controls, including the large-text menu.
 Future<void> selectCompactDestination(WidgetTester tester, String label) async {
   if (find.byType(NavigationBar).evaluate().isNotEmpty) {
-    await tester.tap(find.widgetWithText(NavigationDestination, label));
+    final direct = find.widgetWithText(NavigationDestination, label);
+    if (direct.evaluate().isNotEmpty) {
+      await tester.tap(direct);
+    } else {
+      await tester.tap(find.widgetWithText(NavigationDestination, 'More'));
+      await _settle(tester);
+      final destination = find.widgetWithText(ListTile, label).last;
+      await tester.ensureVisible(destination);
+      await tester.tap(destination);
+    }
   } else {
     await tester.tap(
       find

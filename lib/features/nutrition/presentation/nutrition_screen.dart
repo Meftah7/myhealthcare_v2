@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/readable_label.dart';
 import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../l10n/app_localizations.dart';
@@ -122,9 +123,11 @@ class _NutritionOverview extends ConsumerWidget {
                       style: theme.textTheme.titleSmall,
                     ),
                   ),
-                  TextButton(
-                    onPressed: onEdit,
-                    child: Text(t.calculatorSegment),
+                  Flexible(
+                    child: TextButton(
+                      onPressed: onEdit,
+                      child: ReadableLabel(t.calculatorSegment),
+                    ),
                   ),
                 ],
               ),
@@ -394,20 +397,21 @@ class _CalculatorViewState extends ConsumerState<_CalculatorView> {
               ),
               const SizedBox(height: Space.sm),
               DropdownButtonFormField<FitnessGoal>(
+                isExpanded: true,
                 initialValue: _i.goal,
                 decoration: InputDecoration(labelText: t.goalLabel),
                 items: [
                   DropdownMenuItem(
                     value: FitnessGoal.maintain,
-                    child: Text(t.goalMaintain),
+                    child: ReadableLabel(t.goalMaintain),
                   ),
                   DropdownMenuItem(
                     value: FitnessGoal.lose,
-                    child: Text(t.goalLose),
+                    child: ReadableLabel(t.goalLose),
                   ),
                   DropdownMenuItem(
                     value: FitnessGoal.gain,
-                    child: Text(t.goalGain),
+                    child: ReadableLabel(t.goalGain),
                   ),
                 ],
                 onChanged: (v) =>

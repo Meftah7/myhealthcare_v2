@@ -31,6 +31,7 @@ class AppShell extends StatefulWidget {
     required this.destinations,
     this.overlay,
     this.contextHeader,
+    this.compactLeadingCount,
     super.key,
   });
 
@@ -44,6 +45,7 @@ class AppShell extends StatefulWidget {
 
   /// Optional role context that remains visible while switching branches.
   final Widget? contextHeader;
+  final int? compactLeadingCount;
 
   @override
   State<AppShell> createState() => _AppShellState();
@@ -98,6 +100,47 @@ class _AppShellState extends State<AppShell> {
     }
 
     if (size.isCompact) {
+      final leading = widget.compactLeadingCount;
+      final compact = leading == null
+          ? widget.destinations
+          : [
+              ...widget.destinations.take(leading),
+              AppDestination(
+                icon: Icons.more_horiz,
+                selectedIcon: Icons.more_horiz,
+                label: Localizations.localeOf(context).languageCode == 'ar'
+                    ? 'المزيد'
+                    : 'More',
+              ),
+            ];
+      void selectCompact(int index) {
+        if (leading == null || index < leading) {
+          _go(index);
+          return;
+        }
+        showModalBottomSheet<void>(
+          context: context,
+          showDragHandle: true,
+          builder: (sheet) => SafeArea(
+            child: ListView(
+              shrinkWrap: true,
+              children: [
+                for (var i = leading; i < widget.destinations.length; i++)
+                  ListTile(
+                    leading: Icon(widget.destinations[i].icon),
+                    title: Text(widget.destinations[i].label),
+                    selected: current == i,
+                    onTap: () {
+                      Navigator.pop(sheet);
+                      _go(i);
+                    },
+                  ),
+              ],
+            ),
+          ),
+        );
+      }
+
       return Scaffold(
         body: body,
         bottomNavigationBar: DecoratedBox(
@@ -105,9 +148,9 @@ class _AppShellState extends State<AppShell> {
             border: Border(top: BorderSide(color: hairline)),
           ),
           child: CompactNavigation(
-            destinations: widget.destinations,
-            currentIndex: current,
-            onSelected: _go,
+            destinations: compact,
+            currentIndex: leading == null ? current : current.clamp(0, leading),
+            onSelected: selectCompact,
           ),
         ),
       );

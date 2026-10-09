@@ -33,6 +33,7 @@ class _UpcomingAppointmentCarouselState
   Timer? _timer;
   int _index = 0;
   bool _foreground = true;
+  bool _paused = false;
   double _direction = 1;
   double _dragDistance = 0;
 
@@ -62,7 +63,7 @@ class _UpcomingAppointmentCarouselState
 
   void _restartTimer() {
     _timer?.cancel();
-    if (!_foreground || widget.appointments.length < 2) return;
+    if (!_foreground || _paused || widget.appointments.length < 2) return;
     _timer = Timer.periodic(const Duration(seconds: 4), (_) {
       if (!mounted || !TickerMode.valuesOf(context).enabled) return;
       if (ModalRoute.of(context)?.isCurrent == false) return;
@@ -153,6 +154,14 @@ class _UpcomingAppointmentCarouselState
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              IconButton(
+                tooltip: _paused ? t.resumeAppointments : t.pauseAppointments,
+                onPressed: () {
+                  setState(() => _paused = !_paused);
+                  _restartTimer();
+                },
+                icon: Icon(_paused ? Icons.play_arrow : Icons.pause),
+              ),
               IconButton(
                 tooltip: t.previousAppointment,
                 onPressed: () => _move(-1),

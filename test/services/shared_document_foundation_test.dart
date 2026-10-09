@@ -611,7 +611,7 @@ void main() {
             .customSelect('PRAGMA user_version')
             .getSingle()
             .then((r) => r.read<int>('user_version')),
-        30,
+        31,
       );
       expect(
         (await db.customSelect('SELECT * FROM staff_tasks ORDER BY id').get())

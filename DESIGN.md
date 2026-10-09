@@ -12,9 +12,9 @@ Use the blue square with a white heart and ECG line, plus the MyHealth Care word
 | --- | --- | --- |
 | Page | #F3F6FB | surface |
 | Card / navigation | #FFFFFF | surfaceContainerLowest |
-| Primary action | #1E5FAF | primary |
-| Primary dark | #174C8E | supporting brand shade |
-| Mobile header | #E3ECF8 | primaryContainer |
+| Primary action | #4275A3 | primary |
+| Primary dark | #4275A3 | supporting brand shade |
+| Mobile header | #EDF5FC | primaryContainer |
 | Main text | #152C49 | onSurface / onPrimaryContainer |
 | Secondary text | #586A81 | onSurfaceVariant |
 | Border | #DFE7F1 | outlineVariant |

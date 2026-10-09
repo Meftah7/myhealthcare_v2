@@ -9,6 +9,8 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'admin_workspace_screens.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/data/contracts.dart';
@@ -50,6 +52,15 @@ class _AdminBillingScreenState extends ConsumerState<AdminBillingScreen> {
       hero: true,
       title: t.billingTitle,
       actions: [
+        IconButton(
+          tooltip: adminText(
+            context,
+            'Finance exceptions and export',
+            'الاستثناءات والتصدير المالي',
+          ),
+          icon: const Icon(Icons.receipt_outlined),
+          onPressed: () => context.push('/admin/billing/exceptions'),
+        ),
         IconButton(
           tooltip: t.reconcilePaymentsAction,
           icon: const Icon(Icons.sync),

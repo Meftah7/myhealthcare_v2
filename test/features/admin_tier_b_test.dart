@@ -199,9 +199,9 @@ void main() {
     final container = await _signInAdmin(tester);
     addTearDown(container.dispose);
 
-    await tester.tap(find.text('Profile').last);
+    await tester.tap(find.text('Reports').last);
     await _settle(tester);
-    await tester.tap(find.text('Historical demand'));
+    await tester.tap(find.text('Capacity forecast'));
     await _settle(tester);
     expect(find.widgetWithText(AppBar, 'Historical demand'), findsOneWidget);
     expect(find.text('Monday'), findsOneWidget);

@@ -63,7 +63,9 @@ void main() {
       await passMfa(tester);
       await _pump(tester);
 
-      await tester.tap(find.text('Departments').first);
+      await tester.tap(find.text('Clinic').first);
+      await _pump(tester);
+      await tester.tap(find.text('Departments').last);
       await _pump(tester);
 
       Color? nameColor() =>

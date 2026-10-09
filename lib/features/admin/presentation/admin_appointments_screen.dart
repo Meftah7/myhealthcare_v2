@@ -5,6 +5,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/i18n/enum_labels.dart';
@@ -39,6 +40,9 @@ class _AdminAppointmentsScreenState
         ref.watch(adminPatientNamesProvider).valueOrNull ?? const {};
     final staff = ref.watch(adminStaffNamesProvider).valueOrNull ?? const {};
     final gutter = WindowSize.of(context).gutter;
+    final reference = GoRouterState.of(
+      context,
+    ).uri.queryParameters['appointment'];
 
     return AppScaffold(
       title: t.allAppointmentsTitle,
@@ -74,9 +78,13 @@ class _AdminAppointmentsScreenState
         ),
         data: (all) {
           final list =
-              (_filter == null
-                    ? all
-                    : all.where((a) => a.status == _filter).toList())
+              all
+                  .where(
+                    (a) =>
+                        (_filter == null || a.status == _filter) &&
+                        (reference == null || a.id == reference),
+                  )
+                  .toList()
                 ..sort((a, b) => b.slotStart.compareTo(a.slotStart));
           if (list.isEmpty) {
             return EmptyState(

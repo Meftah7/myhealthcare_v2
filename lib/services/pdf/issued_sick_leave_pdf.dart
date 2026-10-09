@@ -1,5 +1,9 @@
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
+// The package shapes Arabic only for RTL paragraphs; reuse its shaper for
+// Arabic runs embedded in LTR text.
+// ignore: implementation_imports
+import 'package:pdf/src/pdf/font/arabic.dart' as arabic;
 import 'package:pdf/widgets.dart' as pw;
 
 /// Receives frozen text only; never reads a session, patient provider or clock.
@@ -11,6 +15,7 @@ abstract interface class IssuedSickLeaveRenderer {
     required DateTime issuedAt,
     bool draft = false,
     String title = 'Sick leave',
+    String clinicName = 'MyHealth Care',
     String? verificationUrl,
   });
 }
@@ -26,6 +31,7 @@ class IssuedSickLeavePdf implements IssuedSickLeaveRenderer {
     required DateTime issuedAt,
     bool draft = false,
     String title = 'Sick leave',
+    String clinicName = 'MyHealth Care',
     String? verificationUrl,
   }) async {
     final latin = pw.Font.ttf(
@@ -35,6 +41,7 @@ class IssuedSickLeavePdf implements IssuedSickLeaveRenderer {
       await rootBundle.load('assets/fonts/NotoNaskhArabic.ttf'),
     );
     final rtl = language == 'ar';
+    String text(String value) => rtl ? value : _shapeArabicRuns(value);
     final theme = pw.ThemeData.withFont(
       base: rtl ? arabic : latin,
       bold: rtl ? arabic : latin,
@@ -44,7 +51,7 @@ class IssuedSickLeavePdf implements IssuedSickLeaveRenderer {
     );
     final document = pw.Document(
       title: title,
-      author: 'MyHealth Care',
+      author: clinicName,
       subject: reference,
       creator: 'MyHealth',
       theme: theme,
@@ -58,14 +65,16 @@ class IssuedSickLeavePdf implements IssuedSickLeaveRenderer {
         header: (_) => pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            pw.Text('MyHealth Care', style: const pw.TextStyle(fontSize: 20)),
+            pw.Text(text(clinicName), style: const pw.TextStyle(fontSize: 20)),
             pw.Divider(),
-            pw.Text(title, style: const pw.TextStyle(fontSize: 16)),
+            pw.Text(text(title), style: const pw.TextStyle(fontSize: 16)),
             if (draft)
               pw.Text(
-                'DRAFT / مسودة',
+                text('DRAFT / مسودة'),
                 style: const pw.TextStyle(fontSize: 24, color: PdfColors.grey),
               ),
+            // Separates the repeated header from text continued on later pages.
+            pw.SizedBox(height: 12),
           ],
         ),
         footer: (context) => pw.Text(
@@ -75,14 +84,16 @@ class IssuedSickLeavePdf implements IssuedSickLeaveRenderer {
         ),
         build: (_) => [
           pw.SizedBox(height: 24),
-          for (final paragraph in wording.split('\n'))
-            pw.Padding(
-              padding: const pw.EdgeInsets.only(bottom: 12),
-              child: pw.Text(
-                paragraph,
-                style: const pw.TextStyle(fontSize: 13, lineSpacing: 5),
-              ),
+          for (final paragraph in wording.split('\n')) ...[
+            // Keep spanning text directly in MultiPage: a Padding wrapper
+            // prevents a long paragraph from continuing onto the next page.
+            pw.Text(
+              text(paragraph),
+              overflow: pw.TextOverflow.span,
+              style: const pw.TextStyle(fontSize: 13, lineSpacing: 5),
             ),
+            pw.SizedBox(height: 12),
+          ],
           if (!draft)
             pw.BarcodeWidget(
               barcode: pw.Barcode.qrCode(),
@@ -98,3 +109,13 @@ class IssuedSickLeavePdf implements IssuedSickLeaveRenderer {
     return document.save();
   }
 }
+
+final _arabicRun = RegExp(
+  r'[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]+'
+  r'(?:\s+[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]+)*',
+);
+
+/// Joins and orders each Arabic run visually so it reads correctly when the
+/// surrounding paragraph is laid out left to right.
+String _shapeArabicRuns(String value) =>
+    value.replaceAllMapped(_arabicRun, (m) => arabic.convert(m[0]!));

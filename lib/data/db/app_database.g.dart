@@ -32102,6 +32102,1293 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettingsRow> {
   }
 }
 
+class $AdminWorkItemsTable extends AdminWorkItems
+    with TableInfo<$AdminWorkItemsTable, AdminWorkRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AdminWorkItemsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceTypeMeta = const VerificationMeta(
+    'sourceType',
+  );
+  @override
+  late final GeneratedColumn<String> sourceType = GeneratedColumn<String>(
+    'source_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceIdMeta = const VerificationMeta(
+    'sourceId',
+  );
+  @override
+  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>(
+    'source_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _ownerIdMeta = const VerificationMeta(
+    'ownerId',
+  );
+  @override
+  late final GeneratedColumn<String> ownerId = GeneratedColumn<String>(
+    'owner_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _dueAtMeta = const VerificationMeta('dueAt');
+  @override
+  late final GeneratedColumn<DateTime> dueAt = GeneratedColumn<DateTime>(
+    'due_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('open'),
+  );
+  static const VerificationMeta _outcomeMeta = const VerificationMeta(
+    'outcome',
+  );
+  @override
+  late final GeneratedColumn<String> outcome = GeneratedColumn<String>(
+    'outcome',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    sourceType,
+    sourceId,
+    ownerId,
+    dueAt,
+    status,
+    outcome,
+    version,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'admin_work_items';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AdminWorkRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('source_type')) {
+      context.handle(
+        _sourceTypeMeta,
+        sourceType.isAcceptableOrUnknown(data['source_type']!, _sourceTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceTypeMeta);
+    }
+    if (data.containsKey('source_id')) {
+      context.handle(
+        _sourceIdMeta,
+        sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceIdMeta);
+    }
+    if (data.containsKey('owner_id')) {
+      context.handle(
+        _ownerIdMeta,
+        ownerId.isAcceptableOrUnknown(data['owner_id']!, _ownerIdMeta),
+      );
+    }
+    if (data.containsKey('due_at')) {
+      context.handle(
+        _dueAtMeta,
+        dueAt.isAcceptableOrUnknown(data['due_at']!, _dueAtMeta),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('outcome')) {
+      context.handle(
+        _outcomeMeta,
+        outcome.isAcceptableOrUnknown(data['outcome']!, _outcomeMeta),
+      );
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {sourceType, sourceId},
+  ];
+  @override
+  AdminWorkRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AdminWorkRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      sourceType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_type'],
+      )!,
+      sourceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_id'],
+      )!,
+      ownerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner_id'],
+      ),
+      dueAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}due_at'],
+      ),
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      outcome: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}outcome'],
+      ),
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $AdminWorkItemsTable createAlias(String alias) {
+    return $AdminWorkItemsTable(attachedDatabase, alias);
+  }
+}
+
+class AdminWorkRow extends DataClass implements Insertable<AdminWorkRow> {
+  final String id;
+  final String sourceType;
+  final String sourceId;
+  final String? ownerId;
+  final DateTime? dueAt;
+  final String status;
+  final String? outcome;
+  final int version;
+  final DateTime updatedAt;
+  const AdminWorkRow({
+    required this.id,
+    required this.sourceType,
+    required this.sourceId,
+    this.ownerId,
+    this.dueAt,
+    required this.status,
+    this.outcome,
+    required this.version,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['source_type'] = Variable<String>(sourceType);
+    map['source_id'] = Variable<String>(sourceId);
+    if (!nullToAbsent || ownerId != null) {
+      map['owner_id'] = Variable<String>(ownerId);
+    }
+    if (!nullToAbsent || dueAt != null) {
+      map['due_at'] = Variable<DateTime>(dueAt);
+    }
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || outcome != null) {
+      map['outcome'] = Variable<String>(outcome);
+    }
+    map['version'] = Variable<int>(version);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  AdminWorkItemsCompanion toCompanion(bool nullToAbsent) {
+    return AdminWorkItemsCompanion(
+      id: Value(id),
+      sourceType: Value(sourceType),
+      sourceId: Value(sourceId),
+      ownerId: ownerId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ownerId),
+      dueAt: dueAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dueAt),
+      status: Value(status),
+      outcome: outcome == null && nullToAbsent
+          ? const Value.absent()
+          : Value(outcome),
+      version: Value(version),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory AdminWorkRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AdminWorkRow(
+      id: serializer.fromJson<String>(json['id']),
+      sourceType: serializer.fromJson<String>(json['sourceType']),
+      sourceId: serializer.fromJson<String>(json['sourceId']),
+      ownerId: serializer.fromJson<String?>(json['ownerId']),
+      dueAt: serializer.fromJson<DateTime?>(json['dueAt']),
+      status: serializer.fromJson<String>(json['status']),
+      outcome: serializer.fromJson<String?>(json['outcome']),
+      version: serializer.fromJson<int>(json['version']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'sourceType': serializer.toJson<String>(sourceType),
+      'sourceId': serializer.toJson<String>(sourceId),
+      'ownerId': serializer.toJson<String?>(ownerId),
+      'dueAt': serializer.toJson<DateTime?>(dueAt),
+      'status': serializer.toJson<String>(status),
+      'outcome': serializer.toJson<String?>(outcome),
+      'version': serializer.toJson<int>(version),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  AdminWorkRow copyWith({
+    String? id,
+    String? sourceType,
+    String? sourceId,
+    Value<String?> ownerId = const Value.absent(),
+    Value<DateTime?> dueAt = const Value.absent(),
+    String? status,
+    Value<String?> outcome = const Value.absent(),
+    int? version,
+    DateTime? updatedAt,
+  }) => AdminWorkRow(
+    id: id ?? this.id,
+    sourceType: sourceType ?? this.sourceType,
+    sourceId: sourceId ?? this.sourceId,
+    ownerId: ownerId.present ? ownerId.value : this.ownerId,
+    dueAt: dueAt.present ? dueAt.value : this.dueAt,
+    status: status ?? this.status,
+    outcome: outcome.present ? outcome.value : this.outcome,
+    version: version ?? this.version,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  AdminWorkRow copyWithCompanion(AdminWorkItemsCompanion data) {
+    return AdminWorkRow(
+      id: data.id.present ? data.id.value : this.id,
+      sourceType: data.sourceType.present
+          ? data.sourceType.value
+          : this.sourceType,
+      sourceId: data.sourceId.present ? data.sourceId.value : this.sourceId,
+      ownerId: data.ownerId.present ? data.ownerId.value : this.ownerId,
+      dueAt: data.dueAt.present ? data.dueAt.value : this.dueAt,
+      status: data.status.present ? data.status.value : this.status,
+      outcome: data.outcome.present ? data.outcome.value : this.outcome,
+      version: data.version.present ? data.version.value : this.version,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AdminWorkRow(')
+          ..write('id: $id, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('ownerId: $ownerId, ')
+          ..write('dueAt: $dueAt, ')
+          ..write('status: $status, ')
+          ..write('outcome: $outcome, ')
+          ..write('version: $version, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    sourceType,
+    sourceId,
+    ownerId,
+    dueAt,
+    status,
+    outcome,
+    version,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AdminWorkRow &&
+          other.id == this.id &&
+          other.sourceType == this.sourceType &&
+          other.sourceId == this.sourceId &&
+          other.ownerId == this.ownerId &&
+          other.dueAt == this.dueAt &&
+          other.status == this.status &&
+          other.outcome == this.outcome &&
+          other.version == this.version &&
+          other.updatedAt == this.updatedAt);
+}
+
+class AdminWorkItemsCompanion extends UpdateCompanion<AdminWorkRow> {
+  final Value<String> id;
+  final Value<String> sourceType;
+  final Value<String> sourceId;
+  final Value<String?> ownerId;
+  final Value<DateTime?> dueAt;
+  final Value<String> status;
+  final Value<String?> outcome;
+  final Value<int> version;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const AdminWorkItemsCompanion({
+    this.id = const Value.absent(),
+    this.sourceType = const Value.absent(),
+    this.sourceId = const Value.absent(),
+    this.ownerId = const Value.absent(),
+    this.dueAt = const Value.absent(),
+    this.status = const Value.absent(),
+    this.outcome = const Value.absent(),
+    this.version = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AdminWorkItemsCompanion.insert({
+    required String id,
+    required String sourceType,
+    required String sourceId,
+    this.ownerId = const Value.absent(),
+    this.dueAt = const Value.absent(),
+    this.status = const Value.absent(),
+    this.outcome = const Value.absent(),
+    this.version = const Value.absent(),
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       sourceType = Value(sourceType),
+       sourceId = Value(sourceId),
+       updatedAt = Value(updatedAt);
+  static Insertable<AdminWorkRow> custom({
+    Expression<String>? id,
+    Expression<String>? sourceType,
+    Expression<String>? sourceId,
+    Expression<String>? ownerId,
+    Expression<DateTime>? dueAt,
+    Expression<String>? status,
+    Expression<String>? outcome,
+    Expression<int>? version,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (sourceType != null) 'source_type': sourceType,
+      if (sourceId != null) 'source_id': sourceId,
+      if (ownerId != null) 'owner_id': ownerId,
+      if (dueAt != null) 'due_at': dueAt,
+      if (status != null) 'status': status,
+      if (outcome != null) 'outcome': outcome,
+      if (version != null) 'version': version,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AdminWorkItemsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? sourceType,
+    Value<String>? sourceId,
+    Value<String?>? ownerId,
+    Value<DateTime?>? dueAt,
+    Value<String>? status,
+    Value<String?>? outcome,
+    Value<int>? version,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return AdminWorkItemsCompanion(
+      id: id ?? this.id,
+      sourceType: sourceType ?? this.sourceType,
+      sourceId: sourceId ?? this.sourceId,
+      ownerId: ownerId ?? this.ownerId,
+      dueAt: dueAt ?? this.dueAt,
+      status: status ?? this.status,
+      outcome: outcome ?? this.outcome,
+      version: version ?? this.version,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (sourceType.present) {
+      map['source_type'] = Variable<String>(sourceType.value);
+    }
+    if (sourceId.present) {
+      map['source_id'] = Variable<String>(sourceId.value);
+    }
+    if (ownerId.present) {
+      map['owner_id'] = Variable<String>(ownerId.value);
+    }
+    if (dueAt.present) {
+      map['due_at'] = Variable<DateTime>(dueAt.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (outcome.present) {
+      map['outcome'] = Variable<String>(outcome.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AdminWorkItemsCompanion(')
+          ..write('id: $id, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('ownerId: $ownerId, ')
+          ..write('dueAt: $dueAt, ')
+          ..write('status: $status, ')
+          ..write('outcome: $outcome, ')
+          ..write('version: $version, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AdminWorkHistoryTable extends AdminWorkHistory
+    with TableInfo<$AdminWorkHistoryTable, AdminWorkHistoryRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AdminWorkHistoryTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _workIdMeta = const VerificationMeta('workId');
+  @override
+  late final GeneratedColumn<String> workId = GeneratedColumn<String>(
+    'work_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES admin_work_items (id)',
+    ),
+  );
+  static const VerificationMeta _actorIdMeta = const VerificationMeta(
+    'actorId',
+  );
+  @override
+  late final GeneratedColumn<String> actorId = GeneratedColumn<String>(
+    'actor_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _beforeJsonMeta = const VerificationMeta(
+    'beforeJson',
+  );
+  @override
+  late final GeneratedColumn<String> beforeJson = GeneratedColumn<String>(
+    'before_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _afterJsonMeta = const VerificationMeta(
+    'afterJson',
+  );
+  @override
+  late final GeneratedColumn<String> afterJson = GeneratedColumn<String>(
+    'after_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _reasonMeta = const VerificationMeta('reason');
+  @override
+  late final GeneratedColumn<String> reason = GeneratedColumn<String>(
+    'reason',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _atMeta = const VerificationMeta('at');
+  @override
+  late final GeneratedColumn<DateTime> at = GeneratedColumn<DateTime>(
+    'at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    workId,
+    actorId,
+    beforeJson,
+    afterJson,
+    reason,
+    at,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'admin_work_history';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AdminWorkHistoryRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('work_id')) {
+      context.handle(
+        _workIdMeta,
+        workId.isAcceptableOrUnknown(data['work_id']!, _workIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_workIdMeta);
+    }
+    if (data.containsKey('actor_id')) {
+      context.handle(
+        _actorIdMeta,
+        actorId.isAcceptableOrUnknown(data['actor_id']!, _actorIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_actorIdMeta);
+    }
+    if (data.containsKey('before_json')) {
+      context.handle(
+        _beforeJsonMeta,
+        beforeJson.isAcceptableOrUnknown(data['before_json']!, _beforeJsonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_beforeJsonMeta);
+    }
+    if (data.containsKey('after_json')) {
+      context.handle(
+        _afterJsonMeta,
+        afterJson.isAcceptableOrUnknown(data['after_json']!, _afterJsonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_afterJsonMeta);
+    }
+    if (data.containsKey('reason')) {
+      context.handle(
+        _reasonMeta,
+        reason.isAcceptableOrUnknown(data['reason']!, _reasonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_reasonMeta);
+    }
+    if (data.containsKey('at')) {
+      context.handle(_atMeta, at.isAcceptableOrUnknown(data['at']!, _atMeta));
+    } else if (isInserting) {
+      context.missing(_atMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AdminWorkHistoryRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AdminWorkHistoryRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      workId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}work_id'],
+      )!,
+      actorId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}actor_id'],
+      )!,
+      beforeJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}before_json'],
+      )!,
+      afterJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}after_json'],
+      )!,
+      reason: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reason'],
+      )!,
+      at: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}at'],
+      )!,
+    );
+  }
+
+  @override
+  $AdminWorkHistoryTable createAlias(String alias) {
+    return $AdminWorkHistoryTable(attachedDatabase, alias);
+  }
+}
+
+class AdminWorkHistoryRow extends DataClass
+    implements Insertable<AdminWorkHistoryRow> {
+  final String id;
+  final String workId;
+  final String actorId;
+  final String beforeJson;
+  final String afterJson;
+  final String reason;
+  final DateTime at;
+  const AdminWorkHistoryRow({
+    required this.id,
+    required this.workId,
+    required this.actorId,
+    required this.beforeJson,
+    required this.afterJson,
+    required this.reason,
+    required this.at,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['work_id'] = Variable<String>(workId);
+    map['actor_id'] = Variable<String>(actorId);
+    map['before_json'] = Variable<String>(beforeJson);
+    map['after_json'] = Variable<String>(afterJson);
+    map['reason'] = Variable<String>(reason);
+    map['at'] = Variable<DateTime>(at);
+    return map;
+  }
+
+  AdminWorkHistoryCompanion toCompanion(bool nullToAbsent) {
+    return AdminWorkHistoryCompanion(
+      id: Value(id),
+      workId: Value(workId),
+      actorId: Value(actorId),
+      beforeJson: Value(beforeJson),
+      afterJson: Value(afterJson),
+      reason: Value(reason),
+      at: Value(at),
+    );
+  }
+
+  factory AdminWorkHistoryRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AdminWorkHistoryRow(
+      id: serializer.fromJson<String>(json['id']),
+      workId: serializer.fromJson<String>(json['workId']),
+      actorId: serializer.fromJson<String>(json['actorId']),
+      beforeJson: serializer.fromJson<String>(json['beforeJson']),
+      afterJson: serializer.fromJson<String>(json['afterJson']),
+      reason: serializer.fromJson<String>(json['reason']),
+      at: serializer.fromJson<DateTime>(json['at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'workId': serializer.toJson<String>(workId),
+      'actorId': serializer.toJson<String>(actorId),
+      'beforeJson': serializer.toJson<String>(beforeJson),
+      'afterJson': serializer.toJson<String>(afterJson),
+      'reason': serializer.toJson<String>(reason),
+      'at': serializer.toJson<DateTime>(at),
+    };
+  }
+
+  AdminWorkHistoryRow copyWith({
+    String? id,
+    String? workId,
+    String? actorId,
+    String? beforeJson,
+    String? afterJson,
+    String? reason,
+    DateTime? at,
+  }) => AdminWorkHistoryRow(
+    id: id ?? this.id,
+    workId: workId ?? this.workId,
+    actorId: actorId ?? this.actorId,
+    beforeJson: beforeJson ?? this.beforeJson,
+    afterJson: afterJson ?? this.afterJson,
+    reason: reason ?? this.reason,
+    at: at ?? this.at,
+  );
+  AdminWorkHistoryRow copyWithCompanion(AdminWorkHistoryCompanion data) {
+    return AdminWorkHistoryRow(
+      id: data.id.present ? data.id.value : this.id,
+      workId: data.workId.present ? data.workId.value : this.workId,
+      actorId: data.actorId.present ? data.actorId.value : this.actorId,
+      beforeJson: data.beforeJson.present
+          ? data.beforeJson.value
+          : this.beforeJson,
+      afterJson: data.afterJson.present ? data.afterJson.value : this.afterJson,
+      reason: data.reason.present ? data.reason.value : this.reason,
+      at: data.at.present ? data.at.value : this.at,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AdminWorkHistoryRow(')
+          ..write('id: $id, ')
+          ..write('workId: $workId, ')
+          ..write('actorId: $actorId, ')
+          ..write('beforeJson: $beforeJson, ')
+          ..write('afterJson: $afterJson, ')
+          ..write('reason: $reason, ')
+          ..write('at: $at')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, workId, actorId, beforeJson, afterJson, reason, at);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AdminWorkHistoryRow &&
+          other.id == this.id &&
+          other.workId == this.workId &&
+          other.actorId == this.actorId &&
+          other.beforeJson == this.beforeJson &&
+          other.afterJson == this.afterJson &&
+          other.reason == this.reason &&
+          other.at == this.at);
+}
+
+class AdminWorkHistoryCompanion extends UpdateCompanion<AdminWorkHistoryRow> {
+  final Value<String> id;
+  final Value<String> workId;
+  final Value<String> actorId;
+  final Value<String> beforeJson;
+  final Value<String> afterJson;
+  final Value<String> reason;
+  final Value<DateTime> at;
+  final Value<int> rowid;
+  const AdminWorkHistoryCompanion({
+    this.id = const Value.absent(),
+    this.workId = const Value.absent(),
+    this.actorId = const Value.absent(),
+    this.beforeJson = const Value.absent(),
+    this.afterJson = const Value.absent(),
+    this.reason = const Value.absent(),
+    this.at = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AdminWorkHistoryCompanion.insert({
+    required String id,
+    required String workId,
+    required String actorId,
+    required String beforeJson,
+    required String afterJson,
+    required String reason,
+    required DateTime at,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       workId = Value(workId),
+       actorId = Value(actorId),
+       beforeJson = Value(beforeJson),
+       afterJson = Value(afterJson),
+       reason = Value(reason),
+       at = Value(at);
+  static Insertable<AdminWorkHistoryRow> custom({
+    Expression<String>? id,
+    Expression<String>? workId,
+    Expression<String>? actorId,
+    Expression<String>? beforeJson,
+    Expression<String>? afterJson,
+    Expression<String>? reason,
+    Expression<DateTime>? at,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (workId != null) 'work_id': workId,
+      if (actorId != null) 'actor_id': actorId,
+      if (beforeJson != null) 'before_json': beforeJson,
+      if (afterJson != null) 'after_json': afterJson,
+      if (reason != null) 'reason': reason,
+      if (at != null) 'at': at,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AdminWorkHistoryCompanion copyWith({
+    Value<String>? id,
+    Value<String>? workId,
+    Value<String>? actorId,
+    Value<String>? beforeJson,
+    Value<String>? afterJson,
+    Value<String>? reason,
+    Value<DateTime>? at,
+    Value<int>? rowid,
+  }) {
+    return AdminWorkHistoryCompanion(
+      id: id ?? this.id,
+      workId: workId ?? this.workId,
+      actorId: actorId ?? this.actorId,
+      beforeJson: beforeJson ?? this.beforeJson,
+      afterJson: afterJson ?? this.afterJson,
+      reason: reason ?? this.reason,
+      at: at ?? this.at,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (workId.present) {
+      map['work_id'] = Variable<String>(workId.value);
+    }
+    if (actorId.present) {
+      map['actor_id'] = Variable<String>(actorId.value);
+    }
+    if (beforeJson.present) {
+      map['before_json'] = Variable<String>(beforeJson.value);
+    }
+    if (afterJson.present) {
+      map['after_json'] = Variable<String>(afterJson.value);
+    }
+    if (reason.present) {
+      map['reason'] = Variable<String>(reason.value);
+    }
+    if (at.present) {
+      map['at'] = Variable<DateTime>(at.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AdminWorkHistoryCompanion(')
+          ..write('id: $id, ')
+          ..write('workId: $workId, ')
+          ..write('actorId: $actorId, ')
+          ..write('beforeJson: $beforeJson, ')
+          ..write('afterJson: $afterJson, ')
+          ..write('reason: $reason, ')
+          ..write('at: $at, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ClinicConfigurationsTable extends ClinicConfigurations
+    with TableInfo<$ClinicConfigurationsTable, ClinicConfigurationRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ClinicConfigurationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _valueJsonMeta = const VerificationMeta(
+    'valueJson',
+  );
+  @override
+  late final GeneratedColumn<String> valueJson = GeneratedColumn<String>(
+    'value_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, valueJson, updatedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'clinic_configurations';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ClinicConfigurationRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('value_json')) {
+      context.handle(
+        _valueJsonMeta,
+        valueJson.isAcceptableOrUnknown(data['value_json']!, _valueJsonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_valueJsonMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ClinicConfigurationRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ClinicConfigurationRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      valueJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}value_json'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ClinicConfigurationsTable createAlias(String alias) {
+    return $ClinicConfigurationsTable(attachedDatabase, alias);
+  }
+}
+
+class ClinicConfigurationRow extends DataClass
+    implements Insertable<ClinicConfigurationRow> {
+  final String id;
+  final String valueJson;
+  final DateTime updatedAt;
+  const ClinicConfigurationRow({
+    required this.id,
+    required this.valueJson,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['value_json'] = Variable<String>(valueJson);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  ClinicConfigurationsCompanion toCompanion(bool nullToAbsent) {
+    return ClinicConfigurationsCompanion(
+      id: Value(id),
+      valueJson: Value(valueJson),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory ClinicConfigurationRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ClinicConfigurationRow(
+      id: serializer.fromJson<String>(json['id']),
+      valueJson: serializer.fromJson<String>(json['valueJson']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'valueJson': serializer.toJson<String>(valueJson),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  ClinicConfigurationRow copyWith({
+    String? id,
+    String? valueJson,
+    DateTime? updatedAt,
+  }) => ClinicConfigurationRow(
+    id: id ?? this.id,
+    valueJson: valueJson ?? this.valueJson,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  ClinicConfigurationRow copyWithCompanion(ClinicConfigurationsCompanion data) {
+    return ClinicConfigurationRow(
+      id: data.id.present ? data.id.value : this.id,
+      valueJson: data.valueJson.present ? data.valueJson.value : this.valueJson,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ClinicConfigurationRow(')
+          ..write('id: $id, ')
+          ..write('valueJson: $valueJson, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, valueJson, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ClinicConfigurationRow &&
+          other.id == this.id &&
+          other.valueJson == this.valueJson &&
+          other.updatedAt == this.updatedAt);
+}
+
+class ClinicConfigurationsCompanion
+    extends UpdateCompanion<ClinicConfigurationRow> {
+  final Value<String> id;
+  final Value<String> valueJson;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const ClinicConfigurationsCompanion({
+    this.id = const Value.absent(),
+    this.valueJson = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ClinicConfigurationsCompanion.insert({
+    required String id,
+    required String valueJson,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       valueJson = Value(valueJson),
+       updatedAt = Value(updatedAt);
+  static Insertable<ClinicConfigurationRow> custom({
+    Expression<String>? id,
+    Expression<String>? valueJson,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (valueJson != null) 'value_json': valueJson,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ClinicConfigurationsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? valueJson,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return ClinicConfigurationsCompanion(
+      id: id ?? this.id,
+      valueJson: valueJson ?? this.valueJson,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (valueJson.present) {
+      map['value_json'] = Variable<String>(valueJson.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ClinicConfigurationsCompanion(')
+          ..write('id: $id, ')
+          ..write('valueJson: $valueJson, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $FeedbacksTable extends Feedbacks
     with TableInfo<$FeedbacksTable, FeedbackRow> {
   @override
@@ -34100,6 +35387,12 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $AuditLogTable auditLog = $AuditLogTable(this);
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
+  late final $AdminWorkItemsTable adminWorkItems = $AdminWorkItemsTable(this);
+  late final $AdminWorkHistoryTable adminWorkHistory = $AdminWorkHistoryTable(
+    this,
+  );
+  late final $ClinicConfigurationsTable clinicConfigurations =
+      $ClinicConfigurationsTable(this);
   late final $FeedbacksTable feedbacks = $FeedbacksTable(this);
   late final $AiUsageLogTable aiUsageLog = $AiUsageLogTable(this);
   late final $IdempotencyRecordsTable idempotencyRecords =
@@ -34160,6 +35453,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     referralRequests,
     auditLog,
     appSettings,
+    adminWorkItems,
+    adminWorkHistory,
+    clinicConfigurations,
     feedbacks,
     aiUsageLog,
     idempotencyRecords,

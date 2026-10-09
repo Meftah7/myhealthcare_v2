@@ -1,0 +1,7 @@
+{
+  "name": "myhealth-shared-api",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24.13.0" },
+  "scripts": { "start": "node cli.mjs serve", "test": "node --test *.test.mjs", "load": "node load.mjs" }
+}

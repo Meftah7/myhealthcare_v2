@@ -86,7 +86,7 @@ void main() {
   });
 
   testWidgets(
-    'swipe and arrows work without pause, and swiping resets the timer',
+    'swipe and arrows work with pause available, and swiping resets the timer',
     (tester) async {
       await _mount(tester);
       await tester.pump(const Duration(seconds: 3));
@@ -99,8 +99,8 @@ void main() {
       expect(find.text('2 of 3'), findsOneWidget);
       await tester.pump(const Duration(seconds: 2));
       expect(find.text('2 of 3'), findsOneWidget);
-      expect(find.byTooltip('Pause appointment slideshow'), findsNothing);
-      expect(find.byIcon(Icons.pause), findsNothing);
+      expect(find.byTooltip('Pause appointment slideshow'), findsOneWidget);
+      expect(find.byIcon(Icons.pause), findsOneWidget);
       await tester.ensureVisible(find.byTooltip('Previous appointment'));
       await tester.tap(find.byTooltip('Previous appointment'));
       await tester.pump(const Duration(milliseconds: 400));

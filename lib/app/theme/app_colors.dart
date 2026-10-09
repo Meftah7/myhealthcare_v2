@@ -1,54 +1,39 @@
-/// Brand colour and the [ColorScheme]s for MyHealth Care (redesign v3).
+/// Softer blue brand palette with hand-authored neutral surfaces.
 ///
-/// Spec: DESIGN.md §2. One indigo-violet seed drawn from the "MyHealth Care"
-/// mark (magenta → violet → blue). Material 3 derives the accent roles from it
-/// — but the **neutral ramp is hand-authored**, because M3's generated greys
-/// carry the seed's violet cast into every surface and the container steps land
-/// so close together that a card never separates from the page behind it.
-///
-/// The neutrals here are a cool near-achromatic slate: a lightly-tinted page,
-/// pure-white cards in light mode, and a deep-slate elevation ramp in dark.
-/// Contrast for every text pair clears WCAG AA; `test/features/accessibility_test.dart`
-/// asserts it.
-///
-/// Status colours are NOT here — they live in [ClinicalStatusColors]
-/// (status_colors.dart), because M3 has no role for clinical severity.
+/// Light action blue retains contrast with white labels; pale containers and
+/// dark-mode accents carry the lighter sky-blue palette. See DESIGN.md.
+/// Clinical status colours live separately in status_colors.dart.
 library;
 
 import 'package:flutter/material.dart';
 
 abstract final class AppColors {
-  /// Indigo-violet — the visual centre of the brand gradient. Sits far from
-  /// every clinical status hue (amber / orange / red / green), holds WCAG
-  /// contrast in both themes, and reads as considered rather than clinical-cold.
-  static const Color seed = Color(0xFF1E5FAF);
+  /// Softer blue seed that retains readable white foregrounds.
+  static const Color seed = Color(0xFF4275A3);
 
-  /// The three brand-gradient stops (mark: magenta → violet → blue). Used
-  /// *sparingly and with intent* — the login mark, one hero surface per role,
-  /// the empty-state call to action. Never as page decoration (DESIGN.md §1).
-  static const Color brandMagenta = Color(0xFF2F7AD6);
-  static const Color brandViolet = Color(0xFF1E5FAF);
-  static const Color brandBlue = Color(0xFF174C8E);
+  /// Softer blue gradient stops. Legacy token names preserve existing callers.
+  static const Color brandMagenta = Color(0xFF5B8FB9);
+  static const Color brandViolet = Color(0xFF477AA6);
+  static const Color brandBlue = Color(0xFF4275A3);
 
-  /// Left-to-right brand gradient. Full saturation — reserve it for the mark.
+  /// Left-to-right brand gradient. Reserve the brighter sweep — reserve it for the mark.
   static const LinearGradient brandGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [brandMagenta, brandViolet, brandBlue],
   );
 
-  /// The calmer sibling of [brandGradient], for large hero surfaces where the
-  /// full magenta→blue sweep would shout. Violet-to-blue, no magenta.
+  /// A restrained blue gradient with readable white foregrounds.
   static const LinearGradient heroGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF2468B8), Color(0xFF1E5FAF), Color(0xFF1A549C)],
+    colors: [Color(0xFF477AA6), Color(0xFF4275A3), Color(0xFF3D719F)],
   );
 
   /// Ambient glow behind the splash mark — the gradient at low alpha, used as a
   /// radial bloom rather than a fill.
   static const RadialGradient brandGlow = RadialGradient(
-    colors: [Color(0x381E5FAF), Color(0x001E5FAF)],
+    colors: [Color(0x386FA5D2), Color(0x006FA5D2)],
   );
 
   // --- light ---------------------------------------------------------------
@@ -62,9 +47,9 @@ abstract final class AppColors {
         seedColor: seed,
         dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
       ).copyWith(
-        primary: const Color(0xFF1E5FAF),
+        primary: const Color(0xFF4275A3),
         onPrimary: Colors.white,
-        primaryContainer: const Color(0xFFE3ECF8),
+        primaryContainer: const Color(0xFFEDF5FC),
         onPrimaryContainer: const Color(0xFF152C49),
 
         secondary: const Color(0xFF4F6280),
@@ -99,7 +84,7 @@ abstract final class AppColors {
         outlineVariant: const Color(0xFFDFE7F1),
         inverseSurface: const Color(0xFF262A34),
         onInverseSurface: const Color(0xFFF3F4F9),
-        inversePrimary: const Color(0xFFA9C8F2),
+        inversePrimary: const Color(0xFFB8D5ED),
         surfaceTint: Colors.transparent,
       );
 
@@ -114,10 +99,10 @@ abstract final class AppColors {
         brightness: Brightness.dark,
         dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
       ).copyWith(
-        primary: const Color(0xFFA9C8F2),
+        primary: const Color(0xFFB8D5ED),
         onPrimary: const Color(0xFF0B2A52),
-        primaryContainer: const Color(0xFF17447D),
-        onPrimaryContainer: const Color(0xFFE3ECF8),
+        primaryContainer: const Color(0xFF2D5070),
+        onPrimaryContainer: const Color(0xFFEDF5FC),
 
         secondary: const Color(0xFFC0CCDD),
         onSecondary: const Color(0xFF2E2F43),
@@ -149,7 +134,7 @@ abstract final class AppColors {
         outlineVariant: const Color(0xFF2E323C),
         inverseSurface: const Color(0xFFE8EAF1),
         onInverseSurface: const Color(0xFF1A1D25),
-        inversePrimary: const Color(0xFF1E5FAF),
+        inversePrimary: const Color(0xFF4275A3),
         surfaceTint: Colors.transparent,
       );
 }

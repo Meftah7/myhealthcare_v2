@@ -5,6 +5,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
@@ -18,13 +19,21 @@ class AdminTopActions extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return const Row(
+    return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        AdminStatusMenu(),
-        NotificationsButton(route: AppRoutes.adminNotifications),
-        ThemeModeIconToggle(),
-        SizedBox(width: Space.xs),
+        const AdminStatusMenu(),
+        IconButton(
+          tooltip: Localizations.localeOf(context).languageCode == 'ar'
+              ? 'بحث'
+              : 'Search',
+          icon: const Icon(Icons.search),
+          onPressed: () => context.push('/admin/dashboard/search'),
+        ),
+        const NotificationsButton(route: AppRoutes.adminNotifications),
+        if (MediaQuery.sizeOf(context).width >= 600)
+          const ThemeModeIconToggle(),
+        const SizedBox(width: Space.xs),
       ],
     );
   }

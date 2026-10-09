@@ -109,7 +109,8 @@ class _CertCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (subjectName != null) Text('${t.importForLabel}: $subjectName'),
+          if (subjectName != null)
+            ReadableLabel('${t.importForLabel}: $subjectName'),
           Row(
             children: [
               Expanded(

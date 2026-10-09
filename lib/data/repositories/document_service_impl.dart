@@ -36,8 +36,16 @@ class DocumentServiceImpl implements DocumentService {
   static const _uuid = Uuid();
   static final _random = Random.secure();
 
-  String _externalBase() {
-    const origin = String.fromEnvironment('DOCUMENT_VERIFICATION_ORIGIN');
+  Future<String> _externalBase() async {
+    final row = await (_db.select(
+      _db.clinicConfigurations,
+    )..where((c) => c.id.equals('integrations'))).getSingleOrNull();
+    final config = row == null
+        ? <String, dynamic>{}
+        : jsonDecode(row.valueJson) as Map<String, dynamic>;
+    final origin =
+        config['verificationOrigin'] as String? ??
+        const String.fromEnvironment('DOCUMENT_VERIFICATION_ORIGIN');
     if (origin.isEmpty) return '';
     final uri = Uri.tryParse(origin);
     if (uri == null ||
@@ -54,6 +62,15 @@ class DocumentServiceImpl implements DocumentService {
       );
     }
     return origin.replaceAll(RegExp(r'/$'), '');
+  }
+
+  Future<String> _clinicName() async {
+    final row = await (_db.select(
+      _db.clinicConfigurations,
+    )..where((c) => c.id.equals('clinic'))).getSingleOrNull();
+    return row == null
+        ? 'MyHealth Care'
+        : (jsonDecode(row.valueJson) as Map<String, dynamic>)['name'] as String;
   }
 
   @override
@@ -639,7 +656,7 @@ class DocumentServiceImpl implements DocumentService {
           ),
         };
         final fields = {
-          'clinicName': 'MyHealth Care',
+          'clinicName': await _clinicName(),
           'patientName': patient.fullName,
           'visitDate': visit.slotStart.toIso8601String().split('T').first,
           ...content,
@@ -658,6 +675,7 @@ class DocumentServiceImpl implements DocumentService {
         );
         final bytes = await _renderer.render(
           wording: wording,
+          clinicName: await _clinicName(),
           language: t.language,
           title: DocumentRules.title(
             ExportDocument.values.byName(t.documentType),
@@ -1010,11 +1028,11 @@ class DocumentServiceImpl implements DocumentService {
                 'version': t.version,
                 'approvedBy': t.approvedBy,
                 'approvedAt': t.approvedAt!.toIso8601String(),
-                'clinicName': 'MyHealth Care',
+                'clinicName': await _clinicName(),
                 'externalToken': base64UrlEncode(
                   List<int>.generate(32, (_) => _random.nextInt(256)),
                 ).replaceAll('=', ''),
-                'externalBase': _externalBase(),
+                'externalBase': await _externalBase(),
               }),
               issuerAccountId: actor.accountId,
               idempotencyKey: idempotencyKey,
@@ -1193,6 +1211,11 @@ class DocumentServiceImpl implements DocumentService {
       try {
         bytes = await _renderer.render(
           wording: _wording(v, initial.verificationCode),
+          clinicName:
+              (jsonDecode(v.templateSnapshotJson)
+                      as Map<String, dynamic>)['clinicName']
+                  as String? ??
+              'MyHealth Care',
           language: v.language,
           reference: initial.verificationCode,
           title: DocumentRules.title(

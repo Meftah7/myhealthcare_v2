@@ -9,7 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/app.dart';
 import 'package:myhealthcare/app/settings/ui_prefs.dart';
 import 'package:myhealthcare/core/di.dart';
-import 'package:myhealthcare/core/presentation/app_card.dart';
+import 'package:myhealthcare/app/router.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -80,7 +80,10 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(find.byType(GradientHeroCard), findsOneWidget);
+    expect(
+      find.textContaining('Operational items needing attention'),
+      findsOneWidget,
+    );
     // Phase 6: exception queues lead, not system totals.
     expect(find.text('Needs attention'), findsOneWidget);
     expect(find.text('SYSTEM HEALTH'), findsNothing);
@@ -88,11 +91,14 @@ void main() {
 
     // The five nav tabs.
     for (final tab in const [
-      'Dashboard',
-      'Users',
-      'Departments',
-      'Billing',
-      'Profile',
+      'Overview',
+      'Work',
+      'People',
+      'Clinic',
+      'Documents',
+      'Finance',
+      'Reports',
+      'Settings',
     ]) {
       expect(find.text(tab), findsWidgets);
     }
@@ -111,7 +117,7 @@ void main() {
     final container = await _signInAdmin(tester);
     addTearDown(container.dispose);
 
-    await tester.tap(find.text('Profile').last);
+    container.read(routerProvider).go(AppRoutes.adminProfile);
     await _settle(tester);
     expect(find.widgetWithText(AppBar, 'Profile'), findsOneWidget);
     for (final row in const [

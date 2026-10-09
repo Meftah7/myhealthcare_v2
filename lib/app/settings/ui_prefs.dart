@@ -512,7 +512,7 @@ class ClinicScheduleController extends Notifier<ClinicSchedule> {
   /// Saves to the shared database (the source of truth for everyone using
   /// the clinic) and refreshes this device's startup cache. A failed database
   /// write rolls the change back and is reported, like every other setting.
-  Future<void> set(ClinicSchedule schedule) async {
+  Future<bool> set(ClinicSchedule schedule) async {
     final previous = state;
     state = schedule;
     final saved = await _saveOrRollback(
@@ -530,6 +530,7 @@ class ClinicScheduleController extends Notifier<ClinicSchedule> {
               .isOk,
     );
     if (saved) await _cache(schedule);
+    return saved;
   }
 
   /// Loads the shared schedule from the database (run once during app

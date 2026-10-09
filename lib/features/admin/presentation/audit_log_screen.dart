@@ -2,6 +2,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'admin_workspace_screens.dart' show readableAuditAction;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
@@ -81,7 +82,7 @@ class AuditLogScreen extends ConsumerWidget {
                         AdaptiveFormRow(
                           children: [
                             ReadableLabel(
-                              e.action,
+                              readableAuditAction(context, e.action),
                               style: theme.textTheme.titleSmall,
                             ),
                             Text(

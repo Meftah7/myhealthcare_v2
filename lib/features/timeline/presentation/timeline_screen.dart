@@ -15,6 +15,7 @@ import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/feedback.dart';
 import '../../../core/presentation/responsive.dart';
+import '../../../core/presentation/readable_label.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -239,13 +240,6 @@ class _FiltersState extends ConsumerState<_Filters> {
               children: [
                 OutlinedButton.icon(
                   onPressed: () => context.push(
-                    '${AppRoutes.patientDocuments}?patientId=${Uri.encodeQueryComponent(subject)}',
-                  ),
-                  icon: const Icon(Icons.description_outlined),
-                  label: Text(t.recordsDocuments),
-                ),
-                OutlinedButton.icon(
-                  onPressed: () => context.push(
                     '${AppRoutes.patientSickLeave}?patientId=$subject',
                   ),
                   icon: const Icon(Icons.event_note_outlined),
@@ -257,7 +251,7 @@ class _FiltersState extends ConsumerState<_Filters> {
                       ? () => showImportRecordSheet(context, patientId: subject)
                       : null,
                   icon: const Icon(Icons.upload_file_outlined),
-                  label: Text(t.recordsUploadDocument),
+                  label: ReadableLabel(t.recordsUploadDocument),
                 ),
               ],
             ),

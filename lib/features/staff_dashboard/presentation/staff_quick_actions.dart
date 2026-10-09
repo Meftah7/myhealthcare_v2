@@ -32,6 +32,7 @@ class StaffQuickActions extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
+    final inboxLabel = t.localeName == 'ar' ? 'الوارد' : 'Inbox';
     final actions = <_QuickAction>[
       _QuickAction(
         icon: Icons.verified_outlined,
@@ -99,11 +100,11 @@ class StaffQuickActions extends ConsumerWidget {
         onTap: () => context.go(AppRoutes.staffPatients),
       ),
       _QuickAction(
-        icon: Icons.forum_outlined,
+        icon: Icons.inbox_outlined,
         label: switch (ref.watch(staffUnreadCountProvider)) {
           // Unknown or zero: the plain label, never a count claim.
-          null || 0 => t.messagesTitle,
-          final int n => t.messagesActionWithCount(n),
+          null || 0 => inboxLabel,
+          final int n => '$inboxLabel ($n)',
         },
         onTap: () => unawaited(context.push(AppRoutes.staffInbox)),
       ),

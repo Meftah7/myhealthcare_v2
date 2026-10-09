@@ -9,6 +9,10 @@ import 'package:go_router/go_router.dart';
 import '../core/di.dart';
 import '../domain/enums.dart';
 import '../features/admin/presentation/admin_ai_log_screen.dart';
+import '../features/admin/presentation/admin_workspace_screens.dart';
+import '../features/admin/presentation/admin_clinic_documents.dart';
+import '../features/admin/presentation/admin_people_profile.dart';
+import '../features/admin/presentation/admin_finance_report.dart';
 import '../features/admin/presentation/admin_appointments_screen.dart';
 import '../features/admin/presentation/admin_billing_screen.dart';
 import '../features/admin/presentation/admin_dashboard_screen.dart';
@@ -622,11 +626,9 @@ StatefulShellRoute _staffShell() {
             label: t.navSchedule,
           ),
           AppDestination(
-            icon: Icons.inbox_outlined,
-            selectedIcon: Icons.inbox,
-            label: t.localeName == 'ar'
-                ? '\u0627\u0644\u0648\u0627\u0631\u062f'
-                : 'Inbox',
+            icon: Icons.account_circle_outlined,
+            selectedIcon: Icons.account_circle,
+            label: t.profile,
           ),
         ],
       );
@@ -638,6 +640,20 @@ StatefulShellRoute _staffShell() {
             path: AppRoutes.staffDashboard,
             builder: (_, _) => const StaffDashboardScreen(),
             routes: [
+              GoRoute(
+                path: 'inbox',
+                builder: (_, _) => const StaffInboxScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':patientId',
+                    builder: (_, state) => StaffMessageThreadPage(
+                      patientId: state.pathParameters['patientId']!,
+                      title: state.uri.queryParameters['name'],
+                      ownerId: state.uri.queryParameters['owner'],
+                    ),
+                  ),
+                ],
+              ),
               GoRoute(
                 path: 'notifications',
                 builder: (_, _) =>
@@ -723,20 +739,6 @@ StatefulShellRoute _staffShell() {
       StatefulShellBranch(
         routes: [
           GoRoute(
-            path: AppRoutes.staffInbox,
-            builder: (_, _) => const StaffInboxScreen(),
-            routes: [
-              GoRoute(
-                path: ':patientId',
-                builder: (_, state) => StaffMessageThreadPage(
-                  patientId: state.pathParameters['patientId']!,
-                  title: state.uri.queryParameters['name'],
-                  ownerId: state.uri.queryParameters['owner'],
-                ),
-              ),
-            ],
-          ),
-          GoRoute(
             path: AppRoutes.staffProfile,
             builder: (_, _) => const StaffProfileScreen(),
             routes: [
@@ -774,39 +776,52 @@ StatefulShellRoute _staffShell() {
 
 StatefulShellRoute _adminShell() {
   return StatefulShellRoute.indexedStack(
-    builder: (context, state, navigationShell) {
-      final t = AppLocalizations.of(context)!;
-      return AppShell(
-        navigationShell: navigationShell,
-        destinations: [
-          AppDestination(
-            icon: Icons.dashboard_outlined,
-            selectedIcon: Icons.dashboard,
-            label: t.navDashboard,
-          ),
-          AppDestination(
-            icon: Icons.manage_accounts_outlined,
-            selectedIcon: Icons.manage_accounts,
-            label: t.navUsers,
-          ),
-          AppDestination(
-            icon: Icons.apartment_outlined,
-            selectedIcon: Icons.apartment,
-            label: t.navDepartments,
-          ),
-          AppDestination(
-            icon: Icons.receipt_long_outlined,
-            selectedIcon: Icons.receipt_long,
-            label: t.navBilling,
-          ),
-          AppDestination(
-            icon: Icons.account_circle_outlined,
-            selectedIcon: Icons.account_circle,
-            label: t.profile,
-          ),
-        ],
-      );
-    },
+    builder: (context, state, navigationShell) => AppShell(
+      navigationShell: navigationShell,
+      compactLeadingCount: 3,
+      destinations: [
+        AppDestination(
+          icon: Icons.dashboard,
+          selectedIcon: Icons.dashboard,
+          label: adminText(context, 'Overview', 'نظرة عامة'),
+        ),
+        AppDestination(
+          icon: Icons.work_outline,
+          selectedIcon: Icons.work_outline,
+          label: adminText(context, 'Work', 'العمل'),
+        ),
+        AppDestination(
+          icon: Icons.people_outline,
+          selectedIcon: Icons.people_outline,
+          label: adminText(context, 'People', 'الأشخاص'),
+        ),
+        AppDestination(
+          icon: Icons.local_hospital_outlined,
+          selectedIcon: Icons.local_hospital_outlined,
+          label: adminText(context, 'Clinic', 'العيادة'),
+        ),
+        AppDestination(
+          icon: Icons.description_outlined,
+          selectedIcon: Icons.description_outlined,
+          label: adminText(context, 'Documents', 'المستندات'),
+        ),
+        AppDestination(
+          icon: Icons.receipt_long_outlined,
+          selectedIcon: Icons.receipt_long_outlined,
+          label: adminText(context, 'Finance', 'المالية'),
+        ),
+        AppDestination(
+          icon: Icons.insights_outlined,
+          selectedIcon: Icons.insights_outlined,
+          label: adminText(context, 'Reports', 'التقارير'),
+        ),
+        AppDestination(
+          icon: Icons.settings_outlined,
+          selectedIcon: Icons.settings_outlined,
+          label: adminText(context, 'Settings', 'الإعدادات'),
+        ),
+      ],
+    ),
     branches: [
       StatefulShellBranch(
         routes: [
@@ -814,6 +829,10 @@ StatefulShellRoute _adminShell() {
             path: AppRoutes.adminDashboard,
             builder: (_, _) => const AdminDashboardScreen(),
             routes: [
+              GoRoute(
+                path: 'search',
+                builder: (_, _) => const AdminGlobalSearchScreen(),
+              ),
               GoRoute(
                 path: 'notifications',
                 builder: (_, _) =>
@@ -838,13 +857,41 @@ StatefulShellRoute _adminShell() {
       StatefulShellBranch(
         routes: [
           GoRoute(
-            path: AppRoutes.adminUsers,
-            builder: (_, _) => const UserManagementScreen(),
+            path: '/admin/work',
+            builder: (_, state) => AdminUnifiedWorkScreen(
+              filter: state.uri.queryParameters['filter'],
+              item: state.uri.queryParameters['item'],
+            ),
           ),
         ],
       ),
       StatefulShellBranch(
         routes: [
+          GoRoute(
+            path: AppRoutes.adminUsers,
+            builder: (_, _) => const UserManagementScreen(),
+            routes: [
+              GoRoute(
+                path: ':person',
+                builder: (_, state) =>
+                    AdminPeopleProfileScreen(state.pathParameters['person']!),
+              ),
+            ],
+          ),
+        ],
+      ),
+      StatefulShellBranch(
+        routes: [
+          GoRoute(
+            path: '/admin/clinic',
+            builder: (_, _) => const AdminHubScreen('clinic'),
+            routes: [
+              GoRoute(
+                path: 'schedules',
+                builder: (_, _) => const AdminStaffScheduleScreen(),
+              ),
+            ],
+          ),
           GoRoute(
             path: AppRoutes.adminDepartments,
             builder: (_, _) => const DepartmentsScreen(),
@@ -854,13 +901,66 @@ StatefulShellRoute _adminShell() {
       StatefulShellBranch(
         routes: [
           GoRoute(
-            path: AppRoutes.adminBilling,
-            builder: (_, _) => const AdminBillingScreen(),
+            path: '/admin/documents',
+            builder: (_, _) => const AdminHubScreen('documents'),
+            routes: [
+              GoRoute(
+                path: 'registry',
+                builder: (_, _) => const AdminDocumentRegistryScreen(),
+              ),
+            ],
           ),
         ],
       ),
       StatefulShellBranch(
         routes: [
+          GoRoute(
+            path: AppRoutes.adminBilling,
+            builder: (_, _) => const AdminBillingScreen(),
+            routes: [
+              GoRoute(
+                path: 'exceptions',
+                builder: (_, _) => const AdminFinanceReportScreen(),
+              ),
+            ],
+          ),
+        ],
+      ),
+      StatefulShellBranch(
+        routes: [
+          GoRoute(
+            path: '/admin/reports',
+            builder: (_, _) => const AdminHubScreen('reports'),
+            routes: [
+              GoRoute(
+                path: 'operations',
+                builder: (_, _) => const AdminOperationsReportScreen(),
+              ),
+            ],
+          ),
+        ],
+      ),
+      StatefulShellBranch(
+        routes: [
+          GoRoute(
+            path: '/admin/settings',
+            builder: (_, _) => const AdminHubScreen('settings'),
+            routes: [
+              GoRoute(
+                path: 'clinic',
+                builder: (_, _) => const AdminConfigurationScreen('clinic'),
+              ),
+              GoRoute(
+                path: 'integrations',
+                builder: (_, _) =>
+                    const AdminConfigurationScreen('integrations'),
+              ),
+              GoRoute(
+                path: 'backup',
+                builder: (_, _) => const AdminConfigurationScreen('backup'),
+              ),
+            ],
+          ),
           GoRoute(
             path: AppRoutes.adminProfile,
             builder: (_, _) => const AdminProfileScreen(),

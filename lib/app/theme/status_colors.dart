@@ -109,7 +109,7 @@ class ClinicalStatusColors extends ThemeExtension<ClinicalStatusColors> {
     ),
     labLow: ClinicalStatusStyle(
       container: Color(0xFFEEF4FC),
-      onContainer: Color(0xFF1E5FAF),
+      onContainer: Color(0xFF3D719F),
       icon: Icons.south,
     ),
     labHigh: ClinicalStatusStyle(

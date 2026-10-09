@@ -8,9 +8,16 @@ import 'app/app.dart';
 import 'core/di.dart';
 import 'core/observability/operational_metrics.dart';
 import 'data/sync/idempotency.dart';
+import 'features/shared/presentation/shared_workspace_app.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  const sharedOrigin = String.fromEnvironment('SHARED_API_ORIGIN');
+  if (sharedOrigin.isNotEmpty) {
+    runApp(const SharedWorkspaceApp(origin: sharedOrigin));
+    return;
+  }
 
   final prefs = await SharedPreferences.getInstance();
 

@@ -93,7 +93,11 @@ void main() {
     await _settle(tester);
     expect(find.text('Task board'), findsOneWidget);
 
-    await tester.tap(find.text('Inbox').first);
+    await tester.tap(find.text('Today').last);
+    await _settle(tester);
+    final inbox = find.byIcon(Icons.inbox_outlined);
+    await tester.ensureVisible(inbox);
+    await tester.tap(inbox);
     await _settle(tester);
     expect(find.widgetWithText(AppBar, 'Messages'), findsOneWidget);
 

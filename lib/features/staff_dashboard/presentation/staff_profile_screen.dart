@@ -73,33 +73,60 @@ class StaffProfileScreen extends ConsumerWidget {
               elevated: false,
             ),
             SectionHeader(t.accountSection, overline: true),
-            ProfileNavigationGroup(items: [
-              for (final (icon, title, route) in sections)
-                ProfileNavigationItem(icon: icon, label: title,
-                  onTap: () => unawaited(context.push(route))),
-            ]),
+            ProfileNavigationGroup(
+              items: [
+                for (final (icon, title, route) in sections)
+                  ProfileNavigationItem(
+                    icon: icon,
+                    label: title,
+                    onTap: () => unawaited(context.push(route)),
+                  ),
+              ],
+            ),
             SectionHeader(t.settingsSection, overline: true),
-            ProfileNavigationGroup(items: [
-              ProfileNavigationItem(icon: Icons.tune,
-                label: t.preferences, subtitle: t.preferencesSubtitleAdmin,
-                onTap: () => unawaited(context.push(AppRoutes.staffProfilePreferences))),
-              ProfileNavigationItem(icon: Icons.verified_outlined,
-                label: t.verifyDocumentTitle,
-                onTap: () => unawaited(openVerifyDocument(context))),
-              ProfileNavigationItem(icon: Icons.forum_outlined,
-                label: t.sendFeedbackTitle,
-                onTap: () => unawaited(showFeedbackSheet(context, ref))),
-            ]),
+            ProfileNavigationGroup(
+              items: [
+                ProfileNavigationItem(
+                  icon: Icons.tune,
+                  label: t.preferences,
+                  subtitle: t.preferencesSubtitleAdmin,
+                  onTap: () => unawaited(
+                    context.push(AppRoutes.staffProfilePreferences),
+                  ),
+                ),
+                ProfileNavigationItem(
+                  icon: Icons.verified_outlined,
+                  label: t.verifyDocumentTitle,
+                  onTap: () => unawaited(openVerifyDocument(context)),
+                ),
+                ProfileNavigationItem(
+                  icon: Icons.forum_outlined,
+                  label: t.sendFeedbackTitle,
+                  onTap: () => unawaited(showFeedbackSheet(context, ref)),
+                ),
+              ],
+            ),
             const SizedBox(height: Space.lg),
-            ProfileNavigationGroup(items: [
-              ProfileNavigationItem(icon: Icons.logout, label: t.signOut,
-                destructive: true, onTap: () async {
-                  final ok = await confirm(context,
-                    title: t.signOutConfirmTitle, message: t.signOutConfirmBody,
-                    confirmLabel: t.signOut, destructive: true);
-                  if (ok) unawaited(ref.read(sessionProvider.notifier).logout());
-                }),
-            ]),
+            ProfileNavigationGroup(
+              items: [
+                ProfileNavigationItem(
+                  icon: Icons.logout,
+                  label: t.signOut,
+                  destructive: true,
+                  onTap: () async {
+                    final ok = await confirm(
+                      context,
+                      title: t.signOutConfirmTitle,
+                      message: t.signOutConfirmBody,
+                      confirmLabel: t.signOut,
+                      destructive: true,
+                    );
+                    if (ok)
+                      unawaited(ref.read(sessionProvider.notifier).logout());
+                  },
+                ),
+              ],
+            ),
           ];
         },
       ),

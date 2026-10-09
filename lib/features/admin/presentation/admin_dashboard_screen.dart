@@ -27,6 +27,7 @@ import '../application/attention_providers.dart';
 import 'admin_quick_actions.dart';
 import 'admin_top_actions.dart';
 import 'attention_list.dart';
+import 'admin_workspace_screens.dart';
 
 class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});
@@ -47,10 +48,11 @@ class AdminDashboardScreen extends ConsumerWidget {
       actions: const [AdminTopActions()],
       onRefresh: () async {
         refreshAdminAttention(ref);
+        ref.invalidate(adminWorkProvider);
         ref.invalidate(auditLogProvider);
       },
       children: [
-        const _NeedsYouHero(),
+        const AdminWorkspaceOverview(),
 
         SectionColumns(
           primary: [
@@ -113,59 +115,6 @@ class AdminDashboardScreen extends ConsumerWidget {
   }
 }
 
-/// The screen's one saturated surface: how much is waiting on the admin, and
-/// the way into the most urgent queue. "All clear" only once every queue was
-/// actually read.
-class _NeedsYouHero extends ConsumerWidget {
-  const _NeedsYouHero();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final t = AppLocalizations.of(context)!;
-    final values = [
-      for (final (_, source) in adminAttentionSources) ref.watch(source),
-    ];
-    if (values.any((v) => v.hasError)) {
-      return GradientHeroCard(
-        icon: Icons.sync_problem_outlined,
-        title: t.queuesCheckFailedTitle,
-        subtitle: t.queuesCheckFailedSubtitle,
-        onTap: () => refreshAdminAttention(ref),
-      );
-    }
-    if (values.any((v) => !v.hasValue)) {
-      return GradientHeroCard(
-        icon: Icons.hourglass_empty,
-        title: t.queuesCheckingTitle,
-        subtitle: t.queuesCheckingSubtitle,
-      );
-    }
-    final items = [
-      for (final v in values)
-        if (v.requireValue.count > 0) v.requireValue,
-    ];
-    final total = items.fold<int>(0, (sum, i) => sum + i.count);
-    if (total == 0) {
-      return GradientHeroCard(
-        icon: Icons.check_circle_outline,
-        title: t.allClearTitle,
-        subtitle: t.noQueuesWaitingSubtitle,
-      );
-    }
-    // Queues are in clinical-priority order: the first with work leads.
-    final lead = items.first;
-    return GradientHeroCard(
-      icon: Icons.priority_high,
-      title: t.thingsNeedYouTitle(total),
-      subtitle: [
-        for (final i in items.take(3))
-          '${attentionLabel(t, i.kind)} (${i.count})',
-      ].join(' · '),
-      onTap: () => openAttentionRoute(context, lead.route),
-    );
-  }
-}
-
 class _ActivityCard extends ConsumerWidget {
   const _ActivityCard();
 
@@ -192,7 +141,9 @@ class _ActivityCard extends ConsumerWidget {
                 if (i > 0) const Divider(height: 1, indent: Space.md),
                 ListTile(
                   dense: true,
-                  title: ReadableLabel(rows[i].action),
+                  title: ReadableLabel(
+                    readableAuditAction(context, rows[i].action),
+                  ),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [

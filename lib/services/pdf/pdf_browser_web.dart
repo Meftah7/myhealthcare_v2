@@ -16,9 +16,18 @@ bool openPdfInBrowser(Uint8List bytes) {
 
 /// Saves [bytes] as [filename] through the browser's download.
 bool downloadPdfInBrowser(Uint8List bytes, String filename) {
-  (web.HTMLAnchorElement()
-        ..href = _url(bytes)
-        ..download = filename)
-      .click();
+  final url = _url(bytes);
+  final anchor = web.HTMLAnchorElement()
+    ..href = url
+    ..download = filename;
+  // Attach before clicking so the browser can associate the download with
+  // the active document. Keep its URL alive while the download starts.
+  web.document.body?.append(anchor);
+  anchor.click();
+  anchor.remove();
+  Future<void>.delayed(
+    const Duration(minutes: 1),
+    () => web.URL.revokeObjectURL(url),
+  );
   return true;
 }

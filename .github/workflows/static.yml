@@ -20,12 +20,30 @@ jobs:
      - name: Set up Flutter
        uses: subosito/flutter-action@v2
        with:
-         flutter-version: '3.44.4'
+         flutter-version: '3.47.2'
          channel: 'stable'
+     - name: Set up server runtime
+       uses: actions/setup-node@v4
+       with:
+         node-version: '24.13.0'
      - name: Install dependencies
        run: flutter pub get
      - name: Generate code (Drift, etc.)
        run: dart run build_runner build --delete-conflicting-outputs
+     - name: Validate pinned versions
+       run: |
+         flutter --version --machine > /tmp/flutter-version.json
+         node -e "const p=require('./toolchain.json'),v=require('/tmp/flutter-version.json');if(v.frameworkVersion!==p.flutter||v.dartSdkVersion!==p.dart||process.versions.node!==p.node)throw Error('Toolchain mismatch')"
+     - name: Check formatting
+       run: dart format --output=none --set-exit-if-changed lib test integration_test test_driver
+     - name: Analyze
+       run: flutter analyze --no-fatal-infos
+     - name: Test clinic workflows
+       run: flutter test
+     - name: Test shared server and verification
+       run: node --test tools/serve_local.test.mjs services/shared_api/server.test.mjs services/shared_api/load.mjs services/document_verification/server.test.mjs
+     - name: Build shared pilot
+       run: flutter build web --release --no-web-resources-cdn --dart-define=SHARED_API_ORIGIN=http://localhost:8080
      - name: Build web release
        # base-href must match the repo name so asset paths resolve correctly
        # under https://<user>.github.io/<repo>/. --no-web-resources-cdn keeps

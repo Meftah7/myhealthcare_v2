@@ -221,7 +221,7 @@ void main() {
     await passMfa(tester);
     await _settle(tester);
 
-    await tester.tap(find.text('Users').last);
+    await tester.tap(find.text('People').last);
     await _settle(tester);
 
     // Patients tab is first. Collapsed rows hide the actions.

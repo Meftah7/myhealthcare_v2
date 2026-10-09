@@ -70,6 +70,16 @@ void main() {
     await _settle(tester);
     expect(find.widgetWithText(AppBar, 'Records'), findsOneWidget);
     // The hub offers the doctor chat (conversations + "Chat with doctor").
+    await tester.scrollUntilVisible(
+      find.text('Chat with doctor'),
+      500,
+      scrollable: find
+          .byWidgetPredicate(
+            (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+          )
+          .last,
+      maxScrolls: 200,
+    );
     expect(find.text('Chat with doctor'), findsOneWidget);
 
     // Go back to Home, then to Vitals via the Quick Actions tile — Vitals

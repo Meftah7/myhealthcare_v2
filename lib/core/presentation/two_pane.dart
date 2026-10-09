@@ -49,7 +49,9 @@ class TwoPane extends StatelessWidget {
   /// between setting selection state and pushing a route.
   static bool isSplit(BuildContext context) {
     final size = WindowSize.of(context);
-    final rail = size.isCompact ? 0 : (size.isExpanded || size.isLarge ? 256 : 72);
+    final rail = size.isCompact
+        ? 0
+        : (size.isExpanded || size.isLarge ? 256 : 72);
     return MediaQuery.sizeOf(context).width - rail >= 801;
   }
 

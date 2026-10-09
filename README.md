@@ -11,8 +11,8 @@
 A Flutter healthcare project with dedicated patient, staff and admin workspaces.
 
 <p>
-  <img src="https://img.shields.io/badge/Flutter-3.44.4-02569B?logo=flutter&amp;logoColor=white" alt="Flutter 3.44.4">
-  <img src="https://img.shields.io/badge/Dart-3.12.2-0175C2?logo=dart&amp;logoColor=white" alt="Dart 3.12.2">
+  <img src="https://img.shields.io/badge/Flutter-3.47.2-02569B?logo=flutter&amp;logoColor=white" alt="Flutter 3.47.2">
+  <img src="https://img.shields.io/badge/Dart-3.13.2-0175C2?logo=dart&amp;logoColor=white" alt="Dart 3.13.2">
   <img src="https://img.shields.io/badge/Storage-Drift%20%2F%20SQLite-164B7A" alt="Drift and SQLite storage">
   <img src="https://img.shields.io/badge/Language-English%20%2B%20Arabic-16806A" alt="English and Arabic">
 </p>
@@ -69,10 +69,16 @@ also reset the dataset through **AI settings → Re-seed / reset demo data**.
 
 For more accounts and example workflows, see [the demo account guide](docs/test_accounts.md).
 
+For the local shared-server pilot (tasks, documents and original PDFs), see the
+[shared server setup and remaining integration](services/shared_api/README.md).
+It uses a separate server database; the rest of the existing clinic modules are
+not yet connected to that server. Public hosting is deferred.
+
 ## Quick start
 
-Use the pinned **Flutter 3.44.4 / Dart 3.12.2** toolchain. The dependency lock and
-GitHub Pages workflow use this version; see [the project plan](plan.md) for context.
+Use the pinned **Flutter 3.47.2 / Dart 3.13.2** toolchain. The release gate and
+GitHub Pages workflow use these versions; exact SDK/runtime versions are recorded in
+[toolchain.json](toolchain.json).
 
 ```bash
 git clone https://github.com/Meftah7/myhealthcare_v2.git
@@ -132,6 +138,12 @@ See [AI setup](docs/ai_setup.md) for provider details. Keep API keys out of comm
 `.gitignore` excludes `*.env`, `secrets.dart` and `api_keys.dart`.
 
 ## Development checks
+
+The acceptance gate and outstanding release checks are recorded in
+[Task 8 acceptance](docs/task8_acceptance.md). On Windows, run
+`./tools/validate.ps1 -FlutterRoot C:/flutter -IntegrationDevice windows`.
+CI runs formatting, analysis, Flutter/server tests and both web builds before publishing.
+
 
 ```bash
 flutter analyze

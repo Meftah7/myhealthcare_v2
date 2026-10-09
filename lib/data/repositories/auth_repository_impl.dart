@@ -20,6 +20,7 @@ import '../../services/auth/auth_context.dart';
 import '../../services/auth/password_hasher.dart';
 import '../../services/auth/recovery_delivery.dart';
 import '../db/app_database.dart';
+import 'booking_safety.dart';
 import 'mappers.dart';
 
 /// Builds the principal for a proven account: role grants, narrowed for
@@ -961,23 +962,28 @@ class UserRepositoryImpl implements UserRepository {
 
   @override
   Future<Result<void>> setActive({required String id, required bool active}) {
-    return Result.guardAsync(() async {
-      await _admin(sensitive: true, entityId: id);
-      if (!active && id == _access.actingAccountId) {
-        throw const ValidationFailure("You can't deactivate your own account.");
-      }
-      final updated =
-          await (_db.update(_db.users)..where((u) => u.id.equals(id))).write(
-            UsersCompanion(isActive: Value(active)),
+    return Result.guardAsync(
+      () => _db.transaction(() async {
+        await _admin(sensitive: true, entityId: id);
+        if (!active && id == _access.actingAccountId) {
+          throw const ValidationFailure(
+            "You can't deactivate your own account.",
           );
-      if (updated != 1) throw NotFoundFailure('No user $id.');
-      if (!active) await invalidateRecoveryCodes(_db, id, DateTime.now());
-      await _access.audit(
-        active ? 'account.activated' : 'account.deactivated',
-        entityType: 'account',
-        entityId: id,
-      );
-    });
+        }
+        if (!active) await requireSafeDeactivation(_db, id);
+        final updated =
+            await (_db.update(_db.users)..where((u) => u.id.equals(id))).write(
+              UsersCompanion(isActive: Value(active)),
+            );
+        if (updated != 1) throw NotFoundFailure('No user $id.');
+        if (!active) await invalidateRecoveryCodes(_db, id, DateTime.now());
+        await _access.audit(
+          active ? 'account.activated' : 'account.deactivated',
+          entityType: 'account',
+          entityId: id,
+        );
+      }),
+    );
   }
 
   @override

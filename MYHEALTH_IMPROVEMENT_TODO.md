@@ -139,59 +139,79 @@ Validation: 51 focused checks passed across workflow, task correctness, risk gen
 
 ## 6. Admin workspace
 
-- [ ] Add Overview, Work, People, Clinic, Documents, Finance, Reports and Settings navigation; adapt to Overview/Work/People/More on phones.
-- [ ] Add permission-aware global search for people, appointments and document references.
-- [ ] Build actionable dashboard counts for unassigned/overdue work, pending approvals and failures; link each to its filtered queue.
-- [ ] Distinguish loading/errors from zero, avoid duplicate combined counts, and show owner, waiting time and next action.
-- [ ] Add configurable frequent actions and readable audit activity labels.
-- [ ] Unify operational queues for referrals, home visits, reviews, replies, documents, delivery failures and feedback.
-- [ ] Support owner assignment, due dates, information requests and resolution from queue items.
-- [ ] Add responsive people management with role/department/status/clinician filters and scoped profile tabs.
-- [ ] Manage staff schedules, cover, service hours and capacity under Clinic.
-- [ ] Preview affected bookings and require replacement ownership before deactivating staff or changing relevant availability.
-- [ ] Add a document center for templates, requests, approvals, issued copies, replacements, delivery and verification.
-- [ ] Organize finance exceptions and operational reports around recorded reasons and useful exports.
-- [ ] Configure clinic identity, languages, integrations, AI capabilities, grants, audits and backups under Settings.
-- [ ] Protect the last active admin, preview bulk changes and confirm deactivation, refunds, revocation and resets while preserving history/recovery.
-- [ ] Split large presentation files into coherent sections only as needed for these workflow changes.
+- [x] Add Overview, Work, People, Clinic, Documents, Finance, Reports and Settings navigation; adapt to Overview/Work/People/More on phones.
+- [x] Add permission-aware global search for people, appointments and document references.
+- [x] Build actionable dashboard counts for unassigned/overdue work, pending approvals and failures; link each to its filtered queue.
+- [x] Distinguish loading/errors from zero, avoid duplicate combined counts, and show owner, waiting time and next action.
+- [x] Add configurable frequent actions and readable audit activity labels.
+- [x] Unify operational queues for referrals, home visits, reviews, replies, documents, delivery failures and feedback.
+- [x] Support owner assignment, due dates, information requests and resolution from queue items.
+- [x] Add responsive people management with role/department/status/clinician filters and scoped profile tabs.
+- [x] Manage staff schedules, cover, service hours and capacity under Clinic.
+- [x] Preview affected bookings and require replacement ownership before deactivating staff or changing relevant availability.
+- [x] Add a document center for templates, requests, approvals, issued copies, replacements, delivery and verification.
+- [x] Organize finance exceptions and operational reports around recorded reasons and useful exports.
+- [x] Configure clinic identity, languages, integrations, AI capabilities, grants, audits and backups under Settings.
+- [x] Protect the last active admin, preview bulk changes and confirm deactivation, refunds, revocation and resets while preserving history/recovery.
+- [x] Split large presentation files into coherent sections only as needed for these workflow changes.
 
 Done when: admins can find common controls and assign/resolve operational work from consistent queues.
 
+Implemented (9 October 2026): Eight admin destinations become Overview/Work/People/More on phones. Permission-aware search opens scoped people, exact appointment references and document workspaces. Operational queues combine referrals, home visits, result reviews, unanswered messages, document requests, failed delivery and feedback with unique counts, owners, deadlines, waiting age and next actions. Assignment, information requests and resolution use optimistic versions, transactional updates and immutable history; operational resolution does not silently close clinical source work.
+
+People filters and scoped profile tabs, recurring schedules, cover, capacity and affected-booking replacement previews are available. Availability reductions and staff deactivation reject outstanding responsibility; bulk deactivation is atomic and the last active admin is protected. Documents, finance exceptions and CSV exports reuse existing issuance, grants, reason and recovery controls. Settings persist clinic identity, verification/integration origins, personal frequent actions and backup recovery targets. Issued documents freeze clinic identity. Backup scheduling, tested restores and shared delivery/integration workers remain Task 7; saving configuration does not claim those services are running. Clinic document policy approval remains an explicit clinic action.
+
+Validation: 68 service/regression checks, 79 security/admin checks and all six English/Arabic admin route checks at 320px with OS text scales 1/2/3 passed (the sets overlap). The release web build and whitespace checks passed. Full-project analysis reports no errors or warnings, with 126 informational lint findings; the final search changes also analyze without errors or warnings. Mechanical UI detection found no flagged patterns. The full suite was not rerun; the eight previously recorded unrelated failures remain unverified.
+
 ## 7. Shared deployment — required for separate devices
 
-- [ ] Choose the target: synthetic single-browser university demo or shared multi-device application.
-- [ ] For the local demo, visibly explain device-local data and demonstrate role changes within one database.
-- [ ] For shared use, implement an authenticated API with SQLite on durable application-server storage.
-- [ ] Enforce sessions, current authorization and mutations on every server request/event.
+- [x] Choose the target: synthetic single-browser university demo or shared multi-device application.
+- [x] For the local demo, visibly explain device-local data and demonstrate role changes within one database.
+- [x] For shared use, implement an authenticated API with SQLite on durable application-server storage.
+- [x] Enforce sessions, current authorization and mutations on every server request/event.
 - [ ] Add remote repository adapters and deliberate version/change handling; start online-first.
-- [ ] Store originals and issued files securely and implement shared document registry/delivery workers.
-- [ ] Scope any local caches per account and clear/revalidate them after access changes.
+- [x] Store originals and issued files securely and implement shared document registry/delivery workers.
+- [x] Scope any local caches per account and clear/revalidate them after access changes.
 - [ ] Move AI/provider secrets to the backend and keep payment/delivery simulations accurately labeled until configured.
-- [ ] Load-test representative writes, transaction duration, contention and safe retries.
-- [ ] Back up database, files and required keys; define recovery goals, encrypt scheduled backups and test restore.
-- [ ] Add admin health indicators for backups, delivery failures, storage and migrations; separate restore privileges.
+- [x] Load-test representative writes, transaction duration, contention and safe retries.
+- [x] Back up database, files and required keys; define recovery goals, encrypt scheduled backups and test restore.
+- [x] Add admin health indicators for backups, delivery failures, storage and migrations; separate restore privileges.
 
 Done when: separate staff, patient and admin devices observe the same authorized issuance and task updates.
 
+In progress (9 October 2026): The user selected a shared multi-device application, built/tested locally before choosing hosting. `services/shared_api` provides durable server SQLite, opaque revocable sessions, current role/care checks, optimistic tasks, immutable histories/snapshots, encrypted original/issued files, live minimal fingerprint verification, automatic render/in-app delivery workers and hourly encrypted backup/restore. Restore is an offline operator capability, refuses overwrites and invalidates restored sessions. Admin health reports integrity, schema and worker/configuration status. The synthetic load test verifies 100 duplicate writes and 100 competing versioned updates. Recovery targets are documented; offsite backup and host drills await hosting.
+
+A separate online-only Flutter pilot starts with `SHARED_API_ORIGIN`, before device storage or seeding opens. It exposes shared tasks, documents, original PDFs, profiles and health. Tokens and responses remain in account-scoped memory; account switches/revocation discard in-flight data. Background polling cannot renew idle sessions. The original local app remains available without this define; its demo login now explains device-local synthetic data and same-browser role switching. Records structure preserves the user's saved version, and staff Profile remains in navigation with Inbox in home Quick actions.
+
+Task 7 is not complete: the existing full clinic screens still need remote repository/read-model integration, including appointments/consultations, care/inbox, billing, proxy access and all document types. Existing AI workflows still need server-provider adapters; the new server has an authenticated provider seam and no client provider secrets, but no provider is configured. The shared pilot uses server schema 1 separately from local schema 31, with no silent local-data upload. Shared issuance supports a narrow set of templates; its bundled renderer supports English ASCII only and reports other language/font needs explicitly. Clinic policy approval, full provisioning/migration, Arabic-capable rendering and public HTTPS/offsite deployment remain explicit prerequisites. See `services/shared_api/README.md` for reproducible local setup and limitations.
+
+Validation: 8 server/load checks and 8 Flutter transport/UI/bootstrap/navigation checks passed. The configured shared release web build passed. Changed Dart code analyzes without errors or warnings (informational lint findings remain). The CLI startup/durable storage/initial scheduled encrypted backup smoke check passed, mechanical UI detection found no flagged patterns, and whitespace validation passed. The entire existing test suite was not rerun.
+
 ## 8. Acceptance and release checks
 
-- [ ] Rerun generation after completion/dismissal: state and original deadline remain unchanged.
-- [ ] Use non-overlapping doctor panels: no unrelated tasks or clinical rationale leak.
-- [ ] Force storage/version failures: generation and prioritization report accurate outcomes.
-- [ ] Verify urgent work stays ahead of higher AI scores and ordering is stable.
-- [ ] Retry issuance: exactly one certificate, issue audit and delivery event exist.
-- [ ] Reject mismatched patient/visit/issuer and invalid dates while preserving inputs.
-- [ ] Refuse nurse/admin signing; permit explicitly authorized approved reprints.
-- [ ] Change patient/issuer profiles: issued identity/bytes remain unchanged; replacements retain old versions.
-- [ ] Revoke documents and force render/verification failures: status stays accurate and no failed copy appears official/ready.
-- [ ] Verify employer copies and minimal verification omit unrelated clinical information.
-- [ ] Search beyond the initial page and confirm imports preserve original bytes/review state.
-- [ ] Test proxy subjects and access revocation during active screens/downloads.
-- [ ] Verify covering staff can access the needed source and record outcomes while unrelated staff cannot.
-- [ ] Check English/Arabic UI and PDFs, long names/notes, mixed direction, pagination, accessibility and grayscale printing.
+- [x] Rerun generation after completion/dismissal: state and original deadline remain unchanged.
+- [x] Use non-overlapping doctor panels: no unrelated tasks or clinical rationale leak.
+- [x] Force storage/version failures: generation and prioritization report accurate outcomes.
+- [x] Verify urgent work stays ahead of higher AI scores and ordering is stable.
+- [x] Retry issuance: exactly one certificate, issue audit and delivery event exist.
+- [x] Reject mismatched patient/visit/issuer and invalid dates while preserving inputs.
+- [x] Refuse nurse/admin signing; permit explicitly authorized approved reprints.
+- [x] Change patient/issuer profiles: issued identity/bytes remain unchanged; replacements retain old versions.
+- [x] Revoke documents and force render/verification failures: status stays accurate and no failed copy appears official/ready.
+- [x] Verify employer copies and minimal verification omit unrelated clinical information.
+- [x] Search beyond the initial page and confirm imports preserve original bytes/review state.
+- [x] Test proxy subjects and access revocation during active screens/downloads.
+- [x] Verify covering staff can access the needed source and record outcomes while unrelated staff cannot.
+- [x] Check English/Arabic UI and PDFs, long names/notes, mixed direction, pagination, accessibility and grayscale printing.
 - [ ] For shared deployment, test cross-device updates and interrupted delivery retries without duplicates.
-- [ ] Run pinned formatting checks, `flutter analyze`, `flutter test`, release web build and appropriate platform integration tests.
-- [ ] Keep existing auth, scheduling, consultation, payment and authorization suites passing; test migrations and backup restoration.
+- [x] Run pinned formatting checks, `flutter analyze`, `flutter test`, release web build and appropriate platform integration tests.
+- [x] Keep existing auth, scheduling, consultation, payment and authorization suites passing; test migrations and backup restoration.
+
+Acceptance gate implemented (9 October 2026): see `docs/task8_acceptance.md` for requirement-to-test coverage, fixes, pinned toolchain and reproducible commands. Checks 14-16 remain open for visual/grayscale print review, full shared-clinic acceptance after Task 7, and real-platform verification. Final regression/build results are recorded in that report.
+
+Validation: all 643 Flutter tests and 11 shared API/load/verification checks passed. Formatting passed for 497 Dart files; pinned Flutter analysis passed with no errors/warnings and 141 informational findings. Both shared pilot and local demo release web builds passed. The real Windows database test was attempted but could not start because Flutter cannot find a suitable Visual Studio C++ toolchain; its CI job is configured but not yet run. The long single-paragraph PDF rendering failure and enlarged-text/control regressions were fixed. The user's Records structure and restored Profile/Inbox navigation remain in place. Task 8 is not fully complete until the three open checks are satisfied.
+
+Final pass (9 October 2026): grayscale A4 review of the English/Arabic PDFs found Arabic text inside English documents printed reversed and unjoined, and continued pages had no gap under the header; both fixed in `issued_sick_leave_pdf.dart`. A stale shared-workspace test fixture and three unformatted files were fixed. `tools/validate.ps1` passes: formatting, analysis (0 errors/warnings, informational only), 644 Flutter tests, shared server/proxy tests and both release web builds. The real-browser database probe (`integration_test/web_database_probe.dart`) passed in Chrome (schema 31, round trip, foreign keys, reopen persistence). Windows desktop integration still needs the Visual Studio C++ workload. Check 15 stays open: the shared pilot tests cover cross-device tasks and duplicate-free delivery retries, but full shared deployment acceptance waits for Task 7 and hosting.
 
 ## Recommended milestones
 

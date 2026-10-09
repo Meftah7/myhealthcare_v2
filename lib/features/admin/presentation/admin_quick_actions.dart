@@ -32,6 +32,9 @@ import '../application/admin_providers.dart';
 import 'departments_screen.dart';
 import 'user_management_screen.dart';
 import 'verify_document_screen.dart';
+import 'admin_workspace_screens.dart';
+import '../../../data/repositories/admin_workspace.dart';
+import '../../auth/application/session.dart';
 
 class AdminQuickActions extends ConsumerWidget {
   const AdminQuickActions({super.key});
@@ -46,31 +49,37 @@ class AdminQuickActions extends ConsumerWidget {
 
     final actions = <_QuickAction>[
       _QuickAction(
+        id: 'verify',
         icon: Icons.verified_outlined,
         label: t.verifyDocumentTitle,
         onTap: () => unawaited(openVerifyDocument(context)),
       ),
       _QuickAction(
+        id: 'addUser',
         icon: Icons.person_add_alt,
         label: t.addUserAction,
         onTap: () => unawaited(_addUser(context, ref)),
       ),
       _QuickAction(
+        id: 'broadcast',
         icon: Icons.campaign_outlined,
         label: t.broadcastAction,
         onTap: () => unawaited(showBroadcastSheet(context, ref)),
       ),
       _QuickAction(
+        id: 'invoice',
         icon: Icons.request_quote_outlined,
         label: t.createInvoiceAction,
         onTap: () => unawaited(showCreateInvoiceSheet(context, ref)),
       ),
       _QuickAction(
+        id: 'appointments',
         icon: Icons.calendar_month_outlined,
         label: t.allAppointmentsTitle,
         onTap: () => unawaited(context.push(AppRoutes.adminAppointments)),
       ),
       _QuickAction(
+        id: 'feedback',
         icon: Icons.forum_outlined,
         label: feedback == 0
             ? t.feedbackTitle
@@ -78,6 +87,7 @@ class AdminQuickActions extends ConsumerWidget {
         onTap: () => unawaited(context.push(AppRoutes.adminFeedback)),
       ),
       _QuickAction(
+        id: 'homeVisits',
         icon: Icons.add_home_outlined,
         label: homeVisits == 0
             ? t.homeVisitsAction
@@ -85,6 +95,7 @@ class AdminQuickActions extends ConsumerWidget {
         onTap: () => unawaited(context.push(AppRoutes.adminHomeVisits)),
       ),
       _QuickAction(
+        id: 'referrals',
         icon: Icons.forward_to_inbox_outlined,
         label: referrals == 0
             ? t.referralsAction
@@ -92,12 +103,14 @@ class AdminQuickActions extends ConsumerWidget {
         onTap: () => unawaited(context.push(AppRoutes.adminReferralRequests)),
       ),
       _QuickAction(
+        id: 'department',
         icon: Icons.apartment_outlined,
         label: t.newDepartmentAction,
         onTap: () => unawaited(showNewDepartmentDialog(context, ref)),
       ),
       if (ref.watch(appModeProvider).isDemo)
         _QuickAction(
+          id: 'reset',
           icon: Icons.dataset_outlined,
           label: t.reseedDataAction,
           onTap: () => unawaited(_reseed(context, ref)),
@@ -106,8 +119,45 @@ class AdminQuickActions extends ConsumerWidget {
 
     // Two tiles per row on a phone, three once there's room — the same shape
     // the patient and staff dashboards use.
-    return QuickActionGrid(
-      children: [for (final a in actions) _QuickActionTile(action: a)],
+    final key = 'actions:${ref.watch(currentUserProvider)!.id}';
+    final config = ref.watch(adminConfigurationProvider(key));
+    final visible = (config.valueOrNull?['visible'] as List?)?.cast<String>();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (config.hasError)
+          TextButton(
+            onPressed: () => ref.invalidate(adminConfigurationProvider(key)),
+            child: Text(
+              adminText(
+                context,
+                'Retry action preferences',
+                '\u0625\u0639\u0627\u062f\u0629 \u0645\u062d\u0627\u0648\u0644\u0629',
+              ),
+            ),
+          ),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: TextButton.icon(
+            icon: const Icon(Icons.tune),
+            label: Text(
+              adminText(
+                context,
+                'Customize frequent actions',
+                '\u062a\u062e\u0635\u064a\u0635 \u0627\u0644\u0625\u062c\u0631\u0627\u0621\u0627\u062a',
+              ),
+            ),
+            onPressed: () => _customize(context, ref, actions, visible, key),
+          ),
+        ),
+        QuickActionGrid(
+          children: [
+            for (final a in actions)
+              if (visible == null || visible.contains(a.id))
+                _QuickActionTile(action: a),
+          ],
+        ),
+      ],
     );
   }
 
@@ -155,6 +205,61 @@ class AdminQuickActions extends ConsumerWidget {
     }
   }
 
+  Future<void> _customize(
+    BuildContext context,
+    WidgetRef ref,
+    List<_QuickAction> actions,
+    List<String>? configured,
+    String key,
+  ) async {
+    final selected = (configured ?? actions.map((a) => a.id).toList()).toSet();
+    final save = await showDialog<bool>(
+      context: context,
+      builder: (c) => StatefulBuilder(
+        builder: (c, set) => AlertDialog(
+          title: Text(adminText(c, 'Frequent actions', 'الإجراءات المتكررة')),
+          content: SizedBox(
+            width: 420,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (final a in actions)
+                    CheckboxListTile(
+                      value: selected.contains(a.id),
+                      title: Text(a.label),
+                      onChanged: (v) => set(() {
+                        v == true ? selected.add(a.id) : selected.remove(a.id);
+                      }),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(c),
+              child: Text(adminText(c, 'Cancel', 'إلغاء')),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(c, true),
+              child: Text(adminText(c, 'Save', 'حفظ')),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (save != true) return;
+    final r = await Result.guardAsync(
+      () => ref.read(adminWorkspaceProvider).saveConfiguration(key, {
+        'visible': selected.toList(),
+      }),
+    );
+    if (!context.mounted) return;
+    showMutationFeedback(context, r);
+    if (r.isOk) ref.invalidate(adminConfigurationProvider(key));
+  }
+
   Future<void> _reseed(BuildContext context, WidgetRef ref) async {
     final t = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
@@ -183,11 +288,13 @@ class AdminQuickActions extends ConsumerWidget {
 class _QuickAction {
   const _QuickAction({
     required this.icon,
+    required this.id,
     required this.label,
     required this.onTap,
   });
 
   final IconData icon;
+  final String id;
   final String label;
   final VoidCallback onTap;
 }

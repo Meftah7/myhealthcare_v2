@@ -92,50 +92,73 @@ class ProfileScreen extends ConsumerWidget {
             ),
           ),
           SectionHeader(t.accountSection, overline: true),
-          ProfileNavigationGroup(items: [
-            ProfileNavigationItem(
-              icon: Icons.photo_camera_outlined,
-              label: t.profilePhotoTitle,
-              onTap: () => unawaited(showAvatarPhotoSheet(context,
-                userId: p.user.id, hasPhoto: p.user.avatarPath != null)),
-            ),
-            for (final (icon, title, route) in sections)
-              ProfileNavigationItem(icon: icon, label: title,
-                onTap: () => unawaited(context.push(route))),
-            ProfileNavigationItem(
-              icon: Icons.lock_outline,
-              label: t.changePasswordTitle,
-              onTap: () => unawaited(_showChangePasswordDialog(context, ref, p.user.id)),
-            ),
-          ]),
+          ProfileNavigationGroup(
+            items: [
+              ProfileNavigationItem(
+                icon: Icons.photo_camera_outlined,
+                label: t.profilePhotoTitle,
+                onTap: () => unawaited(
+                  showAvatarPhotoSheet(
+                    context,
+                    userId: p.user.id,
+                    hasPhoto: p.user.avatarPath != null,
+                  ),
+                ),
+              ),
+              for (final (icon, title, route) in sections)
+                ProfileNavigationItem(
+                  icon: icon,
+                  label: title,
+                  onTap: () => unawaited(context.push(route)),
+                ),
+              ProfileNavigationItem(
+                icon: Icons.lock_outline,
+                label: t.changePasswordTitle,
+                onTap: () => unawaited(
+                  _showChangePasswordDialog(context, ref, p.user.id),
+                ),
+              ),
+            ],
+          ),
           SectionHeader(t.settingsSection, overline: true),
-          ProfileNavigationGroup(items: [
-            ProfileNavigationItem(
-              icon: Icons.tune,
-              label: t.preferences,
-              subtitle: t.preferencesSubtitle,
-              onTap: () => unawaited(context.push(AppRoutes.patientProfilePreferences)),
-            ),
-            ProfileNavigationItem(
-              icon: Icons.forum_outlined,
-              label: t.sendFeedbackTitle,
-              onTap: () => unawaited(showFeedbackSheet(context, ref)),
-            ),
-          ]),
+          ProfileNavigationGroup(
+            items: [
+              ProfileNavigationItem(
+                icon: Icons.tune,
+                label: t.preferences,
+                subtitle: t.preferencesSubtitle,
+                onTap: () => unawaited(
+                  context.push(AppRoutes.patientProfilePreferences),
+                ),
+              ),
+              ProfileNavigationItem(
+                icon: Icons.forum_outlined,
+                label: t.sendFeedbackTitle,
+                onTap: () => unawaited(showFeedbackSheet(context, ref)),
+              ),
+            ],
+          ),
           const SizedBox(height: Space.lg),
-          ProfileNavigationGroup(items: [
-            ProfileNavigationItem(
-              icon: Icons.logout,
-              label: t.signOut,
-              destructive: true,
-              onTap: () async {
-                final ok = await confirm(context,
-                  title: t.signOutConfirmTitle, message: t.signOutConfirmBody,
-                  confirmLabel: t.signOut, destructive: true);
-                if (ok) unawaited(ref.read(sessionProvider.notifier).logout());
-              },
-            ),
-          ]),
+          ProfileNavigationGroup(
+            items: [
+              ProfileNavigationItem(
+                icon: Icons.logout,
+                label: t.signOut,
+                destructive: true,
+                onTap: () async {
+                  final ok = await confirm(
+                    context,
+                    title: t.signOutConfirmTitle,
+                    message: t.signOutConfirmBody,
+                    confirmLabel: t.signOut,
+                    destructive: true,
+                  );
+                  if (ok)
+                    unawaited(ref.read(sessionProvider.notifier).logout());
+                },
+              ),
+            ],
+          ),
         ],
       ),
     );
