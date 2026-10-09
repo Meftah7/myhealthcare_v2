@@ -108,6 +108,7 @@ void main() {
         id: original.id,
         staffId: owner,
         status: TaskStatus.done,
+        outcome: 'Reviewed source; recorded clinical decision in chart.',
       );
       await detector(db).runAndPersist(p);
       await gen.generateFor(
@@ -319,6 +320,7 @@ void main() {
           id: t.id,
           staffId: owner,
           status: TaskStatus.dismissed,
+          outcome: 'Reviewed source; recorded clinical decision in chart.',
         );
       }
       final before = (await tasks.forStaff(owner)).valueOrNull!;

@@ -289,7 +289,15 @@ class DocumentVerificationRepositoryImpl
             jsonDecode(version.patientSnapshotJson) as Map<String, dynamic>;
         // Operational verification never exposes clinical content merely
         // because the account is an administrator or document-desk worker.
-        final clinical = await _access.canRead(row.patientId);
+        final clinical =
+            row.documentType == ExportDocument.financeStatement.name
+            ? (await _access.principal())?.can(Permission.manageBilling) ==
+                      true &&
+                  await _access.canRead(
+                    row.patientId,
+                    scope: PatientDataScope.financial,
+                  )
+            : await _access.canRead(row.patientId);
         return DocumentVerification(
           code: format(row.code),
           documentType: ExportDocument.values.byName(row.documentType),

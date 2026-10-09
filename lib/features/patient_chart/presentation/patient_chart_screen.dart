@@ -5,7 +5,6 @@ library;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import '../../../core/presentation/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -13,9 +12,10 @@ import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
-import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -24,6 +24,7 @@ import '../../../domain/identity/permissions.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
 import '../application/chart_providers.dart';
+import 'chart_sections.dart';
 import 'chart_write_sheets.dart';
 import 'result_review_sheet.dart';
 
@@ -46,12 +47,21 @@ class PatientChartScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
     final patient = ref.watch(chartPatientProvider(patientId));
+    final section = ref.watch(chartSectionProvider(patientId));
     return AppScaffold(
       hero: !embedded,
       automaticallyImplyLeading: !embedded,
       title: patient.valueOrNull?.fullName ?? t.patientChartFallbackTitle,
       centerBody: false,
       actions: [
+        IconButton(
+          tooltip: Localizations.localeOf(context).languageCode == 'ar'
+              ? 'الوثائق'
+              : 'Documents',
+          icon: const Icon(Icons.description_outlined),
+          onPressed: () =>
+              context.push('${AppRoutes.staffPatients}/$patientId/documents'),
+        ),
         IconButton(
           tooltip: t.aiSummaryTooltip,
           icon: const Icon(Icons.summarize_outlined),
@@ -72,6 +82,7 @@ class PatientChartScreen extends ConsumerWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: Space.maxContentWidth),
             child: ListView(
+              key: PageStorageKey('chart-$patientId-${section.name}'),
               padding: const EdgeInsets.fromLTRB(
                 Space.md,
                 Space.md,
@@ -80,13 +91,19 @@ class PatientChartScreen extends ConsumerWidget {
               ),
               children: [
                 _Header(patient: p),
-                _FlagsCard(patientId: patientId),
-                SectionHeader(t.quickActionMedications, overline: true),
-                _MedicationsCard(patientId: patientId),
-                SectionHeader(t.recentVitalsHeader, overline: true),
-                _VitalsCard(patientId: patientId),
-                SectionHeader(t.timelineSegment, overline: true),
-                _TimelineCard(patientId: patientId),
+                ChartSectionPicker(patientId),
+                if (section == ChartSection.overview) ...[
+                  _FlagsCard(patientId: patientId),
+                  SectionHeader(t.quickActionMedications, overline: true),
+                  _MedicationsCard(patientId: patientId),
+                  SectionHeader(t.recentVitalsHeader, overline: true),
+                  _VitalsCard(patientId: patientId),
+                  SectionHeader(t.timelineSegment, overline: true),
+                  _TimelineCard(patientId: patientId),
+                ] else if (section == ChartSection.medicines)
+                  _MedicationsCard(patientId: patientId)
+                else
+                  ChartSectionContent(patientId),
               ],
             ),
           ),
@@ -367,7 +384,6 @@ class _TimelineCard extends ConsumerWidget {
 
 Widget _note(String message) => Builder(
   builder: (context) => AppCard(
-    padding: const EdgeInsets.all(Space.md),
     child: Text(
       message,
       style: Theme.of(context).textTheme.bodyMedium?.copyWith(

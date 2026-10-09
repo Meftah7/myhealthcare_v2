@@ -16,9 +16,9 @@ import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/confirm_dialog.dart';
+import '../../../core/presentation/feedback.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
-import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
@@ -27,6 +27,7 @@ import '../../../domain/identity/permissions.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
 import '../application/consultation_providers.dart';
+import 'encounter_steps.dart';
 
 class ConsultationScreen extends ConsumerStatefulWidget {
   const ConsultationScreen({required this.appointmentId, super.key});
@@ -196,6 +197,24 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
                   data: (p) => _PatientHeader(patient: p, appointment: a),
                 ),
                 const SizedBox(height: Space.md),
+                if (a.status == AppointmentStatus.inProgress ||
+                    a.status == AppointmentStatus.completed)
+                  EncounterSteps(visit: a.id, patient: a.patientId),
+                if (a.status == AppointmentStatus.inProgress ||
+                    a.status == AppointmentStatus.completed)
+                  OutlinedButton.icon(
+                    onPressed: _busy
+                        ? null
+                        : () => context.push(
+                            '${AppRoutes.staffPatients}/${Uri.encodeComponent(a.patientId)}/documents?appointmentId=${Uri.encodeQueryComponent(a.id)}',
+                          ),
+                    icon: const Icon(Icons.description_outlined),
+                    label: Text(
+                      t.localeName == 'ar'
+                          ? 'وثائق هذه الزيارة'
+                          : 'Documents for this visit',
+                    ),
+                  ),
                 if (a.status == AppointmentStatus.completed)
                   _CompletedCard(appointment: a)
                 else if (a.status != AppointmentStatus.inProgress)

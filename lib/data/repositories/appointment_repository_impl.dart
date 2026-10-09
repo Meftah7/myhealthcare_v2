@@ -542,27 +542,99 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
   }) {
     return Result.guardAsync(() async {
       await _access.requireStaffOrAdmin(entityType: 'availability_exception');
+      final actor = await _access.principal();
+      if (actor?.isStaff == true) {
+        await _access.actAsStaff(
+          staffId,
+          Permission.manageOwnSchedule,
+          entityType: 'availability_exception',
+        );
+      } else if (actor?.isAdmin == true) {
+        await _access.require(
+          Permission.manageClinicSchedules,
+          entityType: 'availability_exception',
+        );
+      }
+      await _access.selfOrAdmin(
+        staffId,
+        Permission.manageClinicSchedules,
+        entityType: 'availability_exception',
+      );
+      if (reason == null || reason.trim().isEmpty) {
+        throw const ValidationFailure('Record a time-off reason.');
+      }
       if (!end.isAfter(start)) {
         throw const ValidationFailure('Exception end must be after its start.');
       }
-      final id = newId('availability');
-      await _db
-          .into(_db.availabilityExceptions)
-          .insert(
-            AvailabilityExceptionsCompanion.insert(
-              id: id,
-              staffId: staffId,
-              startsAt: start,
-              endsAt: end,
-              reason: Value(reason?.trim()),
-            ),
-          );
+      var id = newId('availability');
+      await _db.transaction(() async {
+        final existing =
+            await (_db.select(_db.availabilityExceptions)..where(
+                  (e) =>
+                      e.staffId.equals(staffId) &
+                      e.startsAt.equals(start) &
+                      e.endsAt.equals(end) &
+                      e.reason.equals(reason.trim()),
+                ))
+                .get();
+        if (existing.isNotEmpty) {
+          id = existing.first.id;
+          return;
+        }
+        await _db
+            .into(_db.availabilityExceptions)
+            .insert(
+              AvailabilityExceptionsCompanion.insert(
+                id: id,
+                staffId: staffId,
+                startsAt: start,
+                endsAt: end,
+                reason: Value(reason.trim()),
+              ),
+            );
+        final affected =
+            await (_db.select(_db.appointments)..where(
+                  (a) =>
+                      a.staffId.equals(staffId) &
+                      a.slotStart.isSmallerThanValue(end) &
+                      a.slotEnd.isBiggerThanValue(start) &
+                      a.status.isNotIn([
+                        AppointmentStatus.cancelled.name,
+                        AppointmentStatus.noShow.name,
+                        AppointmentStatus.completed.name,
+                      ]),
+                ))
+                .get();
+        for (final visit in affected) {
+          await _db
+              .into(_db.notifications)
+              .insert(
+                NotificationsCompanion.insert(
+                  id: newId('notice'),
+                  recipientId: visit.patientId,
+                  category: NotificationCategory.appointment,
+                  title: 'Your appointment needs schedule review',
+                  body:
+                      'The clinic is reviewing staff availability for your booking. Your booking remains assigned; contact the clinic for confirmation.',
+                  deepLink: const Value('/patient/appointments'),
+                  sourceEventId: Value('availability:$id:${visit.id}'),
+                ),
+              );
+        }
+        await _access.audit(
+          'schedule.timeoff.recorded',
+          entityType: 'availability_exception',
+          entityId: id,
+          detail:
+              '${affected.length} affected bookings; in-app notices delivered; ownership retained.',
+        );
+      });
       return AvailabilityException(
         id: id,
         staffId: staffId,
         start: start,
         end: end,
-        reason: reason?.trim(),
+        reason: reason.trim(),
       );
     });
   }
@@ -574,7 +646,12 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     DateTime to,
   ) {
     return Result.guardAsync(() async {
-      await _access.principal();
+      await _access.requireStaffOrAdmin(entityType: 'availability_exception');
+      await _access.selfOrAdmin(
+        staffId,
+        Permission.manageClinicSchedules,
+        entityType: 'availability_exception',
+      );
       final rows =
           await (_db.select(_db.availabilityExceptions)..where(
                 (e) =>
@@ -708,6 +785,7 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
                 bookedByAccountId: Value(bookedBy),
               ),
             );
+
         await _idempotency.remember(
           r.idempotencyKey,
           scope: _bookScope,

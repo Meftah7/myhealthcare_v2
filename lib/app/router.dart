@@ -23,6 +23,7 @@ import '../features/admin/presentation/ai_settings_screen.dart';
 import '../features/admin/presentation/audit_log_screen.dart';
 import '../features/admin/presentation/clinic_hours_screen.dart';
 import '../features/admin/presentation/departments_screen.dart';
+import '../features/admin/presentation/document_access_screen.dart';
 import '../features/admin/presentation/document_policies_screen.dart';
 import '../features/admin/presentation/system_analytics_screen.dart';
 import '../features/admin/presentation/user_management_screen.dart';
@@ -38,7 +39,9 @@ import '../features/auth/presentation/register_screen.dart';
 import '../features/billing/presentation/payments_screen.dart';
 import '../features/booking/presentation/booking_screen.dart';
 import '../features/care/presentation/admin_home_visits_screen.dart';
+import '../features/care/presentation/document_workspace_screen.dart';
 import '../features/care/presentation/home_visit_screen.dart';
+import '../features/care/presentation/issued_documents_screen.dart';
 import '../features/care/presentation/messages_screen.dart';
 import '../features/care/presentation/sick_leave_screen.dart';
 import '../features/care/presentation/staff_inbox_screen.dart';
@@ -56,6 +59,7 @@ import '../features/patient_home/presentation/patient_home_screen.dart';
 import '../features/records/presentation/radiology_screen.dart';
 import '../features/records/presentation/record_detail_screen.dart';
 import '../features/staff_dashboard/presentation/panel_analytics_screen.dart';
+import '../features/staff_dashboard/presentation/schedule_work_screen.dart';
 import '../features/staff_dashboard/presentation/staff_activity_screen.dart';
 import '../features/staff_dashboard/presentation/staff_dashboard_screen.dart';
 import '../features/staff_dashboard/presentation/staff_directory_screen.dart';
@@ -65,6 +69,7 @@ import '../features/staff_dashboard/presentation/staff_profile_screen.dart';
 import '../features/staff_dashboard/presentation/staff_schedule_screen.dart';
 import '../features/staff_dashboard/presentation/staff_top_actions.dart';
 import '../features/tasks/presentation/task_board_screen.dart';
+import '../features/tasks/presentation/task_detail_screen.dart';
 import '../features/timeline/presentation/health_records_screen.dart';
 import '../features/vitals/presentation/vitals_screen.dart';
 import '../l10n/app_localizations.dart';
@@ -132,6 +137,7 @@ abstract final class AppRoutes {
   static const patientImaging = '/patient/timeline/imaging';
   static const patientAllergies = '/patient/timeline/allergies';
   static const patientSickLeave = '/patient/timeline/sick-leave';
+  static const patientDocuments = '/patient/timeline/documents';
   static const patientVisitedDoctors = '/patient/appointments/doctors';
   static const patientMessages = '/patient/home/messages';
   static const patientHomeVisit = '/patient/home/home-visit';
@@ -529,6 +535,12 @@ StatefulShellRoute _patientShell() {
                 ),
               ),
               GoRoute(
+                path: 'documents',
+                builder: (_, state) => IssuedDocumentsScreen(
+                  patientId: state.uri.queryParameters['patientId'],
+                ),
+              ),
+              GoRoute(
                 path: 'record/:id',
                 builder: (_, state) =>
                     RecordDetailScreen(recordId: state.pathParameters['id']!),
@@ -590,7 +602,9 @@ StatefulShellRoute _staffShell() {
           AppDestination(
             icon: Icons.dashboard_outlined,
             selectedIcon: Icons.dashboard,
-            label: t.navDashboard,
+            label: t.localeName == 'ar'
+                ? '\u0627\u0644\u064a\u0648\u0645'
+                : 'Today',
           ),
           AppDestination(
             icon: Icons.people_outline,
@@ -608,9 +622,11 @@ StatefulShellRoute _staffShell() {
             label: t.navSchedule,
           ),
           AppDestination(
-            icon: Icons.account_circle_outlined,
-            selectedIcon: Icons.account_circle,
-            label: t.profile,
+            icon: Icons.inbox_outlined,
+            selectedIcon: Icons.inbox,
+            label: t.localeName == 'ar'
+                ? '\u0627\u0644\u0648\u0627\u0631\u062f'
+                : 'Inbox',
           ),
         ],
       );
@@ -626,20 +642,6 @@ StatefulShellRoute _staffShell() {
                 path: 'notifications',
                 builder: (_, _) =>
                     const NotificationsScreen(topActions: StaffTopActions()),
-              ),
-              GoRoute(
-                path: 'inbox',
-                builder: (_, _) => const StaffInboxScreen(),
-                routes: [
-                  GoRoute(
-                    path: ':patientId',
-                    builder: (_, state) => StaffMessageThreadPage(
-                      patientId: state.pathParameters['patientId']!,
-                      title: state.uri.queryParameters['name'],
-                      ownerId: state.uri.queryParameters['owner'],
-                    ),
-                  ),
-                ],
               ),
             ],
           ),
@@ -657,6 +659,13 @@ StatefulShellRoute _staffShell() {
                     PatientChartScreen(patientId: state.pathParameters['id']!),
                 routes: [
                   GoRoute(
+                    path: 'documents',
+                    builder: (_, state) => DocumentWorkspaceScreen(
+                      patientId: state.pathParameters['id']!,
+                      appointmentId: state.uri.queryParameters['appointmentId'],
+                    ),
+                  ),
+                  GoRoute(
                     path: 'summary',
                     builder: (_, state) => PatientSummaryScreen(
                       patientId: state.pathParameters['id']!,
@@ -673,6 +682,27 @@ StatefulShellRoute _staffShell() {
           GoRoute(
             path: AppRoutes.staffTasks,
             builder: (_, _) => const TaskBoardScreen(),
+            routes: [
+              GoRoute(
+                path: 'handover',
+                builder: (_, _) => const HandoverScreen(),
+              ),
+              GoRoute(
+                path: ':taskId',
+                builder: (_, s) =>
+                    TaskDetailScreen(id: s.pathParameters['taskId']!),
+                routes: [
+                  GoRoute(
+                    path: 'source/:type/:sourceId',
+                    builder: (_, s) => TaskSourceScreen(
+                      task: s.pathParameters['taskId']!,
+                      type: s.pathParameters['type']!,
+                      source: s.pathParameters['sourceId']!,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),
@@ -681,11 +711,31 @@ StatefulShellRoute _staffShell() {
           GoRoute(
             path: AppRoutes.staffSchedule,
             builder: (_, _) => const StaffScheduleScreen(),
+            routes: [
+              GoRoute(
+                path: 'work',
+                builder: (_, _) => const ScheduleWorkScreen(),
+              ),
+            ],
           ),
         ],
       ),
       StatefulShellBranch(
         routes: [
+          GoRoute(
+            path: AppRoutes.staffInbox,
+            builder: (_, _) => const StaffInboxScreen(),
+            routes: [
+              GoRoute(
+                path: ':patientId',
+                builder: (_, state) => StaffMessageThreadPage(
+                  patientId: state.pathParameters['patientId']!,
+                  title: state.uri.queryParameters['name'],
+                  ownerId: state.uri.queryParameters['owner'],
+                ),
+              ),
+            ],
+          ),
           GoRoute(
             path: AppRoutes.staffProfile,
             builder: (_, _) => const StaffProfileScreen(),
@@ -832,6 +882,16 @@ StatefulShellRoute _adminShell() {
               GoRoute(
                 path: 'document-policies',
                 builder: (_, _) => const DocumentPoliciesScreen(),
+              ),
+              GoRoute(
+                path: 'document-access',
+                builder: (_, _) => const DocumentAccessScreen(),
+              ),
+              GoRoute(
+                path: 'document-workspace',
+                builder: (_, state) => DocumentWorkspaceScreen(
+                  patientId: state.uri.queryParameters['patientId'] ?? '',
+                ),
               ),
               GoRoute(
                 path: 'ai-log',

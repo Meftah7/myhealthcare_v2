@@ -105,7 +105,7 @@ void main() {
     await _pump(tester);
     await _pump(tester);
 
-    expect(find.text('Dashboard'), findsWidgets);
+    expect(find.text('Today'), findsWidgets);
     expect(find.text('Patients'), findsWidgets);
 
     // Let the notification query stream close before teardown.
@@ -125,7 +125,7 @@ void main() {
     await _pump(tester);
     await _pump(tester);
 
-    expect(find.text('Dashboard'), findsWidgets);
+    expect(find.text('Today'), findsWidgets);
     expect(find.text('Patients'), findsWidgets);
 
     await tester.pumpWidget(const SizedBox());

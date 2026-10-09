@@ -57,8 +57,11 @@ Widget _app(Widget child, {String locale = 'en', double scale = 1}) =>
       home: child,
     );
 Future<void> _expand(WidgetTester tester) async {
-  final tile = find.text('Employer copy · English · v1');
+  final tile = find.byKey(
+    const PageStorageKey('policy-sick-leave-v1-en-employer'),
+  );
   await tester.ensureVisible(tile);
+  await tester.pumpAndSettle();
   if (find.byType(TextField).evaluate().isEmpty) {
     await tester.tap(tile);
     await tester.pumpAndSettle();
@@ -227,6 +230,7 @@ void main() {
       await tester.enterText(find.byType(TextField), '$old Reviewed.');
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('Save draft'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Save draft'));
       await tester.pumpAndSettle();
       var policy = (await db.select(db.documentTemplates).get()).firstWhere(
@@ -236,9 +240,11 @@ void main() {
       expect(policy.wording, '$old Reviewed.');
       await _expand(tester);
       await tester.ensureVisible(find.byType(Checkbox));
+      await tester.pumpAndSettle();
       await tester.tap(find.byType(Checkbox));
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('Approve this version'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Approve this version'));
       await tester.pumpAndSettle();
       policy = (await db.select(db.documentTemplates).get()).firstWhere(
@@ -249,6 +255,7 @@ void main() {
       await _expand(tester);
       expect(tester.widget<TextField>(find.byType(TextField)).readOnly, isTrue);
       await tester.ensureVisible(find.text('Create a new draft version'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Create a new draft version'));
       await tester.pumpAndSettle();
       final next = (await db.select(db.documentTemplates).get()).singleWhere(
@@ -290,6 +297,7 @@ void main() {
     await tester.enterText(find.byType(TextField), input);
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Save draft'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Save draft'));
     await tester.pumpAndSettle();
     expect(

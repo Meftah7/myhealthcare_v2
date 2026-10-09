@@ -411,6 +411,19 @@ class AppDatabase extends _$AppDatabase {
       }
     }
     if (await _hasTableNamed('issued_document_versions')) {
+      for (final action in ['update', 'delete']) {
+        await customStatement(
+          'CREATE TRIGGER IF NOT EXISTS trg_issued_sick_leave_no_$action '
+          'BEFORE ${action.toUpperCase()} ON sick_leave_certificates '
+          'WHEN EXISTS (SELECT 1 FROM issued_document_versions WHERE id = OLD.id) BEGIN '
+          "SELECT RAISE(ABORT, 'issued sick leave is immutable'); END",
+        );
+      }
+      await customStatement(
+        'CREATE TRIGGER IF NOT EXISTS trg_ready_document_artifact_no_delete '
+        "BEFORE DELETE ON document_artifacts WHEN OLD.status = 'ready' BEGIN "
+        "SELECT RAISE(ABORT, 'ready document artifacts are immutable'); END",
+      );
       await customStatement(
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_verification_issued_version '
         'ON document_verifications (issued_version_id) WHERE issued_version_id IS NOT NULL',
@@ -525,6 +538,8 @@ class AppDatabase extends _$AppDatabase {
     'trg_task_history_no_delete',
     'trg_bound_verification_no_delete',
     'trg_approved_template_no_delete',
+    'trg_issued_sick_leave_no_delete',
+    'trg_ready_document_artifact_no_delete',
   ];
 
   /// Name of the trigger that blocks audit deletes. Only the demo seeder's
@@ -532,7 +547,7 @@ class AppDatabase extends _$AppDatabase {
   static const auditNoDeleteTrigger = 'trg_audit_log_no_delete';
 
   Future<void> installProposedDocumentPolicies() async {
-    for (final draft in ProposedDocumentPolicies.sickLeave()) {
+    for (final draft in ProposedDocumentPolicies.all()) {
       await into(documentTemplates).insert(
         DocumentTemplatesCompanion.insert(
           id: draft.id,
@@ -541,8 +556,10 @@ class AppDatabase extends _$AppDatabase {
           language: draft.language,
           disclosureProfile: draft.disclosure.name,
           wording: draft.wording,
-          clinicalSignatureRequired: true,
-          requiredCredential: const Value('medicalLicense'),
+          clinicalSignatureRequired: draft.clinicalSignatureRequired,
+          requiredCredential: Value(
+            draft.clinicalSignatureRequired ? 'medicalLicense' : null,
+          ),
         ),
         mode: InsertMode.insertOrIgnore,
       );
@@ -965,6 +982,7 @@ class AppDatabase extends _$AppDatabase {
     beforeOpen: (details) async {
       // Referential integrity is off by default in SQLite.
       await customStatement('PRAGMA foreign_keys = ON');
+      await installProposedDocumentPolicies();
       await installIntegrityRules();
     },
   );

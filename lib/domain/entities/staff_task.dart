@@ -33,7 +33,7 @@ abstract class StaffTask with _$StaffTask {
   const StaffTask._();
 
   bool get isOpen =>
-      status == TaskStatus.open || status == TaskStatus.inProgress;
+      status != TaskStatus.done && status != TaskStatus.dismissed;
 
   bool get isEscalated => escalatedAt != null;
 
@@ -45,9 +45,12 @@ abstract class StaffTask with _$StaffTask {
   /// Blend of the deterministic rule score and the AI score (P5-10). Falls back
   /// to the rule score alone when AI is off.
   double effectivePriority(double aiWeight) {
+    double bounded(double score) => score.isFinite ? score.clamp(0.0, 1.0) : 0;
+    final rule = bounded(ruleScore);
     final ai = aiPriorityScore;
-    if (ai == null) return ruleScore;
-    return ruleScore * (1 - aiWeight) + ai * aiWeight;
+    if (ai == null) return rule;
+    final weight = bounded(aiWeight);
+    return rule * (1 - weight) + bounded(ai) * weight;
   }
 }
 

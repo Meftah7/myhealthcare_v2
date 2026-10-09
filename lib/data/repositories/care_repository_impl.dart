@@ -18,6 +18,7 @@ import '../db/app_database.dart';
 import '../sync/idempotency.dart';
 import '../sync/outbox.dart';
 import 'mappers.dart';
+import 'task_cover.dart';
 
 class SickLeaveRepositoryImpl implements SickLeaveRepository {
   SickLeaveRepositoryImpl(this._db, {AccessPolicy? access})
@@ -384,7 +385,16 @@ class CareMessageRepositoryImpl implements CareMessageRepository {
               )
               ..limit(1))
             .getSingleOrNull();
-    return row != null;
+    if (row == null) return false;
+    final linked =
+        await (_db.select(_db.taskSources)..where(
+              (s) => s.sourceType.equals('reply') & s.sourceId.equals(row.id),
+            ))
+            .get();
+    for (final source in linked) {
+      if (!await activeTaskCover(_db, source.taskId, coverId)) return false;
+    }
+    return true;
   }
 
   /// An on-duty clinician in the same department who covers [ownerId]'s
@@ -496,7 +506,9 @@ class CareMessageRepositoryImpl implements CareMessageRepository {
                 )
                 ..limit(1))
               .getSingleOrNull();
-      if (covering != null && actor.can(Permission.messageCareTeam)) {
+      if (covering != null &&
+          actor.can(Permission.messageCareTeam) &&
+          await _covers(patientId, staffId, actor.accountId)) {
         await _access.audit(
           'care_message.cover_reply',
           entityType: 'care_message',

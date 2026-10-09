@@ -94,7 +94,7 @@ enum TaskKind {
   other,
 }
 
-enum TaskStatus { open, inProgress, done, dismissed }
+enum TaskStatus { open, inProgress, done, dismissed, waiting, blocked }
 
 enum RiskFlagKind {
   abnormalVitals,

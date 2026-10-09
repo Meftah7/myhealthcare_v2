@@ -12,6 +12,12 @@ enum ExportDocument {
   recordSummary,
   originalFile,
   visitSummary,
+  attendanceCertificate,
+  prescriptionCopy,
+  releasedLabReport,
+  releasedImagingReport,
+  fitnessCertificate,
+  financeStatement,
 }
 
 abstract interface class ExportRepository {

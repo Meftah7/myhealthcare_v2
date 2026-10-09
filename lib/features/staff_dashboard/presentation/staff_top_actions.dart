@@ -102,6 +102,10 @@ class PresenceMenu extends ConsumerWidget {
           : t.setYourAvailabilityTooltip,
       position: PopupMenuPosition.under,
       onSelected: (value) async {
+        if (value == 'profile') {
+          await context.push(AppRoutes.staffProfile);
+          return;
+        }
         if (value == 'notifications') {
           await context.push(AppRoutes.staffNotifications);
           return;
@@ -116,6 +120,8 @@ class PresenceMenu extends ConsumerWidget {
         }
       },
       itemBuilder: (context) => [
+        PopupMenuItem(value: 'profile', child: Text(t.profile)),
+        const PopupMenuDivider(),
         if (showNotifications) ...[
           PopupMenuItem(
             value: 'notifications',

@@ -210,6 +210,7 @@ void main() {
           id: 'high',
           staffId: sid,
           status: TaskStatus.done,
+          outcome: 'Reviewed source; recorded clinical decision in chart.',
         );
         final open = (await tasks.forStaff(sid, openOnly: true)).valueOrNull!;
         expect(open.map((t) => t.id), ['low']);

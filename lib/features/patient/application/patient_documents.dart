@@ -254,6 +254,23 @@ Future<Uint8List> buildSickLeave(
   WidgetRef ref,
   SickLeaveCertificate certificate,
 ) async {
+  // Issued copies are immutable artifacts. Never regenerate one using today's
+  // name, locale, template or qualifications.
+  final db = ref.read(appDatabaseProvider);
+  final official = await (db.select(
+    db.issuedDocumentVersions,
+  )..where((v) => v.id.equals(certificate.id))).getSingleOrNull();
+  if (official != null) {
+    if (official.patientId != certificate.patientId) {
+      throw const AccessDeniedFailure();
+    }
+    return switch (await ref
+        .read(documentServiceProvider)
+        .download(official.id)) {
+      Ok(:final value) => value,
+      Err(:final failure) => throw failure,
+    };
+  }
   final current = await ref
       .read(sickLeaveRepositoryProvider)
       .byId(certificate.id);

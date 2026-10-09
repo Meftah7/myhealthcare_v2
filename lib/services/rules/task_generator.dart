@@ -63,6 +63,7 @@ class TaskGenerator {
                 ? f.detectedAt.add(const Duration(days: 1))
                 : f.detectedAt.add(const Duration(days: 7)),
           ),
+          sourceId: f.id,
         );
         if (result case Err(:final failure)) {
           if (written == 0) throw failure;

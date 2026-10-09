@@ -239,6 +239,13 @@ class _FiltersState extends ConsumerState<_Filters> {
               children: [
                 OutlinedButton.icon(
                   onPressed: () => context.push(
+                    '${AppRoutes.patientDocuments}?patientId=${Uri.encodeQueryComponent(subject)}',
+                  ),
+                  icon: const Icon(Icons.description_outlined),
+                  label: Text(t.recordsDocuments),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => context.push(
                     '${AppRoutes.patientSickLeave}?patientId=$subject',
                   ),
                   icon: const Icon(Icons.event_note_outlined),

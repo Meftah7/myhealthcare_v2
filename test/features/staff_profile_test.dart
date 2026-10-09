@@ -8,6 +8,7 @@ import 'package:myhealthcare/app/app.dart';
 import 'package:myhealthcare/app/settings/ui_prefs.dart';
 import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
+import 'package:myhealthcare/features/staff_dashboard/presentation/staff_top_actions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/mfa.dart';
@@ -59,6 +60,8 @@ void main() {
     await _settle(tester);
 
     // Open the Profile tab from the bottom navigation — now a hub of rows.
+    await tester.tap(find.byType(PresenceMenu).first);
+    await _settle(tester);
     await tester.tap(find.text('Profile').last);
     await _settle(tester);
     expect(find.widgetWithText(AppBar, 'Profile'), findsOneWidget);

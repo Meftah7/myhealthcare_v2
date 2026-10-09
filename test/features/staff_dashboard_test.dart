@@ -71,7 +71,10 @@ void main() {
     expect(find.byType(GradientHeroCard), findsOneWidget);
     expect(find.text('Your shift'), findsOneWidget);
     for (final label in const ['Today', 'In queue', 'Open flags']) {
-      expect(find.text(label), findsOneWidget);
+      expect(
+        find.text(label),
+        label == 'Today' ? findsWidgets : findsOneWidget,
+      );
     }
     expect(find.text('Quick actions'), findsOneWidget);
 
@@ -89,6 +92,10 @@ void main() {
     await tester.tap(find.text('Tasks').first);
     await _settle(tester);
     expect(find.text('Task board'), findsOneWidget);
+
+    await tester.tap(find.text('Inbox').first);
+    await _settle(tester);
+    expect(find.widgetWithText(AppBar, 'Messages'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));

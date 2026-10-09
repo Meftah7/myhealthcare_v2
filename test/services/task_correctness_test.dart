@@ -61,8 +61,10 @@ class FailingTasks implements TaskRepository {
   static const failure = ConflictFailure('Task changed. Reload.');
 
   @override
-  Future<Result<void>> upsert(StaffTask task) async =>
-      ++writes == failAt ? const Err(failure) : delegate.upsert(task);
+  Future<Result<void>> upsert(StaffTask task, {String? sourceId}) async =>
+      ++writes == failAt
+      ? const Err(failure)
+      : delegate.upsert(task, sourceId: sourceId);
 
   @override
   Future<Result<List<StaffTask>>> forStaff(
@@ -92,6 +94,34 @@ class FailingTasks implements TaskRepository {
 }
 
 void main() {
+  test(
+    'supporting task scores reject non-finite and out-of-range writes',
+    () async {
+      final (_, db) = await seededContainer();
+      final repo = TaskRepositoryImpl(db);
+      for (final score in [double.nan, double.infinity, -0.1, 1.1]) {
+        expect(
+          await repo.upsert(task('invalid', score: score)),
+          isA<Err<void>>(),
+        );
+        expect(
+          await repo.applyAiPriority(
+            id: 'invalid',
+            staffId: 'staff_01',
+            score: score,
+            rationale: 'Invalid',
+          ),
+          isA<Err<void>>(),
+        );
+      }
+      expect(
+        await (db.select(
+          db.staffTasks,
+        )..where((t) => t.id.equals('invalid'))).get(),
+        isEmpty,
+      );
+    },
+  );
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('partial completion feedback keeps Reload in English and Arabic', () {
@@ -152,6 +182,7 @@ void main() {
             id: original.id,
             staffId: original.staffId,
             status: status,
+            outcome: 'Reviewed source; recorded clinical decision in chart.',
           )).isOk,
           true,
         );
@@ -337,6 +368,8 @@ void main() {
                   id: 'temporary-task',
                   staffId: 'staff_01',
                   status: TaskStatus.done,
+                  outcome:
+                      'Reviewed source; recorded clinical decision in chart.',
                 ))
             .failureOrNull,
         isA<AuthFailure>(),

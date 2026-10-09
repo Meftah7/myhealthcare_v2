@@ -73,53 +73,69 @@ Six proposed English/Arabic sick-leave templates cover clinic, employer and scho
 
 Approval workflow update (7 October 2026): Admin > Profile > Document policies now supports explicit audited activation of policy management, review/edit/save of the six English/Arabic drafts, acknowledgement and approval of each saved version, and creation of replacement drafts. Approved wording is locked. Approval checks the reviewed snapshot and atomically retires earlier policies for the same language/audience. Required fields and external disclosure placeholders are validated in the repository; failed saves retain entered wording. No production policy was automatically approved; clinic acceptance remains a manual step. Validation: 23 approval/foundation/document/security tests passed, including 320px English/Arabic layouts with enlarged text, stale review, audit rollback and retry. Analysis, formatting and whitespace checks passed; release web build passed.
 
-DocumentService now defines preparation, approval, atomic/idempotent issuance, rendering, download and revocation contracts. Implementation of that pipeline and its screens remains Task 4; richer task workflow/history integration remains Task 5.
+DocumentService now defines preparation, approval, atomic/idempotent issuance, rendering, download and revocation contracts. Task 4 below now implements the sick-leave pipeline and screens; richer task workflow/history integration remains Task 5.
 
 Validation: 69 document, task, Records, authorization, live-revocation, migration and backup regressions passed, including populated schema 29 migration, immutable content, audit rollback, timed grant expiry and administrator-clinician access reduction. Changed source/tests analyze cleanly and formatting/whitespace checks passed. The release web build passed.
 
 ## 4. Documents — complete one sick-leave workflow first
 
-- [ ] Introduce an authorized DocumentService with explicit patient subject, visit and document type.
-- [ ] Decouple PDF templates/renderers from signed-in-patient UI providers.
-- [ ] Build request, draft, approval, issuance, rendering and delivery states with clear failure/retry behavior.
-- [ ] Validate patient/visit/issuer relationships, leave dates and required fields; preserve form inputs on errors.
-- [ ] Allow nurses/admins to prepare requests within their grants; enforce authorized doctor signing at the service boundary.
-- [ ] Watermark draft previews and block official issuance when required verification fails.
-- [ ] Make issuance idempotent; commit certificate, issue audit and notification event transactionally.
-- [ ] Freeze patient/issuer details, qualifications, content, language and template version at issuance.
-- [ ] Store official PDF bytes and fingerprint; expose pending/failed rendering without claiming readiness.
-- [ ] Register verification at issuance and keep repeated downloads/reprints stable.
-- [ ] Implement minimum-data employer/school templates without diagnosis or unrelated clinical history by default.
-- [ ] Provide English/Arabic previews and accessible A4 layouts that print clearly in grayscale.
-- [ ] Deep-link patient notifications to Documents; track delivery attempts separately from issuance/downloads.
-- [ ] Add scoped staff/admin reprints of approved copies.
-- [ ] Implement correction by replacement with superseded links, and revocation with reason/audit; retain original versions.
-- [ ] Limit verification output by role and avoid exposing clinical details through operational checks.
-- [ ] After sick leave passes end to end, add attendance, visit summary, referral, prescription, released lab/imaging, fitness and finance templates according to agreed permissions.
-- [ ] Treat external verification as a separate feature requiring minimal output, unguessable tokens, rate limits and an agreed file-authenticity/signing approach.
+- [x] Introduce an authorized DocumentService with explicit patient subject, visit and document type.
+- [x] Decouple PDF templates/renderers from signed-in-patient UI providers.
+- [x] Build request, draft, approval, issuance, rendering and delivery states with clear failure/retry behavior.
+- [x] Validate patient/visit/issuer relationships, leave dates and required fields; preserve form inputs on errors.
+- [x] Allow nurses/admins to prepare requests within their grants; enforce authorized doctor signing at the service boundary.
+- [x] Watermark draft previews and block official issuance when required verification fails.
+- [x] Make issuance idempotent; commit certificate, issue audit and notification event transactionally.
+- [x] Freeze patient/issuer details, qualifications, content, language and template version at issuance.
+- [x] Store official PDF bytes and fingerprint; expose pending/failed rendering without claiming readiness.
+- [x] Register verification at issuance and keep repeated downloads/reprints stable.
+- [x] Implement minimum-data employer/school templates without diagnosis or unrelated clinical history by default.
+- [x] Provide English/Arabic previews and accessible A4 layouts that print clearly in grayscale.
+- [x] Deep-link patient notifications to Documents; track delivery attempts separately from issuance/downloads.
+- [x] Add scoped staff/admin reprints of approved copies.
+- [x] Implement correction by replacement with superseded links, and revocation with reason/audit; retain original versions.
+- [x] Limit verification output by role and avoid exposing clinical details through operational checks.
+- [x] After sick leave passes end to end, add attendance, visit summary, referral, prescription, released lab/imaging, fitness and finance templates according to agreed permissions.
+- [x] Treat external verification as a separate feature requiring minimal output, unguessable tokens, rate limits and an agreed file-authenticity/signing approach.
 
 Done when: a doctor issues once, the patient finds the same issued copy, an authorized admin reprints it, and a nurse cannot sign it.
 
+Implementation (9 October 2026): All nine document types use the authorized request, approval, issuance, rendering, delivery and stored-download pipeline. Staff open Documents from the patient chart; administrators use Document policies > Document access and patient copies. Patients receive notifications linking to the issued Documents list. Issued identity, qualifications, policy, content and bytes are frozen; retries do not duplicate issuance. Corrections retain originals and supersede them only when a replacement issues. Existing certificates remain clearly labelled legacy.
+
+Clinical documents require a qualified doctor and explicit signing grant. Attendance and finance use a separate administrative issuance grant, with billing authority additionally required for finance. Source records must match patient, visit and document type; patient imports cannot become official clinic results. Visit summaries require a completed clinician outcome. Lab/imaging release decisions are audited and bound to the exact source fingerprint; amendments invalidate release, and withholding revokes issued copies. Changes after approval require a fresh reviewed request. Templates are proposed English/Arabic drafts: actual clinic approval and appropriate grants remain mandatory before official issuance.
+
+External verification implements the user's selected reference-plus-PDF-fingerprint approach in `services/document_verification`. New PDFs can contain a configured HTTPS verification URL with a random 256-bit token. A read-only, rate-limited verifier accepts minimal registry metadata and a SHA-256 digest; PDFs stay on the verifier's device. Registry publication is an explicit trusted-host operator action, protected by a server-only HMAC key. Valid snapshots expire after five minutes without refresh, and revoked/superseded states cannot be reactivated. Public hosting, HTTPS origin, secret provisioning and authoritative refresh still require configuration; shared automatic publication belongs to Task 7. See `services/document_verification/README.md`. This is registry/file matching, not a certificate-based digital signature, and the local app's export alone is not independently authenticated clinic data.
+
+Validation: 68 document, policy, security, migration, backup and bilingual phone-form tests and 3 standalone verifier tests passed. Tests cover every added type, administrative authority, finance separation, source amendments, release/withholding, frozen copies, minimal manifest output, concurrent idempotency, rendering/delivery retries, replacement, revocation and English/Arabic A4 PDFs. Changed Dart files analyze without issues. The release web build and formatting/whitespace checks passed. Broader auth, payment and consultation checks passed 41 tests, with one auth-flow failure expecting a missing Preferences tooltip; this is recorded separately from the passing document acceptance suite.
+
 ## 5. Staff workspace and task workflow
 
-- [ ] Organize staff navigation around Today, Patients, Tasks, Schedule and Inbox.
-- [ ] Make Today items open their exact patient, visit or source and preserve return position.
-- [ ] Add patient-chart overview, visits, results, medicines, documents and care-team views with consistent capability checks.
-- [ ] Preserve consultation drafts/amendments and show note, orders, review, follow-up and document completion steps.
-- [ ] Offer document creation during/after consultations with explicit visit selection.
-- [ ] Make a task list the primary mobile view with urgent, overdue, due-today and upcoming groups.
-- [ ] Add My work, Covering, authorized Team work and Completed views plus relevant filters/search.
-- [ ] Show patient, reason, next action, owner, deadline and source/chart links on each task.
-- [ ] Expose reassignment, escalation, cover acceptance and assignment history with scoped access and receiver notifications.
-- [ ] Record completion outcomes and dismissal reasons; add waiting/blocked only with an owner, reason and review time.
-- [ ] Keep urgency above AI ranking, bound supporting scores and explain them under “Why this task?”.
-- [ ] Accurately label deterministic/mock/offline prioritization and prevent AI from closing work or making clinical decisions.
-- [ ] Add canonical generation rules for results, unsigned notes, follow-ups, referrals, document approvals and overdue replies without duplicate ownership.
-- [ ] Show schedule cover, time off and conflicts; prepare notifications and delivery status for affected bookings.
-- [ ] Prioritize overdue inbox threads and support reply-to-task creation without automatically resolving clinical work.
-- [ ] Add shift handover for unfinished tasks, urgent reviews and unanswered threads with accepted responsibility and temporary care access.
+- [x] Organize staff navigation around Today, Patients, Tasks, Schedule and Inbox.
+- [x] Make Today items open their exact patient, visit or source and preserve return position.
+- [x] Add patient-chart overview, visits, results, medicines, documents and care-team views with consistent capability checks.
+- [x] Preserve consultation drafts/amendments and show note, orders, review, follow-up and document completion steps.
+- [x] Offer document creation during/after consultations with explicit visit selection.
+- [x] Make a task list the primary mobile view with urgent, overdue, due-today and upcoming groups.
+- [x] Add My work, Covering, authorized Team work and Completed views plus relevant filters/search.
+- [x] Show patient, reason, next action, owner, deadline and source/chart links on each task.
+- [x] Expose reassignment, escalation, cover acceptance and assignment history with scoped access and receiver notifications.
+- [x] Record completion outcomes and dismissal reasons; add waiting/blocked only with an owner, reason and review time.
+- [x] Keep urgency above AI ranking, bound supporting scores and explain them under “Why this task?”.
+- [x] Accurately label deterministic/mock/offline prioritization and prevent AI from closing work or making clinical decisions.
+- [x] Add canonical generation rules for results, unsigned notes, follow-ups, referrals, document approvals and overdue replies without duplicate ownership.
+- [x] Show schedule cover, time off and conflicts; prepare notifications and delivery status for affected bookings.
+- [x] Prioritize overdue inbox threads and support reply-to-task creation without automatically resolving clinical work.
+- [x] Add shift handover for unfinished tasks, urgent reviews and unanswered threads with accepted responsibility and temporary care access.
 
 Done when: staff can complete and hand over work with its context, history and authorization intact.
+
+Implemented (9 October 2026): Today links open exact visits, patients and task details with return navigation preserved. Patient charts offer Overview, Visits, Results, Medicines, Documents and Care team sections. Consultation steps retain autosaved drafts and signed originals, support immutable amendments and explicit follow-up tasks, and show note, orders, review and document progress.
+
+Tasks provide My work, Covering, explicitly authorized Team work and Completed views, filters/search, source context, deadlines, owners and immutable assignment/outcome history. Completion/dismissal requires a recorded outcome; waiting/blocked requires a reason and future review. Cover, escalation, reassignment and shift handover use explicit receiver acceptance, optimistic versions, transactional bundles, minimal in-app notifications and task-specific care access. Expired cover and revoked assignment grants cannot act; mismatched source patients reject the entire handover. Clinical outcome text stays in authorized task history rather than general audit details.
+
+Canonical source links generate result reviews, unsigned notes, referrals, document approvals and overdue replies once; follow-ups are created explicitly from the visit. Regeneration preserves ownership, final status and original deadlines. Inbox orders unanswered work by reply deadline and creates linked tasks without closing clinical work. Schedule tools preview time-off conflicts and affected bookings, preserve booking ownership, and create idempotent in-app notices with delivery/read status. External delivery remains dependent on Task 7 configuration.
+
+Validation: 51 focused checks passed across workflow, task correctness, risk generation, clinical workflow and English/Arabic phone tests, including all six staff route checks at 320px and OS text scales 1/2/3. Final Task 5 files analyze without errors or warnings; chart lint cleanup analyzes cleanly. The full suite recorded 612 passes and 10 failures before final fixes; both Task 5 failures subsequently passed focused reruns. Eight remaining failures concern appointment filter setup, the patient Preferences tooltip, patient home carousel/browse, record-upload test inputs and patient nutrition layouts. These are recorded separately; the entire suite is not claimed green. Release build and whitespace validation passed.
 
 ## 6. Admin workspace
 

@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../../core/failures.dart';
 import '../../core/result.dart';
+import '../../domain/documents/document_rules.dart';
 import '../../domain/identity/identity.dart';
 import '../../domain/identity/permissions.dart';
 import '../../domain/repositories/document_policy_repository.dart';
@@ -16,29 +17,12 @@ class DocumentPolicyRepositoryImpl implements DocumentPolicyRepository {
   final AccessPolicy _access;
 
   void _validateWording(DocumentPolicyDraft draft) {
-    if (draft.document != ExportDocument.sickLeaveCertificate) return;
-    const requiredFields = {
-      'clinicName',
-      'patientName',
-      'visitDate',
-      'leaveStart',
-      'leaveEnd',
-      'issuerName',
-      'license',
-      'verificationCode',
-    };
-    final fields = RegExp(
-      r'\{([^{}]+)\}',
-    ).allMatches(draft.wording).map((m) => m.group(1)!).toSet();
-    final allowed = {
-      ...requiredFields,
-      if (draft.disclosure == DisclosureProfile.clinic) 'diagnosis',
-    };
-    if (!fields.containsAll(requiredFields) || !allowed.containsAll(fields)) {
-      throw const ValidationFailure(
-        'Keep the required identity, dates, signer and verification fields. Clinical fields are only allowed in the clinic copy.',
-      );
-    }
+    DocumentRules.validatePolicy(
+      draft.document,
+      draft.disclosure,
+      draft.clinicalSignatureRequired,
+      draft.wording,
+    );
   }
 
   @override

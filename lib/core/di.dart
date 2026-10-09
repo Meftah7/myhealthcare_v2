@@ -18,6 +18,7 @@ import '../data/repositories/billing_repository_impl.dart';
 import '../data/repositories/care_repository_impl.dart';
 import '../data/repositories/consultation_repository_impl.dart';
 import '../data/repositories/document_policy_repository_impl.dart';
+import '../data/repositories/document_service_impl.dart';
 import '../data/repositories/document_verification_repository_impl.dart';
 import '../data/repositories/export_repository_impl.dart';
 import '../data/repositories/family_link_repository_impl.dart';
@@ -33,6 +34,7 @@ import '../data/repositories/task_repository_impl.dart';
 import '../data/seed/seeder.dart';
 import '../data/sync/outbox.dart';
 import '../domain/repositories/document_policy_repository.dart';
+import '../domain/repositories/document_service.dart';
 import '../domain/repositories/document_verification_repository.dart';
 import '../domain/repositories/record_activity_repository.dart';
 import '../domain/repositories/repositories.dart';
@@ -46,6 +48,7 @@ import '../services/notifications/device_notifier.dart';
 import '../services/notifications/reminder_dispatcher.dart';
 import '../services/notifications/reminder_scheduler.dart';
 import '../services/payments/payment_gateway.dart';
+import '../services/pdf/issued_sick_leave_pdf.dart';
 import 'app_environment.dart';
 import 'observability/operational_metrics.dart';
 
@@ -113,6 +116,19 @@ final documentPolicyRepositoryProvider = Provider<DocumentPolicyRepository>(
   (ref) => DocumentPolicyRepositoryImpl(
     ref.watch(appDatabaseProvider),
     ref.watch(accessPolicyProvider),
+  ),
+);
+
+final issuedSickLeaveRendererProvider = Provider<IssuedSickLeaveRenderer>(
+  (ref) => const IssuedSickLeavePdf(),
+);
+
+final documentServiceProvider = Provider<DocumentService>(
+  (ref) => DocumentServiceImpl(
+    ref.watch(appDatabaseProvider),
+    ref.watch(accessPolicyProvider),
+    ref.watch(documentVerificationRepositoryProvider),
+    ref.watch(issuedSickLeaveRendererProvider),
   ),
 );
 

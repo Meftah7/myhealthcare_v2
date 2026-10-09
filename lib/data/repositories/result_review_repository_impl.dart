@@ -13,6 +13,7 @@ import '../../domain/identity/permissions.dart';
 import '../../domain/repositories/result_review_repository.dart';
 import '../../services/auth/access_policy.dart';
 import '../db/app_database.dart';
+import 'task_cover.dart';
 
 /// Opens a review for a just-filed result when any of its [flags] needs one.
 /// Call inside the transaction that files the result, so a result never
@@ -268,7 +269,7 @@ class ResultReviewRepositoryImpl implements ResultReviewRepository {
         entityId: id,
       );
       final current = await _require(id);
-      _requireHolder(current, staffId);
+      await _requireHolder(current, staffId);
       final updated = await _move(
         current,
         ResultReviewStatus.inReview,
@@ -309,7 +310,7 @@ class ResultReviewRepositoryImpl implements ResultReviewRepository {
         throw const ValidationFailure('Escalate to a different clinician.');
       }
       final current = await _require(id);
-      if (current.ownerStaffId != null) _requireHolder(current, staffId);
+      if (current.ownerStaffId != null) await _requireHolder(current, staffId);
       await _requireReviewer(coverageStaffId);
       final updated = await _move(
         current,
@@ -358,7 +359,7 @@ class ResultReviewRepositoryImpl implements ResultReviewRepository {
         );
       }
       final current = await _require(id);
-      _requireHolder(current, staffId);
+      await _requireHolder(current, staffId);
       final now = _now();
       return _db.transaction(() async {
         final updated = await _move(
@@ -398,12 +399,26 @@ class ResultReviewRepositoryImpl implements ResultReviewRepository {
 
   // --- helpers -------------------------------------------------------------
 
-  void _requireHolder(ResultReview review, String staffId) {
+  Future<void> _requireHolder(ResultReview review, String staffId) async {
     if (!_access.isEnforced) return;
     if (!review.isHeldBy(staffId)) {
       throw const AccessDeniedFailure(
         'This result is held by another clinician.',
       );
+    }
+    if (review.ownerStaffId != staffId && review.coverageStaffId == staffId) {
+      final sources =
+          await (_db.select(_db.taskSources)..where(
+                (s) =>
+                    s.sourceType.equals('result') &
+                    s.sourceId.equals(review.id),
+              ))
+              .get();
+      for (final source in sources) {
+        if (!await activeTaskCover(_db, source.taskId, staffId)) {
+          throw const AccessDeniedFailure('Result cover has expired.');
+        }
+      }
     }
   }
 

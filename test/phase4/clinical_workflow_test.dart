@@ -18,6 +18,7 @@ import 'package:myhealthcare/core/failures.dart';
 import 'package:myhealthcare/core/result.dart';
 import 'package:myhealthcare/data/db/app_database.dart';
 import 'package:myhealthcare/data/repositories/consultation_repository_impl.dart';
+import 'package:myhealthcare/data/repositories/task_workflow.dart';
 import 'package:myhealthcare/data/sync/outbox.dart';
 import 'package:myhealthcare/domain/entities/entities.dart';
 import 'package:myhealthcare/domain/enums.dart';
@@ -666,6 +667,13 @@ void main() {
           isTrue,
         );
         await signInAs(c, 'staff2@myhealth.demo');
+        final workflow = c.read(taskWorkflowProvider);
+        final pending = await workflow.pending(_colleagueId);
+        await workflow.decide(
+          _colleagueId,
+          pending.single.bundle,
+          accept: true,
+        );
         final covered = (await tasks.forStaff(_colleagueId)).valueOrNull!;
         final task = covered.firstWhere((t) => t.id == 'task_p4');
         expect(task.coverageStaffId, _colleagueId);
@@ -674,11 +682,21 @@ void main() {
           id: 'task_p4',
           staffId: _colleagueId,
           status: TaskStatus.done,
+          outcome: 'Reviewed source; recorded clinical decision in chart.',
         );
         expect(
           await tasks.setStatus(
             id: 'task_p4',
             staffId: _colleagueId,
+            status: TaskStatus.open,
+          ),
+          _fails<AccessDeniedFailure>(),
+        );
+        await signInAs(c, _doctor);
+        expect(
+          await tasks.setStatus(
+            id: 'task_p4',
+            staffId: _doctorId,
             status: TaskStatus.open,
           ),
           _fails<ValidationFailure>(),

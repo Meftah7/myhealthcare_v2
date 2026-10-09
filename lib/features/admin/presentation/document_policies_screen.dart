@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
@@ -7,6 +8,7 @@ import '../../../core/presentation/feedback.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
+import '../../../domain/documents/document_rules.dart';
 import '../../../domain/identity/operational_roles.dart';
 import '../../../domain/identity/permissions.dart';
 import '../../../domain/repositories/document_policy_repository.dart';
@@ -99,6 +101,16 @@ class _DocumentPoliciesScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          OutlinedButton.icon(
+            onPressed: () => context.push('/admin/profile/document-access'),
+            icon: const Icon(Icons.admin_panel_settings_outlined),
+            label: Text(
+              t.localeName == 'ar'
+                  ? 'صلاحيات الوثائق ونسخ المرضى'
+                  : 'Document access and patient copies',
+            ),
+          ),
+          const SizedBox(height: Space.md),
           Text(t.policyReviewIntro),
           const SizedBox(height: Space.md),
           enabled.when(
@@ -265,7 +277,7 @@ class _PolicyEditorState extends ConsumerState<_PolicyEditor> {
       key: PageStorageKey('policy-${draft.id}'),
       tilePadding: EdgeInsets.zero,
       title: Text(
-        '$disclosure · ${draft.language == 'ar' ? t.languageArabic : t.languageEnglish} · v${draft.version}',
+        '${DocumentRules.title(draft.document, arabic: Localizations.localeOf(context).languageCode == 'ar')} · $disclosure · ${draft.language == 'ar' ? t.languageArabic : t.languageEnglish} · v${draft.version}',
       ),
       subtitle: Text(
         policy.retiredAt != null
@@ -279,7 +291,13 @@ class _PolicyEditorState extends ConsumerState<_PolicyEditor> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(t.policySigningRule),
+            Text(
+              draft.clinicalSignatureRequired
+                  ? t.policySigningRule
+                  : Localizations.localeOf(context).languageCode == 'ar'
+                  ? 'الإصدار الإداري يتطلب صلاحية إصدار مستقلة. تتطلب الكشوف المالية صلاحية إدارة الفوترة أيضاً.'
+                  : 'Administrative issuance requires a separate issue grant. Finance statements also require billing-management authority.',
+            ),
             const SizedBox(height: Space.sm),
             Text(
               draft.disclosure == DisclosureProfile.clinic

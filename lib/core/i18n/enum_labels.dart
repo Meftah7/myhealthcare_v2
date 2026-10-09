@@ -191,6 +191,8 @@ extension TaskStatusLabel on TaskStatus {
       TaskStatus.inProgress => t.taskStatusInProgress,
       TaskStatus.done => t.taskStatusDone,
       TaskStatus.dismissed => t.taskStatusDismissed,
+      TaskStatus.waiting => t.localeName == 'ar' ? 'بانتظار إجراء' : 'Waiting',
+      TaskStatus.blocked => t.localeName == 'ar' ? 'متعذر مؤقتاً' : 'Blocked',
     };
   }
 }

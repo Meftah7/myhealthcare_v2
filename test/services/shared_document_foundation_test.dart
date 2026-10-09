@@ -631,7 +631,10 @@ void main() {
         originals.map((r) => r.data),
       );
       expect(await db.select(db.taskSources).get(), hasLength(tasks.length));
-      expect(await db.select(db.documentTemplates).get(), hasLength(6));
+      expect(
+        await db.select(db.documentTemplates).get(),
+        hasLength(ProposedDocumentPolicies.all().length),
+      );
       expect(
         (await db.select(db.documentTemplates).get()).every(
           (t) => t.approvedAt == null,

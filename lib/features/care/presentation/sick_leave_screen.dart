@@ -13,6 +13,7 @@ import '../../../core/presentation/readable_label.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../domain/repositories/document_service.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
 import '../../patient/application/family_link_providers.dart';
@@ -96,6 +97,13 @@ class _CertCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final t = AppLocalizations.of(context)!;
+    final status = ref.watch(_issuedCopiesProvider(cert.patientId));
+    final matches = status.valueOrNull?.where((d) => d.id == cert.id).toList();
+    final official = matches == null || matches.isEmpty ? null : matches.first;
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final ready =
+        official?.validity == DocumentValidity.valid &&
+        official?.renderStatus == DocumentRenderStatus.ready;
 
     return AppCard(
       child: Column(
@@ -110,7 +118,9 @@ class _CertCard extends ConsumerWidget {
                   style: theme.textTheme.titleMedium,
                 ),
               ),
-              if (cert.isActive)
+              if (cert.isActive &&
+                  status.hasValue &&
+                  (official == null || ready))
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: Space.xs,
@@ -152,19 +162,53 @@ class _CertCard extends ConsumerWidget {
             Text(cert.notes!, style: theme.textTheme.bodySmall),
           ],
           const SizedBox(height: Space.xs),
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: DocumentDownloadButton(
-              label: t.certificatePdfLabel,
-              filename: 'sick-leave-${fmtDate(cert.fromDate)}.pdf',
-              build: () => buildSickLeave(ref, cert),
+          if (status.isLoading)
+            const LinearProgressIndicator()
+          else if (status.hasError)
+            TextButton(
+              onPressed: () =>
+                  ref.invalidate(_issuedCopiesProvider(cert.patientId)),
+              child: Text(
+                ar ? 'إعادة تحميل حالة الوثيقة' : 'Reload document status',
+              ),
+            )
+          else if (official != null && !ready)
+            Text(
+              official.validity != DocumentValidity.valid
+                  ? (ar
+                        ? 'هذه النسخة ملغاة أو مستبدلة.'
+                        : 'This copy is revoked or superseded.')
+                  : (ar
+                        ? 'تم الإصدار؛ ملف PDF غير جاهز. يرجى التواصل مع العيادة.'
+                        : 'Issued; PDF is not ready. Please contact the clinic.'),
+            )
+          else
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: DocumentDownloadButton(
+                label: t.certificatePdfLabel,
+                filename: 'sick-leave-${fmtDate(cert.fromDate)}.pdf',
+                build: () => buildSickLeave(ref, cert),
+              ),
             ),
-          ),
+          if (status.hasValue && official == null)
+            Text(
+              ar
+                  ? 'سجل سابق — لم يصدر عبر مسار الاعتماد الجديد.'
+                  : 'Legacy record — issued before the approval workflow.',
+              style: theme.textTheme.bodySmall,
+            ),
         ],
       ),
     );
   }
 }
+
+final _issuedCopiesProvider = StreamProvider.autoDispose
+    .family<List<IssuedDocument>, String>((ref, id) {
+      ref.watch(currentUserProvider);
+      return ref.watch(documentServiceProvider).watchForPatient(id);
+    });
 
 final _subjectSickLeaveProvider =
     FutureProvider.family<List<SickLeaveCertificate>, String>(

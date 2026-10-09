@@ -51,7 +51,6 @@ class StaffDashboardScreen extends ConsumerWidget {
 
     return AppScaffold(
       stagger: true,
-      hero: true,
       heroOverline: greeting(firstName),
       title: user?.fullName ?? t.greetingFallbackName,
       actions: const [StaffTopActions()],
@@ -291,7 +290,7 @@ class _NextPatientHero extends ConsumerWidget {
         visitTypeLabel(next.visitType),
         if (next.roomNumber != null) t.roomNumber('${next.roomNumber}'),
       ].join(' · '),
-      onTap: () => context.go(AppRoutes.staffPatientChart(next.patientId)),
+      onTap: () => context.push(AppRoutes.staffConsultation(next.id)),
     );
   }
 }
@@ -484,7 +483,7 @@ class _QueueRow extends ConsumerWidget {
     );
 
     return InkWell(
-      onTap: () => context.go(AppRoutes.staffPatientChart(a.patientId)),
+      onTap: () => context.push(AppRoutes.staffConsultation(a.id)),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(
           Space.md,
@@ -551,7 +550,7 @@ class _RiskFlags extends ConsumerWidget {
                     },
                   ),
                   onTap: () =>
-                      context.go(AppRoutes.staffPatientChart(f.patientId)),
+                      context.push(AppRoutes.staffPatientChart(f.patientId)),
                 ),
               if (sorted.length > 6)
                 Padding(
@@ -748,11 +747,11 @@ class _TaskPreview extends ConsumerWidget {
                             : theme.textTheme.bodySmall,
                       ),
                 trailing: IconButton(
-                  tooltip: t.markDoneTooltip,
-                  icon: const Icon(Icons.check),
-                  onPressed: () => ref
-                      .read(staffOpsProvider)
-                      .setTaskStatus(task.id, TaskStatus.done),
+                  tooltip: t.taskBoardAction,
+                  icon: const Icon(Icons.open_in_new),
+                  onPressed: () => context.push(
+                    '${AppRoutes.staffTasks}/${Uri.encodeComponent(task.id)}',
+                  ),
                 ),
               ),
           ],

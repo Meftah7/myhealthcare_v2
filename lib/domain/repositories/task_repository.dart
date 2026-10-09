@@ -13,13 +13,15 @@ abstract interface class TaskRepository {
   /// Insert missing work, or refresh title/kind/rule score on existing work.
   /// Status, deadline, ownership, cover and AI fields are preserved on conflict.
   /// Source urgency may increase priority but cannot lower it.
-  Future<Result<void>> upsert(StaffTask task);
+  Future<Result<void>> upsert(StaffTask task, {String? sourceId});
 
   Future<Result<void>> setStatus({
     required String id,
     required String staffId,
     required TaskStatus status,
     int? expectedVersion,
+    String? outcome,
+    DateTime? reviewAt,
   });
 
   /// Writes AI priority + rationale onto an existing task (P5-10).

@@ -1,7 +1,10 @@
 /// Drift-backed [TaskRepository] + [RiskRepository] (P1-16).
 library;
 
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../core/failures.dart';
 import '../../core/result.dart';
@@ -12,6 +15,8 @@ import '../../domain/repositories/task_repository.dart';
 import '../../services/auth/access_policy.dart';
 import '../db/app_database.dart';
 import 'mappers.dart';
+import 'task_cover.dart';
+import 'task_workflow.dart';
 
 class TaskRepositoryImpl implements TaskRepository {
   TaskRepositoryImpl(this._db, {AccessPolicy? access})
@@ -32,8 +37,17 @@ class TaskRepositoryImpl implements TaskRepository {
   Future<List<StaffTask>> _visibleTasks(List<StaffTaskRow> rows) async {
     final visible = await _access.clinicallyVisiblePatientIds();
     final principal = await _access.principal();
+    final eligible = <StaffTaskRow>[];
+    for (final row in rows) {
+      if (principal?.isStaff == true &&
+          row.staffId != principal!.accountId &&
+          !await activeTaskCover(_db, row.id, principal.accountId)) {
+        continue;
+      }
+      eligible.add(row);
+    }
     return [
-      for (final row in rows)
+      for (final row in eligible)
         if (row.patientId == null ||
             visible == null ||
             visible.contains(row.patientId))
@@ -66,7 +80,9 @@ class TaskRepositoryImpl implements TaskRepository {
       q.where(
         (t) =>
             t.status.equalsValue(TaskStatus.open) |
-            t.status.equalsValue(TaskStatus.inProgress),
+            t.status.equalsValue(TaskStatus.inProgress) |
+            t.status.equalsValue(TaskStatus.waiting) |
+            t.status.equalsValue(TaskStatus.blocked),
       );
     }
     return q;
@@ -96,8 +112,15 @@ class TaskRepositoryImpl implements TaskRepository {
   }
 
   @override
-  Future<Result<void>> upsert(StaffTask task) {
+  Future<Result<void>> upsert(StaffTask task, {String? sourceId}) {
     return Result.guardAsync(() async {
+      if (!task.ruleScore.isFinite ||
+          task.ruleScore < 0 ||
+          task.ruleScore > 1) {
+        throw const ValidationFailure(
+          'Task scores must be finite and between zero and one.',
+        );
+      }
       if (task.patientId != null) {
         await _access.clinicalWrite(
           staffId: task.staffId,
@@ -115,6 +138,23 @@ class TaskRepositoryImpl implements TaskRepository {
         );
       }
       await _db.transaction(() async {
+        if (sourceId != null) {
+          final linked =
+              await (_db.select(_db.taskSources)..where(
+                    (s) =>
+                        s.sourceType.equals('risk') &
+                        s.sourceId.equals(sourceId),
+                  ))
+                  .get();
+          if (linked.isNotEmpty) {
+            final canonical = await (_db.select(
+              _db.staffTasks,
+            )..where((t) => t.id.equals(linked.first.taskId))).getSingle();
+            if (canonical.id != task.id || canonical.staffId != task.staffId) {
+              return;
+            }
+          }
+        }
         final existing = await (_db.select(
           _db.staffTasks,
         )..where((t) => t.id.equals(task.id))).getSingleOrNull();
@@ -122,6 +162,19 @@ class TaskRepositoryImpl implements TaskRepository {
           if (existing.staffId != task.staffId ||
               existing.patientId != task.patientId) {
             throw const AccessDeniedFailure();
+          }
+          if (sourceId != null) {
+            await _db
+                .into(_db.taskSources)
+                .insertOnConflictUpdate(
+                  TaskSourcesCompanion.insert(
+                    taskId: task.id,
+                    sourceType: 'risk',
+                    sourceId: sourceId,
+                    episodeKey: sourceId,
+                    recordedAt: DateTime.now(),
+                  ),
+                );
           }
           // Regeneration may refresh source fields, never clinician work.
           final priority = existing.priority.index >= task.priority.index
@@ -144,6 +197,11 @@ class TaskRepositoryImpl implements TaskRepository {
           }
           return;
         }
+        if (task.status != TaskStatus.open) {
+          throw const ValidationFailure(
+            'New work must start open; record later decisions through a task transition.',
+          );
+        }
         await _db
             .into(_db.staffTasks)
             .insert(
@@ -164,6 +222,19 @@ class TaskRepositoryImpl implements TaskRepository {
                 createdAt: Value(task.createdAt),
               ),
             );
+        if (sourceId != null) {
+          await _db
+              .into(_db.taskSources)
+              .insert(
+                TaskSourcesCompanion.insert(
+                  taskId: task.id,
+                  sourceType: 'risk',
+                  sourceId: sourceId,
+                  episodeKey: sourceId,
+                  recordedAt: DateTime.now(),
+                ),
+              );
+        }
       });
     });
   }
@@ -174,72 +245,125 @@ class TaskRepositoryImpl implements TaskRepository {
     required String staffId,
     required TaskStatus status,
     int? expectedVersion,
-  }) {
-    return Result.guardAsync(() async {
-      await _access.actAsStaff(
-        staffId,
-        Permission.manageTasks,
-        entityType: 'task',
-        entityId: id,
-      );
-      final task =
-          await (_db.select(_db.staffTasks)..where(
-                (t) =>
-                    t.id.equals(id) &
-                    (t.staffId.equals(staffId) |
-                        t.coverageStaffId.equals(staffId)),
-              ))
-              .getSingleOrNull();
-      if (task?.patientId != null) {
+    String? outcome,
+    DateTime? reviewAt,
+  }) => Result.guardAsync(() async {
+    await _access.actAsStaff(
+      staffId,
+      Permission.manageTasks,
+      entityType: 'task',
+      entityId: id,
+    );
+    await _db.transaction(() async {
+      final task = await (_db.select(
+        _db.staffTasks,
+      )..where((t) => t.id.equals(id))).getSingleOrNull();
+      if (task == null ||
+          (task.staffId != staffId && task.coverageStaffId != staffId)) {
+        throw const AccessDeniedFailure('Task ownership is required.');
+      }
+      if (task.staffId != staffId && !await activeTaskCover(_db, id, staffId)) {
+        throw const AccessDeniedFailure('Cover has expired.');
+      }
+      if (task.patientId != null) {
         await _access.readPatient(
-          task!.patientId!,
+          task.patientId!,
           entityType: 'task',
           entityId: id,
         );
       }
-      if (task != null &&
-          task.status != status &&
-          !(_taskSteps[task.status]?.contains(status) ?? false)) {
-        throw ValidationFailure(
-          'A ${task.status.name} task cannot become ${status.name}.',
+      if (expectedVersion != null && expectedVersion != task.version) {
+        throw ConflictFailure(
+          'Task changed. Reload it.',
+          currentVersion: task.version,
         );
       }
-      final updated =
-          await (_db.update(_db.staffTasks)..where(
-                (t) =>
-                    t.id.equals(id) &
-                    (t.staffId.equals(staffId) |
-                        t.coverageStaffId.equals(staffId)) &
-                    (expectedVersion == null
-                        ? const Constant(true)
-                        : t.version.equals(expectedVersion)),
-              ))
+      if (task.status == status) return;
+      if (task.status == TaskStatus.done ||
+          task.status == TaskStatus.dismissed) {
+        throw const ValidationFailure(
+          'Closed work cannot be reopened. Create a new source episode.',
+        );
+      }
+      final needsReason = {
+        TaskStatus.done,
+        TaskStatus.dismissed,
+        TaskStatus.waiting,
+        TaskStatus.blocked,
+      }.contains(status);
+      if (needsReason &&
+          (outcome == null ||
+              outcome.trim().isEmpty ||
+              outcome.length > 2000)) {
+        throw const ValidationFailure(
+          'Record the outcome or reason (up to 2000 characters).',
+        );
+      }
+      if ({TaskStatus.waiting, TaskStatus.blocked}.contains(status) &&
+          (reviewAt == null || !reviewAt.isAfter(DateTime.now()))) {
+        throw const ValidationFailure(
+          'Waiting or blocked work needs a future review time and an accountable owner.',
+        );
+      }
+      final changed =
+          await (_db.update(
+                _db.staffTasks,
+              )..where((t) => t.id.equals(id) & t.version.equals(task.version)))
               .write(StaffTasksCompanion(status: Value(status)));
-      if (updated != 1) {
-        if (task != null && expectedVersion != null) {
-          throw ConflictFailure(
-            'This task changed before your update was saved.',
-            currentVersion: task.version,
+      if (changed != 1) throw const ConflictFailure('Task changed. Reload it.');
+      final before = {
+        'status': task.status.name,
+        'owner': task.staffId,
+        'cover': task.coverageStaffId,
+      };
+      final after = {
+        ...before,
+        'status': status.name,
+        'reviewAt': {TaskStatus.waiting, TaskStatus.blocked}.contains(status)
+            ? reviewAt!.toUtc().toIso8601String()
+            : null,
+      };
+      await _db
+          .into(_db.taskHistory)
+          .insert(
+            TaskHistoryCompanion.insert(
+              id: const Uuid().v4(),
+              taskId: id,
+              actorAccountId: Value(
+                (await _access.principal())?.accountId ?? staffId,
+              ),
+              action: 'task.transition',
+              beforeJson: jsonEncode(before),
+              afterJson: jsonEncode(after),
+              outcome: Value(outcome?.trim()),
+              at: DateTime.now(),
+            ),
+          );
+      await _access.audit(
+        'task.transition',
+        entityType: 'staff_task',
+        entityId: id,
+        subjectPatientId: task.patientId,
+        detail: jsonEncode({
+          ...after,
+          'outcomeRecorded': outcome?.trim().isNotEmpty ?? false,
+        }),
+      );
+      if ({TaskStatus.done, TaskStatus.dismissed}.contains(status)) {
+        // Only handover-specific care access is removed; pre-existing care is retained.
+        final assignments = await _db.select(_db.careTeamAssignments).get();
+        for (final assignment in assignments.where(
+          (a) => a.id.startsWith('task-cover-$id-'),
+        )) {
+          await (_db.update(
+            _db.careTeamAssignments,
+          )..where((c) => c.id.equals(assignment.id))).write(
+            CareTeamAssignmentsCompanion(endedAt: Value(DateTime.now())),
           );
         }
-        throw const AuthFailure('This task is assigned to another clinician.');
       }
     });
-  }
-
-  /// Open work moves forward; done and dismissed are final.
-  static const _taskSteps = <TaskStatus, Set<TaskStatus>>{
-    TaskStatus.open: {
-      TaskStatus.inProgress,
-      TaskStatus.done,
-      TaskStatus.dismissed,
-    },
-    TaskStatus.inProgress: {
-      TaskStatus.open,
-      TaskStatus.done,
-      TaskStatus.dismissed,
-    },
-  };
+  });
 
   @override
   Future<Result<void>> applyAiPriority({
@@ -250,6 +374,11 @@ class TaskRepositoryImpl implements TaskRepository {
     int? expectedVersion,
   }) {
     return Result.guardAsync(() async {
+      if (!score.isFinite || score < 0 || score > 1) {
+        throw const ValidationFailure(
+          'Task scores must be finite and between zero and one.',
+        );
+      }
       await _access.actAsStaff(
         staffId,
         Permission.runConsultation,
@@ -305,69 +434,20 @@ class TaskRepositoryImpl implements TaskRepository {
     required String coverageStaffId,
     required WorkPriority priority,
     int? expectedVersion,
-  }) {
-    return Result.guardAsync(() async {
-      await _access.actAsStaff(
-        staffId,
-        Permission.manageTasks,
-        entityType: 'staff_task',
-        entityId: id,
-      );
-      if (coverageStaffId == staffId) {
-        throw const ValidationFailure('Escalate to a different clinician.');
-      }
-      final cover = await (_db.select(
-        _db.users,
-      )..where((u) => u.id.equals(coverageStaffId))).getSingleOrNull();
-      if (cover == null || !cover.isActive || cover.role != UserRole.staff) {
-        throw const ValidationFailure('Choose an active clinician to cover.');
-      }
-      final task = await (_db.select(
-        _db.staffTasks,
-      )..where((t) => t.id.equals(id))).getSingleOrNull();
-      if (task == null) throw const NotFoundFailure('Task not found.');
-      if (task.patientId != null) {
-        await _access.readPatient(
-          task.patientId!,
-          entityType: 'task',
-          entityId: id,
-        );
-      }
-      if (task.status == TaskStatus.done ||
-          task.status == TaskStatus.dismissed) {
-        throw const ValidationFailure('A closed task cannot be escalated.');
-      }
-      final updated =
-          await (_db.update(_db.staffTasks)..where(
-                (task) =>
-                    task.id.equals(id) &
-                    task.staffId.equals(staffId) &
-                    (expectedVersion == null
-                        ? const Constant(true)
-                        : task.version.equals(expectedVersion)),
-              ))
-              .write(
-                StaffTasksCompanion(
-                  priority: Value(priority),
-                  coverageStaffId: Value(coverageStaffId),
-                  escalatedAt: Value(DateTime.now()),
-                ),
-              );
-      if (updated != 1) {
-        throw ConflictFailure(
-          'This task changed. Reload before escalating it.',
-          currentVersion: task.version,
-        );
-      }
-      await _access.audit(
-        'task.escalate',
-        entityType: 'staff_task',
-        entityId: id,
-        subjectPatientId: task.patientId,
-        detail: 'to $coverageStaffId (${priority.name})',
-      );
-    });
-  }
+  }) => Result.guardAsync(() async {
+    final row = await (_db.select(
+      _db.staffTasks,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (row == null) throw const NotFoundFailure('Task not found.');
+    await TaskWorkflow(_db, _access).offer(
+      actor: staffId,
+      tasks: {id: expectedVersion ?? row.version},
+      recipient: coverageStaffId,
+      reason: 'Escalation: clinical review requested',
+      expires: DateTime.now().add(const Duration(hours: 24)),
+      urgent: priority == WorkPriority.urgent,
+    );
+  });
 }
 
 class RiskRepositoryImpl implements RiskRepository {

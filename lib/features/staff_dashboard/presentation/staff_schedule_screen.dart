@@ -15,6 +15,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
 import '../../../app/theme/theme.dart';
@@ -76,7 +77,16 @@ class StaffScheduleScreen extends ConsumerWidget {
             color: theme.colorScheme.onPrimaryContainer,
           ),
         ),
-        actions: const [StaffTopActions()],
+        actions: [
+          IconButton(
+            tooltip: Localizations.localeOf(context).languageCode == 'ar'
+                ? '\u0627\u0644\u062a\u063a\u0637\u064a\u0629 \u0648\u0627\u0644\u0625\u062c\u0627\u0632\u0627\u062a'
+                : 'Cover and time off',
+            onPressed: () => context.push('/staff/schedule/work'),
+            icon: const Icon(Icons.event_busy_outlined),
+          ),
+          const StaffTopActions(),
+        ],
       ),
       body: switch (view) {
         ScheduleView.year => const _YearView(),

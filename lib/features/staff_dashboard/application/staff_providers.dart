@@ -11,6 +11,7 @@ import '../../../core/data/contracts.dart';
 import '../../../core/di.dart';
 import '../../../core/failures.dart';
 import '../../../core/result.dart';
+import '../../../data/repositories/task_workflow.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
 import '../../../services/rules/risk_detection_service.dart';
@@ -215,6 +216,26 @@ final staffTasksProvider = FutureProvider<List<StaffTask>>((ref) async {
   return tasks;
 });
 
+/// Live own/covering work, including final outcomes. Repository authorization
+/// revalidates scope whenever access changes; presentation never queries team work.
+final staffAuthorizationProvider = StreamProvider.autoDispose(
+  (ref) => ref.watch(accessPolicyProvider).watchAuthorization(),
+);
+
+final staffWorkProvider = StreamProvider.autoDispose<List<StaffTask>>((ref) {
+  ref.watch(staffAuthorizationProvider);
+  final id = _staffId(ref);
+  return ref.watch(taskRepositoryProvider).watchForStaff(id);
+});
+
+final taskPatientNameProvider = FutureProvider.autoDispose
+    .family<String, String>((ref, id) async {
+      ref.watch(currentUserProvider);
+      return _unwrap(
+        await ref.watch(patientRepositoryProvider).byId(id),
+      ).fullName;
+    });
+
 /// The AI-vs-rule blend weight from app settings (0 = rules only) (P5-10).
 final aiTaskWeightProvider = FutureProvider<double>((ref) async {
   final r = await ref.watch(settingsRepositoryProvider).get();
@@ -248,6 +269,7 @@ class StaffOps {
             .read(taskGeneratorProvider)
             .generateFor(staffId: staffId, flags: panelFlags),
       );
+      await _ref.read(taskWorkflowProvider).generate(staffId);
       return panelFlags.length;
     } finally {
       _ref
@@ -309,6 +331,8 @@ class StaffOps {
     String taskId,
     TaskStatus status, {
     int? expectedVersion,
+    String? outcome,
+    DateTime? reviewAt,
   }) async {
     final staffId = _ref.read(currentUserProvider)!.id;
     final result = await _ref
@@ -318,6 +342,8 @@ class StaffOps {
           staffId: staffId,
           status: status,
           expectedVersion: expectedVersion,
+          outcome: outcome,
+          reviewAt: reviewAt,
         );
     if (result.isOk) _ref.invalidate(staffTasksProvider);
     return result;

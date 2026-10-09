@@ -9,6 +9,7 @@ import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:myhealthcare/domain/enums.dart';
 import 'package:myhealthcare/features/auth/application/session.dart';
+import 'package:myhealthcare/features/staff_dashboard/presentation/staff_top_actions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/mfa.dart';
@@ -130,6 +131,8 @@ void main() {
     addTearDown(container.dispose);
 
     // Now reached from the Profile hub, not a Quick action.
+    await tester.tap(find.byType(PresenceMenu).first);
+    await _settle(tester);
     await tester.tap(find.text('Profile').last);
     await _settle(tester);
     await tester.tap(find.text('Staff directory'));
@@ -156,6 +159,8 @@ void main() {
     final container = await _signInStaff(tester);
     addTearDown(container.dispose);
 
+    await tester.tap(find.byType(PresenceMenu).first);
+    await _settle(tester);
     await tester.tap(find.text('Profile').last);
     await _settle(tester);
     await tester.tap(find.text('My activity'));
