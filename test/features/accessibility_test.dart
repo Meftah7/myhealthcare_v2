@@ -178,9 +178,8 @@ void main() {
       await _pump(tester);
       await _login(tester, 'admin@myhealth.demo');
 
-      await selectCompactDestination(tester, 'Clinic');
+      await selectCompactDestination(tester, 'Departments');
       await _pump(tester);
-      await tester.tap(find.text('Departments').last);
       await _pump(tester);
 
       await expectLater(tester, meetsGuideline(textContrastGuideline));

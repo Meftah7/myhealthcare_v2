@@ -32,6 +32,7 @@ class AppShell extends StatefulWidget {
     this.overlay,
     this.contextHeader,
     this.compactLeadingCount,
+    this.keepCompactSectionsVisible = false,
     super.key,
   });
 
@@ -46,6 +47,7 @@ class AppShell extends StatefulWidget {
   /// Optional role context that remains visible while switching branches.
   final Widget? contextHeader;
   final int? compactLeadingCount;
+  final bool keepCompactSectionsVisible;
 
   @override
   State<AppShell> createState() => _AppShellState();
@@ -151,6 +153,7 @@ class _AppShellState extends State<AppShell> {
             destinations: compact,
             currentIndex: leading == null ? current : current.clamp(0, leading),
             onSelected: selectCompact,
+            keepSectionsVisible: widget.keepCompactSectionsVisible,
           ),
         ),
       );
@@ -308,12 +311,14 @@ class CompactNavigation extends StatelessWidget {
     required this.destinations,
     required this.currentIndex,
     required this.onSelected,
+    this.keepSectionsVisible = false,
     super.key,
   });
 
   final List<AppDestination> destinations;
   final int currentIndex;
   final ValueChanged<int> onSelected;
+  final bool keepSectionsVisible;
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
@@ -332,7 +337,7 @@ class CompactNavigation extends StatelessWidget {
         fits = fits && painter.width <= slotWidth;
         painter.dispose();
       }
-      if (fits) {
+      if (fits || (keepSectionsVisible && scaler.scale(11) / 11 <= 1.3)) {
         return NavigationBar(
           height: 80,
           selectedIndex: currentIndex,

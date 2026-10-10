@@ -91,14 +91,11 @@ void main() {
 
     // The five nav tabs.
     for (final tab in const [
-      'Overview',
-      'Work',
-      'People',
-      'Clinic',
-      'Documents',
-      'Finance',
-      'Reports',
-      'Settings',
+      'Dashboard',
+      'Users',
+      'Departments',
+      'Billing',
+      'Profile',
     ]) {
       expect(find.text(tab), findsWidgets);
     }

@@ -19,12 +19,37 @@ import '../../../core/presentation/profile_navigation.dart';
 import '../../../core/presentation/states.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
+import 'admin_workspace_shared.dart';
 
 class AdminProfileScreen extends ConsumerWidget {
   const AdminProfileScreen({super.key});
 
-  List<(IconData, String, String)> _sections(AppLocalizations t) => [
+  List<(IconData, String, String)> _sections(
+    BuildContext context,
+    AppLocalizations t,
+  ) => [
     (Icons.badge_outlined, t.account, AppRoutes.adminProfileAccount),
+    (Icons.work_outline, adminText(context, 'Work', 'العمل'), '/admin/work'),
+    (
+      Icons.local_hospital_outlined,
+      adminText(context, 'Clinic', 'العيادة'),
+      '/admin/clinic',
+    ),
+    (
+      Icons.description_outlined,
+      adminText(context, 'Documents', 'المستندات'),
+      '/admin/documents',
+    ),
+    (
+      Icons.insights_outlined,
+      adminText(context, 'Reports', 'التقارير'),
+      '/admin/reports',
+    ),
+    (
+      Icons.settings_outlined,
+      adminText(context, 'Settings', 'الإعدادات'),
+      '/admin/settings',
+    ),
     (Icons.fact_check_outlined, t.auditLogTitle, AppRoutes.adminProfileAudit),
     (
       Icons.description_outlined,
@@ -62,7 +87,7 @@ class AdminProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
     final user = ref.watch(currentUserProvider);
-    final sections = _sections(t);
+    final sections = _sections(context, t);
 
     return AppScaffold(
       title: t.profile,

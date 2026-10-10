@@ -38,9 +38,9 @@ void main() {
   });
   for (final locale in ['en', 'ar']) {
     testWidgets(
-      '$locale compact admin navigation exposes three destinations and More',
+      '$locale compact admin navigation restores five sections and preserves workspace routes',
       (t) async {
-        t.view.physicalSize = const Size(320, 740);
+        t.view.physicalSize = const Size(390, 844);
         t.view.devicePixelRatio = 1;
         addTearDown(t.view.resetPhysicalSize);
         addTearDown(t.view.resetDevicePixelRatio);
@@ -57,17 +57,56 @@ void main() {
         await settle(t);
         c.read(routerProvider).go('/admin/dashboard');
         await settle(t);
-        final more = find.text(locale == 'ar' ? 'المزيد' : 'More').last;
-        expect(more, findsOneWidget);
-        expect(find.text(locale == 'ar' ? 'الأشخاص' : 'People'), findsWidgets);
-        await t.tap(more);
-        await settle(t);
-        await t.tap(find.text(locale == 'ar' ? 'المستندات' : 'Documents').last);
-        await settle(t);
+        final bar = t.widget<NavigationBar>(find.byType(NavigationBar));
+        final labels = AppLocalizations.of(
+          t.element(find.byType(NavigationBar)),
+        )!;
         expect(
-          c.read(routerProvider).routeInformationProvider.value.uri.path,
-          '/admin/documents',
+          bar.destinations.cast<NavigationDestination>().map((d) => d.label),
+          [
+            labels.navDashboard,
+            labels.navUsers,
+            labels.navDepartments,
+            labels.navBilling,
+            labels.profile,
+          ],
         );
+        for (final (label, route) in [
+          (labels.navUsers, AppRoutes.adminUsers),
+          (labels.navDepartments, AppRoutes.adminDepartments),
+          (labels.navBilling, AppRoutes.adminBilling),
+          (labels.profile, AppRoutes.adminProfile),
+          (labels.navDashboard, AppRoutes.adminDashboard),
+        ]) {
+          await t.tap(
+            find
+                .descendant(
+                  of: find.byType(NavigationBar),
+                  matching: find.text(label),
+                )
+                .last,
+          );
+          await settle(t);
+          expect(
+            c.read(routerProvider).routeInformationProvider.value.uri.path,
+            route,
+          );
+        }
+        for (final route in [
+          '/admin/work',
+          '/admin/clinic',
+          '/admin/documents',
+          '/admin/reports',
+          '/admin/settings',
+        ]) {
+          c.read(routerProvider).go(route);
+          await settle(t);
+          expect(
+            c.read(routerProvider).routeInformationProvider.value.uri.path,
+            route,
+          );
+          expect(find.byType(NavigationBar), findsOneWidget);
+        }
         expect(t.takeException(), isNull);
         await t.pumpWidget(const SizedBox());
         await t.pumpAndSettle();

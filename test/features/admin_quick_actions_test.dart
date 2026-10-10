@@ -222,7 +222,7 @@ void main() {
     final container = await _signInAdmin(tester);
     addTearDown(container.dispose);
 
-    await tester.tap(find.text('Finance'));
+    await tester.tap(find.text('Billing'));
     await _settle(tester);
     expect(find.widgetWithText(AppBar, 'Billing'), findsOneWidget);
     expect(find.textContaining('BD '), findsWidgets);
