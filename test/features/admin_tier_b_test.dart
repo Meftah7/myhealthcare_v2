@@ -188,9 +188,7 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
   });
 
-  testWidgets('capacity forecast opens from Profile › Capacity forecast', (
-    tester,
-  ) async {
+  testWidgets('historical demand opens from Profile', (tester) async {
     tester.view.physicalSize = const Size(1400, 2800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -199,9 +197,9 @@ void main() {
     final container = await _signInAdmin(tester);
     addTearDown(container.dispose);
 
-    await tester.tap(find.text('Reports').last);
+    await tester.tap(find.text('Profile').last);
     await _settle(tester);
-    await tester.tap(find.text('Capacity forecast'));
+    await tester.tap(find.text('Historical demand'));
     await _settle(tester);
     expect(find.widgetWithText(AppBar, 'Historical demand'), findsOneWidget);
     expect(find.text('Monday'), findsOneWidget);

@@ -58,11 +58,19 @@ void main() {
         c.read(routerProvider).go('/admin/dashboard');
         await settle(t);
         final bar = t.widget<NavigationBar>(find.byType(NavigationBar));
+        expect(bar.destinations, hasLength(5));
         final labels = AppLocalizations.of(
           t.element(find.byType(NavigationBar)),
         )!;
         expect(
-          bar.destinations.cast<NavigationDestination>().map((d) => d.label),
+          t
+              .widgetList<NavigationDestination>(
+                find.descendant(
+                  of: find.byType(NavigationBar),
+                  matching: find.byType(NavigationDestination),
+                ),
+              )
+              .map((d) => d.label),
           [
             labels.navDashboard,
             labels.navUsers,

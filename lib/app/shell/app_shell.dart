@@ -338,19 +338,27 @@ class CompactNavigation extends StatelessWidget {
         painter.dispose();
       }
       if (fits || (keepSectionsVisible && scaler.scale(11) / 11 <= 1.3)) {
+        Widget destination(AppDestination d) {
+          final item = NavigationDestination(
+            icon: Icon(d.icon),
+            selectedIcon: Icon(d.selectedIcon),
+            label: d.label,
+            tooltip: d.label,
+          );
+          return keepSectionsVisible
+              ? DefaultTextStyle.merge(
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  child: item,
+                )
+              : item;
+        }
+
         return NavigationBar(
           height: 80,
           selectedIndex: currentIndex,
           onDestinationSelected: onSelected,
-          destinations: [
-            for (final d in destinations)
-              NavigationDestination(
-                icon: Icon(d.icon),
-                selectedIcon: Icon(d.selectedIcon),
-                label: d.label,
-                tooltip: d.label,
-              ),
-          ],
+          destinations: [for (final d in destinations) destination(d)],
         );
       }
       final selected = destinations[currentIndex];
