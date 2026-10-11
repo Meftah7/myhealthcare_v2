@@ -20,6 +20,7 @@ import '../../../core/presentation/feedback.dart';
 import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
+import '../../../core/ui/patient/patient_components.dart';
 import '../../../core/utils/date_input.dart';
 import '../../../core/utils/ids.dart';
 import '../../../domain/entities/entities.dart';
@@ -51,10 +52,20 @@ class FamilyNetworkSection extends ConsumerWidget {
       error: (e, _) => InlineBanner.error(t.couldNotLoadFamilyMembers),
       data: (items) {
         if (items.isEmpty) {
-          return EmptyState(
-            icon: Icons.family_restroom_outlined,
-            message: t.noFamilyMembersLinkedYet,
-          );
+          return embedded
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(vertical: Space.sm),
+                  child: Text(
+                    t.noFamilyMembersLinkedYet,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: PatientPalette.of(context).textMuted,
+                    ),
+                  ),
+                )
+              : EmptyState(
+                  icon: Icons.family_restroom_outlined,
+                  message: t.noFamilyMembersLinkedYet,
+                );
         }
         final tiles = Column(
           children: [
@@ -75,21 +86,61 @@ class FamilyNetworkSection extends ConsumerWidget {
     );
 
     if (embedded) {
+      final theme = Theme.of(context);
+      final palette = PatientPalette.of(context);
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const LinkedFamilyAccountsSection(),
+          const SurfaceCard(child: LinkedFamilyAccountsSection()),
           const SizedBox(height: Space.md),
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: OutlinedButton.icon(
-              onPressed: () => _openForm(context, ref),
-              icon: const Icon(Icons.add, size: 18),
-              label: Text(t.addFamilyMemberAction),
+          SurfaceCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    const IconTile(
+                      icon: Icons.family_restroom_outlined,
+                      accent: PatientAccent.green,
+                      size: 44,
+                    ),
+                    const SizedBox(width: Space.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Semantics(
+                            header: true,
+                            child: Text(
+                              t.paHouseholdMembers,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: palette.text,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            t.paHouseholdMembersBody,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: palette.textMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: Space.sm),
+                list,
+                const SizedBox(height: Space.sm),
+                SoftActionButton(
+                  label: t.addFamilyMemberAction,
+                  icon: Icons.add,
+                  onPressed: () => _openForm(context, ref),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: Space.sm),
-          list,
         ],
       );
     }

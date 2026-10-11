@@ -5414,4 +5414,65 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get paPolicyDraftBody =>
       'This text describes how the app works today. The operator has not yet approved or published it.';
+
+  @override
+  String get paOutOfRange => 'Out of range';
+
+  @override
+  String get paDownloadOriginal => 'Download';
+
+  @override
+  String get paEarlierResults => 'Compared with your earlier results';
+
+  @override
+  String get paIssuedDocumentsTitle => 'Issued documents';
+
+  @override
+  String get paIssuedDocumentsIntro =>
+      'Official documents your care team issued — sick leave, certificates and visit summaries. Files you uploaded are in Health Records.';
+
+  @override
+  String get paDocumentsLoadError => 'Couldn\'t load your documents.';
+
+  @override
+  String get paNoIssuedDocuments => 'No issued documents yet';
+
+  @override
+  String get paNoIssuedDocumentsBody =>
+      'When your doctor issues a certificate or sick leave, it appears here.';
+
+  @override
+  String get paDocRevoked => 'Revoked or replaced';
+
+  @override
+  String get paDocReady => 'Official copy ready';
+
+  @override
+  String get paDocNotReady => 'PDF not ready';
+
+  @override
+  String get paDocNotReadyBody =>
+      'The PDF isn\'t ready yet; contact the clinic if it stays this way.';
+
+  @override
+  String get paDocReplacement => 'Replacement version';
+
+  @override
+  String get paVerificationCode => 'Verification code';
+
+  @override
+  String get paViewDocument => 'View';
+
+  @override
+  String get paNewLabel => 'New';
+
+  @override
+  String get paHouseholdMembers => 'Household members';
+
+  @override
+  String get paHouseholdMembersBody =>
+      'People without their own account you book visits for.';
+
+  @override
+  String get paNoConversationsTitle => 'No conversations yet';
 }

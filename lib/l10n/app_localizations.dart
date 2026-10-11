@@ -9649,6 +9649,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This text describes how the app works today. The operator has not yet approved or published it.'**
   String get paPolicyDraftBody;
+
+  /// No description provided for @paOutOfRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of range'**
+  String get paOutOfRange;
+
+  /// No description provided for @paDownloadOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get paDownloadOriginal;
+
+  /// No description provided for @paEarlierResults.
+  ///
+  /// In en, this message translates to:
+  /// **'Compared with your earlier results'**
+  String get paEarlierResults;
+
+  /// No description provided for @paIssuedDocumentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued documents'**
+  String get paIssuedDocumentsTitle;
+
+  /// No description provided for @paIssuedDocumentsIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Official documents your care team issued — sick leave, certificates and visit summaries. Files you uploaded are in Health Records.'**
+  String get paIssuedDocumentsIntro;
+
+  /// No description provided for @paDocumentsLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your documents.'**
+  String get paDocumentsLoadError;
+
+  /// No description provided for @paNoIssuedDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'No issued documents yet'**
+  String get paNoIssuedDocuments;
+
+  /// No description provided for @paNoIssuedDocumentsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'When your doctor issues a certificate or sick leave, it appears here.'**
+  String get paNoIssuedDocumentsBody;
+
+  /// No description provided for @paDocRevoked.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoked or replaced'**
+  String get paDocRevoked;
+
+  /// No description provided for @paDocReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Official copy ready'**
+  String get paDocReady;
+
+  /// No description provided for @paDocNotReady.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF not ready'**
+  String get paDocNotReady;
+
+  /// No description provided for @paDocNotReadyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The PDF isn\'t ready yet; contact the clinic if it stays this way.'**
+  String get paDocNotReadyBody;
+
+  /// No description provided for @paDocReplacement.
+  ///
+  /// In en, this message translates to:
+  /// **'Replacement version'**
+  String get paDocReplacement;
+
+  /// No description provided for @paVerificationCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification code'**
+  String get paVerificationCode;
+
+  /// No description provided for @paViewDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get paViewDocument;
+
+  /// No description provided for @paNewLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get paNewLabel;
+
+  /// No description provided for @paHouseholdMembers.
+  ///
+  /// In en, this message translates to:
+  /// **'Household members'**
+  String get paHouseholdMembers;
+
+  /// No description provided for @paHouseholdMembersBody.
+  ///
+  /// In en, this message translates to:
+  /// **'People without their own account you book visits for.'**
+  String get paHouseholdMembersBody;
+
+  /// No description provided for @paNoConversationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No conversations yet'**
+  String get paNoConversationsTitle;
 }
 
 class _AppLocalizationsDelegate

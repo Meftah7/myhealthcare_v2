@@ -703,9 +703,11 @@ class NavScopeBadge extends StatelessWidget {
         borderRadius: Radii.pill,
         border: Border.all(color: palette.warning.withValues(alpha: .35)),
       ),
+      // Wraps (never clips) when the slot is narrow.
       child: Text(
         label,
-        maxLines: 1,
+        maxLines: 2,
+        softWrap: true,
         textAlign: TextAlign.center,
         style: styleOf(context)?.copyWith(color: palette.warning),
       ),

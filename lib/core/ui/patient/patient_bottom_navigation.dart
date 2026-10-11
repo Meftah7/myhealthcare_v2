@@ -60,12 +60,14 @@ class PatientBottomNavigation extends StatelessWidget {
 
           for (final d in destinations) {
             fits = fits && measure(d.label, style) <= slot;
-            // A scope badge must fit whole too (pill padding included).
+            // A scope badge may wrap onto two lines inside its slot, but no
+            // single word of it may be clipped (pill padding included).
             if (d.badge != null) {
-              fits =
-                  fits &&
-                  measure(d.badge!, NavScopeBadge.styleOf(context)) + 14 <=
-                      slot;
+              for (final word in d.badge!.split(RegExp(r'\s+'))) {
+                fits =
+                    fits &&
+                    measure(word, NavScopeBadge.styleOf(context)) + 14 <= slot;
+              }
             }
           }
           if (!fits) {

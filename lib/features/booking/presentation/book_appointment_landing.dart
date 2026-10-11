@@ -763,7 +763,7 @@ class _AvailabilityLine extends ConsumerWidget {
                 child: CircularProgressIndicator(strokeWidth: 2),
               ),
               const SizedBox(width: Space.xs),
-              Text(t.paAvailabilityLoading, style: muted),
+              Expanded(child: Text(t.paAvailabilityLoading, style: muted)),
             ],
           ),
           error: (_, _) => Row(

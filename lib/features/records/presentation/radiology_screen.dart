@@ -8,10 +8,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
-import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/readable_label.dart';
 import '../../../core/presentation/states.dart';
+import '../../../core/ui/patient/patient_components.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../l10n/app_localizations.dart';
@@ -85,25 +85,17 @@ class _ImagingCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
 
-    return AppCard(
+    return SurfaceCard(
       onTap: () => context.push(AppRoutes.patientRecord(record.id)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: scheme.primaryContainer,
-                  borderRadius: Radii.chip,
-                ),
-                child: Icon(
-                  Icons.image_outlined,
-                  size: 18,
-                  color: scheme.onPrimaryContainer,
-                ),
+              const IconTile(
+                icon: Icons.image_outlined,
+                accent: PatientAccent.amber,
+                size: 44,
               ),
               const SizedBox(width: Space.sm),
               Expanded(
@@ -112,7 +104,9 @@ class _ImagingCard extends ConsumerWidget {
                   children: [
                     ReadableLabel(
                       record.title,
-                      style: theme.textTheme.titleSmall,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     ReadableLabel(
                       '${fmtDate(record.occurredAt)}'
@@ -135,14 +129,23 @@ class _ImagingCard extends ConsumerWidget {
               style: theme.textTheme.bodyMedium,
             ),
           ],
-          const SizedBox(height: Space.xs),
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: DocumentDownloadButton(
-              label: AppLocalizations.of(context)!.reportPdfLabel,
-              filename: 'radiology-${_slug(record.title)}.pdf',
-              build: () => buildRadiologyReport(ref, record),
-            ),
+          const SizedBox(height: Space.sm),
+          Wrap(
+            spacing: Space.xs,
+            runSpacing: Space.xs,
+            children: [
+              DocumentDownloadButton(
+                label: AppLocalizations.of(context)!.reportPdfLabel,
+                filename: 'radiology-${_slug(record.title)}.pdf',
+                build: () => buildRadiologyReport(ref, record),
+              ),
+              TextButton.icon(
+                onPressed: () =>
+                    context.push(AppRoutes.patientRecord(record.id)),
+                icon: const Icon(Icons.open_in_new, size: 18),
+                label: Text(AppLocalizations.of(context)!.paOpenAction),
+              ),
+            ],
           ),
         ],
       ),

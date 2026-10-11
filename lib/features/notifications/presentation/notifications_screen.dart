@@ -16,6 +16,7 @@ import '../../../core/presentation/feedback.dart';
 import '../../../core/presentation/readable_label.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
+import '../../../core/ui/patient/patient_components.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
@@ -175,21 +176,24 @@ class _NotificationTile extends ConsumerWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: Space.xxs),
-      child: AppCard(
-        padding: const EdgeInsets.all(Space.md),
-        color: unread ? scheme.surfaceContainerHighest : null,
+      child: SurfaceCard(
+        // Unread: soft blue plus a readable "New" label (not colour alone).
+        color: unread ? PatientPalette.of(context).softAccent : null,
+        semanticLabel: unread
+            ? '${notification.title}, ${AppLocalizations.of(context)!.paNewLabel}'
+            : notification.title,
         onTap: () => _open(context, ref),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              width: 36,
-              height: 36,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
                 color: accent.withValues(alpha: 0.14),
-                shape: BoxShape.circle,
+                borderRadius: BorderRadius.circular(13),
               ),
-              child: Icon(style.icon, size: 18, color: accent),
+              child: Icon(style.icon, size: 22, color: accent),
             ),
             const SizedBox(width: Space.sm),
             Expanded(
@@ -229,16 +233,12 @@ class _NotificationTile extends ConsumerWidget {
               ),
             ),
             if (unread)
-              Container(
-                margin: const EdgeInsetsDirectional.only(
-                  start: Space.xs,
-                  top: 4,
-                ),
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: scheme.primary,
-                  shape: BoxShape.circle,
+              Padding(
+                padding: const EdgeInsetsDirectional.only(start: Space.xs),
+                child: StatusBadge(
+                  AppLocalizations.of(context)!.paNewLabel,
+                  accent: PatientAccent.blue,
+                  icon: Icons.fiber_manual_record,
                 ),
               ),
           ],

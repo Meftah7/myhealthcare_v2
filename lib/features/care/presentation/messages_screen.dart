@@ -76,10 +76,12 @@ class MessagesScreen extends ConsumerWidget {
             }
             if (list.isEmpty) {
               return ListView(
+                padding: const EdgeInsets.all(kPatientInset),
                 children: [
-                  const SizedBox(height: 120),
-                  EmptyState(
+                  PatientStateView(
+                    kind: PatientStateKind.empty,
                     icon: Icons.chat_bubble_outline,
+                    title: t.paNoConversationsTitle,
                     message: doctors.isEmpty
                         ? t.onceSeenDoctorMessage
                         : t.noConversationsYetMessage,

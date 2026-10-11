@@ -5469,4 +5469,65 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get paPolicyDraftBody =>
       'يصف هذا النص طريقة عمل التطبيق حاليًا. ولم تعتمده الجهة المشغلة أو تنشره بعد.';
+
+  @override
+  String get paOutOfRange => 'خارج النطاق';
+
+  @override
+  String get paDownloadOriginal => 'تنزيل';
+
+  @override
+  String get paEarlierResults => 'مقارنةً بنتائجك السابقة';
+
+  @override
+  String get paIssuedDocumentsTitle => 'الوثائق الصادرة';
+
+  @override
+  String get paIssuedDocumentsIntro =>
+      'الوثائق الرسمية التي أصدرها فريق رعايتك — الإجازات المرضية والشهادات وملخصات الزيارات. الملفات التي رفعتها موجودة في السجلات الصحية.';
+
+  @override
+  String get paDocumentsLoadError => 'تعذّر تحميل مستنداتك.';
+
+  @override
+  String get paNoIssuedDocuments => 'لا توجد وثائق صادرة بعد';
+
+  @override
+  String get paNoIssuedDocumentsBody =>
+      'عندما يصدر طبيبك شهادة أو إجازة مرضية، ستظهر هنا.';
+
+  @override
+  String get paDocRevoked => 'ملغاة أو مستبدلة';
+
+  @override
+  String get paDocReady => 'النسخة الرسمية جاهزة';
+
+  @override
+  String get paDocNotReady => 'ملف PDF غير جاهز';
+
+  @override
+  String get paDocNotReadyBody =>
+      'ملف PDF غير جاهز بعد؛ تواصل مع العيادة إن استمر ذلك.';
+
+  @override
+  String get paDocReplacement => 'نسخة بديلة';
+
+  @override
+  String get paVerificationCode => 'رمز التحقق';
+
+  @override
+  String get paViewDocument => 'عرض';
+
+  @override
+  String get paNewLabel => 'جديد';
+
+  @override
+  String get paHouseholdMembers => 'أفراد الأسرة';
+
+  @override
+  String get paHouseholdMembersBody =>
+      'أشخاص ليس لديهم حساب خاص تحجز لهم الزيارات.';
+
+  @override
+  String get paNoConversationsTitle => 'لا توجد محادثات بعد';
 }

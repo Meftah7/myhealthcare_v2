@@ -250,6 +250,14 @@ class _AppScaffoldState extends State<AppScaffold> {
 
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    // Patient pages share Home's header: the canvas with a bold charcoal
+    // title, no tinted band. Staff/admin keep the tinted hero band.
+    final patientLook = theme.extension<PatientPalette>();
+    final headerBg = patientLook?.canvas ?? scheme.primaryContainer;
+    final headerFg = patientLook?.text ?? scheme.onPrimaryContainer;
+    final bandRadius = patientLook == null
+        ? const BorderRadius.vertical(bottom: Radius.circular(24))
+        : null;
     Widget? title =
         widget.titleWidget ??
         (widget.title == null
@@ -261,8 +269,10 @@ class _AppScaffoldState extends State<AppScaffold> {
                 overflow: hero ? TextOverflow.visible : TextOverflow.ellipsis,
                 style: hero
                     ? theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: scheme.onPrimaryContainer,
+                        fontWeight: patientLook == null
+                            ? FontWeight.w600
+                            : FontWeight.w700,
+                        color: headerFg,
                       )
                     : widget.hero
                     ? theme.textTheme.headlineMedium
@@ -358,7 +368,10 @@ class _AppScaffoldState extends State<AppScaffold> {
                   widget.title!,
                   style: hero
                       ? theme.textTheme.headlineSmall?.copyWith(
-                          color: scheme.onPrimaryContainer,
+                          color: headerFg,
+                          fontWeight: patientLook == null
+                              ? null
+                              : FontWeight.w700,
                         )
                       : theme.textTheme.titleLarge,
                 ));
@@ -369,10 +382,8 @@ class _AppScaffoldState extends State<AppScaffold> {
               Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: hero ? scheme.primaryContainer : scheme.surface,
-                  borderRadius: hero
-                      ? const BorderRadius.vertical(bottom: Radius.circular(24))
-                      : null,
+                  color: hero ? headerBg : scheme.surface,
+                  borderRadius: hero ? bandRadius : null,
                 ),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
@@ -437,14 +448,12 @@ class _AppScaffoldState extends State<AppScaffold> {
           ? AppBar(
               titleSpacing: gutter,
               toolbarHeight: toolbarHeight,
-              backgroundColor: scheme.primaryContainer,
+              backgroundColor: headerBg,
               surfaceTintColor: Colors.transparent,
               scrolledUnderElevation: 0,
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(
-                  bottom: Radius.circular(24),
-                ),
-              ),
+              shape: bandRadius == null
+                  ? null
+                  : RoundedRectangleBorder(borderRadius: bandRadius),
               title: title,
               leading: leading,
               automaticallyImplyLeading: widget.automaticallyImplyLeading,
