@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/shell/app_shell.dart';
+import 'package:myhealthcare/core/ui/patient/patient_bottom_navigation.dart';
 import 'package:myhealthcare/core/ui/patient/patient_components.dart';
+import 'package:myhealthcare/features/patient/presentation/patient_drawer.dart';
 
 Future<void> _settle(WidgetTester tester) async {
   for (var i = 0; i < 8; i++) {
@@ -11,7 +13,17 @@ Future<void> _settle(WidgetTester tester) async {
 
 /// Select through the actual navigation controls, including the large-text menu.
 Future<void> selectCompactDestination(WidgetTester tester, String label) async {
-  if (find.byType(NavigationBar).evaluate().isNotEmpty) {
+  if (find.byType(PatientBottomNavigation).evaluate().isNotEmpty &&
+      find.byType(CompactNavigation).evaluate().isEmpty) {
+    await tester.tap(
+      find
+          .descendant(
+            of: find.byType(PatientBottomNavigation),
+            matching: find.text(label),
+          )
+          .first,
+    );
+  } else if (find.byType(NavigationBar).evaluate().isNotEmpty) {
     final direct = find.widgetWithText(NavigationDestination, label);
     if (direct.evaluate().isNotEmpty) {
       await tester.tap(direct);
@@ -41,7 +53,7 @@ Future<void> selectCompactDestination(WidgetTester tester, String label) async {
 
 /// Read rendered labels rather than assuming that the compact layout is a bar.
 Future<List<String>> compactNavigationLabels(WidgetTester tester) async {
-  final menu = find.byType(NavigationBar).evaluate().isEmpty;
+  final menu = find.byType(CompactNavigation).evaluate().isNotEmpty;
   if (menu) {
     await tester.tap(
       find
@@ -56,7 +68,11 @@ Future<List<String>> compactNavigationLabels(WidgetTester tester) async {
   final labels = tester
       .widgetList<Text>(
         find.descendant(
-          of: menu ? find.byType(BottomSheet) : find.byType(NavigationBar),
+          of: menu
+              ? find.byType(BottomSheet)
+              : find.byType(PatientBottomNavigation).evaluate().isNotEmpty
+              ? find.byType(PatientBottomNavigation)
+              : find.byType(NavigationBar),
           matching: find.byType(Text),
         ),
       )
@@ -101,17 +117,28 @@ Future<void> openQuickAccess(WidgetTester tester, String id) async {
 /// Opens a patient drawer row by key suffix (e.g. 'profile', 'billing',
 /// 'preferences') from the current shell page.
 Future<void> openDrawerItem(WidgetTester tester, String id) async {
-  await tester.tap(find.byTooltip('Open navigation menu').first);
-  await _settle(tester);
+  final railAccount = find.byKey(const ValueKey('patient-rail-account'));
+  final menu = find.byTooltip('Open navigation menu');
+  if (railAccount.evaluate().isNotEmpty || menu.evaluate().isNotEmpty) {
+    await tester.tap(
+      railAccount.evaluate().isNotEmpty ? railAccount : menu.first,
+    );
+    await _settle(tester);
+  }
   final row = find.byKey(ValueKey('drawer-$id'));
   // The drawer list is lazy: scroll it (not the page) to build the row.
   await tester.scrollUntilVisible(
     row,
     120,
     scrollable: find
-        .descendant(of: find.byType(Drawer), matching: find.byType(Scrollable))
+        .descendant(
+          of: find.byType(PatientDrawer),
+          matching: find.byType(Scrollable),
+        )
         .first,
   );
+  await tester.ensureVisible(row);
+  await _settle(tester);
   await tester.tap(row);
   await _settle(tester);
 }

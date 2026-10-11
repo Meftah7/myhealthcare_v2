@@ -19,6 +19,8 @@ import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:myhealthcare/features/auth/application/session.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:myhealthcare/features/care/application/care_providers.dart';
+
 import '../support/test_database.dart';
 
 final _dir = Platform.environment['CAPTURE_DIR'];
@@ -172,6 +174,22 @@ void main() {
       _go(c, AppRoutes.patientRecord(records.valueOrNull!.first.id));
       await _settle(tester);
       await _shot(tester, 'record_detail_${theme}_$locale');
+    }
+    // A conversation thread (synthetic test message).
+    final me = c.read(currentUserProvider)!.id;
+    final doctors = await c.read(messageableDoctorsProvider.future);
+    if (doctors.isNotEmpty) {
+      await c
+          .read(careMessageRepositoryProvider)
+          .send(
+            patientId: me,
+            staffId: doctors.first.id,
+            fromStaff: false,
+            body: 'Synthetic test message: when should I repeat my blood test?',
+          );
+      _go(c, '/patient/home/messages/${doctors.first.id}');
+      await _settle(tester);
+      await _shot(tester, 'thread_${theme}_$locale');
     }
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));

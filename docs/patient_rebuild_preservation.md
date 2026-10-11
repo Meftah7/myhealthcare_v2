@@ -51,5 +51,8 @@ Planned, explanation sheet only: Complete Checkup, Indoor Navigation,
 E-Referral, Blood Donation, Wearables, Water tracking, Pharmacy, Weather,
 News. No Weather/News sources, requests, keys, polling or tabs exist.
 
-Core but missing: Terms and Conditions, Privacy Policy — no MyHealth
-documents exist yet; shown as "Not available".
+Core policy destinations now have English/Arabic owner-replaceable drafts and public pages. Approved policy content remains externally blocked; drafts are visibly labeled (assets/policies/policies.json).
+
+## Adaptive navigation and text-size verification (11 October 2026)
+
+Account actions use the native drawer below 1024px and the same action implementation in the expanded sidebar. The medium rail exposes Account & preferences. Navigation order and all original routes/permissions remain intact. New text options are Small 0.85, Default 0.92, Large 1.0; saved historical factors and independent OS scaling are preserved. See patient_rebuild_status.md for fresh checks, captures and remaining external blockers.

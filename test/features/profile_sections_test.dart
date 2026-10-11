@@ -181,20 +181,20 @@ void main() {
     await tester.tap(find.text('Preferences'));
     await _settle(tester);
 
-    expect(container.read(textScaleProvider), TextScaleLevel.medium);
+    expect(container.read(textScaleProvider), TextScaleLevel.small);
     final before = MediaQuery.of(
       tester.element(find.byType(Slider)),
     ).textScaler.scale(16);
 
-    await container.read(textScaleProvider.notifier).set(TextScaleLevel.xLarge);
+    await container.read(textScaleProvider.notifier).set(TextScaleLevel.medium);
     await _settle(tester);
 
-    expect(find.textContaining('Larger'), findsOneWidget);
+    expect(find.text('Large'), findsOneWidget);
     final after = MediaQuery.of(
       tester.element(find.byType(Slider)),
     ).textScaler.scale(16);
     expect(after, greaterThan(before));
-    expect(prefs.getString('ui.textScale'), 'xLarge');
+    expect(prefs.getString('ui.textScale'), 'medium');
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));

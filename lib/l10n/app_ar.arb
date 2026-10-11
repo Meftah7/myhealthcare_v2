@@ -1635,17 +1635,15 @@
   },
 
   "textSizeLabel": "حجم الخط",
-  "textSizeCaption": "{level} — يُطبَّق على النص في التطبيق بأكمله",
+  "textSizeCaption": "{level} — حجم نص التطبيق؛ يظل تكبير النص في إعدادات إمكانية الوصول بالجهاز مطبقًا",
   "@textSizeCaption": {
     "placeholders": {
       "level": { "type": "String" }
     }
   },
-  "textScaleSmaller": "أصغر",
   "textScaleSmall": "صغير",
   "textScaleDefault": "افتراضي",
   "textScaleLarge": "كبير",
-  "textScaleLarger": "أكبر",
   "notificationChannelsLabel": "قنوات الإشعارات",
   "smsLabel": "رسائل نصية",
   "soundsLabel": "الأصوات",

@@ -68,8 +68,9 @@ void main() {
     expect(find.text('Services'), findsWidgets);
     expect(find.textContaining('Good '), findsOneWidget);
 
-    // Home's header: the drawer menu and notifications.
-    expect(find.byTooltip('Open navigation menu'), findsWidgets);
+    // The default tablet viewport exposes accounts through the rail.
+    expect(find.byKey(const ValueKey('patient-rail-account')), findsOneWidget);
+    expect(find.byTooltip('Open navigation menu'), findsNothing);
     expect(
       find.byIcon(Icons.notifications).evaluate().isNotEmpty ||
           find.byIcon(Icons.notifications_outlined).evaluate().isNotEmpty,
@@ -78,7 +79,7 @@ void main() {
     await tester.tap(find.text('Appointment').first);
     await _pump(tester);
     // Root tab pages keep drawer access too.
-    expect(find.byTooltip('Open navigation menu'), findsWidgets);
+    expect(find.byKey(const ValueKey('patient-rail-account')), findsOneWidget);
 
     // Tear the tree down inside the test so the drift stream behind the
     // notifications badge is cancelled (and its cleanup timer flushed) before

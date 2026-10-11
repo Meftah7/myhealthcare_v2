@@ -1641,17 +1641,15 @@
   },
 
   "textSizeLabel": "Text size",
-  "textSizeCaption": "{level} — applies to text across the whole app",
+  "textSizeCaption": "{level} — app text size; your device accessibility scaling still applies",
   "@textSizeCaption": {
     "placeholders": {
       "level": { "type": "String" }
     }
   },
-  "textScaleSmaller": "Smaller",
   "textScaleSmall": "Small",
   "textScaleDefault": "Default",
   "textScaleLarge": "Large",
-  "textScaleLarger": "Larger",
   "notificationChannelsLabel": "Notification channels",
   "smsLabel": "SMS",
   "soundsLabel": "Sounds",

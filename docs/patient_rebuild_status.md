@@ -1,27 +1,56 @@
-# Patient rebuild — status against the TODO
+# MyHealth patient rebuild — current status
 
-Status of docs/MyHealth_Patient_Rebuild_TODO.md on branch
-`patient-rebuild-v2`. "Done" means implemented and verified by tests and/or
-rendered screenshots (test/visual/patient_screens_capture_test.dart). The
-spec's note that the work "has not been compiled" no longer applies: this
-checkout was built, analysed and tested with Flutter 3.47.2.
+Updated 11 October 2026 on `patient-rebuild-v2`. This replaces the earlier status table, which predates booking hardening, grounded follow-up chat and individual patient-screen redesigns. Existing uncommitted message-thread and capture-test edits were preserved. The full Flutter app uses local Drift; the shared API pilot remains a separate environment.
 
-| § | Area | Status |
+## Implemented and verified
+
+- Patient navigation is based on application window width: bottom tabs below 600px, NavigationRail at 600–1023px, permanent 272px sidebar from 1024px. Destination order remains Home, Records, Appointments, Messages, Services. Messages has a visible Future work badge; the compact appointment action retains its rounded blue treatment.
+- Compact headers expose the native drawer. Medium windows expose a labeled Account & preferences rail control. Expanded windows expose branding, primary destinations and account actions in one scrollable sidebar, with no drawer or header hamburger. All account labels/routes, catalogue permissions, About/policy actions and confirmed sign-out use the same implementation. Core account destinations now have a typed definition in patient_account_action.dart; supplementary destinations retain PatientCatalog definitions.
+- The patient content subtree stays in the same position across width changes and drawer opening. Tests verify route, content element and booking-draft preservation; back dismisses the native drawer, and sign-out remains reachable on a 1100×420 window. Dedicated full-screen booking routes remain outside the shell. Staff/admin navigation retains its previous behavior.
+- Settings exposes exactly Small, Default, Large, reusing 0.85, 0.92 and 1.0. Persisted names remain xSmall, small and medium, respectively: this migrates meaning without changing a saved user's rendered size. Legacy large/xLarge saves retain 1.15/1.3 internally, displayed as Large, until the user chooses one of the three options. No extra size is exposed. New, missing, invalid and reset preferences select Default (0.92). Save failures roll back. English/Arabic captions explain that OS accessibility scaling still applies; the app multiplies the platform TextScaler without disabling or clamping it.
+- Preserved existing completed work: booking invalidation, dependent-access rechecks, bounded doctor availability, duplicate/conflict handling and repository-backed confirmation; individual records/detail/documents, medications/imaging/vitals, notifications/family/messages redesigns; grounded report questions, source authorization, context clearing, coverage disclosure and honest provider failures. See booking_journey_test.dart, report_chat_test.dart and the preservation matrix. Weather/News remain explanation-only catalogue entries, without sources or tabs.
+- Fractional Default scaling exposed a 0.28px staff year-calendar overflow. Rounding the calculated month-label height upward fixes it without altering staff navigation or OS scaling.
+
+## Final checkout verification — 11 October 2026
+
+The entire suite was rerun after the six original failures were fixed and after the final added resize/focus tests and privacy-asset corrections. Earlier targeted reruns are not the evidence for this result. No app/test/policy assets changed after this final run began; subsequent edits only record evidence and acceptance instructions.
+
+| Check | Exact command | Final result |
 | --- | --- | --- |
-| 1 | Baseline & preservation | Done: branch checkpoint, clean-baseline analyzer/test run, preservation matrix (docs/patient_rebuild_preservation.md), and before/after screenshots rendered from revision 298132e and this branch (docs/rebuild_screenshots/). Local Drift environment only; the SHARED_API_ORIGIN pilot gained report explanation but was not redesigned. |
-| 2 | Blue design system | Done: PatientPalette extension, patient-only themes (staff/admin unchanged), #246BFD filled actions, #9ABEFF dark links, contrast-adjusted text (#1F5FE0 light links, #5F6770 muted). Existing licensed fonts (Lexend, Inter, Noto Naskh Arabic). |
-| 3 | Shared components | Done, including FutureWorkBadge and the explanation sheet. |
-| 4 | Five-tab navigation | Done: Home \| Records \| Appointments \| Messages \| Services; Messages has its own branch at its old paths; Nutrition/Profile retained branches; all patient routes need sign-in; signed-out deep links carry an allowlisted `from` only before any sign-in in the launch. Messages' Future work label is visible on the Messages page and announced on the tab; the 5-tab bar has no room for legible label text. |
-| 5 | Home | Done in the required order; report hero only; quick tools page 1 = working actions, page 2 = Future work tools. |
-| 6 | Quick Access | Done: Records & documents / Care & communication / Wellbeing extensions; account items moved to the drawer. |
-| 6B | Native drawer | Done: Drawer on the outer shell Scaffold, menu on Home, root tabs and Services (compact and rail); closes before navigating; confirmed sign-out via the session controller; theme/language moved to Preferences. |
-| 7 | Onboarding & login | Done: two pages; Skip/Get Started reveal sign-in; no guest Home. OS notification permission already requested in context from Preferences. |
-| 8 | Appointments | Discovery done (landing, clinic/doctor search, region unavailable state, assistance sheet) and converges on the existing wizard. The wizard's slots/review/confirmation/conflict handling are the existing, tested behaviour — not re-verified item by item and not restyled beyond the theme. |
-| 9 | Assistance & Virtual Care | Done; Virtual Care labelled Future work, video visits stated as unavailable. |
-| 10 | Records & report chat | Done: report in chat header with View original, clipping disclosed, labelled states, untrusted-PDF handling, reset on report/account switch. Provider keys are server-side only: the local app no longer calls any AI provider from the device (labelled on-device summary + offline navigation guide in every mode); live explanations run on the shared server (`POST /api/reports/explain`: patient/care-team access, file ownership, re-check after the reply, coverage, rate limit) with an Explain action in the pilot app. **Remaining gap:** a provider key must be configured on a server (`MYHEALTH_AI_KEY`) and the explanations evaluated with de-identified reports before clinical use; the clinician `live-clinical-ai` capability stays disabled. Records screens use the shared themed components (patient radii), not individual redesigns. |
-| 11 | Other workflows | Retained; shared cards, heroes, states and confirmations now take the patient radii/colours, so every existing patient page matches the new tokens without layout changes. Not individually redesigned. |
-| 12 | Services | Done: core → promotions → tools → Future work extensions → policies. Contact Us removed (no configured support details). Terms/Privacy "Not available" (no MyHealth documents). |
-| 13 | Future work policy | Done: one scope field (core / supplementary / planned) drives every label; Weather/News are planned entries with explanation sheets only — no sources, tabs or data. |
-| 14 | Architecture | No database or package changes. |
-| 15 | Localization & a11y | English/Arabic for all new strings; 320px readability tests (EN/AR, OS text 1–3×, max app text) cover every new route; contrast/tap-target tests pass. The upcoming-appointment carousel never auto-advances with reduced motion or a screen reader and has pause controls. |
-| 17 | Verification | `flutter analyze`: no errors or warnings (138 info lints; baseline 142). Release web build succeeds. `flutter test`: 657 passed, 1 skipped (screenshot capture, opt-in via CAPTURE_DIR). Server: 12 Node tests pass. |
+| Entire Flutter suite | `flutter test --no-pub --reporter expanded` | **693 passed, 0 failed, 0 skipped; exit 0; 5m32s.** Both opt-in capture tests ran. |
+| Flutter analysis | `flutter analyze --no-pub --no-fatal-infos` | Exit 0; no errors or warnings, 146 informational lints. |
+| Relevant server tests | `node --test services/report_ai/evaluate.test.mjs services/shared_api/ai.test.mjs services/shared_api/server.test.mjs services/document_verification/server.test.mjs` | **21 passed, 0 failed, 0 skipped; exit 0.** Includes mocked AI contracts, access/ownership, failures, evaluation grading and document verification. |
+| Release web | `flutter build web --release --no-pub --no-wasm-dry-run` | Exit 0; output `build/web`. |
+| Real-provider evaluator | `node services/report_ai/eval/evaluate.mjs` | **BLOCKED, exit 2:** MYHEALTH_AI_KEY unavailable. No live responses were evaluated. |
+| Patch whitespace | `git diff --check` | Exit 0. Git emits existing CRLF normalization notices. |
+
+Before the full-suite command, set these PowerShell environment variables to include real captures:
+
+```powershell
+$env:TEXT_SIZE_CAPTURE_DIR = 'docs/rebuild_screenshots/text_size'
+$env:CAPTURE_DIR = 'docs/rebuild_screenshots/final_audit'
+```
+
+Complete execution logs are in [verification](verification/). The successful test run also emits debug-only Drift multiple-instance notices and PDF Helvetica Unicode notices. The capture helpers create separate `NativeDatabase.memory()` executors; they do not share a production database. These notices are recorded, not counted as failed tests. Analysis findings remain informational technical debt, not an analyzer-clean claim.
+
+Automated layout evidence covers all three preferences × English/Arabic × light/dark at 360×800, 390×844, 599/600px and 1023/1024px breakpoint edges, 768×1024, 1366×768, 1920×1080 and 1100×420. Home, Services, drawer/sidebar, settings, badges, cards and navigation render without framework overflow errors. Badge text remains within its line bounds. Preferences also support independent OS 2× scaling on phone/tablet/desktop. Tests explicitly preserve route/content, Home scroll offset and booking drafts during resizing, and verify drawer Back/Escape dismissal, keyboard opening, focus restoration and short-sidebar sign-out. Preference tests cover every legacy stored value, new/reset defaults and save rollback. Policy tests load both languages, assert draft status and exercise signed-out policy access. Booking/report-chat/access tests remain part of the full run.
+
+There are 39 text/navigation captures and 34 patient-page audit captures, produced from actual Flutter widgets with bundled fonts and Material icons, using synthetic accounts. [Screenshot gallery](rebuild_screenshots/text_size/README.md) links phone, tablet and desktop in both languages/themes and all three preference choices. Actual inspected Home Quick Access captures show it immediately below Services. Weather/News remain explanation-only entries with no source integration. These renders are not physical-device or manual screen-reader evidence.
+
+## Implemented but awaiting manual verification
+
+Physical phone/tablet portrait/landscape, browser/device interaction, native OS text behavior, TalkBack/VoiceOver, full keyboard/focus order, drawer gestures, actual device PDF save/share and end-to-end booking/report-chat acceptance remain open. Automated resize and focus tests provide partial evidence, not a substitute. Use [manual acceptance checklist](patient_manual_acceptance.md), which contains expected results and Pending pass/fail/evidence fields. Verify active report/chat workflows through real device resizing as part of that checklist.
+
+## Blocked by credentials
+
+Process configuration was checked without displaying secrets: MYHEALTH_AI_KEY, MYHEALTH_AI_MODEL, REPORT_AI_ORIGIN, REPORT_AI_CLIENT_TOKEN and REPORT_AI_CLIENT_TOKENS were unavailable; no checkout .env configuration was found. Mocked integration contracts passed, but live grounding, values/units, missing information, unsupported questions, malicious embedded instructions, long reports and live failure/recovery remain **unverified**. [External review instructions](patient_external_review.md) give exact masked-terminal/secret-manager configuration, gateway/app commands, evaluator commands and recovery exercises. Never put the provider key in Flutter or source control.
+
+## Awaiting owner approval
+
+Bilingual Terms/Privacy screens and draft banners work. Privacy drafts now match native/browser/shared storage, exports, AI text/history processing, camera use, configured vendors and simulated payment fields. Terms remain clearly labeled drafts. [Owner decisions](patient_external_review.md) list required operator/contact, jurisdiction, hosting, retention, AI contract/location, consent, vendors, age/dependent authority, booking/payment rules and incident facts. `assets/policies/policies.json` remains draft with no approver. Approval, legal/clinical review and effective dates were not invented.
+
+## Separate packaging limitation
+
+Android APK generation is **blocked by the missing Android SDK**. Install/configure the Android SDK and required toolchain, resolve `flutter doctor -v`, then run `flutter build apk --release`. This does not block the verified implementation or web build. No physical native installation is claimed.
+
+The project is not marked fully complete while these external acceptance gates remain open. No push, deployment, database reset or existing-work discard was performed.

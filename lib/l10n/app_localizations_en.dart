@@ -3440,11 +3440,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String textSizeCaption(String level) {
-    return '$level — applies to text across the whole app';
+    return '$level — app text size; your device accessibility scaling still applies';
   }
-
-  @override
-  String get textScaleSmaller => 'Smaller';
 
   @override
   String get textScaleSmall => 'Small';
@@ -3454,9 +3451,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get textScaleLarge => 'Large';
-
-  @override
-  String get textScaleLarger => 'Larger';
 
   @override
   String get notificationChannelsLabel => 'Notification channels';

@@ -18,15 +18,22 @@ import 'readable_label.dart';
 /// Lets any page inside a shell open the shell's navigation drawer — the
 /// outer Scaffold's, so a page's own nested Scaffold cannot swallow it.
 class ShellDrawerScope extends InheritedWidget {
-  const ShellDrawerScope({required this.open, required super.child, super.key});
+  const ShellDrawerScope({
+    required this.open,
+    this.showMenu = true,
+    required super.child,
+    super.key,
+  });
 
   final VoidCallback open;
+  final bool showMenu;
 
   static ShellDrawerScope? maybeOf(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<ShellDrawerScope>();
 
   @override
-  bool updateShouldNotify(ShellDrawerScope oldWidget) => false;
+  bool updateShouldNotify(ShellDrawerScope oldWidget) =>
+      showMenu != oldWidget.showMenu;
 }
 
 /// The menu button that opens the shell drawer (tooltip + 48dp target), or
@@ -37,7 +44,7 @@ class ShellMenuButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scope = ShellDrawerScope.maybeOf(context);
-    if (scope == null) return const SizedBox.shrink();
+    if (scope == null || !scope.showMenu) return const SizedBox.shrink();
     return IconButton(
       icon: const Icon(Icons.menu),
       tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,

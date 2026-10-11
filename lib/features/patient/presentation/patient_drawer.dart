@@ -12,15 +12,21 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/confirm_dialog.dart';
+import '../../../core/presentation/readable_label.dart';
 import '../../../core/ui/patient/patient_components.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
 import '../../service_catalog/application/catalog_dispatcher.dart';
 import '../../service_catalog/domain/patient_catalog.dart';
+import 'patient_account_action.dart';
 
 class PatientDrawer extends ConsumerWidget {
-  const PatientDrawer({super.key});
+  const PatientDrawer({this.primaryEntries, super.key});
+
+  /// Present the same account actions inline on expanded patient windows.
+  final List<Widget>? primaryEntries;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -35,7 +41,7 @@ class PatientDrawer extends ConsumerWidget {
     /// Close the drawer first, then act — so back behaviour and focus land
     /// on the destination, not on a closing drawer.
     void close(VoidCallback then) {
-      Navigator.of(context).pop();
+      if (primaryEntries == null) Navigator.of(context).pop();
       then();
     }
 
@@ -65,7 +71,7 @@ class PatientDrawer extends ConsumerWidget {
         key: key,
         minTileHeight: 52,
         leading: Icon(icon, color: palette.link),
-        title: Text(label, style: theme.textTheme.bodyLarge),
+        title: ReadableLabel(label, style: theme.textTheme.bodyLarge),
         // The scope label is visible text, not just a tooltip.
         subtitle: futureWork
             ? Align(
@@ -82,94 +88,84 @@ class PatientDrawer extends ConsumerWidget {
 
     void go(String route) => close(() => router.go(route));
 
-    return Drawer(
-      backgroundColor: palette.card,
-      child: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.only(bottom: Space.lg),
-          children: [
-            const _DrawerHeader(),
-            Divider(color: palette.divider),
-            section(t.paDrawerAccount),
-            row(
-              key: const ValueKey('drawer-profile'),
-              icon: Icons.account_circle_outlined,
-              label: t.paMyProfile,
-              onTap: () => go(AppRoutes.patientSettings),
+    final content = SafeArea(
+      child: ListView(
+        padding: const EdgeInsets.only(bottom: Space.lg),
+        children: [
+          if (primaryEntries == null) const _DrawerHeader(),
+          if (primaryEntries != null) ...[
+            const Padding(
+              padding: EdgeInsets.all(Space.lg),
+              child: AppBrandLockup(),
             ),
-            row(
-              key: const ValueKey('drawer-personal'),
-              icon: Icons.badge_outlined,
-              label: t.paPersonalInformation,
-              onTap: () => go(AppRoutes.patientProfilePersonal),
-            ),
-            row(
-              key: const ValueKey('drawer-health'),
-              icon: Icons.favorite_outline,
-              label: t.healthDetailsTitle,
-              onTap: () => go(AppRoutes.patientProfileHealth),
-            ),
-            row(
-              key: const ValueKey('drawer-preferences'),
-              icon: Icons.tune,
-              label: t.paSettingsPreferences,
-              onTap: () => go(AppRoutes.patientProfilePreferences),
-            ),
-            section(t.paDrawerSupplementary),
-            for (final item in PatientCatalog.drawerTools)
-              row(
-                key: ValueKey('drawer-${item.id}'),
-                icon: item.icon,
-                label: item.title(t),
-                futureWork: item.isFutureWork,
-                onTap: () => close(() => openCatalogItem(context, ref, item)),
-              ),
-            section(t.paDrawerAbout),
-            row(
-              key: const ValueKey('drawer-about'),
-              icon: Icons.info_outline,
-              label: t.paAboutMyHealth,
-              onTap: () => close(
-                () => showAboutDialog(
-                  context: context,
-                  applicationName: 'MyHealth Care',
-                  applicationLegalese: t.paAboutBody,
-                ),
-              ),
-            ),
-            row(
-              key: const ValueKey('drawer-terms'),
-              icon: Icons.gavel_outlined,
-              label: t.paTerms,
-              onTap: () => close(() => router.push(AppRoutes.policyTerms)),
-            ),
-            row(
-              key: const ValueKey('drawer-privacy'),
-              icon: Icons.privacy_tip_outlined,
-              label: t.paPrivacy,
-              onTap: () => close(() => router.push(AppRoutes.policyPrivacy)),
-            ),
-            const SizedBox(height: Space.sm),
-            Divider(color: palette.divider),
-            row(
-              key: const ValueKey('drawer-sign-out'),
-              icon: Icons.logout,
-              label: t.signOut,
-              onTap: () => close(() async {
-                final ok = await confirm(
-                  context,
-                  title: t.signOutConfirmTitle,
-                  message: t.signOutConfirmBody,
-                  confirmLabel: t.signOut,
-                  destructive: true,
-                );
-                if (ok) unawaited(session.logout());
-              }),
-            ),
+            ...primaryEntries!,
           ],
-        ),
+          Divider(color: palette.divider),
+          section(t.paDrawerAccount),
+          for (final action in PatientAccountAction.values)
+            row(
+              key: ValueKey('drawer-${action.name}'),
+              icon: action.icon,
+              label: action.title(t),
+              onTap: () => go(action.route),
+            ),
+          section(t.paDrawerSupplementary),
+          for (final item in PatientCatalog.drawerTools)
+            row(
+              key: ValueKey('drawer-${item.id}'),
+              icon: item.icon,
+              label: item.title(t),
+              futureWork: item.isFutureWork,
+              onTap: () => close(() => openCatalogItem(context, ref, item)),
+            ),
+          section(t.paDrawerAbout),
+          row(
+            key: const ValueKey('drawer-about'),
+            icon: Icons.info_outline,
+            label: t.paAboutMyHealth,
+            onTap: () => close(
+              () => showAboutDialog(
+                context: context,
+                applicationName: 'MyHealth Care',
+                applicationLegalese: t.paAboutBody,
+              ),
+            ),
+          ),
+          row(
+            key: const ValueKey('drawer-terms'),
+            icon: Icons.gavel_outlined,
+            label: t.paTerms,
+            onTap: () => close(() => router.push(AppRoutes.policyTerms)),
+          ),
+          row(
+            key: const ValueKey('drawer-privacy'),
+            icon: Icons.privacy_tip_outlined,
+            label: t.paPrivacy,
+            onTap: () => close(() => router.push(AppRoutes.policyPrivacy)),
+          ),
+          const SizedBox(height: Space.sm),
+          Divider(color: palette.divider),
+          row(
+            key: const ValueKey('drawer-sign-out'),
+            icon: Icons.logout,
+            label: t.signOut,
+            onTap: () => close(() async {
+              final ok = await confirm(
+                context,
+                title: t.signOutConfirmTitle,
+                message: t.signOutConfirmBody,
+                confirmLabel: t.signOut,
+                destructive: true,
+              );
+              if (ok) unawaited(session.logout());
+            }),
+          ),
+        ],
       ),
     );
+    return primaryEntries == null
+        ? Drawer(backgroundColor: palette.card, child: content)
+        : Material(color: palette.card, child: content);
   }
 }
 

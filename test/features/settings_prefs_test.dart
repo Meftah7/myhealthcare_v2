@@ -36,6 +36,66 @@ User _user(String id) => User(
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  test(
+    'three text options reuse scales and default to the former Small',
+    () async {
+      expect(TextScaleLevel.options.map((v) => v.label), [
+        'Small',
+        'Default',
+        'Large',
+      ]);
+      expect(TextScaleLevel.options.map((v) => v.factor), [.85, .92, 1]);
+      for (final raw in [
+        null,
+        'unknown',
+        'xSmall',
+        'small',
+        'medium',
+        'large',
+        'xLarge',
+      ]) {
+        SharedPreferences.setMockInitialValues({
+          if (raw != null) 'ui.textScale': raw,
+        });
+        final prefs = await SharedPreferences.getInstance();
+        final c = ProviderContainer(
+          overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        );
+        final expected =
+            {
+              'xSmall': .85,
+              'small': .92,
+              'medium': 1.0,
+              'large': 1.15,
+              'xLarge': 1.3,
+            }[raw] ??
+            .92;
+        expect(
+          c.read(textScaleProvider).factor,
+          expected,
+          reason: '$raw retains its displayed size',
+        );
+        // Repeated launches retain the same wire value, without a rename collision.
+        c.invalidate(textScaleProvider);
+        expect(c.read(textScaleProvider).factor, expected);
+        await c.read(textScaleProvider.notifier).reset();
+        expect(c.read(textScaleProvider), TextScaleLevel.small);
+        expect(prefs.getString('ui.textScale'), 'small');
+        c.dispose();
+      }
+    },
+  );
+
+  test('text size save failure rolls back to the new Default', () async {
+    final c = ProviderContainer(
+      overrides: [sharedPreferencesProvider.overrideWithValue(_FailingPrefs())],
+    );
+    addTearDown(c.dispose);
+    await c.read(textScaleProvider.notifier).set(TextScaleLevel.medium);
+    expect(c.read(textScaleProvider), TextScaleLevel.small);
+    expect(c.read(settingsSaveFailureProvider), 1);
+  });
+
   test('a failed save rolls the value back and reports it', () async {
     final container = ProviderContainer(
       overrides: [sharedPreferencesProvider.overrideWithValue(_FailingPrefs())],

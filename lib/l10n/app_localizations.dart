@@ -6179,14 +6179,8 @@ abstract class AppLocalizations {
   /// No description provided for @textSizeCaption.
   ///
   /// In en, this message translates to:
-  /// **'{level} — applies to text across the whole app'**
+  /// **'{level} — app text size; your device accessibility scaling still applies'**
   String textSizeCaption(String level);
-
-  /// No description provided for @textScaleSmaller.
-  ///
-  /// In en, this message translates to:
-  /// **'Smaller'**
-  String get textScaleSmaller;
 
   /// No description provided for @textScaleSmall.
   ///
@@ -6205,12 +6199,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Large'**
   String get textScaleLarge;
-
-  /// No description provided for @textScaleLarger.
-  ///
-  /// In en, this message translates to:
-  /// **'Larger'**
-  String get textScaleLarger;
 
   /// No description provided for @notificationChannelsLabel.
   ///

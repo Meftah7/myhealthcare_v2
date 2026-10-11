@@ -140,7 +140,7 @@ class _AppFrame extends StatelessWidget {
 }
 
 /// The device's own [TextScaler] multiplied by the in-app text-size preference
-/// ([TextScaleLevel.factor]). At the default level the factor is 1.0, so the
+/// ([TextScaleLevel.factor]). At the Large level the factor is 1.0, so the
 /// platform setting passes through unchanged.
 class _ScaledTextScaler extends TextScaler {
   const _ScaledTextScaler(this._base, this._factor);

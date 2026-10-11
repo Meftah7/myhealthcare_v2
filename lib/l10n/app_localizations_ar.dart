@@ -3499,11 +3499,8 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String textSizeCaption(String level) {
-    return '$level — يُطبَّق على النص في التطبيق بأكمله';
+    return '$level — حجم نص التطبيق؛ يظل تكبير النص في إعدادات إمكانية الوصول بالجهاز مطبقًا';
   }
-
-  @override
-  String get textScaleSmaller => 'أصغر';
 
   @override
   String get textScaleSmall => 'صغير';
@@ -3513,9 +3510,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get textScaleLarge => 'كبير';
-
-  @override
-  String get textScaleLarger => 'أكبر';
 
   @override
   String get notificationChannelsLabel => 'قنوات الإشعارات';
