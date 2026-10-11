@@ -23,6 +23,10 @@ $env:MYHEALTH_BACKUP_KEY = (node -e "process.stdout.write(require('node:crypto')
 $env:MYHEALTH_DEMO_PASSWORD = 'Choose-your-own-synthetic-password-2026!'
 $env:MYHEALTH_ORIGINS = 'http://localhost:8080'
 $env:MYHEALTH_PDF_RENDERER = 'english'
+# Optional: patient report explanations. The provider key stays on the server
+# (secret store in production) and is never sent to, or built into, clients.
+# $env:MYHEALTH_AI_KEY = '<provider key>'
+# $env:MYHEALTH_AI_MODEL = 'gemini-2.5-flash'
 node services/shared_api/cli.mjs init-demo
 node services/shared_api/cli.mjs serve
 ```
@@ -83,6 +87,7 @@ configured with `MYHEALTH_ORIGINS`; no wildcard CORS or public SQL endpoint exis
 | GET `/api/verify/:reference?sha256=...` | Public rate-limited minimal validity/type/date/file match; no patient data |
 | GET `/api/notifications` | Own notifications only |
 | POST `/api/ai` | Current clinician/patient relationship; server provider seam; draft output only |
+| POST `/api/reports/explain` | The patient themself or a current care-team clinician; the PDF original must belong to that patient; access rechecked after the provider replies; labelled draft with `coverage` (first 12,000 characters, `complete: false` when clipped); 10/min per account; 503 when no provider is configured, 502 on provider failure |
 | GET `/api/health` | Admin only; schema, integrity, backup/restore/delivery jobs and configuration |
 
 Retries require a stable `idempotencyKey`. Reusing it with different inputs fails

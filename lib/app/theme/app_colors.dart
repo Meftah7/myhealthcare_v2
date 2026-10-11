@@ -213,7 +213,7 @@ abstract final class AppColors {
         brightness: Brightness.dark,
         dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
       ).copyWith(
-        primary: const Color(0xFF8AB2FF),
+        primary: const Color(0xFF9ABEFF),
         onPrimary: const Color(0xFF08244F),
         primaryContainer: const Color(0xFF213858),
         onPrimaryContainer: const Color(0xFFDCE7FF),

@@ -100,7 +100,7 @@ class PaneSelection extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: scheme.secondaryContainer,
-        borderRadius: Radii.card,
+        borderRadius: Radii.cardOf(context),
       ),
       child: child,
     );

@@ -131,7 +131,9 @@ class _NavItem extends StatelessWidget {
     return Semantics(
       selected: selected,
       button: true,
-      label: destination.label,
+      label: destination.semanticsSuffix == null
+          ? destination.label
+          : '${destination.label}, ${destination.semanticsSuffix}',
       excludeSemantics: true,
       child: InkResponse(
         onTap: onTap,

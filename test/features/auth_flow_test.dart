@@ -63,13 +63,13 @@ void main() {
     await _pump(tester);
     await _pump(tester);
 
-    // Patient shell: Home with Services and Quick Access (Records,
-    // Nutrition and Profile moved from the bottom bar into Quick Access).
+    // Patient shell: Home with Services and Quick Access; Records and
+    // Messages are tabs, account settings live in the drawer.
     expect(find.text('Services'), findsWidgets);
     expect(find.textContaining('Good '), findsOneWidget);
 
-    // The patient's existing toolbar exposes notifications and theme controls.
-    expect(find.byIcon(Icons.dark_mode_outlined), findsOneWidget);
+    // Home's header: the drawer menu and notifications.
+    expect(find.byTooltip('Open navigation menu'), findsWidgets);
     expect(
       find.byIcon(Icons.notifications).evaluate().isNotEmpty ||
           find.byIcon(Icons.notifications_outlined).evaluate().isNotEmpty,
@@ -77,7 +77,8 @@ void main() {
     );
     await tester.tap(find.text('Appointment').first);
     await _pump(tester);
-    expect(find.byIcon(Icons.dark_mode_outlined), findsOneWidget);
+    // Root tab pages keep drawer access too.
+    expect(find.byTooltip('Open navigation menu'), findsWidgets);
 
     // Tear the tree down inside the test so the drift stream behind the
     // notifications badge is cancelled (and its cleanup timer flushed) before

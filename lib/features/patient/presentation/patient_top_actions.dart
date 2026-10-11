@@ -1,4 +1,5 @@
-/// Persistent notifications and light/dark actions for patient screens.
+/// Persistent notifications action for patient screens. Theme, language and
+/// other settings live in the drawer's Settings & Preferences.
 library;
 
 import 'package:flutter/material.dart';
@@ -6,7 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../patient_home/presentation/notifications_button.dart';
-import '../../settings/presentation/theme_mode_icon_toggle.dart';
 
 /// Drop straight into `AppBar.actions`: `actions: const [PatientTopActions()]`.
 class PatientTopActions extends ConsumerWidget {
@@ -18,7 +18,6 @@ class PatientTopActions extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         NotificationsButton(),
-        ThemeModeIconToggle(),
         SizedBox(width: Space.xs),
       ],
     );

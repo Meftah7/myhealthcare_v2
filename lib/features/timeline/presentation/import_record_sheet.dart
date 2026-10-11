@@ -18,7 +18,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:syncfusion_flutter_pdf/pdf.dart';
 
 import '../../../app/theme/theme.dart';
 import '../../../core/data/contracts.dart';
@@ -33,6 +32,7 @@ import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
 import '../../../domain/repositories/record_repository.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../services/pdf/pdf_text.dart';
 import '../../auth/application/session.dart';
 import '../../patient/application/family_link_providers.dart';
 import '../../patient/application/patient_data_providers.dart';
@@ -87,14 +87,6 @@ class _ImportRecordSheetState extends ConsumerState<_ImportRecordSheet> {
   /// the record once.
   IdempotencyKey _key = IdempotencyKey.generate();
 
-  static bool _looksLikePdf(Uint8List bytes) =>
-      bytes.length > 5 &&
-      bytes[0] == 0x25 && // %PDF-
-      bytes[1] == 0x50 &&
-      bytes[2] == 0x44 &&
-      bytes[3] == 0x46 &&
-      bytes[4] == 0x2D;
-
   @override
   void dispose() {
     _title.dispose();
@@ -124,9 +116,9 @@ class _ImportRecordSheetState extends ConsumerState<_ImportRecordSheet> {
       }
       // Untrusted input: check the magic bytes, then parse off the UI isolate
       // with page/text caps and a timeout (SEC-PAT-10).
-      if (!_looksLikePdf(bytes)) throw const FormatException('not a PDF');
+      if (!looksLikePdf(bytes)) throw const FormatException('not a PDF');
       final text = await compute(
-        _extractPdfText,
+        extractPdfText,
         bytes,
       ).timeout(const Duration(seconds: 20));
       if (!mounted) return;
@@ -422,24 +414,5 @@ class _ImportRecordSheetState extends ConsumerState<_ImportRecordSheet> {
         ),
       ),
     );
-  }
-}
-
-const _maxPdfPages = 200;
-const _maxExtractedChars = 200000;
-
-/// Top-level so [compute] can run it on a background isolate.
-String _extractPdfText(Uint8List bytes) {
-  final document = PdfDocument(inputBytes: bytes);
-  try {
-    if (document.pages.count > _maxPdfPages) {
-      throw const FormatException('too many pages');
-    }
-    final text = PdfTextExtractor(document).extractText();
-    return text.length > _maxExtractedChars
-        ? text.substring(0, _maxExtractedChars)
-        : text;
-  } finally {
-    document.dispose();
   }
 }

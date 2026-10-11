@@ -66,7 +66,7 @@ void main() {
     await passMfa(tester);
     await _settle(tester);
 
-    await openQuickAccess(tester, 'profile');
+    await openDrawerItem(tester, 'profile');
     expect(find.widgetWithText(AppBar, 'Profile'), findsOneWidget);
 
     // The five section rows are all present; no form fields leak onto Profile.
@@ -176,7 +176,7 @@ void main() {
     await passMfa(tester);
     await _settle(tester);
 
-    await openQuickAccess(tester, 'profile');
+    await openDrawerItem(tester, 'profile');
     await tester.ensureVisible(find.text('Preferences'));
     await tester.tap(find.text('Preferences'));
     await _settle(tester);

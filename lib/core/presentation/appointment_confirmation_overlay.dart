@@ -94,7 +94,7 @@ class _AppointmentConfirmationOverlayState
               alignment: Alignment.center,
               child: Material(
                 color: theme.colorScheme.surface,
-                borderRadius: Radii.card,
+                borderRadius: Radii.cardOf(context),
                 child: Padding(
                   padding: const EdgeInsets.all(Space.xl),
                   child: Column(

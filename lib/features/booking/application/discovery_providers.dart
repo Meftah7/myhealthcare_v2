@@ -13,8 +13,6 @@ import '../../../app/router.dart';
 import '../../../core/di.dart';
 import '../../../core/result.dart';
 import '../../../domain/entities/entities.dart';
-import '../../auth/application/session.dart';
-import '../../service_catalog/application/catalog_dispatcher.dart';
 
 /// Every bookable clinician (nurses excluded — they work the nursing list).
 final publicDoctorsProvider = FutureProvider<List<Staff>>((ref) async {
@@ -26,8 +24,7 @@ final publicDoctorsProvider = FutureProvider<List<Staff>>((ref) async {
 });
 
 /// Opens the existing booking wizard pre-filled with the chosen department
-/// and/or clinician. Guests go through real sign-in first and resume here;
-/// the wizard then loads fresh availability for the signed-in patient.
+/// and/or clinician; the wizard loads fresh availability for the patient.
 void continueToBooking(
   BuildContext context,
   WidgetRef ref, {
@@ -39,9 +36,5 @@ void continueToBooking(
     path: AppRoutes.patientBook,
     queryParameters: query.isEmpty ? null : query,
   ).toString();
-  if (ref.read(currentUserProvider) == null) {
-    goToSignIn(context, destination: route);
-    return;
-  }
   unawaited(context.push(route));
 }

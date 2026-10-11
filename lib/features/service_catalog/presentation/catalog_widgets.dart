@@ -9,7 +9,6 @@ import '../../../app/theme/theme.dart';
 import '../../../core/presentation/readable_label.dart';
 import '../../../core/ui/patient/patient_components.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../auth/application/session.dart';
 import '../application/catalog_dispatcher.dart';
 import '../domain/patient_catalog.dart';
 
@@ -24,13 +23,14 @@ class QuickAccessTile extends ConsumerWidget {
     final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final palette = PatientPalette.of(context);
-    final guest = ref.watch(currentUserProvider) == null;
-    final locked = guest && item.access == CatalogAccess.signedIn;
     final title = item.title(t);
-    final hint = !item.isAvailable
+    // Scope first: anything outside the proposal reads "Future work" (a
+    // working supplementary feature or a planned one); a missing core
+    // destination reads "Not available".
+    final hint = item.isFutureWork
+        ? t.paFutureWork
+        : !item.isAvailable
         ? t.paNotAvailableBadge
-        : locked
-        ? t.paSignInBadge
         : null;
 
     return Semantics(
@@ -57,34 +57,12 @@ class QuickAccessTile extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      IconTile(
-                        icon: item.icon,
-                        accent: item.isAvailable
-                            ? item.accent
-                            : PatientAccent.neutral,
-                        size: 44,
-                      ),
-                      if (locked)
-                        PositionedDirectional(
-                          end: -6,
-                          top: -6,
-                          child: Container(
-                            padding: const EdgeInsets.all(2),
-                            decoration: BoxDecoration(
-                              color: palette.card,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.lock_outline,
-                              size: 14,
-                              color: palette.textMuted,
-                            ),
-                          ),
-                        ),
-                    ],
+                  IconTile(
+                    icon: item.icon,
+                    accent: item.isAvailable
+                        ? item.accent
+                        : PatientAccent.neutral,
+                    size: 44,
                   ),
                   const SizedBox(height: Space.xs),
                   ReadableLabel(
@@ -98,15 +76,18 @@ class QuickAccessTile extends ConsumerWidget {
                     ),
                   ),
                   if (hint != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      hint,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: palette.textMuted,
+                    const SizedBox(height: Space.xxs),
+                    if (item.isFutureWork)
+                      FutureWorkBadge(label: hint, compact: true)
+                    else
+                      Text(
+                        hint,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: palette.textMuted,
+                        ),
                       ),
-                    ),
                   ],
                 ],
               ),
@@ -171,7 +152,7 @@ class QuickAccessSection extends StatelessWidget {
     String groupTitle(QuickAccessGroup g) => switch (g) {
       QuickAccessGroup.records => t.paGroupRecords,
       QuickAccessGroup.care => t.paGroupCare,
-      QuickAccessGroup.account => t.paGroupAccount,
+      QuickAccessGroup.wellbeing => t.paGroupWellbeing,
     };
     return Column(
       key: const ValueKey('quick-access'),
@@ -292,9 +273,9 @@ class _ToolTile extends ConsumerWidget {
     final palette = PatientPalette.of(context);
     return Semantics(
       button: true,
-      label: item.isAvailable
-          ? item.title(t)
-          : '${item.title(t)}, ${t.paNotAvailableBadge}',
+      label: item.isFutureWork
+          ? '${item.title(t)}, ${t.paFutureWork}'
+          : item.title(t),
       excludeSemantics: true,
       child: InkWell(
         key: ValueKey('tool-${item.id}'),
@@ -313,12 +294,16 @@ class _ToolTile extends ConsumerWidget {
               item.title(t),
               textAlign: TextAlign.center,
               style: theme.textTheme.labelMedium?.copyWith(
-                fontSize: 12.5,
+                fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: item.isAvailable ? palette.text : palette.textMuted,
                 height: 1.2,
               ),
             ),
+            if (item.isFutureWork) ...[
+              const SizedBox(height: Space.xxs),
+              FutureWorkBadge(label: t.paFutureWork, compact: true),
+            ],
           ],
         ),
       ),
@@ -371,6 +356,12 @@ class ServicePromotionCard extends ConsumerWidget {
                       color: fg.withValues(alpha: .16),
                     ),
                   ),
+                  if (item.isFutureWork)
+                    PositionedDirectional(
+                      end: Space.sm,
+                      top: Space.sm,
+                      child: FutureWorkBadge(label: t.paFutureWork),
+                    ),
                   PositionedDirectional(
                     start: Space.md,
                     top: Space.md,

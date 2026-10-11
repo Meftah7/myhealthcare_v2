@@ -130,26 +130,24 @@ void main() {
   testWidgets('capture patient screens', skip: skip, (tester) async {
     await _loadFonts();
 
-    // Guest.
-    var c = await _app(tester);
+    // Signed-in patient: services, booking discovery and the drawer.
+    var c = await _app(tester, email: 'patient3@myhealth.demo');
+    for (final (route, name) in [
+      (AppRoutes.patientServices, 'services_light'),
+      (AppRoutes.patientBookLanding, 'book_landing_light'),
+      ('${AppRoutes.patientBookLanding}?mode=virtual', 'virtual_care_light'),
+      (AppRoutes.patientFindDoctor, 'find_doctor_light'),
+      (AppRoutes.patientMessages, 'messages_light'),
+    ]) {
+      _go(c, route);
+      await _settle(tester);
+      await _shot(tester, name);
+    }
     _go(c, AppRoutes.patientHome);
     await _settle(tester);
-    await _shot(tester, 'guest_home_light');
-    _go(c, AppRoutes.patientServices);
+    await tester.tap(find.byTooltip('Open navigation menu').first);
     await _settle(tester);
-    await _shot(tester, 'services_light');
-    _go(c, AppRoutes.patientBookLanding);
-    await _settle(tester);
-    await _shot(tester, 'book_landing_light');
-    _go(c, '${AppRoutes.patientBookLanding}?mode=virtual');
-    await _settle(tester);
-    await _shot(tester, 'virtual_care_light');
-    _go(c, AppRoutes.patientFindDoctor);
-    await _settle(tester);
-    await _shot(tester, 'find_doctor_light');
-    _go(c, AppRoutes.login);
-    await _settle(tester);
-    await _shot(tester, 'login_light');
+    await _shot(tester, 'drawer_light');
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
 

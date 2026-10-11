@@ -40,10 +40,9 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
-    // Skip lands on guest Home (public browsing).
+    // Skip follows the auth policy: sign-in is underneath.
     expect(find.text('Book appointments in a few taps'), findsNothing);
-    await tester.pump(const Duration(milliseconds: 500));
-    expect(find.text('Login or Register'), findsOneWidget);
+    expect(find.text('Sign in'), findsWidgets);
     expect(prefs.getBool('ui.hasSeenOnboarding'), isTrue);
   });
 
@@ -74,7 +73,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
 
-    expect(find.text('Login or Register'), findsOneWidget);
+    expect(find.text('Sign in'), findsWidgets);
   });
 
   testWidgets('does not appear again once already seen', (tester) async {

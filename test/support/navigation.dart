@@ -97,3 +97,21 @@ Future<void> openQuickAccess(WidgetTester tester, String id) async {
   await tester.tap(tile);
   await _settle(tester);
 }
+
+/// Opens a patient drawer row by key suffix (e.g. 'profile', 'billing',
+/// 'preferences') from the current shell page.
+Future<void> openDrawerItem(WidgetTester tester, String id) async {
+  await tester.tap(find.byTooltip('Open navigation menu').first);
+  await _settle(tester);
+  final row = find.byKey(ValueKey('drawer-$id'));
+  // The drawer list is lazy: scroll it (not the page) to build the row.
+  await tester.scrollUntilVisible(
+    row,
+    120,
+    scrollable: find
+        .descendant(of: find.byType(Drawer), matching: find.byType(Scrollable))
+        .first,
+  );
+  await tester.tap(row);
+  await _settle(tester);
+}

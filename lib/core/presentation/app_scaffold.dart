@@ -15,6 +15,37 @@ import 'package:flutter/material.dart';
 import '../../app/theme/theme.dart';
 import 'readable_label.dart';
 
+/// Lets any page inside a shell open the shell's navigation drawer — the
+/// outer Scaffold's, so a page's own nested Scaffold cannot swallow it.
+class ShellDrawerScope extends InheritedWidget {
+  const ShellDrawerScope({required this.open, required super.child, super.key});
+
+  final VoidCallback open;
+
+  static ShellDrawerScope? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<ShellDrawerScope>();
+
+  @override
+  bool updateShouldNotify(ShellDrawerScope oldWidget) => false;
+}
+
+/// The menu button that opens the shell drawer (tooltip + 48dp target), or
+/// nothing outside a drawer-carrying shell.
+class ShellMenuButton extends StatelessWidget {
+  const ShellMenuButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final scope = ShellDrawerScope.maybeOf(context);
+    if (scope == null) return const SizedBox.shrink();
+    return IconButton(
+      icon: const Icon(Icons.menu),
+      tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
+      onPressed: scope.open,
+    );
+  }
+}
+
 /// Marks a page that used to be a bottom-navigation root but is now reached
 /// from Home's Quick Access. When such a page is the root of its stack, the
 /// [AppScaffold] shows a back arrow that returns to Home instead of none.
@@ -173,12 +204,15 @@ class _AppScaffoldState extends State<AppScaffold> {
   @override
   Widget build(BuildContext context) {
     final returnHome = ReturnHomeScope.maybeOf(context);
+    final canPop = Navigator.canPop(context);
     final Widget? leading =
         widget.leading ??
-        (returnHome != null &&
-                widget.automaticallyImplyLeading &&
-                !Navigator.canPop(context)
+        (!widget.automaticallyImplyLeading || canPop
+            ? null
+            : returnHome != null
             ? BackButton(onPressed: returnHome.onReturn)
+            : ShellDrawerScope.maybeOf(context) != null
+            ? const ShellMenuButton()
             : null);
     final size = WindowSize.of(context);
     final hero = widget.hero && !(size.isExpanded || size.isLarge);

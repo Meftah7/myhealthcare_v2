@@ -12,6 +12,7 @@ import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/states.dart';
+import '../../../core/ui/patient/patient_components.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
 import '../../patient/presentation/patient_top_actions.dart';
@@ -32,9 +33,27 @@ class MessagesScreen extends ConsumerWidget {
     return AppScaffold(
       title: t.quickActionAskDoctor,
       actions: const [PatientTopActions()],
+      // Messaging is an existing supplementary feature (outside the
+      // proposal): it stays fully working and shows its scope label.
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(32),
+        child: Padding(
+          padding: const EdgeInsetsDirectional.only(
+            start: Space.md,
+            bottom: Space.xs,
+          ),
+          child: Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: FutureWorkBadge(label: t.paFutureWork),
+          ),
+        ),
+      ),
       floatingActionButton: doctors.isEmpty
           ? null
           : FloatingActionButton.extended(
+              // Unique: shell branches stay mounted side by side, so default
+              // hero tags would collide when a route is pushed over them.
+              heroTag: 'patient-messages-fab',
               onPressed: () => _startThread(context, doctors),
               icon: const Icon(Icons.edit_outlined),
               label: Text(t.newMessageButton),
