@@ -574,7 +574,8 @@ StatefulShellRoute _patientShell() {
         overlay: const CareNavigatorOverlay(),
         destinations: destinations,
         drawer: const PatientDrawer(),
-        expandedAccountBuilder: (entries) => PatientDrawer(primaryEntries: entries),
+        expandedAccountBuilder: (entries) =>
+            PatientDrawer(primaryEntries: entries),
         selectedDestinationFor: (branch) => branch < 5 ? branch : 0,
         compactBarBuilder: (context, selected, onSelected) =>
             PatientBottomNavigation(
