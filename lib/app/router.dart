@@ -53,20 +53,24 @@ import '../features/care/presentation/messages_screen.dart';
 import '../features/care/presentation/sick_leave_screen.dart';
 import '../features/care/presentation/staff_inbox_screen.dart';
 import '../features/consultation/presentation/consultation_screen.dart';
+import '../features/health_tools/domain/lab_conversion.dart';
+import '../features/health_tools/presentation/emergency_services_screen.dart';
+import '../features/health_tools/presentation/health_tools_directory.dart';
 import '../features/health_tools/presentation/health_tools_screens.dart';
+import '../features/health_tools/presentation/lab_converter_screen.dart';
 import '../features/notifications/presentation/notifications_screen.dart';
 import '../features/nutrition/presentation/nutrition_screen.dart';
 import '../features/patient/application/profile_screen.dart';
 import '../features/patient/presentation/allergies_screen.dart';
 import '../features/patient/presentation/linked_account_screen.dart';
 import '../features/patient/presentation/patient_drawer.dart';
-import '../features/policies/application/policy_content.dart';
-import '../features/policies/presentation/policy_screen.dart';
 import '../features/patient/presentation/profile_section_pages.dart';
 import '../features/patient/presentation/visited_doctors_screen.dart';
 import '../features/patient_chart/presentation/patient_chart_screen.dart';
 import '../features/patient_chart/presentation/patient_summary_screen.dart';
 import '../features/patient_home/presentation/patient_home_screen.dart';
+import '../features/policies/application/policy_content.dart';
+import '../features/policies/presentation/policy_screen.dart';
 import '../features/records/presentation/radiology_screen.dart';
 import '../features/records/presentation/record_detail_screen.dart';
 import '../features/service_catalog/presentation/services_screen.dart';
@@ -168,6 +172,9 @@ abstract final class AppRoutes {
   static const policyPrivacy = '/policies/privacy';
   static const patientCalculators = '/patient/home/calculators';
   static const patientConverters = '/patient/home/converters';
+  static const patientBodyMeasurements = '$patientCalculators/bmi';
+  static const patientGeneralConverters = '$patientConverters/general';
+  static const patientEmergency = '/patient/home/emergency';
 
   /// Full-screen booking discovery; `?mode=virtual` opens the Virtual Care
   /// (future work) explanation. Every path converges on [patientBook].
@@ -595,10 +602,31 @@ StatefulShellRoute _patientShell() {
               GoRoute(
                 path: 'calculators',
                 builder: (_, _) => const HealthCalculatorsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'bmi',
+                    builder: (_, _) => const BodyMeasurementsScreen(),
+                  ),
+                ],
               ),
               GoRoute(
                 path: 'converters',
                 builder: (_, _) => const HealthConvertersScreen(),
+                routes: [
+                  for (final analyte in LabAnalyte.values)
+                    GoRoute(
+                      path: analyte.name,
+                      builder: (_, _) => LabConverterScreen(analyte: analyte),
+                    ),
+                  GoRoute(
+                    path: 'general',
+                    builder: (_, _) => const GeneralConvertersScreen(),
+                  ),
+                ],
+              ),
+              GoRoute(
+                path: 'emergency',
+                builder: (_, _) => const EmergencyServicesScreen(),
               ),
               GoRoute(path: 'vitals', builder: (_, _) => const VitalsScreen()),
               GoRoute(

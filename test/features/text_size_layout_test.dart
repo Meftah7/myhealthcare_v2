@@ -13,6 +13,7 @@ import 'package:myhealthcare/core/presentation/app_scaffold.dart';
 import 'package:myhealthcare/features/booking/application/booking_providers.dart';
 import 'package:myhealthcare/l10n/app_localizations.dart';
 
+import '../support/fonts.dart';
 import '../support/navigation.dart';
 import '../support/sessions.dart';
 
@@ -54,12 +55,7 @@ void main() {
         fontFamily: family,
       );
     }
-    final icons = File(
-      '${Platform.environment['FLUTTER_ROOT'] ?? 'C:/flutter'}/bin/cache/artifacts/material_fonts/materialicons-regular.otf',
-    );
-    final loader = FontLoader('MaterialIcons')
-      ..addFont(Future.value(ByteData.sublistView(icons.readAsBytesSync())));
-    await loader.load();
+    await loadMaterialIcons();
   });
   testWidgets(
     'drawer back, resize and short sidebar preserve the content tree',

@@ -5524,4 +5524,186 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get paNoConversationsTitle => 'لا توجد محادثات بعد';
+
+  @override
+  String get htScope =>
+      'يشير العمل المستقبلي إلى نطاق المشروع. الأدوات المتاحة أدناه تعمل الآن ولا تقدم نصائح طبية.';
+
+  @override
+  String get htWomensHealth => 'صحة المرأة';
+
+  @override
+  String get htGeneralHealth => 'الصحة العامة';
+
+  @override
+  String get htOvulation => 'فترة الإباضة';
+
+  @override
+  String get htDueDate => 'موعد الولادة المتوقع';
+
+  @override
+  String get htPregnancyUnavailable =>
+      'لم تُنفذ هذه الحاسبة. لا تُقدم توقعات للخصوبة أو الحمل، ولا تُجمع مدخلات الحمل أو تُحفظ.';
+
+  @override
+  String get htBmi => 'مؤشر كتلة الجسم ومساحة سطح الجسم';
+
+  @override
+  String get htBmiDescription =>
+      'تقديرات عامة لحجم جسم البالغين من الطول والوزن، وليست تشخيصاً أو هدفاً شخصياً للوزن الصحي.';
+
+  @override
+  String get htCalories => 'السعرات الحرارية';
+
+  @override
+  String get htBmr => 'معدل الأيض الأساسي';
+
+  @override
+  String get htMacros => 'الكربوهيدرات والبروتين والدهون';
+
+  @override
+  String get htNutritionReuse =>
+      'افتح حاسبة التغذية الحالية لتقدير احتياجات الطاقة وأهداف المغذيات. تحفظ التغذية مدخلات حاسبتها على هذا الجهاز.';
+
+  @override
+  String get htIdealWeight => 'الوزن المثالي للجسم';
+
+  @override
+  String get htBodyFat => 'دهون الجسم';
+
+  @override
+  String get htBodyUnavailable =>
+      'لم تُنفذ حاسبة موثقة بمدخلات وحدود مناسبة. لا يحسب التطبيق هنا وزناً مثالياً واحداً أو تقديراً لدهون الجسم.';
+
+  @override
+  String get htBloodSugar => 'سكر الدم';
+
+  @override
+  String get htCholesterol => 'كوليسترول الدم';
+
+  @override
+  String get htTriglycerides => 'الدهون الثلاثية';
+
+  @override
+  String get htConverterDescription =>
+      'تحويل الوحدات فوراً دون تتبع أو تقييم للمخاطر أو سجل محفوظ.';
+
+  @override
+  String get htOtherConverters => 'الوزن والطول ودرجة الحرارة';
+
+  @override
+  String get htSwap => 'عكس اتجاه التحويل';
+
+  @override
+  String get htInput => 'أدخل قيمة';
+
+  @override
+  String get htResult => 'القيمة المحولة';
+
+  @override
+  String get htInvalidNumber =>
+      'أدخل رقماً محدوداً غير سالب باستخدام نقطة أو فاصلة عشرية.';
+
+  @override
+  String get htConversionExplanation =>
+      'أدخل القيمة بإحدى الوحدتين واعكس الاتجاه للتحويل العكسي مع الحفاظ على القيمة الفعلية. تُقرب النتائج للعرض ولا تُحفظ المدخلات.';
+
+  @override
+  String get htFactorGlucose =>
+      'الجلوكوز: 1 mmol/L يساوي تقريباً 18.016 mg/dL.';
+
+  @override
+  String get htFactorCholesterol => 'الكوليسترول: mg/dL × 0.0259 = mmol/L.';
+
+  @override
+  String get htFactorTriglycerides =>
+      'الدهون الثلاثية: mg/dL × 0.0113 = mmol/L.';
+
+  @override
+  String get htCopy => 'نسخ القيمة المحولة';
+
+  @override
+  String get htCopied => 'تم نسخ القيمة المحولة';
+
+  @override
+  String get htCallAmbulance => 'اتصل بالإسعاف — 999';
+
+  @override
+  String get htCallDescription =>
+      'رقم الطوارئ في البحرين. يفتح الاتصال على جهازك؛ لا يرسل MyHealth سيارة إسعاف.';
+
+  @override
+  String get htPhoneUnavailable =>
+      'تعذر فتح الاتصال. استخدم هاتفك للاتصال بـ 999 في البحرين. خارج البحرين استخدم رقم الطوارئ المحلي.';
+
+  @override
+  String get htEmergencyRegion =>
+      'للطوارئ في البحرين اتصل بـ 999. خارج البحرين استخدم رقم الطوارئ المحلي. لا تنتظر استجابة من التطبيق.';
+
+  @override
+  String get htNearestEr => 'أقرب قسم طوارئ';
+
+  @override
+  String get htNearestErUnavailable =>
+      'لم يُعد دليل موثق لمرافق الطوارئ أو الإحداثيات أو الاتجاهات. لا يستطيع MyHealth تحديد أقرب قسم طوارئ.';
+
+  @override
+  String get htRapidResponse => 'فريق الاستجابة السريعة';
+
+  @override
+  String get htRapidUnavailable =>
+      'لا توجد خدمة معتمدة للاستجابة السريعة أو الإرسال الطبي. لا يمكن لهذا الخيار طلب فريق.';
+
+  @override
+  String get htEmergencyCheckIn => 'التسجيل في الطوارئ';
+
+  @override
+  String get htCheckInUnavailable =>
+      'لا توجد خدمة خلفية للتسجيل في الطوارئ. لا يستطيع MyHealth حجز سعة الطوارئ أو تجاوز الانتظار أو إعفاء الدفع.';
+
+  @override
+  String get htSelectHospital => 'اختر المستشفى';
+
+  @override
+  String get htSearchHospital => 'ابحث عن مستشفى';
+
+  @override
+  String get htAllFacilities => 'جميع المرافق';
+
+  @override
+  String get htConfiguredFacilities => 'المرافق المُعدة';
+
+  @override
+  String get htNoHospitals =>
+      'لا يوجد دليل مستشفيات مُعد في هذه البيئة. الأقسام ليست مستشفيات منفصلة. المواقع والمسافات غير متاحة.';
+
+  @override
+  String get htSearchUnavailable =>
+      'سيتاح البحث عن مستشفى عند إعداد دليل مرافق موثق.';
+
+  @override
+  String get htUseClinic => 'تصفح أقسام العيادة الحالية';
+
+  @override
+  String get htDoctorDetails => 'تفاصيل الطبيب';
+
+  @override
+  String get htSearch => 'بحث';
+
+  @override
+  String get htDoctorIntro =>
+      'ابحث في دليل الأطباء المنشور بالاسم أو التخصص، ثم تحقق من التوافر المحدث قبل الحجز.';
+
+  @override
+  String get htPreviousShortcuts => 'الاختصارات السابقة';
+
+  @override
+  String get htNextShortcuts => 'الاختصارات التالية';
+
+  @override
+  String get htEmergencyTitle => 'خدمات الطوارئ';
+
+  @override
+  String get htDepartmentUnavailable =>
+      'تعذر تحميل عوامل تصفية الأقسام. لا يزال البحث بالاسم والتخصص متاحاً.';
 }

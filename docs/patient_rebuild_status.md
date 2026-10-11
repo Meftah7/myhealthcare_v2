@@ -1,6 +1,6 @@
 # MyHealth patient rebuild — current status
 
-Updated 11 October 2026 on `patient-rebuild-v2`. This replaces the earlier status table, which predates booking hardening, grounded follow-up chat and individual patient-screen redesigns. Existing uncommitted message-thread and capture-test edits were preserved. The full Flutter app uses local Drift; the shared API pilot remains a separate environment.
+Updated 12 October 2026. The reference-screen iteration continues on `main` after the prior rebuild merge. Existing work is preserved. The full Flutter app uses local Drift; the shared API pilot remains a separate environment. After local verification, the owner explicitly requested committing and pushing the verified changes to `main`. GitHub Pages execution is a subsequent CI check; local success does not certify remote deployment.
 
 ## Implemented and verified
 
@@ -11,9 +11,44 @@ Updated 11 October 2026 on `patient-rebuild-v2`. This replaces the earlier statu
 - Preserved existing completed work: booking invalidation, dependent-access rechecks, bounded doctor availability, duplicate/conflict handling and repository-backed confirmation; individual records/detail/documents, medications/imaging/vitals, notifications/family/messages redesigns; grounded report questions, source authorization, context clearing, coverage disclosure and honest provider failures. See booking_journey_test.dart, report_chat_test.dart and the preservation matrix. Weather/News remain explanation-only catalogue entries, without sources or tabs.
 - Fractional Default scaling exposed a 0.28px staff year-calendar overflow. Rounding the calculated month-label height upward fixes it without altering staff navigation or OS scaling.
 
-## Final checkout verification — 11 October 2026
+## Latest checkout: GitHub Pages test portability
 
-The entire suite was rerun after the six original failures were fixed and after the final added resize/focus tests and privacy-asset corrections. Earlier targeted reruns are not the evidence for this result. No app/test/policy assets changed after this final run began; subsequent edits only record evidence and acceptance instructions.
+The supplied Ubuntu CI log failed in `text_size_layout_test.dart` setUpAll (676 passed, one failed, two skipped). Test icon loading depended on a Windows SDK fallback and lowercase SDK font filename. All four affected layout/capture helpers now load the bundled Material Icons asset through shared `test/support/fonts.dart`; CI uses the expanded test reporter to expose exception details.
+
+After the final portability changes, `flutter test --no-pub --reporter expanded` passed **722 tests, 0 failures, 2 expected skips; exit 0; 6m01s**, with capture environment variables unset as in CI. Only the two optional screenshot-output tests were skipped; bilingual text/layout and reference-screen tests executed. Formatting passes for **530 files, 0 changes**. Analysis passes with no errors/warnings and 146 informational lints. Application source and font assets did not change, so the actual screenshot evidence below remains applicable. [Portability diagnosis, changed files and verification](verification/ci_font_portability.md) records the current checks. Actual Ubuntu execution remains to be confirmed after committing/pushing and rerunning Pages; no push or deployment was performed here.
+
+The release build with actual Pages flags also passed: `flutter build web --release --no-pub --base-href /myhealthcare_v2/ --no-web-resources-cdn --dart-define=APP_MODE=demo` produced `build/web`, exit 0 (87.1s compiler step). Complete current command logs are linked in the portability evidence.
+
+## Reference-screen implementation and verification
+
+The reference-screen iteration adds the Home shortcut strip, routed Emergency Services, clinician search/detail refinements, grouped calculator and converter directories, three lab converters and a hospital unavailable-state sheet with the existing clinic fallback. [Feature inventory and changed files](patient_reference_tools.md) maps all ten supplied images to working, reused or unavailable capabilities. [Actual Flutter gallery](rebuild_screenshots/reference_tools/README.md) contains 78 captures across phone/tablet/desktop, English light and Arabic dark. Automated checks additionally exercise all three preferences, both languages/themes and independent OS scaling.
+
+Verification caught long new headings splitting words at 320px with legacy maximum app text and OS 2×/3×. They now reuse `ReadableLabel`, which preserves the OS scaler and makes oversized intact words horizontally scrollable. All six affected patient readability cases passed. Screenshot captures wait for the Copy-button enable animation. A repeat across midnight exposed a booking fixture that assumed today's +3 day was empty; it now selects a weekday without seeded visits while retaining opening-time, slot-count and confirmed-booking assertions. Both booking tests passed, and no database data is deleted. Final entire-suite results after these corrections are recorded below; historical results and targeted reruns are not current-checkout proof.
+
+Final checkout checks on 12 October 2026, after the heading, capture-timing and booking-fixture corrections:
+
+| Check | Exact command | Result |
+| --- | --- | --- |
+| Entire Flutter suite | `flutter test --no-pub --reporter expanded` | **724 passed, 0 failed, 0 skipped; exit 0; 6m56s.** All three capture suites enabled. |
+| Formatting CI guard | `dart format --output=none --set-exit-if-changed lib test integration_test test_driver` | **529 files, 0 changes; exit 0.** |
+| Flutter analysis | `flutter analyze --no-pub --no-fatal-infos` | **Exit 0; 0 errors, 0 warnings, 146 informational lints.** |
+| Relevant server tests | `node --test services/report_ai/evaluate.test.mjs services/shared_api/ai.test.mjs services/shared_api/server.test.mjs services/document_verification/server.test.mjs` | **21 passed, 0 failed, 0 skipped; exit 0.** |
+| Release web | `flutter build web --release --no-pub --no-wasm-dry-run` | **Exit 0; output `build/web`; 78.3s compiler step.** |
+| Live AI evaluation attempt | `node services/report_ai/eval/evaluate.mjs` | **Blocked, exit 2:** MYHEALTH_AI_KEY unavailable. No live evaluation performed. |
+
+Set capture variables before the full-suite command:
+
+```powershell
+$env:REFERENCE_TOOLS_CAPTURE_DIR = 'docs/rebuild_screenshots/reference_tools'
+$env:TEXT_SIZE_CAPTURE_DIR = 'docs/rebuild_screenshots/text_size'
+$env:CAPTURE_DIR = 'docs/rebuild_screenshots/final_audit'
+```
+
+[Complete current execution evidence](verification/README.md) separates these results from historical logs. New coverage includes all three analyte factors, reverse/round-trip conversions, localized/invalid input, swaps/copy, emergency launch failure, calculator reuse/collapse, directory loading/error/empty contracts, clinician detail/booking continuation, hospital dismissal/fallback/draft preservation, authorization and the bilingual/theme/OS-scale layout matrix. The 78 new renders and 73 existing navigation/page captures use real Flutter widgets, bundled fonts and synthetic accounts. Visually inspected phone/tablet/desktop captures confirm readable numeric units, working-control contrast, blue branding, modal barriers and Quick Access below Services. They do not certify physical devices or TalkBack/VoiceOver. Informational analyzer debt and debug Drift/PDF notices remain disclosed.
+
+## Previous rebuild verification — before the reference-screen iteration
+
+The entire suite was rerun after the six original failures were fixed and after the final added resize/focus tests and privacy-asset corrections. Earlier targeted reruns are not the evidence for this result. No app/test/policy assets changed after that historical run began; subsequent edits only recorded evidence and acceptance instructions.
 
 | Check | Exact command | Final result |
 | --- | --- | --- |
@@ -53,4 +88,4 @@ Bilingual Terms/Privacy screens and draft banners work. Privacy drafts now match
 
 Android APK generation is **blocked by the missing Android SDK**. Install/configure the Android SDK and required toolchain, resolve `flutter doctor -v`, then run `flutter build apk --release`. This does not block the verified implementation or web build. No physical native installation is claimed.
 
-The project is not marked fully complete while these external acceptance gates remain open. No push, deployment, database reset or existing-work discard was performed.
+The project is not marked fully complete while these external acceptance gates remain open. Verification did not deploy, reset the database or discard existing work. The owner's subsequent request authorizes publication to `main`; remote CI/deployment results must be checked separately.

@@ -21,6 +21,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:myhealthcare/features/care/application/care_providers.dart';
 
+import '../support/fonts.dart';
 import '../support/test_database.dart';
 
 final _dir = Platform.environment['CAPTURE_DIR'];
@@ -45,15 +46,7 @@ Future<void> _loadFonts() async {
     'assets/fonts/static/Inter-Bold.ttf',
   ]);
   await family('NotoNaskhArabic', ['assets/fonts/NotoNaskhArabic.ttf']);
-  final flutterRoot = Platform.environment['FLUTTER_ROOT'] ?? 'C:/flutter';
-  final icons = File(
-    '$flutterRoot/bin/cache/artifacts/material_fonts/materialicons-regular.otf',
-  );
-  if (icons.existsSync()) {
-    final loader = FontLoader('MaterialIcons')
-      ..addFont(Future.value(ByteData.sublistView(icons.readAsBytesSync())));
-    await loader.load();
-  }
+  await loadMaterialIcons();
 }
 
 Future<void> _settle(WidgetTester tester) async {

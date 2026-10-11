@@ -1,0 +1,157 @@
+Analyzing myhealthcare_v2...
+
+   info - 'Future'-returning calls in a non-'async' function. Try converting the enclosing function to be 'async' and then 'await' the future, or wrap the expression in 'unawaited' - lib\app\shell\app_shell.dart:277:9 - discarded_futures
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\core\presentation\app_card.dart:435:18 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\core\presentation\app_card.dart:793:25 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\core\presentation\app_card.dart:869:16 - avoid_redundant_argument_values
+   info - Required named parameters should be before optional named parameters. Try moving the required named parameter to be before any optional named parameters - lib\core\presentation\app_scaffold.dart:24:20 - always_put_required_named_parameters_first
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\core\presentation\profile_navigation.dart:34:17 - avoid_redundant_argument_values
+   info - Use the null-aware marker '?' rather than a null check via an 'if'. Try using '?' - lib\data\remote\shared_client.dart:221:15 - use_null_aware_elements
+   info - Use an initializing formal to assign a parameter to a field. Try using an initialing formal ('this._appointments') to initialize the field - lib\data\repositories\consultation_repository_impl.dart:812:8 - prefer_initializing_formals
+   info - Use an initializing formal to assign a parameter to a field. Try using an initialing formal ('this._walkIns') to initialize the field - lib\data\repositories\consultation_repository_impl.dart:813:8 - prefer_initializing_formals
+   info - Statements in an if should be enclosed in a block. Try wrapping the statement in a block - lib\data\repositories\system_repository_impl.dart:192:11 - curly_braces_in_flow_control_structures
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\admin\presentation\admin_appointments_screen.dart:112:30 - avoid_redundant_argument_values
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\admin\presentation\admin_billing_screen.dart:15:1 - directives_ordering
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\admin\presentation\admin_billing_screen.dart:52:13 - avoid_redundant_argument_values
+   info - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check - lib\features\admin\presentation\admin_billing_screen.dart:75:41 - use_build_context_synchronously
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\admin\presentation\admin_billing_screen.dart:177:16 - avoid_redundant_argument_values
+   info - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check - lib\features\admin\presentation\admin_billing_screen.dart:268:33 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check - lib\features\admin\presentation\admin_billing_screen.dart:292:33 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check - lib\features\admin\presentation\admin_billing_screen.dart:427:33 - use_build_context_synchronously
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\admin\presentation\admin_dashboard_screen.dart:17:1 - directives_ordering
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\admin\presentation\admin_dashboard_screen.dart:19:1 - directives_ordering
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\admin\presentation\admin_dashboard_screen.dart:30:1 - directives_ordering
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\admin\presentation\admin_dashboard_screen.dart:45:13 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\admin\presentation\admin_dashboard_screen.dart:131:18 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\admin\presentation\admin_feedback_screen.dart:121:16 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\admin\presentation\admin_forecast_screen.dart:209:16 - avoid_redundant_argument_values
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\admin\presentation\admin_quick_actions.dart:22:1 - directives_ordering
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\admin\presentation\admin_quick_actions.dart:24:1 - directives_ordering
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\admin\presentation\admin_quick_actions.dart:35:1 - directives_ordering
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\admin\presentation\admin_quick_actions.dart:36:1 - directives_ordering
+   info - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check - lib\features\admin\presentation\admin_referral_requests_screen.dart:166:33 - use_build_context_synchronously
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\admin\presentation\admin_workspace_screens.dart:11:1 - directives_ordering
+   info - Place 'package:' imports before relative imports. Try sorting the directives - lib\features\admin\presentation\audit_log_screen.dart:6:1 - directives_ordering
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\admin\presentation\audit_log_screen.dart:8:1 - directives_ordering
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\admin\presentation\audit_log_screen.dart:78:30 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\admin\presentation\departments_screen.dart:46:13 - avoid_redundant_argument_values
+   info - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check - lib\features\admin\presentation\departments_screen.dart:173:49 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check - lib\features\admin\presentation\departments_screen.dart:239:45 - use_build_context_synchronously
+   info - 'Future'-returning calls in a non-'async' function. Try converting the enclosing function to be 'async' and then 'await' the future, or wrap the expression in 'unawaited' - lib\features\admin\presentation\qr_scan_screen.dart:56:17 - discarded_futures
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\admin\presentation\user_management_screen.dart:19:1 - directives_ordering
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\admin\presentation\user_management_screen.dart:22:1 - directives_ordering
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\admin\presentation\user_management_screen.dart:32:1 - directives_ordering
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\admin\presentation\user_management_screen.dart:33:1 - directives_ordering
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\admin\presentation\user_management_screen.dart:98:13 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\admin\presentation\user_management_screen.dart:204:38 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\admin\presentation\user_management_screen.dart:241:38 - avoid_redundant_argument_values
+   info - Closure should be a tearoff. Try using a tearoff rather than a closure - lib\features\admin\presentation\user_management_screen.dart:371:16 - unnecessary_lambdas
+   info - Statements in a for should be enclosed in a block. Try wrapping the statement in a block - lib\features\admin\presentation\user_management_screen.dart:373:9 - curly_braces_in_flow_control_structures
+   info - Required named parameters should be before optional named parameters. Try moving the required named parameter to be before any optional named parameters - lib\features\admin\presentation\user_management_screen.dart:385:19 - always_put_required_named_parameters_first
+   info - Required named parameters should be before optional named parameters. Try moving the required named parameter to be before any optional named parameters - lib\features\admin\presentation\user_management_screen.dart:386:19 - always_put_required_named_parameters_first
+   info - Required named parameters should be before optional named parameters. Try moving the required named parameter to be before any optional named parameters - lib\features\admin\presentation\user_management_screen.dart:387:19 - always_put_required_named_parameters_first
+   info - Statements in an if should be enclosed in a block. Try wrapping the statement in a block - lib\features\admin\presentation\user_management_screen.dart:418:11 - curly_braces_in_flow_control_structures
+   info - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check - lib\features\admin\presentation\user_management_screen.dart:692:33 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check - lib\features\admin\presentation\user_management_screen.dart:718:33 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check - lib\features\admin\presentation\user_management_screen.dart:899:47 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check - lib\features\admin\presentation\user_management_screen.dart:910:47 - use_build_context_synchronously
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\ai_chat\application\care_navigator.dart:188:20 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\ai_summary\presentation\ai_summary_screen.dart:103:34 - avoid_redundant_argument_values
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\appointments\presentation\appointment_detail_screen.dart:30:1 - directives_ordering
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\appointments\presentation\appointment_detail_screen.dart:31:1 - directives_ordering
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\appointments\presentation\appointment_detail_screen.dart:91:26 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\appointments\presentation\appointment_detail_screen.dart:117:24 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\appointments\presentation\appointment_detail_screen.dart:168:24 - avoid_redundant_argument_values
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\appointments\presentation\appointment_records_section.dart:10:1 - directives_ordering
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\appointments\presentation\appointment_records_section.dart:15:1 - directives_ordering
+   info - Statements in an if should be enclosed in a block. Try wrapping the statement in a block - lib\features\appointments\presentation\appointment_records_section.dart:66:15 - curly_braces_in_flow_control_structures
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\appointments\presentation\appointments_screen.dart:57:13 - avoid_redundant_argument_values
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\features\auth\presentation\auth_scaffold.dart:72:31 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\features\auth\presentation\auth_scaffold.dart:73:40 - prefer_const_constructors
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\billing\presentation\payments_screen.dart:242:18 - avoid_redundant_argument_values
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\booking\presentation\booking_screen.dart:30:1 - directives_ordering
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\booking\presentation\booking_screen.dart:283:18 - avoid_redundant_argument_values
+   info - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check - lib\features\booking\presentation\booking_screen.dart:325:53 - use_build_context_synchronously
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\booking\presentation\booking_screen.dart:419:16 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\booking\presentation\booking_screen.dart:1123:26 - avoid_redundant_argument_values
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\care\presentation\home_visit_screen.dart:12:1 - directives_ordering
+   info - Place 'package:' imports before relative imports. Try sorting the directives - lib\features\care\presentation\message_thread_screen.dart:10:1 - directives_ordering
+   info - Place 'package:' imports before relative imports. Try sorting the directives - lib\features\care\presentation\message_thread_screen.dart:11:1 - directives_ordering
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\care\presentation\message_thread_screen.dart:13:1 - directives_ordering
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\care\presentation\message_thread_screen.dart:17:1 - directives_ordering
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\care\presentation\patient_doctor_chat_section.dart:10:1 - directives_ordering
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\care\presentation\patient_doctor_chat_section.dart:13:1 - directives_ordering
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\care\presentation\thread_list.dart:40:16 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\health_tools\presentation\tool_widgets.dart:33:42 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\nutrition\presentation\nutrition_screen.dart:41:13 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\nutrition\presentation\nutrition_screen.dart:698:16 - avoid_redundant_argument_values
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\patient\application\profile_screen.dart:19:1 - directives_ordering
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\patient\application\profile_screen.dart:21:1 - directives_ordering
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\patient\application\profile_screen.dart:58:13 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\patient\application\profile_screen.dart:85:23 - avoid_redundant_argument_values
+   info - Statements in an if should be enclosed in a block. Try wrapping the statement in a block - lib\features\patient\application\profile_screen.dart:157:21 - curly_braces_in_flow_control_structures
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\patient\application\visited_doctors_provider.dart:11:1 - directives_ordering
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\patient\presentation\allergies_screen.dart:99:16 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\patient\presentation\health_details_section.dart:136:23 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\patient\presentation\linked_account_screen.dart:219:16 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\patient\presentation\linked_account_screen.dart:402:24 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\patient\presentation\personal_info_section.dart:222:23 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\patient_chart\application\chart_summary_provider.dart:92:20 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\patient_chart\presentation\patient_summary_screen.dart:91:36 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\service_catalog\domain\patient_catalog.dart:275:13 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\settings\presentation\preferences_section.dart:348:30 - avoid_redundant_argument_values
+   info - Statements in an if should be enclosed in a block. Try wrapping the statement in a block - lib\features\shared\presentation\shared_workspace_app.dart:56:7 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block. Try wrapping the statement in a block - lib\features\shared\presentation\shared_workspace_app.dart:65:17 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block. Try wrapping the statement in a block - lib\features\shared\presentation\shared_workspace_app.dart:83:9 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block. Try wrapping the statement in a block - lib\features\shared\presentation\shared_workspace_app.dart:367:9 - curly_braces_in_flow_control_structures
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre. Try replacing the use of the deprecated member with the replacement - lib\features\shared\presentation\shared_workspace_app.dart:593:27 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre. Try replacing the use of the deprecated member with the replacement - lib\features\shared\presentation\shared_workspace_app.dart:594:27 - deprecated_member_use
+   info - Method invocation or property access on a 'dynamic' target. Try giving the target a type - lib\features\shared\presentation\shared_workspace_app.dart:764:32 - avoid_dynamic_calls
+   info - Method invocation or property access on a 'dynamic' target. Try giving the target a type - lib\features\shared\presentation\shared_workspace_app.dart:764:47 - avoid_dynamic_calls
+   info - Method invocation or property access on a 'dynamic' target. Try giving the target a type - lib\features\shared\presentation\shared_workspace_app.dart:764:66 - avoid_dynamic_calls
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\staff_dashboard\presentation\staff_activity_screen.dart:113:24 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\staff_dashboard\presentation\staff_activity_screen.dart:195:24 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\staff_dashboard\presentation\staff_directory_screen.dart:89:16 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\staff_dashboard\presentation\staff_patients_screen.dart:44:13 - avoid_redundant_argument_values
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\staff_dashboard\presentation\staff_profile_screen.dart:18:1 - directives_ordering
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\staff_dashboard\presentation\staff_profile_screen.dart:25:1 - directives_ordering
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\staff_dashboard\presentation\staff_profile_screen.dart:52:13 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - lib\features\staff_dashboard\presentation\staff_profile_screen.dart:73:25 - avoid_redundant_argument_values
+   info - Statements in an if should be enclosed in a block. Try wrapping the statement in a block - lib\features\staff_dashboard\presentation\staff_profile_screen.dart:125:23 - curly_braces_in_flow_control_structures
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\timeline\presentation\timeline_screen.dart:18:1 - directives_ordering
+   info - Sort directive sections alphabetically. Try sorting the directives - lib\features\timeline\presentation\timeline_screen.dart:23:1 - directives_ordering
+   info - Use an initializing formal to assign a parameter to a field. Try using an initialing formal ('this._device') to initialize the field - lib\services\notifications\reminder_dispatcher.dart:66:8 - prefer_initializing_formals
+   info - The import of 'dart:typed_data' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/foundation.dart'. Try removing the import directive - lib\services\qr\qr_image_decoder.dart:7:8 - unnecessary_import
+   info - Sort directive sections alphabetically. Try sorting the directives - test\data\care_repositories_test.dart:4:1 - directives_ordering
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - test\data\care_repositories_test.dart:53:42 - avoid_redundant_argument_values
+   info - Sort directive sections alphabetically. Try sorting the directives - test\features\admin_profile_test.dart:12:1 - directives_ordering
+   info - Sort directive sections alphabetically. Try sorting the directives - test\features\clinic_hours_settings_test.dart:6:1 - directives_ordering
+   info - Sort directive sections alphabetically. Try sorting the directives - test\features\clinic_hours_settings_test.dart:8:1 - directives_ordering
+   info - Statements in an if should be enclosed in a block. Try wrapping the statement in a block - test\features\notifications_test.dart:65:13 - curly_braces_in_flow_control_structures
+   info - Use the null-aware marker '?' rather than a null check via an 'if'. Try using '?' - test\features\settings_prefs_test.dart:58:11 - use_null_aware_elements
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - test\features\slot_recommendation_test.dart:161:49 - avoid_redundant_argument_values
+   info - Statements in an if should be enclosed in a block. Try wrapping the statement in a block - test\features\small_phone_readability_test.dart:109:7 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block. Try wrapping the statement in a block - test\features\small_phone_readability_test.dart:123:9 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block. Try wrapping the statement in a block - test\features\small_phone_readability_test.dart:174:17 - curly_braces_in_flow_control_structures
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - test\features\ui_requests_test.dart:70:57 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - test\features\ui_requests_test.dart:78:36 - avoid_redundant_argument_values
+   info - Unnecessary use of double quotes. Try using single quotes unless the string contains single quotes - test\features\ui_requests_test.dart:167:29 - prefer_single_quotes
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - test\phase2\data_foundation_test.dart:69:35 - avoid_redundant_argument_values
+   info - Unnecessary use of multiple underscores. Try using '_' - test\phase2\data_foundation_test.dart:76:31 - unnecessary_underscores
+   info - Method invocation or property access on a 'dynamic' target. Try giving the target a type - test\services\admin_workspace_test.dart:211:9 - avoid_dynamic_calls
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - test\services\document_verification_test.dart:74:39 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - test\services\pdf_interpretation_test.dart:32:28 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value. Try removing the argument - test\services\pdf_interpretation_test.dart:69:74 - avoid_redundant_argument_values
+   info - Constructor declarations should be before non-constructor declarations. Try moving the constructor declaration before all other members - test\services\shared_client_test.dart:13:3 - sort_constructors_first
+   info - Statements in an if should be enclosed in a block. Try wrapping the statement in a block - test\services\shared_client_test.dart:52:13 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block. Try wrapping the statement in a block - test\services\shared_client_test.dart:85:13 - curly_braces_in_flow_control_structures
+   info - Sort directive sections alphabetically. Try sorting the directives - test\visual\patient_pages_audit_capture_test.dart:22:1 - directives_ordering
+
+C:\flutter\bin\flutter.bat : 146 issues found. (ran in 5.2s)
+At line:11 char:1
++ C:\flutter\bin\flutter.bat analyze --no-pub --no-fatal-infos *> tmp_c ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (146 issues found. (ran in 5.2s):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+Flutter process exit code: 0

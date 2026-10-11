@@ -70,15 +70,24 @@ void main() {
     await _settle(tester);
     expect(find.widgetWithText(AppBar, 'Schedule a visit'), findsOneWidget);
 
-    // Fill the draft (dept + doctor + a near clinic day) via the provider —
+    // Fill the draft (dept + doctor + a fresh clinic day) via the provider —
     // the wizard reacts and shows the slot list.
     final depts = await container.read(departmentsProvider.future);
     final staff = await container.read(
       departmentStaffProvider(depts.first.id).future,
     );
+    // Seeding uses a fixed epoch; today's +3 day may already have visits.
+    // Choose an empty fixture day without deleting data or weakening slots.
+    final seededVisits = await db.select(db.appointments).get();
     var date = DateTime.now().add(const Duration(days: 3));
     while (date.weekday == DateTime.friday ||
-        date.weekday == DateTime.saturday) {
+        date.weekday == DateTime.saturday ||
+        seededVisits.any(
+          (visit) =>
+              visit.slotStart.year == date.year &&
+              visit.slotStart.month == date.month &&
+              visit.slotStart.day == date.day,
+        )) {
       date = date.add(const Duration(days: 1));
     }
     container.read(bookingDraftProvider.notifier).state = BookingRequestDraft(

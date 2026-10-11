@@ -1,0 +1,32 @@
+✔ publication rejects PHI, duplicates, stale input, changed files and reactivation (5.277ms)
+✔ public verifier checks fingerprints, privacy, freshness, integrity and read-only methods (119.339ms)
+✔ rate limit applies to unknown references too (13.5932ms)
+✔ the grader passes ideal grounded answers on every case (3.454ms)
+✔ the grader catches invented values, unverifiable quotes and obeyed injections (1.0219ms)
+✔ grounding: quotes must be verbatim report text; unsupported claims are downgraded (0.5075ms)
+✔ gateway: client token required; health reports configuration only (67.2149ms)
+✔ gateway: grounded chat, bounds, unconfigured and provider failure (59.1008ms)
+✔ clipReport discloses partial coverage (2.0765ms)
+✔ Gemini explainer keeps the key in a header and the report delimited (1ms)
+✔ Gemini explainer fails loudly on errors and empty replies (3.9439ms)
+(node:52700) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ independent clients share versioned tasks without cross-panel access or duplicate regeneration (1236.8784ms)
+✔ official issuance needs clinic approval and a current doctor; source patients and disclosures are checked (1067.2242ms)
+✔ one frozen issue, exact encrypted PDF, minimal live verification and idempotent in-app delivery across devices (1117.7587ms)
+✔ revocation during async rendering and session expiry are enforced on the server (1277.7784ms)
+✔ encrypted backup restores exact files, schema and data while invalidating sessions; wrong keys and overwrite fail (1729.682ms)
+✔ admin health, request allowlists, CORS, deactivation and safe retry conflicts (1722.6464ms)
+✔ trusted render worker finishes after the client leaves, records failures and never duplicates a ready file (1724.4371ms)
+✔ report explanation: own PDF only, server-held provider, coverage and labelled draft (1754.5693ms)
+✔ report explanation without a configured provider or with a failing one never pretends (3131.2344ms)
+✔ report follow-up chat: authorized file only, grounded answer, bounds and failures (3343.9669ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18316.6894
+Node process exit code: 0

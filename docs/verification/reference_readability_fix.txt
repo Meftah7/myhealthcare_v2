@@ -1,0 +1,11 @@
+00:00 +0: loading C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/small_phone_readability_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: patient routes at 320px in en with OS 1.0 and max app text
+00:05 +1: patient routes at 320px in en with OS 2.0 and max app text
+00:07 +2: patient routes at 320px in en with OS 3.0 and max app text
+00:09 +3: patient routes at 320px in ar with OS 1.0 and max app text
+00:12 +4: patient routes at 320px in ar with OS 2.0 and max app text
+00:14 +5: patient routes at 320px in ar with OS 3.0 and max app text
+00:16 +6: (tearDownAll)
+00:16 +6: All tests passed!
+Flutter process exit code: 0

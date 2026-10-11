@@ -1,0 +1,1033 @@
+00:00 +0: loading C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/core/app_environment_test.dart
+00:00 +0: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/core/app_environment_test.dart: parses the supported runtime modes
+00:00 +1: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/core/app_environment_test.dart: rejects an unknown runtime mode
+00:00 +2: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/core/app_environment_test.dart: test/debug runtime defaults to demo mode
+00:00 +3: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/core/card_input_test.dart: card brand detects the major networks from the prefix
+00:00 +4: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/core/card_input_test.dart: CardNumberInputFormatter groups a Visa number 4-4-4-4
+00:00 +5: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/core/card_input_test.dart: CardNumberInputFormatter groups an Amex number 4-6-5
+00:00 +6: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/core/card_input_test.dart: CardNumberInputFormatter caps the PAN at 19 digits
+00:00 +7: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/core/card_input_test.dart: CardNumberInputFormatter caps an Amex at 15 digits
+00:00 +8: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/core/card_input_test.dart: ExpiryInputFormatter inserts the slash after two digits
+00:00 +9: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/core/card_input_test.dart: ExpiryInputFormatter clamps an impossible month
+00:00 +10: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/core/card_input_test.dart: ExpiryInputFormatter a backspace onto the slash deletes the digit before it
+00:00 +11: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/core/card_input_test.dart: parseExpiry / expiryInFuture parses MM/YY
+00:00 +12: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/core/card_input_test.dart: parseExpiry / expiryInFuture rejects a bad month
+00:00 +13: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/core/card_input_test.dart: parseExpiry / expiryInFuture a past month is not in the future
+00:00 +14: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/core/card_input_test.dart: luhnValid accepts a valid number and rejects a typo
+00:00 +15: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/core/format_test.dart: localizeDigits leaves Western digits alone outside Arabic locale
+00:00 +16: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/core/format_test.dart: localizeDigits swaps Western digits for Eastern Arabic-Indic under ar
+00:00 +17: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/core/format_test.dart: fmtTimeAgo renders Arabic-Indic digits under the ar locale
+00:00 +18: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/core/format_test.dart: fmtTimeAgo renders Western digits under the en locale
+00:00 +19: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/core/result_test.dart: Result Ok carries its value
+00:00 +20: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/core/result_test.dart: Result Err carries its failure
+00:00 +21: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/core/result_test.dart: Result map transforms Ok, passes Err through
+00:00 +22: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/core/result_test.dart: Result flatMap chains fallible steps
+00:00 +23: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/core/result_test.dart: Result fold collapses both branches
+00:00 +24: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/core/result_test.dart: Result guard converts a thrown object into UnexpectedFailure
+00:00 +25: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/core/result_test.dart: Result guard preserves a thrown Failure
+00:00 +26: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/core/result_test.dart: Result guardAsync works
+00:01 +27: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/admin_repositories_test.dart: UserRepository (admin) createStaff, then it shows up in byRole(staff)
+00:01 +28: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/auto_no_show_test.dart: only unattended visits past the 30-minute grace are marked
+00:04 +29: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/auto_no_show_test.dart: only unattended visits past the 30-minute grace are marked
+00:05 +30: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/backup_restore_rehearsal_test.dart: prototype database backup restores relationships without reseeding
+00:05 +31: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/backup_restore_rehearsal_test.dart: prototype database backup restores relationships without reseeding
+00:05 +32: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/care_repositories_test.dart: SickLeaveRepository rejects an end date before the start date
+00:06 +33: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/admin_repositories_test.dart: UserRepository (admin) resetPassword changes the credential
+00:07 +34: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/admin_repositories_test.dart: UserRepository (admin) resetPassword changes the credential
+00:07 +35: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/admin_repositories_test.dart: UserRepository (admin) resetPassword changes the credential
+00:08 +36: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/admin_repositories_test.dart: UserRepository (admin) resetPassword changes the credential
+00:08 +37: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/care_repositories_test.dart: CareMessageRepository future, missed, cancelled and unfinished visits cannot start a chat
+00:09 +38: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/care_repositories_test.dart: CareMessageRepository future, missed, cancelled and unfinished visits cannot start a chat
+00:09 +39: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/care_repositories_test.dart: CareMessageRepository future, missed, cancelled and unfinished visits cannot start a chat
+00:09 +40: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/consultation_repositories_test.dart: WalkInTicketRepository claim → resolve walks the status through
+00:10 +41: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/consultation_repositories_test.dart: WalkInTicketRepository claim → resolve walks the status through
+00:10 +42: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/consultation_repositories_test.dart: WalkInTicketRepository claim → resolve walks the status through
+00:10 +43: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/care_repositories_test.dart: CareMessageRepository send builds a thread; markRead clears the other side
+00:10 +44: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/care_repositories_test.dart: CareMessageRepository send builds a thread; markRead clears the other side
+00:11 +45: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/care_repositories_test.dart: CareMessageRepository send builds a thread; markRead clears the other side
+00:11 +46: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/consultation_repositories_test.dart: ReferralRequestRepository create → pending → decide
+00:11 +47: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/consultation_repositories_test.dart: ReferralRequestRepository create → pending → decide
+00:12 +48: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/consultation_repositories_test.dart: ReferralRequestRepository create → pending → decide
+00:12 +49: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/consultation_repositories_test.dart: ReferralRequestRepository create → pending → decide
+00:13 +50: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/consultation_repositories_test.dart: ReferralRequestRepository create → pending → decide
+00:13 +51: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/consultation_repositories_test.dart: ReferralRequestRepository create → pending → decide
+00:13 +52: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/admin_repositories_test.dart: AppointmentRepository range queries forStaffInRange / inRange window by slot start
+00:14 +53: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/admin_repositories_test.dart: AppointmentRepository range queries forStaffInRange / inRange window by slot start
+00:14 +54: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/care_repositories_test.dart: CareMessageRepository rejects an empty message
+00:14 +55: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/care_repositories_test.dart: CareMessageRepository rejects an empty message
+00:15 +56: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/consultation_repositories_test.dart: ReferralRequestRepository rejects an empty reason
+00:15 +57: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/consultation_repositories_test.dart: ReferralRequestRepository rejects an empty reason
+00:15 +58: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/consultation_repositories_test.dart: ReferralRequestRepository rejects an empty reason
+00:16 +59: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/care_repositories_test.dart: HomeVisitRepository create → queue → schedule → complete
+00:17 +60: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/seeder_test.dart: produces the expected population
+00:17 +61: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/seeder_test.dart: produces the expected population
+00:17 +62: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/consultation_repositories_test.dart: appointment status transitions call → arrive → complete
+00:18 +63: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/consultation_repositories_test.dart: appointment status transitions call → arrive → complete
+00:18 +64: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/consultation_repositories_test.dart: appointment status transitions call → arrive → complete
+00:18 +65: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/seeder_test.dart: data is correlated, not random
+00:19 +66: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/repositories_test.dart: AppointmentRepository reschedule rejects an interval that overlaps another appointment
+00:19 +67: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/care_repositories_test.dart: HomeVisitRepository rejects a blank address or reason
+00:20 +68: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/seeder_test.dart: is byte-identical across runs (seeded RNG)
+00:20 +69: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/seeder_test.dart: is byte-identical across runs (seeded RNG)
+00:22 +70: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/seeder_test.dart: is byte-identical across runs (seeded RNG)
+00:22 +71: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/seeder_test.dart: is byte-identical across runs (seeded RNG)
+00:22 +72: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/stuck_migration_test.dart: v25 upgrade links known demo encounters and leaves ordinary unlinked records alone
+00:23 +73: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/accessibility_test.dart: login focuses the first invalid field and exposes password state
+00:23 +74: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/accessibility_test.dart: login focuses the first invalid field and exposes password state
+00:24 +75: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/accessibility_test.dart: login focuses the first invalid field and exposes password state
+00:25 +76: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/accessibility_test.dart: login focuses the first invalid field and exposes password state
+00:26 +77: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/accessibility_test.dart: login focuses the first invalid field and exposes password state
+00:26 +78: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/accessibility_test.dart: login focuses the first invalid field and exposes password state
+00:26 +79: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/repositories_test.dart: RecordRepository an imported PDF round-trips its filename and extracted text
+00:26 +80: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/seeder_test.dart: an older seed version is advanced without replacing data
+00:27 +81: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/data/seeder_test.dart: an older seed version is advanced without replacing data
+00:28 +82: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/accessibility_test.dart: login screen meets contrast, tap-target and label guidelines
+00:28 +83: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/accessibility_test.dart: login screen meets contrast, tap-target and label guidelines
+00:28 +84: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_profile_test.dart: dashboard uses the shared layout language
+00:28 +85: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_profile_test.dart: dashboard uses the shared layout language
+00:30 +86: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_profile_test.dart: dashboard uses the shared layout language
+00:32 +87: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_profile_test.dart: dashboard uses the shared layout language
+00:33 +88: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_quick_actions_test.dart: admin dashboard shows Quick actions
+00:33 +89: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_quick_actions_test.dart: admin dashboard shows Quick actions
+00:35 +90: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_quick_actions_test.dart: admin dashboard shows Quick actions
+00:35 +91: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_profile_test.dart: Profile is a hub of rows that open their own pages
+00:35 +91: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_tier_b_test.dart: forecastFromHistory bins by weekday and always returns 7 days
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:myhealthcare/data/db/app_database.g.dart:35311:36)
+#4      new AppDatabase (package:myhealthcare/data/db/app_database.dart:111:44)
+#5      newTestDatabase (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/support/test_database.dart:10:34)
+#6      _container (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_tier_b_test.dart:28:14)
+#7      main.<anonymous closure> (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_tier_b_test.dart:125:31)
+#8      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:25)
+<asynchronous suspension>
+#9      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#10     Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:35 +92: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_profile_test.dart: Profile is a hub of rows that open their own pages
+00:36 +93: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/accessibility_test.dart: admin departments screen meets contrast guidelines in light mode
+00:37 +93: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_tier_b_test.dart: AI usage is logged when the Care Navigator answers
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:myhealthcare/data/db/app_database.g.dart:35311:36)
+#4      new AppDatabase (package:myhealthcare/data/db/app_database.dart:111:44)
+#5      newTestDatabase (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/support/test_database.dart:10:34)
+#6      _container (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_tier_b_test.dart:28:14)
+#7      main.<anonymous closure> (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_tier_b_test.dart:147:29)
+#8      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:25)
+<asynchronous suspension>
+#9      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#10     Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:37 +94: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/accessibility_test.dart: admin departments screen meets contrast guidelines in light mode
+00:38 +95: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_quick_actions_test.dart: broadcast reaches every patient
+00:39 +96: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_profile_test.dart: the working-status pill changes and persists per device
+00:39 +97: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_tier_b_test.dart: feedback inbox opens from the dashboard Quick actions
+00:39 +98: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_tier_b_test.dart: feedback inbox opens from the dashboard Quick actions
+00:42 +99: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_tier_b_test.dart: feedback inbox opens from the dashboard Quick actions
+00:43 +100: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_tier_b_test.dart: feedback inbox opens from the dashboard Quick actions
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:myhealthcare/data/db/app_database.g.dart:35311:36)
+#4      new AppDatabase (package:myhealthcare/data/db/app_database.dart:111:44)
+#5      newTestDatabase (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/support/test_database.dart:10:34)
+#6      _signInAdmin (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_tier_b_test.dart:41:14)
+#7      main.<anonymous closure> (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_tier_b_test.dart:175:29)
+#8      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#9      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#10     StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:43 +101: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_workspace_test.dart: en compact admin navigation restores five sections and preserves workspace routes
+00:44 +102: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_workspace_test.dart: en compact admin navigation restores five sections and preserves workspace routes
+00:45 +103: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_workspace_test.dart: en compact admin navigation restores five sections and preserves workspace routes
+00:47 +103: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_tier_b_test.dart: historical demand opens from Profile
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:myhealthcare/data/db/app_database.g.dart:35311:36)
+#4      new AppDatabase (package:myhealthcare/data/db/app_database.dart:111:44)
+#5      newTestDatabase (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/support/test_database.dart:10:34)
+#6      _signInAdmin (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_tier_b_test.dart:41:14)
+#7      main.<anonymous closure> (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_tier_b_test.dart:197:29)
+#8      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#9      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#10     StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:47 +104: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_workspace_test.dart: en compact admin navigation restores five sections and preserves workspace routes
+00:48 +105: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_workspace_test.dart: en compact admin navigation restores five sections and preserves workspace routes
+00:49 +106: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_workspace_test.dart: en compact admin navigation restores five sections and preserves workspace routes
+00:49 +106: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_quick_actions_test.dart: billing overview lists invoices and marks one paid
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:myhealthcare/data/db/app_database.g.dart:35311:36)
+#4      new AppDatabase (package:myhealthcare/data/db/app_database.dart:111:44)
+#5      newTestDatabase (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/support/test_database.dart:10:34)
+#6      _signInAdmin (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_quick_actions_test.dart:28:14)
+#7      main.<anonymous closure> (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_quick_actions_test.dart:222:29)
+#8      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#9      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#10     StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:49 +107: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_workspace_test.dart: en compact admin navigation restores five sections and preserves workspace routes
+00:49 +108: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_workspace_test.dart: en compact admin navigation restores five sections and preserves workspace routes
+00:51 +109: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_user_actions_test.dart: a user row expands to show the account actions
+00:52 +110: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_user_actions_test.dart: a user row expands to show the account actions
+00:52 +110: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_quick_actions_test.dart: all-appointments screen renders with filters
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:myhealthcare/data/db/app_database.g.dart:35311:36)
+#4      new AppDatabase (package:myhealthcare/data/db/app_database.dart:111:44)
+#5      newTestDatabase (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/support/test_database.dart:10:34)
+#6      _signInAdmin (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_quick_actions_test.dart:28:14)
+#7      main.<anonymous closure> (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_quick_actions_test.dart:264:29)
+#8      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#9      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#10     StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:52 +111: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_user_actions_test.dart: a user row expands to show the account actions
+00:54 +112: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_user_actions_test.dart: a user row expands to show the account actions
+00:55 +113: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/appointment_records_test.dart: old encounters include all linked records and stopped medication, excluding other encounters
+00:56 +114: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/appointment_ticket_test.dart: seeded appointments all have a ticket tag and room number
+00:56 +115: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_workspace_test.dart: ar compact admin navigation restores five sections and preserves workspace routes
+00:58 +116: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_workspace_test.dart: ar compact admin navigation restores five sections and preserves workspace routes
+00:58 +117: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_workspace_test.dart: ar compact admin navigation restores five sections and preserves workspace routes
+00:58 +118: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_workspace_test.dart: ar compact admin navigation restores five sections and preserves workspace routes
+00:58 +119: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_workspace_test.dart: ar compact admin navigation restores five sections and preserves workspace routes
+01:00 +120: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/admin_workspace_test.dart: ar compact admin navigation restores five sections and preserves workspace routes
+01:00 +121: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/appointment_ticket_test.dart: a freshly booked appointment gets a ticket and room
+01:00 +122: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/arabic_regression_test.dart: arabic: nav labels localize and patient home never overflows
+01:02 +123: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/arabic_regression_test.dart: arabic: nav labels localize and patient home never overflows
+01:02 +124: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/arabic_regression_test.dart: arabic: nav labels localize and patient home never overflows
+01:05 +125: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/arabic_regression_test.dart: arabic: nav labels localize and patient home never overflows
+01:06 +126: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/arabic_regression_test.dart: arabic: nav labels localize and patient home never overflows
+01:06 +127: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/arabic_regression_test.dart: arabic: nav labels localize and patient home never overflows
+01:07 +128: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/auth_flow_test.dart: patient signs in and lands on the patient shell
+01:08 +129: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/auth_pages_test.dart: forgot password always succeeds and never reveals whether the account exists
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:myhealthcare/data/db/app_database.g.dart:35311:36)
+#4      new AppDatabase (package:myhealthcare/data/db/app_database.dart:111:44)
+#5      newTestDatabase (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/support/test_database.dart:10:34)
+#6      main.<anonymous closure> (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/auth_pages_test.dart:79:16)
+#7      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:25)
+<asynchronous suspension>
+#8      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#9      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+01:08 +130: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/billing_test.dart: patient sees seeded invoices and can pay an open one
+01:08 +131: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/arabic_regression_test.dart: arabic: staff patient list is localized
+01:10 +132: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/arabic_regression_test.dart: arabic: staff patient list is localized
+01:11 +133: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/auth_flow_test.dart: staff sign-in lands on the staff dashboard
+01:11 +134: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/auth_pages_test.dart: a queued request is visible to admin and resolving it via the existing admin reset actually changes the password and clears the flag
+01:13 +135: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/auth_pages_test.dart: a queued request is visible to admin and resolving it via the existing admin reset actually changes the password and clears the flag
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:myhealthcare/data/db/app_database.g.dart:35311:36)
+#4      new AppDatabase (package:myhealthcare/data/db/app_database.dart:111:44)
+#5      newTestDatabase (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/support/test_database.dart:10:34)
+#6      main.<anonymous closure> (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/auth_pages_test.dart:102:18)
+#7      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:25)
+<asynchronous suspension>
+#8      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#9      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+01:13 +136: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/auth_flow_test.dart: a demo quick action signs in with one tap
+01:15 +137: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/booking_flow_test.dart: booking: full-day slot list + book a time
+01:15 +138: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/booking_flow_test.dart: booking: full-day slot list + book a time
+01:15 +138: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/auth_pages_test.dart: admin reset rejects a too-short password
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:myhealthcare/data/db/app_database.g.dart:35311:36)
+#4      new AppDatabase (package:myhealthcare/data/db/app_database.dart:111:44)
+#5      newTestDatabase (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/support/test_database.dart:10:34)
+#6      main.<anonymous closure> (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/auth_pages_test.dart:155:16)
+#7      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:25)
+<asynchronous suspension>
+#8      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#9      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+01:15 +139: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/booking_flow_test.dart: booking: full-day slot list + book a time
+01:17 +140: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/booking_flow_test.dart: booking: full-day slot list + book a time
+01:17 +141: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/booking_flow_test.dart: booking: full-day slot list + book a time
+01:17 +141: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/auth_pages_test.dart: login locks the account after repeated wrong passwords
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:myhealthcare/data/db/app_database.g.dart:35311:36)
+#4      new AppDatabase (package:myhealthcare/data/db/app_database.dart:111:44)
+#5      newTestDatabase (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/support/test_database.dart:10:34)
+#6      main.<anonymous closure> (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/auth_pages_test.dart:173:16)
+#7      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:25)
+<asynchronous suspension>
+#8      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#9      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+01:17 +142: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/booking_flow_test.dart: booking: full-day slot list + book a time
+01:18 +143: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/booking_flow_test.dart: booking: full-day slot list + book a time
+01:18 +144: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/booking_flow_test.dart: booking: full-day slot list + book a time
+01:18 +145: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/booking_flow_test.dart: booking: full-day slot list + book a time
+01:20 +145: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/auth_pages_test.dart: login never distinguishes an unknown identifier from a wrong password
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:myhealthcare/data/db/app_database.g.dart:35311:36)
+#4      new AppDatabase (package:myhealthcare/data/db/app_database.dart:111:44)
+#5      newTestDatabase (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/support/test_database.dart:10:34)
+#6      main.<anonymous closure> (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/auth_pages_test.dart:201:18)
+#7      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:25)
+<asynchronous suspension>
+#8      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#9      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+01:20 +146: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/booking_flow_test.dart: booking: full-day slot list + book a time
+01:20 +147: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/booking_flow_test.dart: booking: full-day slot list + book a time
+01:20 +148: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/billing_test.dart: card validation rejects a malformed CVC
+01:20 +149: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/auth_pages_test.dart: forgot password: the code sent to the account (a labelled simulated inbox in demo builds) sets a new password once
+01:22 +150: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/auth_pages_test.dart: forgot password: the code sent to the account (a labelled simulated inbox in demo builds) sets a new password once
+01:22 +151: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/auth_pages_test.dart: forgot password: the code sent to the account (a labelled simulated inbox in demo builds) sets a new password once
+01:23 +152: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/auth_pages_test.dart: forgot password: the code sent to the account (a labelled simulated inbox in demo builds) sets a new password once
+01:24 +153: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/auth_pages_test.dart: forgot password: the code sent to the account (a labelled simulated inbox in demo builds) sets a new password once
+01:24 +154: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/auth_pages_test.dart: forgot password: the code sent to the account (a labelled simulated inbox in demo builds) sets a new password once
+01:26 +155: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/auth_pages_test.dart: forgot password: the code sent to the account (a labelled simulated inbox in demo builds) sets a new password once
+01:26 +156: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/auth_pages_test.dart: forgot password: the code sent to the account (a labelled simulated inbox in demo builds) sets a new password once
+01:26 +157: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/auth_pages_test.dart: forgot password: the code sent to the account (a labelled simulated inbox in demo builds) sets a new password once
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:myhealthcare/data/db/app_database.g.dart:35311:36)
+#4      new AppDatabase (package:myhealthcare/data/db/app_database.dart:111:44)
+#5      newTestDatabase (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/support/test_database.dart:10:34)
+#6      _pumpApp (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/auth_pages_test.dart:27:14)
+#7      main.<anonymous closure> (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/auth_pages_test.dart:228:31)
+#8      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#9      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#10     StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+01:27 +158: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/billing_test.dart: wallet balance tops up with a saved card
+01:27 +159: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/booking_journey_test.dart: confirmation manage access is re-checked at confirmation, not only on entry
+01:28 +160: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/booking_test.dart: a visit booked for a household member lands on their own record, labelled with their name
+01:28 +161: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/auth_pages_test.dart: forgot password without a delivery channel (production) never lets the requester set a password — it queues an admin-verified request
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:myhealthcare/data/db/app_database.g.dart:35311:36)
+#4      new AppDatabase (package:myhealthcare/data/db/app_database.dart:111:44)
+#5      newTestDatabase (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/support/test_database.dart:10:34)
+#6      main.<anonymous closure> (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/auth_pages_test.dart:305:18)
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#9      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+01:29 +162: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/billing_test.dart: wallet balance pays an invoice from the wallet balance
+01:29 +163: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/booking_journey_test.dart: availability summary matches the open-slot rules with a bounded window
+01:30 +164: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/bootstrap_failure_test.dart: a bootstrap failure shows a retry screen instead of the login screen
+01:31 +165: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/bootstrap_failure_test.dart: a bootstrap failure shows a retry screen instead of the login screen
+01:31 +166: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/care_flow_test.dart: seeded sick-leave certificates reach the patient and build a PDF
+01:33 +167: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/care_flow_test.dart: seeded sick-leave certificates reach the patient and build a PDF
+01:33 +168: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/care_navigator_test.dart: offline responder greeting is the first message
+01:33 +169: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/clinical_scribe_test.dart: scribe: with AI off, everything lands in the HPI, editable
+01:34 +170: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/clinical_scribe_test.dart: scribe: with AI off, everything lands in the HPI, editable
+01:34 +171: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/clinical_scribe_test.dart: scribe: with AI off, everything lands in the HPI, editable
+01:34 +172: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/clinical_scribe_test.dart: scribe: with AI off, everything lands in the HPI, editable
+01:34 +173: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/clinical_scribe_test.dart: scribe: with AI off, everything lands in the HPI, editable
+01:35 +174: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/care_flow_test.dart: a patient message and a doctor reply share one thread
+01:35 +175: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/care_navigator_test.dart: offline responder emergency keywords trigger the emergency reply
+01:35 +176: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/clinic_hours_settings_test.dart: ClinicScheduleController.set persists across a rebuild
+01:36 +177: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/clinical_scribe_test.dart: scribe: empty input is a validation error
+01:37 +178: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/care_flow_test.dart: a doctor name shows the "Dr" honorific exactly once
+01:37 +179: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/care_navigator_test.dart: offline responder navigation questions route to the right area
+01:37 +180: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/clinic_hours_settings_test.dart: the database is the source of truth: another device with an empty cache picks the schedule up on bootstrap
+01:38 +181: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/clinical_scribe_test.dart: production scribe never substitutes an offline AI draft
+01:38 +182: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/care_flow_test.dart: a home-visit request is created and the clinic can schedule it
+01:39 +183: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/care_navigator_test.dart: offline responder a symptom question is redirected, not answered
+01:39 +184: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/clinic_hours_settings_test.dart: ClinicHoursScreen: turning a day off persists it
+01:39 +185: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/clinical_scribe_test.dart: staff patient summary generates for an explicit patient id
+01:41 +186: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/clinical_scribe_test.dart: staff patient summary generates for an explicit patient id
+01:41 +187: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/care_navigator_test.dart: offline responder reset restores just the greeting
+01:41 +188: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/consultation_flow_test.dart: call → arrive → note + medication → complete lands in the record
+01:42 +189: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/consultation_flow_test.dart: call → arrive → note + medication → complete lands in the record
+01:43 +190: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/clinical_scribe_test.dart: AI Scribe quick action → structure → save writes a note
+01:44 +191: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/clinical_scribe_test.dart: AI Scribe quick action → structure → save writes a note
+01:45 +192: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/clinical_scribe_test.dart: AI Scribe quick action → structure → save writes a note
+01:47 +193: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/clinical_scribe_test.dart: AI Scribe quick action → structure → save writes a note
+01:47 +194: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/care_navigator_test.dart: FAB opens the chat panel for a signed-in patient
+01:48 +195: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/document_policy_review_test.dart: admin explicitly enables management, edits, approves and creates an unapproved next version
+01:49 +196: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/document_policy_review_test.dart: admin explicitly enables management, edits, approves and creates an unapproved next version
+01:50 +197: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/care_navigator_test.dart: the button can be dragged to the left and the tab follows
+01:51 +198: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/care_navigator_test.dart: the button can be dragged to the left and the tab follows
+01:51 +199: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/document_workspace_test.dart: en fitnessCertificate form fits a phone and shows its own fields
+01:52 +200: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/document_workspace_test.dart: en fitnessCertificate form fits a phone and shows its own fields
+01:52 +201: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/consultation_flow_test.dart: a doctor starts a seeded department walk-in
+01:53 +202: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/family_link_test.dart: request must accept before an active link exists, and rejects duplicates
+01:54 +203: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/document_policy_review_test.dart: policy review fits a 320px phone with enlarged text (en)
+01:54 +204: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/document_workspace_test.dart: en releasedLabReport form fits a phone and shows its own fields
+01:55 +205: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/figma_design_test.dart: staff dashboard fits 320dp and 200% in en
+01:56 +206: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/figma_design_test.dart: staff dashboard fits 320dp and 200% in en
+01:56 +207: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/figma_design_test.dart: staff dashboard fits 320dp and 200% in en
+01:57 +208: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/figma_design_test.dart: staff dashboard fits 320dp and 200% in en
+01:57 +209: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/figma_design_test.dart: staff dashboard fits 320dp and 200% in en
+01:57 +210: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/figma_design_test.dart: staff dashboard fits 320dp and 200% in en
+01:58 +211: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/family_link_test.dart: manage permission lets a linked patient cancel; view-only cannot
+01:58 +212: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/document_workspace_test.dart: ar releasedLabReport form fits a phone and shows its own fields
+01:59 +213: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/health_records_nutrition_test.dart: Health Records opens medications with their instructions
+02:00 +214: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/health_records_nutrition_test.dart: Health Records opens medications with their instructions
+02:01 +215: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/health_records_nutrition_test.dart: Health Records opens medications with their instructions
+02:01 +216: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/health_records_nutrition_test.dart: Health Records opens medications with their instructions
+02:03 +217: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/health_records_nutrition_test.dart: Health Records opens medications with their instructions
+02:03 +218: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/health_records_nutrition_test.dart: Health Records opens medications with their instructions
+02:05 +219: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/health_records_nutrition_test.dart: Health Records opens medications with their instructions
+02:06 +220: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/home_carousel_test.dart: home carousel: ticket number, room, count, auto-slide
+02:07 +221: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/integration_flow_test.dart: patient books a slot and the assigned staff member sees it
+02:07 +222: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/integration_flow_test.dart: patient books a slot and the assigned staff member sees it
+02:07 +223: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/integration_flow_test.dart: patient books a slot and the assigned staff member sees it
+02:07 +224: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/integration_flow_test.dart: patient books a slot and the assigned staff member sees it
+02:07 +225: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/health_records_nutrition_test.dart: Nutrition tab calculates targets from the profile
+02:08 +226: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/health_records_nutrition_test.dart: Nutrition tab calculates targets from the profile
+02:08 +227: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/health_records_nutrition_test.dart: Nutrition tab calculates targets from the profile
+02:08 +228: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/health_records_nutrition_test.dart: Nutrition tab calculates targets from the profile
+02:08 +229: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/health_records_nutrition_test.dart: Nutrition tab calculates targets from the profile
+02:08 +230: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/health_records_nutrition_test.dart: Nutrition tab calculates targets from the profile
+02:08 +231: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/health_records_nutrition_test.dart: Nutrition tab calculates targets from the profile
+02:08 +232: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/health_records_nutrition_test.dart: Nutrition tab calculates targets from the profile
+02:08 +233: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/health_records_nutrition_test.dart: Nutrition tab calculates targets from the profile
+02:08 +234: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/health_records_nutrition_test.dart: Nutrition tab calculates targets from the profile
+02:11 +235: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/notifications_flow_test.dart: notifications: badge, open centre, mark one read
+02:11 +236: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/notifications_flow_test.dart: notifications: badge, open centre, mark one read
+02:11 +237: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/notifications_flow_test.dart: notifications: badge, open centre, mark one read
+02:11 +238: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/notifications_flow_test.dart: notifications: badge, open centre, mark one read
+02:12 +239: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/notifications_flow_test.dart: notifications: badge, open centre, mark one read
+02:14 +240: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/notifications_flow_test.dart: notifications: badge, open centre, mark one read
+02:15 +241: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/notifications_flow_test.dart: notifications: badge, open centre, mark one read
+02:15 +242: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/patient_browse_test.dart: patient sees home, timeline and vitals from seeded data
+02:16 +243: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/patient_browse_test.dart: patient sees home, timeline and vitals from seeded data
+02:17 +244: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/patient_browse_test.dart: patient sees home, timeline and vitals from seeded data
+02:17 +245: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/patient_browse_test.dart: patient sees home, timeline and vitals from seeded data
+02:17 +246: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/patient_browse_test.dart: patient sees home, timeline and vitals from seeded data
+02:17 +247: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/patient_browse_test.dart: patient sees home, timeline and vitals from seeded data
+02:17 +248: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/patient_browse_test.dart: patient sees home, timeline and vitals from seeded data
+02:17 +249: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/patient_browse_test.dart: patient sees home, timeline and vitals from seeded data
+02:17 +250: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/patient_browse_test.dart: patient sees home, timeline and vitals from seeded data
+02:19 +251: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/patient_browse_test.dart: patient sees home, timeline and vitals from seeded data
+02:20 +252: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/patient_rebuild_test.dart: signed-in shell: tabs, Home order, drawer and sign-out
+02:21 +253: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/patient_rebuild_test.dart: signed-in shell: tabs, Home order, drawer and sign-out
+02:21 +254: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/patient_rebuild_test.dart: signed-in shell: tabs, Home order, drawer and sign-out
+02:21 +255: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/patient_rebuild_test.dart: signed-in shell: tabs, Home order, drawer and sign-out
+02:22 +256: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/patient_rebuild_test.dart: signed-in shell: tabs, Home order, drawer and sign-out
+02:24 +257: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/patient_rebuild_test.dart: signed-in shell: tabs, Home order, drawer and sign-out
+02:24 +258: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/patient_rebuild_test.dart: signed-in shell: tabs, Home order, drawer and sign-out
+02:25 +259: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/policy_test.dart: signed out: the privacy policy opens with its draft banner
+02:26 +260: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/patient_documents_test.dart: visited doctors group past appointments, newest visit first
+02:26 +261: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/production_mode_ui_test.dart: production login does not expose demo credentials
+02:26 +262: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/profile_billing_upgrade_test.dart: invalid profile photo preserves identity and photo editing
+02:28 +263: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/profile_sections_test.dart: profile section rows open pages and back returns to Profile
+02:28 +264: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/profile_sections_test.dart: profile section rows open pages and back returns to Profile
+02:28 +265: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/profile_sections_test.dart: profile section rows open pages and back returns to Profile
+02:30 +266: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/profile_sections_test.dart: profile section rows open pages and back returns to Profile
+02:33 +267: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/profile_sections_test.dart: profile section rows open pages and back returns to Profile
+02:34 +268: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/profile_sections_test.dart: profile section rows open pages and back returns to Profile
+02:35 +269: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/profile_sections_test.dart: profile section rows open pages and back returns to Profile
+02:36 +270: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: glucose: localized input, repeated swaps, invalid, empty and copy
+02:37 +271: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/records_workflow_test.dart: upload failures and duplicate warning retain inputs until intentional override
+Helvetica has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
+02:37 +272: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/records_workflow_test.dart: upload failures and duplicate warning retain inputs until intentional override
+02:38 +273: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/profile_sections_test.dart: text-size preference scales app text and persists
+02:40 +274: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/profile_sections_test.dart: text-size preference scales app text and persists
+02:40 +275: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/profile_sections_test.dart: text-size preference scales app text and persists
+02:40 +276: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/profile_sections_test.dart: text-size preference scales app text and persists
+02:41 +277: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/report_chat_test.dart: with the report AI service (mocked contract) live explanation discloses partial coverage
+02:42 +278: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/records_workflow_test.dart: view-only proxy can read/export but cannot upload or request corrections; revocation denies every action
+02:42 +279: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: triglycerides: localized input, repeated swaps, invalid, empty and copy
+02:43 +280: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/responsive_test.dart: Phase 7 supported viewport matrix 320×568 at 200%
+02:44 +281: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/responsive_test.dart: Phase 7 supported viewport matrix 320×568 at 200%
+02:44 +282: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/responsive_test.dart: Phase 7 supported viewport matrix 320×568 at 200%
+02:44 +283: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/responsive_test.dart: Phase 7 supported viewport matrix 320×568 at 200%
+02:44 +284: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/responsive_test.dart: Phase 7 supported viewport matrix 320×568 at 200%
+02:46 +285: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/responsive_test.dart: Phase 7 supported viewport matrix 320×568 at 200%
+02:46 +286: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/responsive_test.dart: Phase 7 supported viewport matrix 320×568 at 200%
+02:47 +287: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/responsive_test.dart: Phase 7 supported viewport matrix 320×568 at 200%
+02:48 +288: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/report_chat_test.dart: with the report AI service (mocked contract) another patient's record is never sent
+02:48 +289: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: calculator groups collapse, BMI is reused and unsupported tools collect no inputs
+02:49 +290: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/responsive_test.dart: Phase 7 supported viewport matrix 375×667 at 200%
+02:50 +291: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/responsive_test.dart: Phase 7 supported viewport matrix 375×667 at 200%
+02:50 +292: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/responsive_test.dart: Phase 7 supported viewport matrix 375×667 at 200%
+02:50 +293: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: doctor keyboard Search, details and fresh booking route use real directory
+02:51 +294: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: doctor keyboard Search, details and fresh booking route use real directory
+02:51 +295: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: doctor keyboard Search, details and fresh booking route use real directory
+02:51 +296: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: doctor keyboard Search, details and fresh booking route use real directory
+02:52 +297: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: doctor keyboard Search, details and fresh booking route use real directory
+02:52 +298: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/responsive_test.dart: Phase 7 supported viewport matrix 430×932 at 200%
+02:53 +299: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/schedule_template_test.dart: rejects a non-positive slot length
+02:54 +300: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: doctor loading/error/empty states do not invent clinicians
+02:55 +301: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/session_timeout_test.dart: the session ends after the idle timeout
+02:55 +302: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/session_timeout_test.dart: the session ends after the idle timeout
+02:56 +303: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/session_timeout_test.dart: the session ends after the idle timeout
+02:57 +304: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/session_timeout_test.dart: the session ends after the idle timeout
+02:57 +305: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/session_timeout_test.dart: the session ends after the idle timeout
+02:57 +306: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/session_timeout_test.dart: the session ends after the idle timeout
+02:57 +307: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/session_timeout_test.dart: the session ends after the idle timeout
+02:57 +308: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/session_timeout_test.dart: the session ends after the idle timeout
+02:57 +309: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/session_timeout_test.dart: the session ends after the idle timeout
+02:58 +310: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/session_timeout_test.dart: the session ends after the idle timeout
+02:58 +311: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/session_timeout_test.dart: the session ends after the idle timeout
+02:58 +312: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/session_timeout_test.dart: the session ends after the idle timeout
+02:59 +313: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: new patient tool routes stay guarded after logout
+03:00 +314: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: new patient tool routes stay guarded after logout
+03:00 +315: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: new patient tool routes stay guarded after logout
+03:00 +316: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/responsive_test.dart: Phase 7 supported viewport matrix 1024×768 at 200%
+03:00 +317: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/responsive_test.dart: Phase 7 supported viewport matrix 1024×768 at 200%
+03:00 +318: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/responsive_test.dart: Phase 7 supported viewport matrix 1024×768 at 200%
+03:00 +319: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/responsive_test.dart: Phase 7 supported viewport matrix 1024×768 at 200%
+03:00 +320: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/responsive_test.dart: Phase 7 supported viewport matrix 1024×768 at 200%
+03:00 +321: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/responsive_test.dart: Phase 7 supported viewport matrix 1024×768 at 200%
+03:01 +322: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en light Small: reference screen renders and system scaling
+03:04 +323: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en light Small: reference screen renders and system scaling
+03:04 +324: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en light Small: reference screen renders and system scaling
+03:06 +325: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en light Small: reference screen renders and system scaling
+03:06 +326: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en light Small: reference screen renders and system scaling
+03:07 +327: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en light Small: reference screen renders and system scaling
+03:07 +328: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en light Small: reference screen renders and system scaling
+03:07 +329: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en light Small: reference screen renders and system scaling
+03:08 +330: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en light Small: reference screen renders and system scaling
+03:09 +331: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en light Small: reference screen renders and system scaling
+03:10 +332: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en light Small: reference screen renders and system scaling
+03:11 +333: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en light Small: reference screen renders and system scaling
+03:13 +334: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en light Small: reference screen renders and system scaling
+03:13 +335: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/staff_dashboard_test.dart: staff dashboard: sign in, quick actions, scan panel, tasks
+03:14 +336: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/staff_dashboard_test.dart: staff dashboard: sign in, quick actions, scan panel, tasks
+03:15 +337: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/staff_dashboard_test.dart: staff dashboard: sign in, quick actions, scan panel, tasks
+03:16 +338: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/staff_dashboard_test.dart: staff dashboard: sign in, quick actions, scan panel, tasks
+03:16 +339: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en light Default: reference screen renders and system scaling
+03:17 +340: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en light Default: reference screen renders and system scaling
+03:18 +341: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en light Default: reference screen renders and system scaling
+03:19 +342: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en light Default: reference screen renders and system scaling
+03:21 +343: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en light Default: reference screen renders and system scaling
+03:24 +344: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en light Default: reference screen renders and system scaling
+03:26 +345: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en light Default: reference screen renders and system scaling
+03:27 +346: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/staff_profile_test.dart: staff profile: details + theme + language
+03:27 +347: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/staff_profile_test.dart: staff profile: details + theme + language
+03:27 +348: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/responsive_test.dart: layout survives the OS text-size setting desktop has no overflow at 2x text scale
+03:28 +349: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en light Large: reference screen renders and system scaling
+03:31 +350: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en light Large: reference screen renders and system scaling
+03:33 +351: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en light Large: reference screen renders and system scaling
+03:34 +352: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en light Large: reference screen renders and system scaling
+03:35 +353: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en light Large: reference screen renders and system scaling
+03:35 +354: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/small_phone_readability_test.dart: patient routes at 320px in en with OS 3.0 and max app text
+03:36 +355: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/small_phone_readability_test.dart: patient routes at 320px in en with OS 3.0 and max app text
+03:37 +356: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/staff_quick_actions_test.dart: Verify document is the first staff quick action
+03:38 +357: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en dark Small: reference screen renders and system scaling
+03:41 +358: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en dark Small: reference screen renders and system scaling
+03:42 +359: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en dark Small: reference screen renders and system scaling
+03:43 +360: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en dark Small: reference screen renders and system scaling
+03:44 +361: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/staff_quick_actions_test.dart: my activity has a records / prescriptions toggle
+03:44 +362: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/small_phone_readability_test.dart: patient routes at 320px in ar with OS 2.0 and max app text
+03:47 +363: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/small_phone_readability_test.dart: patient routes at 320px in ar with OS 2.0 and max app text
+03:47 +364: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en dark Default: reference screen renders and system scaling
+03:47 +365: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en dark Default: reference screen renders and system scaling
+03:48 +366: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en dark Default: reference screen renders and system scaling
+03:50 +367: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en dark Default: reference screen renders and system scaling
+03:51 +368: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en dark Default: reference screen renders and system scaling
+03:53 +369: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/staff_work_list_test.dart: en task list fits 320px, filters completed work and preserves search
+03:53 +370: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/task_details_test.dart: en task detail records waiting reason on a 320px phone
+03:55 +371: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/task_details_test.dart: en task detail records waiting reason on a 320px phone
+03:56 +372: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/task_details_test.dart: en task detail records waiting reason on a 320px phone
+03:56 +373: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en dark Large: reference screen renders and system scaling
+03:58 +374: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en dark Large: reference screen renders and system scaling
+03:59 +375: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en dark Large: reference screen renders and system scaling
+04:01 +376: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: en dark Large: reference screen renders and system scaling
+04:01 +377: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: drawer back, resize and short sidebar preserve the content tree
+04:04 +378: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/theme_toggle_test.dart: department name colour tracks the theme after an in-session toggle, not just on first launch
+04:04 +379: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/theme_toggle_test.dart: department name colour tracks the theme after an in-session toggle, not just on first launch
+04:07 +380: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/theme_toggle_test.dart: department name colour tracks the theme after an in-session toggle, not just on first launch
+04:07 +381: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/theme_toggle_test.dart: department name colour tracks the theme after an in-session toggle, not just on first launch
+04:07 +382: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar light Small: reference screen renders and system scaling
+04:08 +383: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar light Small: reference screen renders and system scaling
+04:10 +384: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar light Small: reference screen renders and system scaling
+04:10 +385: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar light Small: reference screen renders and system scaling
+04:10 +386: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar light Small: reference screen renders and system scaling
+04:10 +387: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar light Small: reference screen renders and system scaling
+04:10 +388: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar light Small: reference screen renders and system scaling
+04:10 +389: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar light Small: reference screen renders and system scaling
+04:10 +390: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: en light Small: adaptive layouts and preferences
+04:12 +391: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: en light Small: adaptive layouts and preferences
+04:12 +392: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: en light Small: adaptive layouts and preferences
+04:12 +393: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: en light Small: adaptive layouts and preferences
+04:12 +394: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: en light Small: adaptive layouts and preferences
+04:13 +395: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: en light Small: adaptive layouts and preferences
+04:13 +396: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: en light Small: adaptive layouts and preferences
+04:17 +397: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: en light Small: adaptive layouts and preferences
+04:18 +398: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: en light Small: adaptive layouts and preferences
+04:18 +399: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar light Default: reference screen renders and system scaling
+04:19 +400: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar light Default: reference screen renders and system scaling
+04:19 +401: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/small_phone_readability_test.dart: admin routes at 320px in en with OS 2.0 and max app text
+04:22 +402: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: en light Default: adaptive layouts and preferences
+04:23 +403: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: en light Default: adaptive layouts and preferences
+04:25 +404: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar light Large: reference screen renders and system scaling
+04:26 +405: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar light Large: reference screen renders and system scaling
+04:27 +406: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/performance/performance_test.dart: mock AI latency (deterministic, offline path)
+04:28 +407: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: en light Large: adaptive layouts and preferences
+04:31 +408: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/small_phone_readability_test.dart: admin routes at 320px in ar with OS 1.0 and max app text
+04:32 +409: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/small_phone_readability_test.dart: admin routes at 320px in ar with OS 1.0 and max app text
+04:32 +410: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Small: reference screen renders and system scaling
+04:33 +411: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Small: reference screen renders and system scaling
+04:33 +412: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Small: reference screen renders and system scaling
+04:33 +413: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Small: reference screen renders and system scaling
+04:35 +414: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: en dark Small: adaptive layouts and preferences
+04:35 +415: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: en dark Small: adaptive layouts and preferences
+04:36 +416: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/small_phone_readability_test.dart: admin routes at 320px in ar with OS 2.0 and max app text
+04:36 +417: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Default: reference screen renders and system scaling
+04:38 +418: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Default: reference screen renders and system scaling
+04:39 +419: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Default: reference screen renders and system scaling
+04:40 +420: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Default: reference screen renders and system scaling
+04:40 +421: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Default: reference screen renders and system scaling
+04:41 +422: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Default: reference screen renders and system scaling
+04:42 +423: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Default: reference screen renders and system scaling
+04:43 +424: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Default: reference screen renders and system scaling
+04:44 +425: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Default: reference screen renders and system scaling
+04:44 +426: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Default: reference screen renders and system scaling
+04:45 +427: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Default: reference screen renders and system scaling
+04:46 +428: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Default: reference screen renders and system scaling
+04:47 +429: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Default: reference screen renders and system scaling
+04:47 +430: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Default: reference screen renders and system scaling
+04:47 +431: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Default: reference screen renders and system scaling
+04:48 +432: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Default: reference screen renders and system scaling
+04:49 +433: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Default: reference screen renders and system scaling
+04:50 +434: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Default: reference screen renders and system scaling
+04:50 +435: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Default: reference screen renders and system scaling
+04:51 +436: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Default: reference screen renders and system scaling
+04:51 +437: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar light Small: adaptive layouts and preferences
+04:53 +438: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase4/clinical_workflow_test.dart: finalizing an encounter happens once a signed note never changes; corrections are amendments
+04:53 +439: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Large: reference screen renders and system scaling
+04:54 +439: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase5/documents_test.dart: import journey source file, issuer and review status survive storage, review and export
+Helvetica has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
+04:54 +440: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Large: reference screen renders and system scaling
+04:56 +440: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase5/documents_test.dart: import journey an import needs an issuer and a real, bounded file
+Helvetica has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
+04:56 +441: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Large: reference screen renders and system scaling
+04:56 +442: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Large: reference screen renders and system scaling
+04:58 +443: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Large: reference screen renders and system scaling
+04:58 +443: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase5/documents_test.dart: import journey rejecting an import needs a reason
+Helvetica has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
+04:58 +444: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Large: reference screen renders and system scaling
+04:58 +445: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/reference_tools_test.dart: ar dark Large: reference screen renders and system scaling
+04:58 +446: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar light Large: adaptive layouts and preferences
+05:00 +446: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase5/documents_test.dart: export and document authorization another patient cannot open the original or export the record
+Helvetica has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
+05:00 +447: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar light Large: adaptive layouts and preferences
+05:00 +448: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar light Large: adaptive layouts and preferences
+05:01 +449: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar light Large: adaptive layouts and preferences
+05:02 +449: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase5/documents_test.dart: export and document authorization a clinician without a care relationship cannot review or open it
+Helvetica has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
+05:02 +450: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar light Large: adaptive layouts and preferences
+05:02 +451: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar light Large: adaptive layouts and preferences
+05:03 +452: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase5/payment_ledger_test.dart: paid means a settled payment a declined card charges nothing and leaves the bill open
+05:03 +453: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase5/documents_test.dart: export and document authorization an authorized export is audited
+05:03 +454: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase4/clinical_workflow_test.dart: critical and unknown results are owned work an unowned patient import shows up for administrators
+05:04 +455: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Small: adaptive layouts and preferences
+05:04 +456: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Small: adaptive layouts and preferences
+05:05 +457: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Small: adaptive layouts and preferences
+05:05 +458: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Small: adaptive layouts and preferences
+05:05 +459: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Small: adaptive layouts and preferences
+05:05 +460: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Small: adaptive layouts and preferences
+05:07 +461: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Small: adaptive layouts and preferences
+05:07 +462: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Small: adaptive layouts and preferences
+05:07 +463: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Small: adaptive layouts and preferences
+05:07 +464: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Small: adaptive layouts and preferences
+05:07 +465: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Small: adaptive layouts and preferences
+05:07 +466: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Small: adaptive layouts and preferences
+05:07 +467: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Small: adaptive layouts and preferences
+05:07 +468: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Small: adaptive layouts and preferences
+05:07 +469: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Small: adaptive layouts and preferences
+05:07 +470: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Small: adaptive layouts and preferences
+05:07 +471: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase4/clinical_workflow_test.dart: tasks and messages are owned work with cover a task escalates to a real colleague and closed tasks stay closed
+05:08 +472: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase5/payment_ledger_test.dart: interrupted payments reconcile and never double-charge a lost answer is pending, then the same-key retry completes it without a second charge
+05:09 +473: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Default: adaptive layouts and preferences
+05:10 +474: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Default: adaptive layouts and preferences
+05:11 +475: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Default: adaptive layouts and preferences
+05:12 +476: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Default: adaptive layouts and preferences
+05:12 +477: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Default: adaptive layouts and preferences
+05:13 +478: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase6/navigation_continuity_test.dart: staff tabs remain single and keep the selected patient context
+05:13 +479: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase6/navigation_continuity_test.dart: staff tabs remain single and keep the selected patient context
+05:13 +480: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase6/navigation_continuity_test.dart: staff tabs remain single and keep the selected patient context
+05:15 +481: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase6/navigation_continuity_test.dart: staff tabs remain single and keep the selected patient context
+05:15 +482: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase6/navigation_continuity_test.dart: staff tabs remain single and keep the selected patient context
+05:15 +483: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase6/navigation_continuity_test.dart: staff tabs remain single and keep the selected patient context
+05:15 +484: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase6/navigation_continuity_test.dart: staff tabs remain single and keep the selected patient context
+05:15 +485: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase6/navigation_continuity_test.dart: staff tabs remain single and keep the selected patient context
+05:15 +486: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase6/navigation_continuity_test.dart: staff tabs remain single and keep the selected patient context
+05:15 +487: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase6/navigation_continuity_test.dart: staff tabs remain single and keep the selected patient context
+05:15 +488: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase6/navigation_continuity_test.dart: staff tabs remain single and keep the selected patient context
+05:15 +489: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase6/navigation_continuity_test.dart: staff tabs remain single and keep the selected patient context
+05:15 +490: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase6/navigation_continuity_test.dart: staff tabs remain single and keep the selected patient context
+05:15 +491: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Large: adaptive layouts and preferences
+05:15 +492: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Large: adaptive layouts and preferences
+05:17 +493: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Large: adaptive layouts and preferences
+05:17 +494: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Large: adaptive layouts and preferences
+05:18 +495: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Large: adaptive layouts and preferences
+05:18 +496: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Large: adaptive layouts and preferences
+05:18 +497: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Large: adaptive layouts and preferences
+05:18 +498: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Large: adaptive layouts and preferences
+05:18 +499: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Large: adaptive layouts and preferences
+05:18 +500: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: ar dark Large: adaptive layouts and preferences
+05:18 +501: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase5/payment_ledger_test.dart: refunds partial then full refund through the provider; never more than was paid
+05:18 +502: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase5/payment_ledger_test.dart: refunds partial then full refund through the provider; never more than was paid
+05:18 +503: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase5/payment_ledger_test.dart: refunds partial then full refund through the provider; never more than was paid
+05:18 +504: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase5/payment_ledger_test.dart: refunds partial then full refund through the provider; never more than was paid
+05:19 +505: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase5/payment_ledger_test.dart: refunds partial then full refund through the provider; never more than was paid
+05:19 +506: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase5/payment_ledger_test.dart: refunds partial then full refund through the provider; never more than was paid
+05:19 +507: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase5/payment_ledger_test.dart: refunds partial then full refund through the provider; never more than was paid
+05:20 +508: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase5/payment_ledger_test.dart: refunds partial then full refund through the provider; never more than was paid
+05:20 +509: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase5/payment_ledger_test.dart: refunds partial then full refund through the provider; never more than was paid
+05:20 +510: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase5/payment_ledger_test.dart: refunds partial then full refund through the provider; never more than was paid
+05:20 +511: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase5/payment_ledger_test.dart: refunds partial then full refund through the provider; never more than was paid
+05:20 +512: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase5/payment_ledger_test.dart: refunds partial then full refund through the provider; never more than was paid
+05:20 +513: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase6/workspaces_test.dart: delivery health failed side effects are counted and can be queued again
+05:21 +514: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase6/workspaces_test.dart: delivery health failed side effects are counted and can be queued again
+05:21 +515: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase6/workspaces_test.dart: delivery health failed side effects are counted and can be queued again
+05:21 +516: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase6/workspaces_test.dart: delivery health failed side effects are counted and can be queued again
+05:21 +517: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase6/workspaces_test.dart: delivery health failed side effects are counted and can be queued again
+05:21 +518: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase6/workspaces_test.dart: delivery health failed side effects are counted and can be queued again
+05:21 +519: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase6/workspaces_test.dart: delivery health failed side effects are counted and can be queued again
+05:21 +520: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase6/workspaces_test.dart: delivery health failed side effects are counted and can be queued again
+05:21 +521: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase6/workspaces_test.dart: delivery health failed side effects are counted and can be queued again
+05:21 +522: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase6/workspaces_test.dart: delivery health failed side effects are counted and can be queued again
+05:21 +523: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase6/workspaces_test.dart: delivery health failed side effects are counted and can be queued again
+05:21 +524: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase6/workspaces_test.dart: delivery health failed side effects are counted and can be queued again
+05:21 +525: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase5/payment_ledger_test.dart: refunds a wallet payment is refunded to the wallet
+05:22 +526: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase6/workspaces_test.dart: staff cover the covering clinician sees the message, can read the thread, and nobody else can
+05:24 +527: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase5/payment_ledger_test.dart: refunds a seeded (pre-existing) card payment can be refunded
+05:24 +528: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/authorization_test.dart: cross-patient a patient cannot read another patient's records, visits, vitals, medications, bills or inbox
+05:25 +529: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/live_access_revocation_test.dart: ending care access locks the session without any clinical-row update
+05:25 +530: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/phase5/payment_ledger_test.dart: a patient cannot read another patient's payments
+05:26 +531: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/recovery_test.dart: a verified code resets the password once; the old password stops working and the new one signs in
+05:27 +532: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/recovery_test.dart: a verified code resets the password once; the old password stops working and the new one signs in
+05:28 +533: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/live_access_revocation_test.dart: assignment expiry locks the session without a database mutation
+05:29 +534: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/live_access_revocation_test.dart: assignment expiry locks the session without a database mutation
+05:29 +535: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/live_access_revocation_test.dart: assignment expiry locks the session without a database mutation
+05:30 +536: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/live_access_revocation_test.dart: assignment expiry locks the session without a database mutation
+05:30 +537: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/authorization_test.dart: cross-patient every denial leaves an access.denied audit entry naming the actor and the patient
+05:30 +538: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/session_security_test.dart: expired session signing out ends repository access immediately
+05:31 +539: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/recovery_test.dart: an expired code fails
+05:31 +540: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/live_access_revocation_test.dart: a grant gained after sign-in is monitored when it is later removed
+05:32 +541: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/live_access_revocation_test.dart: a grant gained after sign-in is monitored when it is later removed
+05:32 +542: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/session_security_test.dart: expired session an idle session is refused by the repositories, not only the UI
+05:32 +543: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/recovery_test.dart: wrong guesses burn the code — even the right code fails after
+05:34 +544: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/authorization_test.dart: cross-clinician clinical access needs a care relationship; demographics do not
+05:34 +545: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/live_access_revocation_test.dart: proxy revocation and manage-to-view downgrade lock the viewer session
+05:34 +546: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/session_security_test.dart: expired session activity cannot stretch a session past its absolute lifetime
+05:34 +547: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/recovery_test.dart: a newer code supersedes the older one
+05:36 +548: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/recovery_test.dart: a newer code supersedes the older one
+05:36 +549: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/recovery_test.dart: a newer code supersedes the older one
+05:36 +550: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/recovery_test.dart: a newer code supersedes the older one
+05:36 +551: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/authorization_test.dart: insufficient role patients cannot administer
+05:37 +552: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/live_access_revocation_test.dart: unrelated access changes do not sign the clinician out
+05:37 +553: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/session_security_test.dart: re-authentication sensitive admin actions need a recent password
+05:38 +554: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/recovery_test.dart: an unknown identifier gets the same answer and nothing is sent
+05:39 +555: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/authorization_test.dart: insufficient role clinicians cannot run billing or departments
+05:39 +556: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/live_access_revocation_test.dart: verified credential expiry locks the session without a DB write
+05:40 +557: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/live_access_revocation_test.dart: verified credential expiry locks the session without a DB write
+05:40 +558: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/live_access_revocation_test.dart: verified credential expiry locks the session without a DB write
+05:41 +559: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/live_access_revocation_test.dart: verified credential expiry locks the session without a DB write
+05:41 +560: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/session_security_test.dart: shared device switching accounts reveals none of the previous user's state
+05:41 +561: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/recovery_test.dart: recovery is rate-limited per account and per device
+05:43 +562: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/authorization_test.dart: insufficient role a nurse cannot prescribe
+05:44 +563: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/live_access_revocation_test.dart: revocation removes the visible chart and an open preview dialog
+05:45 +564: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/live_access_revocation_test.dart: revocation removes the visible chart and an open preview dialog
+05:46 +565: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/live_access_revocation_test.dart: revocation removes the visible chart and an open preview dialog
+05:46 +566: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/live_access_revocation_test.dart: revocation removes the visible chart and an open preview dialog
+05:47 +567: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/live_access_revocation_test.dart: revocation removes the visible chart and an open preview dialog
+05:48 +568: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/authorization_test.dart: proxies a view-only proxy can read but not act
+05:48 +569: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/recovery_test.dart: only a salted hash of the code is stored
+05:48 +570: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/session_security_test.dart: in the app after an idle timeout the same account resumes where it was; another account starts at its own home
+05:50 +571: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/session_security_test.dart: in the app after an idle timeout the same account resumes where it was; another account starts at its own home
+05:51 +572: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/session_security_test.dart: in the app after an idle timeout the same account resumes where it was; another account starts at its own home
+05:51 +573: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/recovery_test.dart: a dependent record (no login) can neither sign in nor recover
+05:51 +574: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/authorization_test.dart: proxies a proxy cannot manage family links on the owner's behalf
+05:52 +575: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/admin_workspace_test.dart: coordination updates retain source ownership, immutable history and reject stale saves
+05:53 +576: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/admin_workspace_test.dart: coordination updates retain source ownership, immutable history and reject stale saves
+05:53 +577: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/session_security_test.dart: in the app a deep link to another patient's record shows no content
+05:53 +578: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/session_security_test.dart: in the app a deep link to another patient's record shows no content
+05:54 +579: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/ai_fallback_test.dart: GeminiAiService returns Err (not throw) on a transport failure
+05:55 +580: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/ai_fallback_test.dart: GeminiAiService returns Err (not throw) on a transport failure
+05:55 +581: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/ai_fallback_test.dart: GeminiAiService returns Err (not throw) on a transport failure
+05:55 +582: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/ai_fallback_test.dart: GeminiAiService returns Err (not throw) on a transport failure
+05:55 +583: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/ai_fallback_test.dart: GeminiAiService returns Err (not throw) on a transport failure
+05:55 +584: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/ai_fallback_test.dart: GeminiAiService returns Err (not throw) on a transport failure
+05:55 +585: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/ai_fallback_test.dart: GeminiAiService returns Err (not throw) on a transport failure
+05:55 +586: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/ai_fallback_test.dart: GeminiAiService returns Err (not throw) on a transport failure
+05:55 +587: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/ai_fallback_test.dart: GeminiAiService returns Err (not throw) on a transport failure
+05:55 +588: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/ai_fallback_test.dart: GeminiAiService returns Err (not throw) on a transport failure
+05:55 +589: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/ai_fallback_test.dart: GeminiAiService returns Err (not throw) on a transport failure
+05:55 +590: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/ai_fallback_test.dart: GeminiAiService returns Err (not throw) on a transport failure
+05:55 +591: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/ai_fallback_test.dart: GeminiAiService returns Err (not throw) on a transport failure
+05:56 +592: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/ai_fallback_test.dart: GeminiAiService returns Err (not throw) on a transport failure
+05:57 +593: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/ai_fallback_test.dart: GeminiAiService returns Err (not throw) on a transport failure
+05:57 +594: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/ai_fallback_test.dart: GeminiAiService returns Err (not throw) on a transport failure
+05:57 +595: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/ai_fallback_test.dart: GeminiAiService returns Err (not throw) on a transport failure
+05:57 +596: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/ai_fallback_test.dart: GeminiAiService returns Err (not throw) on a transport failure
+05:57 +597: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/ai_fallback_test.dart: GeminiAiService returns Err (not throw) on a transport failure
+05:57 +598: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/security/authorization_test.dart: dependents keep both identities documents and payments for a dependent record who acted
+05:57 +599: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/admin_workspace_test.dart: last administrator and staff with unfinished responsibility cannot be deactivated
+05:57 +600: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/admin_workspace_test.dart: last administrator and staff with unfinished responsibility cannot be deactivated
+05:57 +601: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/admin_workspace_test.dart: last administrator and staff with unfinished responsibility cannot be deactivated
+05:58 +602: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/ai_fallback_test.dart: FallbackAiService wrapping a broken Gemini still succeeds
+05:59 +603: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/ai_fallback_test.dart: FallbackAiService wrapping a broken Gemini still succeeds
+06:00 +604: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/ai_fallback_test.dart: FallbackAiService wrapping a broken Gemini still succeeds
+06:00 +605: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/ai_fallback_test.dart: FallbackAiService wrapping a broken Gemini still succeeds
+06:00 +606: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/ai_fallback_test.dart: FallbackAiService wrapping a broken Gemini still succeeds
+06:01 +607: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/ai_fallback_test.dart: FallbackAiService wrapping a broken Gemini still succeeds
+06:01 +608: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/ai_fallback_test.dart: FallbackAiService wrapping a broken Gemini still succeeds
+06:01 +609: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/admin_workspace_test.dart: booking replacement checks preview version and conflicts before any write
+06:01 +610: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_service_test.dart: attendanceCertificate approves, freezes, renders and downloads with the correct authority
+06:02 +611: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_service_test.dart: attendanceCertificate approves, freezes, renders and downloads with the correct authority
+06:03 +612: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: a code is stable per document and looks up what it states
+06:03 +613: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: a code is stable per document and looks up what it states
+06:03 +614: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: a code is stable per document and looks up what it states
+06:03 +615: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: a code is stable per document and looks up what it states
+06:03 +616: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: a code is stable per document and looks up what it states
+06:03 +617: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: a code is stable per document and looks up what it states
+06:03 +618: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: a code is stable per document and looks up what it states
+06:03 +619: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: a code is stable per document and looks up what it states
+06:03 +620: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: a code is stable per document and looks up what it states
+06:03 +621: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: a code is stable per document and looks up what it states
+06:03 +622: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: a code is stable per document and looks up what it states
+06:04 +623: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: a code is stable per document and looks up what it states
+06:04 +624: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: a code is stable per document and looks up what it states
+06:04 +625: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: a code is stable per document and looks up what it states
+06:04 +626: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: a code is stable per document and looks up what it states
+06:05 +627: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: a code is stable per document and looks up what it states
+06:05 +628: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: a code is stable per document and looks up what it states
+06:05 +629: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: a code is stable per document and looks up what it states
+06:05 +630: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: a code is stable per document and looks up what it states
+06:05 +631: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: a code is stable per document and looks up what it states
+06:05 +632: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: a code is stable per document and looks up what it states
+06:05 +633: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_service_test.dart: referralLetter approves, freezes, renders and downloads with the correct authority
+06:06 +634: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_service_test.dart: referralLetter approves, freezes, renders and downloads with the correct authority
+06:06 +635: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_service_test.dart: referralLetter approves, freezes, renders and downloads with the correct authority
+06:07 +636: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: referral urgency is stored and printed with the code
+06:07 +637: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: referral urgency is stored and printed with the code
+06:07 +638: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: referral urgency is stored and printed with the code
+06:07 +639: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: referral urgency is stored and printed with the code
+06:07 +640: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: referral urgency is stored and printed with the code
+06:07 +641: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: referral urgency is stored and printed with the code
+06:08 +642: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: referral urgency is stored and printed with the code
+06:08 +643: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: referral urgency is stored and printed with the code
+06:08 +644: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_verification_test.dart: referral urgency is stored and printed with the code
+Courier has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
+06:08 +645: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_service_test.dart: prescriptionCopy approves, freezes, renders and downloads with the correct authority
+06:09 +646: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/risk_detection_test.dart: flags severe hypertension as urgent
+06:09 +647: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/risk_detection_test.dart: flags severe hypertension as urgent
+06:09 +648: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/risk_detection_test.dart: flags severe hypertension as urgent
+06:09 +649: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/risk_detection_test.dart: flags severe hypertension as urgent
+06:10 +650: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/risk_episode_test.dart: new readings create new work while repeated scans preserve completed work
+06:10 +651: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/risk_episode_test.dart: new readings create new work while repeated scans preserve completed work
+06:10 +652: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/risk_episode_test.dart: new readings create new work while repeated scans preserve completed work
+06:11 +653: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_service_test.dart: releasedLabReport approves, freezes, renders and downloads with the correct authority
+06:11 +654: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/shared_document_foundation_test.dart: grant management validates scope/recipient and rolls back audit failures
+06:11 +655: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/shared_document_foundation_test.dart: grant management validates scope/recipient and rolls back audit failures
+06:12 +656: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/shared_document_foundation_test.dart: grant management validates scope/recipient and rolls back audit failures
+06:12 +657: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/shared_document_foundation_test.dart: grant management validates scope/recipient and rolls back audit failures
+06:13 +658: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_service_test.dart: releasedImagingReport approves, freezes, renders and downloads with the correct authority
+06:13 +659: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/risk_episode_test.dart: source IDs that collided in the old short hash create distinct tasks
+06:13 +660: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/risk_detection_test.dart: task generator turns flags into scored staff tasks
+06:14 +661: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/shared_document_foundation_test.dart: scopes use actual visit departments and reject other patients, expired grants and mismatches
+06:14 +662: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_service_test.dart: fitnessCertificate approves, freezes, renders and downloads with the correct authority
+06:14 +663: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_service_test.dart: fitnessCertificate approves, freezes, renders and downloads with the correct authority
+06:15 +664: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/shared_document_foundation_test.dart: administrator signing needs grant, verified medical credential and care relationship
+06:15 +665: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/shared_document_foundation_test.dart: administrator signing needs grant, verified medical credential and care relationship
+06:16 +666: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_service_test.dart: financeStatement approves, freezes, renders and downloads with the correct authority
+06:17 +667: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/sick_leave_qr_flow_test.dart: a demo patient certificate QR verifies for staff and admin, but not a patient
+06:18 +668: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/sick_leave_qr_flow_test.dart: a demo patient certificate QR verifies for staff and admin, but not a patient
+06:18 +669: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/sick_leave_qr_flow_test.dart: a demo patient certificate QR verifies for staff and admin, but not a patient
+06:18 +670: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/sick_leave_qr_flow_test.dart: a demo patient certificate QR verifies for staff and admin, but not a patient
+Courier has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
+06:20 +671: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/sick_leave_qr_flow_test.dart: a demo patient certificate QR verifies for staff and admin, but not a patient
+06:20 +672: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/sick_leave_qr_flow_test.dart: a demo patient certificate QR verifies for staff and admin, but not a patient
+06:21 +673: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/sick_leave_qr_flow_test.dart: a demo patient certificate QR verifies for staff and admin, but not a patient
+06:21 +674: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/sick_leave_qr_flow_test.dart: a demo patient certificate QR verifies for staff and admin, but not a patient
+06:23 +675: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/sick_leave_qr_flow_test.dart: a demo patient certificate QR verifies for staff and admin, but not a patient
+06:24 +676: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/sick_leave_qr_flow_test.dart: a demo patient certificate QR verifies for staff and admin, but not a patient
+06:24 +677: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/sick_leave_qr_flow_test.dart: a demo patient certificate QR verifies for staff and admin, but not a patient
+06:24 +678: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_service_test.dart: nurse cannot approve or sign even with signing grant and medical credential
+06:25 +679: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/task_correctness_test.dart: regeneration preserves TaskStatus.dismissed, deadline, AI, owner and cover
+06:26 +680: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/shared_document_foundation_test.dart: administrator clinical care reduction locks the session
+06:26 +681: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/shared_document_foundation_test.dart: administrator clinical care reduction locks the session
+06:26 +682: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_service_test.dart: verification failure rolls back certificate, snapshot, event and issue audit
+06:27 +683: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/task_workflow_test.dart: handover rejects mismatched source patients atomically
+06:28 +684: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/task_correctness_test.dart: generation returns original failure or explicit partial completion
+06:28 +685: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/shared_document_foundation_test.dart: real schema 29 migration preserves codes, tasks, signed records and originals; reopen and backup work
+06:29 +686: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/shared_document_foundation_test.dart: real schema 29 migration preserves codes, tasks, signed records and originals; reopen and backup work
+06:29 +687: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/task_workflow_test.dart: outcomes and paused work require reasons and future review; history is retained
+06:30 +688: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/task_correctness_test.dart: panel/flags/generation exclude unrelated patients; persistence rejects bypass
+06:30 +689: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_service_test.dart: replacement preserves the original, supersedes only after a new approval and issuance
+06:31 +690: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/task_workflow_test.dart: bundle acceptance grants temporary access and closes only handover grants
+06:32 +691: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/task_correctness_test.dart: assignment-only care permits acknowledgement and expiry blocks later access
+06:32 +692: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/sync/phase2_test.dart: retries never duplicate committed work a booking retried with the same key books once
+06:33 +693: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/sync/phase2_test.dart: retries never duplicate committed work a booking retried with the same key books once
+06:33 +694: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/task_workflow_test.dart: changed work refuses the entire handover without partial grants
+06:34 +695: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/task_workflow_test.dart: changed work refuses the entire handover without partial grants
+06:34 +696: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/document_service_test.dart: mismatched visits and normalized invalid calendar dates are rejected
+06:35 +697: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/sync/phase2_test.dart: retries never duplicate committed work a wallet top-up and payment retried with the same key move money once
+06:35 +698: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/sync/phase2_test.dart: retries never duplicate committed work a wallet top-up and payment retried with the same key move money once
+06:35 +699: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/task_correctness_test.dart: ranker propagates conflict and does not report a completed batch
+06:36 +700: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/task_correctness_test.dart: ranker propagates conflict and does not report a completed batch
+06:36 +701: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/task_workflow_test.dart: expired cover cannot act even when another care relationship remains
+06:36 +702: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/sync/phase2_test.dart: retries never duplicate committed work a key cannot be reused for a different action or account
+06:37 +703: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/task_correctness_test.dart: profile demotion narrows permissions without another sign-in
+06:38 +704: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/task_workflow_test.dart: source generation and reply conversion retain final outcomes and deadlines
+06:38 +705: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/services/task_workflow_test.dart: source generation and reply conversion retain final outcomes and deadlines
+06:38 +706: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/visual/patient_pages_audit_capture_test.dart: capture patient page audit
+06:39 +707: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/visual/patient_pages_audit_capture_test.dart: capture patient page audit
+06:40 +708: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/visual/patient_pages_audit_capture_test.dart: capture patient page audit
+06:41 +709: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/visual/patient_pages_audit_capture_test.dart: capture patient page audit
+06:42 +710: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/visual/patient_pages_audit_capture_test.dart: capture patient page audit
+06:43 +711: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/visual/patient_pages_audit_capture_test.dart: capture patient page audit
+06:44 +712: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/visual/patient_pages_audit_capture_test.dart: capture patient page audit
+06:45 +713: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/visual/patient_pages_audit_capture_test.dart: capture patient page audit
+06:47 +714: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/visual/patient_pages_audit_capture_test.dart: capture patient page audit
+06:47 +715: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/visual/patient_pages_audit_capture_test.dart: capture patient page audit
+06:49 +716: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/visual/patient_screens_capture_test.dart: capture patient screens
+06:49 +717: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/visual/patient_screens_capture_test.dart: capture patient screens
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+06:50 +718: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/visual/patient_screens_capture_test.dart: capture patient screens
+06:52 +719: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/visual/patient_screens_capture_test.dart: capture patient screens
+06:52 +720: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/visual/patient_screens_capture_test.dart: capture patient screens
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:myhealthcare/data/db/app_database.g.dart:35311:36)
+#4      new AppDatabase (package:myhealthcare/data/db/app_database.dart:111:44)
+#5      newTestDatabase (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/support/test_database.dart:10:34)
+06:53 +721: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/visual/patient_screens_capture_test.dart: capture patient screens
+#6      _app (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/visual/patient_screens_capture_test.dart:89:14)
+#7      main.<anonymous closure> (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/visual/patient_screens_capture_test.dart:160:17)
+<asynchronous suspension>
+06:54 +722: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/visual/patient_screens_capture_test.dart: capture patient screens
+#8      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#9      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#10     StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:myhealthcare/data/db/app_database.g.dart:35311:36)
+#4      new AppDatabase (package:myhealthcare/data/db/app_database.dart:111:44)
+#5      newTestDatabase (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/support/test_database.dart:10:34)
+#6      _app (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/visual/patient_screens_capture_test.dart:89:14)
+#7      main.<anonymous closure> (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/visual/patient_screens_capture_test.dart:160:17)
+<asynchronous suspension>
+#8      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#9      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#10     StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:myhealthcare/data/db/app_database.g.dart:35311:36)
+#4      new AppDatabase (package:myhealthcare/data/db/app_database.dart:111:44)
+#5      newTestDatabase (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/support/test_database.dart:10:34)
+#6      _app (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/visual/patient_screens_capture_test.dart:89:14)
+#7      main.<anonymous closure> (file:///C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/visual/patient_screens_capture_test.dart:160:17)
+<asynchronous suspension>
+#8      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#9      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#10     StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+06:54 +723: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/sync/phase2_test.dart: a populated v18 database migrates with rows and relationships intact
+06:56 +724: All tests passed!
+Flutter process exit code: 0

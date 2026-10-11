@@ -5469,4 +5469,184 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paNoConversationsTitle => 'No conversations yet';
+
+  @override
+  String get htScope =>
+      'Future work describes project scope. Available tools below work now; they are not medical advice.';
+
+  @override
+  String get htWomensHealth => 'Women’s Health';
+
+  @override
+  String get htGeneralHealth => 'General Health';
+
+  @override
+  String get htOvulation => 'Ovulation Period';
+
+  @override
+  String get htDueDate => 'Delivery Due Date';
+
+  @override
+  String get htPregnancyUnavailable =>
+      'This calculator is not implemented. No fertility or pregnancy prediction is made, and no pregnancy inputs are collected or saved.';
+
+  @override
+  String get htBmi => 'BMI and body surface area';
+
+  @override
+  String get htBmiDescription =>
+      'General adult body-size estimates from height and weight. Not a diagnosis or a personal healthy-weight target.';
+
+  @override
+  String get htCalories => 'Calories';
+
+  @override
+  String get htBmr => 'Basal metabolic rate (BMR)';
+
+  @override
+  String get htMacros => 'Carbs, Protein & Fat';
+
+  @override
+  String get htNutritionReuse =>
+      'Open the existing Nutrition calculator for estimated energy needs and macro targets. Nutrition stores its calculator inputs on this device.';
+
+  @override
+  String get htIdealWeight => 'Ideal Body Weight';
+
+  @override
+  String get htBodyFat => 'Body Fat';
+
+  @override
+  String get htBodyUnavailable =>
+      'A validated calculator with suitable inputs and limitations is not implemented. This app does not calculate a single ideal weight or body-fat estimate here.';
+
+  @override
+  String get htBloodSugar => 'Blood Sugar';
+
+  @override
+  String get htCholesterol => 'Blood Cholesterol';
+
+  @override
+  String get htTriglycerides => 'Triglycerides';
+
+  @override
+  String get htConverterDescription =>
+      'Convert units immediately. No tracking, risk assessment or saved history.';
+
+  @override
+  String get htOtherConverters => 'Weight, height and temperature';
+
+  @override
+  String get htSwap => 'Swap conversion direction';
+
+  @override
+  String get htInput => 'Enter a value';
+
+  @override
+  String get htResult => 'Converted value';
+
+  @override
+  String get htInvalidNumber =>
+      'Enter a finite, nonnegative number using a decimal point or comma.';
+
+  @override
+  String get htConversionExplanation =>
+      'Enter either unit and swap to reverse the conversion. The same physical value is preserved. Results are rounded for display; inputs are not saved.';
+
+  @override
+  String get htFactorGlucose => 'Glucose: 1 mmol/L ≈ 18.016 mg/dL.';
+
+  @override
+  String get htFactorCholesterol => 'Cholesterol: mg/dL × 0.0259 = mmol/L.';
+
+  @override
+  String get htFactorTriglycerides => 'Triglycerides: mg/dL × 0.0113 = mmol/L.';
+
+  @override
+  String get htCopy => 'Copy converted value';
+
+  @override
+  String get htCopied => 'Converted value copied';
+
+  @override
+  String get htCallAmbulance => 'Call Ambulance — 999';
+
+  @override
+  String get htCallDescription =>
+      'Bahrain emergency number. Opens your device’s phone action; MyHealth does not dispatch an ambulance.';
+
+  @override
+  String get htPhoneUnavailable =>
+      'The phone action could not open. Use your phone to call 999 in Bahrain. Outside Bahrain, use the local emergency number.';
+
+  @override
+  String get htEmergencyRegion =>
+      'For emergencies in Bahrain, call 999. Outside Bahrain, use the local emergency number. Do not wait for an app response.';
+
+  @override
+  String get htNearestEr => 'Nearest ER';
+
+  @override
+  String get htNearestErUnavailable =>
+      'No verified emergency-facility directory, coordinates or directions integration is configured. MyHealth cannot identify the nearest ER.';
+
+  @override
+  String get htRapidResponse => 'Rapid Response Team';
+
+  @override
+  String get htRapidUnavailable =>
+      'No authorized rapid-response or clinical dispatch service is connected. This entry cannot request a team.';
+
+  @override
+  String get htEmergencyCheckIn => 'Emergency Check-In';
+
+  @override
+  String get htCheckInUnavailable =>
+      'No emergency check-in backend is connected. MyHealth cannot reserve emergency capacity, skip queues or waive payment.';
+
+  @override
+  String get htSelectHospital => 'Select Hospital';
+
+  @override
+  String get htSearchHospital => 'Search hospitals';
+
+  @override
+  String get htAllFacilities => 'All facilities';
+
+  @override
+  String get htConfiguredFacilities => 'Configured facilities';
+
+  @override
+  String get htNoHospitals =>
+      'No hospital directory is configured in this environment. Departments are not separate hospitals. Locations and distances are unavailable.';
+
+  @override
+  String get htSearchUnavailable =>
+      'Hospital search will be available when a verified facility directory is configured.';
+
+  @override
+  String get htUseClinic => 'Browse existing clinic departments';
+
+  @override
+  String get htDoctorDetails => 'Clinician details';
+
+  @override
+  String get htSearch => 'Search';
+
+  @override
+  String get htDoctorIntro =>
+      'Search the published clinician directory by name or specialty, then check fresh availability before booking.';
+
+  @override
+  String get htPreviousShortcuts => 'Previous shortcuts';
+
+  @override
+  String get htNextShortcuts => 'Next shortcuts';
+
+  @override
+  String get htEmergencyTitle => 'Emergency Services';
+
+  @override
+  String get htDepartmentUnavailable =>
+      'Department filters could not load. Name and specialty search still work.';
 }

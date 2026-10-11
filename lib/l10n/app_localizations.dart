@@ -9751,6 +9751,330 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No conversations yet'**
   String get paNoConversationsTitle;
+
+  /// No description provided for @htScope.
+  ///
+  /// In en, this message translates to:
+  /// **'Future work describes project scope. Available tools below work now; they are not medical advice.'**
+  String get htScope;
+
+  /// No description provided for @htWomensHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Women’s Health'**
+  String get htWomensHealth;
+
+  /// No description provided for @htGeneralHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'General Health'**
+  String get htGeneralHealth;
+
+  /// No description provided for @htOvulation.
+  ///
+  /// In en, this message translates to:
+  /// **'Ovulation Period'**
+  String get htOvulation;
+
+  /// No description provided for @htDueDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery Due Date'**
+  String get htDueDate;
+
+  /// No description provided for @htPregnancyUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This calculator is not implemented. No fertility or pregnancy prediction is made, and no pregnancy inputs are collected or saved.'**
+  String get htPregnancyUnavailable;
+
+  /// No description provided for @htBmi.
+  ///
+  /// In en, this message translates to:
+  /// **'BMI and body surface area'**
+  String get htBmi;
+
+  /// No description provided for @htBmiDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'General adult body-size estimates from height and weight. Not a diagnosis or a personal healthy-weight target.'**
+  String get htBmiDescription;
+
+  /// No description provided for @htCalories.
+  ///
+  /// In en, this message translates to:
+  /// **'Calories'**
+  String get htCalories;
+
+  /// No description provided for @htBmr.
+  ///
+  /// In en, this message translates to:
+  /// **'Basal metabolic rate (BMR)'**
+  String get htBmr;
+
+  /// No description provided for @htMacros.
+  ///
+  /// In en, this message translates to:
+  /// **'Carbs, Protein & Fat'**
+  String get htMacros;
+
+  /// No description provided for @htNutritionReuse.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the existing Nutrition calculator for estimated energy needs and macro targets. Nutrition stores its calculator inputs on this device.'**
+  String get htNutritionReuse;
+
+  /// No description provided for @htIdealWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Ideal Body Weight'**
+  String get htIdealWeight;
+
+  /// No description provided for @htBodyFat.
+  ///
+  /// In en, this message translates to:
+  /// **'Body Fat'**
+  String get htBodyFat;
+
+  /// No description provided for @htBodyUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'A validated calculator with suitable inputs and limitations is not implemented. This app does not calculate a single ideal weight or body-fat estimate here.'**
+  String get htBodyUnavailable;
+
+  /// No description provided for @htBloodSugar.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood Sugar'**
+  String get htBloodSugar;
+
+  /// No description provided for @htCholesterol.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood Cholesterol'**
+  String get htCholesterol;
+
+  /// No description provided for @htTriglycerides.
+  ///
+  /// In en, this message translates to:
+  /// **'Triglycerides'**
+  String get htTriglycerides;
+
+  /// No description provided for @htConverterDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert units immediately. No tracking, risk assessment or saved history.'**
+  String get htConverterDescription;
+
+  /// No description provided for @htOtherConverters.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight, height and temperature'**
+  String get htOtherConverters;
+
+  /// No description provided for @htSwap.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap conversion direction'**
+  String get htSwap;
+
+  /// No description provided for @htInput.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a value'**
+  String get htInput;
+
+  /// No description provided for @htResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Converted value'**
+  String get htResult;
+
+  /// No description provided for @htInvalidNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a finite, nonnegative number using a decimal point or comma.'**
+  String get htInvalidNumber;
+
+  /// No description provided for @htConversionExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter either unit and swap to reverse the conversion. The same physical value is preserved. Results are rounded for display; inputs are not saved.'**
+  String get htConversionExplanation;
+
+  /// No description provided for @htFactorGlucose.
+  ///
+  /// In en, this message translates to:
+  /// **'Glucose: 1 mmol/L ≈ 18.016 mg/dL.'**
+  String get htFactorGlucose;
+
+  /// No description provided for @htFactorCholesterol.
+  ///
+  /// In en, this message translates to:
+  /// **'Cholesterol: mg/dL × 0.0259 = mmol/L.'**
+  String get htFactorCholesterol;
+
+  /// No description provided for @htFactorTriglycerides.
+  ///
+  /// In en, this message translates to:
+  /// **'Triglycerides: mg/dL × 0.0113 = mmol/L.'**
+  String get htFactorTriglycerides;
+
+  /// No description provided for @htCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy converted value'**
+  String get htCopy;
+
+  /// No description provided for @htCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Converted value copied'**
+  String get htCopied;
+
+  /// No description provided for @htCallAmbulance.
+  ///
+  /// In en, this message translates to:
+  /// **'Call Ambulance — 999'**
+  String get htCallAmbulance;
+
+  /// No description provided for @htCallDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Bahrain emergency number. Opens your device’s phone action; MyHealth does not dispatch an ambulance.'**
+  String get htCallDescription;
+
+  /// No description provided for @htPhoneUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The phone action could not open. Use your phone to call 999 in Bahrain. Outside Bahrain, use the local emergency number.'**
+  String get htPhoneUnavailable;
+
+  /// No description provided for @htEmergencyRegion.
+  ///
+  /// In en, this message translates to:
+  /// **'For emergencies in Bahrain, call 999. Outside Bahrain, use the local emergency number. Do not wait for an app response.'**
+  String get htEmergencyRegion;
+
+  /// No description provided for @htNearestEr.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearest ER'**
+  String get htNearestEr;
+
+  /// No description provided for @htNearestErUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No verified emergency-facility directory, coordinates or directions integration is configured. MyHealth cannot identify the nearest ER.'**
+  String get htNearestErUnavailable;
+
+  /// No description provided for @htRapidResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'Rapid Response Team'**
+  String get htRapidResponse;
+
+  /// No description provided for @htRapidUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No authorized rapid-response or clinical dispatch service is connected. This entry cannot request a team.'**
+  String get htRapidUnavailable;
+
+  /// No description provided for @htEmergencyCheckIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency Check-In'**
+  String get htEmergencyCheckIn;
+
+  /// No description provided for @htCheckInUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No emergency check-in backend is connected. MyHealth cannot reserve emergency capacity, skip queues or waive payment.'**
+  String get htCheckInUnavailable;
+
+  /// No description provided for @htSelectHospital.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Hospital'**
+  String get htSelectHospital;
+
+  /// No description provided for @htSearchHospital.
+  ///
+  /// In en, this message translates to:
+  /// **'Search hospitals'**
+  String get htSearchHospital;
+
+  /// No description provided for @htAllFacilities.
+  ///
+  /// In en, this message translates to:
+  /// **'All facilities'**
+  String get htAllFacilities;
+
+  /// No description provided for @htConfiguredFacilities.
+  ///
+  /// In en, this message translates to:
+  /// **'Configured facilities'**
+  String get htConfiguredFacilities;
+
+  /// No description provided for @htNoHospitals.
+  ///
+  /// In en, this message translates to:
+  /// **'No hospital directory is configured in this environment. Departments are not separate hospitals. Locations and distances are unavailable.'**
+  String get htNoHospitals;
+
+  /// No description provided for @htSearchUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Hospital search will be available when a verified facility directory is configured.'**
+  String get htSearchUnavailable;
+
+  /// No description provided for @htUseClinic.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse existing clinic departments'**
+  String get htUseClinic;
+
+  /// No description provided for @htDoctorDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Clinician details'**
+  String get htDoctorDetails;
+
+  /// No description provided for @htSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get htSearch;
+
+  /// No description provided for @htDoctorIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Search the published clinician directory by name or specialty, then check fresh availability before booking.'**
+  String get htDoctorIntro;
+
+  /// No description provided for @htPreviousShortcuts.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous shortcuts'**
+  String get htPreviousShortcuts;
+
+  /// No description provided for @htNextShortcuts.
+  ///
+  /// In en, this message translates to:
+  /// **'Next shortcuts'**
+  String get htNextShortcuts;
+
+  /// No description provided for @htEmergencyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency Services'**
+  String get htEmergencyTitle;
+
+  /// No description provided for @htDepartmentUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Department filters could not load. Name and specialty search still work.'**
+  String get htDepartmentUnavailable;
 }
 
 class _AppLocalizationsDelegate

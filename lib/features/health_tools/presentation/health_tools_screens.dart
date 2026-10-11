@@ -12,10 +12,11 @@ import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/ui/patient/patient_components.dart';
 import '../../../l10n/app_localizations.dart';
+import '../domain/lab_conversion.dart';
 
 /// Parses a positive number within [min]..[max]; null when invalid.
 double? parseInRange(String raw, double min, double max) {
-  final v = double.tryParse(raw.trim().replaceAll(',', '.'));
+  final v = parseLocalizedNumber(raw);
   if (v == null || v.isNaN || v < min || v > max) return null;
   return v;
 }
@@ -37,15 +38,15 @@ AppBar _toolsAppBar(BuildContext context, String title) => AppBar(
   ),
 );
 
-class HealthCalculatorsScreen extends StatefulWidget {
-  const HealthCalculatorsScreen({super.key});
+class BodyMeasurementsScreen extends StatefulWidget {
+  const BodyMeasurementsScreen({super.key});
 
   @override
-  State<HealthCalculatorsScreen> createState() =>
+  State<BodyMeasurementsScreen> createState() =>
       _HealthCalculatorsScreenState();
 }
 
-class _HealthCalculatorsScreenState extends State<HealthCalculatorsScreen> {
+class _HealthCalculatorsScreenState extends State<BodyMeasurementsScreen> {
   final _weight = TextEditingController();
   final _height = TextEditingController();
   bool _submitted = false;
@@ -73,8 +74,15 @@ class _HealthCalculatorsScreenState extends State<HealthCalculatorsScreen> {
     }
 
     return PatientPageScaffold(
-      appBar: _toolsAppBar(context, t.paHealthCalculators),
+      appBar: _toolsAppBar(context, t.htBmi),
       children: [
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: FutureWorkBadge(label: t.paFutureWork),
+        ),
+        const SizedBox(height: Space.sm),
+        Text(t.htBmiDescription),
+        const SizedBox(height: Space.md),
         SurfaceCard(
           padding: const EdgeInsets.all(Space.lg),
           child: Column(
@@ -150,16 +158,17 @@ class _HealthCalculatorsScreenState extends State<HealthCalculatorsScreen> {
   }
 }
 
-enum _Conversion { weight, height, temperature, glucose }
+enum _Conversion { weight, height, temperature }
 
-class HealthConvertersScreen extends StatefulWidget {
-  const HealthConvertersScreen({super.key});
+class GeneralConvertersScreen extends StatefulWidget {
+  const GeneralConvertersScreen({super.key});
 
   @override
-  State<HealthConvertersScreen> createState() => _HealthConvertersScreenState();
+  State<GeneralConvertersScreen> createState() =>
+      _HealthConvertersScreenState();
 }
 
-class _HealthConvertersScreenState extends State<HealthConvertersScreen> {
+class _HealthConvertersScreenState extends State<GeneralConvertersScreen> {
   _Conversion _kind = _Conversion.weight;
   bool _reverse = false;
   final _input = TextEditingController();
@@ -193,21 +202,6 @@ class _HealthConvertersScreenState extends State<HealthConvertersScreen> {
       -58,
       140,
     ),
-    // Glucose: 1 mmol/L = 18.016 mg/dL.
-    (_Conversion.glucose, false) => (
-      'mg/dL',
-      'mmol/L',
-      (v) => v / 18.016,
-      0,
-      2000,
-    ),
-    (_Conversion.glucose, true) => (
-      'mmol/L',
-      'mg/dL',
-      (v) => v * 18.016,
-      0,
-      120,
-    ),
   };
 
   @override
@@ -222,11 +216,15 @@ class _HealthConvertersScreenState extends State<HealthConvertersScreen> {
       _Conversion.weight: t.paConvWeight,
       _Conversion.height: t.paConvHeight,
       _Conversion.temperature: t.paConvTemperature,
-      _Conversion.glucose: t.paConvGlucose,
     };
     return PatientPageScaffold(
       appBar: _toolsAppBar(context, t.paHealthConverters),
       children: [
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: FutureWorkBadge(label: t.paFutureWork),
+        ),
+        const SizedBox(height: Space.sm),
         Wrap(
           spacing: Space.xs,
           runSpacing: Space.xs,
@@ -272,7 +270,9 @@ class _HealthConvertersScreenState extends State<HealthConvertersScreen> {
                 child: TextButton.icon(
                   onPressed: () => setState(() {
                     _reverse = !_reverse;
-                    _input.clear();
+                    if (value != null) {
+                      _input.text = convert(value).toStringAsPrecision(12);
+                    }
                   }),
                   icon: const Icon(Icons.swap_vert),
                   label: Text('$from → $to'),
@@ -282,7 +282,7 @@ class _HealthConvertersScreenState extends State<HealthConvertersScreen> {
               Text(
                 value == null
                     ? '— $to'
-                    : '${convert(value).toStringAsFixed(_kind == _Conversion.glucose ? 1 : 2)} $to',
+                    : '${convert(value).toStringAsFixed(2)} $to',
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: palette.text,

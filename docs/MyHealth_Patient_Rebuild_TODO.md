@@ -378,9 +378,26 @@ Paths are relative to the repository. New folder names are proposals; fit them t
 - [x] Add meaningful unit/widget/integration tests for access, draft invalidation, booking and PDF journeys; use a small stable visual regression set.
 - [x] Provide final changed-file summary, completed checklist, verification results and remaining genuinely missing integrations.
 
+## Reference-screen iteration (IMG_3463–IMG_3472)
+
+- [x] Fix GitHub/Linux font setup portability: shared bundled icon loader replaces SDK paths in layout and capture helpers; entire CI-style suite passes **722 tests, 0 failures, 2 optional capture skips**. See [portability evidence](verification/ci_font_portability.md). Remote Ubuntu execution awaits a committed/pushed workflow rerun; no push/deployment performed here.
+
+- [x] Preserve the CORE PDF hero, approved blue design, adaptive navigation, three text preferences and Quick Access below Services; make Home shortcuts horizontally browsable with keyboard-accessible controls.
+- [x] Connect Emergency Services with verified Bahrain 999 phone action and honest launch failure; keep ER location, rapid response and check-in visibly Future work.
+- [x] Reuse the real clinician directory, filters, loading/error/empty states, clinician details and authorized booking continuation.
+- [x] Add collapsible calculator groups; reuse BMI/BSA and Nutrition; keep ovulation, due date, ideal weight and body fat as explanation-only Future work without collecting pregnancy inputs.
+- [x] Implement three analyte-specific bidirectional converters, localized input, validation, physical-value-preserving swap and clipboard output; retain scope badges and existing general converters.
+- [x] Provide a dismissible hospital sheet with honest unavailable state and real clinic-department fallback; preserve booking draft and omit invented facilities/distances.
+- [x] Add unit/widget/layout coverage and actual Flutter screenshot galleries; preserve system scaling even at 320px/3×, using intact horizontally scrollable words where necessary.
+- [x] Rerun the entire final suite after the heading and test-fixture corrections: **724 passed, 0 failed/skipped**. Analysis and formatting pass; final release-build evidence is recorded in the current status. Targeted reruns alone do not satisfy this gate.
+- [ ] Complete the added device/screen-reader checks in [reference tools handoff](patient_reference_tools.md).
+- [ ] Supply authorized ER/facility/location services, hospital booking model, rapid-response/check-in operations and validated specifications for four planned calculators before enabling those Future work entries.
+
 ## Remaining external acceptance gates
 
-Final checkout verification on 11 October 2026: the entire Flutter suite passed **693 tests, 0 failures, 0 skips**, with captures enabled; relevant server tests passed **21/21**. Analysis has no errors/warnings (146 informational lints); release web build passes. Exact commands, complete logs, actual Flutter screenshots and status categories are recorded in [patient rebuild status](patient_rebuild_status.md). Checked implementation items do not certify the outstanding external checks below.
+The IMG_3463–IMG_3472 implementation inventory and new manual checks are in [patient reference tools](patient_reference_tools.md). Latest checkout verification appears in [patient rebuild status](patient_rebuild_status.md); the earlier 693-test result below is historical evidence from before this iteration.
+
+Previous rebuild verification on 11 October 2026, before this reference-screen iteration: the entire Flutter suite passed **693 tests, 0 failures, 0 skips**, with captures enabled; relevant server tests passed **21/21**. Analysis had no errors/warnings (146 informational lints); release web build passed. Latest results, exact commands, complete logs, actual Flutter screenshots and status categories are recorded in [patient rebuild status](patient_rebuild_status.md). Checked implementation items do not certify the outstanding external checks below.
 
 - [ ] Perform physical-device and TalkBack/VoiceOver checks; record actual pass/fail evidence in docs/patient_manual_acceptance.md.
 - [ ] After approved server configuration, run live report evaluation and live failure/recovery checks using docs/patient_external_review.md; mocked tests are not live evidence.

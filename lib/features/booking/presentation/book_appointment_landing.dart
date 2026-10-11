@@ -13,13 +13,14 @@ import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/readable_label.dart';
 import '../../../core/ui/patient/patient_components.dart';
+import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/repositories/appointment_repository.dart';
-import '../../../core/utils/format.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../service_catalog/application/catalog_dispatcher.dart';
 import '../application/booking_providers.dart';
 import '../application/discovery_providers.dart';
+import 'select_hospital_sheet.dart';
 
 enum BookingLandingMode { general, virtual }
 
@@ -82,6 +83,17 @@ class _BookAppointmentLandingScreenState
         ),
         const SizedBox(height: Space.lg),
         if (_mode == BookingLandingMode.general) ...[
+          SurfaceCard(
+            padding: EdgeInsets.zero,
+            child: DiscoveryOptionRow(
+              key: const ValueKey('discover-hospital'),
+              icon: Icons.domain_outlined,
+              title: t.htSelectHospital,
+              hint: t.paFutureWork,
+              onTap: () => showSelectHospitalSheet(context),
+            ),
+          ),
+          const SizedBox(height: Space.md),
           SurfaceCard(
             padding: EdgeInsets.zero,
             child: Column(
@@ -471,26 +483,71 @@ class DoctorSearchScreen extends ConsumerStatefulWidget {
 }
 
 class _DoctorSearchScreenState extends ConsumerState<DoctorSearchScreen> {
+  final _search = TextEditingController();
   String _query = '';
   late String? _dept = widget.departmentId;
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    FocusScope.of(context).unfocus();
+    setState(() => _query = _search.text.trim().toLowerCase());
+  }
 
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
     final doctors = ref.watch(publicDoctorsProvider);
-    final departments = ref.watch(departmentsProvider).valueOrNull ?? const [];
+    final departmentState = ref.watch(departmentsProvider);
+    final departments = departmentState.valueOrNull ?? const [];
     final deptNames = {for (final d in departments) d.id: d.name};
     return PatientPageScaffold(
       appBar: _patientAppBar(context, t.paFindDoctor),
       children: [
-        TextField(
-          decoration: InputDecoration(
-            labelText: t.paSearchDoctors,
-            prefixIcon: const Icon(Icons.search),
-          ),
-          onChanged: (v) => setState(() => _query = v.trim().toLowerCase()),
+        ReadableLabel(
+          t.paFindDoctor,
+          style: Theme.of(context).textTheme.headlineMedium,
         ),
         const SizedBox(height: Space.sm),
+        Text(t.htDoctorIntro),
+        const SizedBox(height: Space.lg),
+        SurfaceCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextField(
+                key: const ValueKey('doctor-search-input'),
+                controller: _search,
+                textInputAction: TextInputAction.search,
+                onSubmitted: (_) => _submit(),
+                decoration: InputDecoration(
+                  labelText: t.paSearchDoctors,
+                  prefixIcon: const Icon(Icons.search),
+                ),
+                onChanged: (v) =>
+                    setState(() => _query = v.trim().toLowerCase()),
+              ),
+              const SizedBox(height: Space.md),
+              PrimaryActionButton(
+                key: const ValueKey('doctor-search-submit'),
+                label: t.htSearch,
+                onPressed: _submit,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: Space.sm),
+        if (departmentState.hasError)
+          PatientStateView(
+            kind: PatientStateKind.error,
+            title: t.htDepartmentUnavailable,
+            actionLabel: t.tryAgain,
+            onAction: () => ref.invalidate(departmentsProvider),
+          ),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
@@ -637,6 +694,41 @@ class _DoctorCard extends ConsumerWidget {
           const SizedBox(height: Space.sm),
           _AvailabilityLine(staffId: doctor.id),
           const SizedBox(height: Space.sm),
+          TextButton.icon(
+            label: Text(t.htDoctorDetails),
+            icon: const Icon(Icons.info_outline),
+            onPressed: () => showModalBottomSheet<void>(
+              context: context,
+              useRootNavigator: true,
+              isScrollControlled: true,
+              showDragHandle: true,
+              constraints: BoxConstraints(
+                maxWidth: 760,
+                maxHeight: MediaQuery.sizeOf(context).height * .85,
+              ),
+              builder: (sheet) => SafeArea(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(Space.lg),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        doctor.fullName,
+                        style: Theme.of(sheet).textTheme.headlineSmall,
+                      ),
+                      if (details.isNotEmpty) Text(details),
+                      if (doctor.jobTitle != null) Text(doctor.jobTitle!),
+                      const SizedBox(height: Space.md),
+                      SoftActionButton(
+                        label: t.paClose,
+                        onPressed: () => Navigator.of(sheet).pop(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
           PrimaryActionButton(
             label: t.paSeeAvailability,
             onPressed: () => continueToBooking(

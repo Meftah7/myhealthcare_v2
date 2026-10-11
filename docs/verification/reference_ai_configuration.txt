@@ -1,0 +1,5 @@
+MYHEALTH_AI_KEY: unavailable
+MYHEALTH_AI_MODEL: unavailable
+REPORT_AI_ORIGIN: unavailable
+REPORT_AI_CLIENT_TOKEN: unavailable
+REPORT_AI_CLIENT_TOKENS: unavailable

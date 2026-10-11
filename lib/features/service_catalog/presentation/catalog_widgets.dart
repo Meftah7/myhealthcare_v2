@@ -189,8 +189,7 @@ class QuickToolsPager extends StatefulWidget {
 }
 
 class _QuickToolsPagerState extends State<QuickToolsPager> {
-  final _controller = PageController();
-  int _page = 0;
+  final _controller = ScrollController();
 
   @override
   void dispose() {
@@ -200,63 +199,65 @@ class _QuickToolsPagerState extends State<QuickToolsPager> {
 
   @override
   Widget build(BuildContext context) {
-    final palette = PatientPalette.of(context);
-    final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
-    final height = 120 * scale.clamp(1.0, 1.8);
-    return Column(
-      children: [
-        SizedBox(
-          height: height,
-          child: PageView(
-            controller: _controller,
-            onPageChanged: (i) => setState(() => _page = i),
-            children: [
-              for (final page in widget.pages)
-                Row(
-                  children: [
-                    for (final (i, item) in page.indexed) ...[
-                      if (i > 0) const SizedBox(width: Space.xs),
-                      Expanded(child: _ToolTile(item: item)),
-                    ],
-                  ],
-                ),
-            ],
+    final t = AppLocalizations.of(context)!;
+    void browse(bool forward) {
+      if (!_controller.hasClients) return;
+      final position = _controller.position;
+      final target =
+          (position.pixels +
+                  (forward ? 1 : -1) * position.viewportDimension * .8)
+              .clamp(position.minScrollExtent, position.maxScrollExtent);
+      _controller.animateTo(
+        target,
+        duration: Motion.reduced(context) ? Duration.zero : Motion.medium,
+        curve: Motion.standard,
+      );
+    }
+
+    return SurfaceCard(
+      padding: const EdgeInsets.all(Space.sm),
+      child: Column(
+        children: [
+          LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              controller: _controller,
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (final item in widget.pages.expand((page) => page))
+                    SizedBox(
+                      width: (constraints.maxWidth / 4).clamp(112, 190),
+                      child: Padding(
+                        padding: const EdgeInsets.all(Space.xs),
+                        child: _ToolTile(item: item),
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ),
-        ),
-        if (widget.pages.length > 1) ...[
-          const SizedBox(height: Space.sm),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              for (var i = 0; i < widget.pages.length; i++)
-                Semantics(
-                  label: '${i + 1} / ${widget.pages.length}',
-                  selected: i == _page,
-                  button: true,
-                  child: GestureDetector(
-                    onTap: () => _controller.animateToPage(
-                      i,
-                      duration: Motion.reduced(context)
-                          ? Duration.zero
-                          : Motion.medium,
-                      curve: Motion.standard,
-                    ),
-                    child: AnimatedContainer(
-                      duration: Motion.fast,
-                      margin: const EdgeInsets.symmetric(horizontal: 3),
-                      width: i == _page ? 18 : 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: i == _page ? palette.action : palette.divider,
-                        borderRadius: Radii.pill,
-                      ),
-                    ),
-                  ),
+              IconButton(
+                tooltip: t.htPreviousShortcuts,
+                onPressed: () => browse(false),
+                icon: const BackButtonIcon(),
+              ),
+              IconButton(
+                tooltip: t.htNextShortcuts,
+                onPressed: () => browse(true),
+                icon: Icon(
+                  Directionality.of(context) == TextDirection.rtl
+                      ? Icons.arrow_back
+                      : Icons.arrow_forward,
                 ),
+              ),
             ],
           ),
         ],
-      ],
+      ),
     );
   }
 }

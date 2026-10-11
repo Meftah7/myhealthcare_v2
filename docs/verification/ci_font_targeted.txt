@@ -1,0 +1,7 @@
+00:00 +0: loading C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart
+00:00 +0: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: (setUpAll)
+00:00 +0: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: drawer back, resize and short sidebar preserve the content tree
+00:03 +1: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: drawer back, resize and short sidebar preserve the content tree
+00:03 +2: C:/Users/iamxj/OneDrive/Desktop/myhealthcare_v2/test/features/text_size_layout_test.dart: (tearDownAll)
+00:03 +2: All tests passed!
+Flutter process exit code: 0

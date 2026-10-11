@@ -39,7 +39,7 @@ jobs:
      - name: Analyze
        run: flutter analyze --no-fatal-infos
      - name: Test clinic workflows
-       run: flutter test
+       run: flutter test --reporter expanded
      - name: Test shared server and verification
        run: node --test tools/serve_local.test.mjs services/shared_api/server.test.mjs services/shared_api/load.mjs services/document_verification/server.test.mjs
      - name: Build shared pilot

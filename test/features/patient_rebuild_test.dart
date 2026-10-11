@@ -188,30 +188,39 @@ void main() {
       }
     });
 
-    test('supplementary features stay working; planned ones only explain', () {
-      for (final item in all) {
-        switch (item.scope) {
-          case CatalogScope.supplementary:
-            expect(item.isAvailable, isTrue, reason: item.id);
-            expect(item.action, isNot(CatalogActionKind.futureWork));
-          case CatalogScope.planned:
-            expect(item.action, CatalogActionKind.futureWork, reason: item.id);
-            expect(item.route, isNull, reason: item.id);
-          case CatalogScope.core:
-            if (item.action == CatalogActionKind.route) {
+    test(
+      'supplementary features work; planned integrations explain limits',
+      () {
+        for (final item in all) {
+          switch (item.scope) {
+            case CatalogScope.supplementary:
+              expect(item.isAvailable, isTrue, reason: item.id);
+              expect(item.action, isNot(CatalogActionKind.futureWork));
+            case CatalogScope.planned:
               expect(
-                item.route!.startsWith('/patient/') ||
-                    item.route!.startsWith('/policies/'),
-                isTrue,
+                item.action,
+                item.id == 'select-hospital'
+                    ? CatalogActionKind.selectHospital
+                    : CatalogActionKind.futureWork,
                 reason: item.id,
               );
-            }
+              expect(item.route, isNull, reason: item.id);
+            case CatalogScope.core:
+              if (item.action == CatalogActionKind.route) {
+                expect(
+                  item.route!.startsWith('/patient/') ||
+                      item.route!.startsWith('/policies/'),
+                  isTrue,
+                  reason: item.id,
+                );
+              }
+          }
         }
-      }
-      // Weather and News: explanation only, no source or tab.
-      expect(PatientCatalog.weather.scope, CatalogScope.planned);
-      expect(PatientCatalog.news.scope, CatalogScope.planned);
-    });
+        // Weather and News: explanation only, no source or tab.
+        expect(PatientCatalog.weather.scope, CatalogScope.planned);
+        expect(PatientCatalog.news.scope, CatalogScope.planned);
+      },
+    );
   });
 
   group('health tools', () {

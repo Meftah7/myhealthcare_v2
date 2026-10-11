@@ -1,0 +1,2 @@
+BLOCKED: MYHEALTH_AI_KEY is not set — real-provider evaluation was not run.
+Node process exit code: 2

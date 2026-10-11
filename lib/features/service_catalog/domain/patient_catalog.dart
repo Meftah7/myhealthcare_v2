@@ -45,6 +45,9 @@ enum CatalogActionKind {
   /// Emergency guidance sheet (never booking, never a pretend dispatch).
   emergency,
 
+  /// Hospital-directory sheet, with the existing clinic path when unavailable.
+  selectHospital,
+
   /// A planned extension: the Future work explanation sheet.
   futureWork,
 
@@ -266,12 +269,21 @@ abstract final class PatientCatalog {
   );
   static final emergency = CatalogItem(
     id: 'emergency',
-    title: (t) => t.paEmergencyServices,
+    title: (t) => t.htEmergencyTitle,
     description: (t) => t.paEmergencyServicesDesc,
     icon: Icons.emergency_outlined,
-    accent: PatientAccent.red,
+    accent: PatientAccent.blue,
     action: CatalogActionKind.emergency,
     scope: CatalogScope.supplementary,
+  );
+  static final selectHospital = CatalogItem(
+    id: 'select-hospital',
+    title: (t) => t.htSelectHospital,
+    description: (t) => t.htNoHospitals,
+    icon: Icons.local_hospital_outlined,
+    action: CatalogActionKind.selectHospital,
+    scope: CatalogScope.planned,
+    status: CatalogStatus.unavailable,
   );
   static final calculators = CatalogItem(
     id: 'calculators',
@@ -400,14 +412,14 @@ abstract final class PatientCatalog {
     route: AppRoutes.policyPrivacy,
   );
 
-  /// First quick-tools page (working care actions), then the extensions.
-  static final quickTools = [
+  /// Reference shortcut order, followed by preserved core care actions.
+  static final quickTools = [emergency, findDoctor, calculators, converters];
+  static final moreTools = [
     bookAppointment,
-    findDoctor,
     documents,
     explainReport,
+    selectHospital,
   ];
-  static final moreTools = [emergency, calculators, converters, specialtyGuide];
 
   /// Home / Services "MyHealth services" carousel.
   static final promotions = [
@@ -451,6 +463,7 @@ abstract final class PatientCatalog {
     ServiceGroup.tools: [vitals, nutrition, calculators, converters],
     ServiceGroup.futureExtensions: [
       emergency,
+      selectHospital,
       specialtyGuide,
       virtualCare,
       completeCheckup,
