@@ -9559,6 +9559,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edit clinic, doctor or visit type'**
   String get paReviewEditDetails;
+
+  /// No description provided for @paAskAboutReportHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask about this report…'**
+  String get paAskAboutReportHint;
+
+  /// No description provided for @paLeaveReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave this report'**
+  String get paLeaveReport;
+
+  /// No description provided for @paSourceOnDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'On-device summary · not AI'**
+  String get paSourceOnDevice;
+
+  /// No description provided for @paSourceLiveDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'AI draft · checked against your report'**
+  String get paSourceLiveDraft;
+
+  /// No description provided for @paSourceNotInReport.
+  ///
+  /// In en, this message translates to:
+  /// **'AI draft · not stated in this report'**
+  String get paSourceNotInReport;
+
+  /// No description provided for @paSourceUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected'**
+  String get paSourceUnavailable;
+
+  /// No description provided for @paSourceError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t answer'**
+  String get paSourceError;
+
+  /// No description provided for @paFromYourReport.
+  ///
+  /// In en, this message translates to:
+  /// **'From your report:'**
+  String get paFromYourReport;
+
+  /// No description provided for @paLiveDraftDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft from AI — not a diagnosis. Discuss results with your doctor.'**
+  String get paLiveDraftDisclaimer;
+
+  /// No description provided for @paChatReportLiveStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Report AI connected · drafts'**
+  String get paChatReportLiveStatus;
 }
 
 class _AppLocalizationsDelegate

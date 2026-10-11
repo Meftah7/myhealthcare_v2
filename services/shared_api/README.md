@@ -88,6 +88,7 @@ configured with `MYHEALTH_ORIGINS`; no wildcard CORS or public SQL endpoint exis
 | GET `/api/notifications` | Own notifications only |
 | POST `/api/ai` | Current clinician/patient relationship; server provider seam; draft output only |
 | POST `/api/reports/explain` | The patient themself or a current care-team clinician; the PDF original must belong to that patient; access rechecked after the provider replies; labelled draft with `coverage` (first 12,000 characters, `complete: false` when clipped); 10/min per account; 503 when no provider is configured, 502 on provider failure |
+| POST `/api/reports/chat` | Same access and file-ownership checks as explain; grounded answer with server-verified `quotes`, `supported` (false when the report does not say), `coverage`; question ≤ 1,000 chars, history ≤ 12 turns; 20/min per account; 503/502 as above. Shared logic with the local app's gateway (services/report_ai) |
 | GET `/api/health` | Admin only; schema, integrity, backup/restore/delivery jobs and configuration |
 
 Retries require a stable `idempotencyKey`. Reusing it with different inputs fails

@@ -2269,5 +2269,15 @@
   "paReviewFacility": "المنشأة",
   "paReviewVisitMode": "نوع الزيارة",
   "paReviewChangeTime": "تغيير الوقت",
-  "paReviewEditDetails": "تعديل العيادة أو الطبيب أو نوع الزيارة"
+  "paReviewEditDetails": "تعديل العيادة أو الطبيب أو نوع الزيارة",
+  "paAskAboutReportHint": "اسأل عن هذا التقرير…",
+  "paLeaveReport": "إغلاق هذا التقرير",
+  "paSourceOnDevice": "ملخص على الجهاز · ليس ذكاءً اصطناعيًا",
+  "paSourceLiveDraft": "مسودة ذكاء اصطناعي · تم التحقق منها مقابل تقريرك",
+  "paSourceNotInReport": "مسودة ذكاء اصطناعي · غير مذكور في هذا التقرير",
+  "paSourceUnavailable": "غير متصل",
+  "paSourceError": "تعذّرت الإجابة",
+  "paFromYourReport": "من تقريرك:",
+  "paLiveDraftDisclaimer": "مسودة من الذكاء الاصطناعي — ليست تشخيصًا. ناقش النتائج مع طبيبك.",
+  "paChatReportLiveStatus": "ذكاء التقارير متصل · مسودات"
 }

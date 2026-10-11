@@ -108,7 +108,9 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
                           const SizedBox(width: Space.xxs),
                           Flexible(
                             child: Text(
-                              live ? t.paChatLiveStatus : t.paChatOfflineStatus,
+                              live
+                                  ? t.paChatReportLiveStatus
+                                  : t.paChatOfflineStatus,
                               style: theme.textTheme.labelSmall?.copyWith(
                                 color: scheme.onSurfaceVariant,
                               ),
@@ -173,6 +175,13 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
                     },
                     child: Text(t.paViewOriginal),
                   ),
+                  IconButton(
+                    key: const ValueKey('leave-report'),
+                    tooltip: t.paLeaveReport,
+                    icon: const Icon(Icons.close, size: 18),
+                    onPressed: () =>
+                        ref.read(careNavigatorProvider.notifier).leaveReport(),
+                  ),
                 ],
               ),
             ),
@@ -185,7 +194,14 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
               itemCount: chat.messages.length + (chat.sending ? 1 : 0),
               itemBuilder: (context, i) {
                 if (i == chat.messages.length) return const _TypingDots();
-                return _Bubble(message: chat.messages[i]);
+                return _Bubble(
+                  message: chat.messages[i],
+                  onRetry: chat.sending
+                      ? null
+                      : (q) => unawaited(
+                          ref.read(careNavigatorProvider.notifier).retry(q),
+                        ),
+                );
               },
             ),
           ),
@@ -218,7 +234,9 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
                     textInputAction: TextInputAction.send,
                     onSubmitted: (_) => _send(),
                     decoration: InputDecoration(
-                      hintText: t.askAboutAppHint,
+                      hintText: chat.report == null
+                          ? t.askAboutAppHint
+                          : t.paAskAboutReportHint,
                       isDense: true,
                       border: const OutlineInputBorder(),
                     ),
@@ -239,23 +257,49 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
 }
 
 class _Bubble extends StatelessWidget {
-  const _Bubble({required this.message});
+  const _Bubble({required this.message, this.onRetry});
   final ChatMessage message;
+  final ValueChanged<String>? onRetry;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final palette = PatientPalette.of(context);
+    final t = AppLocalizations.of(context)!;
     final isUser = message.role == ChatRole.user;
 
     final (bg, fg) = isUser
-        ? (scheme.primary, scheme.onPrimary)
+        ? (palette.action, palette.onAction)
         : message.isEmergency
         ? (
             theme.clinicalStatus.riskHigh.container,
             theme.clinicalStatus.riskHigh.onContainer,
           )
+        : message.kind == ChatKind.error
+        ? (palette.dangerContainer, palette.text)
         : (scheme.surfaceContainerHighest, scheme.onSurface);
+
+    // What produced this message, always visible (not colour alone).
+    final source = isUser || message.isEmergency
+        ? null
+        : switch (message.kind) {
+            ChatKind.guide => null,
+            ChatKind.summary => (Icons.memory_outlined, t.paSourceOnDevice),
+            ChatKind.live =>
+              message.supported == false
+                  ? (Icons.help_outline, t.paSourceNotInReport)
+                  : (Icons.auto_awesome_outlined, t.paSourceLiveDraft),
+            ChatKind.unavailable => (
+              Icons.cloud_off_outlined,
+              t.paSourceUnavailable,
+            ),
+            ChatKind.error => (Icons.error_outline, t.paSourceError),
+          };
+    final small = theme.textTheme.labelSmall?.copyWith(
+      color: fg.withValues(alpha: .8),
+      fontWeight: FontWeight.w600,
+    );
 
     return Align(
       alignment: isUser
@@ -268,7 +312,7 @@ class _Bubble extends StatelessWidget {
           vertical: Space.xs,
         ),
         constraints: BoxConstraints(
-          maxWidth: MediaQuery.sizeOf(context).width * 0.7,
+          maxWidth: MediaQuery.sizeOf(context).width * 0.78,
         ),
         decoration: BoxDecoration(
           color: bg,
@@ -283,9 +327,69 @@ class _Bubble extends StatelessWidget {
             bottomEnd: Radius.circular(isUser ? 4 : 16),
           ),
         ),
-        child: Text(
-          message.text,
-          style: theme.textTheme.bodyMedium?.copyWith(color: fg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (source != null) ...[
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(source.$1, size: 14, color: fg.withValues(alpha: .8)),
+                  const SizedBox(width: 4),
+                  Flexible(child: Text(source.$2, style: small)),
+                ],
+              ),
+              const SizedBox(height: Space.xxs),
+            ],
+            SelectableText(
+              message.text,
+              style: theme.textTheme.bodyMedium?.copyWith(color: fg),
+            ),
+            if (message.quotes.isNotEmpty) ...[
+              const SizedBox(height: Space.xs),
+              Text(t.paFromYourReport, style: small),
+              for (final q in message.quotes)
+                Container(
+                  margin: const EdgeInsets.only(top: Space.xxs),
+                  padding: const EdgeInsetsDirectional.only(start: Space.xs),
+                  decoration: BoxDecoration(
+                    border: BorderDirectional(
+                      start: BorderSide(color: palette.link, width: 3),
+                    ),
+                  ),
+                  child: SelectableText(
+                    q,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: fg,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+            ],
+            if (message.note != null) ...[
+              const SizedBox(height: Space.xs),
+              Text(
+                message.note!,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: fg.withValues(alpha: .85),
+                ),
+              ),
+            ],
+            if (message.kind == ChatKind.live) ...[
+              const SizedBox(height: Space.xs),
+              Text(t.paLiveDraftDisclaimer, style: small),
+            ],
+            if (message.retryQuestion != null && onRetry != null)
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: TextButton.icon(
+                  onPressed: () => onRetry!(message.retryQuestion!),
+                  icon: const Icon(Icons.refresh, size: 18),
+                  label: Text(t.tryAgain),
+                ),
+              ),
+          ],
         ),
       ),
     );

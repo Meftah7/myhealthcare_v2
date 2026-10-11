@@ -5364,4 +5364,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paReviewEditDetails => 'Edit clinic, doctor or visit type';
+
+  @override
+  String get paAskAboutReportHint => 'Ask about this report…';
+
+  @override
+  String get paLeaveReport => 'Leave this report';
+
+  @override
+  String get paSourceOnDevice => 'On-device summary · not AI';
+
+  @override
+  String get paSourceLiveDraft => 'AI draft · checked against your report';
+
+  @override
+  String get paSourceNotInReport => 'AI draft · not stated in this report';
+
+  @override
+  String get paSourceUnavailable => 'Not connected';
+
+  @override
+  String get paSourceError => 'Couldn\'t answer';
+
+  @override
+  String get paFromYourReport => 'From your report:';
+
+  @override
+  String get paLiveDraftDisclaimer =>
+      'Draft from AI — not a diagnosis. Discuss results with your doctor.';
+
+  @override
+  String get paChatReportLiveStatus => 'Report AI connected · drafts';
 }

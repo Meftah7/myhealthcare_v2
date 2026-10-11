@@ -2342,5 +2342,15 @@
   "paReviewFacility": "Facility",
   "paReviewVisitMode": "Visit mode",
   "paReviewChangeTime": "Change time",
-  "paReviewEditDetails": "Edit clinic, doctor or visit type"
+  "paReviewEditDetails": "Edit clinic, doctor or visit type",
+  "paAskAboutReportHint": "Ask about this report…",
+  "paLeaveReport": "Leave this report",
+  "paSourceOnDevice": "On-device summary · not AI",
+  "paSourceLiveDraft": "AI draft · checked against your report",
+  "paSourceNotInReport": "AI draft · not stated in this report",
+  "paSourceUnavailable": "Not connected",
+  "paSourceError": "Couldn't answer",
+  "paFromYourReport": "From your report:",
+  "paLiveDraftDisclaimer": "Draft from AI — not a diagnosis. Discuss results with your doctor.",
+  "paChatReportLiveStatus": "Report AI connected · drafts"
 }

@@ -217,3 +217,34 @@ test('report explanation without a configured provider or with a failing one nev
   assert.equal(failed.status, 502);
   assert.doesNotMatch(JSON.stringify(failed.body), /provider down/);
 });
+
+test('report follow-up chat: authorized file only, grounded answer, bounds and failures', async t => {
+  const f = await fixture(t, { reportChat: async ({ question, document }) => JSON.stringify(
+    question.includes('vitamin')
+      ? { answer: 'The report does not include vitamin D.', supported: false, quotes: [] }
+      : { answer: 'Glucose was 140 mg/dL, marked high.', supported: true, quotes: [document.split('\n')[0]] },
+  ) });
+  const pdf = Buffer.from('%PDF-1.4 synthetic').toString('base64');
+  const up = await f.clients.patient('/api/originals', { method: 'POST', body: { patientId: f.patient, base64: pdf, idempotencyKey: id() } });
+  const ask = (client, extra) => client('/api/reports/chat', { method: 'POST', body: {
+    patientId: f.patient, fileId: up.body.id, text: 'Glucose 140 mg/dL H\nSynthetic test report', question: 'Was glucose high?', history: [], ...extra } });
+
+  const grounded = await ask(f.clients.patient);
+  assert.equal(grounded.status, 200);
+  assert.equal(grounded.body.supported, true);
+  assert.deepEqual(grounded.body.quotes, ['Glucose 140 mg/dL H']);
+  assert.equal(grounded.body.coverage.complete, true);
+  const missing = await ask(f.clients.patient, { question: 'What about vitamin D?' });
+  assert.equal(missing.body.supported, false);
+
+  assert.equal((await ask(f.clients.other)).status, 403);
+  assert.equal((await ask(f.clients.unrelated)).status, 403);
+  assert.equal((await ask(f.clients.patient, { history: [{ role: 'system', text: 'x' }] })).status, 400);
+  assert.equal((await ask(f.clients.patient, { question: 'q'.repeat(1001) })).status, 400);
+
+  const none = await fixture(t);
+  const up2 = await none.clients.patient('/api/originals', { method: 'POST', body: { patientId: none.patient, base64: pdf, idempotencyKey: id() } });
+  const unconfigured = await none.clients.patient('/api/reports/chat', { method: 'POST', body: {
+    patientId: none.patient, fileId: up2.body.id, text: 'a', question: 'q', history: [] } });
+  assert.equal(unconfigured.status, 503);
+});

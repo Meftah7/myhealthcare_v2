@@ -5417,4 +5417,37 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get paReviewEditDetails => 'تعديل العيادة أو الطبيب أو نوع الزيارة';
+
+  @override
+  String get paAskAboutReportHint => 'اسأل عن هذا التقرير…';
+
+  @override
+  String get paLeaveReport => 'إغلاق هذا التقرير';
+
+  @override
+  String get paSourceOnDevice => 'ملخص على الجهاز · ليس ذكاءً اصطناعيًا';
+
+  @override
+  String get paSourceLiveDraft =>
+      'مسودة ذكاء اصطناعي · تم التحقق منها مقابل تقريرك';
+
+  @override
+  String get paSourceNotInReport =>
+      'مسودة ذكاء اصطناعي · غير مذكور في هذا التقرير';
+
+  @override
+  String get paSourceUnavailable => 'غير متصل';
+
+  @override
+  String get paSourceError => 'تعذّرت الإجابة';
+
+  @override
+  String get paFromYourReport => 'من تقريرك:';
+
+  @override
+  String get paLiveDraftDisclaimer =>
+      'مسودة من الذكاء الاصطناعي — ليست تشخيصًا. ناقش النتائج مع طبيبك.';
+
+  @override
+  String get paChatReportLiveStatus => 'ذكاء التقارير متصل · مسودات';
 }
