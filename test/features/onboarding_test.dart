@@ -32,7 +32,7 @@ void main() {
 
     await _pumpPastSplash(tester);
 
-    expect(find.text('Your health at a glance'), findsOneWidget);
+    expect(find.text('Book appointments in a few taps'), findsOneWidget);
     expect(find.text('Skip'), findsOneWidget);
     expect(find.text('Next'), findsOneWidget);
 
@@ -40,12 +40,14 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
-    expect(find.text('Your health at a glance'), findsNothing);
-    expect(find.text('Sign in'), findsWidgets);
+    // Skip lands on guest Home (public browsing).
+    expect(find.text('Book appointments in a few taps'), findsNothing);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('Login or Register'), findsOneWidget);
     expect(prefs.getBool('ui.hasSeenOnboarding'), isTrue);
   });
 
-  testWidgets('walking all three pages ends on Get started', (tester) async {
+  testWidgets('walking both pages ends on Get started', (tester) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
 
@@ -61,10 +63,7 @@ void main() {
 
     await _pumpPastSplash(tester);
 
-    for (final title in const [
-      'Book the right appointment, faster',
-      'One app, your whole care team',
-    ]) {
+    for (final title in const ['Your records and reports, made clearer']) {
       await tester.tap(find.text('Next'));
       await tester.pumpAndSettle();
       expect(find.text(title), findsOneWidget);
@@ -73,9 +72,9 @@ void main() {
     expect(find.text('Get started'), findsOneWidget);
     await tester.tap(find.text('Get started'));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 500));
 
-    expect(find.text('Sign in'), findsWidgets);
+    expect(find.text('Login or Register'), findsOneWidget);
   });
 
   testWidgets('does not appear again once already seen', (tester) async {
@@ -94,7 +93,7 @@ void main() {
 
     await _pumpPastSplash(tester);
 
-    expect(find.text('Your health at a glance'), findsNothing);
+    expect(find.text('Book appointments in a few taps'), findsNothing);
     expect(find.text('Sign in'), findsWidgets);
   });
 }

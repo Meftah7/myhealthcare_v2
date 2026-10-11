@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/shell/app_shell.dart';
+import 'package:myhealthcare/core/ui/patient/patient_components.dart';
 
 Future<void> _settle(WidgetTester tester) async {
   for (var i = 0; i < 8; i++) {
@@ -66,4 +67,33 @@ Future<List<String>> compactNavigationLabels(WidgetTester tester) async {
     await _settle(tester);
   }
   return labels;
+}
+
+/// Opens a Home "Quick Access" tile by its catalogue id (e.g. 'records',
+/// 'nutrition', 'profile', 'billing'), going to Home first.
+Future<void> openQuickAccess(WidgetTester tester, String id) async {
+  final tile = find.byKey(ValueKey('catalog-$id'));
+  if (tile.evaluate().isEmpty) {
+    final home = find.text('Home');
+    if (home.evaluate().isNotEmpty) {
+      await tester.tap(home.first);
+      await _settle(tester);
+    }
+  }
+  await tester.scrollUntilVisible(
+    tile,
+    300,
+    // The Home page's own list — not the navigation rail's scroll view.
+    scrollable: find
+        .descendant(
+          of: find.byType(PatientPageScaffold),
+          matching: find.byWidgetPredicate(
+            (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+          ),
+        )
+        .first,
+  );
+  await _settle(tester);
+  await tester.tap(tile);
+  await _settle(tester);
 }

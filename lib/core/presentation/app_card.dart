@@ -107,9 +107,9 @@ class GradientHeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final surface = DecoratedBox(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         borderRadius: Radii.hero,
-        color: AppColors.seed,
+        color: PatientPalette.brandOf(context, AppColors.seed),
       ),
       child: Stack(
         children: [

@@ -194,8 +194,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
           const SizedBox(height: Space.xs),
           OutlinedButton(
-            onPressed: _busy ? null : () => context.push(AppRoutes.register),
+            onPressed: _busy
+                ? null
+                : () {
+                    // Keep a guest's sign-in intent through registration.
+                    final from = GoRouterState.of(
+                      context,
+                    ).uri.queryParameters['from'];
+                    unawaited(
+                      context.push(
+                        Uri(
+                          path: AppRoutes.register,
+                          queryParameters: from == null ? null : {'from': from},
+                        ).toString(),
+                      ),
+                    );
+                  },
             child: Text(t.createPatientAccount),
+          ),
+          TextButton(
+            key: const ValueKey('browse-as-guest'),
+            onPressed: _busy
+                ? null
+                : () {
+                    ref.read(sessionProvider.notifier).continueAsGuest();
+                    context.canPop()
+                        ? context.pop()
+                        : context.go(AppRoutes.patientHome);
+                  },
+            child: Text(t.paBrowseAsGuest),
           ),
           // Demo credentials belong to the explicit demo runtime only.
           if (ref.watch(appModeProvider).isDemo) ...[

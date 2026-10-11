@@ -7,22 +7,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/di.dart';
+import '../core/presentation/app_scaffold.dart';
+import '../core/ui/patient/patient_bottom_navigation.dart';
 import '../domain/enums.dart';
 import '../features/admin/presentation/admin_ai_log_screen.dart';
-import '../features/admin/presentation/admin_workspace_screens.dart';
-import '../features/admin/presentation/admin_clinic_documents.dart';
-import '../features/admin/presentation/admin_people_profile.dart';
-import '../features/admin/presentation/admin_finance_report.dart';
 import '../features/admin/presentation/admin_appointments_screen.dart';
 import '../features/admin/presentation/admin_billing_screen.dart';
+import '../features/admin/presentation/admin_clinic_documents.dart';
 import '../features/admin/presentation/admin_dashboard_screen.dart';
 import '../features/admin/presentation/admin_feedback_screen.dart';
+import '../features/admin/presentation/admin_finance_report.dart';
 import '../features/admin/presentation/admin_forecast_screen.dart';
+import '../features/admin/presentation/admin_people_profile.dart';
 import '../features/admin/presentation/admin_profile_pages.dart';
 import '../features/admin/presentation/admin_profile_screen.dart';
 import '../features/admin/presentation/admin_referral_requests_screen.dart';
 import '../features/admin/presentation/admin_top_actions.dart';
 import '../features/admin/presentation/admin_work_queue_screen.dart';
+import '../features/admin/presentation/admin_workspace_screens.dart';
 import '../features/admin/presentation/ai_settings_screen.dart';
 import '../features/admin/presentation/audit_log_screen.dart';
 import '../features/admin/presentation/clinic_hours_screen.dart';
@@ -41,6 +43,7 @@ import '../features/auth/presentation/forgot_password_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
 import '../features/billing/presentation/payments_screen.dart';
+import '../features/booking/presentation/book_appointment_landing.dart';
 import '../features/booking/presentation/booking_screen.dart';
 import '../features/care/presentation/admin_home_visits_screen.dart';
 import '../features/care/presentation/document_workspace_screen.dart';
@@ -50,6 +53,8 @@ import '../features/care/presentation/messages_screen.dart';
 import '../features/care/presentation/sick_leave_screen.dart';
 import '../features/care/presentation/staff_inbox_screen.dart';
 import '../features/consultation/presentation/consultation_screen.dart';
+import '../features/health_tools/presentation/health_tools_screens.dart';
+import '../features/news/presentation/news_screen.dart';
 import '../features/notifications/presentation/notifications_screen.dart';
 import '../features/nutrition/presentation/nutrition_screen.dart';
 import '../features/patient/application/profile_screen.dart';
@@ -62,6 +67,7 @@ import '../features/patient_chart/presentation/patient_summary_screen.dart';
 import '../features/patient_home/presentation/patient_home_screen.dart';
 import '../features/records/presentation/radiology_screen.dart';
 import '../features/records/presentation/record_detail_screen.dart';
+import '../features/service_catalog/presentation/services_screen.dart';
 import '../features/staff_dashboard/presentation/panel_analytics_screen.dart';
 import '../features/staff_dashboard/presentation/schedule_work_screen.dart';
 import '../features/staff_dashboard/presentation/staff_activity_screen.dart';
@@ -76,6 +82,7 @@ import '../features/tasks/presentation/task_board_screen.dart';
 import '../features/tasks/presentation/task_detail_screen.dart';
 import '../features/timeline/presentation/health_records_screen.dart';
 import '../features/vitals/presentation/vitals_screen.dart';
+import '../features/weather/presentation/weather_screen.dart';
 import '../l10n/app_localizations.dart';
 import 'shell/app_shell.dart';
 
@@ -145,6 +152,21 @@ abstract final class AppRoutes {
   static const patientVisitedDoctors = '/patient/appointments/doctors';
   static const patientMessages = '/patient/home/messages';
   static const patientHomeVisit = '/patient/home/home-visit';
+
+  // Patient rebuild — public tabs, tools and booking discovery.
+  static const patientWeather = '/patient/weather';
+  static const patientNews = '/patient/news';
+  static const patientServices = '/patient/services';
+  static const patientCalculators = '/patient/home/calculators';
+  static const patientConverters = '/patient/home/converters';
+
+  /// Full-screen booking discovery (public); `?mode=virtual` opens Virtual
+  /// Care. Every path converges on [patientBook].
+  static const patientBookLanding = '/patient/book';
+  static const patientFindClinic = '/patient/book/clinic';
+  static const patientFindDoctor = '/patient/book/doctor';
+  static const patientFindRegion = '/patient/book/region';
+  static const patientSpecialtyGuide = '/patient/book/specialties';
 
   /// Record detail — pass the record id: `'$patientTimeline/record/$id'`.
   static String patientRecord(String id) => '$patientTimeline/record/$id';
@@ -249,16 +271,49 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
       // bottom nav while a multi-step task is in progress (DESIGN.md §6).
       GoRoute(
         path: AppRoutes.patientSummary,
-        builder: (_, _) => const AiSummaryScreen(),
+        builder: (_, _) => const _ReturnHome(child: AiSummaryScreen()),
       ),
       GoRoute(
         path: AppRoutes.patientBook,
-        builder: (_, state) => BookingScreen(
-          mode: (state.extra as BookingMode?) ?? BookingMode.schedule,
-          initialStaffId: state.uri.queryParameters['staff'],
-          initialDepartmentId: state.uri.queryParameters['dept'],
-          targetPatientId: state.uri.queryParameters['for'],
+        // Resumed after a guest sign-in the wizard is the root of the stack,
+        // so its back arrow falls back to the Appointments tab.
+        builder: (_, state) => _ReturnHome(
+          to: AppRoutes.patientAppointments,
+          child: BookingScreen(
+            mode: (state.extra as BookingMode?) ?? BookingMode.schedule,
+            initialStaffId: state.uri.queryParameters['staff'],
+            initialDepartmentId: state.uri.queryParameters['dept'],
+            targetPatientId: state.uri.queryParameters['for'],
+          ),
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.patientBookLanding,
+        builder: (_, state) => BookAppointmentLandingScreen(
+          initialMode: state.uri.queryParameters['mode'] == 'virtual'
+              ? BookingLandingMode.virtual
+              : BookingLandingMode.general,
+        ),
+        routes: [
+          GoRoute(
+            path: 'clinic',
+            builder: (_, _) => const ClinicSearchScreen(),
+          ),
+          GoRoute(
+            path: 'doctor',
+            builder: (_, state) => DoctorSearchScreen(
+              departmentId: state.uri.queryParameters['dept'],
+            ),
+          ),
+          GoRoute(
+            path: 'region',
+            builder: (_, _) => const RegionSearchScreen(),
+          ),
+          GoRoute(
+            path: 'specialties',
+            builder: (_, _) => const SpecialtyGuideScreen(),
+          ),
+        ],
       ),
       GoRoute(
         path: AppRoutes.staffScribe,
@@ -290,6 +345,41 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
   );
 }
 
+/// Patient routes a signed-out visitor may open. Patient-specific data
+/// (records, appointments list, documents, messages, family, account) stays
+/// behind sign-in.
+bool isPublicPatientRoute(String location) {
+  const exact = {
+    AppRoutes.patientHome,
+    AppRoutes.patientAppointments,
+    AppRoutes.patientCalculators,
+    AppRoutes.patientConverters,
+  };
+  const prefixes = [
+    AppRoutes.patientWeather,
+    AppRoutes.patientNews,
+    AppRoutes.patientServices,
+    AppRoutes.patientBookLanding,
+  ];
+  if (exact.contains(location)) return true;
+  return prefixes.any((p) => location == p || location.startsWith('$p/'));
+}
+
+/// Only internal app paths may be resumed after sign-in — never an external
+/// URL, a protocol-relative link or another auth screen.
+bool isSafeReturnRoute(String route) {
+  if (!route.startsWith('/') || route.startsWith('//')) return false;
+  final uri = Uri.tryParse(route);
+  if (uri == null || uri.hasScheme || uri.hasAuthority) return false;
+  const auth = {
+    AppRoutes.login,
+    AppRoutes.register,
+    AppRoutes.forgotPassword,
+    '/',
+  };
+  return !auth.contains(uri.path);
+}
+
 /// Role-gated routing guard (P2-05).
 String? _guard(Ref ref, GoRouterState state) {
   final session = ref.read(sessionProvider);
@@ -315,14 +405,36 @@ String? _guard(Ref ref, GoRouterState state) {
 
   final user = session.user;
   if (user == null) {
-    return onAuthScreen ? null : AppRoutes.login;
+    // Guests may browse the public patient areas (Home, Weather, News,
+    // Services, tools and booking discovery). Anything private goes through
+    // real sign-in, remembering where they were headed.
+    if (onAuthScreen) return null;
+    // An idle timeout always goes to sign-in (with its notice), even from a
+    // page guests may browse.
+    if (session.endedByInactivity) return AppRoutes.login;
+    if (isPublicPatientRoute(loc)) return null;
+    // A plain launch opens sign-in (staff and admin always need it); guests
+    // reach Home from "Browse as guest" or onboarding Skip / Get Started.
+    // No `from` here: this redirect also fires when a session ends, and a
+    // different account must never resume the previous user's location.
+    // Guest sign-in actions add their own `from` (goToSignIn); same-account
+    // timeouts use the session's resumeLocation below.
+    return AppRoutes.login;
   }
 
   // Signed in: keep them out of the splash / auth screens, and out of
-  // another role's area. The same account signing back in after an idle
-  // timeout returns to where it was (the session only carries that location
-  // for the account that timed out).
+  // another role's area. A sign-in started from a gated destination resumes
+  // there (allowlisted internal routes only). The same account signing back
+  // in after an idle timeout returns to where it was (the session only
+  // carries that location for the account that timed out).
   if (loc == onSplash || onAuthScreen) {
+    final from = state.uri.queryParameters['from'];
+    if (onAuthScreen &&
+        from != null &&
+        isSafeReturnRoute(from) &&
+        _canAccess(Uri.parse(from).path, user.role)) {
+      return from;
+    }
     final resume = session.resumeLocation;
     if (resume != null &&
         session.resumeAccountId == user.id &&
@@ -414,40 +526,50 @@ class _SplashScreen extends ConsumerWidget {
 
 StatefulShellRoute _patientShell() {
   return StatefulShellRoute.indexedStack(
-    // Bottom nav order: Home, Nutrition, Appointment, Records, Profile.
-    // The bar stays visible on every patient screen (Vitals nests under Home).
+    // Bottom nav order: Home | Weather | Appointments | News | Services.
+    // Branches 5–7 (Nutrition, Records, Profile) are no longer tabs but keep
+    // their routes, deep links and independent stacks; they are reached from
+    // Home Quick Access, highlight Home and show a back arrow to Home.
     builder: (context, state, navigationShell) {
       final t = AppLocalizations.of(context)!;
+      final destinations = [
+        AppDestination(
+          icon: Icons.home_outlined,
+          selectedIcon: Icons.home_rounded,
+          label: t.navHome,
+        ),
+        AppDestination(
+          icon: Icons.wb_sunny_outlined,
+          selectedIcon: Icons.wb_sunny,
+          label: t.paWeather,
+        ),
+        AppDestination(
+          icon: Icons.calendar_month_outlined,
+          selectedIcon: Icons.calendar_month,
+          label: t.navAppointments,
+        ),
+        AppDestination(
+          icon: Icons.newspaper_outlined,
+          selectedIcon: Icons.newspaper,
+          label: t.paNews,
+        ),
+        AppDestination(
+          icon: Icons.grid_view_outlined,
+          selectedIcon: Icons.grid_view_rounded,
+          label: t.paServices,
+        ),
+      ];
       return AppShell(
         navigationShell: navigationShell,
         overlay: const CareNavigatorOverlay(),
-        destinations: [
-          AppDestination(
-            icon: Icons.home_outlined,
-            selectedIcon: Icons.home,
-            label: t.navHome,
-          ),
-          AppDestination(
-            icon: Icons.restaurant_outlined,
-            selectedIcon: Icons.restaurant,
-            label: t.navNutrition,
-          ),
-          AppDestination(
-            icon: Icons.event_note_outlined,
-            selectedIcon: Icons.event_note,
-            label: t.navAppointments,
-          ),
-          AppDestination(
-            icon: Icons.folder_shared_outlined,
-            selectedIcon: Icons.folder_shared,
-            label: t.navRecords,
-          ),
-          AppDestination(
-            icon: Icons.account_circle_outlined,
-            selectedIcon: Icons.account_circle,
-            label: t.profile,
-          ),
-        ],
+        destinations: destinations,
+        selectedDestinationFor: (branch) => branch < 5 ? branch : 0,
+        compactBarBuilder: (context, selected, onSelected) =>
+            PatientBottomNavigation(
+              destinations: destinations,
+              selectedIndex: selected,
+              onSelected: onSelected,
+            ),
       );
     },
     branches: [
@@ -457,6 +579,14 @@ StatefulShellRoute _patientShell() {
             path: AppRoutes.patientHome,
             builder: (_, _) => const PatientHomeScreen(),
             routes: [
+              GoRoute(
+                path: 'calculators',
+                builder: (_, _) => const HealthCalculatorsScreen(),
+              ),
+              GoRoute(
+                path: 'converters',
+                builder: (_, _) => const HealthConvertersScreen(),
+              ),
               GoRoute(path: 'vitals', builder: (_, _) => const VitalsScreen()),
               GoRoute(
                 path: 'billing',
@@ -490,8 +620,8 @@ StatefulShellRoute _patientShell() {
       StatefulShellBranch(
         routes: [
           GoRoute(
-            path: AppRoutes.patientNutrition,
-            builder: (_, _) => const NutritionScreen(),
+            path: AppRoutes.patientWeather,
+            builder: (_, _) => const WeatherScreen(),
           ),
         ],
       ),
@@ -499,7 +629,7 @@ StatefulShellRoute _patientShell() {
         routes: [
           GoRoute(
             path: AppRoutes.patientAppointments,
-            builder: (_, _) => const AppointmentsScreen(),
+            builder: (_, _) => const _PatientAppointmentsTab(),
             routes: [
               GoRoute(
                 path: 'doctors',
@@ -518,10 +648,37 @@ StatefulShellRoute _patientShell() {
       StatefulShellBranch(
         routes: [
           GoRoute(
+            path: AppRoutes.patientNews,
+            builder: (_, _) => const NewsScreen(),
+          ),
+        ],
+      ),
+      StatefulShellBranch(
+        routes: [
+          GoRoute(
+            path: AppRoutes.patientServices,
+            builder: (_, _) => const ServicesScreen(),
+          ),
+        ],
+      ),
+      // --- retained branches (Quick Access destinations) -------------------
+      StatefulShellBranch(
+        routes: [
+          GoRoute(
+            path: AppRoutes.patientNutrition,
+            builder: (_, _) => const _ReturnHome(child: NutritionScreen()),
+          ),
+        ],
+      ),
+      StatefulShellBranch(
+        routes: [
+          GoRoute(
             path: AppRoutes.patientTimeline,
-            builder: (_, state) => HealthRecordsScreen(
-              startOnMedications:
-                  state.uri.queryParameters['view'] == 'medications',
+            builder: (_, state) => _ReturnHome(
+              child: HealthRecordsScreen(
+                startOnMedications:
+                    state.uri.queryParameters['view'] == 'medications',
+              ),
             ),
             routes: [
               GoRoute(
@@ -557,7 +714,7 @@ StatefulShellRoute _patientShell() {
         routes: [
           GoRoute(
             path: AppRoutes.patientSettings,
-            builder: (_, _) => const ProfileScreen(),
+            builder: (_, _) => const _ReturnHome(child: ProfileScreen()),
             routes: [
               GoRoute(
                 path: 'personal',
@@ -589,6 +746,34 @@ StatefulShellRoute _patientShell() {
       ),
     ],
   );
+}
+
+/// Gives a retained ex-tab root page a back arrow to Home.
+class _ReturnHome extends StatelessWidget {
+  const _ReturnHome({required this.child, this.to = AppRoutes.patientHome});
+
+  final Widget child;
+
+  /// Where the back arrow goes when the page is the root of its stack.
+  final String to;
+
+  @override
+  Widget build(BuildContext context) => ReturnHomeScope(
+    onReturn: () => GoRouter.of(context).go(to),
+    child: child,
+  );
+}
+
+/// Signed-in patients get their appointments hub; guests get booking entry
+/// points without any private provider being read.
+class _PatientAppointmentsTab extends ConsumerWidget {
+  const _PatientAppointmentsTab();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) =>
+      ref.watch(currentUserProvider) == null
+      ? const GuestAppointmentsTab()
+      : const AppointmentsScreen();
 }
 
 // ---------------------------------------------------------------------------

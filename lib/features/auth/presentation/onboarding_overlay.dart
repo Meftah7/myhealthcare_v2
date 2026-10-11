@@ -1,7 +1,7 @@
-/// The intro carousel — shown once per device, after the splash mark
-/// dissolves and only for a signed-out visitor. Three cards explain what the
-/// app actually does (AI summaries, risk-ranked booking, one app for every
-/// role), then it steps aside for sign-in like the splash before it.
+/// The intro carousel — shown once per device (stored independently of the
+/// session), after the splash mark dissolves and only for a signed-out
+/// visitor. Two pages: appointment booking, then records and report
+/// explanations. Skip / Get Started land on guest Home.
 ///
 /// Timed off [kSplashDuration] rather than a cross-widget signal: the splash
 /// is purely decorative and exposes nothing to listen to, and re-using the
@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/router.dart';
 import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_scaffold.dart';
@@ -20,35 +21,17 @@ import '../../../l10n/app_localizations.dart';
 import '../application/session.dart';
 import 'splash_overlay.dart';
 
-/// The hero panel's frame — a thin tinted border around the artwork rather
-/// than the page's own `primaryContainer`, per the design pass on
-/// 2026-09-17: the standard container tint read too washed-out at this size.
-abstract final class _OnboardingFrame {
-  static const Color lightFill = Color(0xFFDEDAFB);
-  static const Color lightBorder = Color(0xFFCDC6F8);
-  static const Color darkFill = Color(0xFF342E64);
-  static const Color darkBorder = Color(0xFF504896);
-
-  /// Dark mode only: the artwork was designed against a light background, so
-  /// it's dimmed to ~85% brightness (not desaturated) rather than shown at
-  /// full brightness against the surrounding dark frame.
-  static const dimInDark = ColorFilter.matrix([
-    0.85, 0, 0, 0, 0, //
-    0, 0.85, 0, 0, 0, //
-    0, 0, 0.85, 0, 0, //
-    0, 0, 0, 1, 0,
-  ]);
-}
-
 class _OnboardingPage {
   const _OnboardingPage({
-    required this.asset,
+    required this.icon,
+    required this.accentIcon,
     required this.title,
     required this.body,
   });
 
-  /// A cropped illustration graphic (no text/logo/buttons baked in).
-  final String asset;
+  /// Original vector illustration: a large glyph plus a small accent glyph.
+  final IconData icon;
+  final IconData accentIcon;
 
   final String title;
   final String body;
@@ -84,6 +67,9 @@ class _OnboardingOverlayState extends ConsumerState<OnboardingOverlay> {
 
   void _finish() {
     unawaited(ref.read(hasSeenOnboardingProvider.notifier).markSeen());
+    // Public browsing is enabled: land on guest Home rather than sign-in.
+    // The overlay sits outside the router's Navigator, so use the router.
+    ref.read(routerProvider).go(AppRoutes.patientHome);
   }
 
   @override
@@ -97,19 +83,16 @@ class _OnboardingOverlayState extends ConsumerState<OnboardingOverlay> {
     final scheme = theme.colorScheme;
     final pages = [
       _OnboardingPage(
-        asset: 'assets/images/onboarding_1.png',
-        title: t.onboardingPage1Title,
-        body: t.onboardingPage1Body,
+        icon: Icons.calendar_month_rounded,
+        accentIcon: Icons.check_rounded,
+        title: t.paOnboardBookTitle,
+        body: t.paOnboardBookBody,
       ),
       _OnboardingPage(
-        asset: 'assets/images/onboarding_2.png',
-        title: t.onboardingPage2Title,
-        body: t.onboardingPage2Body,
-      ),
-      _OnboardingPage(
-        asset: 'assets/images/onboarding_3.png',
-        title: t.onboardingPage3Title,
-        body: t.onboardingPage3Body,
+        icon: Icons.description_rounded,
+        accentIcon: Icons.auto_awesome_rounded,
+        title: t.paOnboardRecordsTitle,
+        body: t.paOnboardRecordsBody,
       ),
     ];
     final last = _page == pages.length - 1;
@@ -169,7 +152,7 @@ class _OnboardingOverlayState extends ConsumerState<OnboardingOverlay> {
                           height: 6,
                           decoration: BoxDecoration(
                             color: i == _page
-                                ? scheme.primary
+                                ? PatientPalette.of(context).action
                                 : scheme.surfaceContainerHighest,
                             borderRadius: Radii.pill,
                           ),
@@ -194,21 +177,10 @@ class _OnboardingOverlayState extends ConsumerState<OnboardingOverlay> {
                                 ),
                               ),
                         style: FilledButton.styleFrom(
-                          // The theme's dark-mode primary is a pale lavender
-                          // (meant for text-on-dark contrast) — too weak for
-                          // a filled CTA, so this one button pins a stronger
-                          // purple with white text instead.
-                          backgroundColor: theme.brightness == Brightness.dark
-                              ? const Color(0xFF6C5AF5)
-                              : null,
-                          foregroundColor: theme.brightness == Brightness.dark
-                              ? Colors.white
-                              : null,
                           padding: const EdgeInsets.symmetric(
                             horizontal: Space.lg,
                             vertical: Space.sm,
                           ),
-                          shape: const StadiumBorder(),
                         ),
                         child: Text(
                           last ? t.onboardingGetStarted : t.nextLabel,
@@ -333,42 +305,62 @@ class _OnboardingPageView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
+    final palette = PatientPalette.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: Space.xl),
       child: Column(
         children: [
-          // A thin tinted frame behind the card — turns a floating image
-          // into a composed "hero" moment instead of a picture pasted on the
-          // page. Expanded so it fills the available height. The artwork
-          // itself (1080x1520, with its own soft gradient background baked
-          // in) sits inset by 8dp so the frame reads as a border, then fills
-          // the rest edge-to-edge via fit:cover — no letterboxing.
           Expanded(
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(Space.xs),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? _OnboardingFrame.darkFill
-                    : _OnboardingFrame.lightFill,
-                border: Border.all(
-                  color: isDark
-                      ? _OnboardingFrame.darkBorder
-                      : _OnboardingFrame.lightBorder,
+            child: ExcludeSemantics(
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: palette.softAccent,
+                  borderRadius: Radii.cardLarge,
                 ),
-                borderRadius: Radii.cardLarge,
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: SizedBox.expand(
-                  child: isDark
-                      ? ColorFiltered(
-                          colorFilter: _OnboardingFrame.dimInDark,
-                          child: Image.asset(page.asset, fit: BoxFit.cover),
-                        )
-                      : Image.asset(page.asset, fit: BoxFit.cover),
+                child: LayoutBuilder(
+                  builder: (context, c) {
+                    final size = (c.biggest.shortestSide * .42).clamp(
+                      72.0,
+                      180.0,
+                    );
+                    return Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Soft concentric rings behind the glyph.
+                        for (final f in const [1.9, 1.45])
+                          Container(
+                            width: size * f,
+                            height: size * f,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: palette.card.withValues(
+                                alpha: f > 1.5 ? .35 : .6,
+                              ),
+                            ),
+                          ),
+                        Icon(page.icon, size: size, color: palette.action),
+                        PositionedDirectional(
+                          top: c.maxHeight / 2 - size * .75,
+                          end: c.maxWidth / 2 - size * .8,
+                          child: Container(
+                            width: size * .42,
+                            height: size * .42,
+                            decoration: BoxDecoration(
+                              color: palette.success,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: palette.card, width: 3),
+                            ),
+                            child: Icon(
+                              page.accentIcon,
+                              color: Colors.white,
+                              size: size * .24,
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),
@@ -377,14 +369,17 @@ class _OnboardingPageView extends StatelessWidget {
           Text(
             page.title,
             textAlign: TextAlign.center,
-            style: theme.textTheme.headlineSmall,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: palette.text,
+            ),
           ),
           const SizedBox(height: Space.sm),
           Text(
             page.body,
             textAlign: TextAlign.center,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: scheme.onSurfaceVariant,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: palette.textMuted,
             ),
           ),
           const SizedBox(height: Space.md),

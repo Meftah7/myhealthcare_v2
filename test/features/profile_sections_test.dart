@@ -13,6 +13,7 @@ import 'package:myhealthcare/domain/enums.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/mfa.dart';
+import '../support/navigation.dart';
 import '../support/test_database.dart';
 
 Future<void> _settle(WidgetTester tester) async {
@@ -65,8 +66,7 @@ void main() {
     await passMfa(tester);
     await _settle(tester);
 
-    await tester.tap(find.text('Profile').last);
-    await _settle(tester);
+    await openQuickAccess(tester, 'profile');
     expect(find.widgetWithText(AppBar, 'Profile'), findsOneWidget);
 
     // The five section rows are all present; no form fields leak onto Profile.
@@ -176,8 +176,7 @@ void main() {
     await passMfa(tester);
     await _settle(tester);
 
-    await tester.tap(find.text('Profile').last);
-    await _settle(tester);
+    await openQuickAccess(tester, 'profile');
     await tester.ensureVisible(find.text('Preferences'));
     await tester.tap(find.text('Preferences'));
     await _settle(tester);

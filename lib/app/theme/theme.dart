@@ -6,5 +6,6 @@ export 'app_theme.dart';
 export 'app_typography.dart';
 export 'dimens.dart';
 export 'motion.dart';
+export 'patient_palette.dart';
 export 'status_colors.dart';
 export 'window_size.dart';

@@ -9,6 +9,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/presentation/appointment_confirmation_overlay.dart';
+import '../domain/enums.dart';
 import '../features/auth/application/session.dart';
 import '../features/auth/presentation/onboarding_overlay.dart';
 import '../features/auth/presentation/session_activity_monitor.dart';
@@ -25,14 +26,28 @@ class MyHealthCareApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final highContrast = ref.watch(highContrastProvider);
+    final user = ref.watch(currentUserProvider);
+    // Patients, guests and the sign-in screens use the approved blue patient
+    // theme; staff and admin workspaces keep their own palette.
+    final patientLook = user == null || user.role == UserRole.patient;
     return MaterialApp.router(
       // Dispose the navigator, open dialogs/PDF previews and widget-local
       // chart state when a session is locked or the acting account changes.
-      key: ValueKey(ref.watch(currentUserProvider)?.id),
+      key: ValueKey(user?.id),
       title: 'MyHealth Care',
       debugShowCheckedModeBanner: false,
-      theme: highContrast ? AppTheme.lightHighContrast : AppTheme.light,
-      darkTheme: highContrast ? AppTheme.darkHighContrast : AppTheme.dark,
+      theme: switch ((patientLook, highContrast)) {
+        (true, true) => AppTheme.patientLightHighContrast,
+        (true, false) => AppTheme.patientLight,
+        (false, true) => AppTheme.lightHighContrast,
+        (false, false) => AppTheme.light,
+      },
+      darkTheme: switch ((patientLook, highContrast)) {
+        (true, true) => AppTheme.patientDarkHighContrast,
+        (true, false) => AppTheme.patientDark,
+        (false, true) => AppTheme.darkHighContrast,
+        (false, false) => AppTheme.dark,
+      },
       themeMode: ref.watch(themeModeProvider),
       locale: ref.watch(localeProvider),
       supportedLocales: supportedLocales,

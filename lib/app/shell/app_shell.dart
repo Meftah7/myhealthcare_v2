@@ -33,10 +33,25 @@ class AppShell extends StatefulWidget {
     this.contextHeader,
     this.compactLeadingCount,
     this.keepCompactSectionsVisible = false,
+    this.selectedDestinationFor,
+    this.compactBarBuilder,
     super.key,
   });
 
   final StatefulNavigationShell navigationShell;
+
+  /// Maps the active branch to the highlighted destination. Lets a shell keep
+  /// extra branches (routes retained for deep links) that have no tab of
+  /// their own — they highlight the destination they are reached from.
+  final int Function(int branchIndex)? selectedDestinationFor;
+
+  /// Replaces the stock compact bar (the patient shell's centre-tile bar).
+  final Widget Function(
+    BuildContext context,
+    int selected,
+    ValueChanged<int> onSelected,
+  )?
+  compactBarBuilder;
   final List<AppDestination> destinations;
 
   /// A widget stacked over the whole shell — e.g. the patient Care Navigator
@@ -85,7 +100,8 @@ class _AppShellState extends State<AppShell> {
 
   Widget _content(BuildContext context) {
     final size = WindowSize.of(context);
-    final current = widget.navigationShell.currentIndex;
+    final branch = widget.navigationShell.currentIndex;
+    final current = widget.selectedDestinationFor?.call(branch) ?? branch;
     final hairline = Theme.of(context).colorScheme.outlineVariant;
 
     Widget body = ScrollToTopSignal(
@@ -98,6 +114,13 @@ class _AppShellState extends State<AppShell> {
           widget.contextHeader!,
           Expanded(child: body),
         ],
+      );
+    }
+
+    if (size.isCompact && widget.compactBarBuilder != null) {
+      return Scaffold(
+        body: body,
+        bottomNavigationBar: widget.compactBarBuilder!(context, current, _go),
       );
     }
 

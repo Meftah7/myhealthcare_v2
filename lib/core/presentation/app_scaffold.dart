@@ -15,6 +15,25 @@ import 'package:flutter/material.dart';
 import '../../app/theme/theme.dart';
 import 'readable_label.dart';
 
+/// Marks a page that used to be a bottom-navigation root but is now reached
+/// from Home's Quick Access. When such a page is the root of its stack, the
+/// [AppScaffold] shows a back arrow that returns to Home instead of none.
+class ReturnHomeScope extends InheritedWidget {
+  const ReturnHomeScope({
+    required this.onReturn,
+    required super.child,
+    super.key,
+  });
+
+  final VoidCallback onReturn;
+
+  static ReturnHomeScope? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<ReturnHomeScope>();
+
+  @override
+  bool updateShouldNotify(ReturnHomeScope oldWidget) => false;
+}
+
 /// Bumped by the shell when the active navigation destination is tapped a
 /// second time; every [AppScaffold] below it scrolls back to the top.
 ///
@@ -153,6 +172,14 @@ class _AppScaffoldState extends State<AppScaffold> {
 
   @override
   Widget build(BuildContext context) {
+    final returnHome = ReturnHomeScope.maybeOf(context);
+    final Widget? leading =
+        widget.leading ??
+        (returnHome != null &&
+                widget.automaticallyImplyLeading &&
+                !Navigator.canPop(context)
+            ? BackButton(onPressed: returnHome.onReturn)
+            : null);
     final size = WindowSize.of(context);
     final hero = widget.hero && !(size.isExpanded || size.isLarge);
     final gutter = size.gutter;
@@ -185,7 +212,7 @@ class _AppScaffoldState extends State<AppScaffold> {
         widget.titleWidget != null ||
         widget.actions != null ||
         widget.bottom != null ||
-        widget.leading != null;
+        leading != null;
 
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
@@ -228,7 +255,7 @@ class _AppScaffoldState extends State<AppScaffold> {
     var toolbarHeight = 96.0;
     if (hero && widget.title != null) {
       final hasLeading =
-          widget.leading != null ||
+          leading != null ||
           (widget.automaticallyImplyLeading && Navigator.canPop(context));
       final available = math.max(
         80.0,
@@ -282,7 +309,7 @@ class _AppScaffoldState extends State<AppScaffold> {
             MediaQuery.sizeOf(context).width -
             gutter * 2 -
             ((widget.actions?.isNotEmpty ?? false) ? 160 : 0) -
-            ((widget.leading != null || Navigator.canPop(context)) ? 56 : 0);
+            ((leading != null || Navigator.canPop(context)) ? 56 : 0);
         readableHeader =
             readableHeader || painter.minIntrinsicWidth > available;
         painter.dispose();
@@ -332,8 +359,8 @@ class _AppScaffoldState extends State<AppScaffold> {
                           children: [
                             Row(
                               children: [
-                                if (widget.leading != null)
-                                  widget.leading!
+                                if (leading != null)
+                                  leading
                                 else if (widget.automaticallyImplyLeading &&
                                     Navigator.canPop(context))
                                   const BackButton(),
@@ -385,7 +412,7 @@ class _AppScaffoldState extends State<AppScaffold> {
                 ),
               ),
               title: title,
-              leading: widget.leading,
+              leading: leading,
               automaticallyImplyLeading: widget.automaticallyImplyLeading,
               actions: widget.actions,
               bottom: widget.bottom,
@@ -393,7 +420,7 @@ class _AppScaffoldState extends State<AppScaffold> {
           : AppBar(
               titleSpacing: gutter,
               title: title,
-              leading: widget.leading,
+              leading: leading,
               automaticallyImplyLeading: widget.automaticallyImplyLeading,
               actions: widget.actions,
               bottom: widget.bottom,
@@ -467,7 +494,7 @@ class AppLogo extends StatelessWidget {
         dimension: dimension,
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: AppColors.seed,
+            color: PatientPalette.brandOf(context, AppColors.seed),
             borderRadius: BorderRadius.circular(dimension * .28),
           ),
           child: Padding(

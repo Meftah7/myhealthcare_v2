@@ -4905,4 +4905,434 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get policyNoPolicies => 'No document policies available.';
+
+  @override
+  String get paAllDepartments => 'All';
+
+  @override
+  String get paAssistanceBody =>
+      'We can show you what each clinic department treats, so you can choose where to book. This is general guidance, not a diagnosis.';
+
+  @override
+  String get paBillingPayments => 'Billing & Payments';
+
+  @override
+  String get paBloodDonation => 'Blood Donation';
+
+  @override
+  String get paBloodDonationDesc =>
+      'Donation appointments are not offered in this version.';
+
+  @override
+  String get paBmiLabel => 'Body mass index (BMI)';
+
+  @override
+  String get paBmiNormal => 'Healthy range';
+
+  @override
+  String get paBmiObese => 'Obesity range';
+
+  @override
+  String get paBmiOver => 'Overweight range';
+
+  @override
+  String get paBmiUnder => 'Underweight range';
+
+  @override
+  String get paBookAppointment => 'Book Appointment';
+
+  @override
+  String get paBookAppointmentDesc =>
+      'Choose a clinic or doctor, then pick a time that suits you.';
+
+  @override
+  String get paBsaLabel => 'Body surface area (Mosteller)';
+
+  @override
+  String get paCalculate => 'Calculate';
+
+  @override
+  String get paChooseClinicInstead => 'Choose a clinic instead';
+
+  @override
+  String get paClinic => 'Clinic';
+
+  @override
+  String get paClinicExplainer =>
+      'These are the specialty departments of the MyHealth clinic.';
+
+  @override
+  String get paClose => 'Close';
+
+  @override
+  String get paCompleteCheckup => 'Complete Checkup';
+
+  @override
+  String get paCompleteCheckupDesc =>
+      'Checkup packages are not offered in this version.';
+
+  @override
+  String get paContactUs => 'Contact Us';
+
+  @override
+  String get paContactUsDesc => 'Message the clinic team from your account.';
+
+  @override
+  String get paConvGlucose => 'Blood glucose';
+
+  @override
+  String get paConvHeight => 'Height';
+
+  @override
+  String get paConvTemperature => 'Temperature';
+
+  @override
+  String get paConvWeight => 'Weight';
+
+  @override
+  String get paDocuments => 'Documents';
+
+  @override
+  String get paEReferral => 'E-Referral';
+
+  @override
+  String get paEReferralDesc =>
+      'Patient-started referrals are not available in this version.';
+
+  @override
+  String get paEmergencyBody =>
+      'If you or someone else may be in danger, call 999 (Bahrain emergency) or your local emergency number now or go to the nearest emergency department.';
+
+  @override
+  String get paEmergencyNotDispatch =>
+      'MyHealth cannot contact emergency services for you, and booking an appointment is not suitable for emergencies.';
+
+  @override
+  String get paEmergencyServices => 'Emergency';
+
+  @override
+  String get paEmergencyServicesDesc => 'What to do in an emergency.';
+
+  @override
+  String get paEmergencyTitle => 'In an emergency';
+
+  @override
+  String get paExplainReport => 'Explain a Report';
+
+  @override
+  String get paExplainReportDesc =>
+      'Upload a PDF report and get a plain-language explanation.';
+
+  @override
+  String get paFamilyLinked => 'Family & Linked Accounts';
+
+  @override
+  String get paFindDoctor => 'Find a Doctor';
+
+  @override
+  String get paFindDoctorDesc => 'Search clinicians by name or specialty.';
+
+  @override
+  String get paGeneralBooking => 'General';
+
+  @override
+  String get paGroupAccount => 'Account & wellbeing';
+
+  @override
+  String get paGroupCare => 'Care & communication';
+
+  @override
+  String get paGroupRecords => 'Records & documents';
+
+  @override
+  String get paGuestAppointmentsBody =>
+      'Browse clinics and doctors now. Sign in to book and to see your appointments.';
+
+  @override
+  String get paHealthCalculators => 'Calculators';
+
+  @override
+  String get paHealthCalculatorsDesc => 'BMI and body surface area.';
+
+  @override
+  String get paHealthConverters => 'Converters';
+
+  @override
+  String get paHealthConvertersDesc =>
+      'Weight, height, temperature and glucose units.';
+
+  @override
+  String get paHealthRecords => 'Health Records';
+
+  @override
+  String get paHealthSummary => 'Health Summary';
+
+  @override
+  String get paHealthTools => 'Health Tools';
+
+  @override
+  String get paHeightCm => 'Height (cm)';
+
+  @override
+  String get paHeroGuestBody =>
+      'Not sure which clinic you need? See what each department treats, then book.';
+
+  @override
+  String get paHeroGuestCta => 'Find the right clinic';
+
+  @override
+  String get paHeroGuestTitle => 'How are you feeling today?';
+
+  @override
+  String get paHeroReportBody =>
+      'Upload a PDF medical report and get a plain-language explanation. Your original stays in your records.';
+
+  @override
+  String get paHeroReportCta => 'Explain a report';
+
+  @override
+  String get paHeroReportTitle => 'Your reports, made clearer';
+
+  @override
+  String get paInClinicVisits => 'In-clinic visits';
+
+  @override
+  String get paIndoorNavigation => 'Indoor Navigation';
+
+  @override
+  String get paIndoorNavigationDesc =>
+      'Indoor maps are not available in this version.';
+
+  @override
+  String paInvalidRange(String min, String max) {
+    return 'Enter a number from $min to $max.';
+  }
+
+  @override
+  String get paLatestNews => 'Latest News';
+
+  @override
+  String get paLatestNewsDesc => 'Updates from the clinic.';
+
+  @override
+  String get paLoadFailed => 'Couldn\'t load this list.';
+
+  @override
+  String get paLoginOrRegister => 'Login or Register';
+
+  @override
+  String get paMedicalHealthcare => 'Medical & Healthcare';
+
+  @override
+  String get paMedications => 'Medications';
+
+  @override
+  String get paMessageCareTeam => 'Message your care team';
+
+  @override
+  String get paMyHealthServices => 'MyHealth services';
+
+  @override
+  String get paMyProfile => 'My Profile';
+
+  @override
+  String get paNeedHelpBody => 'We\'ll help you find the right department.';
+
+  @override
+  String get paNeedHelpTitle => 'Need help choosing a clinic?';
+
+  @override
+  String get paNews => 'News';
+
+  @override
+  String get paNewsEmptyBody =>
+      'Clinic news will appear here once it is published.';
+
+  @override
+  String get paNewsEmptyTitle => 'No news yet';
+
+  @override
+  String get paNoResults => 'No matches found.';
+
+  @override
+  String get paNoThanks => 'No, Thanks';
+
+  @override
+  String get paNotAvailableBadge => 'Not available';
+
+  @override
+  String get paNotifications => 'Notifications';
+
+  @override
+  String get paOpenAction => 'Open';
+
+  @override
+  String get paPersonalInformation => 'Personal Information';
+
+  @override
+  String get paPolicies => 'Policies';
+
+  @override
+  String get paPreferences => 'Preferences';
+
+  @override
+  String get paPrivacy => 'Privacy Policy';
+
+  @override
+  String get paQuickAccess => 'Quick Access';
+
+  @override
+  String get paQuickAccessSubtitle => 'Everything in your MyHealth account.';
+
+  @override
+  String get paRegion => 'Region';
+
+  @override
+  String get paRegionUnavailableBody =>
+      'MyHealth currently has one clinic, so there are no regions to choose from. Pick a department or a doctor instead.';
+
+  @override
+  String get paRegionUnavailableTitle => 'No regions configured';
+
+  @override
+  String get paSearchClinics => 'Search departments';
+
+  @override
+  String get paSearchDoctors => 'Search by name or specialty';
+
+  @override
+  String get paSeeAvailability => 'See available times';
+
+  @override
+  String get paServiceUnavailableBody =>
+      'This service is not available in this version of MyHealth.';
+
+  @override
+  String get paServices => 'Services';
+
+  @override
+  String get paSickLeave => 'Sick Leave';
+
+  @override
+  String get paSignInBadge => 'Sign in';
+
+  @override
+  String get paSignInToSeeAppointments => 'Sign in to see your appointments';
+
+  @override
+  String get paSpecialtyEmergencyNote =>
+      'Severe or sudden symptoms? This is an emergency — tap here.';
+
+  @override
+  String get paSpecialtyGuideIntro =>
+      'Each department below lists what it treats. Choose one to see its doctors.';
+
+  @override
+  String get paSpecialtyGuideTitle => 'Choosing a clinic';
+
+  @override
+  String get paSupportServices => 'Support';
+
+  @override
+  String get paTapToSelect => 'Tap to select';
+
+  @override
+  String get paTerms => 'Terms and Conditions';
+
+  @override
+  String get paToolsDisclaimer =>
+      'For general information only. These results are not a diagnosis; ask your doctor about your health.';
+
+  @override
+  String get paVc1Body =>
+      'Send questions to your clinicians and read their replies in Messages.';
+
+  @override
+  String get paVc1Title => 'Message your doctors';
+
+  @override
+  String get paVc2Body =>
+      'Request a home visit when travelling to the clinic is difficult.';
+
+  @override
+  String get paVc2Title => 'Home visits';
+
+  @override
+  String get paVc3Body => 'View and download documents your care team issues.';
+
+  @override
+  String get paVc3Title => 'Documents online';
+
+  @override
+  String get paVc4Body => 'Live video consultations are not available yet.';
+
+  @override
+  String get paVc4Title => 'Video visits';
+
+  @override
+  String get paViewAll => 'View All';
+
+  @override
+  String get paVirtualCare => 'Virtual Care';
+
+  @override
+  String get paVirtualCareDesc =>
+      'Care from home: messages, home visits and documents.';
+
+  @override
+  String get paVirtualCareIntro =>
+      'Ways to get care without coming to the clinic.';
+
+  @override
+  String get paVitalsTrends => 'Vitals & Trends';
+
+  @override
+  String get paWeather => 'Weather';
+
+  @override
+  String get paWeatherLink => 'Weather';
+
+  @override
+  String get paWeatherUnavailableBody =>
+      'No weather service is connected to MyHealth yet, so no readings are shown. Your care features are not affected.';
+
+  @override
+  String get paWeatherUnavailableTitle => 'Weather isn\'t connected';
+
+  @override
+  String get paWeightKg => 'Weight (kg)';
+
+  @override
+  String get paYesPlease => 'Yes, Please';
+
+  @override
+  String get paOnboardBookTitle => 'Book appointments in a few taps';
+
+  @override
+  String get paOnboardBookBody =>
+      'Find a clinic or doctor, choose a time that suits you and manage your visits in one place.';
+
+  @override
+  String get paOnboardRecordsTitle => 'Your records and reports, made clearer';
+
+  @override
+  String get paOnboardRecordsBody =>
+      'See your records, download documents and get plain-language explanations of PDF reports.';
+
+  @override
+  String get paBrowseAsGuest => 'Browse as guest';
+
+  @override
+  String get paChatLiveStatus => 'Live AI';
+
+  @override
+  String get paChatOfflineStatus => 'Offline guide · no live AI';
+
+  @override
+  String paChatReportLabel(String title) {
+    return 'Explaining: $title';
+  }
+
+  @override
+  String get paViewOriginal => 'View original';
 }

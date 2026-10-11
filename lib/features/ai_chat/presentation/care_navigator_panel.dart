@@ -6,7 +6,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../timeline/presentation/import_record_sheet.dart';
@@ -55,6 +57,8 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
     final scheme = theme.colorScheme;
     final t = AppLocalizations.of(context)!;
     final chat = ref.watch(careNavigatorProvider);
+    final live = ref.watch(careNavigatorLiveProvider).valueOrNull ?? false;
+    final palette = PatientPalette.of(context);
     _scrollToEnd();
 
     return Material(
@@ -91,19 +95,23 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
                       ),
                       Row(
                         children: [
-                          Container(
-                            width: 7,
-                            height: 7,
-                            decoration: BoxDecoration(
-                              color: theme.clinicalStatus.riskLow.onContainer,
-                              shape: BoxShape.circle,
-                            ),
+                          // Honest mode: live model or the offline guide.
+                          Icon(
+                            live
+                                ? Icons.auto_awesome
+                                : Icons.cloud_off_outlined,
+                            size: 12,
+                            color: live
+                                ? theme.clinicalStatus.riskLow.onContainer
+                                : scheme.onSurfaceVariant,
                           ),
                           const SizedBox(width: Space.xxs),
-                          Text(
-                            t.onlineStatus,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: scheme.onSurfaceVariant,
+                          Flexible(
+                            child: Text(
+                              live ? t.paChatLiveStatus : t.paChatOfflineStatus,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                              ),
                             ),
                           ),
                         ],
@@ -129,6 +137,45 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
               ],
             ),
           ),
+
+          // The report being explained, with its original one tap away.
+          if (chat.report case final report?)
+            Container(
+              width: double.infinity,
+              color: palette.softAccent,
+              padding: const EdgeInsets.symmetric(
+                horizontal: Space.md,
+                vertical: Space.xs,
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.description_outlined,
+                    size: 18,
+                    color: palette.onSoftAccent,
+                  ),
+                  const SizedBox(width: Space.xs),
+                  Expanded(
+                    child: Text(
+                      t.paChatReportLabel(report.title),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: palette.text,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      ref.read(careNavigatorViewProvider.notifier).state =
+                          CareNavView.fab;
+                      context.go(AppRoutes.patientRecord(report.id));
+                    },
+                    child: Text(t.paViewOriginal),
+                  ),
+                ],
+              ),
+            ),
 
           // Messages
           Flexible(

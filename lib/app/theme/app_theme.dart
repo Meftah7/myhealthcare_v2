@@ -14,6 +14,7 @@ import 'app_colors.dart';
 import 'app_typography.dart';
 import 'dimens.dart';
 import 'motion.dart';
+import 'patient_palette.dart';
 import 'status_colors.dart';
 
 abstract final class AppTheme {
@@ -38,6 +39,36 @@ abstract final class AppTheme {
     Brightness.dark,
   );
 
+  /// Patient / guest / sign-in themes — the approved blue rebuild. Staff and
+  /// admin keep [light]/[dark]; MaterialApp picks by the signed-in role.
+  static ThemeData get patientLight => _build(
+    AppColors.patientLight,
+    ClinicalStatusColors.light,
+    Brightness.light,
+    patient: PatientPalette.light,
+  );
+
+  static ThemeData get patientDark => _build(
+    AppColors.patientDark,
+    ClinicalStatusColors.dark,
+    Brightness.dark,
+    patient: PatientPalette.dark,
+  );
+
+  static ThemeData get patientLightHighContrast => _build(
+    _highContrast(AppColors.patientLight, Brightness.light),
+    ClinicalStatusColors.light,
+    Brightness.light,
+    patient: PatientPalette.light,
+  );
+
+  static ThemeData get patientDarkHighContrast => _build(
+    _highContrast(AppColors.patientDark, Brightness.dark),
+    ClinicalStatusColors.dark,
+    Brightness.dark,
+    patient: PatientPalette.dark,
+  );
+
   static ColorScheme _highContrast(ColorScheme s, Brightness b) {
     final isLight = b == Brightness.light;
     final ink = isLight ? Colors.black : Colors.white;
@@ -54,8 +85,9 @@ abstract final class AppTheme {
   static ThemeData _build(
     ColorScheme scheme,
     ClinicalStatusColors status,
-    Brightness brightness,
-  ) {
+    Brightness brightness, {
+    PatientPalette? patient,
+  }) {
     final text = buildTextTheme().apply(
       bodyColor: scheme.onSurface,
       displayColor: scheme.onSurface,
@@ -85,6 +117,18 @@ abstract final class AppTheme {
         ? scheme.surfaceContainerLowest
         : scheme.surfaceContainerLow;
 
+    // Patient screens use the larger rounded shapes of the approved preview
+    // (cards 22, buttons 14) and keep filled actions on #246BFD in both
+    // modes; staff/admin keep the denser DESIGN.md radii.
+    final cardRadius = patient == null
+        ? Radii.card
+        : const BorderRadius.all(Radius.circular(22));
+    final buttonRadius = patient == null
+        ? Radii.button
+        : const BorderRadius.all(Radius.circular(14));
+    final action = patient?.action ?? scheme.primary;
+    final onAction = patient?.onAction ?? scheme.onPrimary;
+
     OutlineInputBorder fieldBorder(Color c, [double w = 1]) =>
         OutlineInputBorder(
           borderRadius: Radii.field,
@@ -96,8 +140,10 @@ abstract final class AppTheme {
       // Also covers primaryTextTheme and styles built outside [text].
       fontFamilyFallback: AppFonts.fallback,
       textTheme: text,
-      extensions: [status],
-      scaffoldBackgroundColor: scheme.surface,
+      // Only patient themes carry PatientPalette; shared widgets use its
+      // presence to pick the patient blue over the staff/admin seed.
+      extensions: [status, ?patient],
+      scaffoldBackgroundColor: patient?.canvas ?? scheme.surface,
       splashFactory: InkSparkle.splashFactory,
 
       // Accessibility defaults (DESIGN.md §8): 48dp tap targets, standard
@@ -138,7 +184,7 @@ abstract final class AppTheme {
         surfaceTintColor: Colors.transparent,
         shadowColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: Radii.card,
+          borderRadius: cardRadius,
           side: BorderSide(color: hairline),
         ),
         margin: EdgeInsets.zero,
@@ -182,14 +228,16 @@ abstract final class AppTheme {
 
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          minimumSize: const Size(0, 50),
+          backgroundColor: action,
+          foregroundColor: onAction,
+          minimumSize: Size(0, patient == null ? 50 : 52),
           padding: const EdgeInsets.symmetric(
             horizontal: Space.md,
             vertical: Space.sm,
           ),
           textStyle: text.labelLarge,
           elevation: 0,
-          shape: const RoundedRectangleBorder(borderRadius: Radii.button),
+          shape: RoundedRectangleBorder(borderRadius: buttonRadius),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -201,7 +249,7 @@ abstract final class AppTheme {
           ),
           textStyle: text.labelLarge,
           side: BorderSide(color: hairline),
-          shape: const RoundedRectangleBorder(borderRadius: Radii.button),
+          shape: RoundedRectangleBorder(borderRadius: buttonRadius),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
@@ -221,8 +269,8 @@ abstract final class AppTheme {
         focusElevation: 2,
         hoverElevation: 4,
         highlightElevation: 2,
-        backgroundColor: scheme.primary,
-        foregroundColor: scheme.onPrimary,
+        backgroundColor: action,
+        foregroundColor: onAction,
         extendedTextStyle: text.labelLarge,
         shape: const RoundedRectangleBorder(borderRadius: Radii.button),
       ),
@@ -231,14 +279,14 @@ abstract final class AppTheme {
         labelStyle: text.labelMedium?.copyWith(
           color: WidgetStateColor.resolveWith(
             (states) => states.contains(WidgetState.selected)
-                ? scheme.onPrimary
+                ? onAction
                 : scheme.onSurfaceVariant,
           ),
         ),
         side: BorderSide(color: hairline),
         backgroundColor: cardColor,
-        selectedColor: scheme.primary,
-        checkmarkColor: scheme.onPrimary,
+        selectedColor: action,
+        checkmarkColor: onAction,
         showCheckmark: false,
         shape: const RoundedRectangleBorder(borderRadius: Radii.chip),
         padding: const EdgeInsets.symmetric(
@@ -254,8 +302,8 @@ abstract final class AppTheme {
               ? scheme.surfaceContainer
               : scheme.surfaceContainerLow,
           foregroundColor: scheme.onSurfaceVariant,
-          selectedBackgroundColor: scheme.primary,
-          selectedForegroundColor: scheme.onPrimary,
+          selectedBackgroundColor: action,
+          selectedForegroundColor: onAction,
           // Hairline, not full outline — a segmented control is a single
           // object, not three bordered buttons.
           side: BorderSide(color: hairline),
@@ -278,7 +326,7 @@ abstract final class AppTheme {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: Radii.card,
+          borderRadius: cardRadius,
           side: BorderSide(color: hairline),
         ),
         titleTextStyle: text.titleLarge?.copyWith(color: scheme.onSurface),
@@ -316,7 +364,7 @@ abstract final class AppTheme {
         height: 68,
         backgroundColor: navSurface,
         surfaceTintColor: Colors.transparent,
-        indicatorColor: scheme.surfaceContainer,
+        indicatorColor: patient?.softAccent ?? scheme.surfaceContainer,
         indicatorShape: const RoundedRectangleBorder(
           borderRadius: Radii.button,
         ),

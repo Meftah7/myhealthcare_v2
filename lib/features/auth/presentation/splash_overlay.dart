@@ -135,7 +135,7 @@ class _SplashOverlayState extends State<SplashOverlay>
                               child: const DecoratedBox(
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  gradient: AppColors.brandGlow,
+                                  gradient: AppColors.patientBrandGlow,
                                 ),
                                 child: SizedBox.expand(),
                               ),
@@ -151,9 +151,9 @@ class _SplashOverlayState extends State<SplashOverlay>
                                 alignment: Alignment.center,
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(30),
-                                  gradient: AppColors.brandGradient,
+                                  gradient: AppColors.patientBrandGradient,
                                   boxShadow: Shadows.glow(
-                                    AppColors.brandViolet,
+                                    AppColors.patientBlue,
                                   ),
                                 ),
                                 padding: const EdgeInsets.all(18),

@@ -4963,4 +4963,428 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get policyNoPolicies => 'لا توجد سياسات مستندات متاحة.';
+
+  @override
+  String get paAllDepartments => 'الكل';
+
+  @override
+  String get paAssistanceBody =>
+      'يمكننا أن نعرض لك ما يعالجه كل قسم في العيادة لتختار المكان المناسب للحجز. هذه إرشادات عامة وليست تشخيصًا.';
+
+  @override
+  String get paBillingPayments => 'الفواتير والمدفوعات';
+
+  @override
+  String get paBloodDonation => 'التبرع بالدم';
+
+  @override
+  String get paBloodDonationDesc => 'مواعيد التبرع غير متاحة في هذا الإصدار.';
+
+  @override
+  String get paBmiLabel => 'مؤشر كتلة الجسم';
+
+  @override
+  String get paBmiNormal => 'ضمن المعدل الصحي';
+
+  @override
+  String get paBmiObese => 'ضمن نطاق السمنة';
+
+  @override
+  String get paBmiOver => 'ضمن نطاق زيادة الوزن';
+
+  @override
+  String get paBmiUnder => 'ضمن نطاق نقص الوزن';
+
+  @override
+  String get paBookAppointment => 'حجز موعد';
+
+  @override
+  String get paBookAppointmentDesc =>
+      'اختر العيادة أو الطبيب، ثم اختر الوقت المناسب لك.';
+
+  @override
+  String get paBsaLabel => 'مساحة سطح الجسم (موستيلر)';
+
+  @override
+  String get paCalculate => 'احسب';
+
+  @override
+  String get paChooseClinicInstead => 'اختر عيادة بدلًا من ذلك';
+
+  @override
+  String get paClinic => 'العيادة';
+
+  @override
+  String get paClinicExplainer => 'هذه هي الأقسام التخصصية في عيادة ماي هيلث.';
+
+  @override
+  String get paClose => 'إغلاق';
+
+  @override
+  String get paCompleteCheckup => 'الفحص الشامل';
+
+  @override
+  String get paCompleteCheckupDesc => 'باقات الفحص غير متاحة في هذا الإصدار.';
+
+  @override
+  String get paContactUs => 'تواصل معنا';
+
+  @override
+  String get paContactUsDesc => 'راسل فريق العيادة من حسابك.';
+
+  @override
+  String get paConvGlucose => 'سكر الدم';
+
+  @override
+  String get paConvHeight => 'الطول';
+
+  @override
+  String get paConvTemperature => 'الحرارة';
+
+  @override
+  String get paConvWeight => 'الوزن';
+
+  @override
+  String get paDocuments => 'المستندات';
+
+  @override
+  String get paEReferral => 'الإحالة الإلكترونية';
+
+  @override
+  String get paEReferralDesc =>
+      'الإحالات التي يبدؤها المريض غير متاحة في هذا الإصدار.';
+
+  @override
+  String get paEmergencyBody =>
+      'إذا كنت أنت أو شخص آخر في خطر، اتصل بالرقم 999 (طوارئ البحرين) أو برقم الطوارئ المحلي الآن أو توجّه إلى أقرب قسم طوارئ.';
+
+  @override
+  String get paEmergencyNotDispatch =>
+      'لا يستطيع تطبيق ماي هيلث الاتصال بخدمات الطوارئ نيابةً عنك، وحجز موعد غير مناسب لحالات الطوارئ.';
+
+  @override
+  String get paEmergencyServices => 'الطوارئ';
+
+  @override
+  String get paEmergencyServicesDesc => 'ما يجب فعله في حالات الطوارئ.';
+
+  @override
+  String get paEmergencyTitle => 'في حالات الطوارئ';
+
+  @override
+  String get paExplainReport => 'شرح تقرير';
+
+  @override
+  String get paExplainReportDesc =>
+      'ارفع تقريرًا بصيغة PDF واحصل على شرح بلغة بسيطة.';
+
+  @override
+  String get paFamilyLinked => 'العائلة والحسابات المرتبطة';
+
+  @override
+  String get paFindDoctor => 'ابحث عن طبيب';
+
+  @override
+  String get paFindDoctorDesc => 'ابحث عن الأطباء بالاسم أو التخصص.';
+
+  @override
+  String get paGeneralBooking => 'عام';
+
+  @override
+  String get paGroupAccount => 'الحساب والعافية';
+
+  @override
+  String get paGroupCare => 'الرعاية والتواصل';
+
+  @override
+  String get paGroupRecords => 'السجلات والمستندات';
+
+  @override
+  String get paGuestAppointmentsBody =>
+      'تصفّح العيادات والأطباء الآن. سجّل الدخول للحجز ولعرض مواعيدك.';
+
+  @override
+  String get paHealthCalculators => 'الحاسبات';
+
+  @override
+  String get paHealthCalculatorsDesc => 'مؤشر كتلة الجسم ومساحة سطح الجسم.';
+
+  @override
+  String get paHealthConverters => 'المحوّلات';
+
+  @override
+  String get paHealthConvertersDesc => 'وحدات الوزن والطول والحرارة والسكر.';
+
+  @override
+  String get paHealthRecords => 'السجلات الصحية';
+
+  @override
+  String get paHealthSummary => 'الملخص الصحي';
+
+  @override
+  String get paHealthTools => 'الأدوات الصحية';
+
+  @override
+  String get paHeightCm => 'الطول (سم)';
+
+  @override
+  String get paHeroGuestBody =>
+      'لست متأكدًا من العيادة المناسبة؟ تعرّف على ما يعالجه كل قسم ثم احجز.';
+
+  @override
+  String get paHeroGuestCta => 'اعثر على العيادة المناسبة';
+
+  @override
+  String get paHeroGuestTitle => 'كيف تشعر اليوم؟';
+
+  @override
+  String get paHeroReportBody =>
+      'ارفع تقريرًا طبيًا بصيغة PDF واحصل على شرح بلغة بسيطة. يبقى الأصل محفوظًا في سجلاتك.';
+
+  @override
+  String get paHeroReportCta => 'اشرح تقريرًا';
+
+  @override
+  String get paHeroReportTitle => 'تقاريرك بشكل أوضح';
+
+  @override
+  String get paInClinicVisits => 'زيارات في العيادة';
+
+  @override
+  String get paIndoorNavigation => 'الملاحة الداخلية';
+
+  @override
+  String get paIndoorNavigationDesc =>
+      'الخرائط الداخلية غير متاحة في هذا الإصدار.';
+
+  @override
+  String paInvalidRange(String min, String max) {
+    return 'أدخل رقمًا من $min إلى $max.';
+  }
+
+  @override
+  String get paLatestNews => 'آخر الأخبار';
+
+  @override
+  String get paLatestNewsDesc => 'مستجدات العيادة.';
+
+  @override
+  String get paLoadFailed => 'تعذّر تحميل هذه القائمة.';
+
+  @override
+  String get paLoginOrRegister => 'تسجيل الدخول أو التسجيل';
+
+  @override
+  String get paMedicalHealthcare => 'الخدمات الطبية والصحية';
+
+  @override
+  String get paMedications => 'الأدوية';
+
+  @override
+  String get paMessageCareTeam => 'راسل فريق رعايتك';
+
+  @override
+  String get paMyHealthServices => 'خدمات ماي هيلث';
+
+  @override
+  String get paMyProfile => 'ملفي الشخصي';
+
+  @override
+  String get paNeedHelpBody => 'سنساعدك في العثور على القسم المناسب.';
+
+  @override
+  String get paNeedHelpTitle => 'هل تحتاج مساعدة في اختيار العيادة؟';
+
+  @override
+  String get paNews => 'الأخبار';
+
+  @override
+  String get paNewsEmptyBody => 'ستظهر أخبار العيادة هنا عند نشرها.';
+
+  @override
+  String get paNewsEmptyTitle => 'لا توجد أخبار بعد';
+
+  @override
+  String get paNoResults => 'لا توجد نتائج مطابقة.';
+
+  @override
+  String get paNoThanks => 'لا، شكرًا';
+
+  @override
+  String get paNotAvailableBadge => 'غير متاح';
+
+  @override
+  String get paNotifications => 'الإشعارات';
+
+  @override
+  String get paOpenAction => 'فتح';
+
+  @override
+  String get paPersonalInformation => 'المعلومات الشخصية';
+
+  @override
+  String get paPolicies => 'السياسات';
+
+  @override
+  String get paPreferences => 'التفضيلات';
+
+  @override
+  String get paPrivacy => 'سياسة الخصوصية';
+
+  @override
+  String get paQuickAccess => 'الوصول السريع';
+
+  @override
+  String get paQuickAccessSubtitle => 'كل ما في حسابك على ماي هيلث.';
+
+  @override
+  String get paRegion => 'المنطقة';
+
+  @override
+  String get paRegionUnavailableBody =>
+      'لدى ماي هيلث حاليًا عيادة واحدة، لذا لا توجد مناطق للاختيار منها. اختر قسمًا أو طبيبًا بدلًا من ذلك.';
+
+  @override
+  String get paRegionUnavailableTitle => 'لا توجد مناطق مُعدّة';
+
+  @override
+  String get paSearchClinics => 'ابحث في الأقسام';
+
+  @override
+  String get paSearchDoctors => 'ابحث بالاسم أو التخصص';
+
+  @override
+  String get paSeeAvailability => 'عرض الأوقات المتاحة';
+
+  @override
+  String get paServiceUnavailableBody =>
+      'هذه الخدمة غير متاحة في هذا الإصدار من ماي هيلث.';
+
+  @override
+  String get paServices => 'الخدمات';
+
+  @override
+  String get paSickLeave => 'الإجازات المرضية';
+
+  @override
+  String get paSignInBadge => 'سجّل الدخول';
+
+  @override
+  String get paSignInToSeeAppointments => 'سجّل الدخول لعرض مواعيدك';
+
+  @override
+  String get paSpecialtyEmergencyNote =>
+      'أعراض شديدة أو مفاجئة؟ هذه حالة طارئة — اضغط هنا.';
+
+  @override
+  String get paSpecialtyGuideIntro =>
+      'يعرض كل قسم أدناه ما يعالجه. اختر قسمًا لعرض أطبائه.';
+
+  @override
+  String get paSpecialtyGuideTitle => 'اختيار العيادة';
+
+  @override
+  String get paSupportServices => 'الدعم';
+
+  @override
+  String get paTapToSelect => 'اضغط للاختيار';
+
+  @override
+  String get paTerms => 'الشروط والأحكام';
+
+  @override
+  String get paToolsDisclaimer =>
+      'للمعلومات العامة فقط. هذه النتائج ليست تشخيصًا؛ استشر طبيبك بشأن صحتك.';
+
+  @override
+  String get paVc1Body => 'أرسل أسئلتك إلى أطبائك واقرأ ردودهم في الرسائل.';
+
+  @override
+  String get paVc1Title => 'راسل أطباءك';
+
+  @override
+  String get paVc2Body =>
+      'اطلب زيارة منزلية عندما يصعب عليك الحضور إلى العيادة.';
+
+  @override
+  String get paVc2Title => 'الزيارات المنزلية';
+
+  @override
+  String get paVc3Body => 'اعرض وحمّل المستندات التي يصدرها فريق رعايتك.';
+
+  @override
+  String get paVc3Title => 'المستندات عبر الإنترنت';
+
+  @override
+  String get paVc4Body => 'الاستشارات المرئية المباشرة غير متاحة بعد.';
+
+  @override
+  String get paVc4Title => 'الزيارات المرئية';
+
+  @override
+  String get paViewAll => 'عرض الكل';
+
+  @override
+  String get paVirtualCare => 'الرعاية عن بُعد';
+
+  @override
+  String get paVirtualCareDesc =>
+      'رعاية من المنزل: الرسائل والزيارات المنزلية والمستندات.';
+
+  @override
+  String get paVirtualCareIntro =>
+      'طرق للحصول على الرعاية دون الحضور إلى العيادة.';
+
+  @override
+  String get paVitalsTrends => 'العلامات الحيوية والاتجاهات';
+
+  @override
+  String get paWeather => 'الطقس';
+
+  @override
+  String get paWeatherLink => 'الطقس';
+
+  @override
+  String get paWeatherUnavailableBody =>
+      'لا توجد خدمة طقس متصلة بتطبيق ماي هيلث بعد، لذا لا تُعرض أي قراءات. ميزات الرعاية لديك غير متأثرة.';
+
+  @override
+  String get paWeatherUnavailableTitle => 'خدمة الطقس غير متصلة';
+
+  @override
+  String get paWeightKg => 'الوزن (كغ)';
+
+  @override
+  String get paYesPlease => 'نعم، من فضلك';
+
+  @override
+  String get paOnboardBookTitle => 'احجز مواعيدك ببضع نقرات';
+
+  @override
+  String get paOnboardBookBody =>
+      'اعثر على عيادة أو طبيب، واختر الوقت المناسب، وأدِر زياراتك في مكان واحد.';
+
+  @override
+  String get paOnboardRecordsTitle => 'سجلاتك وتقاريرك بشكل أوضح';
+
+  @override
+  String get paOnboardRecordsBody =>
+      'اطّلع على سجلاتك، وحمّل مستنداتك، واحصل على شرح مبسّط لتقارير PDF.';
+
+  @override
+  String get paBrowseAsGuest => 'تصفّح كزائر';
+
+  @override
+  String get paChatLiveStatus => 'ذكاء اصطناعي مباشر';
+
+  @override
+  String get paChatOfflineStatus => 'دليل دون اتصال · بلا ذكاء اصطناعي مباشر';
+
+  @override
+  String paChatReportLabel(String title) {
+    return 'شرح: $title';
+  }
+
+  @override
+  String get paViewOriginal => 'عرض الأصل';
 }

@@ -184,7 +184,7 @@ void main() {
 
     expect(find.byType(CareNavigatorPanel), findsOneWidget);
     expect(find.text('Care Navigator'), findsOneWidget);
-    expect(find.text('Online'), findsOneWidget);
+    expect(find.text('Offline guide · no live AI'), findsOneWidget);
 
     // Ask something and get a navigation answer.
     await tester.enterText(

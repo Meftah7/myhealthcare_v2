@@ -11,6 +11,7 @@ import 'package:myhealthcare/features/billing/presentation/payments_screen.dart'
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/mfa.dart';
+import '../support/navigation.dart';
 import '../support/test_database.dart';
 
 Future<void> _settle(WidgetTester tester) async {
@@ -60,26 +61,8 @@ void main() {
     await passMfa(tester);
     await _settle(tester);
 
-    // Additional quick actions expand in place on Home.
-    await tester.scrollUntilVisible(
-      find.text('More actions'),
-      180,
-      scrollable: find
-          .descendant(
-            of: find.byType(CustomScrollView),
-            matching: find.byType(Scrollable),
-          )
-          .first,
-    );
-    await tester.ensureVisible(find.text('More actions'));
-    await tester.pump(const Duration(milliseconds: 100));
-    await tester.tap(find.text('More actions'));
-    await _settle(tester);
-    final tile = find.text('Payments');
-    await tester.ensureVisible(tile.first);
-    await tester.pump(const Duration(milliseconds: 100));
-    await tester.tap(tile.first);
-    await _settle(tester);
+    // Billing & Payments opens from Home Quick Access.
+    await openQuickAccess(tester, 'billing');
 
     expect(find.widgetWithText(AppBar, 'Payments'), findsOneWidget);
     expect(find.byType(PaymentsScreen), findsOneWidget);
@@ -92,8 +75,8 @@ void main() {
     );
 
     // The bottom nav stays visible on Payments (it nests under the Home branch).
-    expect(find.text('Appointment'), findsWidgets);
-    expect(find.text('Records'), findsWidgets);
+    // (A rail at this width; the bar on phones.)
+    expect(find.text('Weather'), findsWidgets);
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
   });

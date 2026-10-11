@@ -202,28 +202,37 @@ void main() {
   });
 
   group('dashboard sections split into columns when there is room', () {
-    testWidgets('compact stacks them in one column', (tester) async {
-      await _signInPatient(tester, size: const Size(400, 2200));
+    testWidgets('compact patient Home stacks Services then Quick Access', (
+      tester,
+    ) async {
+      await _signInPatient(tester, size: const Size(400, 2600));
 
-      final health = tester.getTopLeft(find.text('Your health'));
-      final quick = tester.getTopLeft(find.text('Quick actions'));
-      // Same column: identical x, and health comes first.
-      expect(quick.dx, health.dx);
-      expect(quick.dy, lessThan(health.dy));
+      final services = tester.getTopLeft(find.text('Services').first);
+      final quick = tester.getTopLeft(find.text('Quick Access'));
+      // One column: same start edge, Quick Access directly after Services.
+      expect(quick.dx, services.dx);
+      expect(quick.dy, greaterThan(services.dy));
 
       await _teardown(tester);
     });
 
-    testWidgets('expanded puts them side by side', (tester) async {
-      await _signInPatient(tester, size: const Size(1200, 1600));
+    testWidgets('expanded staff dashboard puts sections side by side', (
+      tester,
+    ) async {
+      await _signIn(
+        tester,
+        email: 'staff1@myhealth.demo',
+        size: const Size(1200, 1600),
+      );
 
       expect(find.byType(SectionColumns), findsWidgets);
-      final health = tester.getTopLeft(find.text('Your health'));
-      final quick = tester.getTopLeft(find.text('Quick actions'));
-      // Two columns: Quick actions moves to the right of Your health, and both
-      // start at the same height.
-      expect(health.dx, greaterThan(quick.dx));
-      expect(quick.dy, health.dy);
+      expect(
+        find.descendant(
+          of: find.byType(SectionColumns).first,
+          matching: find.byType(Row),
+        ),
+        findsWidgets,
+      );
 
       await _teardown(tester);
     });

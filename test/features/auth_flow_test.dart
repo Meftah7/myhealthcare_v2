@@ -63,11 +63,10 @@ void main() {
     await _pump(tester);
     await _pump(tester);
 
-    // Patient shell: bottom nav with these destinations —
-    // Home, Nutrition, Appointments, Records, Profile.
-    expect(find.text('Records'), findsWidgets);
-    expect(find.text('Nutrition'), findsWidgets);
-    expect(find.text('Appointment'), findsWidgets);
+    // Patient shell: Home with Services and Quick Access (Records,
+    // Nutrition and Profile moved from the bottom bar into Quick Access).
+    expect(find.text('Services'), findsWidgets);
+    expect(find.textContaining('Good '), findsOneWidget);
 
     // The patient's existing toolbar exposes notifications and theme controls.
     expect(find.byIcon(Icons.dark_mode_outlined), findsOneWidget);

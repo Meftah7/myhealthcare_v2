@@ -197,9 +197,12 @@ class _AppointmentCard extends StatelessWidget {
     final theme = Theme.of(context);
     final detail = AppRoutes.patientAppointmentDetail(appointment.id);
     return AppCard(
-      color: theme.brightness == Brightness.light
-          ? AppColors.seed
-          : AppColors.brandBlue,
+      color: PatientPalette.brandOf(
+        context,
+        theme.brightness == Brightness.light
+            ? AppColors.seed
+            : AppColors.brandBlue,
+      ),
       borderColor: Colors.transparent,
       padding: const EdgeInsets.all(20),
       child: Column(

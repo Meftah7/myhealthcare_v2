@@ -16,6 +16,7 @@ import 'package:myhealthcare/features/nutrition/presentation/nutrition_screen.da
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/mfa.dart';
+import '../support/navigation.dart';
 import '../support/test_database.dart';
 
 Future<void> _settle(WidgetTester tester) async {
@@ -122,8 +123,7 @@ void main() {
     final container = await _signIn(tester);
     addTearDown(container.dispose);
 
-    await tester.tap(find.text('Records').first);
-    await _settle(tester);
+    await openQuickAccess(tester, 'records');
     expect(find.widgetWithText(AppBar, 'Records'), findsOneWidget);
 
     // History and upload lead; the existing health shortcuts are secondary.

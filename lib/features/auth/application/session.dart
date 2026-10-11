@@ -160,6 +160,17 @@ class SessionController extends Notifier<Session> {
 
   Future<void> logout() => endSession();
 
+  /// A signed-out visitor chose to browse as a guest: drop the idle-timeout
+  /// notice (which otherwise holds them on sign-in) but keep the timed-out
+  /// account's resume location for when that account signs back in.
+  void continueAsGuest() {
+    if (state.user != null || !state.endedByInactivity) return;
+    state = Session(
+      resumeAccountId: state.resumeAccountId,
+      resumeLocation: state.resumeLocation,
+    );
+  }
+
   Future<void> _begin(User user, {Session? resumeFrom}) async {
     final policy = ref.read(accessPolicyProvider);
     var previousAccess = await policy.authorizationSnapshot();

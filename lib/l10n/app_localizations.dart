@@ -8707,6 +8707,804 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No document policies available.'**
   String get policyNoPolicies;
+
+  /// No description provided for @paAllDepartments.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get paAllDepartments;
+
+  /// No description provided for @paAssistanceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We can show you what each clinic department treats, so you can choose where to book. This is general guidance, not a diagnosis.'**
+  String get paAssistanceBody;
+
+  /// No description provided for @paBillingPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Billing & Payments'**
+  String get paBillingPayments;
+
+  /// No description provided for @paBloodDonation.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood Donation'**
+  String get paBloodDonation;
+
+  /// No description provided for @paBloodDonationDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Donation appointments are not offered in this version.'**
+  String get paBloodDonationDesc;
+
+  /// No description provided for @paBmiLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Body mass index (BMI)'**
+  String get paBmiLabel;
+
+  /// No description provided for @paBmiNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Healthy range'**
+  String get paBmiNormal;
+
+  /// No description provided for @paBmiObese.
+  ///
+  /// In en, this message translates to:
+  /// **'Obesity range'**
+  String get paBmiObese;
+
+  /// No description provided for @paBmiOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Overweight range'**
+  String get paBmiOver;
+
+  /// No description provided for @paBmiUnder.
+  ///
+  /// In en, this message translates to:
+  /// **'Underweight range'**
+  String get paBmiUnder;
+
+  /// No description provided for @paBookAppointment.
+  ///
+  /// In en, this message translates to:
+  /// **'Book Appointment'**
+  String get paBookAppointment;
+
+  /// No description provided for @paBookAppointmentDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a clinic or doctor, then pick a time that suits you.'**
+  String get paBookAppointmentDesc;
+
+  /// No description provided for @paBsaLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Body surface area (Mosteller)'**
+  String get paBsaLabel;
+
+  /// No description provided for @paCalculate.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculate'**
+  String get paCalculate;
+
+  /// No description provided for @paChooseClinicInstead.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a clinic instead'**
+  String get paChooseClinicInstead;
+
+  /// No description provided for @paClinic.
+  ///
+  /// In en, this message translates to:
+  /// **'Clinic'**
+  String get paClinic;
+
+  /// No description provided for @paClinicExplainer.
+  ///
+  /// In en, this message translates to:
+  /// **'These are the specialty departments of the MyHealth clinic.'**
+  String get paClinicExplainer;
+
+  /// No description provided for @paClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get paClose;
+
+  /// No description provided for @paCompleteCheckup.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete Checkup'**
+  String get paCompleteCheckup;
+
+  /// No description provided for @paCompleteCheckupDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Checkup packages are not offered in this version.'**
+  String get paCompleteCheckupDesc;
+
+  /// No description provided for @paContactUs.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Us'**
+  String get paContactUs;
+
+  /// No description provided for @paContactUsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Message the clinic team from your account.'**
+  String get paContactUsDesc;
+
+  /// No description provided for @paConvGlucose.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood glucose'**
+  String get paConvGlucose;
+
+  /// No description provided for @paConvHeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Height'**
+  String get paConvHeight;
+
+  /// No description provided for @paConvTemperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature'**
+  String get paConvTemperature;
+
+  /// No description provided for @paConvWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get paConvWeight;
+
+  /// No description provided for @paDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get paDocuments;
+
+  /// No description provided for @paEReferral.
+  ///
+  /// In en, this message translates to:
+  /// **'E-Referral'**
+  String get paEReferral;
+
+  /// No description provided for @paEReferralDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Patient-started referrals are not available in this version.'**
+  String get paEReferralDesc;
+
+  /// No description provided for @paEmergencyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'If you or someone else may be in danger, call 999 (Bahrain emergency) or your local emergency number now or go to the nearest emergency department.'**
+  String get paEmergencyBody;
+
+  /// No description provided for @paEmergencyNotDispatch.
+  ///
+  /// In en, this message translates to:
+  /// **'MyHealth cannot contact emergency services for you, and booking an appointment is not suitable for emergencies.'**
+  String get paEmergencyNotDispatch;
+
+  /// No description provided for @paEmergencyServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency'**
+  String get paEmergencyServices;
+
+  /// No description provided for @paEmergencyServicesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'What to do in an emergency.'**
+  String get paEmergencyServicesDesc;
+
+  /// No description provided for @paEmergencyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'In an emergency'**
+  String get paEmergencyTitle;
+
+  /// No description provided for @paExplainReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Explain a Report'**
+  String get paExplainReport;
+
+  /// No description provided for @paExplainReportDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload a PDF report and get a plain-language explanation.'**
+  String get paExplainReportDesc;
+
+  /// No description provided for @paFamilyLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'Family & Linked Accounts'**
+  String get paFamilyLinked;
+
+  /// No description provided for @paFindDoctor.
+  ///
+  /// In en, this message translates to:
+  /// **'Find a Doctor'**
+  String get paFindDoctor;
+
+  /// No description provided for @paFindDoctorDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Search clinicians by name or specialty.'**
+  String get paFindDoctorDesc;
+
+  /// No description provided for @paGeneralBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get paGeneralBooking;
+
+  /// No description provided for @paGroupAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account & wellbeing'**
+  String get paGroupAccount;
+
+  /// No description provided for @paGroupCare.
+  ///
+  /// In en, this message translates to:
+  /// **'Care & communication'**
+  String get paGroupCare;
+
+  /// No description provided for @paGroupRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Records & documents'**
+  String get paGroupRecords;
+
+  /// No description provided for @paGuestAppointmentsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse clinics and doctors now. Sign in to book and to see your appointments.'**
+  String get paGuestAppointmentsBody;
+
+  /// No description provided for @paHealthCalculators.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculators'**
+  String get paHealthCalculators;
+
+  /// No description provided for @paHealthCalculatorsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'BMI and body surface area.'**
+  String get paHealthCalculatorsDesc;
+
+  /// No description provided for @paHealthConverters.
+  ///
+  /// In en, this message translates to:
+  /// **'Converters'**
+  String get paHealthConverters;
+
+  /// No description provided for @paHealthConvertersDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight, height, temperature and glucose units.'**
+  String get paHealthConvertersDesc;
+
+  /// No description provided for @paHealthRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Records'**
+  String get paHealthRecords;
+
+  /// No description provided for @paHealthSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Summary'**
+  String get paHealthSummary;
+
+  /// No description provided for @paHealthTools.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Tools'**
+  String get paHealthTools;
+
+  /// No description provided for @paHeightCm.
+  ///
+  /// In en, this message translates to:
+  /// **'Height (cm)'**
+  String get paHeightCm;
+
+  /// No description provided for @paHeroGuestBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Not sure which clinic you need? See what each department treats, then book.'**
+  String get paHeroGuestBody;
+
+  /// No description provided for @paHeroGuestCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Find the right clinic'**
+  String get paHeroGuestCta;
+
+  /// No description provided for @paHeroGuestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How are you feeling today?'**
+  String get paHeroGuestTitle;
+
+  /// No description provided for @paHeroReportBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload a PDF medical report and get a plain-language explanation. Your original stays in your records.'**
+  String get paHeroReportBody;
+
+  /// No description provided for @paHeroReportCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Explain a report'**
+  String get paHeroReportCta;
+
+  /// No description provided for @paHeroReportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your reports, made clearer'**
+  String get paHeroReportTitle;
+
+  /// No description provided for @paInClinicVisits.
+  ///
+  /// In en, this message translates to:
+  /// **'In-clinic visits'**
+  String get paInClinicVisits;
+
+  /// No description provided for @paIndoorNavigation.
+  ///
+  /// In en, this message translates to:
+  /// **'Indoor Navigation'**
+  String get paIndoorNavigation;
+
+  /// No description provided for @paIndoorNavigationDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Indoor maps are not available in this version.'**
+  String get paIndoorNavigationDesc;
+
+  /// No description provided for @paInvalidRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a number from {min} to {max}.'**
+  String paInvalidRange(String min, String max);
+
+  /// No description provided for @paLatestNews.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest News'**
+  String get paLatestNews;
+
+  /// No description provided for @paLatestNewsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Updates from the clinic.'**
+  String get paLatestNewsDesc;
+
+  /// No description provided for @paLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load this list.'**
+  String get paLoadFailed;
+
+  /// No description provided for @paLoginOrRegister.
+  ///
+  /// In en, this message translates to:
+  /// **'Login or Register'**
+  String get paLoginOrRegister;
+
+  /// No description provided for @paMedicalHealthcare.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical & Healthcare'**
+  String get paMedicalHealthcare;
+
+  /// No description provided for @paMedications.
+  ///
+  /// In en, this message translates to:
+  /// **'Medications'**
+  String get paMedications;
+
+  /// No description provided for @paMessageCareTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Message your care team'**
+  String get paMessageCareTeam;
+
+  /// No description provided for @paMyHealthServices.
+  ///
+  /// In en, this message translates to:
+  /// **'MyHealth services'**
+  String get paMyHealthServices;
+
+  /// No description provided for @paMyProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'My Profile'**
+  String get paMyProfile;
+
+  /// No description provided for @paNeedHelpBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll help you find the right department.'**
+  String get paNeedHelpBody;
+
+  /// No description provided for @paNeedHelpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Need help choosing a clinic?'**
+  String get paNeedHelpTitle;
+
+  /// No description provided for @paNews.
+  ///
+  /// In en, this message translates to:
+  /// **'News'**
+  String get paNews;
+
+  /// No description provided for @paNewsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Clinic news will appear here once it is published.'**
+  String get paNewsEmptyBody;
+
+  /// No description provided for @paNewsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No news yet'**
+  String get paNewsEmptyTitle;
+
+  /// No description provided for @paNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches found.'**
+  String get paNoResults;
+
+  /// No description provided for @paNoThanks.
+  ///
+  /// In en, this message translates to:
+  /// **'No, Thanks'**
+  String get paNoThanks;
+
+  /// No description provided for @paNotAvailableBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available'**
+  String get paNotAvailableBadge;
+
+  /// No description provided for @paNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get paNotifications;
+
+  /// No description provided for @paOpenAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get paOpenAction;
+
+  /// No description provided for @paPersonalInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal Information'**
+  String get paPersonalInformation;
+
+  /// No description provided for @paPolicies.
+  ///
+  /// In en, this message translates to:
+  /// **'Policies'**
+  String get paPolicies;
+
+  /// No description provided for @paPreferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get paPreferences;
+
+  /// No description provided for @paPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get paPrivacy;
+
+  /// No description provided for @paQuickAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Access'**
+  String get paQuickAccess;
+
+  /// No description provided for @paQuickAccessSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything in your MyHealth account.'**
+  String get paQuickAccessSubtitle;
+
+  /// No description provided for @paRegion.
+  ///
+  /// In en, this message translates to:
+  /// **'Region'**
+  String get paRegion;
+
+  /// No description provided for @paRegionUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'MyHealth currently has one clinic, so there are no regions to choose from. Pick a department or a doctor instead.'**
+  String get paRegionUnavailableBody;
+
+  /// No description provided for @paRegionUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No regions configured'**
+  String get paRegionUnavailableTitle;
+
+  /// No description provided for @paSearchClinics.
+  ///
+  /// In en, this message translates to:
+  /// **'Search departments'**
+  String get paSearchClinics;
+
+  /// No description provided for @paSearchDoctors.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name or specialty'**
+  String get paSearchDoctors;
+
+  /// No description provided for @paSeeAvailability.
+  ///
+  /// In en, this message translates to:
+  /// **'See available times'**
+  String get paSeeAvailability;
+
+  /// No description provided for @paServiceUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This service is not available in this version of MyHealth.'**
+  String get paServiceUnavailableBody;
+
+  /// No description provided for @paServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Services'**
+  String get paServices;
+
+  /// No description provided for @paSickLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Sick Leave'**
+  String get paSickLeave;
+
+  /// No description provided for @paSignInBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get paSignInBadge;
+
+  /// No description provided for @paSignInToSeeAppointments.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to see your appointments'**
+  String get paSignInToSeeAppointments;
+
+  /// No description provided for @paSpecialtyEmergencyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Severe or sudden symptoms? This is an emergency — tap here.'**
+  String get paSpecialtyEmergencyNote;
+
+  /// No description provided for @paSpecialtyGuideIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Each department below lists what it treats. Choose one to see its doctors.'**
+  String get paSpecialtyGuideIntro;
+
+  /// No description provided for @paSpecialtyGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choosing a clinic'**
+  String get paSpecialtyGuideTitle;
+
+  /// No description provided for @paSupportServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get paSupportServices;
+
+  /// No description provided for @paTapToSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to select'**
+  String get paTapToSelect;
+
+  /// No description provided for @paTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms and Conditions'**
+  String get paTerms;
+
+  /// No description provided for @paToolsDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'For general information only. These results are not a diagnosis; ask your doctor about your health.'**
+  String get paToolsDisclaimer;
+
+  /// No description provided for @paVc1Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Send questions to your clinicians and read their replies in Messages.'**
+  String get paVc1Body;
+
+  /// No description provided for @paVc1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Message your doctors'**
+  String get paVc1Title;
+
+  /// No description provided for @paVc2Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Request a home visit when travelling to the clinic is difficult.'**
+  String get paVc2Body;
+
+  /// No description provided for @paVc2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Home visits'**
+  String get paVc2Title;
+
+  /// No description provided for @paVc3Body.
+  ///
+  /// In en, this message translates to:
+  /// **'View and download documents your care team issues.'**
+  String get paVc3Body;
+
+  /// No description provided for @paVc3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents online'**
+  String get paVc3Title;
+
+  /// No description provided for @paVc4Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Live video consultations are not available yet.'**
+  String get paVc4Body;
+
+  /// No description provided for @paVc4Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Video visits'**
+  String get paVc4Title;
+
+  /// No description provided for @paViewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View All'**
+  String get paViewAll;
+
+  /// No description provided for @paVirtualCare.
+  ///
+  /// In en, this message translates to:
+  /// **'Virtual Care'**
+  String get paVirtualCare;
+
+  /// No description provided for @paVirtualCareDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Care from home: messages, home visits and documents.'**
+  String get paVirtualCareDesc;
+
+  /// No description provided for @paVirtualCareIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Ways to get care without coming to the clinic.'**
+  String get paVirtualCareIntro;
+
+  /// No description provided for @paVitalsTrends.
+  ///
+  /// In en, this message translates to:
+  /// **'Vitals & Trends'**
+  String get paVitalsTrends;
+
+  /// No description provided for @paWeather.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather'**
+  String get paWeather;
+
+  /// No description provided for @paWeatherLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather'**
+  String get paWeatherLink;
+
+  /// No description provided for @paWeatherUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No weather service is connected to MyHealth yet, so no readings are shown. Your care features are not affected.'**
+  String get paWeatherUnavailableBody;
+
+  /// No description provided for @paWeatherUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather isn\'t connected'**
+  String get paWeatherUnavailableTitle;
+
+  /// No description provided for @paWeightKg.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight (kg)'**
+  String get paWeightKg;
+
+  /// No description provided for @paYesPlease.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, Please'**
+  String get paYesPlease;
+
+  /// No description provided for @paOnboardBookTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Book appointments in a few taps'**
+  String get paOnboardBookTitle;
+
+  /// No description provided for @paOnboardBookBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Find a clinic or doctor, choose a time that suits you and manage your visits in one place.'**
+  String get paOnboardBookBody;
+
+  /// No description provided for @paOnboardRecordsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your records and reports, made clearer'**
+  String get paOnboardRecordsTitle;
+
+  /// No description provided for @paOnboardRecordsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'See your records, download documents and get plain-language explanations of PDF reports.'**
+  String get paOnboardRecordsBody;
+
+  /// No description provided for @paBrowseAsGuest.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse as guest'**
+  String get paBrowseAsGuest;
+
+  /// No description provided for @paChatLiveStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Live AI'**
+  String get paChatLiveStatus;
+
+  /// No description provided for @paChatOfflineStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline guide · no live AI'**
+  String get paChatOfflineStatus;
+
+  /// No description provided for @paChatReportLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Explaining: {title}'**
+  String paChatReportLabel(String title);
+
+  /// No description provided for @paViewOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'View original'**
+  String get paViewOriginal;
 }
 
 class _AppLocalizationsDelegate

@@ -76,13 +76,11 @@ void main() {
     );
     await _settle(tester);
 
-    // Phase 6 priority order: the next appointment is the anchor, above the
-    // health figures and the quick actions.
-    final health = tester.getTopLeft(find.text('Your health')).dy;
+    // Care alerts come first: upcoming appointments sit above the Services
+    // carousel and Quick Access.
     final upcoming = tester.getTopLeft(find.text('Upcoming appointments')).dy;
-    final quick = tester.getTopLeft(find.text('Quick actions')).dy;
-    expect(upcoming, lessThan(health));
-    expect(upcoming, lessThan(quick));
+    final services = tester.getTopLeft(find.text('Services').first).dy;
+    expect(upcoming, lessThan(services));
 
     // The carousel shows a well-formed ticket number and a room.
     expect(find.text('TICKET'), findsWidgets);

@@ -9,6 +9,7 @@ import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/mfa.dart';
+import '../support/navigation.dart';
 import '../support/test_database.dart';
 
 Future<void> _settle(WidgetTester tester) async {
@@ -65,9 +66,8 @@ void main() {
     // Home greeting.
     expect(find.textContaining('Good '), findsOneWidget);
 
-    // Go to the Records tab.
-    await tester.tap(find.text('Records').first);
-    await _settle(tester);
+    // Records now opens from Home Quick Access.
+    await openQuickAccess(tester, 'records');
     expect(find.widgetWithText(AppBar, 'Records'), findsOneWidget);
     // The hub offers the doctor chat (conversations + "Chat with doctor").
     await tester.scrollUntilVisible(
@@ -84,14 +84,7 @@ void main() {
 
     // Go back to Home, then to Vitals via the Quick Actions tile — Vitals
     // is a full-screen push now, not a bottom tab (patient dashboard rebuild).
-    await tester.tap(find.text('Home').first);
-    await _settle(tester);
-    await tester.ensureVisible(find.text('More actions'));
-    await tester.tap(find.text('More actions'));
-    await _settle(tester);
-    await tester.ensureVisible(find.text('Vitals').first);
-    await tester.tap(find.text('Vitals').first);
-    await _settle(tester);
+    await openQuickAccess(tester, 'vitals');
     expect(find.widgetWithText(AppBar, 'Vitals'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox());

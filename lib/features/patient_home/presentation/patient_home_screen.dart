@@ -1,10 +1,14 @@
-/// Patient home (P2-07, redesign v3, Phase 6): a calm at-a-glance screen in
-/// priority order — greeting, allergy alert, what needs the patient's
-/// attention, the next appointment ticket(s) as the anchor, a health
-/// snapshot, then booking and quick actions.
+/// Patient Home (approved blue rebuild). Required order:
+///   1. header (guest sign-in pill, or greeting + account actions)
+///   2. compact care alerts / upcoming appointments (signed in only)
+///   3. the assistance / report hero card
+///   4. paged quick tools
+///   5. Services heading + View All + horizontal service cards
+///   6. Quick Access — every relocated patient feature, in this same scroll.
+///
+/// Guests never trigger patient-specific providers: the private sections are
+/// only built when a patient is signed in.
 library;
-
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,13 +16,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
-import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
-import '../../../core/presentation/quick_actions.dart';
-import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
+import '../../../core/ui/patient/patient_components.dart';
 import '../../../core/utils/format.dart';
-import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
@@ -26,255 +27,328 @@ import '../../billing/application/billing_providers.dart';
 import '../../care/application/care_providers.dart';
 import '../../patient/application/family_link_providers.dart';
 import '../../patient/application/patient_data_providers.dart';
-import '../../patient/presentation/patient_top_actions.dart';
+import '../../service_catalog/application/catalog_dispatcher.dart';
+import '../../service_catalog/domain/patient_catalog.dart';
+import '../../service_catalog/presentation/catalog_widgets.dart';
+import '../../settings/presentation/language_icon_toggle.dart';
+import '../../settings/presentation/theme_mode_icon_toggle.dart';
 import 'needs_attention_strip.dart';
+import 'notifications_button.dart';
 import 'upcoming_appointment_carousel.dart';
 
-class PatientHomeScreen extends ConsumerWidget {
+class PatientHomeScreen extends ConsumerStatefulWidget {
   const PatientHomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(currentUserProvider);
+  ConsumerState<PatientHomeScreen> createState() => _PatientHomeScreenState();
+}
+
+class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
+  final _scroll = ScrollController();
+  ValueNotifier<int>? _signal;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Re-tapping the Home tab scrolls back to the top (shell signal).
+    final signal = ScrollToTopSignal.maybeOf(context);
+    if (identical(signal, _signal)) return;
+    _signal?.removeListener(_toTop);
+    _signal = signal?..addListener(_toTop);
+  }
+
+  @override
+  void dispose() {
+    _signal?.removeListener(_toTop);
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  void _toTop() {
+    if (!_scroll.hasClients) return;
+    if (Motion.reduced(context)) {
+      _scroll.jumpTo(0);
+    } else {
+      _scroll.animateTo(0, duration: Motion.slow, curve: Motion.standard);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
-    final firstName = (user?.fullName ?? t.greetingFallbackName)
-        .split(' ')
-        .first;
+    final user = ref.watch(currentUserProvider);
+    final signedIn = user != null && user.role == UserRole.patient;
 
-    return AppScaffold(
-      stagger: true,
-      hero: true,
-      heroOverline: greeting(firstName),
-      title: user?.fullName ?? t.greetingFallbackName,
-      actions: const [PatientTopActions()],
-      onRefresh: () async {
-        ref
-          ..invalidate(patientThreadsProvider)
-          ..invalidate(patientInvoicesProvider)
-          ..invalidate(patientPaymentsProvider)
-          ..invalidate(incomingFamilyRequestsProvider)
-          ..invalidate(patientAppointmentsProvider)
-          ..invalidate(patientMedicationsProvider)
-          ..invalidate(patientVitalsProvider);
-      },
+    return PatientPageScaffold(
+      controller: _scroll,
+      onRefresh: signedIn
+          ? () async {
+              ref
+                ..invalidate(patientThreadsProvider)
+                ..invalidate(patientInvoicesProvider)
+                ..invalidate(patientPaymentsProvider)
+                ..invalidate(incomingFamilyRequestsProvider)
+                ..invalidate(patientAppointmentsProvider)
+                ..invalidate(patientProfileProvider);
+            }
+          : null,
+      header: signedIn ? const _SignedInHeader() : const _GuestHeader(),
       children: [
-        // Urgent clinical information first, then what is waiting on the
-        // patient (hidden when nothing is, shown as an error when it could
-        // not be checked).
-        const _AllergyAlert(),
-        const NeedsAttentionStrip(),
+        // 2. Care alerts — private, signed-in only.
+        if (signedIn) ...[
+          const _AllergyAlert(),
+          const NeedsAttentionStrip(),
+          const _UpcomingAppointments(),
+        ],
 
-        // The screen's anchor: all upcoming appointments, soonest first.
-        SectionHeader(t.sectionUpcomingAppointments, overline: true),
-        const _UpcomingAppointment(),
+        // 3. Hero.
+        const SizedBox(height: Space.md),
+        _HeroCard(signedIn: signedIn),
 
-        SectionColumns(
-          primary: [
-            SectionHeader(t.sectionQuickActions, overline: true),
-            const _QuickActions(),
-          ],
-          secondary: [
-            SectionHeader(t.sectionYourHealth, overline: true),
-            _HealthSnapshot(),
-          ],
+        // 4. Quick tools.
+        const SizedBox(height: Space.lg),
+        QuickToolsPager(
+          pages: [PatientCatalog.quickTools, PatientCatalog.moreTools],
         ),
+
+        // 5. Services.
+        SectionHeading(
+          t.paServices,
+          actionLabel: t.paViewAll,
+          onAction: () => context.go(AppRoutes.patientServices),
+        ),
+        ServiceCarousel(items: PatientCatalog.promotions),
+
+        // 6. Quick Access — directly below the Services carousel.
+        const SizedBox(height: Space.sm),
+        const QuickAccessSection(),
       ],
     );
   }
 }
 
-enum _QuickChoice { urgent, normal }
+class _GuestHeader extends StatelessWidget {
+  const _GuestHeader();
 
-/// The Home "Quick Appointment" action: choose Urgent (auto-routed to the
-/// nearest — i.e. soonest-available — doctor, any department) or Normal
-/// (the standard booking flow).
-class _QuickAppointmentAction extends ConsumerWidget {
-  const _QuickAppointmentAction();
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    final palette = PatientPalette.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: Space.sm),
+      child: Row(
+        children: [
+          Expanded(
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: FilledButton.icon(
+                key: const ValueKey('guest-login'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: palette.softAccent,
+                  foregroundColor: palette.onSoftAccent,
+                  minimumSize: const Size(0, 48),
+                ),
+                onPressed: () => goToSignIn(context),
+                icon: const Icon(Icons.person_outline),
+                label: Text(
+                  t.paLoginOrRegister,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+          ),
+          const LanguageIconToggle(),
+          const ThemeModeIconToggle(),
+        ],
+      ),
+    );
+  }
+}
+
+class _SignedInHeader extends ConsumerWidget {
+  const _SignedInHeader();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
-    return NavRow(
-      icon: Icons.bolt,
-      title: t.quickAppointmentTitle,
-      subtitle: t.quickAppointmentSubtitle,
-      onTap: () => _chooseUrgency(context),
-    );
-  }
-
-  Future<void> _chooseUrgency(BuildContext context) async {
-    final choice = await showModalBottomSheet<_QuickChoice>(
-      context: context,
-      showDragHandle: true,
-      builder: (sheetContext) {
-        final t = AppLocalizations.of(sheetContext)!;
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(Space.lg, 0, Space.lg, Space.lg),
+    final theme = Theme.of(context);
+    final palette = PatientPalette.of(context);
+    final user = ref.watch(currentUserProvider);
+    final name = user?.fullName ?? t.greetingFallbackName;
+    final initials = name
+        .split(' ')
+        .where((p) => p.isNotEmpty)
+        .take(2)
+        .map((p) => p[0].toUpperCase())
+        .join();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: Space.sm),
+      child: Row(
+        children: [
+          Semantics(
+            button: true,
+            label: t.paMyProfile,
+            child: InkWell(
+              customBorder: const CircleBorder(),
+              onTap: () => context.go(AppRoutes.patientSettings),
+              child: SizedBox.square(
+                dimension: 48,
+                child: CircleAvatar(
+                  backgroundColor: palette.softAccent,
+                  foregroundColor: palette.onSoftAccent,
+                  child: Text(
+                    initials,
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: Space.sm),
+          Expanded(
             child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AppEntrance(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        t.quickAppointmentTitle,
-                        style: Theme.of(sheetContext).textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: Space.xs),
-                      Text(
-                        t.quickAppointmentSheetQuestion,
-                        style: Theme.of(sheetContext).textTheme.bodyMedium
-                            ?.copyWith(
-                              color: Theme.of(
-                                sheetContext,
-                              ).colorScheme.onSurfaceVariant,
-                            ),
-                      ),
-                    ],
+                Text(
+                  greeting(name.split(' ').first),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: palette.textMuted,
                   ),
                 ),
-                const SizedBox(height: Space.lg),
-                AppEntrance(
-                  index: 1,
-                  child: NavRow(
-                    icon: Icons.bolt,
-                    title: t.urgencyUrgentTitle,
-                    subtitle: t.urgencyUrgentSubtitle,
-                    onTap: () =>
-                        Navigator.of(sheetContext).pop(_QuickChoice.urgent),
-                  ),
-                ),
-                const SizedBox(height: Space.sm),
-                AppEntrance(
-                  index: 2,
-                  child: NavRow(
-                    icon: Icons.event_available_outlined,
-                    title: t.urgencyNormalTitle,
-                    subtitle: t.urgencyNormalSubtitle,
-                    onTap: () =>
-                        Navigator.of(sheetContext).pop(_QuickChoice.normal),
+                Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: palette.text,
                   ),
                 ),
               ],
             ),
           ),
-        );
-      },
+          const NotificationsButton(),
+          const LanguageIconToggle(),
+          const ThemeModeIconToggle(),
+        ],
+      ),
     );
-    if (choice == null || !context.mounted) return;
-
-    if (choice == _QuickChoice.normal) {
-      context.go(AppRoutes.patientAppointments);
-      return;
-    }
-    await _bookUrgent(context);
   }
+}
 
-  Future<void> _bookUrgent(BuildContext context) async {
+/// The white hero card. Guests get care discovery (specialty guidance);
+/// signed-in patients get the PDF report explanation. The two stay separate
+/// use cases — report chat is never presented as symptom diagnosis.
+class _HeroCard extends ConsumerWidget {
+  const _HeroCard({required this.signedIn});
+
+  final bool signedIn;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
-    final schedule = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(t.urgencyUrgentTitle),
-        content: Text(t.sendNonUrgentQuestionMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(t.backButton),
+    final theme = Theme.of(context);
+    final palette = PatientPalette.of(context);
+    final title = signedIn ? t.paHeroReportTitle : t.paHeroGuestTitle;
+    final body = signedIn ? t.paHeroReportBody : t.paHeroGuestBody;
+    final cta = signedIn ? t.paHeroReportCta : t.paHeroGuestCta;
+    return SurfaceCard(
+      padding: const EdgeInsets.all(Space.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: palette.text,
+                      ),
+                    ),
+                    const SizedBox(height: Space.xs),
+                    Text(
+                      body,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: palette.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: Space.md),
+              _HeroArt(
+                icon: signedIn
+                    ? Icons.document_scanner_outlined
+                    : Icons.health_and_safety_outlined,
+              ),
+            ],
           ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(t.continueButton),
+          const SizedBox(height: Space.lg),
+          PrimaryActionButton(
+            label: cta,
+            onPressed: () => signedIn
+                ? startReportExplanation(context, ref)
+                : context.push(AppRoutes.patientSpecialtyGuide),
           ),
         ],
       ),
     );
-    if (schedule == true && context.mounted) {
-      context.go(AppRoutes.patientAppointments);
-    }
-    // The loader sits on the root navigator — close it there, not on the shell
-    // branch's navigator (which would pop Home and leave a blank screen).
   }
 }
 
-class _HealthSnapshot extends ConsumerWidget {
+/// Original vector illustration: layered soft-blue shapes around a glyph.
+class _HeroArt extends StatelessWidget {
+  const _HeroArt({required this.icon});
+
+  final IconData icon;
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final t = AppLocalizations.of(context)!;
-    final appts = ref.watch(patientAppointmentsProvider);
-    final meds = ref.watch(patientMedicationsProvider);
-
-    if (appts.hasError || meds.hasError) {
-      return ErrorStateView(
-        message: appts.hasError
-            ? t.couldNotLoadAppointments
-            : t.couldNotLoadMedications,
-        onRetry: () {
-          ref.invalidate(patientAppointmentsProvider);
-          ref.invalidate(patientMedicationsProvider);
-        },
-      );
-    }
-    final all = appts.valueOrNull ?? const <Appointment>[];
-
-    // Ticket — how many upcoming appointments the patient is holding.
-    final ticketCount = all.where((a) => a.isUpcoming).length;
-
-    final activeMeds = meds.valueOrNull?.where((m) => m.isCurrent).length ?? 0;
-
-    // Last visit — the most recent appointment that has actually happened.
-    final lastVisit =
-        (all
-                .where(
-                  (a) =>
-                      a.status == AppointmentStatus.completed ||
-                      (a.slotEnd.isBefore(DateTime.now()) &&
-                          a.status != AppointmentStatus.cancelled &&
-                          a.status != AppointmentStatus.noShow),
-                )
-                .toList()
-              ..sort((a, b) => b.slotStart.compareTo(a.slotStart)))
-            .firstOrNull;
-    final lastVisitLabel = lastVisit == null
-        ? t.none
-        : fmtShortDate(lastVisit.slotStart);
-
-    return AppReveal(
-      child: appts.isLoading || meds.isLoading
-          ? const LoadingSkeleton(key: ValueKey('loading'), height: 92)
-          : MetricRow(
-              key: const ValueKey('data'),
-              children: [
-                MetricTile(
-                  value: '$ticketCount',
-                  label: t.metricTicket,
-                  icon: Icons.confirmation_number_outlined,
-                  onTap: () => context.go(AppRoutes.patientAppointments),
-                ),
-                MetricTile(
-                  value: '$activeMeds',
-                  label: t.metricMedicine,
-                  icon: Icons.medication_outlined,
-                  onTap: () => context.go(AppRoutes.patientMedications),
-                ),
-                MetricTile(
-                  value: lastVisitLabel,
-                  label: t.metricLastVisit,
-                  icon: Icons.event_available_outlined,
-                  onTap: () => context.go(AppRoutes.patientAppointments),
-                ),
-              ],
+  Widget build(BuildContext context) {
+    final palette = PatientPalette.of(context);
+    return ExcludeSemantics(
+      child: SizedBox(
+        width: 84,
+        height: 84,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: palette.softAccent,
+                borderRadius: BorderRadius.circular(26),
+              ),
             ),
+            PositionedDirectional(
+              top: 6,
+              end: 6,
+              child: Container(
+                width: 18,
+                height: 18,
+                decoration: BoxDecoration(
+                  color: palette.successContainer,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: palette.card, width: 2),
+                ),
+              ),
+            ),
+            Icon(icon, size: 42, color: palette.action),
+          ],
+        ),
+      ),
     );
   }
 }
 
-/// A slim red strip shown only when the patient has allergies on file — it
-/// rides above the fold so a clinician glancing at the phone can't miss it.
+/// A compact allergy strip, shown only when allergies are on file.
 class _AllergyAlert extends ConsumerWidget {
   const _AllergyAlert();
 
@@ -284,26 +358,20 @@ class _AllergyAlert extends ConsumerWidget {
         ref.watch(patientProfileProvider).valueOrNull?.allergies ??
         const <String>[];
     if (allergies.isEmpty) return const SizedBox.shrink();
-
+    final palette = PatientPalette.of(context);
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
     return Padding(
-      padding: const EdgeInsets.only(bottom: Space.lg),
-      child: AppCard(
-        onTap: () => context.push(AppRoutes.patientAllergies),
-        color: scheme.errorContainer,
-        borderColor: scheme.error.withValues(alpha: 0.35),
+      padding: const EdgeInsets.only(top: Space.sm),
+      child: SurfaceCard(
+        onTap: () => context.go(AppRoutes.patientAllergies),
+        color: palette.dangerContainer,
         padding: const EdgeInsets.symmetric(
           horizontal: Space.md,
           vertical: Space.sm,
         ),
         child: Row(
           children: [
-            Icon(
-              Icons.warning_amber_rounded,
-              size: 20,
-              color: scheme.onErrorContainer,
-            ),
+            Icon(Icons.warning_amber_rounded, color: palette.danger),
             const SizedBox(width: Space.sm),
             Expanded(
               child: Text(
@@ -313,15 +381,16 @@ class _AllergyAlert extends ConsumerWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: scheme.onErrorContainer,
+                  color: palette.text,
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ),
             Icon(
-              Icons.chevron_right,
-              size: kTrailingChevronSize,
-              color: scheme.onErrorContainer,
+              Directionality.of(context) == TextDirection.rtl
+                  ? Icons.chevron_left
+                  : Icons.chevron_right,
+              color: palette.textMuted,
             ),
           ],
         ),
@@ -330,115 +399,10 @@ class _AllergyAlert extends ConsumerWidget {
   }
 }
 
-class _QuickActions extends StatelessWidget {
-  const _QuickActions();
-
-  @override
-  Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context)!;
-    // (icon, label, route, push) — `push` keeps the nav bar and adds a back
-    // button for section screens that aren't a nav destination of their own.
-    final items = [
-      (
-        Icons.calendar_month_outlined,
-        t.bookAppointmentAction,
-        AppRoutes.patientBook,
-        true,
-      ),
-      (
-        Icons.favorite_outline,
-        t.quickActionVitals,
-        AppRoutes.patientVitals,
-        false,
-      ),
-      (
-        Icons.medication_outlined,
-        t.quickActionMedications,
-        AppRoutes.patientMedications,
-        false,
-      ),
-      (
-        Icons.forum_outlined,
-        t.quickActionAskDoctor,
-        AppRoutes.patientMessages,
-        true,
-      ),
-      (
-        Icons.groups_outlined,
-        t.quickActionVisitedDoctors,
-        AppRoutes.patientVisitedDoctors,
-        true,
-      ),
-      (
-        Icons.event_busy_outlined,
-        t.quickActionSickLeave,
-        AppRoutes.patientSickLeave,
-        true,
-      ),
-      (
-        Icons.add_home_outlined,
-        t.quickActionHomeCare,
-        AppRoutes.patientHomeVisit,
-        true,
-      ),
-      (
-        Icons.payments_outlined,
-        t.paymentsTitle,
-        AppRoutes.patientBilling,
-        false,
-      ),
-    ];
-
-    Widget tile((IconData, String, String, bool) item) {
-      final (icon, label, route, push) = item;
-      return QuickActionTile(
-        icon: icon,
-        label: label,
-        onTap: () {
-          if (push) {
-            unawaited(context.push(route));
-          } else {
-            context.go(route);
-          }
-        },
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        QuickActionGrid(
-          children: [
-            for (final i in [0, 3, 6]) tile(items[i]),
-          ],
-        ),
-        const SizedBox(height: Space.xs),
-        ExpansionTile(
-          tilePadding: EdgeInsets.zero,
-          childrenPadding: const EdgeInsets.only(bottom: Space.sm),
-          title: Text(
-            t.moreActionsTooltip,
-            style: Theme.of(context).textTheme.labelLarge,
-          ),
-          children: [
-            QuickActionGrid(
-              children: [
-                for (final (i, item) in items.indexed)
-                  if (![0, 3, 6].contains(i)) tile(item),
-              ],
-            ),
-            const SizedBox(height: Space.sm),
-            const _QuickAppointmentAction(),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-/// Fetch the patient's active appointments; the carousel owns selection and timing.
-class _UpcomingAppointment extends ConsumerWidget {
-  const _UpcomingAppointment();
+/// Upcoming appointments, shown only when there are any (Quick Access and
+/// the Appointments tab cover the empty case).
+class _UpcomingAppointments extends ConsumerWidget {
+  const _UpcomingAppointments();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -447,10 +411,16 @@ class _UpcomingAppointment extends ConsumerWidget {
     return ref
         .watch(patientAppointmentsProvider)
         .when(
-          loading: () => const LoadingSkeleton(height: 180),
-          error: (e, _) => ErrorStateView(
-            message: t.couldNotLoadAppointments,
-            onRetry: () => ref.invalidate(patientAppointmentsProvider),
+          loading: () => const Padding(
+            padding: EdgeInsets.only(top: Space.sm),
+            child: LoadingSkeleton(height: 120),
+          ),
+          error: (e, _) => Padding(
+            padding: const EdgeInsets.only(top: Space.sm),
+            child: ErrorStateView(
+              message: t.couldNotLoadAppointments,
+              onRetry: () => ref.invalidate(patientAppointmentsProvider),
+            ),
           ),
           data: (list) {
             final active =
@@ -463,20 +433,23 @@ class _UpcomingAppointment extends ConsumerWidget {
                     )
                     .toList()
                   ..sort((a, b) => a.slotStart.compareTo(b.slotStart));
-            if (active.isEmpty) {
-              return NavRow(
-                icon: Icons.event_available_outlined,
-                title: t.noUpcomingAppointments,
-                subtitle: t.tapToBookVisit,
-                onTap: () => context.push(AppRoutes.patientBook),
-              );
-            }
-            return UpcomingAppointmentCarousel(
-              appointments: active,
-              doctorNames: {
-                for (final entry in doctors.entries)
-                  entry.key: entry.value.name,
-              },
+            if (active.isEmpty) return const SizedBox.shrink();
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SectionHeading(
+                  t.sectionUpcomingAppointments,
+                  actionLabel: t.paViewAll,
+                  onAction: () => context.go(AppRoutes.patientAppointments),
+                ),
+                UpcomingAppointmentCarousel(
+                  appointments: active,
+                  doctorNames: {
+                    for (final entry in doctors.entries)
+                      entry.key: entry.value.name,
+                  },
+                ),
+              ],
             );
           },
         );
