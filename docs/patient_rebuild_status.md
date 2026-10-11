@@ -24,4 +24,4 @@ checkout was built, analysed and tested with Flutter 3.47.2.
 | 13 | Future work policy | Done: one scope field (core / supplementary / planned) drives every label; Weather/News are planned entries with explanation sheets only — no sources, tabs or data. |
 | 14 | Architecture | No database or package changes. |
 | 15 | Localization & a11y | English/Arabic for all new strings; 320px readability tests (EN/AR, OS text 1–3×, max app text) cover every new route; contrast/tap-target tests pass. The upcoming-appointment carousel never auto-advances with reduced motion or a screen reader and has pause controls. |
-| 17 | Verification | `flutter analyze`: no errors or warnings (138 info lints; baseline 142). `flutter test`: 657 passed, 1 skipped (screenshot capture, opt-in via CAPTURE_DIR). |
+| 17 | Verification | `flutter analyze`: no errors or warnings (138 info lints; baseline 142). Release web build succeeds. `flutter test`: 657 passed, 1 skipped (screenshot capture, opt-in via CAPTURE_DIR). Server: 12 Node tests pass. |
