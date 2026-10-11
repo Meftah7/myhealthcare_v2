@@ -2325,5 +2325,22 @@
   "paDrawerAbout": "About & support",
   "paAboutMyHealth": "About MyHealth",
   "paAboutBody": "MyHealth Care lets patients view their records, book appointments, download documents and get plain-language explanations of PDF medical reports. Senior project prototype with synthetic data.",
-  "paSettingsPreferences": "Settings & Preferences"
+  "paSettingsPreferences": "Settings & Preferences",
+  "paVideoVisitsMode": "Video visits",
+  "paAvailabilityLoading": "Checking availability…",
+  "paAvailabilityError": "Availability couldn't be loaded.",
+  "paAvailabilityUnknown": "Availability not known.",
+  "paNoPublishedSchedule": "No published schedule.",
+  "paNoOpenTimes": "No open times in the next {days} days.",
+  "@paNoOpenTimes": {"placeholders": {"days": {"type": "int"}}},
+  "paNextAvailable": "Next available {when} · {count} open times in the next {days} days",
+  "@paNextAvailable": {"placeholders": {"when": {"type": "String"}, "count": {"type": "int"}, "days": {"type": "int"}}},
+  "paAvailabilityNotGuaranteed": "Times are checked again when you book.",
+  "paBookingInProgress": "Confirming your booking…",
+  "paReviewPatient": "Patient",
+  "paReviewSpecialty": "Specialty",
+  "paReviewFacility": "Facility",
+  "paReviewVisitMode": "Visit mode",
+  "paReviewChangeTime": "Change time",
+  "paReviewEditDetails": "Edit clinic, doctor or visit type"
 }

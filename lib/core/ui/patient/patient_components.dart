@@ -680,3 +680,35 @@ class FutureWorkBadge extends StatelessWidget {
     icon: compact ? null : Icons.schedule_outlined,
   );
 }
+
+/// The visible scope label on a navigation entry (bar, menu, rail).
+class NavScopeBadge extends StatelessWidget {
+  const NavScopeBadge(this.label, {super.key});
+
+  final String label;
+
+  /// The badge's text style — also used to measure whether the bar fits.
+  static TextStyle? styleOf(BuildContext context) => Theme.of(context)
+      .textTheme
+      .labelSmall
+      ?.copyWith(fontSize: 10.5, height: 1.2, fontWeight: FontWeight.w700);
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = PatientPalette.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: palette.warningContainer,
+        borderRadius: Radii.pill,
+        border: Border.all(color: palette.warning.withValues(alpha: .35)),
+      ),
+      child: Text(
+        label,
+        maxLines: 1,
+        textAlign: TextAlign.center,
+        style: styleOf(context)?.copyWith(color: palette.warning),
+      ),
+    );
+  }
+}

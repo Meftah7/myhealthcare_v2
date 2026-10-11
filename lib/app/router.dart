@@ -540,8 +540,8 @@ StatefulShellRoute _patientShell() {
           selectedIcon: Icons.forum,
           label: t.messagesTitle,
           // Messaging is an existing supplementary feature (outside the
-          // proposal): announced with its scope label.
-          semanticsSuffix: t.paFutureWork,
+          // proposal): a visible "Future work" label on its tab.
+          badge: t.paFutureWork,
         ),
         AppDestination(
           icon: Icons.grid_view_outlined,
@@ -647,6 +647,7 @@ StatefulShellRoute _patientShell() {
                 path: 'detail/:id',
                 builder: (_, state) => AppointmentDetailScreen(
                   appointmentId: state.pathParameters['id']!,
+                  justBooked: state.uri.queryParameters['booked'] == '1',
                 ),
               ),
             ],

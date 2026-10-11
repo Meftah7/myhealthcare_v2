@@ -5367,4 +5367,54 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get paSettingsPreferences => 'الإعدادات والتفضيلات';
+
+  @override
+  String get paVideoVisitsMode => 'الزيارات المرئية';
+
+  @override
+  String get paAvailabilityLoading => 'جارٍ التحقق من المواعيد المتاحة…';
+
+  @override
+  String get paAvailabilityError => 'تعذّر تحميل المواعيد المتاحة.';
+
+  @override
+  String get paAvailabilityUnknown => 'المواعيد المتاحة غير معروفة.';
+
+  @override
+  String get paNoPublishedSchedule => 'لا يوجد جدول منشور.';
+
+  @override
+  String paNoOpenTimes(int days) {
+    return 'لا توجد أوقات متاحة خلال الأيام الـ$days القادمة.';
+  }
+
+  @override
+  String paNextAvailable(String when, int count, int days) {
+    return 'أقرب موعد متاح $when · $count من الأوقات المتاحة خلال الأيام الـ$days القادمة';
+  }
+
+  @override
+  String get paAvailabilityNotGuaranteed =>
+      'يُعاد التحقق من الأوقات عند الحجز.';
+
+  @override
+  String get paBookingInProgress => 'جارٍ تأكيد حجزك…';
+
+  @override
+  String get paReviewPatient => 'المريض';
+
+  @override
+  String get paReviewSpecialty => 'التخصص';
+
+  @override
+  String get paReviewFacility => 'المنشأة';
+
+  @override
+  String get paReviewVisitMode => 'نوع الزيارة';
+
+  @override
+  String get paReviewChangeTime => 'تغيير الوقت';
+
+  @override
+  String get paReviewEditDetails => 'تعديل العيادة أو الطبيب أو نوع الزيارة';
 }

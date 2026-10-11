@@ -5314,4 +5314,54 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paSettingsPreferences => 'Settings & Preferences';
+
+  @override
+  String get paVideoVisitsMode => 'Video visits';
+
+  @override
+  String get paAvailabilityLoading => 'Checking availability…';
+
+  @override
+  String get paAvailabilityError => 'Availability couldn\'t be loaded.';
+
+  @override
+  String get paAvailabilityUnknown => 'Availability not known.';
+
+  @override
+  String get paNoPublishedSchedule => 'No published schedule.';
+
+  @override
+  String paNoOpenTimes(int days) {
+    return 'No open times in the next $days days.';
+  }
+
+  @override
+  String paNextAvailable(String when, int count, int days) {
+    return 'Next available $when · $count open times in the next $days days';
+  }
+
+  @override
+  String get paAvailabilityNotGuaranteed =>
+      'Times are checked again when you book.';
+
+  @override
+  String get paBookingInProgress => 'Confirming your booking…';
+
+  @override
+  String get paReviewPatient => 'Patient';
+
+  @override
+  String get paReviewSpecialty => 'Specialty';
+
+  @override
+  String get paReviewFacility => 'Facility';
+
+  @override
+  String get paReviewVisitMode => 'Visit mode';
+
+  @override
+  String get paReviewChangeTime => 'Change time';
+
+  @override
+  String get paReviewEditDetails => 'Edit clinic, doctor or visit type';
 }

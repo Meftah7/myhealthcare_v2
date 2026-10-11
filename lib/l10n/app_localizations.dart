@@ -9469,6 +9469,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settings & Preferences'**
   String get paSettingsPreferences;
+
+  /// No description provided for @paVideoVisitsMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Video visits'**
+  String get paVideoVisitsMode;
+
+  /// No description provided for @paAvailabilityLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking availability…'**
+  String get paAvailabilityLoading;
+
+  /// No description provided for @paAvailabilityError.
+  ///
+  /// In en, this message translates to:
+  /// **'Availability couldn\'t be loaded.'**
+  String get paAvailabilityError;
+
+  /// No description provided for @paAvailabilityUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Availability not known.'**
+  String get paAvailabilityUnknown;
+
+  /// No description provided for @paNoPublishedSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'No published schedule.'**
+  String get paNoPublishedSchedule;
+
+  /// No description provided for @paNoOpenTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'No open times in the next {days} days.'**
+  String paNoOpenTimes(int days);
+
+  /// No description provided for @paNextAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Next available {when} · {count} open times in the next {days} days'**
+  String paNextAvailable(String when, int count, int days);
+
+  /// No description provided for @paAvailabilityNotGuaranteed.
+  ///
+  /// In en, this message translates to:
+  /// **'Times are checked again when you book.'**
+  String get paAvailabilityNotGuaranteed;
+
+  /// No description provided for @paBookingInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirming your booking…'**
+  String get paBookingInProgress;
+
+  /// No description provided for @paReviewPatient.
+  ///
+  /// In en, this message translates to:
+  /// **'Patient'**
+  String get paReviewPatient;
+
+  /// No description provided for @paReviewSpecialty.
+  ///
+  /// In en, this message translates to:
+  /// **'Specialty'**
+  String get paReviewSpecialty;
+
+  /// No description provided for @paReviewFacility.
+  ///
+  /// In en, this message translates to:
+  /// **'Facility'**
+  String get paReviewFacility;
+
+  /// No description provided for @paReviewVisitMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit mode'**
+  String get paReviewVisitMode;
+
+  /// No description provided for @paReviewChangeTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Change time'**
+  String get paReviewChangeTime;
+
+  /// No description provided for @paReviewEditDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit clinic, doctor or visit type'**
+  String get paReviewEditDetails;
 }
 
 class _AppLocalizationsDelegate

@@ -2254,5 +2254,20 @@
   "paDrawerAbout": "حول التطبيق والدعم",
   "paAboutMyHealth": "حول ماي هيلث",
   "paAboutBody": "يتيح ماي هيلث للمرضى عرض سجلاتهم وحجز المواعيد وتحميل المستندات والحصول على شرح مبسّط لتقارير PDF الطبية. نموذج أولي لمشروع تخرج ببيانات تجريبية.",
-  "paSettingsPreferences": "الإعدادات والتفضيلات"
+  "paSettingsPreferences": "الإعدادات والتفضيلات",
+  "paVideoVisitsMode": "الزيارات المرئية",
+  "paAvailabilityLoading": "جارٍ التحقق من المواعيد المتاحة…",
+  "paAvailabilityError": "تعذّر تحميل المواعيد المتاحة.",
+  "paAvailabilityUnknown": "المواعيد المتاحة غير معروفة.",
+  "paNoPublishedSchedule": "لا يوجد جدول منشور.",
+  "paNoOpenTimes": "لا توجد أوقات متاحة خلال الأيام الـ{days} القادمة.",
+  "paNextAvailable": "أقرب موعد متاح {when} · {count} من الأوقات المتاحة خلال الأيام الـ{days} القادمة",
+  "paAvailabilityNotGuaranteed": "يُعاد التحقق من الأوقات عند الحجز.",
+  "paBookingInProgress": "جارٍ تأكيد حجزك…",
+  "paReviewPatient": "المريض",
+  "paReviewSpecialty": "التخصص",
+  "paReviewFacility": "المنشأة",
+  "paReviewVisitMode": "نوع الزيارة",
+  "paReviewChangeTime": "تغيير الوقت",
+  "paReviewEditDetails": "تعديل العيادة أو الطبيب أو نوع الزيارة"
 }

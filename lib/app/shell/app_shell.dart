@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/presentation/app_scaffold.dart';
 import '../../core/presentation/readable_label.dart';
+import '../../core/ui/patient/patient_components.dart';
 import '../theme/theme.dart';
 
 /// One navigation destination in a role shell.
@@ -18,15 +19,18 @@ class AppDestination {
     required this.icon,
     required this.selectedIcon,
     required this.label,
-    this.semanticsSuffix,
+    this.badge,
   });
 
   final IconData icon;
   final IconData selectedIcon;
   final String label;
 
-  /// Extra text read after the label by screen readers (e.g. a scope label).
-  final String? semanticsSuffix;
+  /// A visible scope label shown with the destination wherever it appears
+  /// (bottom bar, destination menu, rail) and read after the label.
+  final String? badge;
+
+  String get semanticLabel => badge == null ? label : '$label, $badge';
 }
 
 class AppShell extends StatefulWidget {
@@ -295,7 +299,14 @@ class _Rail extends StatelessWidget {
                       title: ReadableLabel(
                         destination.label,
                         style: theme.textTheme.labelLarge,
+                        semanticsLabel: destination.semanticLabel,
                       ),
+                      subtitle: destination.badge == null
+                          ? null
+                          : Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: NavScopeBadge(destination.badge!),
+                            ),
                       onTap: () => onSelected(i),
                     ),
                   ),
@@ -344,7 +355,16 @@ class _Rail extends StatelessWidget {
                   NavigationRailDestination(
                     icon: Icon(d.icon),
                     selectedIcon: Icon(d.selectedIcon),
-                    label: Text(d.label),
+                    label: d.badge == null
+                        ? Text(d.label)
+                        : Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(d.label),
+                              const SizedBox(height: 2),
+                              NavScopeBadge(d.badge!),
+                            ],
+                          ),
                   ),
               ],
             ),
@@ -426,7 +446,14 @@ class CompactNavigation extends StatelessWidget {
             title: ReadableLabel(
               selected.label,
               style: theme.textTheme.titleSmall,
+              semanticsLabel: selected.semanticLabel,
             ),
+            subtitle: selected.badge == null
+                ? null
+                : Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: NavScopeBadge(selected.badge!),
+                  ),
             trailing: const Icon(Icons.unfold_more),
             onTap: () async {
               final index = await showModalBottomSheet<int>(
@@ -446,7 +473,17 @@ class CompactNavigation extends StatelessWidget {
                             minTileHeight: 56,
                             selected: i == currentIndex,
                             leading: Icon(destination.icon),
-                            title: ReadableLabel(destination.label),
+                            title: ReadableLabel(
+                              destination.label,
+                              semanticsLabel: destination.semanticLabel,
+                            ),
+                            // The scope label stays visible in the menu too.
+                            subtitle: destination.badge == null
+                                ? null
+                                : Align(
+                                    alignment: AlignmentDirectional.centerStart,
+                                    child: NavScopeBadge(destination.badge!),
+                                  ),
                             trailing: i == currentIndex
                                 ? const Icon(Icons.check)
                                 : null,

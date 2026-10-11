@@ -342,6 +342,23 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     final settings = await (_db.select(
       _db.appSettings,
     )..where((s) => s.id.equals(1))).getSingleOrNull();
+    final templates =
+        await (_db.select(_db.scheduleTemplates)..where(
+              (t) => t.staffId.equals(staffId) & t.weekday.equals(day.weekday),
+            ))
+            .get();
+    return _gridFor(staffId, day, templates, settings);
+  }
+
+  /// The pure slot grid for one clinician-day: clinic open days/hours clip
+  /// each template. One rule for [openSlots], booking validation and
+  /// [availabilitySummaries].
+  static List<OpenSlot> _gridFor(
+    String staffId,
+    DateTime day,
+    Iterable<ScheduleTemplateRow> templates,
+    AppSettingsRow? settings,
+  ) {
     final openDays = settings?.clinicOpenDays
         ?.split(',')
         .map(int.tryParse)
@@ -352,14 +369,10 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     }
     final clinicOpenMinutes = (settings?.clinicOpenHour ?? 8) * 60;
     final clinicCloseMinutes = (settings?.clinicCloseHour ?? 20) * 60;
-    final templates =
-        await (_db.select(_db.scheduleTemplates)..where(
-              (t) => t.staffId.equals(staffId) & t.weekday.equals(day.weekday),
-            ))
-            .get();
     final dayStart = _dayStart(day);
     final slots = <OpenSlot>[];
     for (final t in templates) {
+      if (t.weekday != day.weekday) continue;
       var cursor = t.startMinutes;
       while (cursor < clinicOpenMinutes) {
         cursor += t.slotMinutes;
@@ -377,6 +390,82 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
       }
     }
     return slots;
+  }
+
+  @override
+  Future<Result<Map<String, StaffAvailabilitySummary>>> availabilitySummaries(
+    List<String> staffIds, {
+    int days = 14,
+  }) {
+    return Result.guardAsync(() async {
+      await _access.principal();
+      final ids = staffIds.toSet().take(maxSummaryStaff).toList();
+      final window = days.clamp(1, maxSummaryDays);
+      if (ids.isEmpty) return const <String, StaffAvailabilitySummary>{};
+      final now = DateTime.now();
+      final from = _dayStart(now);
+      final to = from.add(Duration(days: window));
+
+      // Four bounded queries for the whole list.
+      final settings = await (_db.select(
+        _db.appSettings,
+      )..where((s) => s.id.equals(1))).getSingleOrNull();
+      final templates = await (_db.select(
+        _db.scheduleTemplates,
+      )..where((t) => t.staffId.isIn(ids))).get();
+      final booked =
+          await (_db.select(_db.appointments)..where(
+                (a) =>
+                    a.staffId.isIn(ids) &
+                    a.slotStart.isSmallerThanValue(to) &
+                    a.slotEnd.isBiggerThanValue(from) &
+                    a.status.equalsValue(AppointmentStatus.cancelled).not(),
+              ))
+              .get();
+      final exceptions =
+          await (_db.select(_db.availabilityExceptions)..where(
+                (e) =>
+                    e.staffId.isIn(ids) &
+                    e.startsAt.isSmallerThanValue(to) &
+                    e.endsAt.isBiggerThanValue(from),
+              ))
+              .get();
+
+      final out = <String, StaffAvailabilitySummary>{};
+      for (final id in ids) {
+        final own = templates.where((t) => t.staffId == id).toList();
+        final busy = booked.where((a) => a.staffId == id).toList();
+        final off = exceptions.where((e) => e.staffId == id).toList();
+        OpenSlot? next;
+        var count = 0;
+        for (var i = 0; i < window; i++) {
+          final day = from.add(Duration(days: i));
+          for (final s in _gridFor(id, day, own, settings)) {
+            if (!s.start.isAfter(now)) continue;
+            if (busy.any(
+              (a) => a.slotStart.isBefore(s.end) && a.slotEnd.isAfter(s.start),
+            )) {
+              continue;
+            }
+            if (off.any(
+              (e) => e.startsAt.isBefore(s.end) && e.endsAt.isAfter(s.start),
+            )) {
+              continue;
+            }
+            count++;
+            if (next == null || s.start.isBefore(next.start)) next = s;
+          }
+        }
+        out[id] = StaffAvailabilitySummary(
+          staffId: id,
+          windowDays: window,
+          openSlotCount: count,
+          hasSchedule: own.isNotEmpty,
+          nextSlot: next,
+        );
+      }
+      return out;
+    });
   }
 
   /// True when `[start, end)` exactly matches one of [staffId]'s real

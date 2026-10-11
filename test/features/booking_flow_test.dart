@@ -127,21 +127,41 @@ void main() {
     await tester.tap(chips.first);
     await _settle(tester);
     expect(find.text('Review & confirm'), findsOneWidget);
-    await tester.tap(find.widgetWithText(FilledButton, 'Confirm booking'));
+    // The review lists patient, clinician, specialty, facility, time,
+    // visit type and mode, with edit controls.
+    expect(find.text('Patient'), findsOneWidget);
+    expect(find.text('Facility'), findsOneWidget);
+    expect(find.byKey(const ValueKey('review-change-time')), findsOneWidget);
+    expect(find.byKey(const ValueKey('review-edit-details')), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const ValueKey('review-confirm')));
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.tap(find.byKey(const ValueKey('review-confirm')));
     // The confirmation checkmark plays over the transition to the
-    // authoritative appointment detail. Pump just
-    // far enough to catch it mid-animation (it clears itself after ~1.4s).
-    for (var i = 0; i < 6; i++) {
-      await tester.pump(const Duration(milliseconds: 80));
+    // authoritative appointment detail; it appears only after the
+    // repository confirmed the booking, then clears itself.
+    var sawOverlayText = false;
+    for (var i = 0; i < 40 && !sawOverlayText; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+      sawOverlayText =
+          find.byType(AppointmentConfirmationOverlay).evaluate().isNotEmpty &&
+          find.text('Appointment booked').evaluate().isNotEmpty;
     }
-    expect(find.byType(AppointmentConfirmationOverlay), findsOneWidget);
-    expect(find.text('Appointment booked'), findsOneWidget);
+    expect(sawOverlayText, isTrue);
     // Let the overlay animation finish and clear itself.
     await _settle(tester);
     await _settle(tester);
 
-    // Landed on the persistent confirmation with ticket, room and actions.
+    // Landed on the real appointment's details, with the confirmation and a
+    // link back to Home.
     expect(find.text('Appointment details'), findsOneWidget);
+    expect(find.byKey(const ValueKey('booked-banner')), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('booked-banner')),
+        matching: find.text('Home'),
+      ),
+      findsOneWidget,
+    );
     final after = (await container.read(
       patientAppointmentsProvider.future,
     )).length;
