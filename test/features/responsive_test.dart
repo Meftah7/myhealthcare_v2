@@ -170,7 +170,9 @@ void main() {
       await _teardown(tester);
     });
 
-    testWidgets('expanded (>=1024) exposes account actions in the sidebar', (tester) async {
+    testWidgets('expanded (>=1024) exposes account actions in the sidebar', (
+      tester,
+    ) async {
       await _signInPatient(tester, size: const Size(1100, 1200));
 
       expect(find.byType(NavigationRail), findsNothing);

@@ -465,10 +465,7 @@ class _Rail extends StatelessWidget {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                              Text(
-                                  d.label,
-                                  textAlign: TextAlign.center,
-                                ),
+                                Text(d.label, textAlign: TextAlign.center),
                                 if (d.badge != null) NavScopeBadge(d.badge!),
                               ],
                             ),
