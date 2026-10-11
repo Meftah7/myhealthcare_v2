@@ -9619,6 +9619,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Report AI connected · drafts'**
   String get paChatReportLiveStatus;
+
+  /// No description provided for @paPolicyLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'This document couldn\'t be loaded.'**
+  String get paPolicyLoadError;
+
+  /// No description provided for @paPolicyVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version} · updated {date}'**
+  String paPolicyVersion(String version, String date);
+
+  /// No description provided for @paPolicyOpenItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Still to be supplied by the owner'**
+  String get paPolicyOpenItems;
+
+  /// No description provided for @paPolicyDraftTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft for owner review — not the approved policy'**
+  String get paPolicyDraftTitle;
+
+  /// No description provided for @paPolicyDraftBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This text describes how the app works today. The operator has not yet approved or published it.'**
+  String get paPolicyDraftBody;
 }
 
 class _AppLocalizationsDelegate

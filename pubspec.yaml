@@ -168,6 +168,7 @@ flutter:
     # License 1.1 — see assets/fonts/NotoNaskhArabic-OFL.txt.
     - assets/fonts/NotoNaskhArabic.ttf
     - assets/images/
+    - assets/policies/
     - assets/sounds/
 
   # An image asset can refer to one or more resolution-specific "variants", see

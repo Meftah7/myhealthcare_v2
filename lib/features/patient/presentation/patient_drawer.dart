@@ -137,6 +137,18 @@ class PatientDrawer extends ConsumerWidget {
                 ),
               ),
             ),
+            row(
+              key: const ValueKey('drawer-terms'),
+              icon: Icons.gavel_outlined,
+              label: t.paTerms,
+              onTap: () => close(() => router.push(AppRoutes.policyTerms)),
+            ),
+            row(
+              key: const ValueKey('drawer-privacy'),
+              icon: Icons.privacy_tip_outlined,
+              label: t.paPrivacy,
+              onTap: () => close(() => router.push(AppRoutes.policyPrivacy)),
+            ),
             const SizedBox(height: Space.sm),
             Divider(color: palette.divider),
             row(

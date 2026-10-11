@@ -381,23 +381,23 @@ abstract final class PatientCatalog {
 
   // --- core destinations that do not exist yet -----------------------------
 
+  /// MyHealth policies: owner-replaceable documents (assets/policies); the
+  /// screen marks unapproved text as a draft.
   static final terms = CatalogItem(
     id: 'terms',
     title: (t) => t.paTerms,
     icon: Icons.gavel_outlined,
     accent: PatientAccent.neutral,
-    // No published MyHealth terms document exists in this build; shown
-    // honestly rather than copying another provider's policy.
-    action: CatalogActionKind.unavailable,
-    status: CatalogStatus.unavailable,
+    action: CatalogActionKind.route,
+    route: AppRoutes.policyTerms,
   );
   static final privacy = CatalogItem(
     id: 'privacy',
     title: (t) => t.paPrivacy,
     icon: Icons.privacy_tip_outlined,
     accent: PatientAccent.neutral,
-    action: CatalogActionKind.unavailable,
-    status: CatalogStatus.unavailable,
+    action: CatalogActionKind.route,
+    route: AppRoutes.policyPrivacy,
   );
 
   /// First quick-tools page (working care actions), then the extensions.

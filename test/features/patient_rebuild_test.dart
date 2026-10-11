@@ -199,7 +199,12 @@ void main() {
             expect(item.route, isNull, reason: item.id);
           case CatalogScope.core:
             if (item.action == CatalogActionKind.route) {
-              expect(item.route, startsWith('/patient/'), reason: item.id);
+              expect(
+                item.route!.startsWith('/patient/') ||
+                    item.route!.startsWith('/policies/'),
+                isTrue,
+                reason: item.id,
+              );
             }
         }
       }

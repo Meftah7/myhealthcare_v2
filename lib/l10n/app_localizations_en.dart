@@ -5395,4 +5395,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paChatReportLiveStatus => 'Report AI connected · drafts';
+
+  @override
+  String get paPolicyLoadError => 'This document couldn\'t be loaded.';
+
+  @override
+  String paPolicyVersion(String version, String date) {
+    return 'Version $version · updated $date';
+  }
+
+  @override
+  String get paPolicyOpenItems => 'Still to be supplied by the owner';
+
+  @override
+  String get paPolicyDraftTitle =>
+      'Draft for owner review — not the approved policy';
+
+  @override
+  String get paPolicyDraftBody =>
+      'This text describes how the app works today. The operator has not yet approved or published it.';
 }

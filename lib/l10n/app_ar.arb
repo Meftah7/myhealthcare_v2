@@ -2279,5 +2279,10 @@
   "paSourceError": "تعذّرت الإجابة",
   "paFromYourReport": "من تقريرك:",
   "paLiveDraftDisclaimer": "مسودة من الذكاء الاصطناعي — ليست تشخيصًا. ناقش النتائج مع طبيبك.",
-  "paChatReportLiveStatus": "ذكاء التقارير متصل · مسودات"
+  "paChatReportLiveStatus": "ذكاء التقارير متصل · مسودات",
+  "paPolicyLoadError": "تعذّر تحميل هذا المستند.",
+  "paPolicyVersion": "الإصدار {version} · آخر تحديث {date}",
+  "paPolicyOpenItems": "بنود ما زال على المالك استكمالها",
+  "paPolicyDraftTitle": "مسودة لمراجعة المالك — ليست السياسة المعتمدة",
+  "paPolicyDraftBody": "يصف هذا النص طريقة عمل التطبيق حاليًا. ولم تعتمده الجهة المشغلة أو تنشره بعد."
 }

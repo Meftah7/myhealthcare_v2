@@ -2352,5 +2352,11 @@
   "paSourceError": "Couldn't answer",
   "paFromYourReport": "From your report:",
   "paLiveDraftDisclaimer": "Draft from AI — not a diagnosis. Discuss results with your doctor.",
-  "paChatReportLiveStatus": "Report AI connected · drafts"
+  "paChatReportLiveStatus": "Report AI connected · drafts",
+  "paPolicyLoadError": "This document couldn't be loaded.",
+  "paPolicyVersion": "Version {version} · updated {date}",
+  "@paPolicyVersion": {"placeholders": {"version": {"type": "String"}, "date": {"type": "String"}}},
+  "paPolicyOpenItems": "Still to be supplied by the owner",
+  "paPolicyDraftTitle": "Draft for owner review — not the approved policy",
+  "paPolicyDraftBody": "This text describes how the app works today. The operator has not yet approved or published it."
 }

@@ -5450,4 +5450,23 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get paChatReportLiveStatus => 'ذكاء التقارير متصل · مسودات';
+
+  @override
+  String get paPolicyLoadError => 'تعذّر تحميل هذا المستند.';
+
+  @override
+  String paPolicyVersion(String version, String date) {
+    return 'الإصدار $version · آخر تحديث $date';
+  }
+
+  @override
+  String get paPolicyOpenItems => 'بنود ما زال على المالك استكمالها';
+
+  @override
+  String get paPolicyDraftTitle =>
+      'مسودة لمراجعة المالك — ليست السياسة المعتمدة';
+
+  @override
+  String get paPolicyDraftBody =>
+      'يصف هذا النص طريقة عمل التطبيق حاليًا. ولم تعتمده الجهة المشغلة أو تنشره بعد.';
 }
