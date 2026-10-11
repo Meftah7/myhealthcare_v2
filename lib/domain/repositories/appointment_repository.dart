@@ -39,6 +39,10 @@ class SlotDemandStat {
   }
 }
 
+/// Bounds for [AppointmentRepository.availabilitySummaries].
+const maxSummaryStaff = 50;
+const maxSummaryDays = 21;
+
 class OpenSlot {
   const OpenSlot({
     required this.staffId,
@@ -55,6 +59,33 @@ class OpenSlot {
   final String? resourceId;
   final int capacity;
   final int version;
+}
+
+/// A bounded look-ahead of one clinician's bookable time, for discovery
+/// lists. A summary, not a reservation: the booking flow reloads and
+/// validates the actual slot before anything is booked.
+class StaffAvailabilitySummary {
+  const StaffAvailabilitySummary({
+    required this.staffId,
+    required this.windowDays,
+    required this.openSlotCount,
+    required this.hasSchedule,
+    this.nextSlot,
+  });
+
+  final String staffId;
+
+  /// Days looked ahead (today included).
+  final int windowDays;
+
+  /// Open slots in the window (after bookings and availability exceptions).
+  final int openSlotCount;
+
+  /// False when the clinician has no schedule templates at all.
+  final bool hasSchedule;
+
+  /// The earliest open slot in the window, or null.
+  final OpenSlot? nextSlot;
 }
 
 class ScheduleResource {
@@ -212,6 +243,14 @@ abstract interface class AppointmentRepository {
   /// Free slots for a staff member on [day], derived from their schedule
   /// templates minus booked appointments.
   Future<Result<List<OpenSlot>>> openSlots(String staffId, DateTime day);
+
+  /// Availability summaries for up to [maxSummaryStaff] clinicians over the
+  /// next [days] days (at most [maxSummaryDays]), computed with a fixed
+  /// number of queries regardless of how many clinicians are listed.
+  Future<Result<Map<String, StaffAvailabilitySummary>>> availabilitySummaries(
+    List<String> staffIds, {
+    int days = 14,
+  });
 
   /// [staffId]'s recurring weekly working blocks, ordered by weekday.
   Future<Result<List<ScheduleTemplate>>> templatesFor(String staffId);

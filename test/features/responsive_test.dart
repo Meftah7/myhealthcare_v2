@@ -126,6 +126,7 @@ void main() {
             (widget) =>
                 widget is CompactNavigation ||
                 widget is NavigationRail ||
+                (widget is SizedBox && widget.width == 272) ||
                 (widget is SizedBox && widget.width == 248),
           ),
           findsOneWidget,
@@ -143,7 +144,7 @@ void main() {
         keyboardInset: 280,
       );
       expect(tester.takeException(), isNull);
-      expect(find.byType(CompactNavigation), findsOneWidget);
+      expect(find.byType(NavigationRail), findsNothing);
       await _teardown(tester);
     });
   });
@@ -169,12 +170,12 @@ void main() {
       await _teardown(tester);
     });
 
-    testWidgets('expanded (840-1199) extends the rail', (tester) async {
-      await _signInPatient(tester, size: const Size(1000, 1200));
+    testWidgets('expanded (>=1024) exposes account actions in the sidebar', (tester) async {
+      await _signInPatient(tester, size: const Size(1100, 1200));
 
       expect(find.byType(NavigationRail), findsNothing);
       final sidebar = find.byWidgetPredicate(
-        (w) => w is SizedBox && w.width == 248,
+        (w) => w is SizedBox && w.width == 272,
       );
       expect(sidebar, findsOneWidget);
       expect(
@@ -193,7 +194,7 @@ void main() {
 
       expect(find.byType(NavigationRail), findsNothing);
       expect(
-        find.byWidgetPredicate((w) => w is SizedBox && w.width == 248),
+        find.byWidgetPredicate((w) => w is SizedBox && w.width == 272),
         findsOneWidget,
       );
 

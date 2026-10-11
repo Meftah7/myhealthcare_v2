@@ -20,6 +20,7 @@ import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../core/ui/patient/patient_components.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../ai_summary/application/ai_summary_provider.dart';
 import '../../patient/application/family_link_providers.dart';
@@ -232,20 +233,12 @@ class _FiltersState extends ConsumerState<_Filters> {
       padding: const EdgeInsets.fromLTRB(Space.md, 0, Space.md, Space.xs),
       child: Column(
         children: [
-          Align(
-            alignment: AlignmentDirectional.centerEnd,
-            child: Wrap(
-              spacing: Space.sm,
-              runSpacing: Space.xs,
-              children: [
-                OutlinedButton.icon(
-                  onPressed: () => context.push(
-                    '${AppRoutes.patientSickLeave}?patientId=$subject',
-                  ),
-                  icon: const Icon(Icons.event_note_outlined),
-                  label: Text(t.quickActionSickLeave),
-                ),
-                FilledButton.icon(
+          // Primary action first, the secondary one beside it.
+          Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: FilledButton.icon(
                   onPressed:
                       ref.watch(recordsCanManageProvider).valueOrNull == true
                       ? () => showImportRecordSheet(context, patientId: subject)
@@ -253,14 +246,54 @@ class _FiltersState extends ConsumerState<_Filters> {
                   icon: const Icon(Icons.upload_file_outlined),
                   label: ReadableLabel(t.recordsUploadDocument),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: Space.sm),
+              Expanded(
+                flex: 2,
+                child: FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: PatientPalette.of(context).softAccent,
+                    foregroundColor: PatientPalette.of(context).onSoftAccent,
+                  ),
+                  onPressed: () => context.push(
+                    '${AppRoutes.patientSickLeave}?patientId=$subject',
+                  ),
+                  icon: const Icon(Icons.event_note_outlined),
+                  label: ReadableLabel(t.quickActionSickLeave),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: Space.xs),
+          const SizedBox(height: Space.sm),
+          // A flat search field on the card surface (no shadow or heavy
+          // focus ring), with a clear button once something is typed.
           SearchBar(
             controller: _search,
             hintText: t.searchRecordsHint,
             leading: const Icon(Icons.search),
+            elevation: const WidgetStatePropertyAll(0),
+            backgroundColor: WidgetStatePropertyAll(
+              PatientPalette.of(context).card,
+            ),
+            overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+            side: WidgetStatePropertyAll(
+              BorderSide(color: PatientPalette.of(context).divider),
+            ),
+            shape: const WidgetStatePropertyAll(
+              RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(16)),
+              ),
+            ),
+            trailing: [
+              if (filter.query.isNotEmpty)
+                IconButton(
+                  tooltip: MaterialLocalizations.of(
+                    context,
+                  ).deleteButtonTooltip,
+                  icon: const Icon(Icons.close),
+                  onPressed: () => update(filter.copyWith(query: '')),
+                ),
+            ],
             onChanged: (v) => update(filter.copyWith(query: v)),
           ),
           const SizedBox(height: Space.xs),
@@ -364,48 +397,77 @@ class _GroupedList extends ConsumerWidget {
       ),
       _VitalsEntry(:final vitals) => _VitalsTile(vitals: vitals),
     };
-    String? currentMonth;
+    // One rounded card per month; visit groups are linked sub-headers.
+    final palette = PatientPalette.of(context);
+    final months = <String, List<Widget>>{};
     for (final e in entries) {
       final visit = visitOf(e);
       if (visit != null && !groupedVisits.add(visit)) continue;
-      final month = fmtMonthYear(e.at);
-      if (month != currentMonth) {
-        currentMonth = month;
-        items.add(
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              Space.md,
-              Space.lg,
-              Space.md,
-              Space.xs,
-            ),
-            child: Text(
-              month.toUpperCase(),
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                letterSpacing: 0.8,
+      final rows = months.putIfAbsent(fmtMonthYear(e.at), () => []);
+      if (visit == null) {
+        rows.add(tile(e));
+      } else {
+        rows.add(
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton.icon(
+              onPressed: () =>
+                  context.push(AppRoutes.patientAppointmentDetail(visit)),
+              icon: const Icon(Icons.event_note_outlined),
+              label: Text(
+                AppLocalizations.of(context)!.fromYourVisitOn(fmtDate(e.at)),
               ),
             ),
           ),
         );
-      }
-      if (visit == null) {
-        items.add(tile(e));
-      } else {
-        items.add(
-          TextButton.icon(
-            onPressed: () =>
-                context.push(AppRoutes.patientAppointmentDetail(visit)),
-            icon: const Icon(Icons.event_note_outlined),
-            label: Text(
-              AppLocalizations.of(context)!.fromYourVisitOn(fmtDate(e.at)),
-            ),
-          ),
-        );
-        items.addAll(
+        rows.addAll(
           entries.where((entry) => visitOf(entry) == visit).map(tile),
         );
       }
+    }
+    for (final MapEntry(key: month, value: rows) in months.entries) {
+      items
+        ..add(
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              Space.md + Space.xxs,
+              Space.lg,
+              Space.md,
+              Space.xs,
+            ),
+            child: Semantics(
+              header: true,
+              child: Text(
+                month,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: palette.textMuted,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+        )
+        ..add(
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: Space.md),
+            child: SurfaceCard(
+              padding: const EdgeInsets.symmetric(vertical: Space.xxs),
+              child: Column(
+                children: [
+                  for (final (i, row) in rows.indexed) ...[
+                    if (i > 0)
+                      Divider(
+                        indent: Space.md,
+                        endIndent: Space.md,
+                        color: palette.divider,
+                      ),
+                    row,
+                  ],
+                ],
+              ),
+            ),
+          ),
+        );
     }
     if (footer != null) items.add(footer!);
     return Center(
@@ -445,39 +507,28 @@ class _RecordTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final t = AppLocalizations.of(context)!;
-    return ListTile(
-      leading: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Icon(_icon),
-          if (isKeyEvent)
-            Positioned.directional(
-              textDirection: Directionality.of(context),
-              end: -4,
-              top: -4,
-              child: Icon(
-                Icons.star,
-                size: 12,
-                color: theme.colorScheme.primary,
-              ),
-            ),
-        ],
-      ),
-      title: Text(record.title),
-      subtitle: Text(
-        '${fmtDate(record.occurredAt)}'
-        ' · ${record.recordType.label(context)}'
-        '${record.authorStaffId == null ? '' : ' · ${ref.watch(doctorDirectoryProvider).valueOrNull?[record.authorStaffId]?.name ?? t.recordsUnknownAuthor}'}'
-        '${record.sourceFacility == null ? '' : ' · ${record.sourceFacility}'}'
-        '${record.uploadedByPatient ? ' · ${t.uploadedByPatientTag}' : ''}'
-        ' · ${recordReviewLabel(t, record.reviewStatus)}'
-        '${ref.watch(recordReadIdsProvider).valueOrNull == null ? '' : ' · ${ref.watch(recordReadIdsProvider).requireValue.contains(record.id) ? t.recordsRead : t.recordsUnread}'}'
-        '${isKeyEvent ? ' · ${t.flaggedByAi}' : ''}',
-        style: theme.textTheme.bodySmall,
-      ),
-      trailing: record.hasAbnormalLabs
-          ? Icon(Icons.priority_high, color: theme.colorScheme.error, size: 20)
-          : const Icon(Icons.chevron_right),
+    final palette = PatientPalette.of(context);
+    final readIds = ref.watch(recordReadIdsProvider).valueOrNull;
+    final author = record.authorStaffId == null
+        ? null
+        : ref
+                  .watch(doctorDirectoryProvider)
+                  .valueOrNull?[record.authorStaffId]
+                  ?.name ??
+              t.recordsUnknownAuthor;
+    final meta = [
+      fmtDate(record.occurredAt),
+      record.recordType.label(context),
+      ?author,
+      ?record.sourceFacility,
+    ].join(' · ');
+    final accent = switch (record.recordType) {
+      RecordType.labResult => PatientAccent.green,
+      RecordType.imaging || RecordType.referral => PatientAccent.amber,
+      RecordType.discharge => PatientAccent.red,
+      _ => PatientAccent.blue,
+    };
+    return InkWell(
       onTap: () async {
         final result = await ref
             .read(recordActivityRepositoryProvider)
@@ -487,6 +538,86 @@ class _RecordTile extends ConsumerWidget {
         ref.invalidate(recordPatientReadIdsProvider(record.patientId));
         await context.push<void>(AppRoutes.patientRecord(record.id));
       },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: Space.md,
+          vertical: Space.sm,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                IconTile(icon: _icon, accent: accent, size: 44),
+                if (isKeyEvent)
+                  PositionedDirectional(
+                    end: -4,
+                    top: -4,
+                    child: Icon(Icons.star, size: 14, color: palette.link),
+                  ),
+              ],
+            ),
+            const SizedBox(width: Space.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    record.title,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: palette.text,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    meta,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: palette.textMuted,
+                    ),
+                  ),
+                  const SizedBox(height: Space.xs),
+                  // Status as readable labels, never colour alone.
+                  Wrap(
+                    spacing: Space.xxs,
+                    runSpacing: Space.xxs,
+                    children: [
+                      if (readIds != null && !readIds.contains(record.id))
+                        StatusBadge(
+                          t.recordsUnread,
+                          accent: PatientAccent.blue,
+                          icon: Icons.fiber_manual_record,
+                        ),
+                      if (record.hasAbnormalLabs)
+                        StatusBadge(
+                          t.paOutOfRange,
+                          accent: PatientAccent.red,
+                          icon: Icons.priority_high,
+                        ),
+                      if (record.uploadedByPatient)
+                        StatusBadge(t.uploadedByPatientTag),
+                      StatusBadge(recordReviewLabel(t, record.reviewStatus)),
+                      if (isKeyEvent)
+                        StatusBadge(
+                          t.flaggedByAi,
+                          accent: PatientAccent.amber,
+                          icon: Icons.star,
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Directionality.of(context) == TextDirection.rtl
+                  ? Icons.chevron_left
+                  : Icons.chevron_right,
+              color: palette.textMuted,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -505,16 +636,56 @@ class _VitalsTile extends ConsumerWidget {
       if (vitals.weightKg != null) '${vitals.weightKg}kg',
       if (vitals.glucose != null) 'Glu ${vitals.glucose}',
     ];
-    return ListTile(
-      leading: const Icon(Icons.monitor_heart_outlined),
-      title: Text(AppLocalizations.of(context)!.vitalsRecordedTitle),
-      subtitle: Text(
-        '${fmtDate(vitals.recordedAt)} · ${parts.join('  ')}',
-        style: theme.textTheme.bodySmall,
+    final palette = PatientPalette.of(context);
+    final onTap = ref.watch(selectedRecordsPatientProvider) == null
+        ? () => context.go(AppRoutes.patientVitals)
+        : null;
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: Space.md,
+          vertical: Space.sm,
+        ),
+        child: Row(
+          children: [
+            const IconTile(
+              icon: Icons.monitor_heart_outlined,
+              accent: PatientAccent.green,
+              size: 44,
+            ),
+            const SizedBox(width: Space.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppLocalizations.of(context)!.vitalsRecordedTitle,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: palette.text,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${fmtDate(vitals.recordedAt)} · ${parts.join('  ')}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: palette.textMuted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (onTap != null)
+              Icon(
+                Directionality.of(context) == TextDirection.rtl
+                    ? Icons.chevron_left
+                    : Icons.chevron_right,
+                color: palette.textMuted,
+              ),
+          ],
+        ),
       ),
-      onTap: ref.watch(selectedRecordsPatientProvider) == null
-          ? () => context.go(AppRoutes.patientVitals)
-          : null,
     );
   }
 }

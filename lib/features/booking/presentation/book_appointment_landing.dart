@@ -14,6 +14,8 @@ import '../../../app/theme/theme.dart';
 import '../../../core/presentation/readable_label.dart';
 import '../../../core/ui/patient/patient_components.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../domain/repositories/appointment_repository.dart';
+import '../../../core/utils/format.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../service_catalog/application/catalog_dispatcher.dart';
 import '../application/booking_providers.dart';
@@ -616,16 +618,24 @@ class _DoctorCard extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: Space.sm),
+          // Published visit mode vs. a planned one (never implies video).
           Wrap(
             spacing: Space.xs,
+            runSpacing: Space.xxs,
             children: [
               StatusBadge(
                 t.paInClinicVisits,
                 accent: PatientAccent.blue,
                 icon: Icons.local_hospital_outlined,
               ),
+              StatusBadge(
+                '${t.paVideoVisitsMode} · ${t.paFutureWork}',
+                icon: Icons.videocam_off_outlined,
+              ),
             ],
           ),
+          const SizedBox(height: Space.sm),
+          _AvailabilityLine(staffId: doctor.id),
           const SizedBox(height: Space.sm),
           PrimaryActionButton(
             label: t.paSeeAvailability,
@@ -727,5 +737,99 @@ class SpecialtyGuideScreen extends ConsumerWidget {
         ),
       ],
     );
+  }
+}
+
+/// The doctor's bounded availability summary, from the one batched
+/// look-ahead. A summary, not a reservation.
+class _AvailabilityLine extends ConsumerWidget {
+  const _AvailabilityLine({required this.staffId});
+
+  final String staffId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final palette = PatientPalette.of(context);
+    final muted = theme.textTheme.bodySmall?.copyWith(color: palette.textMuted);
+    return ref
+        .watch(doctorAvailabilityProvider)
+        .when(
+          loading: () => Row(
+            children: [
+              const SizedBox.square(
+                dimension: 14,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              const SizedBox(width: Space.xs),
+              Expanded(child: Text(t.paAvailabilityLoading, style: muted)),
+            ],
+          ),
+          error: (_, _) => Row(
+            children: [
+              Icon(Icons.error_outline, size: 18, color: palette.danger),
+              const SizedBox(width: Space.xs),
+              Expanded(child: Text(t.paAvailabilityError, style: muted)),
+              TextButton(
+                onPressed: () => ref.invalidate(doctorAvailabilityProvider),
+                child: Text(t.tryAgain),
+              ),
+            ],
+          ),
+          data: (map) {
+            final summary = map[staffId];
+            final (IconData icon, String line, Color color) = switch (summary) {
+              null => (
+                Icons.help_outline,
+                t.paAvailabilityUnknown,
+                palette.textMuted,
+              ),
+              StaffAvailabilitySummary(hasSchedule: false) => (
+                Icons.event_busy_outlined,
+                t.paNoPublishedSchedule,
+                palette.textMuted,
+              ),
+              StaffAvailabilitySummary(nextSlot: null) => (
+                Icons.event_busy_outlined,
+                t.paNoOpenTimes(summary.windowDays),
+                palette.textMuted,
+              ),
+              final s => (
+                Icons.event_available_outlined,
+                t.paNextAvailable(
+                  '${fmtRelativeDay(s.nextSlot!.start)} · ${fmtTime(s.nextSlot!.start)}',
+                  s.openSlotCount,
+                  s.windowDays,
+                ),
+                palette.success,
+              ),
+            };
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(icon, size: 18, color: color),
+                    const SizedBox(width: Space.xs),
+                    Expanded(
+                      child: Text(
+                        line,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: palette.text,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(start: 26),
+                  child: Text(t.paAvailabilityNotGuaranteed, style: muted),
+                ),
+              ],
+            );
+          },
+        );
   }
 }

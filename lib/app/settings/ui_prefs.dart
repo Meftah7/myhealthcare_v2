@@ -179,17 +179,18 @@ final localeProvider = NotifierProvider<LocaleController, Locale?>(
 
 const _textScaleKey = 'ui.textScale';
 
-/// The five in-app text sizes. [TextScaleLevel.medium] is the default and
-/// leaves the platform's own text size untouched (multiplier 1.0); the other
-/// four scale it down or up. Applied app-wide in `app.dart`.
+/// Three selectable sizes, multiplied by the OS scaler without clamping it.
+/// Keep wire names and legacy larger factors so saved sizes do not change.
 enum TextScaleLevel {
-  xSmall(0.85, 'Smaller'),
-  small(0.92, 'Small'),
-  medium(1, 'Default'),
+  xSmall(0.85, 'Small'),
+  small(0.92, 'Default'),
+  medium(1, 'Large'),
   large(1.15, 'Large'),
-  xLarge(1.3, 'Larger');
+  xLarge(1.3, 'Large');
 
   const TextScaleLevel(this.factor, this.label);
+
+  static const options = [xSmall, small, medium];
 
   /// Multiplier applied on top of the device's own text-scale setting.
   final double factor;
@@ -206,7 +207,7 @@ class TextScaleController extends Notifier<TextScaleLevel> {
     final raw = ref.read(sharedPreferencesProvider).getString(_textScaleKey);
     return TextScaleLevel.values.firstWhere(
       (l) => l.name == raw,
-      orElse: () => TextScaleLevel.medium,
+      orElse: () => TextScaleLevel.small,
     );
   }
 
@@ -223,7 +224,7 @@ class TextScaleController extends Notifier<TextScaleLevel> {
     );
   }
 
-  Future<void> reset() => set(TextScaleLevel.medium);
+  Future<void> reset() => set(TextScaleLevel.small);
 }
 
 final textScaleProvider = NotifierProvider<TextScaleController, TextScaleLevel>(

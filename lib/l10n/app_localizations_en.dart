@@ -3440,11 +3440,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String textSizeCaption(String level) {
-    return '$level — applies to text across the whole app';
+    return '$level — app text size; your device accessibility scaling still applies';
   }
-
-  @override
-  String get textScaleSmaller => 'Smaller';
 
   @override
   String get textScaleSmall => 'Small';
@@ -3454,9 +3451,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get textScaleLarge => 'Large';
-
-  @override
-  String get textScaleLarger => 'Larger';
 
   @override
   String get notificationChannelsLabel => 'Notification channels';
@@ -5314,4 +5308,165 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paSettingsPreferences => 'Settings & Preferences';
+
+  @override
+  String get paVideoVisitsMode => 'Video visits';
+
+  @override
+  String get paAvailabilityLoading => 'Checking availability…';
+
+  @override
+  String get paAvailabilityError => 'Availability couldn\'t be loaded.';
+
+  @override
+  String get paAvailabilityUnknown => 'Availability not known.';
+
+  @override
+  String get paNoPublishedSchedule => 'No published schedule.';
+
+  @override
+  String paNoOpenTimes(int days) {
+    return 'No open times in the next $days days.';
+  }
+
+  @override
+  String paNextAvailable(String when, int count, int days) {
+    return 'Next available $when · $count open times in the next $days days';
+  }
+
+  @override
+  String get paAvailabilityNotGuaranteed =>
+      'Times are checked again when you book.';
+
+  @override
+  String get paBookingInProgress => 'Confirming your booking…';
+
+  @override
+  String get paReviewPatient => 'Patient';
+
+  @override
+  String get paReviewSpecialty => 'Specialty';
+
+  @override
+  String get paReviewFacility => 'Facility';
+
+  @override
+  String get paReviewVisitMode => 'Visit mode';
+
+  @override
+  String get paReviewChangeTime => 'Change time';
+
+  @override
+  String get paReviewEditDetails => 'Edit clinic, doctor or visit type';
+
+  @override
+  String get paAskAboutReportHint => 'Ask about this report…';
+
+  @override
+  String get paLeaveReport => 'Leave this report';
+
+  @override
+  String get paSourceOnDevice => 'On-device summary · not AI';
+
+  @override
+  String get paSourceLiveDraft => 'AI draft · checked against your report';
+
+  @override
+  String get paSourceNotInReport => 'AI draft · not stated in this report';
+
+  @override
+  String get paSourceUnavailable => 'Not connected';
+
+  @override
+  String get paSourceError => 'Couldn\'t answer';
+
+  @override
+  String get paFromYourReport => 'From your report:';
+
+  @override
+  String get paLiveDraftDisclaimer =>
+      'Draft from AI — not a diagnosis. Discuss results with your doctor.';
+
+  @override
+  String get paChatReportLiveStatus => 'Report AI connected · drafts';
+
+  @override
+  String get paPolicyLoadError => 'This document couldn\'t be loaded.';
+
+  @override
+  String paPolicyVersion(String version, String date) {
+    return 'Version $version · updated $date';
+  }
+
+  @override
+  String get paPolicyOpenItems => 'Still to be supplied by the owner';
+
+  @override
+  String get paPolicyDraftTitle =>
+      'Draft for owner review — not the approved policy';
+
+  @override
+  String get paPolicyDraftBody =>
+      'This text describes how the app works today. The operator has not yet approved or published it.';
+
+  @override
+  String get paOutOfRange => 'Out of range';
+
+  @override
+  String get paDownloadOriginal => 'Download';
+
+  @override
+  String get paEarlierResults => 'Compared with your earlier results';
+
+  @override
+  String get paIssuedDocumentsTitle => 'Issued documents';
+
+  @override
+  String get paIssuedDocumentsIntro =>
+      'Official documents your care team issued — sick leave, certificates and visit summaries. Files you uploaded are in Health Records.';
+
+  @override
+  String get paDocumentsLoadError => 'Couldn\'t load your documents.';
+
+  @override
+  String get paNoIssuedDocuments => 'No issued documents yet';
+
+  @override
+  String get paNoIssuedDocumentsBody =>
+      'When your doctor issues a certificate or sick leave, it appears here.';
+
+  @override
+  String get paDocRevoked => 'Revoked or replaced';
+
+  @override
+  String get paDocReady => 'Official copy ready';
+
+  @override
+  String get paDocNotReady => 'PDF not ready';
+
+  @override
+  String get paDocNotReadyBody =>
+      'The PDF isn\'t ready yet; contact the clinic if it stays this way.';
+
+  @override
+  String get paDocReplacement => 'Replacement version';
+
+  @override
+  String get paVerificationCode => 'Verification code';
+
+  @override
+  String get paViewDocument => 'View';
+
+  @override
+  String get paNewLabel => 'New';
+
+  @override
+  String get paHouseholdMembers => 'Household members';
+
+  @override
+  String get paHouseholdMembersBody =>
+      'People without their own account you book visits for.';
+
+  @override
+  String get paNoConversationsTitle => 'No conversations yet';
 }

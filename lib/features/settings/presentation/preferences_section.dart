@@ -31,11 +31,11 @@ import '../../../services/notifications/device_notifier.dart';
 String _textScaleLabel(BuildContext context, TextScaleLevel level) {
   final t = AppLocalizations.of(context)!;
   return switch (level) {
-    TextScaleLevel.xSmall => t.textScaleSmaller,
-    TextScaleLevel.small => t.textScaleSmall,
-    TextScaleLevel.medium => t.textScaleDefault,
-    TextScaleLevel.large => t.textScaleLarge,
-    TextScaleLevel.xLarge => t.textScaleLarger,
+    TextScaleLevel.xSmall => t.textScaleSmall,
+    TextScaleLevel.small => t.textScaleDefault,
+    TextScaleLevel.medium ||
+    TextScaleLevel.large ||
+    TextScaleLevel.xLarge => t.textScaleLarge,
   };
 }
 
@@ -113,20 +113,35 @@ class PreferencesSection extends ConsumerWidget {
             const _FixedA(13),
             Expanded(
               child: Slider(
-                value: textSize.index.toDouble(),
-                max: (TextScaleLevel.values.length - 1).toDouble(),
-                divisions: TextScaleLevel.values.length - 1,
+                value: TextScaleLevel.options.contains(textSize)
+                    ? TextScaleLevel.options.indexOf(textSize).toDouble()
+                    : 2,
+                max: 2,
+                divisions: 2,
                 label: _textScaleLabel(context, textSize),
                 semanticFormatterCallback: (value) => _textScaleLabel(
                   context,
-                  TextScaleLevel.values[value.round()],
+                  TextScaleLevel.options[value.round()],
                 ),
                 onChanged: (v) => ref
                     .read(textScaleProvider.notifier)
-                    .set(TextScaleLevel.values[v.round()]),
+                    .set(TextScaleLevel.options[v.round()]),
               ),
             ),
             const _FixedA(24),
+          ],
+        ),
+        Wrap(
+          alignment: WrapAlignment.spaceAround,
+          spacing: Space.md,
+          runSpacing: Space.xs,
+          children: [
+            for (final level in TextScaleLevel.options)
+              Text(
+                _textScaleLabel(context, level),
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodySmall,
+              ),
           ],
         ),
         Align(

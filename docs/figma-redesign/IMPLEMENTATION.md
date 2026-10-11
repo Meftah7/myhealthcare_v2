@@ -15,7 +15,7 @@ Validation: the release web build succeeds with the GitHub Pages base path and d
 ## Current upgrade
 
 - Patient, staff and admin Profile use the same grouped destination rows. Patient photo editing has an explicit menu entry and an accessible camera action; unreadable photos fall back to initials. Photo selection remains device-local, with actual disabled busy controls and a scrollable sheet.
-- Preferences keeps working theme, language, five text sizes, motion, contrast, notification/sound and reset controls. Labels are consistent and the text-size slider exposes meaningful spoken values.
+- Preferences keeps working theme, language, three selectable text sizes (Small, Default, Large; historical saved factors retained), motion, contrast, notification/sound and reset controls. Labels are consistent and the text-size slider exposes meaningful spoken values.
 - Personal information marks immutable email and National ID fields with lock icons. Account/detail forms across roles have a 720dp reading width.
 - Payments puts open invoices and the amount owed before history. Wallet funds, top-up and saved cards load independently of invoice success; invoice failure no longer hides those controls.
 - The prior Health Records upgrade moved document tools into a sheet; the 4 October update above replaces this with the requested chat and health hub. Staff task prioritisation and notifications' mark-all-read actions move out of crowded app bars.

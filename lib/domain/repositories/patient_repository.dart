@@ -54,8 +54,20 @@ abstract interface class PatientRepository {
   });
 }
 
+/// The clinic's public identity (shown to patients when booking). Only the
+/// fields an administrator published; nothing clinical or operational.
+class ClinicFacility {
+  const ClinicFacility({required this.name, this.address});
+  final String name;
+  final String? address;
+}
+
 abstract interface class DepartmentRepository {
   Future<Result<List<Department>>> all();
+
+  /// The clinic's published name and address ("MyHealth Care" when none is
+  /// configured). Public like the department list.
+  Future<Result<ClinicFacility>> facility();
 
   Future<Result<Department>> byId(String id);
 

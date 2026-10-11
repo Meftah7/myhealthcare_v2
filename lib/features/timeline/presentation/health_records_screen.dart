@@ -13,6 +13,7 @@ import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/quick_actions.dart';
 import '../../../core/presentation/readable_label.dart';
 import '../../../core/presentation/responsive.dart';
+import '../../../core/ui/patient/patient_components.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../care/application/care_providers.dart';
 import '../../care/presentation/patient_doctor_chat_section.dart';
@@ -117,15 +118,22 @@ class _HealthRecordsScreenState extends ConsumerState<HealthRecordsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        TextButton.icon(
-                          onPressed: () =>
-                              setState(() => _view = _RecordsView.overview),
-                          icon: const Icon(Icons.arrow_back),
-                          label: ReadableLabel(t.recordsBackToOverview),
+                        Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: TextButton.icon(
+                            onPressed: () =>
+                                setState(() => _view = _RecordsView.overview),
+                            icon: Icon(
+                              Directionality.of(context) == TextDirection.rtl
+                                  ? Icons.arrow_forward
+                                  : Icons.arrow_back,
+                            ),
+                            label: ReadableLabel(t.recordsBackToOverview),
+                          ),
                         ),
-                        ReadableLabel(
-                          t.medicationsSegment,
-                          style: Theme.of(context).textTheme.titleLarge,
+                        Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: PatientPageTitle(t.paMedications),
                         ),
                       ],
                     ),

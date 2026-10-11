@@ -85,27 +85,54 @@ class BookingRequestDraft {
     VisitType? visitType,
     String? reason,
     Object? bookedForName = _keep,
+    bool clearStaff = false,
+    bool clearDate = false,
   }) => BookingRequestDraft(
     departmentId: departmentId ?? this.departmentId,
-    staffId: staffId ?? this.staffId,
-    date: date ?? this.date,
+    staffId: clearStaff ? null : staffId ?? this.staffId,
+    date: clearDate ? null : date ?? this.date,
     visitType: visitType ?? this.visitType,
     reason: reason ?? this.reason,
     bookedForName: identical(bookedForName, _keep)
         ? this.bookedForName
         : bookedForName as String?,
   );
+
+  /// A new department invalidates the clinician (who belongs to one
+  /// department) and the date picked for them; who the visit is for, the
+  /// visit type and the reason stay.
+  BookingRequestDraft withDepartment(String id) => id == departmentId
+      ? this
+      : copyWith(departmentId: id, clearStaff: true, clearDate: true);
+
+  /// A new clinician invalidates the chosen date's slots (they are per
+  /// clinician) but not the date itself, which is re-checked for them.
+  BookingRequestDraft withStaff(String id, {DateTime? date}) =>
+      copyWith(staffId: id, date: date);
 }
 
-final bookingDraftProvider = StateProvider<BookingRequestDraft>(
-  (_) => const BookingRequestDraft(),
-);
+/// Scoped to the signed-in account: a sign-out or account switch discards
+/// any half-finished booking intent.
+final bookingDraftProvider = StateProvider<BookingRequestDraft>((ref) {
+  ref.watch(currentUserProvider.select((u) => u?.id));
+  return const BookingRequestDraft();
+});
+
+/// True while a confirmation is being written — the wizard disables every
+/// time and review action so a second booking cannot start.
+final bookingInFlightProvider = StateProvider<bool>((ref) {
+  ref.watch(currentUserProvider.select((u) => u?.id));
+  return false;
+});
 
 /// null = booking for the signed-in patient themself. Otherwise, a linked
 /// family account's id — set when the wizard is opened from "Book for
 /// [name]" on a "manage" linked account. Re-checked at [BookingController.
 /// confirm] time, never trusted from the UI alone.
-final bookingTargetPatientIdProvider = StateProvider<String?>((_) => null);
+final bookingTargetPatientIdProvider = StateProvider<String?>((ref) {
+  ref.watch(currentUserProvider.select((u) => u?.id));
+  return null;
+});
 
 /// Whoever the current draft books a visit for — the signed-in patient, or
 /// the linked account being booked for.
@@ -141,6 +168,8 @@ final _bookingSubjectHistoryProvider = FutureProvider<List<Appointment>>((
 
 /// Ranked open slots for the current draft (staff + date), best first.
 final rankedSlotsProvider = FutureProvider<List<RankedSlot>>((ref) async {
+  // Fresh availability for whoever is signed in (after login/restore).
+  ref.watch(currentUserProvider.select((u) => u?.id));
   final draft = ref.watch(bookingDraftProvider);
   if (draft.staffId == null || draft.date == null) return const [];
 
@@ -282,9 +311,42 @@ class BookingController {
   /// response retries the *same* booking and can never book it twice.
   final Map<String, IdempotencyKey> _attempts = {};
 
+  /// One confirmation at a time: a second tap (or a second slot's review)
+  /// while one is being written is refused, so no two visits are created.
+  bool _inFlight = false;
+
   Future<Result<Appointment>> confirm(RankedSlot slot) async {
+    if (_inFlight) {
+      return const Err(
+        ConflictFailure('A booking is already being confirmed.'),
+      );
+    }
+    final actingPatientId = _ref.read(currentUserProvider)?.id;
+    if (actingPatientId == null) return const Err(SessionExpiredFailure());
+    _inFlight = true;
+    _ref.read(bookingInFlightProvider.notifier).state = true;
+    try {
+      final result = await _confirm(slot, actingPatientId);
+      if (result case Err(
+        :final failure,
+      ) when failure is ConflictFailure || failure is ValidationFailure) {
+        // The slot was taken or has gone stale: reload real availability.
+        _ref.invalidate(rankedSlotsProvider);
+      }
+      return result;
+    } finally {
+      _inFlight = false;
+      if (_ref.read(currentUserProvider)?.id == actingPatientId) {
+        _ref.read(bookingInFlightProvider.notifier).state = false;
+      }
+    }
+  }
+
+  Future<Result<Appointment>> _confirm(
+    RankedSlot slot,
+    String actingPatientId,
+  ) async {
     final draft = _ref.read(bookingDraftProvider);
-    final actingPatientId = _ref.read(currentUserProvider)!.id;
     final targetId = _ref.read(bookingTargetPatientIdProvider);
 
     String patientId;

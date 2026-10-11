@@ -214,7 +214,8 @@ class _MiniMonth extends StatelessWidget {
   /// rail does — and a six-row month overflows by a few pixels. Measuring the
   /// content instead makes the tile correct at any width and any text scale.
   static double extentFor(BuildContext context) {
-    final label = MediaQuery.textScalerOf(context).scale(16); // labelMedium
+    // Paragraph line boxes round up at fractional app scales (e.g. 0.92).
+    final label = MediaQuery.textScalerOf(context).scale(16).ceilToDouble();
     return Space.xs * 2 + label + Space.xxs + _cellSize(context) * _maxWeekRows;
   }
 

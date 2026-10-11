@@ -54,7 +54,7 @@ class LinkedFamilyAccountsSection extends ConsumerWidget {
             TextButton.icon(
               onPressed: () => _openLinkSheet(context, ref),
               icon: const Icon(Icons.link, size: 18),
-              label: Text(t.linkAccountAction),
+              label: ReadableLabel(t.linkAccountAction),
             ),
           ],
         ),

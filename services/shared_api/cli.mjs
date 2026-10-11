@@ -1,5 +1,5 @@
 import { resolve } from 'node:path';
-import { geminiReportExplainer } from './ai.mjs';
+import { geminiReportChat, geminiReportExplainer } from './ai.mjs';
 import { Store, id, requireThat } from './store.mjs';
 import { createApi } from './server.mjs';
 import { encryptedBackup, restoreBackup, renderEnglishPdf, startWorkers } from './workers.mjs';
@@ -42,7 +42,10 @@ if (command === 'restore') {
       const reportExplainer = process.env.MYHEALTH_AI_KEY
         ? geminiReportExplainer({ apiKey: process.env.MYHEALTH_AI_KEY, model: process.env.MYHEALTH_AI_MODEL || undefined })
         : undefined;
-      const server = createApi({ store, origins: (process.env.MYHEALTH_ORIGINS ?? '').split(',').filter(Boolean), renderDocument, reportExplainer });
+      const reportChat = process.env.MYHEALTH_AI_KEY
+        ? geminiReportChat({ apiKey: process.env.MYHEALTH_AI_KEY, model: process.env.MYHEALTH_AI_MODEL || undefined })
+        : undefined;
+      const server = createApi({ store, origins: (process.env.MYHEALTH_ORIGINS ?? '').split(',').filter(Boolean), renderDocument, reportExplainer, reportChat });
       const stopWorkers = startWorkers(store, { directory: process.env.MYHEALTH_BACKUP_DIR, key: process.env.MYHEALTH_BACKUP_KEY, renderDocument });
       const port = Number(process.env.PORT ?? 8787);
       await new Promise(resolveStarted => server.listen(port, '127.0.0.1', resolveStarted));

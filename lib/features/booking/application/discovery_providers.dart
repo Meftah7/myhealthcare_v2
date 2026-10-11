@@ -13,6 +13,7 @@ import '../../../app/router.dart';
 import '../../../core/di.dart';
 import '../../../core/result.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../domain/repositories/appointment_repository.dart';
 
 /// Every bookable clinician (nurses excluded — they work the nursing list).
 final publicDoctorsProvider = FutureProvider<List<Staff>>((ref) async {
@@ -38,3 +39,21 @@ void continueToBooking(
   ).toString();
   unawaited(context.push(route));
 }
+
+/// One bounded availability look-ahead for every listed clinician (a fixed
+/// number of queries, see `availabilitySummaries`). Disposed when search
+/// closes, so reopening shows fresh numbers. A summary only: the booking
+/// wizard reloads and validates the actual slot.
+final doctorAvailabilityProvider =
+    FutureProvider.autoDispose<Map<String, StaffAvailabilitySummary>>((
+      ref,
+    ) async {
+      final doctors = await ref.watch(publicDoctorsProvider.future);
+      final result = await ref
+          .watch(appointmentRepositoryProvider)
+          .availabilitySummaries([for (final d in doctors) d.id]);
+      return switch (result) {
+        Ok(:final value) => value,
+        Err(:final failure) => throw failure,
+      };
+    });

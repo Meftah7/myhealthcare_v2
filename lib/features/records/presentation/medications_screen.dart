@@ -11,6 +11,7 @@ import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/readable_label.dart';
 import '../../../core/presentation/states.dart';
+import '../../../core/ui/patient/patient_components.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
@@ -91,7 +92,7 @@ class MedicationsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _group(List<Medication> meds) => AppCard(
+  Widget _group(List<Medication> meds) => SurfaceCard(
     padding: EdgeInsets.zero,
     child: Column(
       children: [
@@ -113,16 +114,27 @@ class _MedTile extends StatelessWidget {
     final t = AppLocalizations.of(context)!;
     final how = [?m.dose, ?m.frequency].join(' · ');
     return ListTile(
-      leading: Icon(
-        m.isCurrent ? Icons.medication : Icons.medication_outlined,
-        color: m.isCurrent ? theme.colorScheme.primary : null,
+      minTileHeight: 72,
+      leading: IconTile(
+        icon: m.isCurrent ? Icons.medication : Icons.medication_outlined,
+        accent: m.isCurrent ? PatientAccent.green : PatientAccent.neutral,
+        size: 44,
       ),
-      title: ReadableLabel(m.name),
+      title: ReadableLabel(
+        m.name,
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+        ),
+      ),
       subtitle: Text(
         how.isEmpty ? t.medNoInstructions : t.medHowToTake(how),
         style: theme.textTheme.bodySmall,
       ),
-      trailing: const Icon(Icons.chevron_right),
+      trailing: Icon(
+        Directionality.of(context) == TextDirection.rtl
+            ? Icons.chevron_left
+            : Icons.chevron_right,
+      ),
       onTap: () => showModalBottomSheet<void>(
         context: context,
         showDragHandle: true,

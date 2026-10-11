@@ -2,7 +2,8 @@
 ///
 /// One widget tree, re-flowed by window size class: `NavigationBar` at the
 /// bottom on compact, an icon `NavigationRail` on medium, and an **extended**
-/// rail from expanded up. Used by every role shell in router.dart.
+/// rail from expanded up for staff/admin. Patient shells use width-based
+/// bottom tabs, a rail with account access, and an expanded account sidebar.
 library;
 
 import 'package:flutter/material.dart';
@@ -10,6 +11,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/presentation/app_scaffold.dart';
 import '../../core/presentation/readable_label.dart';
+import '../../core/ui/patient/patient_components.dart';
+import '../../l10n/app_localizations.dart';
 import '../theme/theme.dart';
 
 /// One navigation destination in a role shell.
@@ -18,15 +21,18 @@ class AppDestination {
     required this.icon,
     required this.selectedIcon,
     required this.label,
-    this.semanticsSuffix,
+    this.badge,
   });
 
   final IconData icon;
   final IconData selectedIcon;
   final String label;
 
-  /// Extra text read after the label by screen readers (e.g. a scope label).
-  final String? semanticsSuffix;
+  /// A visible scope label shown with the destination wherever it appears
+  /// (bottom bar, destination menu, rail) and read after the label.
+  final String? badge;
+
+  String get semanticLabel => badge == null ? label : '$label, $badge';
 }
 
 class AppShell extends StatefulWidget {
@@ -40,6 +46,7 @@ class AppShell extends StatefulWidget {
     this.selectedDestinationFor,
     this.compactBarBuilder,
     this.drawer,
+    this.expandedAccountBuilder,
     super.key,
   });
 
@@ -48,6 +55,7 @@ class AppShell extends StatefulWidget {
   /// A native navigation drawer on the shell's outer Scaffold (patient
   /// account / settings). Pages open it through [ShellDrawerScope].
   final Widget? drawer;
+  final Widget Function(List<Widget> primaryEntries)? expandedAccountBuilder;
 
   /// Maps the active branch to the highlighted destination. Lets a shell keep
   /// extra branches (routes retained for deep links) that have no tab of
@@ -109,9 +117,9 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     final scaffold = _content(context);
     // The floating overlay steps aside while the drawer is open.
-    return widget.overlay == null || _drawerOpen
+    return widget.overlay == null
         ? scaffold
-        : Stack(children: [scaffold, widget.overlay!]);
+        : Stack(children: [scaffold, if (!_drawerOpen) widget.overlay!]);
   }
 
   Widget _content(BuildContext context) {
@@ -119,6 +127,13 @@ class _AppShellState extends State<AppShell> {
     final branch = widget.navigationShell.currentIndex;
     final current = widget.selectedDestinationFor?.call(branch) ?? branch;
     final hairline = Theme.of(context).colorScheme.outlineVariant;
+    final patientAdaptive = widget.expandedAccountBuilder != null;
+    final width = MediaQuery.sizeOf(context).width;
+    final patientRailWidth =
+        (128 * MediaQuery.textScalerOf(context).scale(13) / 13).clamp(
+          128.0,
+          248.0,
+        );
 
     Widget body = ScrollToTopSignal(
       notifier: _scrollToTop,
@@ -127,6 +142,7 @@ class _AppShellState extends State<AppShell> {
     if (widget.drawer != null) {
       body = ShellDrawerScope(
         open: () => _scaffoldKey.currentState?.openDrawer(),
+        showMenu: !patientAdaptive || width < 600,
         child: body,
       );
     }
@@ -136,6 +152,96 @@ class _AppShellState extends State<AppShell> {
           widget.contextHeader!,
           Expanded(child: body),
         ],
+      );
+    }
+
+    if (patientAdaptive) {
+      final compact = width < 600;
+      final expanded = width >= 1024;
+      final t = AppLocalizations.of(context)!;
+      final entries = <Widget>[
+        for (final (i, destination) in widget.destinations.indexed)
+          ListTile(
+            key: ValueKey('patient-destination-$i'),
+            minTileHeight: 56,
+            selected: current == i,
+            leading: Icon(
+              current == i ? destination.selectedIcon : destination.icon,
+            ),
+            title: ReadableLabel(destination.label),
+            subtitle: destination.badge == null
+                ? null
+                : Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: NavScopeBadge(destination.badge!),
+                  ),
+            onTap: () => _go(i),
+          ),
+      ];
+      return Scaffold(
+        key: _scaffoldKey,
+        drawer: expanded ? null : widget.drawer,
+        onDrawerChanged: _drawerChanged,
+        bottomNavigationBar: compact
+            ? widget.compactBarBuilder!(context, current, _go)
+            : null,
+        body: Row(
+          children: [
+            SizedBox(
+              width: compact
+                  ? 0
+                  : expanded
+                  ? 272
+                  : patientRailWidth,
+              child: compact
+                  ? null
+                  : expanded
+                  ? widget.expandedAccountBuilder!(entries)
+                  : Column(
+                      children: [
+                        Expanded(
+                          child: _Rail(
+                            destinations: widget.destinations,
+                            currentIndex: current,
+                            onSelected: _go,
+                            extended: false,
+                            labelWidth: patientRailWidth - 24,
+                          ),
+                        ),
+                        SafeArea(
+                          top: false,
+                          child: Padding(
+                            padding: const EdgeInsets.all(4),
+                            child: Tooltip(
+                              message: t.paDrawerAccount,
+                              child: TextButton(
+                                key: const ValueKey('patient-rail-account'),
+                                onPressed: () =>
+                                    _scaffoldKey.currentState?.openDrawer(),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.manage_accounts_outlined),
+                                    Text(
+                                      t.paDrawerAccount,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+            SizedBox(
+              width: compact ? 0 : 1,
+              child: VerticalDivider(width: 1, color: hairline),
+            ),
+            Expanded(child: body),
+          ],
+        ),
       );
     }
 
@@ -245,12 +351,14 @@ class _Rail extends StatelessWidget {
     required this.currentIndex,
     required this.onSelected,
     required this.extended,
+    this.labelWidth,
   });
 
   final List<AppDestination> destinations;
   final int currentIndex;
   final ValueChanged<int> onSelected;
   final bool extended;
+  final double? labelWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -295,7 +403,14 @@ class _Rail extends StatelessWidget {
                       title: ReadableLabel(
                         destination.label,
                         style: theme.textTheme.labelLarge,
+                        semanticsLabel: destination.semanticLabel,
                       ),
+                      subtitle: destination.badge == null
+                          ? null
+                          : Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: NavScopeBadge(destination.badge!),
+                            ),
                       onTap: () => onSelected(i),
                     ),
                   ),
@@ -344,7 +459,30 @@ class _Rail extends StatelessWidget {
                   NavigationRailDestination(
                     icon: Icon(d.icon),
                     selectedIcon: Icon(d.selectedIcon),
-                    label: Text(d.label),
+                    label: labelWidth != null
+                        ? SizedBox(
+                            width: labelWidth,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                              Text(
+                                  d.label,
+                                  textAlign: TextAlign.center,
+                                ),
+                                if (d.badge != null) NavScopeBadge(d.badge!),
+                              ],
+                            ),
+                          )
+                        : d.badge == null
+                        ? Text(d.label)
+                        : Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(d.label),
+                              const SizedBox(height: 2),
+                              NavScopeBadge(d.badge!),
+                            ],
+                          ),
                   ),
               ],
             ),
@@ -426,7 +564,14 @@ class CompactNavigation extends StatelessWidget {
             title: ReadableLabel(
               selected.label,
               style: theme.textTheme.titleSmall,
+              semanticsLabel: selected.semanticLabel,
             ),
+            subtitle: selected.badge == null
+                ? null
+                : Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: NavScopeBadge(selected.badge!),
+                  ),
             trailing: const Icon(Icons.unfold_more),
             onTap: () async {
               final index = await showModalBottomSheet<int>(
@@ -446,7 +591,17 @@ class CompactNavigation extends StatelessWidget {
                             minTileHeight: 56,
                             selected: i == currentIndex,
                             leading: Icon(destination.icon),
-                            title: ReadableLabel(destination.label),
+                            title: ReadableLabel(
+                              destination.label,
+                              semanticsLabel: destination.semanticLabel,
+                            ),
+                            // The scope label stays visible in the menu too.
+                            subtitle: destination.badge == null
+                                ? null
+                                : Align(
+                                    alignment: AlignmentDirectional.centerStart,
+                                    child: NavScopeBadge(destination.badge!),
+                                  ),
                             trailing: i == currentIndex
                                 ? const Icon(Icons.check)
                                 : null,

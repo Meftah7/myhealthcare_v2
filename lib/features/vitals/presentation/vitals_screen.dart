@@ -157,6 +157,14 @@ class _VitalsChart extends StatelessWidget {
         .map((p) => p.at.millisecondsSinceEpoch)
         .reduce((a, b) => a > b ? a : b);
     final colors = [theme.colorScheme.primary, theme.colorScheme.tertiary];
+    final values = [for (final p in all) p.value];
+    // A narrow range (e.g. glucose 4.5–5.4) needs a decimal, or every label
+    // reads the same.
+    final fine =
+        values.isNotEmpty &&
+        (values.reduce((a, b) => a > b ? a : b) -
+                values.reduce((a, b) => a < b ? a : b)) <
+            10;
     final reduce = Motion.reduced(context);
 
     return AppCard(
@@ -192,7 +200,7 @@ class _VitalsChart extends StatelessWidget {
                       showTitles: true,
                       reservedSize: 36,
                       getTitlesWidget: (v, meta) => Text(
-                        v.toStringAsFixed(0),
+                        v.toStringAsFixed(fine ? 1 : 0),
                         style: theme.textTheme.bodySmall,
                       ),
                     ),
@@ -201,16 +209,27 @@ class _VitalsChart extends StatelessWidget {
                     sideTitles: SideTitles(
                       showTitles: true,
                       reservedSize: 28,
-                      interval: ((maxX - minX) / 3).clamp(1, double.infinity),
-                      getTitlesWidget: (v, meta) => Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(
-                          fmtDate(
-                            DateTime.fromMillisecondsSinceEpoch(v.toInt()),
-                          ),
-                          style: theme.textTheme.bodySmall,
-                        ),
+                      // Only the first and last reading dates, kept inside
+                      // the chart — interior labels collided on phones.
+                      interval: (maxX - minX).toDouble().clamp(
+                        1,
+                        double.infinity,
                       ),
+                      getTitlesWidget: (v, meta) {
+                        if (v != meta.min && v != meta.max) {
+                          return const SizedBox.shrink();
+                        }
+                        return SideTitleWidget(
+                          meta: meta,
+                          fitInside: SideTitleFitInsideData.fromTitleMeta(meta),
+                          child: Text(
+                            fmtShortDate(
+                              DateTime.fromMillisecondsSinceEpoch(v.toInt()),
+                            ),
+                            style: theme.textTheme.bodySmall,
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),

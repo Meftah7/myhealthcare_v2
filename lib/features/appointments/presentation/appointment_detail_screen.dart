@@ -10,7 +10,9 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
@@ -29,9 +31,17 @@ import 'appointment_records_section.dart';
 import '../application/appointment_records_provider.dart';
 
 class AppointmentDetailScreen extends ConsumerWidget {
-  const AppointmentDetailScreen({required this.appointmentId, super.key});
+  const AppointmentDetailScreen({
+    required this.appointmentId,
+    this.justBooked = false,
+    super.key,
+  });
 
   final String appointmentId;
+
+  /// Arrived straight from a confirmed booking: show the confirmation with
+  /// a link back to Home.
+  final bool justBooked;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -73,6 +83,36 @@ class AppointmentDetailScreen extends ConsumerWidget {
                   appt.status == AppointmentStatus.confirmed);
 
           return [
+            if (justBooked) ...[
+              AppCard(
+                key: const ValueKey('booked-banner'),
+                color: theme.colorScheme.tertiaryContainer,
+                borderColor: Colors.transparent,
+                padding: const EdgeInsets.all(Space.md),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.check_circle_outline,
+                      color: theme.colorScheme.onTertiaryContainer,
+                    ),
+                    const SizedBox(width: Space.sm),
+                    Expanded(
+                      child: Text(
+                        t.appointmentBooked,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: theme.colorScheme.onTertiaryContainer,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => context.go(AppRoutes.patientHome),
+                      child: Text(t.navHome),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: Space.sm),
+            ],
             AppCard(
               padding: const EdgeInsets.all(Space.md),
               child: Column(

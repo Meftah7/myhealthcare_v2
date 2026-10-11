@@ -25,6 +25,8 @@ import '../../../core/utils/clinic_hours.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../domain/repositories/patient_repository.dart';
+import '../../auth/application/session.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../services/scheduling/slot_recommender.dart';
 import '../../patient/application/family_link_providers.dart';
@@ -113,96 +115,118 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
           message: t.couldNotLoadDepartments,
           onRetry: () => ref.invalidate(departmentsProvider),
         ),
-        data: (depts) => Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 720),
-            child: ListView(
-              key: ValueKey(_stage),
-              padding: EdgeInsets.fromLTRB(gutter, Space.md, gutter, Space.xxl),
-              children: [
-                _StepBar(current: _stage),
-                const SizedBox(height: Space.md),
-                if (_stage == 0) ...[
-                  if (widget.targetPatientId != null)
-                    _BookingForLinkedAccountBanner(
-                      ownerPatientId: widget.targetPatientId!,
-                    )
-                  else
-                    const _BookingForSelector(),
-                  _StepCard(
-                    index: 1,
-                    title: t.stepDepartment,
-                    done: draft.departmentId != null,
-                    child: _ChoiceWrap(
-                      options: [for (final d in depts) (d.id, d.name)],
-                      selectedId: draft.departmentId,
-                      onSelected: (id) => notifier.state = BookingRequestDraft(
-                        departmentId: id,
-                        visitType: draft.visitType,
-                        bookedForName: draft.bookedForName,
-                      ),
-                    ),
-                  ),
-                  if (draft.departmentId != null) ...[
-                    const SizedBox(height: Space.md),
+        data: (depts) {
+          // A resumed or linked intent may name a department that no longer
+          // exists; keep only valid intent.
+          if (draft.departmentId != null &&
+              !depts.any((d) => d.id == draft.departmentId)) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) return;
+              final current = ref.read(bookingDraftProvider);
+              ref
+                  .read(bookingDraftProvider.notifier)
+                  .state = BookingRequestDraft(
+                visitType: current.visitType,
+                bookedForName: current.bookedForName,
+              );
+            });
+          }
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 720),
+              child: ListView(
+                key: ValueKey(_stage),
+                padding: EdgeInsets.fromLTRB(
+                  gutter,
+                  Space.md,
+                  gutter,
+                  Space.xxl,
+                ),
+                children: [
+                  _StepBar(current: _stage),
+                  const SizedBox(height: Space.md),
+                  if (_stage == 0) ...[
+                    if (widget.targetPatientId != null)
+                      _BookingForLinkedAccountBanner(
+                        ownerPatientId: widget.targetPatientId!,
+                      )
+                    else
+                      const _BookingForSelector(),
                     _StepCard(
-                      index: 2,
-                      title: t.stepDoctor,
-                      done: draft.staffId != null,
-                      child: _DoctorPicker(
-                        departmentId: draft.departmentId!,
-                        mode: mode,
-                      ),
-                    ),
-                  ],
-                  if (draft.staffId != null) ...[
-                    const SizedBox(height: Space.md),
-                    _StepCard(
-                      index: 3,
-                      title: t.stepReasonForVisit,
-                      done: true,
+                      index: 1,
+                      title: t.stepDepartment,
+                      done: draft.departmentId != null,
                       child: _ChoiceWrap(
-                        options: [
-                          for (final type in VisitType.values)
-                            (type.name, visitTypeLabel(type)),
-                        ],
-                        selectedId: draft.visitType.name,
-                        onSelected: (name) => notifier.state = draft.copyWith(
-                          visitType: VisitType.values.byName(name),
+                        options: [for (final d in depts) (d.id, d.name)],
+                        selectedId: draft.departmentId,
+                        onSelected: (id) =>
+                            notifier.state = draft.withDepartment(id),
+                      ),
+                    ),
+                    if (draft.departmentId != null) ...[
+                      const SizedBox(height: Space.md),
+                      _StepCard(
+                        index: 2,
+                        title: t.stepDoctor,
+                        done: draft.staffId != null,
+                        child: _DoctorPicker(
+                          departmentId: draft.departmentId!,
+                          mode: mode,
                         ),
                       ),
-                    ),
-                  ],
-                  const SizedBox(height: Space.lg),
-                  FilledButton(
-                    onPressed: draft.staffId == null
-                        ? null
-                        : () => setState(() => _stage = 1),
-                    child: Text(t.continueButton),
-                  ),
-                ] else ...[
-                  _StepCard(
-                    index: 2,
-                    title: t.stepDateTime,
-                    done: draft.date != null,
-                    child: mode == BookingMode.now
-                        ? _NowDateLine(date: draft.date)
-                        : _DateStrip(
-                            selected: draft.date,
-                            schedule: schedule,
-                            onPick: (d) =>
-                                notifier.state = draft.copyWith(date: d),
+                    ],
+                    if (draft.staffId != null) ...[
+                      const SizedBox(height: Space.md),
+                      _StepCard(
+                        index: 3,
+                        title: t.stepReasonForVisit,
+                        done: true,
+                        child: _ChoiceWrap(
+                          options: [
+                            for (final type in VisitType.values)
+                              (type.name, visitTypeLabel(type)),
+                          ],
+                          selectedId: draft.visitType.name,
+                          onSelected: (name) => notifier.state = draft.copyWith(
+                            visitType: VisitType.values.byName(name),
                           ),
-                  ),
-                  if (draft.staffId != null && draft.date != null) ...[
-                    const SizedBox(height: Space.md),
-                    _SlotList(mode: mode),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: Space.lg),
+                    FilledButton(
+                      onPressed: draft.staffId == null
+                          ? null
+                          : () => setState(() => _stage = 1),
+                      child: Text(t.continueButton),
+                    ),
+                  ] else ...[
+                    _StepCard(
+                      index: 2,
+                      title: t.stepDateTime,
+                      done: draft.date != null,
+                      child: mode == BookingMode.now
+                          ? _NowDateLine(date: draft.date)
+                          : _DateStrip(
+                              selected: draft.date,
+                              schedule: schedule,
+                              onPick: (d) =>
+                                  notifier.state = draft.copyWith(date: d),
+                            ),
+                    ),
+                    if (draft.staffId != null && draft.date != null) ...[
+                      const SizedBox(height: Space.md),
+                      _SlotList(
+                        mode: mode,
+                        onEditDetails: () => setState(() => _stage = 0),
+                      ),
+                    ],
                   ],
                 ],
-              ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
@@ -482,6 +506,18 @@ class _DoctorPicker extends ConsumerWidget {
             ),
           );
         }
+        // A prefilled/resumed clinician must belong to this department.
+        if (draft.staffId != null && !list.any((s) => s.id == draft.staffId)) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            final current = ref.read(bookingDraftProvider);
+            if (current.staffId == draft.staffId) {
+              ref.read(bookingDraftProvider.notifier).state = current.copyWith(
+                clearStaff: true,
+                clearDate: true,
+              );
+            }
+          });
+        }
         return Column(
           children: [
             for (final s in list)
@@ -492,9 +528,9 @@ class _DoctorPicker extends ConsumerWidget {
                   final notifier = ref.read(bookingDraftProvider.notifier);
                   if (mode == BookingMode.now) {
                     final date = await _earliestAvailableDate(ref, s.id);
-                    notifier.state = draft.copyWith(staffId: s.id, date: date);
+                    notifier.state = draft.withStaff(s.id, date: date);
                   } else {
-                    notifier.state = draft.copyWith(staffId: s.id);
+                    notifier.state = draft.withStaff(s.id);
                   }
                 },
               ),
@@ -730,14 +766,18 @@ class _DateStrip extends StatelessWidget {
 // Slots
 // ---------------------------------------------------------------------------
 
+enum _ReviewAction { confirm, changeTime, editDetails }
+
 class _SlotList extends ConsumerWidget {
-  const _SlotList({required this.mode});
+  const _SlotList({required this.mode, required this.onEditDetails});
 
   final BookingMode mode;
+  final VoidCallback onEditDetails;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final slots = ref.watch(rankedSlotsProvider);
+    final busy = ref.watch(bookingInFlightProvider);
     final t = AppLocalizations.of(context)!;
 
     return slots.when(
@@ -759,6 +799,19 @@ class _SlotList extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (busy) ...[
+              Row(
+                children: [
+                  const SizedBox.square(
+                    dimension: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  const SizedBox(width: Space.sm),
+                  Expanded(child: Text(t.paBookingInProgress)),
+                ],
+              ),
+              const SizedBox(height: Space.sm),
+            ],
             _SuggestedTimes(
               ranked: list,
               onPick: (slot) => _review(context, ref, slot),
@@ -770,7 +823,10 @@ class _SlotList extends ConsumerWidget {
               runSpacing: Space.xs,
               children: [
                 for (final s in byTime)
-                  _TimeChip(slot: s, onTap: () => _review(context, ref, s)),
+                  _TimeChip(
+                    slot: s,
+                    onTap: busy ? null : () => _review(context, ref, s),
+                  ),
               ],
             ),
           ],
@@ -784,35 +840,59 @@ class _SlotList extends ConsumerWidget {
     WidgetRef ref,
     RankedSlot slot,
   ) async {
+    // Never open a second review while a booking is being written.
+    if (ref.read(bookingInFlightProvider)) return;
+    final t = AppLocalizations.of(context)!;
     final draft = ref.read(bookingDraftProvider);
     final staff = ref
         .read(departmentStaffProvider(draft.departmentId ?? ''))
-        .valueOrNull;
-    final doctor = staff
+        .valueOrNull
         ?.where((s) => s.id == draft.staffId)
-        .map((s) => clinicianName(s.fullName))
         .firstOrNull;
     final depts = ref.read(departmentsProvider).valueOrNull;
     final department = depts
         ?.where((d) => d.id == draft.departmentId)
         .map((d) => d.name)
         .firstOrNull;
+    final facility =
+        (await ref.read(departmentRepositoryProvider).facility()).valueOrNull;
+    // Who the visit is for: a household member, a managed linked account,
+    // or the signed-in patient.
+    final targetId = ref.read(bookingTargetPatientIdProvider);
+    String? patientName = draft.bookedForName;
+    if (patientName == null && targetId != null) {
+      patientName = (await ref.read(patientRepositoryProvider).byId(targetId))
+          .valueOrNull
+          ?.user
+          .fullName;
+    }
+    patientName ??= ref.read(currentUserProvider)?.fullName;
 
     if (!context.mounted) return;
-    final confirmed = await showModalBottomSheet<bool>(
+    final action = await showModalBottomSheet<_ReviewAction>(
       context: context,
       showDragHandle: true,
       isScrollControlled: true,
       builder: (_) => _ReviewSheet(
         slot: slot,
-        doctor: doctor,
+        patient: patientName ?? t.greetingFallbackName,
+        doctor: staff == null ? null : clinicianName(staff.fullName),
+        specialty: staff?.specialty,
         department: department,
+        facility: facility,
         visitType: draft.visitType,
         bookedFor: draft.bookedForName,
       ),
     );
-    if (confirmed != true || !context.mounted) return;
-    await _book(context, ref, slot);
+    if (!context.mounted) return;
+    switch (action) {
+      case _ReviewAction.confirm:
+        await _book(context, ref, slot);
+      case _ReviewAction.editDetails:
+        onEditDetails();
+      case _ReviewAction.changeTime || null:
+        break;
+    }
   }
 
   Future<void> _book(BuildContext context, WidgetRef ref, RankedSlot s) async {
@@ -826,7 +906,9 @@ class _SlotList extends ConsumerWidget {
             .read(appointmentConfirmationProvider.notifier)
             .show(AppLocalizations.of(context)!.appointmentBooked);
         if (!context.mounted) return;
-        context.go(AppRoutes.patientAppointmentDetail(value.id));
+        // Success only after the repository confirmed the insert: open the
+        // real appointment, with a banner linking back to Home.
+        context.go('${AppRoutes.patientAppointmentDetail(value.id)}?booked=1');
       case Err(:final failure):
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -843,7 +925,7 @@ class _TimeChip extends StatelessWidget {
   const _TimeChip({required this.slot, required this.onTap});
 
   final RankedSlot slot;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -867,15 +949,21 @@ class _TimeChip extends StatelessWidget {
 class _ReviewSheet extends StatelessWidget {
   const _ReviewSheet({
     required this.slot,
+    required this.patient,
     required this.doctor,
+    required this.specialty,
     required this.department,
+    required this.facility,
     required this.visitType,
     this.bookedFor,
   });
 
   final RankedSlot slot;
+  final String patient;
   final String? doctor;
+  final String? specialty;
   final String? department;
+  final ClinicFacility? facility;
   final VisitType visitType;
   final String? bookedFor;
 
@@ -884,7 +972,7 @@ class _ReviewSheet extends StatelessWidget {
     final theme = Theme.of(context);
     final t = AppLocalizations.of(context)!;
     return SafeArea(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(Space.lg, 0, Space.lg, Space.lg),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -894,36 +982,59 @@ class _ReviewSheet extends StatelessWidget {
             const SizedBox(height: Space.md),
             Text(t.reviewAndConfirm, style: theme.textTheme.titleLarge),
             const SizedBox(height: Space.md),
+            _Row(label: t.paReviewPatient, value: patient),
             if (bookedFor != null)
               _Row(label: t.rowLabelFor, value: bookedFor!),
+            if (doctor != null) _Row(label: t.stepDoctor, value: doctor!),
+            if (specialty != null && specialty!.isNotEmpty)
+              _Row(label: t.paReviewSpecialty, value: specialty!),
+            if (department != null)
+              _Row(label: t.stepDepartment, value: department!),
+            if (facility != null)
+              _Row(
+                label: t.paReviewFacility,
+                value: facility!.address == null
+                    ? facility!.name
+                    : '${facility!.name}\n${facility!.address}',
+              ),
             _Row(
               label: t.rowLabelWhen,
               value:
                   '${fmtRelativeDay(slot.slot.start)}, '
-                  '${fmtDate(slot.slot.start)} · ${fmtTime(slot.slot.start)}',
+                  '${fmtDate(slot.slot.start)} · ${fmtTime(slot.slot.start)}'
+                  '–${fmtTime(slot.slot.end)}',
             ),
             _Row(
               label: t.appointmentTimeZone(slot.slot.start.timeZoneName),
               value: slot.slot.start.timeZoneOffset.toString(),
             ),
-            if (department != null)
-              _Row(label: t.stepDepartment, value: department!),
-            if (doctor != null) _Row(label: t.stepDoctor, value: doctor!),
             _Row(label: t.stepReasonShort, value: visitTypeLabel(visitType)),
-            const SizedBox(height: Space.sm),
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: RiskBadge(slot.band),
-            ),
+            _Row(label: t.paReviewVisitMode, value: t.paInClinicVisits),
+            if (slot.hasRiskEstimate) ...[
+              const SizedBox(height: Space.sm),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: RiskBadge(slot.band),
+              ),
+            ],
             const SizedBox(height: Space.lg),
             FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
+              key: const ValueKey('review-confirm'),
+              onPressed: () => Navigator.of(context).pop(_ReviewAction.confirm),
               child: Text(t.confirmBookingButton),
             ),
             const SizedBox(height: Space.xs),
+            OutlinedButton(
+              key: const ValueKey('review-change-time'),
+              onPressed: () =>
+                  Navigator.of(context).pop(_ReviewAction.changeTime),
+              child: Text(t.paReviewChangeTime),
+            ),
             TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(t.backButton),
+              key: const ValueKey('review-edit-details'),
+              onPressed: () =>
+                  Navigator.of(context).pop(_ReviewAction.editDetails),
+              child: Text(t.paReviewEditDetails),
             ),
           ],
         ),

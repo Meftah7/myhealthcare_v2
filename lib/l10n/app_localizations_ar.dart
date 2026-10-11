@@ -3499,11 +3499,8 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String textSizeCaption(String level) {
-    return '$level — يُطبَّق على النص في التطبيق بأكمله';
+    return '$level — حجم نص التطبيق؛ يظل تكبير النص في إعدادات إمكانية الوصول بالجهاز مطبقًا';
   }
-
-  @override
-  String get textScaleSmaller => 'أصغر';
 
   @override
   String get textScaleSmall => 'صغير';
@@ -3513,9 +3510,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get textScaleLarge => 'كبير';
-
-  @override
-  String get textScaleLarger => 'أكبر';
 
   @override
   String get notificationChannelsLabel => 'قنوات الإشعارات';
@@ -5367,4 +5361,167 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get paSettingsPreferences => 'الإعدادات والتفضيلات';
+
+  @override
+  String get paVideoVisitsMode => 'الزيارات المرئية';
+
+  @override
+  String get paAvailabilityLoading => 'جارٍ التحقق من المواعيد المتاحة…';
+
+  @override
+  String get paAvailabilityError => 'تعذّر تحميل المواعيد المتاحة.';
+
+  @override
+  String get paAvailabilityUnknown => 'المواعيد المتاحة غير معروفة.';
+
+  @override
+  String get paNoPublishedSchedule => 'لا يوجد جدول منشور.';
+
+  @override
+  String paNoOpenTimes(int days) {
+    return 'لا توجد أوقات متاحة خلال الأيام الـ$days القادمة.';
+  }
+
+  @override
+  String paNextAvailable(String when, int count, int days) {
+    return 'أقرب موعد متاح $when · $count من الأوقات المتاحة خلال الأيام الـ$days القادمة';
+  }
+
+  @override
+  String get paAvailabilityNotGuaranteed =>
+      'يُعاد التحقق من الأوقات عند الحجز.';
+
+  @override
+  String get paBookingInProgress => 'جارٍ تأكيد حجزك…';
+
+  @override
+  String get paReviewPatient => 'المريض';
+
+  @override
+  String get paReviewSpecialty => 'التخصص';
+
+  @override
+  String get paReviewFacility => 'المنشأة';
+
+  @override
+  String get paReviewVisitMode => 'نوع الزيارة';
+
+  @override
+  String get paReviewChangeTime => 'تغيير الوقت';
+
+  @override
+  String get paReviewEditDetails => 'تعديل العيادة أو الطبيب أو نوع الزيارة';
+
+  @override
+  String get paAskAboutReportHint => 'اسأل عن هذا التقرير…';
+
+  @override
+  String get paLeaveReport => 'إغلاق هذا التقرير';
+
+  @override
+  String get paSourceOnDevice => 'ملخص على الجهاز · ليس ذكاءً اصطناعيًا';
+
+  @override
+  String get paSourceLiveDraft =>
+      'مسودة ذكاء اصطناعي · تم التحقق منها مقابل تقريرك';
+
+  @override
+  String get paSourceNotInReport =>
+      'مسودة ذكاء اصطناعي · غير مذكور في هذا التقرير';
+
+  @override
+  String get paSourceUnavailable => 'غير متصل';
+
+  @override
+  String get paSourceError => 'تعذّرت الإجابة';
+
+  @override
+  String get paFromYourReport => 'من تقريرك:';
+
+  @override
+  String get paLiveDraftDisclaimer =>
+      'مسودة من الذكاء الاصطناعي — ليست تشخيصًا. ناقش النتائج مع طبيبك.';
+
+  @override
+  String get paChatReportLiveStatus => 'ذكاء التقارير متصل · مسودات';
+
+  @override
+  String get paPolicyLoadError => 'تعذّر تحميل هذا المستند.';
+
+  @override
+  String paPolicyVersion(String version, String date) {
+    return 'الإصدار $version · آخر تحديث $date';
+  }
+
+  @override
+  String get paPolicyOpenItems => 'بنود ما زال على المالك استكمالها';
+
+  @override
+  String get paPolicyDraftTitle =>
+      'مسودة لمراجعة المالك — ليست السياسة المعتمدة';
+
+  @override
+  String get paPolicyDraftBody =>
+      'يصف هذا النص طريقة عمل التطبيق حاليًا. ولم تعتمده الجهة المشغلة أو تنشره بعد.';
+
+  @override
+  String get paOutOfRange => 'خارج النطاق';
+
+  @override
+  String get paDownloadOriginal => 'تنزيل';
+
+  @override
+  String get paEarlierResults => 'مقارنةً بنتائجك السابقة';
+
+  @override
+  String get paIssuedDocumentsTitle => 'الوثائق الصادرة';
+
+  @override
+  String get paIssuedDocumentsIntro =>
+      'الوثائق الرسمية التي أصدرها فريق رعايتك — الإجازات المرضية والشهادات وملخصات الزيارات. الملفات التي رفعتها موجودة في السجلات الصحية.';
+
+  @override
+  String get paDocumentsLoadError => 'تعذّر تحميل مستنداتك.';
+
+  @override
+  String get paNoIssuedDocuments => 'لا توجد وثائق صادرة بعد';
+
+  @override
+  String get paNoIssuedDocumentsBody =>
+      'عندما يصدر طبيبك شهادة أو إجازة مرضية، ستظهر هنا.';
+
+  @override
+  String get paDocRevoked => 'ملغاة أو مستبدلة';
+
+  @override
+  String get paDocReady => 'النسخة الرسمية جاهزة';
+
+  @override
+  String get paDocNotReady => 'ملف PDF غير جاهز';
+
+  @override
+  String get paDocNotReadyBody =>
+      'ملف PDF غير جاهز بعد؛ تواصل مع العيادة إن استمر ذلك.';
+
+  @override
+  String get paDocReplacement => 'نسخة بديلة';
+
+  @override
+  String get paVerificationCode => 'رمز التحقق';
+
+  @override
+  String get paViewDocument => 'عرض';
+
+  @override
+  String get paNewLabel => 'جديد';
+
+  @override
+  String get paHouseholdMembers => 'أفراد الأسرة';
+
+  @override
+  String get paHouseholdMembersBody =>
+      'أشخاص ليس لديهم حساب خاص تحجز لهم الزيارات.';
+
+  @override
+  String get paNoConversationsTitle => 'لا توجد محادثات بعد';
 }

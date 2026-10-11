@@ -1,6 +1,8 @@
 /// Drift-backed [PatientRepository] + [DepartmentRepository] (P1-12).
 library;
 
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 
 import '../../core/data/contracts.dart';
@@ -431,6 +433,24 @@ class DepartmentRepositoryImpl implements DepartmentRepository {
         _db.departments,
       )..orderBy([(d) => OrderingTerm(expression: d.name)])).get();
       return rows.map((r) => r.toEntity()).toList();
+    });
+  }
+
+  @override
+  Future<Result<ClinicFacility>> facility() {
+    return Result.guardAsync(() async {
+      final row = await (_db.select(
+        _db.clinicConfigurations,
+      )..where((c) => c.id.equals('clinic'))).getSingleOrNull();
+      final values = row == null
+          ? const <String, dynamic>{}
+          : jsonDecode(row.valueJson) as Map<String, dynamic>;
+      final name = (values['name'] as String?)?.trim();
+      final address = (values['address'] as String?)?.trim();
+      return ClinicFacility(
+        name: name == null || name.isEmpty ? 'MyHealth Care' : name,
+        address: address == null || address.isEmpty ? null : address,
+      );
     });
   }
 

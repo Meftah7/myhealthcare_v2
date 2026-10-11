@@ -60,6 +60,8 @@ import '../features/patient/application/profile_screen.dart';
 import '../features/patient/presentation/allergies_screen.dart';
 import '../features/patient/presentation/linked_account_screen.dart';
 import '../features/patient/presentation/patient_drawer.dart';
+import '../features/policies/application/policy_content.dart';
+import '../features/policies/presentation/policy_screen.dart';
 import '../features/patient/presentation/profile_section_pages.dart';
 import '../features/patient/presentation/visited_doctors_screen.dart';
 import '../features/patient_chart/presentation/patient_chart_screen.dart';
@@ -108,8 +110,14 @@ bool _canAccess(String location, UserRole role) {
     UserRole.staff => '/staff',
     UserRole.admin => '/admin',
   };
-  return location == '/' || location.startsWith(area);
+  return location == '/' ||
+      location.startsWith(area) ||
+      isPublicInfoRoute(location);
 }
+
+/// Pages anyone may read, signed in or not (no patient data).
+bool isPublicInfoRoute(String location) =>
+    location == AppRoutes.policyTerms || location == AppRoutes.policyPrivacy;
 
 /// Every route path in the app, in one place.
 abstract final class AppRoutes {
@@ -154,6 +162,10 @@ abstract final class AppRoutes {
 
   // Patient rebuild — Services tab, tools and booking discovery.
   static const patientServices = '/patient/services';
+
+  /// Public policy documents (readable signed out and by every role).
+  static const policyTerms = '/policies/terms';
+  static const policyPrivacy = '/policies/privacy';
   static const patientCalculators = '/patient/home/calculators';
   static const patientConverters = '/patient/home/converters';
 
@@ -314,6 +326,14 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
         ],
       ),
       GoRoute(
+        path: AppRoutes.policyTerms,
+        builder: (_, _) => const PolicyScreen(kind: PolicyKind.terms),
+      ),
+      GoRoute(
+        path: AppRoutes.policyPrivacy,
+        builder: (_, _) => const PolicyScreen(kind: PolicyKind.privacy),
+      ),
+      GoRoute(
         path: AppRoutes.staffScribe,
         builder: (_, state) => ClinicalScribeScreen(
           patientId: state.uri.queryParameters['patient'] ?? '',
@@ -394,7 +414,7 @@ String? _guard(Ref ref, GoRouterState state, _LaunchState launch) {
     // Every patient, staff and admin area requires sign-in (guest browsing
     // is future work). A protected deep link opened before anyone has signed
     // in this launch carries its (allowlisted) destination through sign-in.
-    if (onAuthScreen) return null;
+    if (onAuthScreen || isPublicInfoRoute(loc)) return null;
     if (!launch.sawSignedInUser &&
         !session.endedByInactivity &&
         loc != onSplash &&
@@ -540,8 +560,8 @@ StatefulShellRoute _patientShell() {
           selectedIcon: Icons.forum,
           label: t.messagesTitle,
           // Messaging is an existing supplementary feature (outside the
-          // proposal): announced with its scope label.
-          semanticsSuffix: t.paFutureWork,
+          // proposal): a visible "Future work" label on its tab.
+          badge: t.paFutureWork,
         ),
         AppDestination(
           icon: Icons.grid_view_outlined,
@@ -554,6 +574,7 @@ StatefulShellRoute _patientShell() {
         overlay: const CareNavigatorOverlay(),
         destinations: destinations,
         drawer: const PatientDrawer(),
+        expandedAccountBuilder: (entries) => PatientDrawer(primaryEntries: entries),
         selectedDestinationFor: (branch) => branch < 5 ? branch : 0,
         compactBarBuilder: (context, selected, onSelected) =>
             PatientBottomNavigation(
@@ -647,6 +668,7 @@ StatefulShellRoute _patientShell() {
                 path: 'detail/:id',
                 builder: (_, state) => AppointmentDetailScreen(
                   appointmentId: state.pathParameters['id']!,
+                  justBooked: state.uri.queryParameters['booked'] == '1',
                 ),
               ),
             ],

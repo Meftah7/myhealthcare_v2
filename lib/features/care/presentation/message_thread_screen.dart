@@ -256,6 +256,11 @@ class _Bubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    // Patient threads use the approved filled blue for the patient's own
+    // messages; staff/admin threads keep their palette.
+    final patient = theme.extension<PatientPalette>();
+    final mineBg = patient?.action ?? scheme.primary;
+    final mineFg = patient?.onAction ?? scheme.onPrimary;
     return Align(
       alignment: mine
           ? AlignmentDirectional.centerEnd
@@ -270,8 +275,13 @@ class _Bubble extends StatelessWidget {
           maxWidth: MediaQuery.sizeOf(context).width * 0.78,
         ),
         decoration: BoxDecoration(
-          color: mine ? scheme.primary : scheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(14),
+          color: mine ? mineBg : scheme.surfaceContainerHighest,
+          borderRadius: BorderRadiusDirectional.only(
+            topStart: const Radius.circular(16),
+            topEnd: const Radius.circular(16),
+            bottomStart: Radius.circular(mine ? 16 : 4),
+            bottomEnd: Radius.circular(mine ? 4 : 16),
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -279,15 +289,16 @@ class _Bubble extends StatelessWidget {
             Text(
               message.body,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: mine ? scheme.onPrimary : scheme.onSurface,
+                color: mine ? mineFg : scheme.onSurface,
               ),
             ),
             const SizedBox(height: 2),
             Text(
               fmtTimeAgo(message.sentAt),
               style: theme.textTheme.labelSmall?.copyWith(
-                color: (mine ? scheme.onPrimary : scheme.onSurfaceVariant)
-                    .withValues(alpha: 0.7),
+                color: (mine ? mineFg : scheme.onSurfaceVariant).withValues(
+                  alpha: 0.7,
+                ),
               ),
             ),
           ],

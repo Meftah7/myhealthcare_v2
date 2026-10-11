@@ -6179,14 +6179,8 @@ abstract class AppLocalizations {
   /// No description provided for @textSizeCaption.
   ///
   /// In en, this message translates to:
-  /// **'{level} — applies to text across the whole app'**
+  /// **'{level} — app text size; your device accessibility scaling still applies'**
   String textSizeCaption(String level);
-
-  /// No description provided for @textScaleSmaller.
-  ///
-  /// In en, this message translates to:
-  /// **'Smaller'**
-  String get textScaleSmaller;
 
   /// No description provided for @textScaleSmall.
   ///
@@ -6205,12 +6199,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Large'**
   String get textScaleLarge;
-
-  /// No description provided for @textScaleLarger.
-  ///
-  /// In en, this message translates to:
-  /// **'Larger'**
-  String get textScaleLarger;
 
   /// No description provided for @notificationChannelsLabel.
   ///
@@ -9469,6 +9457,300 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settings & Preferences'**
   String get paSettingsPreferences;
+
+  /// No description provided for @paVideoVisitsMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Video visits'**
+  String get paVideoVisitsMode;
+
+  /// No description provided for @paAvailabilityLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking availability…'**
+  String get paAvailabilityLoading;
+
+  /// No description provided for @paAvailabilityError.
+  ///
+  /// In en, this message translates to:
+  /// **'Availability couldn\'t be loaded.'**
+  String get paAvailabilityError;
+
+  /// No description provided for @paAvailabilityUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Availability not known.'**
+  String get paAvailabilityUnknown;
+
+  /// No description provided for @paNoPublishedSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'No published schedule.'**
+  String get paNoPublishedSchedule;
+
+  /// No description provided for @paNoOpenTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'No open times in the next {days} days.'**
+  String paNoOpenTimes(int days);
+
+  /// No description provided for @paNextAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Next available {when} · {count} open times in the next {days} days'**
+  String paNextAvailable(String when, int count, int days);
+
+  /// No description provided for @paAvailabilityNotGuaranteed.
+  ///
+  /// In en, this message translates to:
+  /// **'Times are checked again when you book.'**
+  String get paAvailabilityNotGuaranteed;
+
+  /// No description provided for @paBookingInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirming your booking…'**
+  String get paBookingInProgress;
+
+  /// No description provided for @paReviewPatient.
+  ///
+  /// In en, this message translates to:
+  /// **'Patient'**
+  String get paReviewPatient;
+
+  /// No description provided for @paReviewSpecialty.
+  ///
+  /// In en, this message translates to:
+  /// **'Specialty'**
+  String get paReviewSpecialty;
+
+  /// No description provided for @paReviewFacility.
+  ///
+  /// In en, this message translates to:
+  /// **'Facility'**
+  String get paReviewFacility;
+
+  /// No description provided for @paReviewVisitMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit mode'**
+  String get paReviewVisitMode;
+
+  /// No description provided for @paReviewChangeTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Change time'**
+  String get paReviewChangeTime;
+
+  /// No description provided for @paReviewEditDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit clinic, doctor or visit type'**
+  String get paReviewEditDetails;
+
+  /// No description provided for @paAskAboutReportHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask about this report…'**
+  String get paAskAboutReportHint;
+
+  /// No description provided for @paLeaveReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave this report'**
+  String get paLeaveReport;
+
+  /// No description provided for @paSourceOnDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'On-device summary · not AI'**
+  String get paSourceOnDevice;
+
+  /// No description provided for @paSourceLiveDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'AI draft · checked against your report'**
+  String get paSourceLiveDraft;
+
+  /// No description provided for @paSourceNotInReport.
+  ///
+  /// In en, this message translates to:
+  /// **'AI draft · not stated in this report'**
+  String get paSourceNotInReport;
+
+  /// No description provided for @paSourceUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected'**
+  String get paSourceUnavailable;
+
+  /// No description provided for @paSourceError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t answer'**
+  String get paSourceError;
+
+  /// No description provided for @paFromYourReport.
+  ///
+  /// In en, this message translates to:
+  /// **'From your report:'**
+  String get paFromYourReport;
+
+  /// No description provided for @paLiveDraftDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft from AI — not a diagnosis. Discuss results with your doctor.'**
+  String get paLiveDraftDisclaimer;
+
+  /// No description provided for @paChatReportLiveStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Report AI connected · drafts'**
+  String get paChatReportLiveStatus;
+
+  /// No description provided for @paPolicyLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'This document couldn\'t be loaded.'**
+  String get paPolicyLoadError;
+
+  /// No description provided for @paPolicyVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version} · updated {date}'**
+  String paPolicyVersion(String version, String date);
+
+  /// No description provided for @paPolicyOpenItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Still to be supplied by the owner'**
+  String get paPolicyOpenItems;
+
+  /// No description provided for @paPolicyDraftTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft for owner review — not the approved policy'**
+  String get paPolicyDraftTitle;
+
+  /// No description provided for @paPolicyDraftBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This text describes how the app works today. The operator has not yet approved or published it.'**
+  String get paPolicyDraftBody;
+
+  /// No description provided for @paOutOfRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of range'**
+  String get paOutOfRange;
+
+  /// No description provided for @paDownloadOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get paDownloadOriginal;
+
+  /// No description provided for @paEarlierResults.
+  ///
+  /// In en, this message translates to:
+  /// **'Compared with your earlier results'**
+  String get paEarlierResults;
+
+  /// No description provided for @paIssuedDocumentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued documents'**
+  String get paIssuedDocumentsTitle;
+
+  /// No description provided for @paIssuedDocumentsIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Official documents your care team issued — sick leave, certificates and visit summaries. Files you uploaded are in Health Records.'**
+  String get paIssuedDocumentsIntro;
+
+  /// No description provided for @paDocumentsLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your documents.'**
+  String get paDocumentsLoadError;
+
+  /// No description provided for @paNoIssuedDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'No issued documents yet'**
+  String get paNoIssuedDocuments;
+
+  /// No description provided for @paNoIssuedDocumentsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'When your doctor issues a certificate or sick leave, it appears here.'**
+  String get paNoIssuedDocumentsBody;
+
+  /// No description provided for @paDocRevoked.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoked or replaced'**
+  String get paDocRevoked;
+
+  /// No description provided for @paDocReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Official copy ready'**
+  String get paDocReady;
+
+  /// No description provided for @paDocNotReady.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF not ready'**
+  String get paDocNotReady;
+
+  /// No description provided for @paDocNotReadyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The PDF isn\'t ready yet; contact the clinic if it stays this way.'**
+  String get paDocNotReadyBody;
+
+  /// No description provided for @paDocReplacement.
+  ///
+  /// In en, this message translates to:
+  /// **'Replacement version'**
+  String get paDocReplacement;
+
+  /// No description provided for @paVerificationCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification code'**
+  String get paVerificationCode;
+
+  /// No description provided for @paViewDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get paViewDocument;
+
+  /// No description provided for @paNewLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get paNewLabel;
+
+  /// No description provided for @paHouseholdMembers.
+  ///
+  /// In en, this message translates to:
+  /// **'Household members'**
+  String get paHouseholdMembers;
+
+  /// No description provided for @paHouseholdMembersBody.
+  ///
+  /// In en, this message translates to:
+  /// **'People without their own account you book visits for.'**
+  String get paHouseholdMembersBody;
+
+  /// No description provided for @paNoConversationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No conversations yet'**
+  String get paNoConversationsTitle;
 }
 
 class _AppLocalizationsDelegate

@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 
 import '../../../app/shell/app_shell.dart';
 import '../../../app/theme/theme.dart';
+import 'patient_components.dart';
 
 class PatientBottomNavigation extends StatelessWidget {
   const PatientBottomNavigation({
@@ -46,14 +47,28 @@ class PatientBottomNavigation extends StatelessWidget {
           );
           final slot = constraints.maxWidth / destinations.length - 2;
           var fits = scaler.scale(11) / 11 <= 1.5;
-          for (final d in destinations) {
+          double measure(String text, TextStyle? s) {
             final painter = TextPainter(
-              text: TextSpan(text: d.label, style: style),
+              text: TextSpan(text: text, style: s),
               textDirection: Directionality.of(context),
               textScaler: scaler,
             )..layout();
-            fits = fits && painter.width <= slot;
+            final w = painter.width;
             painter.dispose();
+            return w;
+          }
+
+          for (final d in destinations) {
+            fits = fits && measure(d.label, style) <= slot;
+            // A scope badge may wrap onto two lines inside its slot, but no
+            // single word of it may be clipped (pill padding included).
+            if (d.badge != null) {
+              for (final word in d.badge!.split(RegExp(r'\s+'))) {
+                fits =
+                    fits &&
+                    measure(word, NavScopeBadge.styleOf(context)) + 14 <= slot;
+              }
+            }
           }
           if (!fits) {
             return CompactNavigation(
@@ -131,9 +146,7 @@ class _NavItem extends StatelessWidget {
     return Semantics(
       selected: selected,
       button: true,
-      label: destination.semanticsSuffix == null
-          ? destination.label
-          : '${destination.label}, ${destination.semanticsSuffix}',
+      label: destination.semanticLabel,
       excludeSemantics: true,
       child: InkResponse(
         onTap: onTap,
@@ -168,6 +181,11 @@ class _NavItem extends StatelessWidget {
                 ),
               ),
             ),
+            if (destination.badge != null) ...[
+              const SizedBox(height: 2),
+              NavScopeBadge(destination.badge!),
+            ],
+            const SizedBox(height: 4),
           ],
         ),
       ),

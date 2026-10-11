@@ -1,9 +1,12 @@
 /// Record detail (P2-10). Labs render as a table with abnormal values flagged.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:printing/printing.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
@@ -15,11 +18,13 @@ import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
+import '../../../core/ui/patient/patient_components.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/clinical/lab_history.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../ai_chat/application/care_navigator.dart';
 import '../../auth/application/session.dart';
 import '../../patient/application/family_link_providers.dart';
 import '../../patient/application/patient_data_providers.dart';
@@ -71,22 +76,13 @@ class RecordDetailScreen extends ConsumerWidget {
             constraints: const BoxConstraints(maxWidth: 720),
             child: ListView(
               padding: const EdgeInsets.fromLTRB(
-                Space.md,
-                Space.md,
-                Space.md,
+                kPatientInset,
+                Space.sm,
+                kPatientInset,
                 Space.xxl,
               ),
               children: [
-                _RecordSubject(patientId: r.patientId),
-                Text(r.title, style: theme.textTheme.headlineSmall),
-                const SizedBox(height: Space.xs),
-                Text(
-                  '${r.recordType.label(context)} · ${fmtDate(r.occurredAt)}'
-                  '${r.sourceFacility == null ? '' : ' · ${r.sourceFacility}'}',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
+                _RecordHeaderCard(record: r),
                 if (r.uploadedByPatient) ...[
                   const SizedBox(height: Space.sm),
                   InlineBanner.info(
@@ -95,87 +91,103 @@ class RecordDetailScreen extends ConsumerWidget {
                   const SizedBox(height: Space.sm),
                   ImportProvenanceCard(record: r, showReview: false),
                 ],
-                const SizedBox(height: Space.sm),
-                SectionHeader(t.recordsOriginals, overline: true),
-                Wrap(
-                  spacing: Space.xs,
-                  runSpacing: Space.xs,
-                  children: [
-                    if (r.sourceDocument != null)
-                      DocumentDownloadButton(
-                        label: t.openOriginalAction,
-                        filename: r.sourceDocument!.fileName,
-                        icon: Icons.description_outlined,
-                        build: () => openOriginalFile(ref, r),
-                      ),
-                  ],
-                ),
-                if (r.sourceDocument == null) Text(t.recordsNoOriginal),
-                if (r.appointmentId case final visitId?) ...[
-                  const SizedBox(height: Space.xs),
-                  // Opens the visit, where everything from it is listed.
-                  TextButton.icon(
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
-                    ),
-                    onPressed: () => context.push(
-                      AppRoutes.patientAppointmentDetail(visitId),
-                    ),
-                    icon: const Icon(Icons.event_note_outlined, size: 18),
-                    label: Text(t.fromYourVisitOn(fmtDate(r.occurredAt))),
-                  ),
-                ],
-                SectionHeader(t.recordsRecordedInformation, overline: true),
-                if (r.body != null) ...[
-                  const SizedBox(height: Space.md),
-                  AppCard(
-                    child: Text(r.body!, style: theme.textTheme.bodyLarge),
-                  ),
-                ],
-                if (r.recordType == RecordType.referral &&
-                    r.sourceFacility != null) ...[
-                  const SizedBox(height: Space.md),
+                SectionHeading(t.recordsOriginals),
+                _OriginalCard(record: r),
+                if (r.appointmentId case final visitId?)
                   Align(
                     alignment: AlignmentDirectional.centerStart,
-                    child: DocumentDownloadButton(
-                      label: t.referralLetterLabel,
-                      filename: 'referral-letter.pdf',
-                      icon: Icons.forward_to_inbox_outlined,
-                      build: () => buildReferralLetter(ref, r),
+                    child: TextButton.icon(
+                      onPressed: () => context.push(
+                        AppRoutes.patientAppointmentDetail(visitId),
+                      ),
+                      icon: const Icon(Icons.event_note_outlined, size: 18),
+                      label: Text(t.fromYourVisitOn(fmtDate(r.occurredAt))),
+                    ),
+                  ),
+                if (r.body != null ||
+                    (r.recordType == RecordType.referral &&
+                        r.sourceFacility != null)) ...[
+                  SectionHeading(t.recordsRecordedInformation),
+                  SurfaceCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (r.body != null)
+                          SelectableText(
+                            r.body!,
+                            style: theme.textTheme.bodyLarge,
+                          ),
+                        if (r.recordType == RecordType.referral &&
+                            r.sourceFacility != null) ...[
+                          const SizedBox(height: Space.sm),
+                          DocumentDownloadButton(
+                            label: t.referralLetterLabel,
+                            filename: 'referral-letter.pdf',
+                            icon: Icons.forward_to_inbox_outlined,
+                            build: () => buildReferralLetter(ref, r),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                 ],
                 if (r.labValues.isNotEmpty) ...[
-                  const SizedBox(height: Space.md),
-                  SectionHeader(t.resultsSection, overline: true),
-                  AppCard(child: LabValuesTable(labs: r.labValues)),
+                  SectionHeading(t.resultsSection),
+                  SurfaceCard(child: LabValuesTable(labs: r.labValues)),
+                  const SizedBox(height: Space.sm),
                   _LabHistory(recordId: r.id),
                 ],
                 if (r.extractedText != null) ...[
-                  const SizedBox(height: Space.md),
-                  SectionHeader(t.extractedTextSection, overline: true),
-                  AppCard(
-                    color: theme.colorScheme.surfaceContainerHighest,
-                    child: Text(
-                      r.extractedText!,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontFamily: AppFonts.mono,
+                  const SizedBox(height: Space.sm),
+                  // The source text the explanation is based on — a preview
+                  // of what was read from the PDF, separate from the record.
+                  SurfaceCard(
+                    padding: EdgeInsets.zero,
+                    child: ExpansionTile(
+                      shape: const Border(),
+                      leading: const Icon(Icons.text_snippet_outlined),
+                      title: Text(t.extractedTextSection),
+                      childrenPadding: const EdgeInsets.fromLTRB(
+                        Space.md,
+                        0,
+                        Space.md,
+                        Space.md,
                       ),
+                      children: [
+                        SelectableText(
+                          r.extractedText!,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontFamily: AppFonts.mono,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
-                SectionHeader(t.recordsClinicalReview, overline: true),
+                SectionHeading(t.recordsClinicalReview),
                 _ClinicalReview(record: r),
-                SectionHeader(t.recordsGeneratedSummary, overline: true),
-                Text(t.recordsGeneratedNotice),
-                DocumentDownloadButton(
-                  label: t.exportRecordAction,
-                  filename: 'record-${r.id}.pdf',
-                  build: () => buildRecordSummary(
-                    ref,
-                    r,
-                    recordTypeLabel: r.recordType.label(context),
+                SectionHeading(t.recordsGeneratedSummary),
+                SurfaceCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        t.recordsGeneratedNotice,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: PatientPalette.of(context).textMuted,
+                        ),
+                      ),
+                      const SizedBox(height: Space.sm),
+                      DocumentDownloadButton(
+                        label: t.exportRecordAction,
+                        filename: 'record-${r.id}.pdf',
+                        build: () => buildRecordSummary(
+                          ref,
+                          r,
+                          recordTypeLabel: r.recordType.label(context),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: Space.md),
@@ -236,6 +248,179 @@ class ImportProvenanceCard extends StatelessWidget {
   }
 }
 
+/// Title, type, date, source, who it belongs to and its status labels.
+class _RecordHeaderCard extends ConsumerWidget {
+  const _RecordHeaderCard({required this.record});
+  final MedicalRecord record;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final t = AppLocalizations.of(context)!;
+    final palette = PatientPalette.of(context);
+    final r = record;
+    return SurfaceCard(
+      padding: const EdgeInsets.all(Space.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              IconTile(
+                icon: switch (r.recordType) {
+                  RecordType.labResult => Icons.science_outlined,
+                  RecordType.imaging => Icons.image_outlined,
+                  RecordType.prescription => Icons.medication_outlined,
+                  RecordType.referral => Icons.forward_to_inbox_outlined,
+                  _ => Icons.notes_outlined,
+                },
+              ),
+              const SizedBox(width: Space.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      r.title,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: palette.text,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${r.recordType.label(context)} · ${fmtDate(r.occurredAt)}'
+                      '${r.sourceFacility == null ? '' : ' · ${r.sourceFacility}'}',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: palette.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: Space.sm),
+          _RecordSubject(patientId: r.patientId),
+          const SizedBox(height: Space.xs),
+          Wrap(
+            spacing: Space.xxs,
+            runSpacing: Space.xxs,
+            children: [
+              StatusBadge(recordReviewLabel(t, r.reviewStatus)),
+              if (r.hasAbnormalLabs)
+                StatusBadge(
+                  t.paOutOfRange,
+                  accent: PatientAccent.red,
+                  icon: Icons.priority_high,
+                ),
+              if (r.uploadedByPatient) StatusBadge(t.uploadedByPatientTag),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The original file: View (in-app preview), Download (save/share the same
+/// authorized bytes) and Explain (report chat) are distinct actions.
+class _OriginalCard extends ConsumerWidget {
+  const _OriginalCard({required this.record});
+  final MedicalRecord record;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final palette = PatientPalette.of(context);
+    final doc = record.sourceDocument;
+    final canExplain = (record.extractedText ?? '').trim().isNotEmpty;
+    return SurfaceCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (doc == null)
+            Text(
+              t.recordsNoOriginal,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: palette.textMuted,
+              ),
+            )
+          else ...[
+            Row(
+              children: [
+                const IconTile(icon: Icons.picture_as_pdf_outlined, size: 40),
+                const SizedBox(width: Space.sm),
+                Expanded(
+                  child: Text(
+                    '${doc.fileName} · '
+                    '${(doc.sizeBytes / 1024).toStringAsFixed(0)} KB',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: palette.text,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: Space.sm),
+            Wrap(
+              spacing: Space.xs,
+              runSpacing: Space.xs,
+              children: [
+                DocumentDownloadButton(
+                  label: t.openOriginalAction,
+                  filename: doc.fileName,
+                  icon: Icons.visibility_outlined,
+                  build: () => openOriginalFile(ref, record),
+                ),
+                OutlinedButton.icon(
+                  key: const ValueKey('download-original'),
+                  onPressed: () async {
+                    try {
+                      final bytes = await openOriginalFile(ref, record);
+                      await Printing.sharePdf(
+                        bytes: bytes,
+                        filename: doc.fileName,
+                      );
+                    } on Object {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(t.couldNotLoadRecord)),
+                        );
+                      }
+                    }
+                  },
+                  icon: const Icon(Icons.download_outlined),
+                  label: Text(t.paDownloadOriginal),
+                ),
+              ],
+            ),
+          ],
+          if (canExplain) ...[
+            const SizedBox(height: Space.sm),
+            FilledButton.icon(
+              key: const ValueKey('explain-record'),
+              onPressed: () {
+                ref.read(careNavigatorViewProvider.notifier).state =
+                    CareNavView.panel;
+                unawaited(
+                  ref
+                      .read(careNavigatorProvider.notifier)
+                      .explainDocument(record),
+                );
+              },
+              icon: const Icon(Icons.auto_awesome_outlined),
+              label: Text(t.paExplainReport),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 class _RecordSubject extends ConsumerWidget {
   const _RecordSubject({required this.patientId});
   final String patientId;
@@ -260,11 +445,14 @@ class _ClinicalReview extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
     final names = ref.watch(doctorDirectoryProvider).valueOrNull ?? {};
-    return AppCard(
+    return SurfaceCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(recordReviewLabel(t, record.reviewStatus)),
+          Text(
+            recordReviewLabel(t, record.reviewStatus),
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
           if (record.reviewedByStaffId != null)
             Text(
               names[record.reviewedByStaffId]?.name ?? t.recordsUnknownAuthor,
@@ -309,19 +497,40 @@ class _LabHistory extends ConsumerWidget {
             onPressed: () => ref.invalidate(_labHistoryProvider(recordId)),
             child: Text(t.recordsTrendsUnavailable),
           ),
-          data: (previous) => Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (final lab in record.labValues)
-                Padding(
-                  padding: const EdgeInsets.only(top: Space.xs),
-                  child: Text(
-                    previous[labHistoryKey(lab)] != null
-                        ? '${lab.analyte} – ${t.recordsPreviousResult}: ${previous[labHistoryKey(lab)]!.value} ${previous[labHistoryKey(lab)]!.unit} (${fmtDate(previous[labHistoryKey(lab)]!.at)})'
-                        : '${lab.analyte}: ${t.recordsNoComparableResult}',
-                  ),
+          data: (previous) => SurfaceCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  t.paEarlierResults,
+                  style: Theme.of(context).textTheme.titleSmall,
                 ),
-            ],
+                for (final lab in record.labValues)
+                  Padding(
+                    padding: const EdgeInsets.only(top: Space.xs),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            lab.analyte,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 3,
+                          child: Text(
+                            previous[labHistoryKey(lab)] != null
+                                ? '${previous[labHistoryKey(lab)]!.value} ${previous[labHistoryKey(lab)]!.unit} · ${fmtDate(previous[labHistoryKey(lab)]!.at)}'
+                                : t.recordsNoComparableResult,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
           ),
         );
   }

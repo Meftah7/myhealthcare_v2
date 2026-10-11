@@ -212,6 +212,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   },
             child: Text(t.createPatientAccount),
           ),
+          Wrap(
+            alignment: WrapAlignment.center,
+            children: [
+              TextButton(
+                onPressed: () => context.push(AppRoutes.policyTerms),
+                child: Text(t.paTerms),
+              ),
+              TextButton(
+                onPressed: () => context.push(AppRoutes.policyPrivacy),
+                child: Text(t.paPrivacy),
+              ),
+            ],
+          ),
           // Demo credentials belong to the explicit demo runtime only.
           if (ref.watch(appModeProvider).isDemo) ...[
             const SizedBox(height: Space.lg),
