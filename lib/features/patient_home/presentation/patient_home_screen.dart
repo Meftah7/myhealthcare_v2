@@ -30,7 +30,6 @@ import '../../patient/application/patient_data_providers.dart';
 import '../../service_catalog/application/catalog_dispatcher.dart';
 import '../../service_catalog/domain/patient_catalog.dart';
 import '../../service_catalog/presentation/catalog_widgets.dart';
-import 'needs_attention_strip.dart';
 import 'notifications_button.dart';
 import 'upcoming_appointment_carousel.dart';
 
@@ -90,7 +89,6 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
       children: [
         // 2. Care alerts.
         const _AllergyAlert(),
-        const NeedsAttentionStrip(),
         const _UpcomingAppointments(),
 
         // 3. Hero: the report explanation (core).

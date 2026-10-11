@@ -5706,4 +5706,74 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get htDepartmentUnavailable =>
       'تعذر تحميل عوامل تصفية الأقسام. لا يزال البحث بالاسم والتخصص متاحاً.';
+
+  @override
+  String get splashLoadingLabel => 'جارٍ تحميل MyHealth';
+
+  @override
+  String get splashSlowTitle => 'يستغرق هذا وقتًا أطول من المعتاد';
+
+  @override
+  String get splashSlowBody =>
+      'لا يزال MyHealth قيد الإعداد. تحقق من الاتصال أو إعدادات تخزين المتصفح، ثم أعد المحاولة.';
+
+  @override
+  String onboardingProgress(int current, int total) {
+    return 'الصفحة $current من $total';
+  }
+
+  @override
+  String get paHealthTrackers => 'متتبعات الصحة';
+
+  @override
+  String get svcLearnFutureWork => 'عن العمل المستقبلي';
+
+  @override
+  String get svcViewVitals => 'عرض العلامات الحيوية';
+
+  @override
+  String get svcNotFound => 'تعذر العثور على هذه الخدمة.';
+
+  @override
+  String get svcBloodDonationTitle =>
+      'معلومات التبرع بالدم مخطط لها في MyHealth';
+
+  @override
+  String get svcBloodDonationBody =>
+      'قد يعرض إصدار مستقبلي معلومات التبرع بالدم من المستشفى. التسجيل كمتبرع وفحص الأهلية ومواعيد التبرع غير متاحة في هذا الإصدار.';
+
+  @override
+  String get svcEReferralTitle => 'الإحالات الإلكترونية مخطط لها في MyHealth';
+
+  @override
+  String get svcEReferralBody =>
+      'قد يتيح إصدار مستقبلي للأطباء إرسال الإحالات ومتابعتها إلكترونيًا. لا يستطيع MyHealth إرسال السجلات إلى مستشفى آخر، ولا يوجد تكامل للإحالات حتى الآن.';
+
+  @override
+  String get svcCheckupTitle => 'باقات الفحص الصحي مخطط لها في MyHealth';
+
+  @override
+  String get svcCheckupBody =>
+      'لا توجد باقة فحص متاحة للحجز حتى الآن. لا يزال بإمكانك حجز موعد عادي مع طبيب من حجز موعد.';
+
+  @override
+  String get svcWaterTitle => 'تتبع شرب الماء مخطط له في MyHealth';
+
+  @override
+  String get svcWaterBody =>
+      'قد يتيح إصدار مستقبلي تسجيل كمية الماء التي تشربها. تتبع شرب الماء غير متاح في هذا الإصدار.';
+
+  @override
+  String get svcTrackersTitle => 'راجع العلامات الحيوية المسجلة في سجلك الصحي';
+
+  @override
+  String get svcTrackersBody =>
+      'اطلع على قراءات ضغط الدم ونبض القلب والحرارة والوزن وتشبع الأكسجين والسكر المحفوظة في MyHealth مع اتجاهاتها بمرور الوقت. المراقبة المباشرة أو المستمرة غير متاحة.';
+
+  @override
+  String get svcWatchesTitle => 'ربط الساعات الذكية مخطط له في MyHealth';
+
+  @override
+  String get svcWatchesBody =>
+      'قد يربط إصدار مستقبلي الساعات الذكية المدعومة. لا يوجد تكامل مع الأجهزة أو أذونات في هذا الإصدار، لذا لا تتم أي مزامنة.';
 }

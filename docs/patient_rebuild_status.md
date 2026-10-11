@@ -11,6 +11,24 @@ Updated 12 October 2026. The reference-screen iteration continues on `main` afte
 - Preserved existing completed work: booking invalidation, dependent-access rechecks, bounded doctor availability, duplicate/conflict handling and repository-backed confirmation; individual records/detail/documents, medications/imaging/vitals, notifications/family/messages redesigns; grounded report questions, source authorization, context clearing, coverage disclosure and honest provider failures. See booking_journey_test.dart, report_chat_test.dart and the preservation matrix. Weather/News remain explanation-only catalogue entries, without sources or tabs.
 - Fractional Default scaling exposed a 0.28px staff year-calendar overflow. Rounding the calculated month-label height upward fixes it without altering staff navigation or OS scaling.
 
+## First launch and service detail pages (2026-10-12)
+
+**Working**
+- Startup splash: the MyHealth mark on the patient light/dark surface, shown only until bootstrap finishes and the session is restored (no fixed delay). After 8 s it switches to a "taking longer than usual" state with Try again; a failed bootstrap keeps the router's existing error/retry screen. The router's own loading screen uses the same mark.
+- Onboarding (existing overlay, improved, not duplicated): two swipeable pages with original vector illustrations — (1) find a doctor and book, with a progress indicator, Skip and an arrow Next; (2) records, documents and PDF report explanations, with Get Started. Shown only while no completion preference exists; Skip/Get Started save it. The preference is independent of the session, so it is not shown again after sign-out. Sign-in is routed underneath, so a protected deep link keeps its `?from=` destination; no patient data renders for signed-out users.
+- Service detail page: one shared layout (back, small original icon image, soft-blue category label, Future work badge, heading, description, bottom action bar that never covers content; 640 px max width on tablet/desktop), opened from the Services catalogue at `/patient/services/detail/:id`.
+- Health Trackers (new Services entry, Future work badge kept): **View Vitals** opens the working Vitals & Trends screen. Copy lists only stored readings; no continuous monitoring claim.
+- Home: the "Needs your attention" strip was removed from the patient dashboard at the owner's request.
+
+**Planned (Future work explanation only — no action beyond "About Future work")**
+- Blood Donation: no donor registration, eligibility, appointments or blood-drive claims.
+- E-Referral: no record transfer to another hospital; no referral integration.
+- Complete Checkup: no checkup package is configured (the routine check-up visit type is not a package), so no booking link and no promised tests.
+- Water tracking: not built; not added to the Nutrition calculator.
+- Wearables / Smart Watches: no device integration or permissions; no Connect/Sync action.
+
+**Evidence**: `test/features/onboarding_test.dart` (first launch, Skip, Next, swipe, Get Started, returning launch, Arabic RTL, sign-out, protected deep link, stalled and failed startup) and `test/features/service_detail_test.dart` (all six entries open and return, Future work sheet, View Vitals, signed-out deep link resumes, short-phone Arabic dark Large + OS 1.3× and desktop Small layouts). Renders: [first_launch_services](rebuild_screenshots/first_launch_services/).
+
 ## Latest checkout: GitHub Pages test portability
 
 The supplied Ubuntu CI log failed in `text_size_layout_test.dart` setUpAll (676 passed, one failed, two skipped). Test icon loading depended on a Windows SDK fallback and lowercase SDK font filename. All four affected layout/capture helpers now load the bundled Material Icons asset through shared `test/support/fonts.dart`; CI uses the expanded test reporter to expose exception details.

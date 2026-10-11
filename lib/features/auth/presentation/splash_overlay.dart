@@ -1,82 +1,97 @@
-/// The opening screen — shown once per app launch, on top of everything: the
-/// brand mark centred inside a soft brand bloom, "Welcome" beneath it, then it
-/// fades away to reveal the app (sign-in on a cold start).
+/// The opening screen — the MyHealth mark on the patient surface while the
+/// app opens storage and restores the session. It is driven by readiness, not
+/// a timer: it dissolves as soon as bootstrap finishes and the session is
+/// known. A startup that stalls switches to a retry state; a startup that
+/// fails steps aside for the router's error screen.
 ///
 /// Mounted in `MaterialApp.router`'s builder so it covers the first frame and
 /// never fights the router.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
+import '../../../core/di.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../l10n/app_localizations.dart';
+import '../application/session.dart';
 
-/// How long the opening screen holds before it dissolves. Long enough to read
-/// as a deliberate welcome rather than a flash of branding — but this is also
-/// how long a cold start blocks on before sign-in (or, for a first-time
-/// visitor, onboarding) becomes reachable, so it stays short.
-const kSplashDuration = Duration(milliseconds: 1500);
+/// Upper bound on the dissolve once the app is ready. Tests pump this long to
+/// get past the splash; users never wait on it before startup completes.
+const kSplashDuration = Duration(milliseconds: 400);
 
-class SplashOverlay extends StatefulWidget {
+/// How long startup may run before the splash offers a retry.
+const kSplashSlowAfter = Duration(seconds: 8);
+
+/// Whether storage is open and the persisted session has been read — the
+/// point at which sign-in or onboarding can be shown.
+final appReadyProvider = Provider<bool>((ref) {
+  final bootstrap = ref.watch(appBootstrapProvider);
+  final restoring = ref.watch(sessionProvider.select((s) => s.isRestoring));
+  return bootstrap.hasValue && !bootstrap.isLoading && !restoring;
+});
+
+class SplashOverlay extends ConsumerStatefulWidget {
   const SplashOverlay({super.key});
 
   @override
-  State<SplashOverlay> createState() => _SplashOverlayState();
+  ConsumerState<SplashOverlay> createState() => _SplashOverlayState();
 }
 
-class _SplashOverlayState extends State<SplashOverlay>
+class _SplashOverlayState extends ConsumerState<SplashOverlay>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(
+  late final AnimationController _fade = AnimationController(
     vsync: this,
-    duration: kSplashDuration,
-  )..forward();
-
+    duration: const Duration(milliseconds: 250),
+    value: 1,
+  );
+  Timer? _slowTimer;
+  bool _slow = false;
   bool _gone = false;
-
-  // Timeline over 0..1 (≈3.15s):
-  //   0.00–0.16  mark scales + fades in
-  //   0.06–0.30  the bloom behind it blooms
-  //   0.12–0.30  "Welcome" fades + rises
-  //   0.30–0.85  hold — the bloom breathes so the pause isn't a freeze-frame
-  //   0.85–1.00  everything dissolves
-  late final Animation<double> _markIn = CurvedAnimation(
-    parent: _c,
-    curve: const Interval(0, 0.16, curve: Curves.easeOutBack),
-  );
-  late final Animation<double> _markFade = CurvedAnimation(
-    parent: _c,
-    curve: const Interval(0, 0.14, curve: Curves.easeOut),
-  );
-  late final Animation<double> _bloomIn = CurvedAnimation(
-    parent: _c,
-    curve: const Interval(0.06, 0.30, curve: Curves.easeOut),
-  );
-  late final Animation<double> _wordIn = CurvedAnimation(
-    parent: _c,
-    curve: const Interval(0.12, 0.30, curve: Curves.easeOut),
-  );
-  late final Animation<double> _breathe = CurvedAnimation(
-    parent: _c,
-    curve: const Interval(0.30, 0.85, curve: Curves.easeInOut),
-  );
-  late final Animation<double> _out = CurvedAnimation(
-    parent: _c,
-    curve: const Interval(0.85, 1, curve: Curves.easeIn),
-  );
+  bool _dismissing = false;
 
   @override
   void initState() {
     super.initState();
-    _c.addStatusListener((s) {
-      if (s == AnimationStatus.completed && mounted) {
-        setState(() => _gone = true);
-      }
+    _armSlowTimer();
+  }
+
+  void _armSlowTimer() {
+    _slowTimer?.cancel();
+    _slowTimer = Timer(kSplashSlowAfter, () {
+      if (mounted && !_gone) setState(() => _slow = true);
     });
+  }
+
+  void _dismiss({required bool animate}) {
+    _slowTimer?.cancel();
+    if (!animate) {
+      setState(() => _gone = true);
+      return;
+    }
+    unawaited(
+      _fade.reverse().whenComplete(() {
+        if (mounted) setState(() => _gone = true);
+      }),
+    );
+  }
+
+  void _retry() {
+    setState(() {
+      _slow = false;
+      _dismissing = false;
+    });
+    ref.invalidate(appBootstrapProvider);
+    _armSlowTimer();
   }
 
   @override
   void dispose() {
-    _c.dispose();
+    _slowTimer?.cancel();
+    _fade.dispose();
     super.dispose();
   }
 
@@ -84,120 +99,133 @@ class _SplashOverlayState extends State<SplashOverlay>
   Widget build(BuildContext context) {
     if (_gone) return const SizedBox.shrink();
 
+    final ready = ref.watch(appReadyProvider);
+    // A failed bootstrap: the router's retry screen beneath says what went
+    // wrong, so the splash gets out of its way at once.
+    final failed = ref.watch(
+      appBootstrapProvider.select((b) => b.hasError && !b.isLoading),
+    );
+    if ((ready || failed) && !_dismissing) {
+      _dismissing = true;
+      final animate = ready && !Motion.reduced(context);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _dismiss(animate: animate);
+      });
+    }
+
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final reduce = Motion.reduced(context);
 
-    return AnimatedBuilder(
-      animation: _c,
-      builder: (context, _) {
-        final leaving = (1 - _out.value).clamp(0.0, 1.0);
-        final markScale = reduce ? 1.0 : (0.88 + 0.12 * _markIn.value);
-        final markOpacity = _markFade.value * leaving;
-        final wordOpacity =
-            (reduce ? _markFade.value : _wordIn.value) * leaving;
-        final wordRise = reduce ? 0.0 : (1 - _wordIn.value) * 12;
-
-        // One slow in-and-out swell across the hold — 4% of scale, invisible as
-        // motion, but it keeps the frame alive.
-        final swell = reduce
-            ? 0.0
-            : (_breathe.value <= 0.5
-                  ? _breathe.value * 2
-                  : (1 - _breathe.value) * 2);
-        final bloomScale = 0.82 + 0.18 * _bloomIn.value + 0.04 * swell;
-
-        return IgnorePointer(
-          // Purely decorative — it never intercepts input, so the screen
-          // behind it (sign-in) is live from the first frame.
-          child: ColoredBox(
-            color: scheme.surface.withValues(alpha: leaving),
+    return FadeTransition(
+      opacity: _fade,
+      child: IgnorePointer(
+        // Only the slow-start retry is interactive.
+        ignoring: !_slow,
+        child: ColoredBox(
+          color: scheme.surface,
+          child: SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      width: 260,
-                      height: 260,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          // Brand bloom: a wide radial wash that makes the mark
-                          // feel lit rather than pasted onto the surface.
-                          Opacity(
-                            opacity: (_bloomIn.value * 0.9 * leaving).clamp(
-                              0.0,
-                              1.0,
-                            ),
-                            child: Transform.scale(
-                              scale: bloomScale,
-                              child: const DecoratedBox(
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: AppColors.patientBrandGlow,
-                                ),
-                                child: SizedBox.expand(),
-                              ),
-                            ),
+                padding: const EdgeInsets.all(Space.lg),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SplashBrandMark(),
+                      const SizedBox(height: Space.lg),
+                      if (!_slow)
+                        Semantics(
+                          label: t.splashLoadingLabel,
+                          liveRegion: true,
+                          child: const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2.5),
                           ),
-                          Opacity(
-                            opacity: markOpacity.clamp(0.0, 1.0),
-                            child: Transform.scale(
-                              scale: markScale,
-                              child: Container(
-                                width: 104,
-                                height: 104,
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(30),
-                                  gradient: AppColors.patientBrandGradient,
-                                  boxShadow: Shadows.glow(
-                                    AppColors.patientBlue,
-                                  ),
-                                ),
-                                padding: const EdgeInsets.all(18),
-                                child: const AppLogo(
-                                  semanticLabel: 'MyHealth Care',
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Opacity(
-                      opacity: wordOpacity.clamp(0.0, 1.0),
-                      child: Transform.translate(
-                        offset: Offset(0, wordRise),
-                        child: Column(
-                          children: [
-                            Text(
-                              'Welcome',
-                              style: theme.textTheme.headlineSmall?.copyWith(
-                                color: scheme.onSurface,
-                                letterSpacing: 0.2,
-                              ),
-                            ),
-                            const SizedBox(height: Space.xs),
-                            Text(
-                              'MyHealth Care',
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: scheme.onSurfaceVariant,
-                                letterSpacing: 2.4,
-                              ),
-                            ),
-                          ],
+                        )
+                      else ...[
+                        Text(
+                          t.splashSlowTitle,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.titleMedium,
                         ),
-                      ),
-                    ),
-                  ],
+                        const SizedBox(height: Space.xs),
+                        Text(
+                          t.splashSlowBody,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: Space.lg),
+                        FilledButton(
+                          onPressed: _retry,
+                          child: Text(t.tryAgain),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-        );
-      },
+        ),
+      ),
+    );
+  }
+}
+
+/// The MyHealth mark inside its soft blue bloom, with the wordmark beneath.
+/// Shared by the splash overlay and the router's own loading screen so a
+/// retried startup looks the same as a cold one.
+class SplashBrandMark extends StatelessWidget {
+  const SplashBrandMark({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: 200,
+          height: 200,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              const DecoratedBox(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: AppColors.patientBrandGlow,
+                ),
+                child: SizedBox.expand(),
+              ),
+              Container(
+                width: 104,
+                height: 104,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(30),
+                  gradient: AppColors.patientBrandGradient,
+                  boxShadow: Shadows.glow(AppColors.patientBlue),
+                ),
+                padding: const EdgeInsets.all(18),
+                child: const AppLogo(semanticLabel: 'MyHealth Care'),
+              ),
+            ],
+          ),
+        ),
+        ExcludeSemantics(
+          child: Text(
+            'MyHealth Care',
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.colorScheme.onSurface,
+              letterSpacing: 0.4,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

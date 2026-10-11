@@ -36,6 +36,8 @@ Future<void> openCatalogItem(
       await showSelectHospitalSheet(context);
     case CatalogActionKind.futureWork:
       await showFutureWorkSheet(context, item);
+    case CatalogActionKind.serviceDetail:
+      await context.push(item.route!);
     case CatalogActionKind.unavailable:
       await showUnavailableSheet(context, item);
   }
@@ -58,8 +60,10 @@ Future<void> showFutureWorkSheet(BuildContext context, CatalogItem item) {
   return showModalBottomSheet<void>(
     context: context,
     showDragHandle: true,
+    // Scrollable so a short screen or large text never clips the sheet.
+    isScrollControlled: true,
     builder: (sheet) => SafeArea(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(
           kPatientInset,
           0,
@@ -110,8 +114,10 @@ Future<void> showUnavailableSheet(BuildContext context, CatalogItem item) {
   return showModalBottomSheet<void>(
     context: context,
     showDragHandle: true,
+    // Scrollable so a short screen or large text never clips the sheet.
+    isScrollControlled: true,
     builder: (sheet) => SafeArea(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(
           kPatientInset,
           0,

@@ -13,15 +13,10 @@ import 'package:myhealthcare/core/result.dart';
 import 'package:myhealthcare/data/db/app_database.dart';
 import 'package:myhealthcare/data/db/tables/sync.dart';
 import 'package:myhealthcare/data/sync/outbox.dart';
-import 'package:myhealthcare/domain/entities/entities.dart';
 import 'package:myhealthcare/domain/enums.dart';
 import 'package:myhealthcare/domain/repositories/notification_repository.dart';
 import 'package:myhealthcare/features/admin/application/attention_providers.dart';
 import 'package:myhealthcare/features/admin/presentation/attention_list.dart';
-import 'package:myhealthcare/features/billing/application/billing_providers.dart';
-import 'package:myhealthcare/features/care/application/care_providers.dart';
-import 'package:myhealthcare/features/patient/application/family_link_providers.dart';
-import 'package:myhealthcare/features/patient_home/presentation/needs_attention_strip.dart';
 import 'package:myhealthcare/l10n/app_localizations.dart';
 import 'package:myhealthcare/l10n/app_localizations_en.dart';
 
@@ -97,40 +92,6 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text(t.nothingNeedsAttention), findsOneWidget);
       expect(find.textContaining('Checked and clear'), findsOneWidget);
-    });
-  });
-
-  group('patient "Needs your attention"', () {
-    List<Override> base({bool messagesFail = false}) => [
-      patientThreadsProvider.overrideWith((ref) async {
-        if (messagesFail) throw const DatabaseFailure('x');
-        return const <CareThread>[];
-      }),
-      patientInvoicesProvider.overrideWith((ref) async => const <Invoice>[]),
-      patientPaymentsProvider.overrideWith(
-        (ref) async => const <PaymentTransaction>[],
-      ),
-      incomingFamilyRequestsProvider.overrideWith(
-        (ref) async => const <FamilyLinkView>[],
-      ),
-    ];
-
-    testWidgets('hidden when everything was read and nothing waits', (
-      tester,
-    ) async {
-      await tester.pumpWidget(_host(const NeedsAttentionStrip(), base()));
-      await tester.pumpAndSettle();
-      expect(find.text('NEEDS YOUR ATTENTION'), findsNothing);
-    });
-
-    testWidgets('a failed read is shown, never hidden as "nothing to do"', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        _host(const NeedsAttentionStrip(), base(messagesFail: true)),
-      );
-      await tester.pumpAndSettle();
-      expect(find.text(t.couldNotCheckQueue(t.messagesTitle)), findsOneWidget);
     });
   });
 

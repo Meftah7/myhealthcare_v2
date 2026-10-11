@@ -33,7 +33,7 @@ void main() {
     await Seeder(db).run();
 
     // patient_003 is chronic in the seeded set — plenty of history.
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({'ui.hasSeenOnboarding': true});
     final prefs = await SharedPreferences.getInstance();
 
     await tester.pumpWidget(

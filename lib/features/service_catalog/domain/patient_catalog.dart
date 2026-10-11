@@ -51,6 +51,10 @@ enum CatalogActionKind {
   /// A planned extension: the Future work explanation sheet.
   futureWork,
 
+  /// A service detail page (`context.push(route)`) that explains the
+  /// service and offers its real action only when one works.
+  serviceDetail,
+
   /// A core destination that does not exist yet ("Not available").
   unavailable,
 }
@@ -342,7 +346,32 @@ abstract final class PatientCatalog {
     scope: CatalogScope.planned,
   );
 
-  static final completeCheckup = _planned(
+  /// Planned services with their own detail page (still Future work).
+  static CatalogItem _plannedDetail(
+    String id,
+    String Function(AppLocalizations t) title,
+    IconData icon,
+  ) => CatalogItem(
+    id: id,
+    title: title,
+    icon: icon,
+    accent: PatientAccent.neutral,
+    action: CatalogActionKind.serviceDetail,
+    route: AppRoutes.patientServiceDetail(id),
+    scope: CatalogScope.planned,
+  );
+
+  /// Outside the proposal, but its detail page opens the working Vitals.
+  static final healthTrackers = CatalogItem(
+    id: 'health-trackers',
+    title: (t) => t.paHealthTrackers,
+    icon: Icons.favorite_border_rounded,
+    action: CatalogActionKind.serviceDetail,
+    route: AppRoutes.patientServiceDetail('health-trackers'),
+    scope: CatalogScope.supplementary,
+  );
+
+  static final completeCheckup = _plannedDetail(
     'complete-checkup',
     (t) => t.paCompleteCheckup,
     Icons.health_and_safety_outlined,
@@ -352,22 +381,22 @@ abstract final class PatientCatalog {
     (t) => t.paIndoorNavigation,
     Icons.signpost_outlined,
   );
-  static final eReferral = _planned(
+  static final eReferral = _plannedDetail(
     'e-referral',
     (t) => t.paEReferral,
     Icons.forward_to_inbox_outlined,
   );
-  static final bloodDonation = _planned(
+  static final bloodDonation = _plannedDetail(
     'blood-donation',
     (t) => t.paBloodDonation,
     Icons.bloodtype_outlined,
   );
-  static final wearables = _planned(
+  static final wearables = _plannedDetail(
     'wearables',
     (t) => t.paWearables,
     Icons.watch_outlined,
   );
-  static final waterTracking = _planned(
+  static final waterTracking = _plannedDetail(
     'water-tracking',
     (t) => t.paWaterTracking,
     Icons.water_drop_outlined,
@@ -470,6 +499,7 @@ abstract final class PatientCatalog {
       indoorNavigation,
       eReferral,
       bloodDonation,
+      healthTrackers,
       wearables,
       waterTracking,
       pharmacy,

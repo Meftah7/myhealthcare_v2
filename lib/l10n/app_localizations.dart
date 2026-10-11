@@ -10075,6 +10075,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Department filters could not load. Name and specialty search still work.'**
   String get htDepartmentUnavailable;
+
+  /// No description provided for @splashLoadingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading MyHealth'**
+  String get splashLoadingLabel;
+
+  /// No description provided for @splashSlowTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This is taking longer than usual'**
+  String get splashSlowTitle;
+
+  /// No description provided for @splashSlowBody.
+  ///
+  /// In en, this message translates to:
+  /// **'MyHealth is still setting up. Check your connection or browser storage settings, then try again.'**
+  String get splashSlowBody;
+
+  /// No description provided for @onboardingProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {current} of {total}'**
+  String onboardingProgress(int current, int total);
+
+  /// No description provided for @paHealthTrackers.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Trackers'**
+  String get paHealthTrackers;
+
+  /// No description provided for @svcLearnFutureWork.
+  ///
+  /// In en, this message translates to:
+  /// **'About Future work'**
+  String get svcLearnFutureWork;
+
+  /// No description provided for @svcViewVitals.
+  ///
+  /// In en, this message translates to:
+  /// **'View Vitals'**
+  String get svcViewVitals;
+
+  /// No description provided for @svcNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This service could not be found.'**
+  String get svcNotFound;
+
+  /// No description provided for @svcBloodDonationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood donation information is planned for MyHealth'**
+  String get svcBloodDonationTitle;
+
+  /// No description provided for @svcBloodDonationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A future version may share blood donation information from the hospital. Donor registration, eligibility checks and donation appointments are not available in this version.'**
+  String get svcBloodDonationBody;
+
+  /// No description provided for @svcEReferralTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Electronic referrals are planned for MyHealth'**
+  String get svcEReferralTitle;
+
+  /// No description provided for @svcEReferralBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A future version may let clinicians send and track referrals electronically. MyHealth cannot send records to another hospital, and no referral integration is connected yet.'**
+  String get svcEReferralBody;
+
+  /// No description provided for @svcCheckupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Health checkup packages are planned for MyHealth'**
+  String get svcCheckupTitle;
+
+  /// No description provided for @svcCheckupBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No checkup package is set up for booking yet. You can still book a regular appointment with a doctor from Book appointment.'**
+  String get svcCheckupBody;
+
+  /// No description provided for @svcWaterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Water intake tracking is planned for MyHealth'**
+  String get svcWaterTitle;
+
+  /// No description provided for @svcWaterBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A future version may let you log how much water you drink. Water tracking is not available in this version.'**
+  String get svcWaterBody;
+
+  /// No description provided for @svcTrackersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the vitals recorded in your health record'**
+  String get svcTrackersTitle;
+
+  /// No description provided for @svcTrackersBody.
+  ///
+  /// In en, this message translates to:
+  /// **'See blood pressure, heart rate, temperature, weight, oxygen saturation and glucose readings saved in MyHealth, with trends over time. Live or continuous monitoring is not available.'**
+  String get svcTrackersBody;
+
+  /// No description provided for @svcWatchesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Smartwatch connections are planned for MyHealth'**
+  String get svcWatchesTitle;
+
+  /// No description provided for @svcWatchesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A future version may connect supported smartwatches. No device integration or permissions exist in this version, so nothing is synced.'**
+  String get svcWatchesBody;
 }
 
 class _AppLocalizationsDelegate

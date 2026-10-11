@@ -42,6 +42,7 @@ import '../features/auth/application/session.dart';
 import '../features/auth/presentation/forgot_password_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
+import '../features/auth/presentation/splash_overlay.dart';
 import '../features/billing/presentation/payments_screen.dart';
 import '../features/booking/presentation/book_appointment_landing.dart';
 import '../features/booking/presentation/booking_screen.dart';
@@ -73,6 +74,7 @@ import '../features/policies/application/policy_content.dart';
 import '../features/policies/presentation/policy_screen.dart';
 import '../features/records/presentation/radiology_screen.dart';
 import '../features/records/presentation/record_detail_screen.dart';
+import '../features/service_catalog/presentation/service_detail_screen.dart';
 import '../features/service_catalog/presentation/services_screen.dart';
 import '../features/staff_dashboard/presentation/panel_analytics_screen.dart';
 import '../features/staff_dashboard/presentation/schedule_work_screen.dart';
@@ -166,6 +168,8 @@ abstract final class AppRoutes {
 
   // Patient rebuild — Services tab, tools and booking discovery.
   static const patientServices = '/patient/services';
+  static String patientServiceDetail(String id) =>
+      '$patientServices/detail/$id';
 
   /// Public policy documents (readable signed out and by every role).
   static const policyTerms = '/policies/terms';
@@ -467,7 +471,20 @@ class _SplashScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final bootstrap = ref.watch(appBootstrapProvider);
     if (!bootstrap.hasError) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+        body: Center(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SplashBrandMark(),
+                SizedBox(height: 24),
+                CircularProgressIndicator(),
+              ],
+            ),
+          ),
+        ),
+      );
     }
     // Seeding/migration failed (e.g. the browser's local storage refused to
     // open) — say so and let the user retry, instead of silently continuing
@@ -726,6 +743,13 @@ StatefulShellRoute _patientShell() {
           GoRoute(
             path: AppRoutes.patientServices,
             builder: (_, _) => const ServicesScreen(),
+            routes: [
+              GoRoute(
+                path: 'detail/:id',
+                builder: (_, state) =>
+                    ServiceDetailScreen(id: state.pathParameters['id']!),
+              ),
+            ],
           ),
         ],
       ),

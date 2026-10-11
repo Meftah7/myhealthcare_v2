@@ -19,7 +19,7 @@ Future<void> _pump(WidgetTester tester) async {
 }
 
 Future<ProviderScope> _app(AppDatabase db) async {
-  SharedPreferences.setMockInitialValues({});
+  SharedPreferences.setMockInitialValues({'ui.hasSeenOnboarding': true});
   final prefs = await SharedPreferences.getInstance();
   return ProviderScope(
     overrides: [

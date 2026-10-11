@@ -164,6 +164,7 @@ void main() {
         'wearables',
         'water-tracking',
         'pharmacy',
+        'health-trackers',
       ]) {
         expect(
           all.firstWhere((i) => i.id == id).isFutureWork,
@@ -197,14 +198,24 @@ void main() {
               expect(item.isAvailable, isTrue, reason: item.id);
               expect(item.action, isNot(CatalogActionKind.futureWork));
             case CatalogScope.planned:
+              expect(item.action, switch (item.id) {
+                'select-hospital' => CatalogActionKind.selectHospital,
+                'complete-checkup' ||
+                'e-referral' ||
+                'blood-donation' ||
+                'wearables' ||
+                'water-tracking' => CatalogActionKind.serviceDetail,
+                _ => CatalogActionKind.futureWork,
+              }, reason: item.id);
+              // Planned items never route to a working feature; a detail
+              // page only explains Future work.
               expect(
-                item.action,
-                item.id == 'select-hospital'
-                    ? CatalogActionKind.selectHospital
-                    : CatalogActionKind.futureWork,
+                item.route,
+                item.action == CatalogActionKind.serviceDetail
+                    ? AppRoutes.patientServiceDetail(item.id)
+                    : isNull,
                 reason: item.id,
               );
-              expect(item.route, isNull, reason: item.id);
             case CatalogScope.core:
               if (item.action == CatalogActionKind.route) {
                 expect(

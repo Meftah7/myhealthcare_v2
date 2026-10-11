@@ -5649,4 +5649,78 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get htDepartmentUnavailable =>
       'Department filters could not load. Name and specialty search still work.';
+
+  @override
+  String get splashLoadingLabel => 'Loading MyHealth';
+
+  @override
+  String get splashSlowTitle => 'This is taking longer than usual';
+
+  @override
+  String get splashSlowBody =>
+      'MyHealth is still setting up. Check your connection or browser storage settings, then try again.';
+
+  @override
+  String onboardingProgress(int current, int total) {
+    return 'Page $current of $total';
+  }
+
+  @override
+  String get paHealthTrackers => 'Health Trackers';
+
+  @override
+  String get svcLearnFutureWork => 'About Future work';
+
+  @override
+  String get svcViewVitals => 'View Vitals';
+
+  @override
+  String get svcNotFound => 'This service could not be found.';
+
+  @override
+  String get svcBloodDonationTitle =>
+      'Blood donation information is planned for MyHealth';
+
+  @override
+  String get svcBloodDonationBody =>
+      'A future version may share blood donation information from the hospital. Donor registration, eligibility checks and donation appointments are not available in this version.';
+
+  @override
+  String get svcEReferralTitle =>
+      'Electronic referrals are planned for MyHealth';
+
+  @override
+  String get svcEReferralBody =>
+      'A future version may let clinicians send and track referrals electronically. MyHealth cannot send records to another hospital, and no referral integration is connected yet.';
+
+  @override
+  String get svcCheckupTitle =>
+      'Health checkup packages are planned for MyHealth';
+
+  @override
+  String get svcCheckupBody =>
+      'No checkup package is set up for booking yet. You can still book a regular appointment with a doctor from Book appointment.';
+
+  @override
+  String get svcWaterTitle => 'Water intake tracking is planned for MyHealth';
+
+  @override
+  String get svcWaterBody =>
+      'A future version may let you log how much water you drink. Water tracking is not available in this version.';
+
+  @override
+  String get svcTrackersTitle =>
+      'Review the vitals recorded in your health record';
+
+  @override
+  String get svcTrackersBody =>
+      'See blood pressure, heart rate, temperature, weight, oxygen saturation and glucose readings saved in MyHealth, with trends over time. Live or continuous monitoring is not available.';
+
+  @override
+  String get svcWatchesTitle =>
+      'Smartwatch connections are planned for MyHealth';
+
+  @override
+  String get svcWatchesBody =>
+      'A future version may connect supported smartwatches. No device integration or permissions exist in this version, so nothing is synced.';
 }
