@@ -18,11 +18,15 @@ class AppDestination {
     required this.icon,
     required this.selectedIcon,
     required this.label,
+    this.semanticsSuffix,
   });
 
   final IconData icon;
   final IconData selectedIcon;
   final String label;
+
+  /// Extra text read after the label by screen readers (e.g. a scope label).
+  final String? semanticsSuffix;
 }
 
 class AppShell extends StatefulWidget {
@@ -35,10 +39,15 @@ class AppShell extends StatefulWidget {
     this.keepCompactSectionsVisible = false,
     this.selectedDestinationFor,
     this.compactBarBuilder,
+    this.drawer,
     super.key,
   });
 
   final StatefulNavigationShell navigationShell;
+
+  /// A native navigation drawer on the shell's outer Scaffold (patient
+  /// account / settings). Pages open it through [ShellDrawerScope].
+  final Widget? drawer;
 
   /// Maps the active branch to the highlighted destination. Lets a shell keep
   /// extra branches (routes retained for deep links) that have no tab of
@@ -72,6 +81,8 @@ class _AppShellState extends State<AppShell> {
   /// Bumped when the already-selected destination is tapped again, which every
   /// [AppScaffold] below listens for to scroll its content back to the top.
   final _scrollToTop = ValueNotifier<int>(0);
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+  bool _drawerOpen = false;
 
   @override
   void dispose() {
@@ -90,10 +101,15 @@ class _AppShellState extends State<AppShell> {
     if (reselected) _scrollToTop.value++;
   }
 
+  void _drawerChanged(bool open) {
+    if (open != _drawerOpen) setState(() => _drawerOpen = open);
+  }
+
   @override
   Widget build(BuildContext context) {
     final scaffold = _content(context);
-    return widget.overlay == null
+    // The floating overlay steps aside while the drawer is open.
+    return widget.overlay == null || _drawerOpen
         ? scaffold
         : Stack(children: [scaffold, widget.overlay!]);
   }
@@ -108,6 +124,12 @@ class _AppShellState extends State<AppShell> {
       notifier: _scrollToTop,
       child: widget.navigationShell,
     );
+    if (widget.drawer != null) {
+      body = ShellDrawerScope(
+        open: () => _scaffoldKey.currentState?.openDrawer(),
+        child: body,
+      );
+    }
     if (widget.contextHeader != null) {
       body = Column(
         children: [
@@ -119,6 +141,9 @@ class _AppShellState extends State<AppShell> {
 
     if (size.isCompact && widget.compactBarBuilder != null) {
       return Scaffold(
+        key: _scaffoldKey,
+        drawer: widget.drawer,
+        onDrawerChanged: _drawerChanged,
         body: body,
         bottomNavigationBar: widget.compactBarBuilder!(context, current, _go),
       );
@@ -190,6 +215,9 @@ class _AppShellState extends State<AppShell> {
         MediaQuery.textScalerOf(context).scale(13) / 13 > 1.3;
 
     return Scaffold(
+      key: widget.drawer == null ? null : _scaffoldKey,
+      drawer: widget.drawer,
+      onDrawerChanged: widget.drawer == null ? null : _drawerChanged,
       body: Row(
         children: [
           _Rail(

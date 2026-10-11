@@ -300,10 +300,10 @@ class StatusBadge extends StatelessWidget {
             const SizedBox(width: 3),
           ],
           Flexible(
+            // Wraps rather than truncating: a scope label must stay legible.
             child: Text(
               label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: fg,
                 fontWeight: FontWeight.w600,
@@ -659,4 +659,24 @@ class BookingModeSegment<T> extends StatelessWidget {
       },
     );
   }
+}
+
+/// The visible "Future work" scope label for anything outside the proposal:
+/// existing supplementary features (still fully working) and planned
+/// extensions alike. Readable text, not just colour or a tooltip.
+class FutureWorkBadge extends StatelessWidget {
+  const FutureWorkBadge({required this.label, this.compact = false, super.key});
+
+  /// The localized "Future work" text.
+  final String label;
+
+  /// Drops the icon for narrow tiles so the words themselves always fit.
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) => StatusBadge(
+    label,
+    accent: PatientAccent.amber,
+    icon: compact ? null : Icons.schedule_outlined,
+  );
 }

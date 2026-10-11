@@ -1,62 +1,55 @@
 # Patient rebuild — preservation matrix
 
 Every patient-visible feature from the pre-rebuild app (revision 298132e)
-mapped to its new entry point. "QA" = Home → Quick Access (directly below the
-Services carousel). Routes are unchanged unless noted; old deep links still
-resolve.
+mapped to its entry in the updated design (docs/MyHealth_Patient_Rebuild_TODO.md):
+bottom tabs Home | Records | Appointments | Messages | Services, Home Quick
+Access directly below the Services carousel, and the native patient drawer.
+Routes are unchanged; old deep links still resolve. Every patient route
+requires a signed-in patient (guest browsing is future work).
 
-| Existing feature | Old entry | New primary entry | Quick Access | Access | Verified |
+Scope: **Core** = in the proposal. **Supp.** = existing feature outside the
+proposal — fully working, shows a visible "Future work" label.
+
+| Existing feature | Old entry | New primary entry | Quick Access / drawer | Scope | Verified |
 | --- | --- | --- | --- | --- | --- |
-| Home | Tab 1 | Tab 1 (Home) | — | Public (private sections signed-in only) | widget test |
-| Health Records (timeline, search, filters, record detail) | Tab 4 "Records" `/patient/timeline` | Retained branch, back → Home | Health Records | Signed in | unit (catalogue) |
-| Medications | Home quick action, `/patient/timeline?view=medications` | Retained route | Medications | Signed in | unit |
-| Documents (issued, downloads) | `/patient/timeline/documents` | Retained route | Documents | Signed in | widget test (guest → sign-in → resume) |
-| Sick leave | Home quick action, `/patient/timeline/sick-leave` | Retained route | Sick Leave | Signed in | unit |
-| Imaging | `/patient/timeline/imaging` | Retained route | Imaging | Signed in | unit |
-| Allergies | Allergy strip, `/patient/timeline/allergies` | Allergy strip on Home (kept) | Allergies | Signed in | unit |
-| Vitals & trends | Home quick action, `/patient/home/vitals` | Retained route | Vitals & Trends; Services → Health Tools | Signed in | unit |
-| Health summary | `/patient/summary` | Retained full-screen route (back → Home) | Health Summary | Signed in | unit |
-| Explain a report (PDF import + chat) | Care Navigator upload button | Home hero CTA (signed in) | Explain a Report | Signed in | unit |
-| Care Navigator chat | Floating button | Floating button (unchanged) | — | Signed in | existing tests |
-| Nutrition (calculator, targets, presets, foods) | Tab 2 `/patient/nutrition` | Retained branch, back → Home | Nutrition; Services → Health Tools | Signed in | unit |
-| Appointments hub (list, history, detail, reschedule, cancel) | Tab 3 | Tab 3 (Appointments) — guests see booking entry | Appointments | Signed in | unit |
-| Book appointment wizard | Home quick action, `/patient/appointments/book` | Booking landing `/patient/book` → wizard | Book Appointment | Discovery public, booking signed in | unit |
-| Quick appointment (urgent/normal sheet) | Home "more" actions | Covered by Book Appointment (both choices led to Appointments) | Book Appointment | Signed in | — |
-| Visited doctors | Home quick action, `/patient/appointments/doctors` | Retained route | Visited Doctors | Signed in | unit |
-| Messages / threads | Home quick action, `/patient/home/messages` | Retained route; Virtual Care CTA | Messages; Services → Contact Us | Signed in | unit |
-| Notifications | Header bell, `/patient/home/notifications` | Header bell (signed in) | Notifications | Signed in | unit |
-| Home visits | Home quick action, `/patient/home/home-visit` | Retained route; Services carousel | Home Visits | Signed in | unit |
-| Billing & payments (invoices, wallet, history) | Home quick action, `/patient/home/billing` | Retained route | Billing & Payments | Signed in | unit |
-| Profile hub (incl. sign-out with confirmation) | Tab 5 `/patient/settings` | Retained branch, back → Home; header avatar | My Profile | Signed in | unit |
-| Personal info / photo | `/patient/settings/personal` | Retained route | Personal Information | Signed in | unit |
-| Health details | `/patient/settings/health` | Retained route | Health Details | Signed in | unit |
-| Family & linked accounts | `/patient/settings/family[/linked/:id]` | Retained routes | Family & Linked Accounts | Signed in | unit |
-| Preferences (language, theme, text size, contrast) | `/patient/settings/preferences` | Retained route; header toggles | Preferences | Signed in | unit |
-| Feedback | Profile → Send feedback sheet | Same sheet | Feedback | Signed in | unit |
-| Health snapshot metrics (tickets, medicines, last visit) | Home "Your health" | Removed from Home; each metric's destination is in QA (Appointments, Medications) | — | Signed in | — |
+| Home | Tab 1 | Tab 1 Home | — | Core | widget test |
+| Health Records (timeline, search, filters, detail, originals) | Tab 4 `/patient/timeline` | Tab 2 Records | QA Health Records; Services core | Core | browse + records tests |
+| Medications | Home quick action, `/patient/timeline?view=medications` | Records tab view | QA Medications | Core | records test |
+| Documents (issued, downloads) | `/patient/timeline/documents` | Records branch | QA Documents; quick tools; Services core | Core | documents tests |
+| Sick leave | `/patient/timeline/sick-leave` | Records branch | QA Sick Leave | Core | unit (catalogue) |
+| Imaging | `/patient/timeline/imaging` | Records branch | QA Imaging | Core | unit |
+| Allergies | Allergy strip, `/patient/timeline/allergies` | Home allergy strip | QA Allergies | Core | allergies test |
+| Explain a report (PDF import + chat) | Care Navigator upload | Home hero CTA | QA Explain a Report; quick tools; Services core | Core (live AI pending — recorded gap) | report_chat_test |
+| Care Navigator chat | Floating button | Floating button | — | Core | care_navigator_test |
+| Appointments hub (list, detail, reschedule, cancel) | Tab 3 | Tab 3 Appointments | QA Appointments | Core | booking/appointment tests |
+| Book appointment wizard | `/patient/appointments/book` | Landing `/patient/book` → wizard | QA Book Appointment; quick tools; Services core | Core | booking tests |
+| Visited doctors | `/patient/appointments/doctors` | Appointments branch | QA Visited Doctors | Core | unit |
+| Quick appointment (urgent/normal sheet) | Home "more" actions | Book Appointment (both choices led to Appointments) | QA Book Appointment | Core | — |
+| Messages / threads | Home quick action, `/patient/home/messages` | Tab 4 Messages (own branch, same paths) | QA Messages | Supp. | rebuild test |
+| Notifications | Header bell, `/patient/home/notifications` | Header bell | QA Notifications | Supp. | notifications tests |
+| Vitals & trends | `/patient/home/vitals` | Home branch | QA Vitals & Trends; Services tools | Supp. | browse test |
+| Health summary | `/patient/summary` | Full-screen (back → Home) | QA Health Summary | Supp. | unit |
+| Nutrition | Tab 2 `/patient/nutrition` | Retained branch (back → Home) | QA Nutrition; Services tools | Supp. | nutrition tests |
+| Home visits | `/patient/home/home-visit` | Home branch | QA Home Visits; Services carousel | Supp. | unit |
+| Profile hub | Tab 5 `/patient/settings` | Retained branch (back → Home) | Drawer My Profile | Core | profile tests |
+| Personal info / photo | `/patient/settings/personal` | Profile branch | Drawer Personal Information | Core | profile tests |
+| Health details | `/patient/settings/health` | Profile branch | Drawer Health Details | Core | profile tests |
+| Preferences (language, theme, text size, contrast, motion) | `/patient/settings/preferences`; theme toggle in headers | Profile branch | Drawer Settings & Preferences | Core | profile tests |
+| Family & linked accounts | `/patient/settings/family[/linked/:id]` | Profile branch | Drawer (Future work label) | Supp. | family tests |
+| Billing & payments | `/patient/home/billing` | Home branch | Drawer (Future work label) | Supp. | payments test |
+| Feedback | Profile → Send feedback | Same sheet | Drawer (Future work label) | Supp. | rebuild test |
+| Sign out (confirmed) | Profile | Profile (unchanged) | Drawer Sign out (confirmed) | Core | rebuild test |
+| Health snapshot metrics | Home "Your health" | Removed from Home; destinations in QA | — | — | — |
 
-## Explicitly unavailable in this build (shown honestly, never as working)
+## Additions outside the proposal (all labelled "Future work")
 
-Indoor Navigation, Complete Checkup, E-Referral (patient-started), Blood
-Donation, Terms and Conditions, Privacy Policy (no MyHealth documents exist
-yet), Region search (single clinic), live video visits, Weather (no provider),
-News (no repository or CMS). Emergency shows guidance only; MyHealth does not
-dispatch emergency services.
+Working: Emergency guidance sheet (999, no dispatch), Calculators,
+Converters, Choosing a clinic (department descriptions), Virtual Care page
+(explains what exists today; video visits not built).
 
-## Behaviour changes made during the rebuild
+Planned, explanation sheet only: Complete Checkup, Indoor Navigation,
+E-Referral, Blood Donation, Wearables, Water tracking, Pharmacy, Weather,
+News. No Weather/News sources, requests, keys, polling or tabs exist.
 
-- **Entry:** a plain launch still opens sign-in (staff and admin always need
-  it). Sign-in has "Browse as guest"; onboarding Skip / Get Started land on
-  guest Home. Gated tiles send guests to sign-in and resume the tapped
-  destination afterwards (internal routes only). An idle timeout always
-  returns to sign-in with its notice.
-- **Report chat:** the header shows the real mode ("Live AI" or "Offline
-  guide · no live AI"; it used to always say "Online") and the report being
-  explained, with "View original". Explanations say what produced them.
-  The on-device keyword summary is labelled in every mode, and a failed live
-  call says so rather than silently falling back. Reports over 12,000
-  characters disclose that only the first part was explained. PDF text is
-  marked as untrusted data in the prompt. The conversation resets on a new
-  report and on account change.
-- **Emergency:** the sheet names 999 (Bahrain; matches the existing emergency
-  reply and the app's BD billing) and says MyHealth does not dispatch.
+Core but missing: Terms and Conditions, Privacy Policy — no MyHealth
+documents exist yet; shown as "Not available".

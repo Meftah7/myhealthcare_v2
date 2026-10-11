@@ -32,6 +32,9 @@ class HomeVisitScreen extends ConsumerWidget {
       title: t.homeHealthCareTitle,
       actions: const [PatientTopActions()],
       floatingActionButton: FloatingActionButton.extended(
+        // Unique: shell branches stay mounted side by side, so default
+        // hero tags would collide when a route is pushed over them.
+        heroTag: 'patient-home-visit-fab',
         onPressed: () => _openForm(context, ref),
         icon: const Icon(Icons.add_home_outlined),
         label: Text(t.requestAVisitButton),

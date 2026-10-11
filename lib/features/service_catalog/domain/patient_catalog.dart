@@ -1,6 +1,7 @@
 /// One typed catalogue for every patient shortcut and service: Home quick
-/// tools, the Services carousel, the Services catalogue and Home Quick Access
-/// all read from here, so labels, routes and access rules are defined once.
+/// tools, the Services carousel, the Services catalogue, Home Quick Access
+/// and the drawer all read from here, so labels, routes, scope and access
+/// rules are defined once.
 library;
 
 import 'package:flutter/material.dart';
@@ -9,13 +10,21 @@ import '../../../app/router.dart';
 import '../../../core/ui/patient/patient_components.dart';
 import '../../../l10n/app_localizations.dart';
 
-/// Who may open an item.
-enum CatalogAccess {
-  /// Browsable without an account (service info, directory, tools).
-  public,
+/// Who may open an item. Every patient area currently requires sign-in;
+/// guest browsing is future work.
+enum CatalogAccess { signedIn }
 
-  /// Patient-specific data — guests are sent to sign in first and resumed.
-  signedIn,
+/// Where an item stands against the senior-project proposal.
+enum CatalogScope {
+  /// In the proposal: records, booking, documents, report explanation.
+  core,
+
+  /// Works today but sits outside the proposal (messaging, nutrition,
+  /// billing…). Shows a "Future work" label and stays fully functional.
+  supplementary,
+
+  /// Not built: shows a "Future work" label and opens an explanation only.
+  planned,
 }
 
 /// Whether the integration behind an item exists in this build.
@@ -36,15 +45,19 @@ enum CatalogActionKind {
   /// Emergency guidance sheet (never booking, never a pretend dispatch).
   emergency,
 
-  /// An honest "not available in this version" sheet.
+  /// A planned extension: the Future work explanation sheet.
+  futureWork,
+
+  /// A core destination that does not exist yet ("Not available").
   unavailable,
 }
 
 /// Quick Access sub-groups (all of them sit below Services on Home).
-enum QuickAccessGroup { records, care, account }
+enum QuickAccessGroup { records, care, wellbeing }
 
-/// Services catalogue groups, in display order.
-enum ServiceGroup { medical, tools, support, policies }
+/// Services catalogue groups, in display order (promotions sit between
+/// [core] and [tools]).
+enum ServiceGroup { core, tools, futureExtensions, policies }
 
 class CatalogItem {
   const CatalogItem({
@@ -56,10 +69,11 @@ class CatalogItem {
     this.description,
     this.accent = PatientAccent.blue,
     this.access = CatalogAccess.signedIn,
+    this.scope = CatalogScope.core,
     this.status = CatalogStatus.available,
   });
 
-  /// Stable id (tests, analytics-free keys, widget keys).
+  /// Stable id (tests and widget keys).
   final String id;
   final String Function(AppLocalizations t) title;
   final String Function(AppLocalizations t)? description;
@@ -70,171 +84,24 @@ class CatalogItem {
   /// Destination for [CatalogActionKind.route].
   final String? route;
   final CatalogAccess access;
+  final CatalogScope scope;
   final CatalogStatus status;
 
-  bool get isAvailable => status == CatalogStatus.available;
+  bool get isAvailable =>
+      status == CatalogStatus.available && scope != CatalogScope.planned;
+
+  /// Outside the proposal → carries the visible "Future work" label.
+  bool get isFutureWork => scope != CatalogScope.core;
 }
 
 /// Every catalogue entry, keyed for reuse.
 abstract final class PatientCatalog {
-  // --- quick tools / medical services -------------------------------------
-
-  static final emergency = CatalogItem(
-    id: 'emergency',
-    title: (t) => t.paEmergencyServices,
-    description: (t) => t.paEmergencyServicesDesc,
-    icon: Icons.emergency_outlined,
-    accent: PatientAccent.red,
-    action: CatalogActionKind.emergency,
-    access: CatalogAccess.public,
-  );
-
-  static final findDoctor = CatalogItem(
-    id: 'find-doctor',
-    title: (t) => t.paFindDoctor,
-    description: (t) => t.paFindDoctorDesc,
-    icon: Icons.person_search_outlined,
-    action: CatalogActionKind.route,
-    route: AppRoutes.patientFindDoctor,
-    access: CatalogAccess.public,
-  );
-
-  static final calculators = CatalogItem(
-    id: 'calculators',
-    title: (t) => t.paHealthCalculators,
-    description: (t) => t.paHealthCalculatorsDesc,
-    icon: Icons.calculate_outlined,
-    accent: PatientAccent.green,
-    action: CatalogActionKind.route,
-    route: AppRoutes.patientCalculators,
-    access: CatalogAccess.public,
-  );
-
-  static final converters = CatalogItem(
-    id: 'converters',
-    title: (t) => t.paHealthConverters,
-    description: (t) => t.paHealthConvertersDesc,
-    icon: Icons.swap_horiz,
-    accent: PatientAccent.amber,
-    action: CatalogActionKind.route,
-    route: AppRoutes.patientConverters,
-    access: CatalogAccess.public,
-  );
-
-  static final indoorNavigation = CatalogItem(
-    id: 'indoor-navigation',
-    title: (t) => t.paIndoorNavigation,
-    description: (t) => t.paIndoorNavigationDesc,
-    icon: Icons.signpost_outlined,
-    accent: PatientAccent.neutral,
-    action: CatalogActionKind.unavailable,
-    access: CatalogAccess.public,
-    status: CatalogStatus.unavailable,
-  );
-
-  static final bookAppointment = CatalogItem(
-    id: 'book-appointment',
-    title: (t) => t.paBookAppointment,
-    description: (t) => t.paBookAppointmentDesc,
-    icon: Icons.calendar_month_outlined,
-    action: CatalogActionKind.route,
-    route: AppRoutes.patientBookLanding,
-    access: CatalogAccess.public,
-  );
-
-  static final completeCheckup = CatalogItem(
-    id: 'complete-checkup',
-    title: (t) => t.paCompleteCheckup,
-    description: (t) => t.paCompleteCheckupDesc,
-    icon: Icons.health_and_safety_outlined,
-    accent: PatientAccent.neutral,
-    action: CatalogActionKind.unavailable,
-    access: CatalogAccess.public,
-    status: CatalogStatus.unavailable,
-  );
-
-  static final eReferral = CatalogItem(
-    id: 'e-referral',
-    title: (t) => t.paEReferral,
-    description: (t) => t.paEReferralDesc,
-    icon: Icons.forward_to_inbox_outlined,
-    accent: PatientAccent.neutral,
-    action: CatalogActionKind.unavailable,
-    access: CatalogAccess.public,
-    status: CatalogStatus.unavailable,
-  );
-
-  static final bloodDonation = CatalogItem(
-    id: 'blood-donation',
-    title: (t) => t.paBloodDonation,
-    description: (t) => t.paBloodDonationDesc,
-    icon: Icons.bloodtype_outlined,
-    accent: PatientAccent.neutral,
-    action: CatalogActionKind.unavailable,
-    access: CatalogAccess.public,
-    status: CatalogStatus.unavailable,
-  );
-
-  static final virtualCare = CatalogItem(
-    id: 'virtual-care',
-    title: (t) => t.paVirtualCare,
-    description: (t) => t.paVirtualCareDesc,
-    icon: Icons.video_camera_front_outlined,
-    action: CatalogActionKind.route,
-    route: '${AppRoutes.patientBookLanding}?mode=virtual',
-    access: CatalogAccess.public,
-  );
-
-  // --- support / policies --------------------------------------------------
-
-  static final news = CatalogItem(
-    id: 'news',
-    title: (t) => t.paLatestNews,
-    description: (t) => t.paLatestNewsDesc,
-    icon: Icons.newspaper_outlined,
-    action: CatalogActionKind.route,
-    route: AppRoutes.patientNews,
-    access: CatalogAccess.public,
-  );
-
-  static final contactUs = CatalogItem(
-    id: 'contact-us',
-    title: (t) => t.paContactUs,
-    description: (t) => t.paContactUsDesc,
-    icon: Icons.support_agent_outlined,
-    action: CatalogActionKind.route,
-    route: AppRoutes.patientMessages,
-  );
-
-  static final terms = CatalogItem(
-    id: 'terms',
-    title: (t) => t.paTerms,
-    icon: Icons.gavel_outlined,
-    accent: PatientAccent.neutral,
-    // No published MyHealth terms document exists in this build;
-    // shown honestly rather than copying another provider's policy.
-    action: CatalogActionKind.unavailable,
-    access: CatalogAccess.public,
-    status: CatalogStatus.unavailable,
-  );
-
-  static final privacy = CatalogItem(
-    id: 'privacy',
-    title: (t) => t.paPrivacy,
-    icon: Icons.privacy_tip_outlined,
-    accent: PatientAccent.neutral,
-    // No published MyHealth privacy document exists in this build;
-    // shown honestly rather than copying another provider's policy.
-    action: CatalogActionKind.unavailable,
-    access: CatalogAccess.public,
-    status: CatalogStatus.unavailable,
-  );
-
-  // --- Quick Access: every relocated patient feature ----------------------
+  // --- core: proposal features -------------------------------------------
 
   static final records = CatalogItem(
     id: 'records',
     title: (t) => t.paHealthRecords,
+    description: (t) => t.paHealthRecordsDesc,
     icon: Icons.folder_shared_outlined,
     action: CatalogActionKind.route,
     route: AppRoutes.patientTimeline,
@@ -242,24 +109,20 @@ abstract final class PatientCatalog {
   static final documents = CatalogItem(
     id: 'documents',
     title: (t) => t.paDocuments,
+    description: (t) => t.paDocumentsDesc,
     icon: Icons.description_outlined,
     action: CatalogActionKind.route,
     route: AppRoutes.patientDocuments,
   );
+
+  /// The proposal's report-explanation chatbot: core, even while its live
+  /// model integration is pending (that gap is recorded, not relabelled).
   static final explainReport = CatalogItem(
     id: 'explain-report',
     title: (t) => t.paExplainReport,
     description: (t) => t.paExplainReportDesc,
     icon: Icons.auto_awesome_outlined,
     action: CatalogActionKind.explainReport,
-  );
-  static final nutrition = CatalogItem(
-    id: 'nutrition',
-    title: (t) => t.navNutrition,
-    icon: Icons.restaurant_outlined,
-    accent: PatientAccent.green,
-    action: CatalogActionKind.route,
-    route: AppRoutes.patientNutrition,
   );
   static final medications = CatalogItem(
     id: 'medications',
@@ -290,22 +153,6 @@ abstract final class PatientCatalog {
     action: CatalogActionKind.route,
     route: AppRoutes.patientAllergies,
   );
-  static final vitals = CatalogItem(
-    id: 'vitals',
-    title: (t) => t.paVitalsTrends,
-    icon: Icons.monitor_heart_outlined,
-    accent: PatientAccent.green,
-    action: CatalogActionKind.route,
-    route: AppRoutes.patientVitals,
-  );
-  static final summary = CatalogItem(
-    id: 'summary',
-    title: (t) => t.paHealthSummary,
-    icon: Icons.summarize_outlined,
-    action: CatalogActionKind.route,
-    route: AppRoutes.patientSummary,
-  );
-
   static final appointments = CatalogItem(
     id: 'appointments',
     title: (t) => t.allAppointmentsTitle,
@@ -313,13 +160,13 @@ abstract final class PatientCatalog {
     action: CatalogActionKind.route,
     route: AppRoutes.patientAppointments,
   );
-  static final bookPrivate = CatalogItem(
-    id: 'book',
+  static final bookAppointment = CatalogItem(
+    id: 'book-appointment',
     title: (t) => t.paBookAppointment,
+    description: (t) => t.paBookAppointmentDesc,
     icon: Icons.calendar_month_outlined,
     action: CatalogActionKind.route,
     route: AppRoutes.patientBookLanding,
-    access: CatalogAccess.public,
   );
   static final visitedDoctors = CatalogItem(
     id: 'visited-doctors',
@@ -328,12 +175,50 @@ abstract final class PatientCatalog {
     action: CatalogActionKind.route,
     route: AppRoutes.patientVisitedDoctors,
   );
+  static final findDoctor = CatalogItem(
+    id: 'find-doctor',
+    title: (t) => t.paFindDoctor,
+    description: (t) => t.paFindDoctorDesc,
+    icon: Icons.person_search_outlined,
+    action: CatalogActionKind.route,
+    route: AppRoutes.patientFindDoctor,
+  );
+
+  // --- supplementary: working, outside the proposal ------------------------
+
+  static final nutrition = CatalogItem(
+    id: 'nutrition',
+    title: (t) => t.navNutrition,
+    icon: Icons.restaurant_outlined,
+    accent: PatientAccent.green,
+    action: CatalogActionKind.route,
+    route: AppRoutes.patientNutrition,
+    scope: CatalogScope.supplementary,
+  );
+  static final vitals = CatalogItem(
+    id: 'vitals',
+    title: (t) => t.paVitalsTrends,
+    icon: Icons.monitor_heart_outlined,
+    accent: PatientAccent.green,
+    action: CatalogActionKind.route,
+    route: AppRoutes.patientVitals,
+    scope: CatalogScope.supplementary,
+  );
+  static final summary = CatalogItem(
+    id: 'summary',
+    title: (t) => t.paHealthSummary,
+    icon: Icons.summarize_outlined,
+    action: CatalogActionKind.route,
+    route: AppRoutes.patientSummary,
+    scope: CatalogScope.supplementary,
+  );
   static final messages = CatalogItem(
     id: 'messages',
     title: (t) => t.messagesTitle,
     icon: Icons.forum_outlined,
     action: CatalogActionKind.route,
     route: AppRoutes.patientMessages,
+    scope: CatalogScope.supplementary,
   );
   static final notifications = CatalogItem(
     id: 'notifications',
@@ -342,14 +227,17 @@ abstract final class PatientCatalog {
     accent: PatientAccent.amber,
     action: CatalogActionKind.route,
     route: AppRoutes.patientNotifications,
+    scope: CatalogScope.supplementary,
   );
   static final homeVisits = CatalogItem(
     id: 'home-visits',
     title: (t) => t.homeVisitsTitle,
+    description: (t) => t.paHomeVisitsDesc,
     icon: Icons.add_home_outlined,
     accent: PatientAccent.green,
     action: CatalogActionKind.route,
     route: AppRoutes.patientHomeVisit,
+    scope: CatalogScope.supplementary,
   );
   static final billing = CatalogItem(
     id: 'billing',
@@ -357,29 +245,7 @@ abstract final class PatientCatalog {
     icon: Icons.payments_outlined,
     action: CatalogActionKind.route,
     route: AppRoutes.patientBilling,
-  );
-
-  static final profile = CatalogItem(
-    id: 'profile',
-    title: (t) => t.paMyProfile,
-    icon: Icons.account_circle_outlined,
-    action: CatalogActionKind.route,
-    route: AppRoutes.patientSettings,
-  );
-  static final personal = CatalogItem(
-    id: 'personal',
-    title: (t) => t.paPersonalInformation,
-    icon: Icons.badge_outlined,
-    action: CatalogActionKind.route,
-    route: AppRoutes.patientProfilePersonal,
-  );
-  static final healthDetails = CatalogItem(
-    id: 'health-details',
-    title: (t) => t.healthDetailsTitle,
-    icon: Icons.favorite_outline,
-    accent: PatientAccent.red,
-    action: CatalogActionKind.route,
-    route: AppRoutes.patientProfileHealth,
+    scope: CatalogScope.supplementary,
   );
   static final family = CatalogItem(
     id: 'family',
@@ -388,14 +254,7 @@ abstract final class PatientCatalog {
     accent: PatientAccent.green,
     action: CatalogActionKind.route,
     route: AppRoutes.patientProfileFamily,
-  );
-  static final preferences = CatalogItem(
-    id: 'preferences',
-    title: (t) => t.paPreferences,
-    icon: Icons.tune,
-    accent: PatientAccent.neutral,
-    action: CatalogActionKind.route,
-    route: AppRoutes.patientProfilePreferences,
+    scope: CatalogScope.supplementary,
   );
   static final feedback = CatalogItem(
     id: 'feedback',
@@ -403,18 +262,154 @@ abstract final class PatientCatalog {
     icon: Icons.rate_review_outlined,
     accent: PatientAccent.amber,
     action: CatalogActionKind.feedback,
+    scope: CatalogScope.supplementary,
+  );
+  static final emergency = CatalogItem(
+    id: 'emergency',
+    title: (t) => t.paEmergencyServices,
+    description: (t) => t.paEmergencyServicesDesc,
+    icon: Icons.emergency_outlined,
+    accent: PatientAccent.red,
+    action: CatalogActionKind.emergency,
+    scope: CatalogScope.supplementary,
+  );
+  static final calculators = CatalogItem(
+    id: 'calculators',
+    title: (t) => t.paHealthCalculators,
+    description: (t) => t.paHealthCalculatorsDesc,
+    icon: Icons.calculate_outlined,
+    accent: PatientAccent.green,
+    action: CatalogActionKind.route,
+    route: AppRoutes.patientCalculators,
+    scope: CatalogScope.supplementary,
+  );
+  static final converters = CatalogItem(
+    id: 'converters',
+    title: (t) => t.paHealthConverters,
+    description: (t) => t.paHealthConvertersDesc,
+    icon: Icons.swap_horiz,
+    accent: PatientAccent.amber,
+    action: CatalogActionKind.route,
+    route: AppRoutes.patientConverters,
+    scope: CatalogScope.supplementary,
+  );
+  static final specialtyGuide = CatalogItem(
+    id: 'specialty-guide',
+    title: (t) => t.paSpecialtyGuideTitle,
+    description: (t) => t.paSpecialtyGuideIntro,
+    icon: Icons.health_and_safety_outlined,
+    action: CatalogActionKind.route,
+    route: AppRoutes.patientSpecialtyGuide,
+    scope: CatalogScope.supplementary,
   );
 
-  /// First quick-tools page, then the additional tools page.
-  static final quickTools = [emergency, findDoctor, calculators, converters];
-  static final moreTools = [
-    findDoctor,
-    calculators,
-    converters,
-    indoorNavigation,
-  ];
+  /// Virtual Care opens its own explanation page (what exists today vs. the
+  /// unbuilt video visits), so it keeps a route.
+  static final virtualCare = CatalogItem(
+    id: 'virtual-care',
+    title: (t) => t.paVirtualCare,
+    description: (t) => t.paVirtualCareDesc,
+    icon: Icons.video_camera_front_outlined,
+    action: CatalogActionKind.route,
+    route: '${AppRoutes.patientBookLanding}?mode=virtual',
+    scope: CatalogScope.supplementary,
+  );
 
-  /// Home "Services" carousel promotions.
+  // --- planned: not built ---------------------------------------------------
+
+  static CatalogItem _planned(
+    String id,
+    String Function(AppLocalizations t) title,
+    IconData icon,
+  ) => CatalogItem(
+    id: id,
+    title: title,
+    icon: icon,
+    accent: PatientAccent.neutral,
+    action: CatalogActionKind.futureWork,
+    scope: CatalogScope.planned,
+  );
+
+  static final completeCheckup = _planned(
+    'complete-checkup',
+    (t) => t.paCompleteCheckup,
+    Icons.health_and_safety_outlined,
+  );
+  static final indoorNavigation = _planned(
+    'indoor-navigation',
+    (t) => t.paIndoorNavigation,
+    Icons.signpost_outlined,
+  );
+  static final eReferral = _planned(
+    'e-referral',
+    (t) => t.paEReferral,
+    Icons.forward_to_inbox_outlined,
+  );
+  static final bloodDonation = _planned(
+    'blood-donation',
+    (t) => t.paBloodDonation,
+    Icons.bloodtype_outlined,
+  );
+  static final wearables = _planned(
+    'wearables',
+    (t) => t.paWearables,
+    Icons.watch_outlined,
+  );
+  static final waterTracking = _planned(
+    'water-tracking',
+    (t) => t.paWaterTracking,
+    Icons.water_drop_outlined,
+  );
+  static final pharmacy = _planned(
+    'pharmacy',
+    (t) => t.paPharmacy,
+    Icons.local_pharmacy_outlined,
+  );
+
+  /// Weather and News: no sources are connected (by decision) — the entries
+  /// only explain that they are future work.
+  static final weather = _planned(
+    'weather',
+    (t) => t.paWeather,
+    Icons.wb_sunny_outlined,
+  );
+  static final news = _planned(
+    'news',
+    (t) => t.paNews,
+    Icons.newspaper_outlined,
+  );
+
+  // --- core destinations that do not exist yet -----------------------------
+
+  static final terms = CatalogItem(
+    id: 'terms',
+    title: (t) => t.paTerms,
+    icon: Icons.gavel_outlined,
+    accent: PatientAccent.neutral,
+    // No published MyHealth terms document exists in this build; shown
+    // honestly rather than copying another provider's policy.
+    action: CatalogActionKind.unavailable,
+    status: CatalogStatus.unavailable,
+  );
+  static final privacy = CatalogItem(
+    id: 'privacy',
+    title: (t) => t.paPrivacy,
+    icon: Icons.privacy_tip_outlined,
+    accent: PatientAccent.neutral,
+    action: CatalogActionKind.unavailable,
+    status: CatalogStatus.unavailable,
+  );
+
+  /// First quick-tools page (working care actions), then the extensions.
+  static final quickTools = [
+    bookAppointment,
+    findDoctor,
+    documents,
+    explainReport,
+  ];
+  static final moreTools = [emergency, calculators, converters, specialtyGuide];
+
+  /// Home / Services "MyHealth services" carousel.
   static final promotions = [
     bookAppointment,
     explainReport,
@@ -422,8 +417,9 @@ abstract final class PatientCatalog {
     homeVisits,
   ];
 
-  /// Home Quick Access — every patient feature that is no longer a bottom tab
-  /// or a Home section. High-priority entries lead.
+  /// Home Quick Access — daily-care features that are not bottom tabs.
+  /// Records, Documents, Explain a Report and Nutrition lead. Account
+  /// administration lives in the drawer.
   static final quickAccess = <QuickAccessGroup, List<CatalogItem>>{
     QuickAccessGroup.records: [
       records,
@@ -434,40 +430,39 @@ abstract final class PatientCatalog {
       sickLeave,
       imaging,
       allergies,
-      vitals,
-      summary,
     ],
     QuickAccessGroup.care: [
       appointments,
-      bookPrivate,
+      bookAppointment,
       visitedDoctors,
       messages,
       notifications,
       homeVisits,
-      billing,
     ],
-    QuickAccessGroup.account: [
-      profile,
-      personal,
-      healthDetails,
-      family,
-      preferences,
-      feedback,
-    ],
+    QuickAccessGroup.wellbeing: [vitals, summary, calculators, converters],
   };
+
+  /// Drawer: supplementary account tools (account basics are core rows).
+  static final drawerTools = [family, billing, feedback];
 
   /// Services tab catalogue.
   static final services = <ServiceGroup, List<CatalogItem>>{
-    ServiceGroup.medical: [
+    ServiceGroup.core: [bookAppointment, records, documents, explainReport],
+    ServiceGroup.tools: [vitals, nutrition, calculators, converters],
+    ServiceGroup.futureExtensions: [
       emergency,
-      bookAppointment,
+      specialtyGuide,
+      virtualCare,
       completeCheckup,
       indoorNavigation,
       eReferral,
       bloodDonation,
+      wearables,
+      waterTracking,
+      pharmacy,
+      weather,
+      news,
     ],
-    ServiceGroup.tools: [vitals, calculators, converters, nutrition],
-    ServiceGroup.support: [news, contactUs],
     ServiceGroup.policies: [terms, privacy],
   };
 }

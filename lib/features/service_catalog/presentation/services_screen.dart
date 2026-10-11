@@ -1,14 +1,12 @@
-/// Services tab: weather link → Medical & Healthcare → MyHealth services →
-/// Health Tools → Support → Policies. Reads the same [PatientCatalog] as Home;
-/// Home Quick Access stays the place for the patient's own features.
+/// Services tab: core clinical services → MyHealth service promotions →
+/// Health Tools → clearly grouped Future work extensions → Policies. Reads
+/// the same [PatientCatalog] as Home; account actions live in the drawer.
 library;
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
-import '../../../core/presentation/readable_label.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/ui/patient/patient_components.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/patient_catalog.dart';
@@ -20,54 +18,28 @@ class ServicesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
-    final palette = PatientPalette.of(context);
-    String group(ServiceGroup g) => switch (g) {
-      ServiceGroup.medical => t.paMedicalHealthcare,
-      ServiceGroup.tools => t.paHealthTools,
-      ServiceGroup.support => t.paSupportServices,
-      ServiceGroup.policies => t.paPolicies,
-    };
     final services = PatientCatalog.services;
     return PatientPageScaffold(
-      header: PatientPageTitle(t.paServices),
+      header: Row(
+        children: [
+          const ShellMenuButton(),
+          const SizedBox(width: Space.xxs),
+          Expanded(child: PatientPageTitle(t.paServices)),
+        ],
+      ),
       children: [
-        const SizedBox(height: Space.md),
-        SurfaceCard(
-          onTap: () => context.go(AppRoutes.patientWeather),
-          semanticLabel: t.paWeather,
-          child: Row(
-            children: [
-              const IconTile(
-                icon: Icons.wb_sunny_outlined,
-                accent: PatientAccent.amber,
-              ),
-              const SizedBox(width: Space.md),
-              Expanded(
-                child: ReadableLabel(
-                  t.paWeatherLink,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleMedium?.copyWith(color: palette.text),
-                ),
-              ),
-              Icon(
-                Directionality.of(context) == TextDirection.rtl
-                    ? Icons.chevron_left
-                    : Icons.chevron_right,
-                color: palette.textMuted,
-              ),
-            ],
-          ),
-        ),
-        SectionHeading(group(ServiceGroup.medical)),
-        CatalogGrid(items: services[ServiceGroup.medical]!),
+        SectionHeading(t.paCoreServices),
+        CatalogGrid(items: services[ServiceGroup.core]!),
         SectionHeading(t.paMyHealthServices),
         ServiceCarousel(items: PatientCatalog.promotions),
-        SectionHeading(group(ServiceGroup.tools)),
+        SectionHeading(t.paHealthTools),
         CatalogGrid(items: services[ServiceGroup.tools]!),
-        SectionHeading(group(ServiceGroup.support)),
-        CatalogGrid(items: services[ServiceGroup.support]!),
-        SectionHeading(group(ServiceGroup.policies)),
+        SectionHeading(
+          t.paFutureExtensions,
+          subtitle: t.paFutureExtensionsSubtitle,
+        ),
+        CatalogGrid(items: services[ServiceGroup.futureExtensions]!),
+        SectionHeading(t.paPolicies),
         CatalogGrid(items: services[ServiceGroup.policies]!),
       ],
     );

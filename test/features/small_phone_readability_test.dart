@@ -34,8 +34,6 @@ const _routes = <String, List<String>>{
     '/patient/appointments/doctors',
     '/patient/home/messages',
     '/patient/home/home-visit',
-    '/patient/weather',
-    '/patient/news',
     '/patient/services',
     '/patient/book',
     '/patient/book?mode=virtual',

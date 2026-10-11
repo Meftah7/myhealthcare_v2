@@ -8,48 +8,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/ui/patient/patient_components.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../ai_chat/application/care_navigator.dart';
-import '../../auth/application/session.dart';
 import '../../feedback/presentation/feedback_sheet.dart';
 import '../../timeline/presentation/import_record_sheet.dart';
 import '../domain/patient_catalog.dart';
-
-/// Sends a guest to the real sign-in screen, remembering an allowed internal
-/// [destination] to resume afterwards (see the router's `from` allowlist).
-void goToSignIn(BuildContext context, {String? destination}) {
-  final uri = Uri(
-    path: AppRoutes.login,
-    queryParameters: destination == null ? null : {'from': destination},
-  );
-  // `go`, not `push`: the app is rebuilt for the new account after sign-in
-  // and restores the router's location, which must carry `from`. The sign-in
-  // screen's "Browse as guest" leads back to Home.
-  context.go(uri.toString());
-}
 
 Future<void> openCatalogItem(
   BuildContext context,
   WidgetRef ref,
   CatalogItem item,
 ) async {
-  final signedIn = ref.read(currentUserProvider) != null;
-  if (!item.isAvailable || item.action == CatalogActionKind.unavailable) {
-    return showUnavailableSheet(context, item);
-  }
-  if (item.access == CatalogAccess.signedIn && !signedIn) {
-    // Only route destinations are resumable; callback actions resume to Home.
-    goToSignIn(
-      context,
-      destination: item.action == CatalogActionKind.route
-          ? item.route
-          : AppRoutes.patientHome,
-    );
-    return;
-  }
   switch (item.action) {
     case CatalogActionKind.route:
       context.go(item.route!);
@@ -59,6 +30,8 @@ Future<void> openCatalogItem(
       await showFeedbackSheet(context, ref);
     case CatalogActionKind.emergency:
       await showEmergencySheet(context);
+    case CatalogActionKind.futureWork:
+      await showFutureWorkSheet(context, item);
     case CatalogActionKind.unavailable:
       await showUnavailableSheet(context, item);
   }
@@ -72,6 +45,60 @@ Future<void> startReportExplanation(BuildContext context, WidgetRef ref) async {
   if (record == null) return;
   ref.read(careNavigatorViewProvider.notifier).state = CareNavView.panel;
   unawaited(ref.read(careNavigatorProvider.notifier).explainDocument(record));
+}
+
+/// A planned extension: says plainly it is future work and not part of this
+/// version — no data, no pretend service.
+Future<void> showFutureWorkSheet(BuildContext context, CatalogItem item) {
+  final t = AppLocalizations.of(context)!;
+  return showModalBottomSheet<void>(
+    context: context,
+    showDragHandle: true,
+    builder: (sheet) => SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          kPatientInset,
+          0,
+          kPatientInset,
+          Space.lg,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: IconTile(
+                icon: item.icon,
+                accent: PatientAccent.amber,
+                size: 56,
+              ),
+            ),
+            const SizedBox(height: Space.md),
+            Text(
+              item.title(t),
+              textAlign: TextAlign.center,
+              style: Theme.of(sheet).textTheme.titleLarge,
+            ),
+            const SizedBox(height: Space.xs),
+            Center(child: FutureWorkBadge(label: t.paFutureWork)),
+            const SizedBox(height: Space.sm),
+            Text(
+              t.paFutureWorkBody,
+              textAlign: TextAlign.center,
+              style: Theme.of(sheet).textTheme.bodyMedium?.copyWith(
+                color: PatientPalette.of(sheet).textMuted,
+              ),
+            ),
+            const SizedBox(height: Space.lg),
+            SoftActionButton(
+              label: t.paClose,
+              onPressed: () => Navigator.of(sheet).pop(),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 Future<void> showUnavailableSheet(BuildContext context, CatalogItem item) {

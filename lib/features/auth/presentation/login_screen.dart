@@ -212,18 +212,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   },
             child: Text(t.createPatientAccount),
           ),
-          TextButton(
-            key: const ValueKey('browse-as-guest'),
-            onPressed: _busy
-                ? null
-                : () {
-                    ref.read(sessionProvider.notifier).continueAsGuest();
-                    context.canPop()
-                        ? context.pop()
-                        : context.go(AppRoutes.patientHome);
-                  },
-            child: Text(t.paBrowseAsGuest),
-          ),
           // Demo credentials belong to the explicit demo runtime only.
           if (ref.watch(appModeProvider).isDemo) ...[
             const SizedBox(height: Space.lg),

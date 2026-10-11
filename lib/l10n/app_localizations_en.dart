@@ -4920,10 +4920,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paBloodDonation => 'Blood Donation';
 
   @override
-  String get paBloodDonationDesc =>
-      'Donation appointments are not offered in this version.';
-
-  @override
   String get paBmiLabel => 'Body mass index (BMI)';
 
   @override
@@ -4968,16 +4964,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paCompleteCheckup => 'Complete Checkup';
 
   @override
-  String get paCompleteCheckupDesc =>
-      'Checkup packages are not offered in this version.';
-
-  @override
-  String get paContactUs => 'Contact Us';
-
-  @override
-  String get paContactUsDesc => 'Message the clinic team from your account.';
-
-  @override
   String get paConvGlucose => 'Blood glucose';
 
   @override
@@ -4994,10 +4980,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paEReferral => 'E-Referral';
-
-  @override
-  String get paEReferralDesc =>
-      'Patient-started referrals are not available in this version.';
 
   @override
   String get paEmergencyBody =>
@@ -5036,17 +5018,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paGeneralBooking => 'General';
 
   @override
-  String get paGroupAccount => 'Account & wellbeing';
-
-  @override
   String get paGroupCare => 'Care & communication';
 
   @override
   String get paGroupRecords => 'Records & documents';
-
-  @override
-  String get paGuestAppointmentsBody =>
-      'Browse clinics and doctors now. Sign in to book and to see your appointments.';
 
   @override
   String get paHealthCalculators => 'Calculators';
@@ -5074,16 +5049,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paHeightCm => 'Height (cm)';
 
   @override
-  String get paHeroGuestBody =>
-      'Not sure which clinic you need? See what each department treats, then book.';
-
-  @override
-  String get paHeroGuestCta => 'Find the right clinic';
-
-  @override
-  String get paHeroGuestTitle => 'How are you feeling today?';
-
-  @override
   String get paHeroReportBody =>
       'Upload a PDF medical report and get a plain-language explanation. Your original stays in your records.';
 
@@ -5100,28 +5065,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paIndoorNavigation => 'Indoor Navigation';
 
   @override
-  String get paIndoorNavigationDesc =>
-      'Indoor maps are not available in this version.';
-
-  @override
   String paInvalidRange(String min, String max) {
     return 'Enter a number from $min to $max.';
   }
 
   @override
-  String get paLatestNews => 'Latest News';
-
-  @override
-  String get paLatestNewsDesc => 'Updates from the clinic.';
-
-  @override
   String get paLoadFailed => 'Couldn\'t load this list.';
-
-  @override
-  String get paLoginOrRegister => 'Login or Register';
-
-  @override
-  String get paMedicalHealthcare => 'Medical & Healthcare';
 
   @override
   String get paMedications => 'Medications';
@@ -5143,13 +5092,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paNews => 'News';
-
-  @override
-  String get paNewsEmptyBody =>
-      'Clinic news will appear here once it is published.';
-
-  @override
-  String get paNewsEmptyTitle => 'No news yet';
 
   @override
   String get paNoResults => 'No matches found.';
@@ -5214,12 +5156,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paSickLeave => 'Sick Leave';
 
   @override
-  String get paSignInBadge => 'Sign in';
-
-  @override
-  String get paSignInToSeeAppointments => 'Sign in to see your appointments';
-
-  @override
   String get paSpecialtyEmergencyNote =>
       'Severe or sudden symptoms? This is an emergency — tap here.';
 
@@ -5229,9 +5165,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paSpecialtyGuideTitle => 'Choosing a clinic';
-
-  @override
-  String get paSupportServices => 'Support';
 
   @override
   String get paTapToSelect => 'Tap to select';
@@ -5290,16 +5223,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paWeather => 'Weather';
 
   @override
-  String get paWeatherLink => 'Weather';
-
-  @override
-  String get paWeatherUnavailableBody =>
-      'No weather service is connected to MyHealth yet, so no readings are shown. Your care features are not affected.';
-
-  @override
-  String get paWeatherUnavailableTitle => 'Weather isn\'t connected';
-
-  @override
   String get paWeightKg => 'Weight (kg)';
 
   @override
@@ -5320,9 +5243,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'See your records, download documents and get plain-language explanations of PDF reports.';
 
   @override
-  String get paBrowseAsGuest => 'Browse as guest';
-
-  @override
   String get paChatLiveStatus => 'Live AI';
 
   @override
@@ -5335,4 +5255,63 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paViewOriginal => 'View original';
+
+  @override
+  String get paFutureWork => 'Future work';
+
+  @override
+  String get paFutureWorkBody =>
+      'This is planned future work and is not part of this version of MyHealth. Nothing is connected yet, so no information is shown here.';
+
+  @override
+  String get paCoreServices => 'Core services';
+
+  @override
+  String get paFutureExtensions => 'Future work extensions';
+
+  @override
+  String get paFutureExtensionsSubtitle =>
+      'Outside the current project scope. Some already work; planned ones only explain what is coming.';
+
+  @override
+  String get paGroupWellbeing => 'Wellbeing extensions';
+
+  @override
+  String get paWearables => 'Wearables';
+
+  @override
+  String get paWaterTracking => 'Water tracking';
+
+  @override
+  String get paPharmacy => 'Pharmacy';
+
+  @override
+  String get paHealthRecordsDesc =>
+      'Your visits, results and history in one place.';
+
+  @override
+  String get paDocumentsDesc =>
+      'View and download documents from your care team.';
+
+  @override
+  String get paHomeVisitsDesc => 'Request a clinician visit at home.';
+
+  @override
+  String get paDrawerAccount => 'Account & preferences';
+
+  @override
+  String get paDrawerSupplementary => 'Supplementary account tools';
+
+  @override
+  String get paDrawerAbout => 'About & support';
+
+  @override
+  String get paAboutMyHealth => 'About MyHealth';
+
+  @override
+  String get paAboutBody =>
+      'MyHealth Care lets patients view their records, book appointments, download documents and get plain-language explanations of PDF medical reports. Senior project prototype with synthetic data.';
+
+  @override
+  String get paSettingsPreferences => 'Settings & Preferences';
 }

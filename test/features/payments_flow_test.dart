@@ -61,8 +61,8 @@ void main() {
     await passMfa(tester);
     await _settle(tester);
 
-    // Billing & Payments opens from Home Quick Access.
-    await openQuickAccess(tester, 'billing');
+    // Billing & Payments opens from the patient drawer.
+    await openDrawerItem(tester, 'billing');
 
     expect(find.widgetWithText(AppBar, 'Payments'), findsOneWidget);
     expect(find.byType(PaymentsScreen), findsOneWidget);
@@ -76,7 +76,7 @@ void main() {
 
     // The bottom nav stays visible on Payments (it nests under the Home branch).
     // (A rail at this width; the bar on phones.)
-    expect(find.text('Weather'), findsWidgets);
+    expect(find.text('Records'), findsWidgets);
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
   });

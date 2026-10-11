@@ -15,7 +15,6 @@ import '../../../core/presentation/readable_label.dart';
 import '../../../core/ui/patient/patient_components.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../auth/application/session.dart';
 import '../../service_catalog/application/catalog_dispatcher.dart';
 import '../application/booking_providers.dart';
 import '../application/discovery_providers.dart';
@@ -72,7 +71,7 @@ class _BookAppointmentLandingScreenState
             ),
             (
               BookingLandingMode.virtual,
-              t.paVirtualCare,
+              '${t.paVirtualCare} · ${t.paFutureWork}',
               Icons.video_camera_front_outlined,
             ),
           ],
@@ -274,6 +273,13 @@ class _VirtualCarePanel extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         PatientPageTitle(t.paVirtualCare, subtitle: t.paVirtualCareIntro),
+        const SizedBox(height: Space.xs),
+        // Outside the proposal: Virtual Care is future work until a supported
+        // integration exists; the rows below describe what works today.
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: FutureWorkBadge(label: t.paFutureWork),
+        ),
         const SizedBox(height: Space.md),
         for (final (icon, accent, title, body) in rows) ...[
           SurfaceCard(
@@ -311,13 +317,7 @@ class _VirtualCarePanel extends ConsumerWidget {
         const SizedBox(height: Space.sm),
         PrimaryActionButton(
           label: t.paMessageCareTeam,
-          onPressed: () {
-            if (ref.read(currentUserProvider) == null) {
-              goToSignIn(context, destination: AppRoutes.patientMessages);
-            } else {
-              context.go(AppRoutes.patientMessages);
-            }
-          },
+          onPressed: () => context.go(AppRoutes.patientMessages),
         ),
       ],
     );
@@ -724,55 +724,6 @@ class SpecialtyGuideScreen extends ConsumerWidget {
               const SizedBox(height: Space.sm),
             ],
           ],
-        ),
-      ],
-    );
-  }
-}
-
-/// The Appointments tab for guests: booking entry points plus a sign-in cue
-/// for the patient's own appointments. No private providers are read.
-class GuestAppointmentsTab extends StatelessWidget {
-  const GuestAppointmentsTab({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context)!;
-    return PatientPageScaffold(
-      header: PatientPageTitle(
-        t.allAppointmentsTitle,
-        subtitle: t.paGuestAppointmentsBody,
-      ),
-      children: [
-        const SizedBox(height: Space.lg),
-        SurfaceCard(
-          padding: EdgeInsets.zero,
-          child: Column(
-            children: [
-              DiscoveryOptionRow(
-                icon: Icons.local_hospital_outlined,
-                title: t.paGeneralBooking,
-                hint: t.paBookAppointmentDesc,
-                onTap: () => context.push(AppRoutes.patientBookLanding),
-              ),
-              const Divider(indent: Space.md, endIndent: Space.md),
-              DiscoveryOptionRow(
-                icon: Icons.video_camera_front_outlined,
-                title: t.paVirtualCare,
-                hint: t.paVirtualCareDesc,
-                accent: PatientAccent.green,
-                onTap: () => context.push(
-                  '${AppRoutes.patientBookLanding}?mode=virtual',
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: Space.lg),
-        PrimaryActionButton(
-          label: t.paSignInToSeeAppointments,
-          onPressed: () =>
-              goToSignIn(context, destination: AppRoutes.patientAppointments),
         ),
       ],
     );

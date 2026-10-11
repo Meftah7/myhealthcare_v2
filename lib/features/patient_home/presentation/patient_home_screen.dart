@@ -6,8 +6,8 @@
 ///   5. Services heading + View All + horizontal service cards
 ///   6. Quick Access — every relocated patient feature, in this same scroll.
 ///
-/// Guests never trigger patient-specific providers: the private sections are
-/// only built when a patient is signed in.
+/// Home is a signed-in patient page (guest browsing is future work); the
+/// router never builds it without a patient session.
 library;
 
 import 'package:flutter/material.dart';
@@ -30,8 +30,6 @@ import '../../patient/application/patient_data_providers.dart';
 import '../../service_catalog/application/catalog_dispatcher.dart';
 import '../../service_catalog/domain/patient_catalog.dart';
 import '../../service_catalog/presentation/catalog_widgets.dart';
-import '../../settings/presentation/language_icon_toggle.dart';
-import '../../settings/presentation/theme_mode_icon_toggle.dart';
 import 'needs_attention_strip.dart';
 import 'notifications_button.dart';
 import 'upcoming_appointment_carousel.dart';
@@ -76,34 +74,28 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
-    final user = ref.watch(currentUserProvider);
-    final signedIn = user != null && user.role == UserRole.patient;
 
     return PatientPageScaffold(
       controller: _scroll,
-      onRefresh: signedIn
-          ? () async {
-              ref
-                ..invalidate(patientThreadsProvider)
-                ..invalidate(patientInvoicesProvider)
-                ..invalidate(patientPaymentsProvider)
-                ..invalidate(incomingFamilyRequestsProvider)
-                ..invalidate(patientAppointmentsProvider)
-                ..invalidate(patientProfileProvider);
-            }
-          : null,
-      header: signedIn ? const _SignedInHeader() : const _GuestHeader(),
+      onRefresh: () async {
+        ref
+          ..invalidate(patientThreadsProvider)
+          ..invalidate(patientInvoicesProvider)
+          ..invalidate(patientPaymentsProvider)
+          ..invalidate(incomingFamilyRequestsProvider)
+          ..invalidate(patientAppointmentsProvider)
+          ..invalidate(patientProfileProvider);
+      },
+      header: const _HomeHeader(),
       children: [
-        // 2. Care alerts — private, signed-in only.
-        if (signedIn) ...[
-          const _AllergyAlert(),
-          const NeedsAttentionStrip(),
-          const _UpcomingAppointments(),
-        ],
+        // 2. Care alerts.
+        const _AllergyAlert(),
+        const NeedsAttentionStrip(),
+        const _UpcomingAppointments(),
 
-        // 3. Hero.
+        // 3. Hero: the report explanation (core).
         const SizedBox(height: Space.md),
-        _HeroCard(signedIn: signedIn),
+        const _HeroCard(),
 
         // 4. Quick tools.
         const SizedBox(height: Space.lg),
@@ -127,47 +119,10 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
   }
 }
 
-class _GuestHeader extends StatelessWidget {
-  const _GuestHeader();
-
-  @override
-  Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context)!;
-    final palette = PatientPalette.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: Space.sm),
-      child: Row(
-        children: [
-          Expanded(
-            child: Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: FilledButton.icon(
-                key: const ValueKey('guest-login'),
-                style: FilledButton.styleFrom(
-                  backgroundColor: palette.softAccent,
-                  foregroundColor: palette.onSoftAccent,
-                  minimumSize: const Size(0, 48),
-                ),
-                onPressed: () => goToSignIn(context),
-                icon: const Icon(Icons.person_outline),
-                label: Text(
-                  t.paLoginOrRegister,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ),
-          ),
-          const LanguageIconToggle(),
-          const ThemeModeIconToggle(),
-        ],
-      ),
-    );
-  }
-}
-
-class _SignedInHeader extends ConsumerWidget {
-  const _SignedInHeader();
+/// Drawer menu, greeting/identity and notifications. Theme, language and
+/// other settings live in the drawer's Preferences.
+class _HomeHeader extends ConsumerWidget {
+  const _HomeHeader();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -186,6 +141,7 @@ class _SignedInHeader extends ConsumerWidget {
       padding: const EdgeInsets.only(bottom: Space.sm),
       child: Row(
         children: [
+          const ShellMenuButton(),
           Semantics(
             button: true,
             label: t.paMyProfile,
@@ -231,30 +187,25 @@ class _SignedInHeader extends ConsumerWidget {
             ),
           ),
           const NotificationsButton(),
-          const LanguageIconToggle(),
-          const ThemeModeIconToggle(),
         ],
       ),
     );
   }
 }
 
-/// The white hero card. Guests get care discovery (specialty guidance);
-/// signed-in patients get the PDF report explanation. The two stay separate
-/// use cases — report chat is never presented as symptom diagnosis.
+/// The white hero card: the PDF report explanation. Specialty guidance is a
+/// separate (future work) entry — report chat is never symptom diagnosis.
 class _HeroCard extends ConsumerWidget {
-  const _HeroCard({required this.signedIn});
-
-  final bool signedIn;
+  const _HeroCard();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final palette = PatientPalette.of(context);
-    final title = signedIn ? t.paHeroReportTitle : t.paHeroGuestTitle;
-    final body = signedIn ? t.paHeroReportBody : t.paHeroGuestBody;
-    final cta = signedIn ? t.paHeroReportCta : t.paHeroGuestCta;
+    final title = t.paHeroReportTitle;
+    final body = t.paHeroReportBody;
+    final cta = t.paHeroReportCta;
     return SurfaceCard(
       padding: const EdgeInsets.all(Space.lg),
       child: Column(
@@ -285,19 +236,13 @@ class _HeroCard extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: Space.md),
-              _HeroArt(
-                icon: signedIn
-                    ? Icons.document_scanner_outlined
-                    : Icons.health_and_safety_outlined,
-              ),
+              const _HeroArt(icon: Icons.document_scanner_outlined),
             ],
           ),
           const SizedBox(height: Space.lg),
           PrimaryActionButton(
             label: cta,
-            onPressed: () => signedIn
-                ? startReportExplanation(context, ref)
-                : context.push(AppRoutes.patientSpecialtyGuide),
+            onPressed: () => startReportExplanation(context, ref),
           ),
         ],
       ),

@@ -1,7 +1,7 @@
 /// The intro carousel — shown once per device (stored independently of the
 /// session), after the splash mark dissolves and only for a signed-out
 /// visitor. Two pages: appointment booking, then records and report
-/// explanations. Skip / Get Started land on guest Home.
+/// explanations. Skip / Get Started reveal the sign-in screen.
 ///
 /// Timed off [kSplashDuration] rather than a cross-widget signal: the splash
 /// is purely decorative and exposes nothing to listen to, and re-using the
@@ -13,7 +13,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../app/router.dart';
 import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_scaffold.dart';
@@ -66,10 +65,9 @@ class _OnboardingOverlayState extends ConsumerState<OnboardingOverlay> {
   }
 
   void _finish() {
+    // Skip / Get Started follow the authentication policy: the overlay
+    // steps aside and sign-in (already underneath) remains.
     unawaited(ref.read(hasSeenOnboardingProvider.notifier).markSeen());
-    // Public browsing is enabled: land on guest Home rather than sign-in.
-    // The overlay sits outside the router's Navigator, so use the router.
-    ref.read(routerProvider).go(AppRoutes.patientHome);
   }
 
   @override

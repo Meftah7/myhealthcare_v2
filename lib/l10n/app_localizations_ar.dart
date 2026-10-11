@@ -4978,9 +4978,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get paBloodDonation => 'التبرع بالدم';
 
   @override
-  String get paBloodDonationDesc => 'مواعيد التبرع غير متاحة في هذا الإصدار.';
-
-  @override
   String get paBmiLabel => 'مؤشر كتلة الجسم';
 
   @override
@@ -5024,15 +5021,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get paCompleteCheckup => 'الفحص الشامل';
 
   @override
-  String get paCompleteCheckupDesc => 'باقات الفحص غير متاحة في هذا الإصدار.';
-
-  @override
-  String get paContactUs => 'تواصل معنا';
-
-  @override
-  String get paContactUsDesc => 'راسل فريق العيادة من حسابك.';
-
-  @override
   String get paConvGlucose => 'سكر الدم';
 
   @override
@@ -5049,10 +5037,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get paEReferral => 'الإحالة الإلكترونية';
-
-  @override
-  String get paEReferralDesc =>
-      'الإحالات التي يبدؤها المريض غير متاحة في هذا الإصدار.';
 
   @override
   String get paEmergencyBody =>
@@ -5091,17 +5075,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get paGeneralBooking => 'عام';
 
   @override
-  String get paGroupAccount => 'الحساب والعافية';
-
-  @override
   String get paGroupCare => 'الرعاية والتواصل';
 
   @override
   String get paGroupRecords => 'السجلات والمستندات';
-
-  @override
-  String get paGuestAppointmentsBody =>
-      'تصفّح العيادات والأطباء الآن. سجّل الدخول للحجز ولعرض مواعيدك.';
 
   @override
   String get paHealthCalculators => 'الحاسبات';
@@ -5128,16 +5105,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get paHeightCm => 'الطول (سم)';
 
   @override
-  String get paHeroGuestBody =>
-      'لست متأكدًا من العيادة المناسبة؟ تعرّف على ما يعالجه كل قسم ثم احجز.';
-
-  @override
-  String get paHeroGuestCta => 'اعثر على العيادة المناسبة';
-
-  @override
-  String get paHeroGuestTitle => 'كيف تشعر اليوم؟';
-
-  @override
   String get paHeroReportBody =>
       'ارفع تقريرًا طبيًا بصيغة PDF واحصل على شرح بلغة بسيطة. يبقى الأصل محفوظًا في سجلاتك.';
 
@@ -5154,28 +5121,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get paIndoorNavigation => 'الملاحة الداخلية';
 
   @override
-  String get paIndoorNavigationDesc =>
-      'الخرائط الداخلية غير متاحة في هذا الإصدار.';
-
-  @override
   String paInvalidRange(String min, String max) {
     return 'أدخل رقمًا من $min إلى $max.';
   }
 
   @override
-  String get paLatestNews => 'آخر الأخبار';
-
-  @override
-  String get paLatestNewsDesc => 'مستجدات العيادة.';
-
-  @override
   String get paLoadFailed => 'تعذّر تحميل هذه القائمة.';
-
-  @override
-  String get paLoginOrRegister => 'تسجيل الدخول أو التسجيل';
-
-  @override
-  String get paMedicalHealthcare => 'الخدمات الطبية والصحية';
 
   @override
   String get paMedications => 'الأدوية';
@@ -5197,12 +5148,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get paNews => 'الأخبار';
-
-  @override
-  String get paNewsEmptyBody => 'ستظهر أخبار العيادة هنا عند نشرها.';
-
-  @override
-  String get paNewsEmptyTitle => 'لا توجد أخبار بعد';
 
   @override
   String get paNoResults => 'لا توجد نتائج مطابقة.';
@@ -5267,12 +5212,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get paSickLeave => 'الإجازات المرضية';
 
   @override
-  String get paSignInBadge => 'سجّل الدخول';
-
-  @override
-  String get paSignInToSeeAppointments => 'سجّل الدخول لعرض مواعيدك';
-
-  @override
   String get paSpecialtyEmergencyNote =>
       'أعراض شديدة أو مفاجئة؟ هذه حالة طارئة — اضغط هنا.';
 
@@ -5282,9 +5221,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get paSpecialtyGuideTitle => 'اختيار العيادة';
-
-  @override
-  String get paSupportServices => 'الدعم';
 
   @override
   String get paTapToSelect => 'اضغط للاختيار';
@@ -5342,16 +5278,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get paWeather => 'الطقس';
 
   @override
-  String get paWeatherLink => 'الطقس';
-
-  @override
-  String get paWeatherUnavailableBody =>
-      'لا توجد خدمة طقس متصلة بتطبيق ماي هيلث بعد، لذا لا تُعرض أي قراءات. ميزات الرعاية لديك غير متأثرة.';
-
-  @override
-  String get paWeatherUnavailableTitle => 'خدمة الطقس غير متصلة';
-
-  @override
   String get paWeightKg => 'الوزن (كغ)';
 
   @override
@@ -5372,9 +5298,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'اطّلع على سجلاتك، وحمّل مستنداتك، واحصل على شرح مبسّط لتقارير PDF.';
 
   @override
-  String get paBrowseAsGuest => 'تصفّح كزائر';
-
-  @override
   String get paChatLiveStatus => 'ذكاء اصطناعي مباشر';
 
   @override
@@ -5387,4 +5310,61 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get paViewOriginal => 'عرض الأصل';
+
+  @override
+  String get paFutureWork => 'عمل مستقبلي';
+
+  @override
+  String get paFutureWorkBody =>
+      'هذه الميزة ضمن العمل المستقبلي وليست جزءًا من هذا الإصدار من ماي هيلث. لم يُربط أي شيء بعد، لذا لا تُعرض أي معلومات هنا.';
+
+  @override
+  String get paCoreServices => 'الخدمات الأساسية';
+
+  @override
+  String get paFutureExtensions => 'امتدادات العمل المستقبلي';
+
+  @override
+  String get paFutureExtensionsSubtitle =>
+      'خارج نطاق المشروع الحالي. بعضها يعمل بالفعل، والمخطط لها تشرح فقط ما سيأتي.';
+
+  @override
+  String get paGroupWellbeing => 'امتدادات العافية';
+
+  @override
+  String get paWearables => 'الأجهزة القابلة للارتداء';
+
+  @override
+  String get paWaterTracking => 'تتبّع شرب الماء';
+
+  @override
+  String get paPharmacy => 'الصيدلية';
+
+  @override
+  String get paHealthRecordsDesc => 'زياراتك ونتائجك وسجلك في مكان واحد.';
+
+  @override
+  String get paDocumentsDesc => 'اعرض وحمّل المستندات من فريق رعايتك.';
+
+  @override
+  String get paHomeVisitsDesc => 'اطلب زيارة طبية في المنزل.';
+
+  @override
+  String get paDrawerAccount => 'الحساب والتفضيلات';
+
+  @override
+  String get paDrawerSupplementary => 'أدوات حساب إضافية';
+
+  @override
+  String get paDrawerAbout => 'حول التطبيق والدعم';
+
+  @override
+  String get paAboutMyHealth => 'حول ماي هيلث';
+
+  @override
+  String get paAboutBody =>
+      'يتيح ماي هيلث للمرضى عرض سجلاتهم وحجز المواعيد وتحميل المستندات والحصول على شرح مبسّط لتقارير PDF الطبية. نموذج أولي لمشروع تخرج ببيانات تجريبية.';
+
+  @override
+  String get paSettingsPreferences => 'الإعدادات والتفضيلات';
 }
