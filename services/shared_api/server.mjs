@@ -1,5 +1,6 @@
 import { createServer } from 'node:http';
 import { ApiError, digest, fields, id, passwordMatches, requireThat, text, token } from './store.mjs';
+import { REPORT_INSTRUCTIONS, clipReport } from './ai.mjs';
 
 const idle = 24 * 60 * 1000, lifetime = 12 * 60 * 60 * 1000;
 const statuses = ['open', 'inProgress', 'waiting', 'blocked', 'done', 'dismissed'];
@@ -15,7 +16,7 @@ function version(row, value) { requireThat(Number.isInteger(value) && row.versio
 function admin(actor) { requireThat(actor.role === 'admin', 403, 'Administrator access required.'); }
 function fresh(store, actor) { requireThat(store.now() - actor.session.reauthed <= 15 * 60 * 1000, 403, 'Confirm your password first.'); }
 
-export function createApi({ store, origins = [], renderDocument, aiProvider, now = store.now }) {
+export function createApi({ store, origins = [], renderDocument, aiProvider, reportExplainer, now = store.now }) {
   const buckets = new Map();
   function limit(key, maximum) {
     const time = now(), item = buckets.get(key);
@@ -297,12 +298,35 @@ export function createApi({ store, origins = [], renderDocument, aiProvider, now
       const answer = await aiProvider(body.prompt); const current = actorFor(req); store.patientAccess(current, body.patientId);
       return { draft: true, answer };
     }
+    if (path === '/api/reports/explain' && method === 'POST') {
+      // A patient's own uploaded PDF original (or one a current care-team
+      // clinician may see). The client sends the text it extracted; the
+      // server checks the file belongs to that patient, holds the provider
+      // key, discloses partial coverage and returns a labelled draft.
+      fields(body, ['patientId','fileId','text']);
+      requireThat(actor.role === 'patient' || actor.role === 'staff', 403, 'Patient or care-team access required.');
+      store.patientAccess(actor, body.patientId);
+      requireThat(typeof body.fileId === 'string' && /^[a-f0-9-]{36}$/.test(body.fileId));
+      const file = store.get("SELECT * FROM files WHERE id=? AND purpose='original'", body.fileId);
+      requireThat(file && file.patient === body.patientId, 404, 'Report unavailable.');
+      const reportText = text(body.text, 50000);
+      limit(`explain:${actor.id}`, 10);
+      requireThat(typeof reportExplainer === 'function', 503, 'Report explanation is not configured on the server.');
+      const { document, coverage } = clipReport(reportText);
+      let answer;
+      try { answer = await reportExplainer({ instructions: REPORT_INSTRUCTIONS, document }); }
+      catch { throw new ApiError(502, 'The explanation service failed. Try again later.'); }
+      // Re-check: access may have been revoked while the provider was working.
+      store.patientAccess(actorFor(req), body.patientId);
+      store.audit(actor.id, 'report.explained', body.fileId);
+      return { draft: true, answer, coverage };
+    }
     if (path === '/api/health' && method === 'GET') {
       admin(actor);
       return { schema: store.get('PRAGMA user_version').user_version, storage: store.get('PRAGMA quick_check').quick_check === 'ok' ? 'ok' : 'failed',
         jobs: store.all('SELECT * FROM jobs'), failedDelivery: store.get("SELECT count(*) n FROM deliveries WHERE state='failed'").n,
         pendingDelivery: store.get("SELECT count(*) n FROM deliveries WHERE state='pending'").n,
-        aiConfigured: !!aiProvider, pdfRendererConfigured: !!renderDocument,
+        aiConfigured: !!aiProvider, reportExplainerConfigured: !!reportExplainer, pdfRendererConfigured: !!renderDocument,
         payments: 'notConfigured', externalDelivery: 'notConfigured', inAppDelivery: 'serverWorker' };
     }
     throw new ApiError(404, 'Endpoint unavailable.');

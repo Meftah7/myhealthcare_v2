@@ -252,7 +252,7 @@ class SkeletonList extends StatelessWidget {
             padding: const EdgeInsets.all(Space.md),
             decoration: BoxDecoration(
               color: scheme.surfaceContainerLowest,
-              borderRadius: Radii.card,
+              borderRadius: Radii.cardOf(context),
               border: Border.all(color: scheme.outlineVariant),
             ),
             child: Column(

@@ -1,4 +1,5 @@
 import { resolve } from 'node:path';
+import { geminiReportExplainer } from './ai.mjs';
 import { Store, id, requireThat } from './store.mjs';
 import { createApi } from './server.mjs';
 import { encryptedBackup, restoreBackup, renderEnglishPdf, startWorkers } from './workers.mjs';
@@ -37,7 +38,11 @@ if (command === 'restore') {
       requireThat(process.env.MYHEALTH_BACKUP_DIR && /^[a-f0-9]{64}$/.test(process.env.MYHEALTH_BACKUP_KEY ?? ''), 500, 'Configure encrypted scheduled backups.');
       requireThat(store.get('SELECT count(*) n FROM users').n > 0, 500, 'Initialize server accounts offline first.');
       const renderDocument = process.env.MYHEALTH_PDF_RENDERER === 'english' ? renderEnglishPdf : undefined;
-      const server = createApi({ store, origins: (process.env.MYHEALTH_ORIGINS ?? '').split(',').filter(Boolean), renderDocument });
+      // Report explanation is optional: only with a server-held provider key.
+      const reportExplainer = process.env.MYHEALTH_AI_KEY
+        ? geminiReportExplainer({ apiKey: process.env.MYHEALTH_AI_KEY, model: process.env.MYHEALTH_AI_MODEL || undefined })
+        : undefined;
+      const server = createApi({ store, origins: (process.env.MYHEALTH_ORIGINS ?? '').split(',').filter(Boolean), renderDocument, reportExplainer });
       const stopWorkers = startWorkers(store, { directory: process.env.MYHEALTH_BACKUP_DIR, key: process.env.MYHEALTH_BACKUP_KEY, renderDocument });
       const port = Number(process.env.PORT ?? 8787);
       await new Promise(resolveStarted => server.listen(port, '127.0.0.1', resolveStarted));

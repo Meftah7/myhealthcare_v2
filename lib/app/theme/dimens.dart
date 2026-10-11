@@ -4,7 +4,9 @@
 /// the app comes from here — no magic numbers in widgets.
 library;
 
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
+
+import 'patient_palette.dart';
 
 /// 4dp-based spacing scale (DESIGN.md §4.1).
 abstract final class Space {
@@ -44,6 +46,18 @@ abstract final class Radii {
   static const BorderRadius chip = BorderRadius.all(Radius.circular(10));
   static const BorderRadius button = BorderRadius.all(Radius.circular(12));
   static const BorderRadius pill = BorderRadius.all(Radius.circular(999));
+
+  /// Card radius for the ambient theme: the patient experience uses the
+  /// approved larger rounding (22), staff/admin keep [card] (16).
+  static BorderRadius cardOf(BuildContext context) =>
+      _isPatient(context) ? const BorderRadius.all(Radius.circular(22)) : card;
+
+  /// Hero radius for the ambient theme (patient 24, else [hero]).
+  static BorderRadius heroOf(BuildContext context) =>
+      _isPatient(context) ? const BorderRadius.all(Radius.circular(24)) : hero;
+
+  static bool _isPatient(BuildContext context) =>
+      Theme.of(context).extension<PatientPalette>() != null;
 }
 
 /// Depth (DESIGN.md §4.3). The redesign moves off heavy M3 surface-tint onto

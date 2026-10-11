@@ -167,3 +167,53 @@ test('trusted render worker finishes after the client leaves, records failures a
   assert.equal(f.store.get('SELECT render FROM documents').render,'ready');
   deliverPending(f.store); assert.equal((await f.clients.patient('/api/notifications')).body.length,1);
 });
+
+test('report explanation: own PDF only, server-held provider, coverage and labelled draft', async t => {
+  const calls = [];
+  const f = await fixture(t, { reportExplainer: async ({ instructions, document }) => {
+    calls.push({ instructions, document }); return 'Plain explanation.';
+  } });
+  const pdf = Buffer.from('%PDF-1.4 synthetic').toString('base64');
+  const uploaded = await f.clients.patient('/api/originals', { method: 'POST', body: { patientId: f.patient, base64: pdf, idempotencyKey: id() } });
+  assert.equal(uploaded.status, 200);
+  const other = await f.clients.other('/api/originals', { method: 'POST', body: { patientId: f.other, base64: pdf, idempotencyKey: id() } });
+  const explain = (client, body) => client('/api/reports/explain', { method: 'POST', body });
+
+  // The patient's own report: explained, labelled draft, complete coverage.
+  const own = await explain(f.clients.patient, { patientId: f.patient, fileId: uploaded.body.id, text: 'Glucose 140 mg/dL H' });
+  assert.equal(own.status, 200);
+  assert.deepEqual(own.body, { draft: true, answer: 'Plain explanation.', coverage: { explainedChars: 19, totalChars: 19, complete: true } });
+  // Report text travels separately from the instructions (untrusted data).
+  assert.match(calls[0].instructions, /untrusted data/);
+  assert.equal(calls[0].document, 'Glucose 140 mg/dL H');
+
+  // Long reports are clipped and say so.
+  const long = await explain(f.clients.patient, { patientId: f.patient, fileId: uploaded.body.id, text: 'x'.repeat(20000) });
+  assert.deepEqual(long.body.coverage, { explainedChars: 12000, totalChars: 20000, complete: false });
+
+  // Another patient's file, another patient, an unrelated clinician: refused.
+  assert.equal((await explain(f.clients.patient, { patientId: f.patient, fileId: other.body.id, text: 'a' })).status, 404);
+  assert.equal((await explain(f.clients.other, { patientId: f.patient, fileId: uploaded.body.id, text: 'a' })).status, 403);
+  assert.equal((await explain(f.clients.unrelated, { patientId: f.patient, fileId: uploaded.body.id, text: 'a' })).status, 403);
+  assert.equal((await explain(f.clients.admin, { patientId: f.patient, fileId: uploaded.body.id, text: 'a' })).status, 403);
+  // The care team may help the patient read it.
+  assert.equal((await explain(f.clients.doctor, { patientId: f.patient, fileId: uploaded.body.id, text: 'a' })).status, 200);
+  // Unknown fields and empty text are rejected.
+  assert.equal((await explain(f.clients.patient, { patientId: f.patient, fileId: uploaded.body.id, text: ' ' })).status, 400);
+  assert.equal((await explain(f.clients.patient, { patientId: f.patient, fileId: uploaded.body.id, text: 'a', apiKey: 'x' })).status, 400);
+});
+
+test('report explanation without a configured provider or with a failing one never pretends', async t => {
+  const f = await fixture(t);
+  const pdf = Buffer.from('%PDF-1.4 synthetic').toString('base64');
+  const uploaded = await f.clients.patient('/api/originals', { method: 'POST', body: { patientId: f.patient, base64: pdf, idempotencyKey: id() } });
+  const missing = await f.clients.patient('/api/reports/explain', { method: 'POST', body: { patientId: f.patient, fileId: uploaded.body.id, text: 'a' } });
+  assert.equal(missing.status, 503);
+  assert.match(missing.body.error, /not configured/);
+
+  const g = await fixture(t, { reportExplainer: async () => { throw new Error('provider down'); } });
+  const up = await g.clients.patient('/api/originals', { method: 'POST', body: { patientId: g.patient, base64: pdf, idempotencyKey: id() } });
+  const failed = await g.clients.patient('/api/reports/explain', { method: 'POST', body: { patientId: g.patient, fileId: up.body.id, text: 'a' } });
+  assert.equal(failed.status, 502);
+  assert.doesNotMatch(JSON.stringify(failed.body), /provider down/);
+});

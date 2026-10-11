@@ -111,29 +111,35 @@ void main() {
     });
   });
 
-  test('production navigator does not simulate a live AI answer', () async {
-    final db = newTestDatabase();
-    addTearDown(db.close);
-    await Seeder(db).run();
-    SharedPreferences.setMockInitialValues({'ui.hasSeenOnboarding': true});
-    final prefs = await SharedPreferences.getInstance();
-    final container = ProviderContainer(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(prefs),
-        appDatabaseProvider.overrideWithValue(db),
-        appModeProvider.overrideWithValue(AppMode.production),
-      ],
-    );
-    addTearDown(container.dispose);
+  test(
+    'production navigator is the labelled offline guide, never live AI',
+    () async {
+      final db = newTestDatabase();
+      addTearDown(db.close);
+      await Seeder(db).run();
+      SharedPreferences.setMockInitialValues({'ui.hasSeenOnboarding': true});
+      final prefs = await SharedPreferences.getInstance();
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          appDatabaseProvider.overrideWithValue(db),
+          appModeProvider.overrideWithValue(AppMode.production),
+        ],
+      );
+      addTearDown(container.dispose);
 
-    await container
-        .read(careNavigatorProvider.notifier)
-        .send('how do I book an appointment?');
+      await container
+          .read(careNavigatorProvider.notifier)
+          .send('how do I book an appointment?');
 
-    final reply = container.read(careNavigatorProvider).messages.last.text;
-    expect(reply, contains('live Care Navigator is currently unavailable'));
-    expect(reply, isNot(contains('Open the Appointments tab')));
-  });
+      // No provider is called from the device in any mode: the chat header
+      // reports "Offline guide · no live AI" and replies are the deterministic
+      // navigation guide, consistent with demo mode.
+      expect(await container.read(careNavigatorLiveProvider.future), isFalse);
+      final reply = container.read(careNavigatorProvider).messages.last.text;
+      expect(reply, contains('Open the Appointments tab'));
+    },
+  );
 
   testWidgets('FAB opens the chat panel for a signed-in patient', (
     tester,

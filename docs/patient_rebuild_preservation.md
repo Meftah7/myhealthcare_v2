@@ -19,7 +19,7 @@ proposal — fully working, shows a visible "Future work" label.
 | Sick leave | `/patient/timeline/sick-leave` | Records branch | QA Sick Leave | Core | unit (catalogue) |
 | Imaging | `/patient/timeline/imaging` | Records branch | QA Imaging | Core | unit |
 | Allergies | Allergy strip, `/patient/timeline/allergies` | Home allergy strip | QA Allergies | Core | allergies test |
-| Explain a report (PDF import + chat) | Care Navigator upload | Home hero CTA | QA Explain a Report; quick tools; Services core | Core (live AI pending — recorded gap) | report_chat_test |
+| Explain a report (PDF import + chat) | Care Navigator upload | Home hero CTA; pilot "Explain this report" (server) | QA Explain a Report; quick tools; Services core | Core (needs a server-held provider key) | report_chat_test; server tests |
 | Care Navigator chat | Floating button | Floating button | — | Core | care_navigator_test |
 | Appointments hub (list, detail, reschedule, cancel) | Tab 3 | Tab 3 Appointments | QA Appointments | Core | booking/appointment tests |
 | Book appointment wizard | `/patient/appointments/book` | Landing `/patient/book` → wizard | QA Book Appointment; quick tools; Services core | Core | booking tests |

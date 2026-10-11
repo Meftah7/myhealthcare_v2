@@ -59,7 +59,7 @@ class AppCard extends StatelessWidget {
       color: color ?? theme.cardTheme.color ?? scheme.surface,
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
-        borderRadius: Radii.card,
+        borderRadius: Radii.cardOf(context),
         side: BorderSide(color: borderColor ?? scheme.outlineVariant),
       ),
       child: Padding(padding: padding, child: child),
@@ -67,8 +67,8 @@ class AppCard extends StatelessWidget {
 
     if (elevated) {
       surface = DecoratedBox(
-        decoration: const BoxDecoration(
-          borderRadius: Radii.card,
+        decoration: BoxDecoration(
+          borderRadius: Radii.cardOf(context),
           boxShadow: Shadows.e1,
         ),
         child: surface,
@@ -108,7 +108,7 @@ class GradientHeroCard extends StatelessWidget {
     final theme = Theme.of(context);
     final surface = DecoratedBox(
       decoration: BoxDecoration(
-        borderRadius: Radii.hero,
+        borderRadius: Radii.heroOf(context),
         color: PatientPalette.brandOf(context, AppColors.seed),
       ),
       child: Stack(
@@ -175,7 +175,10 @@ class GradientHeroCard extends StatelessWidget {
       ),
     );
 
-    final lifted = ClipRRect(borderRadius: Radii.hero, child: surface);
+    final lifted = ClipRRect(
+      borderRadius: Radii.heroOf(context),
+      child: surface,
+    );
     return onTap == null ? lifted : Pressable(onTap: onTap, child: lifted);
   }
 }
@@ -364,7 +367,7 @@ class EntryCard extends StatelessWidget {
         color: filled ? scheme.primary : scheme.surfaceContainerLowest,
         clipBehavior: Clip.antiAlias,
         shape: RoundedRectangleBorder(
-          borderRadius: Radii.card,
+          borderRadius: Radii.cardOf(context),
           side: BorderSide(
             // The filled card carries its own weight; the bordered one gets the
             // same hairline as every other surface, at full strength.
