@@ -49,6 +49,10 @@ class StaffTasks extends Table {
   TextColumn get coverageStaffId =>
       text().nullable().references(Users, #id, onDelete: KeyAction.setNull)();
   DateTimeColumn get escalatedAt => dateTime().nullable()();
+
+  /// When waiting/blocked work must be looked at again. First-class (not only
+  /// in history) so boards can sort and filter by it; null for active work.
+  DateTimeColumn get nextReviewAt => dateTime().nullable()();
   TextColumn get status =>
       textEnum<TaskStatus>().withDefault(const Constant('open'))();
 

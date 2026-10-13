@@ -314,7 +314,9 @@ class _ScheduleState extends ConsumerState<AdminStaffScheduleScreen> {
                         ),
                         items: [
                           for (final s in people.valueOrNull ?? <Staff>[])
-                            if (s.id != staff && s.user.isActive && s.isDoctor)
+                            if (s.id != staff &&
+                                s.user.isActive &&
+                                s.takesAppointments)
                               DropdownMenuItem(
                                 value: s.id,
                                 child: Text(s.fullName),

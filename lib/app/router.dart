@@ -583,9 +583,6 @@ StatefulShellRoute _patientShell() {
           icon: Icons.forum_outlined,
           selectedIcon: Icons.forum,
           label: t.messagesTitle,
-          // Messaging is an existing supplementary feature (outside the
-          // proposal): a visible "Future work" label on its tab.
-          badge: t.paFutureWork,
         ),
         AppDestination(
           icon: Icons.grid_view_outlined,

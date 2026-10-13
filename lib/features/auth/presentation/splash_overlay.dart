@@ -202,23 +202,13 @@ class SplashBrandMark extends StatelessWidget {
                 ),
                 child: SizedBox.expand(),
               ),
-              Container(
-                width: 104,
-                height: 104,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(30),
-                  gradient: AppColors.patientBrandGradient,
-                  boxShadow: Shadows.glow(AppColors.patientBlue),
-                ),
-                padding: const EdgeInsets.all(18),
-                child: const AppLogo(semanticLabel: 'MyHealth Care'),
-              ),
+              const AppLogo(height: 112),
             ],
           ),
         ),
         ExcludeSemantics(
           child: Text(
-            'MyHealth Care',
+            kBrandName,
             style: theme.textTheme.titleMedium?.copyWith(
               color: theme.colorScheme.onSurface,
               letterSpacing: 0.4,

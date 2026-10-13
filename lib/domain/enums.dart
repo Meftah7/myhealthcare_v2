@@ -6,6 +6,41 @@ library;
 
 enum UserRole { patient, staff, admin }
 
+/// The validated staff job role, stored as `StaffProfiles.jobTitle`. Each
+/// role has its own permission set (`RolePermissions.forStaff`); a missing
+/// or unrecognised title parses to `null` and receives no clinical grants.
+enum StaffRole {
+  doctor('Doctor'),
+  nurse('Nurse'),
+  receptionist('Receptionist'),
+  pharmacist('Pharmacist'),
+  dentist('Dentist');
+
+  const StaffRole(this.jobTitle);
+
+  /// The stored job-title value.
+  final String jobTitle;
+
+  /// Clinicians patients can book with and who own appointment schedules.
+  bool get takesAppointments => this == doctor || this == dentist;
+
+  /// Legacy stored titles that name a role explicitly (the seeded
+  /// `'Consultant'` doctors). Anything else unknown is denied, not guessed.
+  static const _aliases = {'consultant': StaffRole.doctor};
+
+  static StaffRole? parse(String? jobTitle) {
+    final key = jobTitle?.trim().toLowerCase();
+    if (key == null || key.isEmpty) return null;
+    for (final r in values) {
+      if (r.jobTitle.toLowerCase() == key) return r;
+    }
+    return _aliases[key];
+  }
+}
+
+/// A pharmacy outcome recorded against a prescription.
+enum DispenseOutcome { dispensed, partial, held, clarificationRequested }
+
 /// A staff member's live availability, shown on the staff dashboard and in the
 /// staff directory (ported from the FirstSemMyHealth doctor "presence" toggle).
 enum PresenceStatus { onDuty, inConsultation, onBreak, offShift }

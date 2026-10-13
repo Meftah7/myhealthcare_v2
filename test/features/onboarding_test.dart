@@ -19,8 +19,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../support/mfa.dart';
 import '../support/test_database.dart';
 
-const _bookTitle = 'Book appointments in a few taps';
-const _recordsTitle = 'Your records and reports, made clearer';
+const _bookTitle = 'Book appointments with ease';
+const _recordsTitle = 'Your health records, in one place';
 
 Future<void> _pumpPastSplash(WidgetTester tester) async {
   await tester.pump(kSplashDuration + const Duration(milliseconds: 100));
@@ -241,7 +241,7 @@ void main() {
       ),
     );
     await tester.pump(const Duration(milliseconds: 100));
-    expect(find.bySemanticsLabel('Loading MyHealth'), findsOneWidget);
+    expect(find.bySemanticsLabel('Loading myhealth'), findsOneWidget);
     expect(find.text('This is taking longer than usual'), findsNothing);
 
     await tester.pump(kSplashSlowAfter);

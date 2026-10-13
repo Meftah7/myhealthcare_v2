@@ -69,6 +69,18 @@ String clinicianName(String fullName) {
   return _ar ? 'د. $trimmed' : 'Dr $trimmed';
 }
 
+/// Bahraini dinar amount, always three decimals (fils): `BHD 1,234.500`.
+/// The one formatter for displayed money, so screens never disagree.
+String fmtBhd(double amount) =>
+    'BHD ${localizeDigits(NumberFormat('#,##0.000', 'en').format(amount))}';
+
+/// A staff member's display name: the "Dr" honorific only for doctors and
+/// dentists — never for nurses, reception, pharmacy or an unknown role.
+String staffDisplayName(String fullName, String? jobTitle) =>
+    (StaffRole.parse(jobTitle)?.takesAppointments ?? false)
+    ? clinicianName(fullName)
+    : fullName.trim();
+
 /// Human-readable label for a [VisitType] ("chronicCareReview" → "Chronic care
 /// review").
 String visitTypeLabel(VisitType t) => _ar

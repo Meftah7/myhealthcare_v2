@@ -1,26 +1,29 @@
-# App launcher icons for MyHealth Care (task P0-02, rebranded P8-13).
-# Master art: assets/icon/app_icon*.png — the "MyHealth Care" mark: a
-# pink→purple→blue gradient heart with an ECG pulse, cupped in a blue hand
-# (source boards in docs/brand/). Regenerate after edits with:
-#   dart run flutter_launcher_icons -f flutter_launcher_icons.yaml
+# App launcher icons for myhealth.
+#
+# Canonical generator: `python tool/branding/generate_brand_assets.py`, which
+# derives every platform icon (Android legacy + adaptive + splash +
+# notification, iOS AppIcon + LaunchImage, web favicon/PWA/maskable, Windows
+# .ico) from the approved master assets/branding/myhealth-logo-original.png.
+# See assets/branding/README.md.
+#
+# This file is kept for anyone who prefers flutter_launcher_icons; it points
+# at the same derived assets. Running it overwrites the generator's output
+# with that tool's own processing, so prefer the script.
 flutter_launcher_icons:
-  image_path: "assets/icon/app_icon.png"
+  image_path: "assets/branding/myhealth-icon-fullbleed.png"
 
   android: "ic_launcher"
   min_sdk_android: 21
-  adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/icon/app_icon_foreground.png"
+  adaptive_icon_background: "#012D5E"
+  adaptive_icon_foreground: "assets/branding/myhealth-symbol.png"
 
   ios: true
   remove_alpha_ios: true
 
   web:
-    generate: true
-    image_path: "assets/icon/app_icon_plain.png"
-    background_color: "#ffffff"
-    theme_color: "#5B3FD8"
+    generate: false
 
   windows:
     generate: true
-    image_path: "assets/icon/app_icon_plain.png"
+    image_path: "assets/branding/myhealth-logo.png"
     icon_size: 256

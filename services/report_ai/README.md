@@ -1,7 +1,7 @@
 # Report AI gateway
 
 Live report explanations and grounded follow-up questions for the **full
-local-Drift MyHealth app**. The app keeps clinical data on the device and has
+local-Drift myhealth app**. The app keeps clinical data on the device and has
 no server account, so it cannot use the shared API. This small service is the
 only place the AI provider key exists.
 

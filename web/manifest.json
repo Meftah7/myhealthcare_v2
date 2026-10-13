@@ -1,11 +1,11 @@
 {
-    "name": "MyHealth Care",
-    "short_name": "MyHealth Care",
+    "name": "myhealth",
+    "short_name": "myhealth",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#ffffff",
-    "theme_color": "#5B3FD8",
-    "description": "MyHealth Care - AI-powered health records, appointments, and medical staff management",
+    "theme_color": "#012D5E",
+    "description": "myhealth - AI-powered health records, appointments, and medical staff management",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -65,7 +65,7 @@ class StaffProfileScreen extends ConsumerWidget {
           final u = s.user;
           return [
             ProfileHeader(
-              name: clinicianName(u.fullName),
+              name: staffDisplayName(u.fullName, s.jobTitle),
               email: u.email,
               role: t.roleStaff,
               avatarPath: u.avatarPath,

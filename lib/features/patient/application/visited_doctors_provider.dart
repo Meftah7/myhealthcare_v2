@@ -54,7 +54,7 @@ final visitedDoctorsProvider = FutureProvider<List<VisitedDoctor>>((ref) async {
     final profile =
         (await ref.watch(userRepositoryProvider).staffById(entry.key))
             .valueOrNull;
-    if (profile == null || !profile.isDoctor) continue;
+    if (profile == null || !profile.takesAppointments) continue;
 
     final upcoming = entry.value.where((a) => a.isUpcoming).toList()
       ..sort((a, b) => a.slotStart.compareTo(b.slotStart));

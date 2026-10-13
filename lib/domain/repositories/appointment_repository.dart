@@ -330,6 +330,14 @@ abstract interface class AppointmentRepository {
     int? expectedVersion,
   });
 
+  /// Front-desk arrival confirmation (receptionist `checkInPatients`).
+  /// Idempotent: an already checked-in visit is left unchanged.
+  Future<Result<void>> deskCheckIn(
+    String id, {
+    required DateTime at,
+    int? expectedVersion,
+  });
+
   Future<Result<void>> markCheckedIn(
     String id, {
     required String staffId,

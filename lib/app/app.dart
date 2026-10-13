@@ -34,7 +34,7 @@ class MyHealthCareApp extends ConsumerWidget {
       // Dispose the navigator, open dialogs/PDF previews and widget-local
       // chart state when a session is locked or the acting account changes.
       key: ValueKey(user?.id),
-      title: 'MyHealth Care',
+      title: 'myhealth',
       debugShowCheckedModeBanner: false,
       theme: switch ((patientLook, highContrast)) {
         (true, true) => AppTheme.patientLightHighContrast,

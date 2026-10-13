@@ -256,7 +256,7 @@ Future<void> _assignReview(
   final t = AppLocalizations.of(context)!;
   final doctors = [
     for (final s in await ref.read(staffDirectoryProvider.future))
-      if (s.isDoctor && s.user.isActive) s,
+      if (s.takesAppointments && s.user.isActive) s,
   ];
   if (!context.mounted) return;
   final picked = await showDialog<String>(

@@ -636,7 +636,7 @@ class AdminWorkspace {
           replacement.role != UserRole.staff ||
           profile == null ||
           profile.departmentId != original.departmentId ||
-          profile.jobTitle == 'Nurse') {
+          !(StaffRole.parse(profile.jobTitle)?.takesAppointments ?? false)) {
         throw const ValidationFailure(
           'Choose an active doctor in the same department.',
         );

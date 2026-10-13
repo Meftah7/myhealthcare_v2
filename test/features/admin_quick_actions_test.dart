@@ -225,7 +225,7 @@ void main() {
     await tester.tap(find.text('Billing'));
     await _settle(tester);
     expect(find.widgetWithText(AppBar, 'Billing'), findsOneWidget);
-    expect(find.textContaining('BD '), findsWidgets);
+    expect(find.textContaining('BHD '), findsWidgets);
 
     // Filter to pending invoices and record a desk payment for the first
     // one — with its receipt number (there is no "mark paid").

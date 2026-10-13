@@ -40,7 +40,9 @@ final adminDepartmentDoctorsProvider =
       final staff = _unwrap(
         await ref.watch(userRepositoryProvider).staffInDepartment(departmentId),
       );
-      return staff.where((s) => s.isDoctor && s.user.isActive).toList();
+      return staff
+          .where((s) => s.takesAppointments && s.user.isActive)
+          .toList();
     });
 
 /// A staff member's weekly working blocks — the admin schedule editor.

@@ -448,7 +448,7 @@ class DepartmentRepositoryImpl implements DepartmentRepository {
       final name = (values['name'] as String?)?.trim();
       final address = (values['address'] as String?)?.trim();
       return ClinicFacility(
-        name: name == null || name.isEmpty ? 'MyHealth Care' : name,
+        name: name == null || name.isEmpty ? 'myhealth' : name,
         address: address == null || address.isEmpty ? null : address,
       );
     });

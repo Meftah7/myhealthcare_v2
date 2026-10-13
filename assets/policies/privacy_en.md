@@ -1,10 +1,10 @@
-# MyHealth Privacy Policy
+# myhealth Privacy Policy
 
-DRAFT FOR OWNER REVIEW. This text describes how this version of the MyHealth app handles information. It has not been approved or published by the operator and is not legal advice. Items marked [to be supplied] must be completed by the operator.
+DRAFT FOR OWNER REVIEW. This text describes how this version of the myhealth app handles information. It has not been approved or published by the operator and is not legal advice. Items marked [to be supplied] must be completed by the operator.
 
 ## Who is responsible
 
-MyHealth is operated by [operator legal name — to be supplied]. Contact for privacy questions: [contact channel — to be supplied].
+myhealth is operated by [operator legal name — to be supplied]. Contact for privacy questions: [contact channel — to be supplied].
 
 ## What the app handles
 
@@ -21,11 +21,11 @@ MyHealth is operated by [operator legal name — to be supplied]. Contact for pr
 - The web version stores information in your browser's storage, which is not encrypted by the app.
 - The separate shared-server pilot stores account and clinical information in a server SQLite database. Its document files and backups are encrypted; the application does not itself encrypt the server SQLite database. Hosting location, disk encryption, access controls and production transport security must be confirmed by the operator. Server sessions end after 24 minutes of inactivity or a maximum 12-hour lifetime.
 
-Original PDFs can be downloaded or shared through document actions. Copies saved outside MyHealth are handled by your device or the destination you choose. The operator must confirm backup/export retention and the deployment's document-verification service before publication.
+Original PDFs can be downloaded or shared through document actions. Copies saved outside myhealth are handled by your device or the destination you choose. The operator must confirm backup/export retention and the deployment's document-verification service before publication.
 
 ## AI report explanations
 
-When the MyHealth report AI service is connected, the extracted text of the report you choose, your question and recent report-chat turns are sent to that service. The full local app sends extracted text rather than the PDF file to the report AI gateway. The separate shared pilot stores the original on its server and checks authorization before extracting text for AI. The AI service currently implements a Google Gemini provider adapter; the operator must confirm the actual provider, contract, processing country and retention terms before enabling it. The provider receives at most the first 12,000 report characters and bounded recent conversation context. Coverage limits are shown when only part of a report is explained. The AI provider key is held only on the server, never on your device. Answers are drafts, not a diagnosis.
+When the myhealth report AI service is connected, the extracted text of the report you choose, your question and recent report-chat turns are sent to that service. The full local app sends extracted text rather than the PDF file to the report AI gateway. The separate shared pilot stores the original on its server and checks authorization before extracting text for AI. The AI service currently implements a Google Gemini provider adapter; the operator must confirm the actual provider, contract, processing country and retention terms before enabling it. The provider receives at most the first 12,000 report characters and bounded recent conversation context. Coverage limits are shown when only part of a report is explained. The AI provider key is held only on the server, never on your device. Answers are drafts, not a diagnosis.
 
 The report gateway handles requests in memory, does not intentionally log request bodies, report text, questions or credentials, and returns no-store responses. This does not establish the third-party provider's retention practices or the hosting proxy's logging settings; these remain [to be supplied]. Report-chat context is cleared on report/account changes or logout. Existing original records remain separate from explanations.
 

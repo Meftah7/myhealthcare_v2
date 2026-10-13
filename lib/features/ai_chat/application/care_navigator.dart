@@ -78,7 +78,7 @@ class ChatMessage {
 
 const _greeting = ChatMessage(
   ChatRole.model,
-  "Hello! 👋 I'm your Care Navigator. I can help you get around MyHealth — "
+  "Hello! 👋 I'm your Care Navigator. I can help you get around myhealth — "
   'appointments, health records, medications, billing and your profile. '
   'What are you looking for?',
 );
@@ -235,7 +235,7 @@ class CareNavigator extends Notifier<CareNavigatorState> {
       _append(
         const ChatMessage(
           ChatRole.model,
-          'Questions about this report need the MyHealth report AI service, '
+          'Questions about this report need the myhealth report AI service, '
           "which isn't connected in this version of the app. The summary above "
           'was made on this device, and your doctor can answer questions about '
           'the report.',

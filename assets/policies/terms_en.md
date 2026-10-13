@@ -1,14 +1,14 @@
-# MyHealth Terms and Conditions
+# myhealth Terms and Conditions
 
-DRAFT FOR OWNER REVIEW. These terms describe this version of the MyHealth app. They have not been approved or published by the operator and are not legal advice. Items marked [to be supplied] must be completed by the operator.
+DRAFT FOR OWNER REVIEW. These terms describe this version of the myhealth app. They have not been approved or published by the operator and are not legal advice. Items marked [to be supplied] must be completed by the operator.
 
 ## About the service
 
-MyHealth lets patients view their health records, book appointments, download documents issued by their care team and get plain-language explanations of PDF medical reports. It is operated by [operator legal name — to be supplied].
+myhealth lets patients view their health records, book appointments, download documents issued by their care team and get plain-language explanations of PDF medical reports. It is operated by [operator legal name — to be supplied].
 
 ## Not for emergencies
 
-MyHealth is not an emergency service. If you or someone else may be in danger, call 999 (Bahrain emergency) or your local emergency number, or go to the nearest emergency department. Booking an appointment is not suitable for emergencies.
+myhealth is not an emergency service. If you or someone else may be in danger, call 999 (Bahrain emergency) or your local emergency number, or go to the nearest emergency department. Booking an appointment is not suitable for emergencies.
 
 ## Medical information
 

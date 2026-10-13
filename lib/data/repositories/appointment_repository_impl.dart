@@ -924,6 +924,15 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
       );
       return actor.accountId;
     }
+    // Front desk books on a patient's behalf; it never gains chart access.
+    if (actor.isStaff && actor.can(Permission.bookForPatients)) {
+      await _access.audit(
+        'desk.appointment.book',
+        entityType: 'appointment',
+        subjectPatientId: patientId,
+      );
+      return actor.accountId;
+    }
     final subject = await _access.actForPatient(
       patientId,
       Permission.bookAppointments,
@@ -955,6 +964,18 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
       throw const AccessDeniedFailure(
         'You do not have permission to change this appointment.',
       );
+    }
+    final actor = await _access.principal();
+    if (actor != null &&
+        actor.isStaff &&
+        actor.can(Permission.bookForPatients)) {
+      await _access.audit(
+        'desk.appointment.$action',
+        entityType: 'appointment',
+        entityId: id,
+        subjectPatientId: row.patientId,
+      );
+      return;
     }
     final subject = await _access.actForPatient(
       row.patientId,
@@ -1379,6 +1400,49 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
           entityId: id,
           subjectPatientId: row.patientId,
           detail: riskBand.name,
+        );
+      }),
+    );
+  }
+
+  @override
+  Future<Result<void>> deskCheckIn(
+    String id, {
+    required DateTime at,
+    int? expectedVersion,
+  }) async {
+    try {
+      await _access.require(
+        Permission.checkInPatients,
+        entityType: 'appointment',
+        entityId: id,
+      );
+    } on Failure catch (f) {
+      return Err(f);
+    }
+    return Result.guardAsync(
+      () => _db.transaction(() async {
+        final row = await (_db.select(
+          _db.appointments,
+        )..where((a) => a.id.equals(id))).getSingleOrNull();
+        if (row == null) throw NotFoundFailure('No appointment $id.');
+        // A repeated tap or retry after a lost response changes nothing.
+        if (row.checkedInAt != null) return;
+        _requireVersion(row, expectedVersion);
+        _requireTransition(row.status, AppointmentStatus.confirmed);
+        await (_db.update(
+          _db.appointments,
+        )..where((a) => a.id.equals(id))).write(
+          AppointmentsCompanion(
+            checkedInAt: Value(at),
+            status: const Value(AppointmentStatus.confirmed),
+          ),
+        );
+        await _access.audit(
+          'desk.appointment.check_in',
+          entityType: 'appointment',
+          entityId: id,
+          subjectPatientId: row.patientId,
         );
       }),
     );

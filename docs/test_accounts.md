@@ -16,6 +16,18 @@ Every account the app seeds on first launch, for the report and for testers.
 | --- | --- | --- |
 | `admin@myhealth.demo` | admin | User management, departments, system analytics, audit log, AI settings. id `admin_01`. |
 
+## Other staff roles (4, seed v16)
+
+Seeded last with fixed names. Existing local databases keep their data; use
+Reset demo data (or a fresh install) to get these accounts.
+
+| Email | id | Role | Today workspace |
+| --- | --- | --- | --- |
+| `nurse@myhealth.demo` | `staff_nurse` | Nurse | Clinical dashboard (no prescribing/signing). |
+| `reception@myhealth.demo` | `staff_reception` | Receptionist | Front desk: CPR/ID search, desk booking, arrivals, issued-copy confirmation. No chart access. |
+| `pharmacy@myhealth.demo` | `staff_pharmacy` | Pharmacist | Prescription queue and dispensing outcomes. No chart access. |
+| `dentist@myhealth.demo` | `staff_dentist` | Dentist | Clinical dashboard with dental scope (no result-review queue). No department or schedule seeded. |
+
 ## Staff (12)
 
 Doctors. Weekday schedule Sun–Thu, 08:00–20:00, 20-minute slots.

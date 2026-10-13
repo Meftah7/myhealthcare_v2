@@ -1082,20 +1082,24 @@ class _CreateStaffSheetState extends ConsumerState<_CreateStaffSheet> {
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: Space.sm),
-            // Role first — a nurse works the nursing queue and never takes
-            // appointments, so it changes what the rest of the form means.
+            // Role first — it sets the account's permission set: only doctors
+            // and dentists take appointments; reception and pharmacy never
+            // read the clinical chart.
             DropdownButtonFormField<String>(
               initialValue: _jobTitle,
               decoration: InputDecoration(labelText: t.roleLabel),
               items: [
-                DropdownMenuItem(
-                  value: kDoctorJobTitle,
-                  child: Text(t.doctorOption),
-                ),
-                DropdownMenuItem(
-                  value: kNurseJobTitle,
-                  child: Text(t.nurseOption),
-                ),
+                for (final role in StaffRole.values)
+                  DropdownMenuItem(
+                    value: role.jobTitle,
+                    child: Text(switch (role) {
+                      StaffRole.doctor => t.doctorOption,
+                      StaffRole.nurse => t.nurseOption,
+                      StaffRole.receptionist => t.receptionistOption,
+                      StaffRole.pharmacist => t.pharmacistOption,
+                      StaffRole.dentist => t.dentistOption,
+                    }),
+                  ),
               ],
               onChanged: (v) =>
                   setState(() => _jobTitle = v ?? kDoctorJobTitle),
@@ -1293,7 +1297,7 @@ class _BookForPatientSheetState extends ConsumerState<_BookForPatientSheet> {
                   for (final s in list)
                     DropdownMenuItem(
                       value: s.id,
-                      child: Text(clinicianName(s.fullName)),
+                      child: Text(staffDisplayName(s.fullName, s.jobTitle)),
                     ),
                 ],
                 onChanged: list.isEmpty

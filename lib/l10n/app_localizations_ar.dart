@@ -2954,7 +2954,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get pushChannelSubtitle =>
-      'تنبيهات المتصفح أثناء فتح MyHealth Care. التذكيرات التي يحين موعدها أثناء إغلاقه تظهر في صندوق الوارد عند عودتك.';
+      'تنبيهات المتصفح أثناء فتح myhealth. التذكيرات التي يحين موعدها أثناء إغلاقه تظهر في صندوق الوارد عند عودتك.';
 
   @override
   String get inAppAlwaysOnNote =>
@@ -3435,6 +3435,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nurseOption => 'ممرض/ة';
 
   @override
+  String get receptionistOption => 'موظف/ة استقبال';
+
+  @override
+  String get pharmacistOption => 'صيدلي/ة';
+
+  @override
+  String get dentistOption => 'طبيب/ة أسنان';
+
+  @override
   String get specialtyUnitOptionalLabel => 'التخصص / الوحدة (اختياري)';
 
   @override
@@ -3705,7 +3714,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get linkAccountSearchHelper =>
-      'يجب أن يكون لديهم حساب MyHealth Care بالفعل.';
+      'يجب أن يكون لديهم حساب myhealth بالفعل.';
 
   @override
   String get noAccountsFound => 'لم يتم العثور على حسابات.';
@@ -4282,7 +4291,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get feedbackOffline =>
-      'تعذّر الوصول إلى MyHealth Care. تحقق من اتصالك وحاول مرة أخرى.';
+      'تعذّر الوصول إلى myhealth. تحقق من اتصالك وحاول مرة أخرى.';
 
   @override
   String get feedbackUnexpected =>
@@ -5006,7 +5015,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get paClinic => 'العيادة';
 
   @override
-  String get paClinicExplainer => 'هذه هي الأقسام التخصصية في عيادة ماي هيلث.';
+  String get paClinicExplainer => 'هذه هي الأقسام التخصصية في عيادة myhealth.';
 
   @override
   String get paClose => 'إغلاق';
@@ -5038,7 +5047,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get paEmergencyNotDispatch =>
-      'لا يستطيع تطبيق ماي هيلث الاتصال بخدمات الطوارئ نيابةً عنك، وحجز موعد غير مناسب لحالات الطوارئ.';
+      'لا يستطيع تطبيق myhealth الاتصال بخدمات الطوارئ نيابةً عنك، وحجز موعد غير مناسب لحالات الطوارئ.';
 
   @override
   String get paEmergencyServices => 'الطوارئ';
@@ -5129,7 +5138,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get paMessageCareTeam => 'راسل فريق رعايتك';
 
   @override
-  String get paMyHealthServices => 'خدمات ماي هيلث';
+  String get paMyHealthServices => 'خدمات myhealth';
 
   @override
   String get paMyProfile => 'ملفي الشخصي';
@@ -5174,14 +5183,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get paQuickAccess => 'الوصول السريع';
 
   @override
-  String get paQuickAccessSubtitle => 'كل ما في حسابك على ماي هيلث.';
+  String get paQuickAccessSubtitle => 'كل ما في حسابك على myhealth.';
 
   @override
   String get paRegion => 'المنطقة';
 
   @override
   String get paRegionUnavailableBody =>
-      'لدى ماي هيلث حاليًا عيادة واحدة، لذا لا توجد مناطق للاختيار منها. اختر قسمًا أو طبيبًا بدلًا من ذلك.';
+      'لدى myhealth حاليًا عيادة واحدة، لذا لا توجد مناطق للاختيار منها. اختر قسمًا أو طبيبًا بدلًا من ذلك.';
 
   @override
   String get paRegionUnavailableTitle => 'لا توجد مناطق مُعدّة';
@@ -5197,7 +5206,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get paServiceUnavailableBody =>
-      'هذه الخدمة غير متاحة في هذا الإصدار من ماي هيلث.';
+      'هذه الخدمة غير متاحة في هذا الإصدار من myhealth.';
 
   @override
   String get paServices => 'الخدمات';
@@ -5278,18 +5287,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get paYesPlease => 'نعم، من فضلك';
 
   @override
-  String get paOnboardBookTitle => 'احجز مواعيدك ببضع نقرات';
+  String get paOnboardBookTitle => 'احجز مواعيدك بسهولة';
 
   @override
   String get paOnboardBookBody =>
-      'اعثر على عيادة أو طبيب، واختر الوقت المناسب، وأدِر زياراتك في مكان واحد.';
+      'اعثر على طبيب واحجز موعدًا مناسبًا في خطوات بسيطة.';
 
   @override
-  String get paOnboardRecordsTitle => 'سجلاتك وتقاريرك بشكل أوضح';
+  String get paOnboardRecordsTitle => 'سجلاتك الصحية في مكان واحد';
 
   @override
   String get paOnboardRecordsBody =>
-      'اطّلع على سجلاتك، وحمّل مستنداتك، واحصل على شرح مبسّط لتقارير PDF.';
+      'اطّلع على تقاريرك ووصفاتك الطبية وسجل زياراتك المتاحة.';
 
   @override
   String get paChatLiveStatus => 'ذكاء اصطناعي مباشر';
@@ -5310,7 +5319,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get paFutureWorkBody =>
-      'هذه الميزة ضمن العمل المستقبلي وليست جزءًا من هذا الإصدار من ماي هيلث. لم يُربط أي شيء بعد، لذا لا تُعرض أي معلومات هنا.';
+      'هذه الميزة ضمن العمل المستقبلي وليست جزءًا من هذا الإصدار من myhealth. لم يُربط أي شيء بعد، لذا لا تُعرض أي معلومات هنا.';
 
   @override
   String get paCoreServices => 'الخدمات الأساسية';
@@ -5353,11 +5362,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get paDrawerAbout => 'حول التطبيق والدعم';
 
   @override
-  String get paAboutMyHealth => 'حول ماي هيلث';
+  String get paAboutMyHealth => 'حول myhealth';
 
   @override
   String get paAboutBody =>
-      'يتيح ماي هيلث للمرضى عرض سجلاتهم وحجز المواعيد وتحميل المستندات والحصول على شرح مبسّط لتقارير PDF الطبية. نموذج أولي لمشروع تخرج ببيانات تجريبية.';
+      'يتيح myhealth للمرضى عرض سجلاتهم وحجز المواعيد وتحميل المستندات والحصول على شرح مبسّط لتقارير PDF الطبية. نموذج أولي لمشروع تخرج ببيانات تجريبية.';
 
   @override
   String get paSettingsPreferences => 'الإعدادات والتفضيلات';
@@ -5630,7 +5639,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get htCallDescription =>
-      'رقم الطوارئ في البحرين. يفتح الاتصال على جهازك؛ لا يرسل MyHealth سيارة إسعاف.';
+      'رقم الطوارئ في البحرين. يفتح الاتصال على جهازك؛ لا يرسل myhealth سيارة إسعاف.';
 
   @override
   String get htPhoneUnavailable =>
@@ -5645,7 +5654,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get htNearestErUnavailable =>
-      'لم يُعد دليل موثق لمرافق الطوارئ أو الإحداثيات أو الاتجاهات. لا يستطيع MyHealth تحديد أقرب قسم طوارئ.';
+      'لم يُعد دليل موثق لمرافق الطوارئ أو الإحداثيات أو الاتجاهات. لا يستطيع myhealth تحديد أقرب قسم طوارئ.';
 
   @override
   String get htRapidResponse => 'فريق الاستجابة السريعة';
@@ -5659,7 +5668,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get htCheckInUnavailable =>
-      'لا توجد خدمة خلفية للتسجيل في الطوارئ. لا يستطيع MyHealth حجز سعة الطوارئ أو تجاوز الانتظار أو إعفاء الدفع.';
+      'لا توجد خدمة خلفية للتسجيل في الطوارئ. لا يستطيع myhealth حجز سعة الطوارئ أو تجاوز الانتظار أو إعفاء الدفع.';
 
   @override
   String get htSelectHospital => 'اختر المستشفى';
@@ -5708,14 +5717,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذر تحميل عوامل تصفية الأقسام. لا يزال البحث بالاسم والتخصص متاحاً.';
 
   @override
-  String get splashLoadingLabel => 'جارٍ تحميل MyHealth';
+  String get splashLoadingLabel => 'جارٍ تحميل myhealth';
 
   @override
   String get splashSlowTitle => 'يستغرق هذا وقتًا أطول من المعتاد';
 
   @override
   String get splashSlowBody =>
-      'لا يزال MyHealth قيد الإعداد. تحقق من الاتصال أو إعدادات تخزين المتصفح، ثم أعد المحاولة.';
+      'لا يزال myhealth قيد الإعداد. تحقق من الاتصال أو إعدادات تخزين المتصفح، ثم أعد المحاولة.';
 
   @override
   String onboardingProgress(int current, int total) {
@@ -5736,28 +5745,28 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get svcBloodDonationTitle =>
-      'معلومات التبرع بالدم مخطط لها في MyHealth';
+      'معلومات التبرع بالدم مخطط لها في myhealth';
 
   @override
   String get svcBloodDonationBody =>
       'قد يعرض إصدار مستقبلي معلومات التبرع بالدم من المستشفى. التسجيل كمتبرع وفحص الأهلية ومواعيد التبرع غير متاحة في هذا الإصدار.';
 
   @override
-  String get svcEReferralTitle => 'الإحالات الإلكترونية مخطط لها في MyHealth';
+  String get svcEReferralTitle => 'الإحالات الإلكترونية مخطط لها في myhealth';
 
   @override
   String get svcEReferralBody =>
-      'قد يتيح إصدار مستقبلي للأطباء إرسال الإحالات ومتابعتها إلكترونيًا. لا يستطيع MyHealth إرسال السجلات إلى مستشفى آخر، ولا يوجد تكامل للإحالات حتى الآن.';
+      'قد يتيح إصدار مستقبلي للأطباء إرسال الإحالات ومتابعتها إلكترونيًا. لا يستطيع myhealth إرسال السجلات إلى مستشفى آخر، ولا يوجد تكامل للإحالات حتى الآن.';
 
   @override
-  String get svcCheckupTitle => 'باقات الفحص الصحي مخطط لها في MyHealth';
+  String get svcCheckupTitle => 'باقات الفحص الصحي مخطط لها في myhealth';
 
   @override
   String get svcCheckupBody =>
       'لا توجد باقة فحص متاحة للحجز حتى الآن. لا يزال بإمكانك حجز موعد عادي مع طبيب من حجز موعد.';
 
   @override
-  String get svcWaterTitle => 'تتبع شرب الماء مخطط له في MyHealth';
+  String get svcWaterTitle => 'تتبع شرب الماء مخطط له في myhealth';
 
   @override
   String get svcWaterBody =>
@@ -5768,10 +5777,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get svcTrackersBody =>
-      'اطلع على قراءات ضغط الدم ونبض القلب والحرارة والوزن وتشبع الأكسجين والسكر المحفوظة في MyHealth مع اتجاهاتها بمرور الوقت. المراقبة المباشرة أو المستمرة غير متاحة.';
+      'اطلع على قراءات ضغط الدم ونبض القلب والحرارة والوزن وتشبع الأكسجين والسكر المحفوظة في myhealth مع اتجاهاتها بمرور الوقت. المراقبة المباشرة أو المستمرة غير متاحة.';
 
   @override
-  String get svcWatchesTitle => 'ربط الساعات الذكية مخطط له في MyHealth';
+  String get svcWatchesTitle => 'ربط الساعات الذكية مخطط له في myhealth';
 
   @override
   String get svcWatchesBody =>

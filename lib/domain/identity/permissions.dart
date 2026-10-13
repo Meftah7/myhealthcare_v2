@@ -67,10 +67,25 @@ enum Permission {
   assignOperationalWork,
   revokeDocument,
   signClinicalDocument,
+
+  // --- Front desk and pharmacy ---------------------------------------------
+  /// Book, reschedule or cancel appointments on a patient's behalf.
+  bookForPatients,
+
+  /// Confirm arrival / check a booked patient in.
+  checkInPatients,
+
+  /// Administratively confirm an already issued document copy. Never a
+  /// clinical signature.
+  confirmDocumentCopy,
+
+  /// Review signed prescriptions and record dispensing outcomes.
+  dispenseMedication,
 }
 
-/// Grants per role. Staff grants depend on the clinical job title: a nurse
-/// works the chart and the queue but does not prescribe or certify leave.
+/// Grants per role. Staff grants depend on the validated [StaffRole]: a nurse
+/// works the chart and the queue but does not prescribe or certify leave;
+/// reception and pharmacy never read the clinical chart.
 abstract final class RolePermissions {
   static const patient = <Permission>{
     Permission.viewOwnHealthData,
@@ -105,6 +120,43 @@ abstract final class RolePermissions {
     Permission.reviewResults,
   };
 
+  /// Dental scope: chart, notes, scoped prescribing and signing within care
+  /// relationships; no general result-review queue.
+  static const dentist = <Permission>{
+    ...nurse,
+    Permission.prescribe,
+    Permission.issueSickLeave,
+    Permission.useClinicalScribe,
+    Permission.requestReferral,
+    Permission.signEncounter,
+  };
+
+  static const receptionist = <Permission>{
+    Permission.bookForPatients,
+    Permission.checkInPatients,
+    Permission.confirmDocumentCopy,
+    Permission.messageCareTeam,
+    Permission.manageTasks,
+  };
+
+  static const pharmacist = <Permission>{
+    Permission.dispenseMedication,
+    Permission.messageCareTeam,
+    Permission.manageTasks,
+  };
+
+  /// A staff account whose role is missing or unrecognised: nothing.
+  static const unassignedStaff = <Permission>{};
+
+  static Set<Permission> forStaff(StaffRole? role) => switch (role) {
+    StaffRole.doctor => doctor,
+    StaffRole.nurse => nurse,
+    StaffRole.dentist => dentist,
+    StaffRole.receptionist => receptionist,
+    StaffRole.pharmacist => pharmacist,
+    null => unassignedStaff,
+  };
+
   static const admin = <Permission>{
     Permission.manageUsers,
     Permission.manageDepartments,
@@ -120,11 +172,11 @@ abstract final class RolePermissions {
     Permission.viewOperationalReports,
   };
 
-  /// The grant for an account of [role]. [isNurse] only matters for staff.
-  static Set<Permission> forRole(UserRole role, {bool isNurse = false}) =>
+  /// The grant for an account of [role]. [staffRole] only matters for staff.
+  static Set<Permission> forRole(UserRole role, {StaffRole? staffRole}) =>
       switch (role) {
         UserRole.patient => patient,
-        UserRole.staff => isNurse ? nurse : doctor,
+        UserRole.staff => forStaff(staffRole),
         UserRole.admin => admin,
       };
 }

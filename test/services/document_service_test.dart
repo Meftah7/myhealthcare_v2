@@ -28,6 +28,7 @@ class TestRenderer implements IssuedSickLeaveRenderer {
   bool fail = false;
   int calls = 0;
   String? wording;
+  bool? brandLogo;
   @override
   Future<Uint8List> render({
     required String wording,
@@ -36,10 +37,12 @@ class TestRenderer implements IssuedSickLeaveRenderer {
     required DateTime issuedAt,
     bool draft = false,
     String title = 'Sick leave',
-    String clinicName = 'MyHealth Care',
+    String clinicName = 'myhealth',
     String? verificationUrl,
+    bool brandLogo = false,
   }) async {
     calls++;
+    this.brandLogo = brandLogo;
     this.wording = wording;
     capturedClinic = clinicName;
     if (fail) throw StateError('Renderer unavailable');

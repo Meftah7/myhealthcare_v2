@@ -417,7 +417,7 @@ class _TransferSheetState extends ConsumerState<_TransferSheet> {
                       DropdownMenuItem(
                         value: s.id,
                         child: Text(
-                          '${clinicianName(s.fullName)}'
+                          '${staffDisplayName(s.fullName, s.jobTitle)}'
                           '${s.specialty == null ? '' : ' · ${s.specialty}'}',
                           overflow: TextOverflow.ellipsis,
                         ),

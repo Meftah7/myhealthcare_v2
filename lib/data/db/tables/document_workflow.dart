@@ -152,3 +152,23 @@ class TaskHistory extends Table {
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
+
+/// A front-desk administrative confirmation that a released copy matches an
+/// issued, valid version. Recorded separately from clinical signing: it never
+/// issues, signs or changes a document.
+@DataClassName('DocumentCopyConfirmationRow')
+class DocumentCopyConfirmations extends Table {
+  TextColumn get id => text()();
+  TextColumn get issuedVersionId =>
+      text().references(IssuedDocumentVersions, #id)();
+  TextColumn get patientId => text().references(Users, #id)();
+  TextColumn get confirmedBy => text().references(Users, #id)();
+  TextColumn get reason => text().withLength(min: 1, max: 500)();
+
+  /// SHA-256 of the stored artifact the confirmation was made against.
+  TextColumn get artifactSha256 => text()();
+  TextColumn get idempotencyKey => text().unique()();
+  DateTimeColumn get confirmedAt => dateTime()();
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}

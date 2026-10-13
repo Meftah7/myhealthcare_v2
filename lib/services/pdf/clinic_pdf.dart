@@ -18,6 +18,8 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import 'brand_pdf.dart';
+
 import '../../core/app_environment.dart';
 
 import 'pdf_strings.dart';
@@ -100,7 +102,7 @@ String pdfStamp(DateTime d, {bool arabic = false}) => arabic
 class ClinicPdf {
   const ClinicPdf._();
 
-  static const clinicName = 'MyHealth Care';
+  static const clinicName = 'myhealth';
 
   /// Builds a finished PDF. [title] is the document name; [subtitle] an
   /// optional line under it (a date range, say).
@@ -163,7 +165,7 @@ class ClinicPdf {
             pw.Row(
               children: [
                 if (logo != null) ...[
-                  pw.Image(logo, height: 26, width: 26),
+                  pw.Image(logo, height: 30, width: 30, fit: pw.BoxFit.contain),
                   pw.SizedBox(width: 8),
                 ],
                 pw.Column(
@@ -444,22 +446,7 @@ class ClinicPdf {
 
   // --- helpers -------------------------------------------------------------
 
-  static pw.ImageProvider? _cachedLogo;
-
-  static Future<pw.ImageProvider?> _logo() async {
-    if (_cachedLogo != null) return _cachedLogo;
-    try {
-      // A PDF page is always white paper, regardless of the app's theme —
-      // always the light-background mark. A 128px copy: it prints at 26pt
-      // (sharp at 300dpi), and the full 1024px logo made every document
-      // ~300KB larger and several times slower to build.
-      final data = await rootBundle.load('assets/images/logo_pdf.png');
-      return _cachedLogo = pw.MemoryImage(data.buffer.asUint8List());
-    } catch (_) {
-      // A missing asset must never sink a report — just drop the mark.
-      return null;
-    }
-  }
+  static Future<pw.ImageProvider?> _logo() => BrandPdf.logo();
 
   static pw.ThemeData? _cachedTheme;
   static bool _themeTried = false;

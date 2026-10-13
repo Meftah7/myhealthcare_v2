@@ -16,6 +16,7 @@ import '../../domain/repositories/document_service.dart';
 import '../../domain/repositories/document_verification_repository.dart';
 import '../../domain/repositories/export_repository.dart';
 import '../../services/auth/access_policy.dart';
+import '../../services/pdf/brand_pdf.dart';
 import '../../services/pdf/issued_sick_leave_pdf.dart';
 import '../db/app_database.dart';
 import 'document_sources.dart';
@@ -69,7 +70,7 @@ class DocumentServiceImpl implements DocumentService {
       _db.clinicConfigurations,
     )..where((c) => c.id.equals('clinic'))).getSingleOrNull();
     return row == null
-        ? 'MyHealth Care'
+        ? 'myhealth'
         : (jsonDecode(row.valueJson) as Map<String, dynamic>)['name'] as String;
   }
 
@@ -684,6 +685,7 @@ class DocumentServiceImpl implements DocumentService {
           reference: 'DRAFT',
           issuedAt: r.createdAt,
           draft: true,
+          brandLogo: true,
         );
         await _prepareAuthority(r);
         return bytes;
@@ -1029,6 +1031,7 @@ class DocumentServiceImpl implements DocumentService {
                 'approvedBy': t.approvedBy,
                 'approvedAt': t.approvedAt!.toIso8601String(),
                 'clinicName': await _clinicName(),
+                'brandMark': BrandPdf.snapshotMark,
                 'externalToken': base64UrlEncode(
                   List<int>.generate(32, (_) => _random.nextInt(256)),
                 ).replaceAll('=', ''),
@@ -1215,6 +1218,8 @@ class DocumentServiceImpl implements DocumentService {
               (jsonDecode(v.templateSnapshotJson)
                       as Map<String, dynamic>)['clinicName']
                   as String? ??
+              // Snapshots from before clinicName was frozen were issued
+              // under the previous name; keep reproducing them as issued.
               'MyHealth Care',
           language: v.language,
           reference: initial.verificationCode,
@@ -1224,6 +1229,10 @@ class DocumentServiceImpl implements DocumentService {
           ),
           verificationUrl: _verificationUrl(v),
           issuedAt: v.issuedAt,
+          brandLogo:
+              (jsonDecode(v.templateSnapshotJson)
+                  as Map<String, dynamic>)['brandMark'] ==
+              BrandPdf.snapshotMark,
         );
         if (bytes.isEmpty) {
           throw const ValidationFailure('Renderer returned an empty document.');
@@ -1405,6 +1414,84 @@ class DocumentServiceImpl implements DocumentService {
           return Uint8List.fromList(bytes);
         });
       });
+
+  @override
+  Future<Result<DateTime>> confirmIssuedCopy(
+    String issuedVersionId, {
+    required bool recipientIdentityChecked,
+    required String reason,
+    required String idempotencyKey,
+  }) => Result.guardAsync(() async {
+    final p = await _access.require(
+      Permission.confirmDocumentCopy,
+      entityType: 'issued_document',
+      entityId: issuedVersionId,
+    );
+    final why = reason.trim();
+    if (!recipientIdentityChecked) {
+      throw const ValidationFailure(
+        "Check the recipient's identity before confirming the copy.",
+      );
+    }
+    if (why.isEmpty || why.length > 500) {
+      throw const ValidationFailure(
+        'Record why the copy is being confirmed (up to 500 characters).',
+      );
+    }
+    return _db.transaction(() async {
+      final prior =
+          await (_db.select(_db.documentCopyConfirmations)
+                ..where((c) => c.idempotencyKey.equals(idempotencyKey)))
+              .getSingleOrNull();
+      if (prior != null) return prior.confirmedAt;
+      final v = await _version(issuedVersionId);
+      final issued = await _issued(v.id);
+      if (issued.validity != DocumentValidity.valid) {
+        throw const ConflictFailure(
+          'This document is revoked or no longer valid. It cannot be confirmed.',
+        );
+      }
+      if (issued.renderStatus != DocumentRenderStatus.ready) {
+        throw const ConflictFailure(
+          'The official copy is not ready yet. Try again after rendering.',
+        );
+      }
+      final a = await (_db.select(
+        _db.documentArtifacts,
+      )..where((a) => a.issuedVersionId.equals(v.id))).getSingle();
+      final bytes = a.bytes;
+      final digest = a.sha256;
+      if (bytes == null ||
+          digest == null ||
+          crypto.sha256.convert(bytes).toString() != digest) {
+        throw const ValidationFailure(
+          'Stored copy failed its integrity check.',
+        );
+      }
+      final at = DateTime.now();
+      await _db
+          .into(_db.documentCopyConfirmations)
+          .insert(
+            DocumentCopyConfirmationsCompanion.insert(
+              id: _uuid.v4(),
+              issuedVersionId: v.id,
+              patientId: v.patientId,
+              confirmedBy: p?.accountId ?? 'local',
+              reason: why,
+              artifactSha256: digest,
+              idempotencyKey: idempotencyKey,
+              confirmedAt: at,
+            ),
+          );
+      await _access.audit(
+        'document.copy_confirmed',
+        entityType: 'issued_document',
+        entityId: v.id,
+        subjectPatientId: v.patientId,
+      );
+      return at;
+    });
+  });
 
   @override
   Future<Result<void>> revoke(

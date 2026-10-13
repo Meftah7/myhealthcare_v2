@@ -1,6 +1,7 @@
 // Care-services repositories on an in-memory database (P10 Batch B).
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:myhealthcare/domain/entities/staff.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:myhealthcare/data/db/app_database.dart';
 import 'package:myhealthcare/data/repositories/auth_repository_impl.dart';
@@ -42,6 +43,7 @@ void main() {
       fullName: 'Dr Who',
       email: 'dr@care.test',
       temporaryPassword: 'temp12345',
+      jobTitle: kDoctorJobTitle,
     )).valueOrNull!.id;
     await db
         .into(db.appointments)

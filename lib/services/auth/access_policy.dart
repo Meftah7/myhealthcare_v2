@@ -21,7 +21,6 @@ import 'package:drift/drift.dart';
 import '../../core/failures.dart';
 import '../../core/utils/ids.dart';
 import '../../data/db/app_database.dart';
-import '../../domain/entities/staff.dart';
 import '../../domain/enums.dart';
 import '../../domain/identity/identity.dart';
 import '../../domain/identity/operational_roles.dart';
@@ -180,7 +179,7 @@ class AccessPolicy {
             c.verifiedAt != null &&
             (c.validUntil == null || c.validUntil!.isAfter(now))) {
           credentials.add(
-            '${c.id}/${c.kind.name}/${c.identifier}/${profile != null && profile.jobTitle != kNurseJobTitle}',
+            '${c.id}/${c.kind.name}/${c.identifier}/${profile != null && _canSign(profile.jobTitle)}',
           );
           if (c.validUntil != null) expiries.add(c.validUntil!);
         }
@@ -280,14 +279,17 @@ class AccessPolicy {
       );
     }
     // A profile change must narrow an already-open session too.
-    var isNurse = false;
+    StaffRole? staffRole;
     if (row.role == UserRole.staff) {
       final profile = await (_db.select(
         _db.staffProfiles,
       )..where((p) => p.userId.equals(row.id))).getSingleOrNull();
-      isNurse = profile?.jobTitle == kNurseJobTitle;
+      staffRole = StaffRole.parse(profile?.jobTitle);
     }
-    final currentGrants = RolePermissions.forRole(row.role, isNurse: isNurse);
+    final currentGrants = RolePermissions.forRole(
+      row.role,
+      staffRole: staffRole,
+    );
     return Principal(
       accountId: principal.accountId,
       role: principal.role,
@@ -409,7 +411,7 @@ class AccessPolicy {
             ))
             .get();
     if (profile == null ||
-        profile.jobTitle == kNurseJobTitle ||
+        !_canSign(profile.jobTitle) ||
         !credentials.any((c) => c.identifier.trim().isNotEmpty) ||
         !await hasCareRelationship(
           staffId: p.accountId,
@@ -840,3 +842,9 @@ class AccessPolicy {
     throw const AccessDeniedFailure();
   }
 }
+
+/// Whether a stored job title's role may sign clinical work at all; object
+/// scope and verified credentials are checked separately.
+bool _canSign(String? jobTitle) => RolePermissions.forStaff(
+  StaffRole.parse(jobTitle),
+).contains(Permission.signEncounter);

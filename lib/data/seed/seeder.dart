@@ -63,7 +63,9 @@ class Seeder {
   /// v10: a starter feedback inbox for the admin dashboard.
   /// v15: consultation flow — a couple of pending referral requests and
   /// department walk-in tickets for the new admin / staff queues.
-  static const seedVersion = 15;
+  /// v16: one demo account per remaining staff role (nurse, receptionist,
+  /// pharmacist, dentist).
+  static const seedVersion = 16;
 
   /// Password for every seeded account (documented in the README).
   static const demoPassword = 'password';
@@ -128,6 +130,9 @@ class Seeder {
     await _db.backfillResultReviews(
       recentSince: _epoch.subtract(const Duration(days: 14)),
     );
+    // One account per remaining staff role, seeded last so the deterministic
+    // patient/doctor data above is unchanged.
+    await _seedRoleStaff(deptIds);
 
     return SeedResult(
       departments: deptIds.length,
@@ -224,6 +229,43 @@ class Seeder {
       }
     }
     return staff;
+  }
+
+  /// Demo accounts for the nurse, receptionist, pharmacist and dentist roles
+  /// (`nurse@`, `reception@`, `pharmacy@`, `dentist@myhealth.demo`).
+  Future<void> _seedRoleStaff(List<String> deptIds) async {
+    const accounts = [
+      ('staff_nurse', StaffRole.nurse, 'Maryam Hasan', 'nurse', false),
+      (
+        'staff_reception',
+        StaffRole.receptionist,
+        'Huda Saleh',
+        'reception',
+        false,
+      ),
+      ('staff_pharmacy', StaffRole.pharmacist, 'Yusuf Karim', 'pharmacy', true),
+      ('staff_dentist', StaffRole.dentist, 'Sara Abbas', 'dentist', false),
+    ];
+    for (final (id, role, name, login, male) in accounts) {
+      await _insertUser(
+        id: id,
+        role: UserRole.staff,
+        fullName: name,
+        email: '$login@myhealth.demo',
+        male: male,
+      );
+      await _db
+          .into(_db.staffProfiles)
+          .insert(
+            StaffProfilesCompanion.insert(
+              userId: id,
+              departmentId: Value(
+                role == StaffRole.nurse ? deptIds.first : null,
+              ),
+              jobTitle: Value(role.jobTitle),
+            ),
+          );
+    }
   }
 
   Future<List<_Patient>> _seedPatients() async {
@@ -724,7 +766,7 @@ class Seeder {
 
     add(
       category: NotificationCategory.system,
-      title: 'Welcome to MyHealth Care',
+      title: 'Welcome to myhealth',
       body:
           'Your records, appointments, vitals and bills now live in one '
           'place. Tap any section to explore.',

@@ -523,78 +523,48 @@ class _AppScaffoldState extends State<AppScaffold> {
   }
 }
 
-/// The product mark, resolved to the light- or dark-background artwork for
-/// the current theme so it stays crisp against either — every place the bare
-/// logo appears ([AppBrandLockup], the shell rail's collapsed state, the
-/// splash mark, the sign-in mark) goes through this rather than picking an
-/// asset path itself.
+/// Brand name, exactly as displayed. Lowercase by design.
+const kBrandName = 'myhealth';
+
+/// The approved myhealth mark (navy rounded square, white crescent, teal M
+/// with stethoscope), drawn from `assets/branding/myhealth-logo.png` at its
+/// own aspect ratio. Every place the logo appears ([AppBrandLockup], the
+/// shell rail, the splash, the sign-in screens) goes through this widget.
+///
+/// The image is the same in light and dark themes — it is never tinted or
+/// inverted. Pass [decorative] when adjacent text already says "myhealth",
+/// so screen readers do not announce the brand twice.
 class AppLogo extends StatelessWidget {
-  const AppLogo({this.height, this.semanticLabel, super.key});
+  const AppLogo({
+    this.height,
+    this.semanticLabel,
+    this.decorative = false,
+    super.key,
+  });
 
   final double? height;
   final String? semanticLabel;
+  final bool decorative;
+
+  static const asset = 'assets/branding/myhealth-logo.png';
 
   @override
   Widget build(BuildContext context) {
     final dimension = height ?? 36;
+    final image = Image.asset(
+      asset,
+      width: dimension,
+      height: dimension,
+      fit: BoxFit.contain,
+      excludeFromSemantics: true,
+    );
+    if (decorative) return ExcludeSemantics(child: image);
     return Semantics(
       image: true,
-      label: semanticLabel ?? 'MyHealth Care',
-      child: SizedBox.square(
-        dimension: dimension,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: PatientPalette.brandOf(context, AppColors.seed),
-            borderRadius: BorderRadius.circular(dimension * .28),
-          ),
-          child: Padding(
-            padding: EdgeInsets.all(dimension * .17),
-            child: CustomPaint(painter: _CareMarkPainter()),
-          ),
-        ),
-      ),
+      label: semanticLabel ?? kBrandName,
+      child: image,
     );
   }
-}
-
-class _CareMarkPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.save();
-    canvas.scale(size.width / 24, size.height / 24);
-    final paint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.6
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-    final heart = Path()
-      ..moveTo(20.8, 4.6)
-      ..cubicTo(18.7, 2.5, 15.3, 2.5, 13.2, 4.6)
-      ..lineTo(12, 5.8)
-      ..lineTo(10.8, 4.6)
-      ..cubicTo(8.7, 2.5, 5.3, 2.5, 3.2, 4.6)
-      ..cubicTo(1.1, 6.7, 1.1, 10.1, 3.2, 12.2)
-      ..lineTo(12, 21)
-      ..lineTo(20.8, 12.2)
-      ..cubicTo(22.9, 10.1, 22.9, 6.7, 20.8, 4.6)
-      ..close();
-    canvas.drawPath(heart, paint);
-    canvas.drawPath(
-      Path()
-        ..moveTo(4, 12)
-        ..lineTo(8, 12)
-        ..lineTo(10, 8)
-        ..lineTo(13, 16)
-        ..lineTo(15, 12)
-        ..lineTo(20, 12),
-      paint,
-    );
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(covariant _CareMarkPainter oldDelegate) => false;
 }
 
 /// The product mark — logo plus wordmark — for the role home screens' app bar.
@@ -614,7 +584,8 @@ class AppBrandLockup extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const AppLogo(height: 26),
+        // The wordmark beside it announces the brand.
+        const AppLogo(height: 28, decorative: true),
         const SizedBox(width: Space.xs),
         // Flexible so the wordmark ellipsises on a narrow phone rather than
         // colliding with the top-bar action buttons.
@@ -623,10 +594,7 @@ class AppBrandLockup extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ReadableLabel(
-                'MyHealth Care',
-                style: theme.textTheme.titleMedium,
-              ),
+              ReadableLabel(kBrandName, style: theme.textTheme.titleMedium),
               if (subtitle != null)
                 ReadableLabel(
                   subtitle!,

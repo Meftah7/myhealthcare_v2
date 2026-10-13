@@ -18861,6 +18861,1256 @@ class DocumentDeliveryEventsCompanion
   }
 }
 
+class $DocumentCopyConfirmationsTable extends DocumentCopyConfirmations
+    with
+        TableInfo<
+          $DocumentCopyConfirmationsTable,
+          DocumentCopyConfirmationRow
+        > {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DocumentCopyConfirmationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _issuedVersionIdMeta = const VerificationMeta(
+    'issuedVersionId',
+  );
+  @override
+  late final GeneratedColumn<String> issuedVersionId = GeneratedColumn<String>(
+    'issued_version_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES issued_document_versions (id)',
+    ),
+  );
+  static const VerificationMeta _patientIdMeta = const VerificationMeta(
+    'patientId',
+  );
+  @override
+  late final GeneratedColumn<String> patientId = GeneratedColumn<String>(
+    'patient_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _confirmedByMeta = const VerificationMeta(
+    'confirmedBy',
+  );
+  @override
+  late final GeneratedColumn<String> confirmedBy = GeneratedColumn<String>(
+    'confirmed_by',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _reasonMeta = const VerificationMeta('reason');
+  @override
+  late final GeneratedColumn<String> reason = GeneratedColumn<String>(
+    'reason',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 500,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _artifactSha256Meta = const VerificationMeta(
+    'artifactSha256',
+  );
+  @override
+  late final GeneratedColumn<String> artifactSha256 = GeneratedColumn<String>(
+    'artifact_sha256',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _idempotencyKeyMeta = const VerificationMeta(
+    'idempotencyKey',
+  );
+  @override
+  late final GeneratedColumn<String> idempotencyKey = GeneratedColumn<String>(
+    'idempotency_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _confirmedAtMeta = const VerificationMeta(
+    'confirmedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> confirmedAt = GeneratedColumn<DateTime>(
+    'confirmed_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    issuedVersionId,
+    patientId,
+    confirmedBy,
+    reason,
+    artifactSha256,
+    idempotencyKey,
+    confirmedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'document_copy_confirmations';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DocumentCopyConfirmationRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('issued_version_id')) {
+      context.handle(
+        _issuedVersionIdMeta,
+        issuedVersionId.isAcceptableOrUnknown(
+          data['issued_version_id']!,
+          _issuedVersionIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_issuedVersionIdMeta);
+    }
+    if (data.containsKey('patient_id')) {
+      context.handle(
+        _patientIdMeta,
+        patientId.isAcceptableOrUnknown(data['patient_id']!, _patientIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_patientIdMeta);
+    }
+    if (data.containsKey('confirmed_by')) {
+      context.handle(
+        _confirmedByMeta,
+        confirmedBy.isAcceptableOrUnknown(
+          data['confirmed_by']!,
+          _confirmedByMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_confirmedByMeta);
+    }
+    if (data.containsKey('reason')) {
+      context.handle(
+        _reasonMeta,
+        reason.isAcceptableOrUnknown(data['reason']!, _reasonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_reasonMeta);
+    }
+    if (data.containsKey('artifact_sha256')) {
+      context.handle(
+        _artifactSha256Meta,
+        artifactSha256.isAcceptableOrUnknown(
+          data['artifact_sha256']!,
+          _artifactSha256Meta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_artifactSha256Meta);
+    }
+    if (data.containsKey('idempotency_key')) {
+      context.handle(
+        _idempotencyKeyMeta,
+        idempotencyKey.isAcceptableOrUnknown(
+          data['idempotency_key']!,
+          _idempotencyKeyMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_idempotencyKeyMeta);
+    }
+    if (data.containsKey('confirmed_at')) {
+      context.handle(
+        _confirmedAtMeta,
+        confirmedAt.isAcceptableOrUnknown(
+          data['confirmed_at']!,
+          _confirmedAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_confirmedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DocumentCopyConfirmationRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DocumentCopyConfirmationRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      issuedVersionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}issued_version_id'],
+      )!,
+      patientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}patient_id'],
+      )!,
+      confirmedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}confirmed_by'],
+      )!,
+      reason: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reason'],
+      )!,
+      artifactSha256: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}artifact_sha256'],
+      )!,
+      idempotencyKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}idempotency_key'],
+      )!,
+      confirmedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}confirmed_at'],
+      )!,
+    );
+  }
+
+  @override
+  $DocumentCopyConfirmationsTable createAlias(String alias) {
+    return $DocumentCopyConfirmationsTable(attachedDatabase, alias);
+  }
+}
+
+class DocumentCopyConfirmationRow extends DataClass
+    implements Insertable<DocumentCopyConfirmationRow> {
+  final String id;
+  final String issuedVersionId;
+  final String patientId;
+  final String confirmedBy;
+  final String reason;
+
+  /// SHA-256 of the stored artifact the confirmation was made against.
+  final String artifactSha256;
+  final String idempotencyKey;
+  final DateTime confirmedAt;
+  const DocumentCopyConfirmationRow({
+    required this.id,
+    required this.issuedVersionId,
+    required this.patientId,
+    required this.confirmedBy,
+    required this.reason,
+    required this.artifactSha256,
+    required this.idempotencyKey,
+    required this.confirmedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['issued_version_id'] = Variable<String>(issuedVersionId);
+    map['patient_id'] = Variable<String>(patientId);
+    map['confirmed_by'] = Variable<String>(confirmedBy);
+    map['reason'] = Variable<String>(reason);
+    map['artifact_sha256'] = Variable<String>(artifactSha256);
+    map['idempotency_key'] = Variable<String>(idempotencyKey);
+    map['confirmed_at'] = Variable<DateTime>(confirmedAt);
+    return map;
+  }
+
+  DocumentCopyConfirmationsCompanion toCompanion(bool nullToAbsent) {
+    return DocumentCopyConfirmationsCompanion(
+      id: Value(id),
+      issuedVersionId: Value(issuedVersionId),
+      patientId: Value(patientId),
+      confirmedBy: Value(confirmedBy),
+      reason: Value(reason),
+      artifactSha256: Value(artifactSha256),
+      idempotencyKey: Value(idempotencyKey),
+      confirmedAt: Value(confirmedAt),
+    );
+  }
+
+  factory DocumentCopyConfirmationRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DocumentCopyConfirmationRow(
+      id: serializer.fromJson<String>(json['id']),
+      issuedVersionId: serializer.fromJson<String>(json['issuedVersionId']),
+      patientId: serializer.fromJson<String>(json['patientId']),
+      confirmedBy: serializer.fromJson<String>(json['confirmedBy']),
+      reason: serializer.fromJson<String>(json['reason']),
+      artifactSha256: serializer.fromJson<String>(json['artifactSha256']),
+      idempotencyKey: serializer.fromJson<String>(json['idempotencyKey']),
+      confirmedAt: serializer.fromJson<DateTime>(json['confirmedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'issuedVersionId': serializer.toJson<String>(issuedVersionId),
+      'patientId': serializer.toJson<String>(patientId),
+      'confirmedBy': serializer.toJson<String>(confirmedBy),
+      'reason': serializer.toJson<String>(reason),
+      'artifactSha256': serializer.toJson<String>(artifactSha256),
+      'idempotencyKey': serializer.toJson<String>(idempotencyKey),
+      'confirmedAt': serializer.toJson<DateTime>(confirmedAt),
+    };
+  }
+
+  DocumentCopyConfirmationRow copyWith({
+    String? id,
+    String? issuedVersionId,
+    String? patientId,
+    String? confirmedBy,
+    String? reason,
+    String? artifactSha256,
+    String? idempotencyKey,
+    DateTime? confirmedAt,
+  }) => DocumentCopyConfirmationRow(
+    id: id ?? this.id,
+    issuedVersionId: issuedVersionId ?? this.issuedVersionId,
+    patientId: patientId ?? this.patientId,
+    confirmedBy: confirmedBy ?? this.confirmedBy,
+    reason: reason ?? this.reason,
+    artifactSha256: artifactSha256 ?? this.artifactSha256,
+    idempotencyKey: idempotencyKey ?? this.idempotencyKey,
+    confirmedAt: confirmedAt ?? this.confirmedAt,
+  );
+  DocumentCopyConfirmationRow copyWithCompanion(
+    DocumentCopyConfirmationsCompanion data,
+  ) {
+    return DocumentCopyConfirmationRow(
+      id: data.id.present ? data.id.value : this.id,
+      issuedVersionId: data.issuedVersionId.present
+          ? data.issuedVersionId.value
+          : this.issuedVersionId,
+      patientId: data.patientId.present ? data.patientId.value : this.patientId,
+      confirmedBy: data.confirmedBy.present
+          ? data.confirmedBy.value
+          : this.confirmedBy,
+      reason: data.reason.present ? data.reason.value : this.reason,
+      artifactSha256: data.artifactSha256.present
+          ? data.artifactSha256.value
+          : this.artifactSha256,
+      idempotencyKey: data.idempotencyKey.present
+          ? data.idempotencyKey.value
+          : this.idempotencyKey,
+      confirmedAt: data.confirmedAt.present
+          ? data.confirmedAt.value
+          : this.confirmedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DocumentCopyConfirmationRow(')
+          ..write('id: $id, ')
+          ..write('issuedVersionId: $issuedVersionId, ')
+          ..write('patientId: $patientId, ')
+          ..write('confirmedBy: $confirmedBy, ')
+          ..write('reason: $reason, ')
+          ..write('artifactSha256: $artifactSha256, ')
+          ..write('idempotencyKey: $idempotencyKey, ')
+          ..write('confirmedAt: $confirmedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    issuedVersionId,
+    patientId,
+    confirmedBy,
+    reason,
+    artifactSha256,
+    idempotencyKey,
+    confirmedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DocumentCopyConfirmationRow &&
+          other.id == this.id &&
+          other.issuedVersionId == this.issuedVersionId &&
+          other.patientId == this.patientId &&
+          other.confirmedBy == this.confirmedBy &&
+          other.reason == this.reason &&
+          other.artifactSha256 == this.artifactSha256 &&
+          other.idempotencyKey == this.idempotencyKey &&
+          other.confirmedAt == this.confirmedAt);
+}
+
+class DocumentCopyConfirmationsCompanion
+    extends UpdateCompanion<DocumentCopyConfirmationRow> {
+  final Value<String> id;
+  final Value<String> issuedVersionId;
+  final Value<String> patientId;
+  final Value<String> confirmedBy;
+  final Value<String> reason;
+  final Value<String> artifactSha256;
+  final Value<String> idempotencyKey;
+  final Value<DateTime> confirmedAt;
+  final Value<int> rowid;
+  const DocumentCopyConfirmationsCompanion({
+    this.id = const Value.absent(),
+    this.issuedVersionId = const Value.absent(),
+    this.patientId = const Value.absent(),
+    this.confirmedBy = const Value.absent(),
+    this.reason = const Value.absent(),
+    this.artifactSha256 = const Value.absent(),
+    this.idempotencyKey = const Value.absent(),
+    this.confirmedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DocumentCopyConfirmationsCompanion.insert({
+    required String id,
+    required String issuedVersionId,
+    required String patientId,
+    required String confirmedBy,
+    required String reason,
+    required String artifactSha256,
+    required String idempotencyKey,
+    required DateTime confirmedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       issuedVersionId = Value(issuedVersionId),
+       patientId = Value(patientId),
+       confirmedBy = Value(confirmedBy),
+       reason = Value(reason),
+       artifactSha256 = Value(artifactSha256),
+       idempotencyKey = Value(idempotencyKey),
+       confirmedAt = Value(confirmedAt);
+  static Insertable<DocumentCopyConfirmationRow> custom({
+    Expression<String>? id,
+    Expression<String>? issuedVersionId,
+    Expression<String>? patientId,
+    Expression<String>? confirmedBy,
+    Expression<String>? reason,
+    Expression<String>? artifactSha256,
+    Expression<String>? idempotencyKey,
+    Expression<DateTime>? confirmedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (issuedVersionId != null) 'issued_version_id': issuedVersionId,
+      if (patientId != null) 'patient_id': patientId,
+      if (confirmedBy != null) 'confirmed_by': confirmedBy,
+      if (reason != null) 'reason': reason,
+      if (artifactSha256 != null) 'artifact_sha256': artifactSha256,
+      if (idempotencyKey != null) 'idempotency_key': idempotencyKey,
+      if (confirmedAt != null) 'confirmed_at': confirmedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DocumentCopyConfirmationsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? issuedVersionId,
+    Value<String>? patientId,
+    Value<String>? confirmedBy,
+    Value<String>? reason,
+    Value<String>? artifactSha256,
+    Value<String>? idempotencyKey,
+    Value<DateTime>? confirmedAt,
+    Value<int>? rowid,
+  }) {
+    return DocumentCopyConfirmationsCompanion(
+      id: id ?? this.id,
+      issuedVersionId: issuedVersionId ?? this.issuedVersionId,
+      patientId: patientId ?? this.patientId,
+      confirmedBy: confirmedBy ?? this.confirmedBy,
+      reason: reason ?? this.reason,
+      artifactSha256: artifactSha256 ?? this.artifactSha256,
+      idempotencyKey: idempotencyKey ?? this.idempotencyKey,
+      confirmedAt: confirmedAt ?? this.confirmedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (issuedVersionId.present) {
+      map['issued_version_id'] = Variable<String>(issuedVersionId.value);
+    }
+    if (patientId.present) {
+      map['patient_id'] = Variable<String>(patientId.value);
+    }
+    if (confirmedBy.present) {
+      map['confirmed_by'] = Variable<String>(confirmedBy.value);
+    }
+    if (reason.present) {
+      map['reason'] = Variable<String>(reason.value);
+    }
+    if (artifactSha256.present) {
+      map['artifact_sha256'] = Variable<String>(artifactSha256.value);
+    }
+    if (idempotencyKey.present) {
+      map['idempotency_key'] = Variable<String>(idempotencyKey.value);
+    }
+    if (confirmedAt.present) {
+      map['confirmed_at'] = Variable<DateTime>(confirmedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DocumentCopyConfirmationsCompanion(')
+          ..write('id: $id, ')
+          ..write('issuedVersionId: $issuedVersionId, ')
+          ..write('patientId: $patientId, ')
+          ..write('confirmedBy: $confirmedBy, ')
+          ..write('reason: $reason, ')
+          ..write('artifactSha256: $artifactSha256, ')
+          ..write('idempotencyKey: $idempotencyKey, ')
+          ..write('confirmedAt: $confirmedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $MedicationDispensesTable extends MedicationDispenses
+    with TableInfo<$MedicationDispensesTable, MedicationDispenseRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MedicationDispensesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _medicationIdMeta = const VerificationMeta(
+    'medicationId',
+  );
+  @override
+  late final GeneratedColumn<String> medicationId = GeneratedColumn<String>(
+    'medication_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES medications (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _patientIdMeta = const VerificationMeta(
+    'patientId',
+  );
+  @override
+  late final GeneratedColumn<String> patientId = GeneratedColumn<String>(
+    'patient_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _pharmacistIdMeta = const VerificationMeta(
+    'pharmacistId',
+  );
+  @override
+  late final GeneratedColumn<String> pharmacistId = GeneratedColumn<String>(
+    'pharmacist_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<DispenseOutcome, String> outcome =
+      GeneratedColumn<String>(
+        'outcome',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<DispenseOutcome>(
+        $MedicationDispensesTable.$converteroutcome,
+      );
+  static const VerificationMeta _quantityMeta = const VerificationMeta(
+    'quantity',
+  );
+  @override
+  late final GeneratedColumn<String> quantity = GeneratedColumn<String>(
+    'quantity',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _batchMeta = const VerificationMeta('batch');
+  @override
+  late final GeneratedColumn<String> batch = GeneratedColumn<String>(
+    'batch',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _expiryMeta = const VerificationMeta('expiry');
+  @override
+  late final GeneratedColumn<DateTime> expiry = GeneratedColumn<DateTime>(
+    'expiry',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _idempotencyKeyMeta = const VerificationMeta(
+    'idempotencyKey',
+  );
+  @override
+  late final GeneratedColumn<String> idempotencyKey = GeneratedColumn<String>(
+    'idempotency_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _recordedAtMeta = const VerificationMeta(
+    'recordedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> recordedAt = GeneratedColumn<DateTime>(
+    'recorded_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    medicationId,
+    patientId,
+    pharmacistId,
+    outcome,
+    quantity,
+    batch,
+    expiry,
+    note,
+    idempotencyKey,
+    recordedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'medication_dispenses';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MedicationDispenseRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('medication_id')) {
+      context.handle(
+        _medicationIdMeta,
+        medicationId.isAcceptableOrUnknown(
+          data['medication_id']!,
+          _medicationIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_medicationIdMeta);
+    }
+    if (data.containsKey('patient_id')) {
+      context.handle(
+        _patientIdMeta,
+        patientId.isAcceptableOrUnknown(data['patient_id']!, _patientIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_patientIdMeta);
+    }
+    if (data.containsKey('pharmacist_id')) {
+      context.handle(
+        _pharmacistIdMeta,
+        pharmacistId.isAcceptableOrUnknown(
+          data['pharmacist_id']!,
+          _pharmacistIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_pharmacistIdMeta);
+    }
+    if (data.containsKey('quantity')) {
+      context.handle(
+        _quantityMeta,
+        quantity.isAcceptableOrUnknown(data['quantity']!, _quantityMeta),
+      );
+    }
+    if (data.containsKey('batch')) {
+      context.handle(
+        _batchMeta,
+        batch.isAcceptableOrUnknown(data['batch']!, _batchMeta),
+      );
+    }
+    if (data.containsKey('expiry')) {
+      context.handle(
+        _expiryMeta,
+        expiry.isAcceptableOrUnknown(data['expiry']!, _expiryMeta),
+      );
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('idempotency_key')) {
+      context.handle(
+        _idempotencyKeyMeta,
+        idempotencyKey.isAcceptableOrUnknown(
+          data['idempotency_key']!,
+          _idempotencyKeyMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_idempotencyKeyMeta);
+    }
+    if (data.containsKey('recorded_at')) {
+      context.handle(
+        _recordedAtMeta,
+        recordedAt.isAcceptableOrUnknown(data['recorded_at']!, _recordedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_recordedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MedicationDispenseRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MedicationDispenseRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      medicationId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}medication_id'],
+      )!,
+      patientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}patient_id'],
+      )!,
+      pharmacistId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}pharmacist_id'],
+      )!,
+      outcome: $MedicationDispensesTable.$converteroutcome.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}outcome'],
+        )!,
+      ),
+      quantity: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}quantity'],
+      ),
+      batch: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}batch'],
+      ),
+      expiry: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}expiry'],
+      ),
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      idempotencyKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}idempotency_key'],
+      )!,
+      recordedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}recorded_at'],
+      )!,
+    );
+  }
+
+  @override
+  $MedicationDispensesTable createAlias(String alias) {
+    return $MedicationDispensesTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<DispenseOutcome, String, String> $converteroutcome =
+      const EnumNameConverter<DispenseOutcome>(DispenseOutcome.values);
+}
+
+class MedicationDispenseRow extends DataClass
+    implements Insertable<MedicationDispenseRow> {
+  final String id;
+  final String medicationId;
+  final String patientId;
+  final String pharmacistId;
+  final DispenseOutcome outcome;
+  final String? quantity;
+  final String? batch;
+  final DateTime? expiry;
+  final String? note;
+  final String idempotencyKey;
+  final DateTime recordedAt;
+  const MedicationDispenseRow({
+    required this.id,
+    required this.medicationId,
+    required this.patientId,
+    required this.pharmacistId,
+    required this.outcome,
+    this.quantity,
+    this.batch,
+    this.expiry,
+    this.note,
+    required this.idempotencyKey,
+    required this.recordedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['medication_id'] = Variable<String>(medicationId);
+    map['patient_id'] = Variable<String>(patientId);
+    map['pharmacist_id'] = Variable<String>(pharmacistId);
+    {
+      map['outcome'] = Variable<String>(
+        $MedicationDispensesTable.$converteroutcome.toSql(outcome),
+      );
+    }
+    if (!nullToAbsent || quantity != null) {
+      map['quantity'] = Variable<String>(quantity);
+    }
+    if (!nullToAbsent || batch != null) {
+      map['batch'] = Variable<String>(batch);
+    }
+    if (!nullToAbsent || expiry != null) {
+      map['expiry'] = Variable<DateTime>(expiry);
+    }
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    map['idempotency_key'] = Variable<String>(idempotencyKey);
+    map['recorded_at'] = Variable<DateTime>(recordedAt);
+    return map;
+  }
+
+  MedicationDispensesCompanion toCompanion(bool nullToAbsent) {
+    return MedicationDispensesCompanion(
+      id: Value(id),
+      medicationId: Value(medicationId),
+      patientId: Value(patientId),
+      pharmacistId: Value(pharmacistId),
+      outcome: Value(outcome),
+      quantity: quantity == null && nullToAbsent
+          ? const Value.absent()
+          : Value(quantity),
+      batch: batch == null && nullToAbsent
+          ? const Value.absent()
+          : Value(batch),
+      expiry: expiry == null && nullToAbsent
+          ? const Value.absent()
+          : Value(expiry),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      idempotencyKey: Value(idempotencyKey),
+      recordedAt: Value(recordedAt),
+    );
+  }
+
+  factory MedicationDispenseRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MedicationDispenseRow(
+      id: serializer.fromJson<String>(json['id']),
+      medicationId: serializer.fromJson<String>(json['medicationId']),
+      patientId: serializer.fromJson<String>(json['patientId']),
+      pharmacistId: serializer.fromJson<String>(json['pharmacistId']),
+      outcome: $MedicationDispensesTable.$converteroutcome.fromJson(
+        serializer.fromJson<String>(json['outcome']),
+      ),
+      quantity: serializer.fromJson<String?>(json['quantity']),
+      batch: serializer.fromJson<String?>(json['batch']),
+      expiry: serializer.fromJson<DateTime?>(json['expiry']),
+      note: serializer.fromJson<String?>(json['note']),
+      idempotencyKey: serializer.fromJson<String>(json['idempotencyKey']),
+      recordedAt: serializer.fromJson<DateTime>(json['recordedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'medicationId': serializer.toJson<String>(medicationId),
+      'patientId': serializer.toJson<String>(patientId),
+      'pharmacistId': serializer.toJson<String>(pharmacistId),
+      'outcome': serializer.toJson<String>(
+        $MedicationDispensesTable.$converteroutcome.toJson(outcome),
+      ),
+      'quantity': serializer.toJson<String?>(quantity),
+      'batch': serializer.toJson<String?>(batch),
+      'expiry': serializer.toJson<DateTime?>(expiry),
+      'note': serializer.toJson<String?>(note),
+      'idempotencyKey': serializer.toJson<String>(idempotencyKey),
+      'recordedAt': serializer.toJson<DateTime>(recordedAt),
+    };
+  }
+
+  MedicationDispenseRow copyWith({
+    String? id,
+    String? medicationId,
+    String? patientId,
+    String? pharmacistId,
+    DispenseOutcome? outcome,
+    Value<String?> quantity = const Value.absent(),
+    Value<String?> batch = const Value.absent(),
+    Value<DateTime?> expiry = const Value.absent(),
+    Value<String?> note = const Value.absent(),
+    String? idempotencyKey,
+    DateTime? recordedAt,
+  }) => MedicationDispenseRow(
+    id: id ?? this.id,
+    medicationId: medicationId ?? this.medicationId,
+    patientId: patientId ?? this.patientId,
+    pharmacistId: pharmacistId ?? this.pharmacistId,
+    outcome: outcome ?? this.outcome,
+    quantity: quantity.present ? quantity.value : this.quantity,
+    batch: batch.present ? batch.value : this.batch,
+    expiry: expiry.present ? expiry.value : this.expiry,
+    note: note.present ? note.value : this.note,
+    idempotencyKey: idempotencyKey ?? this.idempotencyKey,
+    recordedAt: recordedAt ?? this.recordedAt,
+  );
+  MedicationDispenseRow copyWithCompanion(MedicationDispensesCompanion data) {
+    return MedicationDispenseRow(
+      id: data.id.present ? data.id.value : this.id,
+      medicationId: data.medicationId.present
+          ? data.medicationId.value
+          : this.medicationId,
+      patientId: data.patientId.present ? data.patientId.value : this.patientId,
+      pharmacistId: data.pharmacistId.present
+          ? data.pharmacistId.value
+          : this.pharmacistId,
+      outcome: data.outcome.present ? data.outcome.value : this.outcome,
+      quantity: data.quantity.present ? data.quantity.value : this.quantity,
+      batch: data.batch.present ? data.batch.value : this.batch,
+      expiry: data.expiry.present ? data.expiry.value : this.expiry,
+      note: data.note.present ? data.note.value : this.note,
+      idempotencyKey: data.idempotencyKey.present
+          ? data.idempotencyKey.value
+          : this.idempotencyKey,
+      recordedAt: data.recordedAt.present
+          ? data.recordedAt.value
+          : this.recordedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MedicationDispenseRow(')
+          ..write('id: $id, ')
+          ..write('medicationId: $medicationId, ')
+          ..write('patientId: $patientId, ')
+          ..write('pharmacistId: $pharmacistId, ')
+          ..write('outcome: $outcome, ')
+          ..write('quantity: $quantity, ')
+          ..write('batch: $batch, ')
+          ..write('expiry: $expiry, ')
+          ..write('note: $note, ')
+          ..write('idempotencyKey: $idempotencyKey, ')
+          ..write('recordedAt: $recordedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    medicationId,
+    patientId,
+    pharmacistId,
+    outcome,
+    quantity,
+    batch,
+    expiry,
+    note,
+    idempotencyKey,
+    recordedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MedicationDispenseRow &&
+          other.id == this.id &&
+          other.medicationId == this.medicationId &&
+          other.patientId == this.patientId &&
+          other.pharmacistId == this.pharmacistId &&
+          other.outcome == this.outcome &&
+          other.quantity == this.quantity &&
+          other.batch == this.batch &&
+          other.expiry == this.expiry &&
+          other.note == this.note &&
+          other.idempotencyKey == this.idempotencyKey &&
+          other.recordedAt == this.recordedAt);
+}
+
+class MedicationDispensesCompanion
+    extends UpdateCompanion<MedicationDispenseRow> {
+  final Value<String> id;
+  final Value<String> medicationId;
+  final Value<String> patientId;
+  final Value<String> pharmacistId;
+  final Value<DispenseOutcome> outcome;
+  final Value<String?> quantity;
+  final Value<String?> batch;
+  final Value<DateTime?> expiry;
+  final Value<String?> note;
+  final Value<String> idempotencyKey;
+  final Value<DateTime> recordedAt;
+  final Value<int> rowid;
+  const MedicationDispensesCompanion({
+    this.id = const Value.absent(),
+    this.medicationId = const Value.absent(),
+    this.patientId = const Value.absent(),
+    this.pharmacistId = const Value.absent(),
+    this.outcome = const Value.absent(),
+    this.quantity = const Value.absent(),
+    this.batch = const Value.absent(),
+    this.expiry = const Value.absent(),
+    this.note = const Value.absent(),
+    this.idempotencyKey = const Value.absent(),
+    this.recordedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MedicationDispensesCompanion.insert({
+    required String id,
+    required String medicationId,
+    required String patientId,
+    required String pharmacistId,
+    required DispenseOutcome outcome,
+    this.quantity = const Value.absent(),
+    this.batch = const Value.absent(),
+    this.expiry = const Value.absent(),
+    this.note = const Value.absent(),
+    required String idempotencyKey,
+    required DateTime recordedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       medicationId = Value(medicationId),
+       patientId = Value(patientId),
+       pharmacistId = Value(pharmacistId),
+       outcome = Value(outcome),
+       idempotencyKey = Value(idempotencyKey),
+       recordedAt = Value(recordedAt);
+  static Insertable<MedicationDispenseRow> custom({
+    Expression<String>? id,
+    Expression<String>? medicationId,
+    Expression<String>? patientId,
+    Expression<String>? pharmacistId,
+    Expression<String>? outcome,
+    Expression<String>? quantity,
+    Expression<String>? batch,
+    Expression<DateTime>? expiry,
+    Expression<String>? note,
+    Expression<String>? idempotencyKey,
+    Expression<DateTime>? recordedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (medicationId != null) 'medication_id': medicationId,
+      if (patientId != null) 'patient_id': patientId,
+      if (pharmacistId != null) 'pharmacist_id': pharmacistId,
+      if (outcome != null) 'outcome': outcome,
+      if (quantity != null) 'quantity': quantity,
+      if (batch != null) 'batch': batch,
+      if (expiry != null) 'expiry': expiry,
+      if (note != null) 'note': note,
+      if (idempotencyKey != null) 'idempotency_key': idempotencyKey,
+      if (recordedAt != null) 'recorded_at': recordedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MedicationDispensesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? medicationId,
+    Value<String>? patientId,
+    Value<String>? pharmacistId,
+    Value<DispenseOutcome>? outcome,
+    Value<String?>? quantity,
+    Value<String?>? batch,
+    Value<DateTime?>? expiry,
+    Value<String?>? note,
+    Value<String>? idempotencyKey,
+    Value<DateTime>? recordedAt,
+    Value<int>? rowid,
+  }) {
+    return MedicationDispensesCompanion(
+      id: id ?? this.id,
+      medicationId: medicationId ?? this.medicationId,
+      patientId: patientId ?? this.patientId,
+      pharmacistId: pharmacistId ?? this.pharmacistId,
+      outcome: outcome ?? this.outcome,
+      quantity: quantity ?? this.quantity,
+      batch: batch ?? this.batch,
+      expiry: expiry ?? this.expiry,
+      note: note ?? this.note,
+      idempotencyKey: idempotencyKey ?? this.idempotencyKey,
+      recordedAt: recordedAt ?? this.recordedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (medicationId.present) {
+      map['medication_id'] = Variable<String>(medicationId.value);
+    }
+    if (patientId.present) {
+      map['patient_id'] = Variable<String>(patientId.value);
+    }
+    if (pharmacistId.present) {
+      map['pharmacist_id'] = Variable<String>(pharmacistId.value);
+    }
+    if (outcome.present) {
+      map['outcome'] = Variable<String>(
+        $MedicationDispensesTable.$converteroutcome.toSql(outcome.value),
+      );
+    }
+    if (quantity.present) {
+      map['quantity'] = Variable<String>(quantity.value);
+    }
+    if (batch.present) {
+      map['batch'] = Variable<String>(batch.value);
+    }
+    if (expiry.present) {
+      map['expiry'] = Variable<DateTime>(expiry.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (idempotencyKey.present) {
+      map['idempotency_key'] = Variable<String>(idempotencyKey.value);
+    }
+    if (recordedAt.present) {
+      map['recorded_at'] = Variable<DateTime>(recordedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MedicationDispensesCompanion(')
+          ..write('id: $id, ')
+          ..write('medicationId: $medicationId, ')
+          ..write('patientId: $patientId, ')
+          ..write('pharmacistId: $pharmacistId, ')
+          ..write('outcome: $outcome, ')
+          ..write('quantity: $quantity, ')
+          ..write('batch: $batch, ')
+          ..write('expiry: $expiry, ')
+          ..write('note: $note, ')
+          ..write('idempotencyKey: $idempotencyKey, ')
+          ..write('recordedAt: $recordedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $StaffTasksTable extends StaffTasks
     with TableInfo<$StaffTasksTable, StaffTaskRow> {
   @override
@@ -18970,6 +20220,17 @@ class $StaffTasksTable extends StaffTasks
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _nextReviewAtMeta = const VerificationMeta(
+    'nextReviewAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> nextReviewAt = GeneratedColumn<DateTime>(
+    'next_review_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   late final GeneratedColumnWithTypeConverter<TaskStatus, String> status =
       GeneratedColumn<String>(
@@ -19049,6 +20310,7 @@ class $StaffTasksTable extends StaffTasks
     priority,
     coverageStaffId,
     escalatedAt,
+    nextReviewAt,
     status,
     ruleScore,
     aiPriorityScore,
@@ -19116,6 +20378,15 @@ class $StaffTasksTable extends StaffTasks
         escalatedAt.isAcceptableOrUnknown(
           data['escalated_at']!,
           _escalatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('next_review_at')) {
+      context.handle(
+        _nextReviewAtMeta,
+        nextReviewAt.isAcceptableOrUnknown(
+          data['next_review_at']!,
+          _nextReviewAtMeta,
         ),
       );
     }
@@ -19204,6 +20475,10 @@ class $StaffTasksTable extends StaffTasks
         DriftSqlType.dateTime,
         data['${effectivePrefix}escalated_at'],
       ),
+      nextReviewAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}next_review_at'],
+      ),
       status: $StaffTasksTable.$converterstatus.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -19256,6 +20531,10 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
   final WorkPriority priority;
   final String? coverageStaffId;
   final DateTime? escalatedAt;
+
+  /// When waiting/blocked work must be looked at again. First-class (not only
+  /// in history) so boards can sort and filter by it; null for active work.
+  final DateTime? nextReviewAt;
   final TaskStatus status;
 
   /// Deterministic rule score (P5-03) — always present.
@@ -19278,6 +20557,7 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
     required this.priority,
     this.coverageStaffId,
     this.escalatedAt,
+    this.nextReviewAt,
     required this.status,
     required this.ruleScore,
     this.aiPriorityScore,
@@ -19312,6 +20592,9 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
     }
     if (!nullToAbsent || escalatedAt != null) {
       map['escalated_at'] = Variable<DateTime>(escalatedAt);
+    }
+    if (!nullToAbsent || nextReviewAt != null) {
+      map['next_review_at'] = Variable<DateTime>(nextReviewAt);
     }
     {
       map['status'] = Variable<String>(
@@ -19349,6 +20632,9 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
       escalatedAt: escalatedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(escalatedAt),
+      nextReviewAt: nextReviewAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nextReviewAt),
       status: Value(status),
       ruleScore: Value(ruleScore),
       aiPriorityScore: aiPriorityScore == null && nullToAbsent
@@ -19381,6 +20667,7 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
       ),
       coverageStaffId: serializer.fromJson<String?>(json['coverageStaffId']),
       escalatedAt: serializer.fromJson<DateTime?>(json['escalatedAt']),
+      nextReviewAt: serializer.fromJson<DateTime?>(json['nextReviewAt']),
       status: $StaffTasksTable.$converterstatus.fromJson(
         serializer.fromJson<String>(json['status']),
       ),
@@ -19408,6 +20695,7 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
       ),
       'coverageStaffId': serializer.toJson<String?>(coverageStaffId),
       'escalatedAt': serializer.toJson<DateTime?>(escalatedAt),
+      'nextReviewAt': serializer.toJson<DateTime?>(nextReviewAt),
       'status': serializer.toJson<String>(
         $StaffTasksTable.$converterstatus.toJson(status),
       ),
@@ -19429,6 +20717,7 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
     WorkPriority? priority,
     Value<String?> coverageStaffId = const Value.absent(),
     Value<DateTime?> escalatedAt = const Value.absent(),
+    Value<DateTime?> nextReviewAt = const Value.absent(),
     TaskStatus? status,
     double? ruleScore,
     Value<double?> aiPriorityScore = const Value.absent(),
@@ -19447,6 +20736,7 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
         ? coverageStaffId.value
         : this.coverageStaffId,
     escalatedAt: escalatedAt.present ? escalatedAt.value : this.escalatedAt,
+    nextReviewAt: nextReviewAt.present ? nextReviewAt.value : this.nextReviewAt,
     status: status ?? this.status,
     ruleScore: ruleScore ?? this.ruleScore,
     aiPriorityScore: aiPriorityScore.present
@@ -19471,6 +20761,9 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
       escalatedAt: data.escalatedAt.present
           ? data.escalatedAt.value
           : this.escalatedAt,
+      nextReviewAt: data.nextReviewAt.present
+          ? data.nextReviewAt.value
+          : this.nextReviewAt,
       status: data.status.present ? data.status.value : this.status,
       ruleScore: data.ruleScore.present ? data.ruleScore.value : this.ruleScore,
       aiPriorityScore: data.aiPriorityScore.present
@@ -19496,6 +20789,7 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
           ..write('priority: $priority, ')
           ..write('coverageStaffId: $coverageStaffId, ')
           ..write('escalatedAt: $escalatedAt, ')
+          ..write('nextReviewAt: $nextReviewAt, ')
           ..write('status: $status, ')
           ..write('ruleScore: $ruleScore, ')
           ..write('aiPriorityScore: $aiPriorityScore, ')
@@ -19517,6 +20811,7 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
     priority,
     coverageStaffId,
     escalatedAt,
+    nextReviewAt,
     status,
     ruleScore,
     aiPriorityScore,
@@ -19537,6 +20832,7 @@ class StaffTaskRow extends DataClass implements Insertable<StaffTaskRow> {
           other.priority == this.priority &&
           other.coverageStaffId == this.coverageStaffId &&
           other.escalatedAt == this.escalatedAt &&
+          other.nextReviewAt == this.nextReviewAt &&
           other.status == this.status &&
           other.ruleScore == this.ruleScore &&
           other.aiPriorityScore == this.aiPriorityScore &&
@@ -19555,6 +20851,7 @@ class StaffTasksCompanion extends UpdateCompanion<StaffTaskRow> {
   final Value<WorkPriority> priority;
   final Value<String?> coverageStaffId;
   final Value<DateTime?> escalatedAt;
+  final Value<DateTime?> nextReviewAt;
   final Value<TaskStatus> status;
   final Value<double> ruleScore;
   final Value<double?> aiPriorityScore;
@@ -19572,6 +20869,7 @@ class StaffTasksCompanion extends UpdateCompanion<StaffTaskRow> {
     this.priority = const Value.absent(),
     this.coverageStaffId = const Value.absent(),
     this.escalatedAt = const Value.absent(),
+    this.nextReviewAt = const Value.absent(),
     this.status = const Value.absent(),
     this.ruleScore = const Value.absent(),
     this.aiPriorityScore = const Value.absent(),
@@ -19590,6 +20888,7 @@ class StaffTasksCompanion extends UpdateCompanion<StaffTaskRow> {
     this.priority = const Value.absent(),
     this.coverageStaffId = const Value.absent(),
     this.escalatedAt = const Value.absent(),
+    this.nextReviewAt = const Value.absent(),
     this.status = const Value.absent(),
     this.ruleScore = const Value.absent(),
     this.aiPriorityScore = const Value.absent(),
@@ -19611,6 +20910,7 @@ class StaffTasksCompanion extends UpdateCompanion<StaffTaskRow> {
     Expression<String>? priority,
     Expression<String>? coverageStaffId,
     Expression<DateTime>? escalatedAt,
+    Expression<DateTime>? nextReviewAt,
     Expression<String>? status,
     Expression<double>? ruleScore,
     Expression<double>? aiPriorityScore,
@@ -19629,6 +20929,7 @@ class StaffTasksCompanion extends UpdateCompanion<StaffTaskRow> {
       if (priority != null) 'priority': priority,
       if (coverageStaffId != null) 'coverage_staff_id': coverageStaffId,
       if (escalatedAt != null) 'escalated_at': escalatedAt,
+      if (nextReviewAt != null) 'next_review_at': nextReviewAt,
       if (status != null) 'status': status,
       if (ruleScore != null) 'rule_score': ruleScore,
       if (aiPriorityScore != null) 'ai_priority_score': aiPriorityScore,
@@ -19649,6 +20950,7 @@ class StaffTasksCompanion extends UpdateCompanion<StaffTaskRow> {
     Value<WorkPriority>? priority,
     Value<String?>? coverageStaffId,
     Value<DateTime?>? escalatedAt,
+    Value<DateTime?>? nextReviewAt,
     Value<TaskStatus>? status,
     Value<double>? ruleScore,
     Value<double?>? aiPriorityScore,
@@ -19667,6 +20969,7 @@ class StaffTasksCompanion extends UpdateCompanion<StaffTaskRow> {
       priority: priority ?? this.priority,
       coverageStaffId: coverageStaffId ?? this.coverageStaffId,
       escalatedAt: escalatedAt ?? this.escalatedAt,
+      nextReviewAt: nextReviewAt ?? this.nextReviewAt,
       status: status ?? this.status,
       ruleScore: ruleScore ?? this.ruleScore,
       aiPriorityScore: aiPriorityScore ?? this.aiPriorityScore,
@@ -19711,6 +21014,9 @@ class StaffTasksCompanion extends UpdateCompanion<StaffTaskRow> {
     if (escalatedAt.present) {
       map['escalated_at'] = Variable<DateTime>(escalatedAt.value);
     }
+    if (nextReviewAt.present) {
+      map['next_review_at'] = Variable<DateTime>(nextReviewAt.value);
+    }
     if (status.present) {
       map['status'] = Variable<String>(
         $StaffTasksTable.$converterstatus.toSql(status.value),
@@ -19749,6 +21055,7 @@ class StaffTasksCompanion extends UpdateCompanion<StaffTaskRow> {
           ..write('priority: $priority, ')
           ..write('coverageStaffId: $coverageStaffId, ')
           ..write('escalatedAt: $escalatedAt, ')
+          ..write('nextReviewAt: $nextReviewAt, ')
           ..write('status: $status, ')
           ..write('ruleScore: $ruleScore, ')
           ..write('aiPriorityScore: $aiPriorityScore, ')
@@ -35359,6 +36666,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $DocumentArtifactsTable(this);
   late final $DocumentDeliveryEventsTable documentDeliveryEvents =
       $DocumentDeliveryEventsTable(this);
+  late final $DocumentCopyConfirmationsTable documentCopyConfirmations =
+      $DocumentCopyConfirmationsTable(this);
+  late final $MedicationDispensesTable medicationDispenses =
+      $MedicationDispensesTable(this);
   late final $StaffTasksTable staffTasks = $StaffTasksTable(this);
   late final $TaskSourcesTable taskSources = $TaskSourcesTable(this);
   late final $TaskHistoryTable taskHistory = $TaskHistoryTable(this);
@@ -35433,6 +36744,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     scopedGrants,
     documentArtifacts,
     documentDeliveryEvents,
+    documentCopyConfirmations,
+    medicationDispenses,
     staffTasks,
     taskSources,
     taskHistory,
@@ -35672,6 +36985,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('document_verifications', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'medications',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('medication_dispenses', kind: UpdateKind.delete)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(

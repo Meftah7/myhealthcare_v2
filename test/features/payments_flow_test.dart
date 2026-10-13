@@ -69,7 +69,7 @@ void main() {
 
     // The balance card and at least one invoice rendered.
     expect(
-      find.textContaining('BD '),
+      find.textContaining('BHD '),
       findsWidgets,
       reason: 'invoice amounts should be formatted as currency',
     );

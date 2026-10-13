@@ -6,6 +6,8 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/src/pdf/font/arabic.dart' as arabic;
 import 'package:pdf/widgets.dart' as pw;
 
+import 'brand_pdf.dart';
+
 /// Receives frozen text only; never reads a session, patient provider or clock.
 abstract interface class IssuedSickLeaveRenderer {
   Future<Uint8List> render({
@@ -15,8 +17,12 @@ abstract interface class IssuedSickLeaveRenderer {
     required DateTime issuedAt,
     bool draft = false,
     String title = 'Sick leave',
-    String clinicName = 'MyHealth Care',
+    String clinicName = 'myhealth',
     String? verificationUrl,
+
+    /// Draw the myhealth logo beside the clinic name. Only versions whose
+    /// frozen snapshot carries [BrandPdf.snapshotMark] (and drafts) set it.
+    bool brandLogo = false,
   });
 }
 
@@ -31,9 +37,11 @@ class IssuedSickLeavePdf implements IssuedSickLeaveRenderer {
     required DateTime issuedAt,
     bool draft = false,
     String title = 'Sick leave',
-    String clinicName = 'MyHealth Care',
+    String clinicName = 'myhealth',
     String? verificationUrl,
+    bool brandLogo = false,
   }) async {
+    final logo = brandLogo ? await BrandPdf.logo() : null;
     final latin = pw.Font.ttf(
       await rootBundle.load('assets/fonts/static/Inter-Regular.ttf'),
     );
@@ -53,7 +61,7 @@ class IssuedSickLeavePdf implements IssuedSickLeaveRenderer {
       title: title,
       author: clinicName,
       subject: reference,
-      creator: 'MyHealth',
+      creator: 'myhealth',
       theme: theme,
     );
     document.addPage(
@@ -65,7 +73,12 @@ class IssuedSickLeavePdf implements IssuedSickLeaveRenderer {
         header: (_) => pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            pw.Text(text(clinicName), style: const pw.TextStyle(fontSize: 20)),
+            BrandPdf.lockup(
+              logo,
+              text(clinicName),
+              size: 32,
+              style: const pw.TextStyle(fontSize: 20),
+            ),
             pw.Divider(),
             pw.Text(text(title), style: const pw.TextStyle(fontSize: 16)),
             if (draft)

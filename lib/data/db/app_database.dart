@@ -2,6 +2,7 @@
 /// platform-aware connection (P1-06).
 library;
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/drift.dart';
@@ -70,6 +71,8 @@ part 'app_database.g.dart';
     IssuedDocumentVersions,
     DocumentArtifacts,
     DocumentDeliveryEvents,
+    DocumentCopyConfirmations,
+    MedicationDispenses,
     TaskSources,
     TaskHistory,
     // AI
@@ -197,7 +200,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 31;
+  int get schemaVersion => 32;
 
   /// Preserve legacy flag/task IDs by aliasing only sources known when the
   /// old flag was last detected. Later readings/reports get their own work.
@@ -578,6 +581,32 @@ class AppDatabase extends _$AppDatabase {
       variables: [Variable.withString(name)],
     ).get();
     return rows.isNotEmpty;
+  }
+
+  /// v32: copy the latest recorded review time of open waiting/blocked tasks
+  /// from history into [StaffTasks.nextReviewAt].
+  Future<void> _backfillTaskReviewTimes() async {
+    final open =
+        await (select(staffTasks)..where(
+              (t) =>
+                  t.status.isInValues([TaskStatus.waiting, TaskStatus.blocked]),
+            ))
+            .get();
+    for (final task in open) {
+      final latest =
+          await (select(taskHistory)
+                ..where((h) => h.taskId.equals(task.id))
+                ..orderBy([(h) => OrderingTerm.desc(h.at)])
+                ..limit(1))
+              .getSingleOrNull();
+      final raw = latest == null
+          ? null
+          : (jsonDecode(latest.afterJson) as Map<String, Object?>)['reviewAt'];
+      if (raw is! String) continue;
+      await (update(staffTasks)..where((t) => t.id.equals(task.id))).write(
+        StaffTasksCompanion(nextReviewAt: Value(DateTime.parse(raw).toLocal())),
+      );
+    }
   }
 
   Future<void> _addColumnIfMissing(
@@ -985,6 +1014,12 @@ class AppDatabase extends _$AppDatabase {
         await _createTableIfMissing(m, adminWorkItems);
         await _createTableIfMissing(m, adminWorkHistory);
         await _createTableIfMissing(m, clinicConfigurations);
+      }
+      if (from < 32) {
+        await _addColumnIfMissing(m, staffTasks, staffTasks.nextReviewAt);
+        await _createTableIfMissing(m, documentCopyConfirmations);
+        await _createTableIfMissing(m, medicationDispenses);
+        await _backfillTaskReviewTimes();
       }
     }),
     beforeOpen: (details) async {

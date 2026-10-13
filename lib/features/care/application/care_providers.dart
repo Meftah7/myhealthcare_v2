@@ -281,7 +281,7 @@ class MessageActions {
       recipientId: recipientId,
       category: NotificationCategory.message,
       title: 'New message from $senderName',
-      body: 'Open MyHealth Care to read your secure message.',
+      body: 'Open myhealth to read your secure message.',
       deepLink: fromStaff
           ? '${AppRoutes.patientMessages}/$staffId'
           : AppRoutes.staffInbox,

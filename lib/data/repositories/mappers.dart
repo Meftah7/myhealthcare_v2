@@ -308,6 +308,7 @@ extension StaffTaskRowX on StaffTaskRow {
     priority: priority,
     coverageStaffId: coverageStaffId,
     escalatedAt: escalatedAt,
+    nextReviewAt: nextReviewAt,
     version: version,
   );
 }

@@ -71,7 +71,10 @@ class _TaskBoardScreenState extends ConsumerState<TaskBoardScreen> {
         loading: () => const SkeletonList(),
         error: (e, _) => ErrorStateView(
           message: t.couldNotLoadTasks,
-          onRetry: () => ref.invalidate(staffWorkProvider),
+          // Refresh the list actually shown (Team work has its own query).
+          onRetry: () => _view == StaffWorkView.team
+              ? ref.invalidate(teamWorkProvider)
+              : ref.invalidate(staffWorkProvider),
         ),
         data: (list) {
           final now = DateTime.now();
@@ -271,7 +274,10 @@ class _PrioritiseButtonState extends ConsumerState<_PrioritiseButton> {
           result,
           success: t.tasksReprioritised,
           onRetry: _run,
-          onReload: () => ref.invalidate(staffTasksProvider),
+          onReload: () => ref
+            ..invalidate(staffTasksProvider)
+            ..invalidate(staffWorkProvider)
+            ..invalidate(teamWorkProvider),
         );
       }
     } finally {
@@ -414,6 +420,15 @@ class _TaskCardState extends ConsumerState<_TaskCard> {
                 ? (ar ? 'لا يوجد موعد نهائي' : 'No deadline recorded')
                 : '${ar ? 'الموعد النهائي' : 'Deadline'}: ${fmtDateTime(task.dueAt!)}',
           ),
+          // Distinct from the original deadline: when waiting/blocked work
+          // must be looked at again.
+          if (task.nextReviewAt != null)
+            Text(
+              '${ar ? 'المراجعة التالية' : 'Next review'}: ${fmtDateTime(task.nextReviewAt!)}',
+              style: task.nextReviewAt!.isBefore(DateTime.now())
+                  ? TextStyle(color: theme.colorScheme.error)
+                  : null,
+            ),
           Text(
             '${ar ? 'الخطوة التالية' : 'Next action'}: ${!task.isOpen
                 ? (ar ? 'تم إغلاق العمل' : 'Work closed')

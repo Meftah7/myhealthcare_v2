@@ -126,7 +126,7 @@ class PatientDrawer extends ConsumerWidget {
             onTap: () => close(
               () => showAboutDialog(
                 context: context,
-                applicationName: 'MyHealth Care',
+                applicationName: 'myhealth',
                 applicationLegalese: t.paAboutBody,
               ),
             ),

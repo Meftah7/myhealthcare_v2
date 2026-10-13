@@ -8,10 +8,7 @@ import 'user.dart';
 
 part 'staff.freezed.dart';
 
-/// The two staff kinds the app distinguishes, stored in [Staff.jobTitle].
-///
-/// Only `Nurse` carries behaviour (it routes to the nursing worklist); every
-/// other title — including the seeded `'Consultant'` — reads as a doctor.
+/// Stored [Staff.jobTitle] values; see [StaffRole] for the validated role.
 const kDoctorJobTitle = 'Doctor';
 const kNurseJobTitle = 'Nurse';
 
@@ -31,10 +28,16 @@ abstract class Staff with _$Staff {
   String get id => user.id;
   String get fullName => user.fullName;
 
-  /// A nurse — works the nursing worklist rather than taking appointments.
-  bool get isNurse => jobTitle == kNurseJobTitle;
+  /// The validated role; `null` for a missing or unrecognised title.
+  StaffRole? get role => StaffRole.parse(jobTitle);
 
-  /// Every clinician who isn't a nurse (the seeded `'Consultant'` staff
-  /// included).
-  bool get isDoctor => !isNurse;
+  /// A nurse — works the nursing worklist rather than taking appointments.
+  bool get isNurse => role == StaffRole.nurse;
+
+  /// A doctor (including the seeded `'Consultant'` title) — not a dentist,
+  /// nurse, receptionist, pharmacist or unknown title.
+  bool get isDoctor => role == StaffRole.doctor;
+
+  /// A doctor or dentist: bookable by patients and owns appointments.
+  bool get takesAppointments => role?.takesAppointments ?? false;
 }

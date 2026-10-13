@@ -89,7 +89,7 @@ Bottom navigation order MUST be: Home | Records | Appointments | Messages | Serv
 
 - [x] Reconfigure only the patient shell branches. Preserve staff/admin destination sets and role guards.
 - [x] Retain StatefulShellRoute.indexedStack behavior or equivalent independent branch state. The current visible-to-actual branch mapping is [0, 3, 2, 6, 5]; Nutrition/Profile remain reachable in their retained legacy branches.
-- [x] Give each tab an icon and text label; emphasize Appointments with a rounded blue tile. Keep Messages immediately before Services and display its supplementary Future work scope label legibly.
+- [x] Give each tab an icon and text label; emphasize Appointments with a rounded blue tile. Keep Messages immediately before Services. Messages is owner-approved current scope (2026-10-13 brief), so it no longer carries a Future work label.
 - [x] Give the currently selected tab a distinct indicator, including when the center blue tile is already visible.
 - [x] Preserve tab stacks and scroll positions when switching destinations; retain sensible tab-reselection behavior.
 - [x] Open the dedicated booking flow full-screen, with a back button and no bottom bar, as in the reference.
@@ -408,3 +408,10 @@ Android APK generation remains a separate packaging limitation: the Android SDK 
 ## Definition of done
 
 The patient app has the reference-style rounded layout with approved blue light/dark branding, Home/Records/Appointments/Messages/Services navigation and connected workflows. Quick Access directly below Services preserves everyday care features; the native drawer preserves infrequent account/settings workflows. Records, booking, PDF downloads and report explanations remain central and accessible. Existing data, permissions and staff/admin workflows continue to work. All additions outside the proposal show Future work labels, Weather/News sources remain excluded, and unresolved required integrations are recorded rather than marked complete.
+
+## 2026-10-13 brief delta
+
+- [x] Onboarding copy matches the brief exactly (EN/AR): "Book appointments with ease" / "Your health records, in one place".
+- [x] Messages Future work badge removed from tab and screen (approved scope; real repository-backed messaging, draft kept on failed send, duplicate taps blocked).
+- [x] Text size verified: Small/Default/Large map to stored xSmall/small/medium; name-based, no double migration; new users get Default.
+- [x] Existing approved blue/navy palette kept (no purple).

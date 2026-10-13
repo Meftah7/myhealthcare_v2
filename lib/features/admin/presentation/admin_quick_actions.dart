@@ -505,7 +505,7 @@ class _CreateInvoiceSheetState extends ConsumerState<_CreateInvoiceSheet> {
       SnackBar(
         content: Text(switch (result) {
           Ok(:final value) => t.invoiceRaisedSnackbar(
-            value.totalAmount.toStringAsFixed(2),
+            value.totalAmount.toStringAsFixed(3),
           ),
           Err(:final failure) => describeFailure(
             AppLocalizations.of(context)!,
@@ -576,7 +576,7 @@ class _CreateInvoiceSheetState extends ConsumerState<_CreateInvoiceSheet> {
               const SizedBox(height: Space.sm),
               Text(
                 t.taxTotalDueNote(
-                  (subtotal * 1.10).toStringAsFixed(2),
+                  (subtotal * 1.10).toStringAsFixed(3),
                   fmtDate(DateTime.now().add(const Duration(days: 30))),
                 ),
                 style: theme.textTheme.bodySmall?.copyWith(

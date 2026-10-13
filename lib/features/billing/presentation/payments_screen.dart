@@ -27,7 +27,7 @@ import 'payment_history.dart';
 import 'payment_methods_section.dart';
 import 'wallet_topup_sheet.dart';
 
-String money(double amount) => 'BD ${amount.toStringAsFixed(2)}';
+String money(double amount) => fmtBhd(amount);
 
 class PaymentsScreen extends ConsumerWidget {
   const PaymentsScreen({this.embedded = false, super.key});

@@ -68,9 +68,11 @@ void main() {
       final first = (await repo.book(request)).valueOrNull!;
       final retry = await repo.book(request);
       expect(retry.valueOrNull?.id, first.id);
-      final rows = await (db.select(
-        db.appointments,
-      )..where((a) => a.slotStart.equals(start))).get();
+      final rows =
+          await (db.select(db.appointments)..where(
+                (a) => a.slotStart.equals(start) & a.staffId.equals('staff_01'),
+              ))
+              .get();
       expect(rows, hasLength(1));
       // …and its side effect was recorded once.
       expect(await db.select(db.outboxEvents).get(), hasLength(1));

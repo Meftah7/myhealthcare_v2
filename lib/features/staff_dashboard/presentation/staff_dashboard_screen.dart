@@ -35,6 +35,7 @@ import '../../patient_chart/application/result_review_providers.dart';
 import '../../patient_chart/presentation/chart_write_sheets.dart';
 import '../../patient_chart/presentation/result_review_sheet.dart';
 import '../application/staff_providers.dart';
+import 'role_workspaces.dart';
 import 'staff_quick_actions.dart';
 import 'staff_top_actions.dart';
 
@@ -43,6 +44,10 @@ class StaffDashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Reception, pharmacy and unknown roles get their own Today workspace;
+    // clinicians (doctor, dentist, nurse) keep this dashboard.
+    final workspace = roleWorkspaceFor(ref.watch(permissionsProvider));
+    if (workspace != null) return workspace;
     final t = AppLocalizations.of(context)!;
     final user = ref.watch(currentUserProvider);
     final firstName = (user?.fullName ?? t.greetingFallbackName)
@@ -52,7 +57,13 @@ class StaffDashboardScreen extends ConsumerWidget {
     return AppScaffold(
       stagger: true,
       heroOverline: greeting(firstName),
-      title: user?.fullName ?? t.greetingFallbackName,
+      // "Dr" only for doctors and dentists (by validated role).
+      title: user == null
+          ? t.greetingFallbackName
+          : staffDisplayName(
+              user.fullName,
+              ref.watch(staffProfileProvider).valueOrNull?.jobTitle,
+            ),
       actions: const [StaffTopActions()],
       onRefresh: () async {
         ref

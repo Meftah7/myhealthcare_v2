@@ -71,12 +71,12 @@ Future<void> _done(WidgetTester tester) async {
 }
 
 const _pages = {
-  'Complete Checkup': 'Health checkup packages are planned for MyHealth',
-  'E-Referral': 'Electronic referrals are planned for MyHealth',
-  'Blood Donation': 'Blood donation information is planned for MyHealth',
+  'Complete Checkup': 'Health checkup packages are planned for myhealth',
+  'E-Referral': 'Electronic referrals are planned for myhealth',
+  'Blood Donation': 'Blood donation information is planned for myhealth',
   'Health Trackers': 'Review the vitals recorded in your health record',
-  'Wearables': 'Smartwatch connections are planned for MyHealth',
-  'Water tracking': 'Water intake tracking is planned for MyHealth',
+  'Wearables': 'Smartwatch connections are planned for myhealth',
+  'Water tracking': 'Water intake tracking is planned for myhealth',
 };
 
 void main() {

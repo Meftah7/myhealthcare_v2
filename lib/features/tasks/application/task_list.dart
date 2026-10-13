@@ -8,6 +8,10 @@ enum TaskTimeGroup { urgent, overdue, today, upcoming, completed }
 TaskTimeGroup taskTimeGroup(StaffTask task, DateTime now) {
   if (!task.isOpen) return TaskTimeGroup.completed;
   if (task.priority == WorkPriority.urgent) return TaskTimeGroup.urgent;
+  // Waiting/blocked work whose review time has passed needs the owner now,
+  // whatever its original deadline.
+  final review = task.nextReviewAt;
+  if (review != null && review.isBefore(now)) return TaskTimeGroup.overdue;
   final due = task.dueAt;
   if (due == null) return TaskTimeGroup.upcoming;
   if (due.isBefore(now)) return TaskTimeGroup.overdue;
@@ -52,7 +56,11 @@ List<StaffTask> visibleStaffWork(
       a,
       now,
     ).index.compareTo(taskTimeGroup(b, now).index);
-    return group != 0 ? group : compareStaffTasks(a, b, aiWeight: aiWeight);
+    if (group != 0) return group;
+    // Waiting/blocked work is ordered by its next review time, soonest first.
+    final ra = a.nextReviewAt, rb = b.nextReviewAt;
+    if (ra != null && rb != null) return ra.compareTo(rb);
+    return compareStaffTasks(a, b, aiWeight: aiWeight);
   });
   return result;
 }

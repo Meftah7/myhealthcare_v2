@@ -33,21 +33,6 @@ class MessagesScreen extends ConsumerWidget {
     return AppScaffold(
       title: t.quickActionAskDoctor,
       actions: const [PatientTopActions()],
-      // Messaging is an existing supplementary feature (outside the
-      // proposal): it stays fully working and shows its scope label.
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(32),
-        child: Padding(
-          padding: const EdgeInsetsDirectional.only(
-            start: Space.md,
-            bottom: Space.xs,
-          ),
-          child: Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: FutureWorkBadge(label: t.paFutureWork),
-          ),
-        ),
-      ),
       floatingActionButton: doctors.isEmpty
           ? null
           : FloatingActionButton.extended(

@@ -117,7 +117,13 @@ class CareTeamAssignment {
       !assignedAt.isAfter(at) && (endedAt == null || endedAt!.isAfter(at));
 }
 
-enum CredentialKind { medicalLicense, nursingLicense, other }
+enum CredentialKind {
+  medicalLicense,
+  nursingLicense,
+  other,
+  dentalLicense,
+  pharmacyLicense,
+}
 
 @immutable
 class StaffCredential {

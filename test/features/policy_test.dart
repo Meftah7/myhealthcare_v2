@@ -118,7 +118,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
     }
     expect(find.byKey(const ValueKey('policy-draft-banner')), findsOneWidget);
-    expect(find.text('MyHealth Privacy Policy'), findsOneWidget);
+    expect(find.text('myhealth Privacy Policy'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
   });

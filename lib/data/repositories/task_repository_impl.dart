@@ -309,7 +309,16 @@ class TaskRepositoryImpl implements TaskRepository {
           await (_db.update(
                 _db.staffTasks,
               )..where((t) => t.id.equals(id) & t.version.equals(task.version)))
-              .write(StaffTasksCompanion(status: Value(status)));
+              .write(
+                StaffTasksCompanion(
+                  status: Value(status),
+                  nextReviewAt: Value(
+                    {TaskStatus.waiting, TaskStatus.blocked}.contains(status)
+                        ? reviewAt
+                        : null,
+                  ),
+                ),
+              );
       if (changed != 1) throw const ConflictFailure('Task changed. Reload it.');
       final before = {
         'status': task.status.name,

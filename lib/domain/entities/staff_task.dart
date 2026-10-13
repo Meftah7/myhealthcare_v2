@@ -27,6 +27,9 @@ abstract class StaffTask with _$StaffTask {
     /// owner ([staffId]) stays accountable.
     String? coverageStaffId,
     DateTime? escalatedAt,
+
+    /// When waiting/blocked work is next reviewed (distinct from [dueAt]).
+    DateTime? nextReviewAt,
     @Default(1) int version,
   }) = _StaffTask;
 

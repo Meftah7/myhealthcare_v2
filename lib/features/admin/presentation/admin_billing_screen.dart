@@ -192,7 +192,7 @@ class _InvoiceCard extends ConsumerWidget {
           const SizedBox(height: Space.xxs),
           Text(
             [
-              'BD ${invoice.totalAmount.toStringAsFixed(2)}',
+              fmtBhd(invoice.totalAmount),
               t.issuedOn(fmtDate(invoice.issuedAt)),
               if (invoice.dueDate != null) t.dueOn(fmtDate(invoice.dueDate!)),
             ].join(' · '),

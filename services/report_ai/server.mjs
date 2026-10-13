@@ -1,4 +1,4 @@
-// Report AI gateway for the full (local-Drift) MyHealth app.
+// Report AI gateway for the full (local-Drift) myhealth app.
 //
 // The local app keeps all clinical data on the device and has no server
 // account, so it cannot call the shared API. This gateway is the only place

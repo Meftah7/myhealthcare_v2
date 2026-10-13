@@ -168,6 +168,9 @@ flutter:
     # Arabic glyphs for bilingual/RTL PDF exports (Phase 5). SIL Open Font
     # License 1.1 — see assets/fonts/NotoNaskhArabic-OFL.txt.
     - assets/fonts/NotoNaskhArabic.ttf
+    # Brand logo (in-app) and its PDF-sized variant; see assets/branding/README.md.
+    - assets/branding/myhealth-logo.png
+    - assets/branding/myhealth-logo-pdf.png
     - assets/images/
     - assets/policies/
     - assets/sounds/

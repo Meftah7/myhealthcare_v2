@@ -434,7 +434,7 @@ class ResultReviewRepositoryImpl implements ResultReviewRepository {
     if (user == null ||
         !user.isActive ||
         user.role != UserRole.staff ||
-        profile?.jobTitle == kNurseJobTitle) {
+        StaffRole.parse(profile?.jobTitle) != StaffRole.doctor) {
       throw const ValidationFailure(
         'Choose an active doctor who can review results.',
       );

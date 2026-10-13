@@ -229,6 +229,27 @@ class Medications extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+/// One pharmacy outcome against a [Medications] order. Separate from the
+/// order itself: dispensing never edits what was prescribed.
+@DataClassName('MedicationDispenseRow')
+class MedicationDispenses extends Table {
+  TextColumn get id => text()();
+  TextColumn get medicationId =>
+      text().references(Medications, #id, onDelete: KeyAction.cascade)();
+  TextColumn get patientId => text().references(Users, #id)();
+  TextColumn get pharmacistId => text().references(Users, #id)();
+  TextColumn get outcome => textEnum<DispenseOutcome>()();
+  TextColumn get quantity => text().nullable()();
+  TextColumn get batch => text().nullable()();
+  DateTimeColumn get expiry => dateTime().nullable()();
+  TextColumn get note => text().nullable()();
+  TextColumn get idempotencyKey => text().unique()();
+  DateTimeColumn get recordedAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 @DataClassName('EncounterDraftRow')
 class EncounterDrafts extends Table {
   TextColumn get appointmentId =>

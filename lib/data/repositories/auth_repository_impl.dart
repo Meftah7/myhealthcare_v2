@@ -26,17 +26,17 @@ import 'mappers.dart';
 /// Builds the principal for a proven account: role grants, narrowed for
 /// nurses.
 Future<Principal> principalFor(AppDatabase db, UserRow row) async {
-  var isNurse = false;
+  StaffRole? staffRole;
   if (row.role == UserRole.staff) {
     final profile = await (db.select(
       db.staffProfiles,
     )..where((p) => p.userId.equals(row.id))).getSingleOrNull();
-    isNurse = profile?.jobTitle == kNurseJobTitle;
+    staffRole = StaffRole.parse(profile?.jobTitle);
   }
   return Principal(
     accountId: row.id,
     role: row.role,
-    permissions: RolePermissions.forRole(row.role, isNurse: isNurse),
+    permissions: RolePermissions.forRole(row.role, staffRole: staffRole),
     sessionId: newId('sess'),
     authenticatedAt: DateTime.now(),
   );
@@ -899,9 +899,13 @@ class UserRepositoryImpl implements UserRepository {
                 StaffCredentialsCompanion.insert(
                   id: newId('cred'),
                   staffId: id,
-                  kind: jobTitle == kNurseJobTitle
-                      ? CredentialKind.nursingLicense
-                      : CredentialKind.medicalLicense,
+                  kind: switch (StaffRole.parse(jobTitle)) {
+                    StaffRole.nurse => CredentialKind.nursingLicense,
+                    StaffRole.dentist => CredentialKind.dentalLicense,
+                    StaffRole.pharmacist => CredentialKind.pharmacyLicense,
+                    StaffRole.doctor => CredentialKind.medicalLicense,
+                    StaffRole.receptionist || null => CredentialKind.other,
+                  },
                   identifier: licence,
                   recordedAt: DateTime.now(),
                 ),

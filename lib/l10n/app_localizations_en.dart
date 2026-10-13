@@ -2923,7 +2923,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pushChannelSubtitle =>
-      'Browser alerts while MyHealth Care is open. Reminders that fall due while it is closed appear in your inbox when you return.';
+      'Browser alerts while myhealth is open. Reminders that fall due while it is closed appear in your inbox when you return.';
 
   @override
   String get inAppAlwaysOnNote =>
@@ -3376,6 +3376,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nurseOption => 'Nurse';
 
   @override
+  String get receptionistOption => 'Receptionist';
+
+  @override
+  String get pharmacistOption => 'Pharmacist';
+
+  @override
+  String get dentistOption => 'Dentist';
+
+  @override
   String get specialtyUnitOptionalLabel => 'Specialty / unit (optional)';
 
   @override
@@ -3646,7 +3655,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get linkAccountSearchHelper =>
-      'They must already have a MyHealth Care account.';
+      'They must already have a myhealth account.';
 
   @override
   String get noAccountsFound => 'No accounts found.';
@@ -4223,7 +4232,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get feedbackOffline =>
-      'Couldn\'t reach MyHealth Care. Check your connection and try again.';
+      'Couldn\'t reach myhealth. Check your connection and try again.';
 
   @override
   String get feedbackUnexpected =>
@@ -4949,7 +4958,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paClinicExplainer =>
-      'These are the specialty departments of the MyHealth clinic.';
+      'These are the specialty departments of the myhealth clinic.';
 
   @override
   String get paClose => 'Close';
@@ -4981,7 +4990,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paEmergencyNotDispatch =>
-      'MyHealth cannot contact emergency services for you, and booking an appointment is not suitable for emergencies.';
+      'myhealth cannot contact emergency services for you, and booking an appointment is not suitable for emergencies.';
 
   @override
   String get paEmergencyServices => 'Emergency';
@@ -5073,7 +5082,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paMessageCareTeam => 'Message your care team';
 
   @override
-  String get paMyHealthServices => 'MyHealth services';
+  String get paMyHealthServices => 'myhealth services';
 
   @override
   String get paMyProfile => 'My Profile';
@@ -5118,14 +5127,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paQuickAccess => 'Quick Access';
 
   @override
-  String get paQuickAccessSubtitle => 'Everything in your MyHealth account.';
+  String get paQuickAccessSubtitle => 'Everything in your myhealth account.';
 
   @override
   String get paRegion => 'Region';
 
   @override
   String get paRegionUnavailableBody =>
-      'MyHealth currently has one clinic, so there are no regions to choose from. Pick a department or a doctor instead.';
+      'myhealth currently has one clinic, so there are no regions to choose from. Pick a department or a doctor instead.';
 
   @override
   String get paRegionUnavailableTitle => 'No regions configured';
@@ -5141,7 +5150,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paServiceUnavailableBody =>
-      'This service is not available in this version of MyHealth.';
+      'This service is not available in this version of myhealth.';
 
   @override
   String get paServices => 'Services';
@@ -5223,18 +5232,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paYesPlease => 'Yes, Please';
 
   @override
-  String get paOnboardBookTitle => 'Book appointments in a few taps';
+  String get paOnboardBookTitle => 'Book appointments with ease';
 
   @override
   String get paOnboardBookBody =>
-      'Find a clinic or doctor, choose a time that suits you and manage your visits in one place.';
+      'Find a doctor and book a suitable appointment in a few simple steps.';
 
   @override
-  String get paOnboardRecordsTitle => 'Your records and reports, made clearer';
+  String get paOnboardRecordsTitle => 'Your health records, in one place';
 
   @override
   String get paOnboardRecordsBody =>
-      'See your records, download documents and get plain-language explanations of PDF reports.';
+      'Access your available reports, prescriptions and visit history.';
 
   @override
   String get paChatLiveStatus => 'Live AI';
@@ -5255,7 +5264,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paFutureWorkBody =>
-      'This is planned future work and is not part of this version of MyHealth. Nothing is connected yet, so no information is shown here.';
+      'This is planned future work and is not part of this version of myhealth. Nothing is connected yet, so no information is shown here.';
 
   @override
   String get paCoreServices => 'Core services';
@@ -5300,11 +5309,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paDrawerAbout => 'About & support';
 
   @override
-  String get paAboutMyHealth => 'About MyHealth';
+  String get paAboutMyHealth => 'About myhealth';
 
   @override
   String get paAboutBody =>
-      'MyHealth Care lets patients view their records, book appointments, download documents and get plain-language explanations of PDF medical reports. Senior project prototype with synthetic data.';
+      'myhealth lets patients view their records, book appointments, download documents and get plain-language explanations of PDF medical reports. Senior project prototype with synthetic data.';
 
   @override
   String get paSettingsPreferences => 'Settings & Preferences';
@@ -5573,7 +5582,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get htCallDescription =>
-      'Bahrain emergency number. Opens your device’s phone action; MyHealth does not dispatch an ambulance.';
+      'Bahrain emergency number. Opens your device’s phone action; myhealth does not dispatch an ambulance.';
 
   @override
   String get htPhoneUnavailable =>
@@ -5588,7 +5597,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get htNearestErUnavailable =>
-      'No verified emergency-facility directory, coordinates or directions integration is configured. MyHealth cannot identify the nearest ER.';
+      'No verified emergency-facility directory, coordinates or directions integration is configured. myhealth cannot identify the nearest ER.';
 
   @override
   String get htRapidResponse => 'Rapid Response Team';
@@ -5602,7 +5611,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get htCheckInUnavailable =>
-      'No emergency check-in backend is connected. MyHealth cannot reserve emergency capacity, skip queues or waive payment.';
+      'No emergency check-in backend is connected. myhealth cannot reserve emergency capacity, skip queues or waive payment.';
 
   @override
   String get htSelectHospital => 'Select Hospital';
@@ -5651,14 +5660,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Department filters could not load. Name and specialty search still work.';
 
   @override
-  String get splashLoadingLabel => 'Loading MyHealth';
+  String get splashLoadingLabel => 'Loading myhealth';
 
   @override
   String get splashSlowTitle => 'This is taking longer than usual';
 
   @override
   String get splashSlowBody =>
-      'MyHealth is still setting up. Check your connection or browser storage settings, then try again.';
+      'myhealth is still setting up. Check your connection or browser storage settings, then try again.';
 
   @override
   String onboardingProgress(int current, int total) {
@@ -5679,7 +5688,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get svcBloodDonationTitle =>
-      'Blood donation information is planned for MyHealth';
+      'Blood donation information is planned for myhealth';
 
   @override
   String get svcBloodDonationBody =>
@@ -5687,22 +5696,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get svcEReferralTitle =>
-      'Electronic referrals are planned for MyHealth';
+      'Electronic referrals are planned for myhealth';
 
   @override
   String get svcEReferralBody =>
-      'A future version may let clinicians send and track referrals electronically. MyHealth cannot send records to another hospital, and no referral integration is connected yet.';
+      'A future version may let clinicians send and track referrals electronically. myhealth cannot send records to another hospital, and no referral integration is connected yet.';
 
   @override
   String get svcCheckupTitle =>
-      'Health checkup packages are planned for MyHealth';
+      'Health checkup packages are planned for myhealth';
 
   @override
   String get svcCheckupBody =>
       'No checkup package is set up for booking yet. You can still book a regular appointment with a doctor from Book appointment.';
 
   @override
-  String get svcWaterTitle => 'Water intake tracking is planned for MyHealth';
+  String get svcWaterTitle => 'Water intake tracking is planned for myhealth';
 
   @override
   String get svcWaterBody =>
@@ -5714,11 +5723,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get svcTrackersBody =>
-      'See blood pressure, heart rate, temperature, weight, oxygen saturation and glucose readings saved in MyHealth, with trends over time. Live or continuous monitoring is not available.';
+      'See blood pressure, heart rate, temperature, weight, oxygen saturation and glucose readings saved in myhealth, with trends over time. Live or continuous monitoring is not available.';
 
   @override
   String get svcWatchesTitle =>
-      'Smartwatch connections are planned for MyHealth';
+      'Smartwatch connections are planned for myhealth';
 
   @override
   String get svcWatchesBody =>

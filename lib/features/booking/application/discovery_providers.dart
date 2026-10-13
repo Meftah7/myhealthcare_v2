@@ -19,7 +19,7 @@ import '../../../domain/repositories/appointment_repository.dart';
 final publicDoctorsProvider = FutureProvider<List<Staff>>((ref) async {
   final result = await ref.watch(userRepositoryProvider).allStaff();
   return switch (result) {
-    Ok(:final value) => value.where((s) => s.isDoctor).toList(),
+    Ok(:final value) => value.where((s) => s.takesAppointments).toList(),
     Err(:final failure) => throw failure,
   };
 });

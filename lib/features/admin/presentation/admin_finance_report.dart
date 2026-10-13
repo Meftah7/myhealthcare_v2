@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/readable_label.dart';
+import '../../../core/utils/format.dart';
 import '../../../data/repositories/admin_workspace.dart';
 import '../../../domain/identity/permissions.dart';
 import 'admin_workspace_screens.dart';
@@ -55,7 +56,7 @@ class AdminFinanceReportScreen extends ConsumerWidget {
                       }.contains(p.status.name),
                 ))
                   ListTile(
-                    title: Text('${p.id} · BHD ${p.amount.toStringAsFixed(3)}'),
+                    title: Text('${p.id} · ${fmtBhd(p.amount)}'),
                     subtitle: Text(
                       '${p.status.name} · ${p.failureReason ?? p.reason ?? adminText(c, 'Reconcile payment state', 'تسوية حالة الدفع')}',
                     ),
@@ -81,64 +82,83 @@ class AdminFinanceReportScreen extends ConsumerWidget {
                     ),
                   ),
                   onPressed: () async {
-                    final service = ref.read(adminWorkspaceProvider);
-                    await service.authorize(Permission.manageBilling);
-                    final db = service.db;
-                    final payments = await db
-                        .select(db.paymentTransactions)
-                        .get();
-                    final invoices = await db.select(db.invoices).get();
-                    String cell(String s) =>
-                        '"${(RegExp(r'^[=+@\-\t\r]').hasMatch(s) ? "'$s" : s).replaceAll('"', '""')}"';
-                    final rows = [
-                      [
-                        'kind',
-                        'reference',
-                        'invoice',
-                        'amount_bhd',
-                        'state',
-                        'reason',
-                      ],
-                      for (final i in invoices)
+                    try {
+                      final service = ref.read(adminWorkspaceProvider);
+                      await service.authorize(Permission.manageBilling);
+                      final db = service.db;
+                      final payments = await db
+                          .select(db.paymentTransactions)
+                          .get();
+                      final invoices = await db.select(db.invoices).get();
+                      String cell(String s) =>
+                          '"${(RegExp(r'^[=+@\-\t\r]').hasMatch(s) ? "'$s" : s).replaceAll('"', '""')}"';
+                      final rows = [
                         [
+                          'kind',
+                          'reference',
                           'invoice',
-                          i.id,
-                          i.id,
-                          i.totalAmount.toStringAsFixed(3),
-                          i.status.name,
-                          '',
+                          'amount_bhd',
+                          'state',
+                          'reason',
                         ],
-                      for (final p in payments)
-                        [
-                          'payment',
-                          p.id,
-                          p.invoiceId ?? '',
-                          p.amount.toStringAsFixed(3),
-                          p.status.name,
-                          p.reason ?? p.failureReason ?? '',
-                        ],
-                    ];
-                    await Clipboard.setData(
-                      ClipboardData(
-                        text: rows.map((r) => r.map(cell).join(',')).join('\n'),
-                      ),
-                    );
-                    await service.access.audit(
-                      'finance_report.exported',
-                      entityType: 'finance_report',
-                    );
-                    if (c.mounted) {
-                      ScaffoldMessenger.of(c).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            adminText(
-                              c,
-                              'Finance report copied.',
-                              'تم نسخ التقرير المالي',
-                            ),
-                          ),
+                        for (final i in invoices)
+                          [
+                            'invoice',
+                            i.id,
+                            i.id,
+                            i.totalAmount.toStringAsFixed(3),
+                            i.status.name,
+                            '',
+                          ],
+                        for (final p in payments)
+                          [
+                            'payment',
+                            p.id,
+                            p.invoiceId ?? '',
+                            p.amount.toStringAsFixed(3),
+                            p.status.name,
+                            p.reason ?? p.failureReason ?? '',
+                          ],
+                      ];
+                      await Clipboard.setData(
+                        ClipboardData(
+                          text: rows
+                              .map((r) => r.map(cell).join(','))
+                              .join('\n'),
                         ),
                       );
+                      await service.access.audit(
+                        'finance_report.exported',
+                        entityType: 'finance_report',
+                      );
+                      if (c.mounted) {
+                        ScaffoldMessenger.of(c).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              adminText(
+                                c,
+                                'Finance report copied.',
+                                'تم نسخ التقرير المالي',
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      // Permission or read failure: say so; nothing was copied.
+                      if (c.mounted) {
+                        ScaffoldMessenger.of(c).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              adminText(
+                                c,
+                                'Could not copy the finance report. Nothing was copied; try again.',
+                                'تعذّر نسخ التقرير المالي. لم يُنسخ شيء؛ حاول مرة أخرى.',
+                              ),
+                            ),
+                          ),
+                        );
+                      }
                     }
                   },
                 ),

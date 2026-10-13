@@ -137,7 +137,7 @@ class CareMessageRepositoryImpl implements CareMessageRepository {
     )..where((s) => s.userId.isIn(visits.map((a) => a.staffId)))).get();
     return {
       for (final s in profiles)
-        if (s.jobTitle != kNurseJobTitle) s.userId,
+        if (StaffRole.parse(s.jobTitle)?.takesAppointments ?? false) s.userId,
     };
   }
 

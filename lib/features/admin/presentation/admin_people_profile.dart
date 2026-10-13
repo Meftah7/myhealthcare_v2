@@ -68,7 +68,7 @@ final adminPersonSectionProvider = FutureProvider.autoDispose
           for (final i in await (db.select(
             db.invoices,
           )..where((i) => i.patientId.equals(key.id))).get())
-            '${i.id} · ${i.status.name} · BHD ${i.totalAmount.toStringAsFixed(3)}',
+            '${i.id} · ${i.status.name} · ${fmtBhd(i.totalAmount)}',
         ];
       }
       return [

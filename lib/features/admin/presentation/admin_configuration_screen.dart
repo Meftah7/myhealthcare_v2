@@ -67,8 +67,7 @@ class _ConfigurationState extends ConsumerState<AdminConfigurationScreen> {
               if (!loaded) {
                 for (final key in labels.keys) {
                   fields[key] = TextEditingController(
-                    text:
-                        '${data[key] ?? (key == 'name' ? 'MyHealth Care' : '')}',
+                    text: '${data[key] ?? (key == 'name' ? 'myhealth' : '')}',
                   );
                 }
                 loaded = true;

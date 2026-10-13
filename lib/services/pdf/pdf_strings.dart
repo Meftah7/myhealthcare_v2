@@ -59,7 +59,7 @@ class PdfStrings {
   String get fingerprint => _t('SHA-256', 'بصمة SHA-256');
 
   String get sourceClinicRecord =>
-      _t('MyHealth Care clinic record', 'سجل عيادة MyHealth Care');
+      _t('myhealth clinic record', 'سجل عيادة myhealth');
   String get sourcePatientImport => _t(
     'Imported by the patient from an outside document',
     'استورده المريض من وثيقة خارجية',
@@ -258,8 +258,8 @@ class PdfStrings {
   String get verificationCode => _t('Verification code', 'رمز التحقق');
   String get verificationHelp => _t(
     'Clinic staff can confirm this document is genuine by entering the code '
-        '(or scanning the QR) in MyHealth Care → Verify document.',
+        '(or scanning the QR) in myhealth → Verify document.',
     'يمكن لموظفي العيادة التأكد من صحة هذه الوثيقة بإدخال الرمز (أو مسح رمز '
-        'QR) في MyHealth Care ← التحقق من وثيقة.',
+        'QR) في myhealth ← التحقق من وثيقة.',
   );
 }

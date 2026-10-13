@@ -80,20 +80,12 @@ class AuthScaffold extends StatelessWidget {
                           const SizedBox(height: Space.md),
                           Row(
                             children: [
-                              Container(
-                                width: 36,
-                                height: 36,
-                                padding: const EdgeInsets.all(6),
-                                decoration: BoxDecoration(
-                                  color: scheme.primary,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: const AppLogo(),
-                              ),
+                              // The wordmark beside it announces the brand.
+                              const AppLogo(height: 40, decorative: true),
                               const SizedBox(width: Space.sm),
                               Expanded(
                                 child: ReadableLabel(
-                                  'MyHealth Care',
+                                  kBrandName,
                                   style: theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
                                     color: scheme.onPrimaryContainer,

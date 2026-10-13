@@ -5351,7 +5351,7 @@ abstract class AppLocalizations {
   /// No description provided for @pushChannelSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Browser alerts while MyHealth Care is open. Reminders that fall due while it is closed appear in your inbox when you return.'**
+  /// **'Browser alerts while myhealth is open. Reminders that fall due while it is closed appear in your inbox when you return.'**
   String get pushChannelSubtitle;
 
   /// No description provided for @inAppAlwaysOnNote.
@@ -6062,6 +6062,24 @@ abstract class AppLocalizations {
   /// **'Nurse'**
   String get nurseOption;
 
+  /// No description provided for @receptionistOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Receptionist'**
+  String get receptionistOption;
+
+  /// No description provided for @pharmacistOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Pharmacist'**
+  String get pharmacistOption;
+
+  /// No description provided for @dentistOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Dentist'**
+  String get dentistOption;
+
   /// No description provided for @specialtyUnitOptionalLabel.
   ///
   /// In en, this message translates to:
@@ -6563,7 +6581,7 @@ abstract class AppLocalizations {
   /// No description provided for @linkAccountSearchHelper.
   ///
   /// In en, this message translates to:
-  /// **'They must already have a MyHealth Care account.'**
+  /// **'They must already have a myhealth account.'**
   String get linkAccountSearchHelper;
 
   /// No description provided for @noAccountsFound.
@@ -7559,7 +7577,7 @@ abstract class AppLocalizations {
   /// No description provided for @feedbackOffline.
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t reach MyHealth Care. Check your connection and try again.'**
+  /// **'Couldn\'t reach myhealth. Check your connection and try again.'**
   String get feedbackOffline;
 
   /// No description provided for @feedbackUnexpected.
@@ -8789,7 +8807,7 @@ abstract class AppLocalizations {
   /// No description provided for @paClinicExplainer.
   ///
   /// In en, this message translates to:
-  /// **'These are the specialty departments of the MyHealth clinic.'**
+  /// **'These are the specialty departments of the myhealth clinic.'**
   String get paClinicExplainer;
 
   /// No description provided for @paClose.
@@ -8849,7 +8867,7 @@ abstract class AppLocalizations {
   /// No description provided for @paEmergencyNotDispatch.
   ///
   /// In en, this message translates to:
-  /// **'MyHealth cannot contact emergency services for you, and booking an appointment is not suitable for emergencies.'**
+  /// **'myhealth cannot contact emergency services for you, and booking an appointment is not suitable for emergencies.'**
   String get paEmergencyNotDispatch;
 
   /// No description provided for @paEmergencyServices.
@@ -9023,7 +9041,7 @@ abstract class AppLocalizations {
   /// No description provided for @paMyHealthServices.
   ///
   /// In en, this message translates to:
-  /// **'MyHealth services'**
+  /// **'myhealth services'**
   String get paMyHealthServices;
 
   /// No description provided for @paMyProfile.
@@ -9113,7 +9131,7 @@ abstract class AppLocalizations {
   /// No description provided for @paQuickAccessSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Everything in your MyHealth account.'**
+  /// **'Everything in your myhealth account.'**
   String get paQuickAccessSubtitle;
 
   /// No description provided for @paRegion.
@@ -9125,7 +9143,7 @@ abstract class AppLocalizations {
   /// No description provided for @paRegionUnavailableBody.
   ///
   /// In en, this message translates to:
-  /// **'MyHealth currently has one clinic, so there are no regions to choose from. Pick a department or a doctor instead.'**
+  /// **'myhealth currently has one clinic, so there are no regions to choose from. Pick a department or a doctor instead.'**
   String get paRegionUnavailableBody;
 
   /// No description provided for @paRegionUnavailableTitle.
@@ -9155,7 +9173,7 @@ abstract class AppLocalizations {
   /// No description provided for @paServiceUnavailableBody.
   ///
   /// In en, this message translates to:
-  /// **'This service is not available in this version of MyHealth.'**
+  /// **'This service is not available in this version of myhealth.'**
   String get paServiceUnavailableBody;
 
   /// No description provided for @paServices.
@@ -9305,25 +9323,25 @@ abstract class AppLocalizations {
   /// No description provided for @paOnboardBookTitle.
   ///
   /// In en, this message translates to:
-  /// **'Book appointments in a few taps'**
+  /// **'Book appointments with ease'**
   String get paOnboardBookTitle;
 
   /// No description provided for @paOnboardBookBody.
   ///
   /// In en, this message translates to:
-  /// **'Find a clinic or doctor, choose a time that suits you and manage your visits in one place.'**
+  /// **'Find a doctor and book a suitable appointment in a few simple steps.'**
   String get paOnboardBookBody;
 
   /// No description provided for @paOnboardRecordsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Your records and reports, made clearer'**
+  /// **'Your health records, in one place'**
   String get paOnboardRecordsTitle;
 
   /// No description provided for @paOnboardRecordsBody.
   ///
   /// In en, this message translates to:
-  /// **'See your records, download documents and get plain-language explanations of PDF reports.'**
+  /// **'Access your available reports, prescriptions and visit history.'**
   String get paOnboardRecordsBody;
 
   /// No description provided for @paChatLiveStatus.
@@ -9359,7 +9377,7 @@ abstract class AppLocalizations {
   /// No description provided for @paFutureWorkBody.
   ///
   /// In en, this message translates to:
-  /// **'This is planned future work and is not part of this version of MyHealth. Nothing is connected yet, so no information is shown here.'**
+  /// **'This is planned future work and is not part of this version of myhealth. Nothing is connected yet, so no information is shown here.'**
   String get paFutureWorkBody;
 
   /// No description provided for @paCoreServices.
@@ -9443,13 +9461,13 @@ abstract class AppLocalizations {
   /// No description provided for @paAboutMyHealth.
   ///
   /// In en, this message translates to:
-  /// **'About MyHealth'**
+  /// **'About myhealth'**
   String get paAboutMyHealth;
 
   /// No description provided for @paAboutBody.
   ///
   /// In en, this message translates to:
-  /// **'MyHealth Care lets patients view their records, book appointments, download documents and get plain-language explanations of PDF medical reports. Senior project prototype with synthetic data.'**
+  /// **'myhealth lets patients view their records, book appointments, download documents and get plain-language explanations of PDF medical reports. Senior project prototype with synthetic data.'**
   String get paAboutBody;
 
   /// No description provided for @paSettingsPreferences.
@@ -9941,7 +9959,7 @@ abstract class AppLocalizations {
   /// No description provided for @htCallDescription.
   ///
   /// In en, this message translates to:
-  /// **'Bahrain emergency number. Opens your device’s phone action; MyHealth does not dispatch an ambulance.'**
+  /// **'Bahrain emergency number. Opens your device’s phone action; myhealth does not dispatch an ambulance.'**
   String get htCallDescription;
 
   /// No description provided for @htPhoneUnavailable.
@@ -9965,7 +9983,7 @@ abstract class AppLocalizations {
   /// No description provided for @htNearestErUnavailable.
   ///
   /// In en, this message translates to:
-  /// **'No verified emergency-facility directory, coordinates or directions integration is configured. MyHealth cannot identify the nearest ER.'**
+  /// **'No verified emergency-facility directory, coordinates or directions integration is configured. myhealth cannot identify the nearest ER.'**
   String get htNearestErUnavailable;
 
   /// No description provided for @htRapidResponse.
@@ -9989,7 +10007,7 @@ abstract class AppLocalizations {
   /// No description provided for @htCheckInUnavailable.
   ///
   /// In en, this message translates to:
-  /// **'No emergency check-in backend is connected. MyHealth cannot reserve emergency capacity, skip queues or waive payment.'**
+  /// **'No emergency check-in backend is connected. myhealth cannot reserve emergency capacity, skip queues or waive payment.'**
   String get htCheckInUnavailable;
 
   /// No description provided for @htSelectHospital.
@@ -10079,7 +10097,7 @@ abstract class AppLocalizations {
   /// No description provided for @splashLoadingLabel.
   ///
   /// In en, this message translates to:
-  /// **'Loading MyHealth'**
+  /// **'Loading myhealth'**
   String get splashLoadingLabel;
 
   /// No description provided for @splashSlowTitle.
@@ -10091,7 +10109,7 @@ abstract class AppLocalizations {
   /// No description provided for @splashSlowBody.
   ///
   /// In en, this message translates to:
-  /// **'MyHealth is still setting up. Check your connection or browser storage settings, then try again.'**
+  /// **'myhealth is still setting up. Check your connection or browser storage settings, then try again.'**
   String get splashSlowBody;
 
   /// No description provided for @onboardingProgress.
@@ -10127,7 +10145,7 @@ abstract class AppLocalizations {
   /// No description provided for @svcBloodDonationTitle.
   ///
   /// In en, this message translates to:
-  /// **'Blood donation information is planned for MyHealth'**
+  /// **'Blood donation information is planned for myhealth'**
   String get svcBloodDonationTitle;
 
   /// No description provided for @svcBloodDonationBody.
@@ -10139,19 +10157,19 @@ abstract class AppLocalizations {
   /// No description provided for @svcEReferralTitle.
   ///
   /// In en, this message translates to:
-  /// **'Electronic referrals are planned for MyHealth'**
+  /// **'Electronic referrals are planned for myhealth'**
   String get svcEReferralTitle;
 
   /// No description provided for @svcEReferralBody.
   ///
   /// In en, this message translates to:
-  /// **'A future version may let clinicians send and track referrals electronically. MyHealth cannot send records to another hospital, and no referral integration is connected yet.'**
+  /// **'A future version may let clinicians send and track referrals electronically. myhealth cannot send records to another hospital, and no referral integration is connected yet.'**
   String get svcEReferralBody;
 
   /// No description provided for @svcCheckupTitle.
   ///
   /// In en, this message translates to:
-  /// **'Health checkup packages are planned for MyHealth'**
+  /// **'Health checkup packages are planned for myhealth'**
   String get svcCheckupTitle;
 
   /// No description provided for @svcCheckupBody.
@@ -10163,7 +10181,7 @@ abstract class AppLocalizations {
   /// No description provided for @svcWaterTitle.
   ///
   /// In en, this message translates to:
-  /// **'Water intake tracking is planned for MyHealth'**
+  /// **'Water intake tracking is planned for myhealth'**
   String get svcWaterTitle;
 
   /// No description provided for @svcWaterBody.
@@ -10181,13 +10199,13 @@ abstract class AppLocalizations {
   /// No description provided for @svcTrackersBody.
   ///
   /// In en, this message translates to:
-  /// **'See blood pressure, heart rate, temperature, weight, oxygen saturation and glucose readings saved in MyHealth, with trends over time. Live or continuous monitoring is not available.'**
+  /// **'See blood pressure, heart rate, temperature, weight, oxygen saturation and glucose readings saved in myhealth, with trends over time. Live or continuous monitoring is not available.'**
   String get svcTrackersBody;
 
   /// No description provided for @svcWatchesTitle.
   ///
   /// In en, this message translates to:
-  /// **'Smartwatch connections are planned for MyHealth'**
+  /// **'Smartwatch connections are planned for myhealth'**
   String get svcWatchesTitle;
 
   /// No description provided for @svcWatchesBody.

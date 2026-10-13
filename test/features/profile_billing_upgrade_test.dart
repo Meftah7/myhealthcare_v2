@@ -68,7 +68,7 @@ void main() {
 
     expect(find.text('Could not load your invoices.'), findsOneWidget);
     expect(find.text('Wallet balance'), findsOneWidget);
-    expect(find.text('BD 23.50'), findsOneWidget);
+    expect(find.text('BHD 23.500'), findsOneWidget);
     await tester.ensureVisible(find.text('SAVED CARDS'));
     expect(find.text('SAVED CARDS'), findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -95,7 +95,7 @@ void main() {
     await tester.pump();
     await tester.pump();
     await tester.ensureVisible(find.text('Wallet balance'));
-    expect(find.text('BD 10.00'), findsOneWidget);
+    expect(find.text('BHD 10.000'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
     invoices.complete([]);

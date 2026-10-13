@@ -176,4 +176,15 @@ abstract interface class DocumentService {
 
   /// Scoped authority + reason; revoke verification and audit atomically.
   Future<Result<void>> revoke(String issuedVersionId, {required String reason});
+
+  /// Front-desk administrative confirmation that the stored copy of a valid,
+  /// issued version is intact and released to an identity-checked recipient.
+  /// Never signs, issues or edits; refused for revoked or unrendered
+  /// versions. A retry with the same [idempotencyKey] records nothing new.
+  Future<Result<DateTime>> confirmIssuedCopy(
+    String issuedVersionId, {
+    required bool recipientIdentityChecked,
+    required String reason,
+    required String idempotencyKey,
+  });
 }

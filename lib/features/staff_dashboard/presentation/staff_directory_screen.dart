@@ -110,7 +110,7 @@ class _StaffCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ReadableLabel(
-                  clinicianName(staff.fullName),
+                  staffDisplayName(staff.fullName, staff.jobTitle),
                   style: theme.textTheme.titleSmall,
                 ),
                 Text(
