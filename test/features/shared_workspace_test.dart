@@ -21,7 +21,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-      final context = tester.element(find.byType(Scaffold));
+    final context = tester.element(find.byType(Scaffold));
     unawaited(
       showDialog<void>(
         context: context,
