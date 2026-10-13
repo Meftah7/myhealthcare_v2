@@ -1,48 +1,88 @@
 # Staff and admin checklist (2026-10-13 brief)
 
-Scope chosen by the owner: **core first**. Items not done here remain open below.
-`MyHealth_Staff_Admin_Preview.html` was not found in the repository or Downloads; the written colour/layout spec was used instead.
+`MyHealth_Staff_Admin_Preview.html` was not found in the repository or Downloads; the written colour/layout spec in the brief was used instead. Owner decisions (2026-10-13): build dental FDI charting, the four calculators, pharmacy stock/batches and shared-server adapters as real features; keep the PDF footer unchanged; add a Dental department and schedule.
 
 ## 1. Implemented and verified (automated tests)
 
-- [x] Explicit staff roles: Doctor, Nurse, Receptionist, Pharmacist, Dentist (`StaffRole` in `lib/domain/enums.dart`). Stored `jobTitle` is parsed; the seeded `Consultant` title is an explicit Doctor alias. Missing/unknown titles get **no permissions**. (`test/security/staff_roles_test.dart`)
-- [x] One permission set per role (`RolePermissions.forStaff`). Reception and pharmacy never get chart, prescribing or signing permissions; dentists get a dental scope (no result-review queue); no role holds both prescribing and dispensing.
-- [x] Enforcement in repositories: reception/pharmacy chart reads are denied; signer qualification and credential snapshots use the role table instead of "not a nurse".
-- [x] Receptionist: desk booking on a patient's behalf (`desk.appointment.book` audit, idempotent retry), desk reschedule/cancel, idempotent desk check-in (`deskCheckIn`). (`test/services/front_desk_test.dart`)
-- [x] Issued-copy confirmation (`DocumentService.confirmIssuedCopy`): requires identity check and reason, refuses revoked/unrendered copies, checks the stored SHA-256, records who/when/why in `document_copy_confirmations`, never creates a version or signature, idempotent per key.
-- [x] Pharmacist: prescription queue with prescriber identity and latest outcome; dispensing outcomes (dispensed / partial / held / clarification) in `medication_dispenses`, separate from the order; patient verification required; expired batch refused; never dispensed twice; retries are idempotent. (`test/services/pharmacy_and_tasks_test.dart`)
-- [x] Task next review is a first-class `staff_tasks.next_review_at` column (set for waiting/blocked, cleared otherwise; v32 migration backfills from history), distinct from the original due date and shown on task cards.
-- [x] Role-specific Today workspaces for reception, pharmacy and unknown roles, built from the patient components (`role_workspaces.dart`). Layout tested at 320 and 1440 dp, English/Arabic, 200% text. (`test/features/role_workspaces_test.dart`)
-- [x] Admin staff creation offers all five roles (EN/AR labels); credential kind follows the role.
-- [x] "Dr" prefix only for doctors and dentists (`staffDisplayName`) in the staff directory, profile, quick actions, dashboard title and admin pickers.
-- [x] Schema v32 + seed v16; demo snapshot regenerated.
-- [x] Task board retry refreshes the list actually shown (Team work included); prioritise reload refreshes the displayed queries.
-- [x] Next review drives the board: a passed review shows as overdue; waiting work is ordered by review time. (`test/features/task_review_order_test.dart`)
-- [x] One BHD formatter (`fmtBhd`, three decimals) for displayed money in patient payments, admin billing, finance report and people profile; amount inputs use three decimals. (`test/features/bhd_format_test.dart`)
-- [x] Finance CSV is labelled as a copy and now reports failures instead of failing silently.
-- [x] Existing (verified present): self-deactivation protection, deactivation preview and blocking until bookings/tasks are reassigned (`booking_safety.dart`).
-- [x] myhealth branding across the app, platforms and PDFs — see `docs/branding.md`.
+Roles and access
+- [x] Five validated staff roles (`StaffRole`); `Consultant` is an explicit Doctor alias; missing/unknown titles get no permissions and a "role not set up" workspace. (`test/security/staff_roles_test.dart`)
+- [x] Separate permission sets: reception and pharmacy never read charts, prescribe or sign; dentists have a dental scope (no result-review queue) plus `recordDentalChart`; no role both prescribes and dispenses. Enforced in repositories.
+- [x] Staff patient picker applies clinical scope (appointments, care assignments, walk-ins) before its limit. (`test/security/patient_picker_scope_test.dart`)
+- [x] "Dr" only for doctors and dentists (`staffDisplayName`).
+
+Receptionist
+- [x] Front-desk workspace: CPR/ID/name/phone search, desk booking (identity checkbox, real open slots, server reference, idempotent), arrivals with idempotent check-in.
+- [x] Issued-copy confirmation by printed reference: lookup shows type, patient, date and status; only valid, rendered copies can be confirmed; SHA-256 checked; who/when/why recorded; never signs or creates versions. (`test/services/front_desk_test.dart`)
+
+Pharmacist
+- [x] Prescription queue with prescriber identity; outcomes dispensed/partial/held/clarification; patient verification; never dispensed twice.
+- [x] Stock batches: receive (idempotent, expired refused), list with expired / expires-within-30-days / out-of-stock labels, dispense from a batch decrementing exactly once (optimistic version check), short stock refused. (`test/services/pharmacy_and_tasks_test.dart`)
+- [x] Future work label kept only for barcode scanning and supplier ordering.
+
+Dentist
+- [x] Dental department and Sun–Thu schedule (seed v17); patients can book the dentist.
+- [x] FDI dental chart (permanent and primary numbering): append-only observations / planned / completed entries bound to the patient's own visit, completed entries fulfil a plan on the same tooth, author and time recorded; reception cannot read; doctors cannot write. Tooth grid with screen-reader labels and icons (not colour alone). (`test/services/dental_chart_test.dart`, `test/features/dental_chart_screen_test.dart`)
+
+Tasks and handover
+- [x] `next_review_at` is a first-class column (v32, backfilled from history); a passed review shows as overdue; waiting work sorts by review time; shown on cards separately from the deadline. (`test/features/task_review_order_test.dart`)
+- [x] Handover state derived from history: pending (no transfer), accepted, declined, expired; shown on the task detail.
+- [x] Board retry refreshes the list actually displayed, including Team work.
+
+Dashboards (patient design language)
+- [x] Shared kit `lib/core/ui/patient/workspace_home.dart`: navy feature card (#102D51 / #172F4E, white text > 12:1), four shortcut tiles with real badges, rounded workspace cards (1–3 columns by width).
+- [x] Clinician Today: feature card with role and department, shortcuts, role-aware workspace cards, Quick Access directly below, owned work and attention panels side by side on wide screens; loading/failed figures show "—", never 0.
+- [x] Admin overview: one feature card for operational work (loading/failed states explicit), filter chips, shortcuts, People & access / Clinic / Documents / Finance / Referrals / Reports cards, Quick Access, attention and activity panels.
+- [x] Layout tests at 320 dp and 200% text in English and Arabic. (`test/features/figma_design_test.dart`, `test/features/role_workspaces_test.dart`, `test/features/admin_profile_test.dart`)
+
+Schedule (existing structure kept)
+- [x] Year / month / day views, zoom, queue and actions unchanged.
+- [x] Mini-month tile height measured from the real label style and text scale (fixed an overflow at 320 dp, 200%); month labels never wrap.
+- [x] Month cells and mini-months have screen-reader labels (date, today, visit count, selected) in English and Arabic; month cells scale down instead of overflowing.
+- [x] Tests: six-week grid for every month 2024–2030, leap-year and year boundaries, labelled cells, today marked, now-line only on today, no overflow. (`test/features/schedule_calendar_test.dart`, `test/features/staff_schedule_test.dart`)
+
+Documents, finance, reports
+- [x] Admin work queue filters document requests, reminders and outbox in SQL (no whole-table scans); the verification-manifest export reads all versions by design.
+- [x] One BHD formatter (`fmtBhd`, three decimals). Finance CSV is labelled as a copy and reports failure.
+- [x] Reports/forecast, integrations and backup screens already state their limits (no predictions, simulated payments, no backup worker).
+
+Shared server (section 20)
+- [x] Server v2 schema: appointments, messages, invoices, append-only payments; backups record their schema version.
+- [x] Endpoints with server-side authorization, versions and idempotency: book (patient for self, desk for anyone; clash → 409), cancel, desk check-in; threads, messages (care relationship required, admins excluded), mark read; invoices and desk payments in integer fils (never above what is due, `recordedOnly`). (`services/shared_api/clinic_ops.test.mjs`)
+- [x] Shared workspace views for appointments, messages and billing; never shows success the server did not confirm; failed sends keep the draft and retry with the same key. (`test/features/shared_clinic_views_test.dart`)
+- [x] Shared workspace header uses the myhealth lockup.
+
+Branding
+- [x] See `docs/branding.md`.
+
+Round 4 (2026-10-13, owner decisions: full app on the shared server; block schedule changes until resolved)
+- [x] Encounter context bar on every staff screen while a visit is open (patient, ID, visit, status, responsible clinician, stage); clears on completion and on account change. Stages: not started / draft / draft saved — awaiting a doctor's signature / save failed / signed and completed. (`test/features/encounter_context_test.dart`)
+- [x] People & Access: staff profile sections (identity, role & assignment, clinical credentials, scoped permissions, temporary cover); patient and department pickers replace raw ID fields; lists show dates/status instead of record IDs. (`test/features/admin_people_access_test.dart`)
+- [x] Schedule change preview: lists the bookings a change would uncover; saving is blocked (inside the transaction) until they are moved to an authorized, available replacement; bookings already outside the current slot grid never block. (`test/services/schedule_change_test.dart`)
+- [x] Referral/home-visit wording: "Arranged in clinic" / "Actioned in clinic" and a local-only notice on both admin screens.
+- [x] Audit log entries link to the admin screen for the record where authorized (none for clinical entries); actor names instead of IDs.
+- [x] Every-button audit: code scan found no empty callbacks, placeholder messages or TODO handlers (one intentional tap-swallow); every linked route (60+) resolves. (`test/features/route_reachability_test.dart`)
+- [x] Patient re-check: 11 sections × 320/768/1024 dp × Small/Default/Large render without layout errors; 99 screenshots in `docs/rebuild_screenshots/patient_widths/`. Messages and calculators no longer carry a Future work label (owner-approved scope). (`test/visual/patient_widths_test.dart`)
+- [x] Full app on the shared server (see `services/shared_api/README.md`): server repositories for accounts, directory, slots, appointments, consultations, prescriptions, pharmacy, dental, messages, billing and tasks; visible "Not available in shared mode" everywhere else; direct-database screens replaced by an explanation; shared admin home. Verified end to end against the real Node server (`test/shared/shared_mode_e2e_test.dart`, `services/shared_api/clinical_ops.test.mjs`).
 
 ## 2. Implemented, awaiting manual/device verification
 
-- [ ] Front desk and pharmacy sheets with the on-screen keyboard on phones; screen-reader order and focus return after closing a sheet.
+- [ ] TalkBack/VoiceOver order and focus return for the new sheets (desk booking, copy confirmation, dispensing, receive stock, dental tooth sheet) and the calendar labels.
+- [ ] On-screen keyboard behaviour of those sheets on phones.
+- [ ] Launcher icons and native splash on real Android/iOS/Windows devices (resources generated only).
 
-## 3. Blocked by external integrations / credentials
+## 3. Blocked by toolchains, credentials or external integrations
 
+- [ ] Android, iOS and Windows builds: this machine has no Android SDK, no Visual Studio, and iOS needs macOS (`flutter doctor`). Web release build verified.
 - [ ] Live report-AI evaluation (server-held `MYHEALTH_AI_KEY`).
-- [ ] Shared-server adapters for appointments, consultations, messaging, billing and full documents (section 20) — not started.
+- [ ] Shared mode still lacks server adapters for records/timeline, vitals, documents/sick leave, referrals, home visits, walk-ins, result reviews, family links, notifications, audit and the local admin workspace; these show "Not available in shared mode" (by design, never local data).
+- [ ] Payment gateway (none); external referral transport and home-visit dispatch (none).
 
 ## 4. Awaiting owner approval
 
-- [ ] Terms/Privacy drafts.
+- [ ] Terms/Privacy drafts; PDF footer contact details (kept unchanged by owner decision).
 - [ ] Clinic policy for which roles may reprint/release copies beyond confirmation.
 
-## 5. Not done in this pass (remaining brief items)
+## 5. Future work (outside current scope)
 
-- Full visual redesign of staff/admin shells, admin overview, People & Access sections, reports/audit/settings wording (sections 2, 4, 14–17, 19).
-- Schedule redesign and new schedule tests (section 11) — existing schedule left unchanged.
-- Handover state UI (pending/accepted/rejected/expired) review (section 12).
-- Patient-access shortcut picker pagination audit (section 13).
-- Receptionist document lookup by human-readable reference (confirmation currently takes the issued-version ID).
-- Dentist schedule/department seed; advanced dental charting stays **Future work**.
-- Pharmacy stock/barcode/expiry alerts — shown as **Future work** in the pharmacy workspace.
+- Barcode scanning and supplier ordering for pharmacy stock.
+- AI prioritization and predictive capacity/no-show models beyond the documented offline model.

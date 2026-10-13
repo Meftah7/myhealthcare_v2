@@ -53,7 +53,7 @@ export class Store {
     this.db = new DatabaseSync(join(this.directory, 'clinic.sqlite'), { timeout: 5000 });
     this.db.exec('PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; PRAGMA synchronous=FULL;');
     const version = this.db.prepare('PRAGMA user_version').get().user_version;
-    requireThat(version <= 1, 500, 'Database is newer than this server.');
+    requireThat(version <= 2, 500, 'Database is newer than this server.');
     if (version === 0) this.db.exec(`BEGIN IMMEDIATE;
       CREATE TABLE users (id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, name TEXT NOT NULL,
         role TEXT NOT NULL CHECK(role IN ('patient','staff','admin')), job TEXT,
@@ -102,6 +102,62 @@ export class Store {
       CREATE TRIGGER issued_immutable BEFORE UPDATE OF snapshot,issued,issuer,patient,type,language,reference_hash ON documents
         BEGIN SELECT RAISE(ABORT,'immutable issued snapshot'); END;
       PRAGMA user_version=1; COMMIT;`);
+    // v2: appointments, secure messages and desk billing for the shared mode.
+    // Money is integer fils (1 BHD = 1000 fils); payments are append-only.
+    if (this.db.prepare('PRAGMA user_version').get().user_version < 2) this.db.exec(`BEGIN IMMEDIATE;
+      CREATE TABLE appointments (id TEXT PRIMARY KEY, patient TEXT NOT NULL REFERENCES users(id),
+        staff TEXT NOT NULL REFERENCES users(id), start INTEGER NOT NULL, end INTEGER NOT NULL,
+        status TEXT NOT NULL DEFAULT 'booked'
+          CHECK(status IN ('booked','checkedIn','inProgress','completed','cancelled','noShow')),
+        reason TEXT, booked_by TEXT NOT NULL REFERENCES users(id), checked_in INTEGER,
+        visit_type TEXT NOT NULL DEFAULT 'followUp', booked_at INTEGER,
+        version INTEGER NOT NULL DEFAULT 1);
+      CREATE INDEX appointments_staff_time ON appointments(staff, start);
+      CREATE TABLE messages (id TEXT PRIMARY KEY, patient TEXT NOT NULL REFERENCES users(id),
+        staff TEXT NOT NULL REFERENCES users(id), sender TEXT NOT NULL REFERENCES users(id),
+        body TEXT NOT NULL, at INTEGER NOT NULL, read_at INTEGER);
+      CREATE INDEX messages_thread ON messages(patient, staff, at);
+      CREATE TABLE invoices (id TEXT PRIMARY KEY, patient TEXT NOT NULL REFERENCES users(id),
+        description TEXT NOT NULL, amount_fils INTEGER NOT NULL CHECK(amount_fils > 0),
+        paid_fils INTEGER NOT NULL DEFAULT 0, status TEXT NOT NULL DEFAULT 'outstanding'
+        CHECK(status IN ('outstanding','paid')), created INTEGER NOT NULL, version INTEGER NOT NULL DEFAULT 1);
+      CREATE TABLE payments (id TEXT PRIMARY KEY, invoice TEXT NOT NULL REFERENCES invoices(id),
+        amount_fils INTEGER NOT NULL CHECK(amount_fils > 0), method TEXT NOT NULL CHECK(method IN ('desk')),
+        recorded_by TEXT NOT NULL REFERENCES users(id), at INTEGER NOT NULL);
+      CREATE TRIGGER payments_no_update BEFORE UPDATE ON payments BEGIN SELECT RAISE(ABORT,'immutable payment'); END;
+      CREATE TRIGGER payments_no_delete BEFORE DELETE ON payments BEGIN SELECT RAISE(ABORT,'immutable payment'); END;
+      ALTER TABLE users ADD COLUMN department TEXT;
+      ALTER TABLE users ADD COLUMN specialty TEXT;
+      CREATE TABLE departments (id TEXT PRIMARY KEY, name TEXT UNIQUE NOT NULL, description TEXT);
+      CREATE TABLE schedules (staff TEXT NOT NULL REFERENCES users(id), weekday INTEGER NOT NULL CHECK(weekday BETWEEN 1 AND 7),
+        start_min INTEGER NOT NULL, end_min INTEGER NOT NULL, slot_min INTEGER NOT NULL DEFAULT 20,
+        PRIMARY KEY(staff, weekday), CHECK(start_min < end_min));
+      CREATE TABLE encounter_drafts (appointment TEXT PRIMARY KEY REFERENCES appointments(id), patient TEXT NOT NULL REFERENCES users(id),
+        author TEXT NOT NULL REFERENCES users(id), note TEXT NOT NULL DEFAULT '', meds TEXT NOT NULL DEFAULT '[]',
+        updated INTEGER NOT NULL, version INTEGER NOT NULL DEFAULT 1);
+      CREATE TABLE signed_notes (appointment TEXT PRIMARY KEY REFERENCES appointments(id), patient TEXT NOT NULL REFERENCES users(id),
+        signer TEXT NOT NULL REFERENCES users(id), note TEXT NOT NULL, outcome TEXT, signed_at INTEGER NOT NULL);
+      CREATE TRIGGER signed_notes_no_update BEFORE UPDATE ON signed_notes BEGIN SELECT RAISE(ABORT,'immutable signed note'); END;
+      CREATE TRIGGER signed_notes_no_delete BEFORE DELETE ON signed_notes BEGIN SELECT RAISE(ABORT,'immutable signed note'); END;
+      CREATE TABLE prescriptions (id TEXT PRIMARY KEY, patient TEXT NOT NULL REFERENCES users(id),
+        prescriber TEXT NOT NULL REFERENCES users(id), appointment TEXT REFERENCES appointments(id),
+        name TEXT NOT NULL, dose TEXT, frequency TEXT, start INTEGER NOT NULL, active INTEGER NOT NULL DEFAULT 1);
+      CREATE TABLE stock (id TEXT PRIMARY KEY, item TEXT NOT NULL, batch TEXT NOT NULL, expiry INTEGER NOT NULL,
+        quantity INTEGER NOT NULL CHECK(quantity >= 0), unit TEXT NOT NULL DEFAULT 'units',
+        received_by TEXT NOT NULL REFERENCES users(id), received_at INTEGER NOT NULL, version INTEGER NOT NULL DEFAULT 1);
+      CREATE TABLE dispenses (id TEXT PRIMARY KEY, prescription TEXT NOT NULL REFERENCES prescriptions(id),
+        patient TEXT NOT NULL REFERENCES users(id), pharmacist TEXT NOT NULL REFERENCES users(id),
+        outcome TEXT NOT NULL CHECK(outcome IN ('dispensed','partial','held','clarificationRequested')),
+        quantity TEXT, batch TEXT, expiry INTEGER, note TEXT, stock TEXT REFERENCES stock(id), units INTEGER, at INTEGER NOT NULL);
+      CREATE TRIGGER dispenses_no_update BEFORE UPDATE ON dispenses BEGIN SELECT RAISE(ABORT,'immutable dispense'); END;
+      CREATE TRIGGER dispenses_no_delete BEFORE DELETE ON dispenses BEGIN SELECT RAISE(ABORT,'immutable dispense'); END;
+      CREATE TABLE dental (id TEXT PRIMARY KEY, patient TEXT NOT NULL REFERENCES users(id),
+        appointment TEXT NOT NULL REFERENCES appointments(id), tooth INTEGER NOT NULL,
+        kind TEXT NOT NULL CHECK(kind IN ('observation','planned','completed')), surface TEXT, note TEXT NOT NULL,
+        fulfils TEXT REFERENCES dental(id), author TEXT NOT NULL REFERENCES users(id), at INTEGER NOT NULL);
+      CREATE TRIGGER dental_no_update BEFORE UPDATE ON dental BEGIN SELECT RAISE(ABORT,'immutable dental entry'); END;
+      CREATE TRIGGER dental_no_delete BEFORE DELETE ON dental BEGIN SELECT RAISE(ABORT,'immutable dental entry'); END;
+      PRAGMA user_version=2; COMMIT;`);
     const keyDigest = digest(this.fileKey);
     const storedKey = this.get("SELECT value FROM settings WHERE key='fileKeyDigest'");
     requireThat(!storedKey || storedKey.value === keyDigest, 500, 'File key does not match this database.');
@@ -133,7 +189,7 @@ export class Store {
   }
   addUser({ email, name, role, job = null, password, credentialUntil = null }) {
     requireThat(['patient', 'staff', 'admin'].includes(role));
-    requireThat(role === 'staff' ? ['doctor', 'nurse'].includes(job) : job === null);
+    requireThat(role === 'staff' ? ['doctor', 'nurse', 'receptionist', 'pharmacist', 'dentist'].includes(job) : job === null);
     const userId = id(), passwordData = passwordHash(password);
     this.run('INSERT INTO users(id,email,name,role,job,password_hash,salt,credential_until) VALUES(?,?,?,?,?,?,?,?)',
       userId, text(email, 254).toLowerCase(), text(name, 200), role, job, passwordData.hash, passwordData.salt, credentialUntil);

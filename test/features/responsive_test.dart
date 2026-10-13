@@ -297,7 +297,9 @@ void main() {
         email: 'staff1@myhealth.demo',
         size: const Size(1300, 1400),
       );
-      await tester.tap(find.text('Patients').last);
+      // The sidebar precedes the page, so .first is the navigation entry
+      // (the dashboard's side panels also link to Patients).
+      await tester.tap(find.text('Patients').first);
       await _settle(tester);
 
       expect(find.byType(TwoPane), findsOneWidget);

@@ -140,7 +140,7 @@ abstract final class AppColors {
 
   // --- patient (approved blue rebuild) ------------------------------------
 
-  /// The patient-facing action blue (#246BFD). Staff/admin keep [seed].
+  /// The approved action blue (#246BFD), shared by all application roles.
   static const Color patientBlue = Color(0xFF246BFD);
 
   /// The patient splash/brand-mark gradient — the approved action blue.

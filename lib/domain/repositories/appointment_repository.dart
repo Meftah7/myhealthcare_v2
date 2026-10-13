@@ -257,6 +257,13 @@ abstract interface class AppointmentRepository {
 
   /// Replaces every schedule-template row for [staffId] with [templates] in
   /// one transaction — the admin schedule editor saves the whole week at once.
+  /// Read-only: the future bookings [templates] would leave uncovered for
+  /// [staffId]. [setTemplates] refuses to save while any remain.
+  Future<Result<List<Appointment>>> previewScheduleChange({
+    required String staffId,
+    required List<NewScheduleTemplate> templates,
+  });
+
   Future<Result<List<ScheduleTemplate>>> setTemplates({
     required String staffId,
     required List<NewScheduleTemplate> templates,

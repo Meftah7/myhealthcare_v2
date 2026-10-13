@@ -8,7 +8,11 @@ import '../../core/failures.dart';
 /// Online-only transport. No tokens or patient data are persisted on the device.
 /// Every repository reads from the server, whose authorization is authoritative.
 class SharedClient {
-  SharedClient(String origin, {Dio? dio}) : _dio = dio ?? Dio() {
+  /// [endSessionOnForbidden]: the pilot workspace treats any 403 as revoked
+  /// access and signs out; the full app keeps the session and reports
+  /// "access denied" for that one action.
+  SharedClient(String origin, {Dio? dio, this.endSessionOnForbidden = true})
+    : _dio = dio ?? Dio() {
     final uri = Uri.parse(origin);
     final loopback = {'localhost', '127.0.0.1', '::1'}.contains(uri.host);
     if ((!loopback && uri.scheme != 'https') ||
@@ -30,6 +34,8 @@ class SharedClient {
       validateStatus: (status) => status != null,
     );
   }
+
+  final bool endSessionOnForbidden;
   final Dio _dio;
   String? _token;
   Map<String, dynamic>? _user;
@@ -98,13 +104,28 @@ class SharedClient {
         clear();
         throw const SessionExpiredFailure();
       }
+      String? serverMessage() {
+        final data = response.data;
+        return data is Map && data['error'] is String
+            ? data['error'] as String
+            : null;
+      }
+
       if (status == 403) {
-        clear();
-        throw const AccessDeniedFailure();
+        if (endSessionOnForbidden) {
+          clear();
+          throw const AccessDeniedFailure();
+        }
+        throw AccessDeniedFailure(
+          serverMessage() ?? 'You do not have access to this.',
+        );
+      }
+      if (status == 404) {
+        throw NotFoundFailure(serverMessage() ?? 'Not found.');
       }
       if (status == 409) {
-        throw const ConflictFailure(
-          'Changed on the server. Reload before saving.',
+        throw ConflictFailure(
+          serverMessage() ?? 'Changed on the server. Reload before saving.',
         );
       }
       if (status >= 500) {
@@ -173,6 +194,110 @@ class SharedWorkspaceRepository {
       _list('/api/requests', {'patientId': patient});
   Future<Map<String, dynamic>> health() async =>
       await client.request('/api/health') as Map<String, dynamic>;
+
+  // --- Appointments, messages and desk billing (shared server v2) ---------
+
+  /// Own appointments (patient/clinician), a patient's (desk), or a time
+  /// range for the front desk.
+  Future<List<Map<String, dynamic>>> appointments({
+    String? patientId,
+    DateTime? from,
+    DateTime? to,
+  }) => _list('/api/appointments', {
+    'patientId': ?patientId,
+    'from': ?from?.toUtc().toIso8601String(),
+    'to': ?to?.toUtc().toIso8601String(),
+  });
+
+  /// Books one visit; the same [idempotencyKey] never books twice. A taken
+  /// slot is a 409 from the server, never a local success.
+  Future<Map<String, dynamic>> book({
+    required String patientId,
+    required String staffId,
+    required DateTime start,
+    required DateTime end,
+    required String idempotencyKey,
+    String? reason,
+  }) async =>
+      await client.request(
+            '/api/appointments',
+            method: 'POST',
+            body: {
+              'patientId': patientId,
+              'staffId': staffId,
+              'start': start.toUtc().toIso8601String(),
+              'end': end.toUtc().toIso8601String(),
+              'reason': reason,
+              'idempotencyKey': idempotencyKey,
+            },
+          )
+          as Map<String, dynamic>;
+
+  Future<Map<String, dynamic>> appointmentAction(
+    String id,
+    String action, {
+    required int expectedVersion,
+    String? reason,
+  }) async =>
+      await client.request(
+            '/api/appointments/$id/$action',
+            method: 'POST',
+            body: {'expectedVersion': expectedVersion, 'reason': reason},
+          )
+          as Map<String, dynamic>;
+
+  Future<List<Map<String, dynamic>>> threads() => _list('/api/threads');
+
+  Future<List<Map<String, dynamic>>> messages(String patient, String staff) =>
+      _list('/api/messages', {'patientId': patient, 'staffId': staff});
+
+  Future<Map<String, dynamic>> sendMessage({
+    required String patientId,
+    required String staffId,
+    required String body,
+    required String idempotencyKey,
+  }) async =>
+      await client.request(
+            '/api/messages',
+            method: 'POST',
+            body: {
+              'patientId': patientId,
+              'staffId': staffId,
+              'body': body,
+              'idempotencyKey': idempotencyKey,
+            },
+          )
+          as Map<String, dynamic>;
+
+  Future<void> markRead(String patient, String staff) async {
+    await client.request(
+      '/api/messages/read',
+      method: 'POST',
+      body: {'patientId': patient, 'staffId': staff},
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> invoices([String? patientId]) =>
+      _list('/api/invoices', {'patientId': ?patientId});
+
+  /// Records a desk payment in integer fils. No card gateway is connected:
+  /// the server stores a record only and says so (`recordedOnly`).
+  Future<Map<String, dynamic>> recordDeskPayment(
+    String invoiceId, {
+    required int amountFils,
+    required int expectedVersion,
+    required String idempotencyKey,
+  }) async =>
+      await client.request(
+            '/api/invoices/$invoiceId/payments',
+            method: 'POST',
+            body: {
+              'amountFils': amountFils,
+              'expectedVersion': expectedVersion,
+              'idempotencyKey': idempotencyKey,
+            },
+          )
+          as Map<String, dynamic>;
   Future<void> reauthenticate(String password) async {
     await client.request(
       '/api/reauthenticate',

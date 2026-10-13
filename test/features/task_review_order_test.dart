@@ -42,4 +42,32 @@ void main() {
     );
     expect(list.map((t) => t.id), ['sooner', 'later']);
   });
+
+  group('handover state', () {
+    String j(Map<String, Object?> m) =>
+        '{${m.entries.map((e) => '"${e.key}":"${e.value}"').join(',')}}';
+    final offer = (
+      'task.offer',
+      j({
+        'bundle': 'b1',
+        'expires': now.add(const Duration(hours: 4)).toIso8601String(),
+      }),
+      now.subtract(const Duration(hours: 1)),
+    );
+
+    test('an offer alone is pending, not a transfer', () {
+      expect(handoverState([offer], now), HandoverState.pending);
+      expect(handoverState(const [], now), HandoverState.none);
+    });
+
+    test('accepted, declined and expired', () {
+      final accepted = ('task.offer.accepted', j({'bundle': 'b1'}), now);
+      final declined = ('task.offer.declined', j({'bundle': 'b1'}), now);
+      expect(handoverState([offer, accepted], now), HandoverState.accepted);
+      expect(handoverState([offer, declined], now), HandoverState.declined);
+      final later = now.add(const Duration(hours: 5));
+      expect(handoverState([offer], later), HandoverState.expired);
+      expect(handoverState([offer, accepted], later), HandoverState.expired);
+    });
+  });
 }

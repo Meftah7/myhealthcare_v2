@@ -13,12 +13,13 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
-import '../../../core/presentation/readable_label.dart';
 import '../../../core/presentation/app_scaffold.dart';
-import '../../../core/presentation/profile_navigation.dart';
 import '../../../core/presentation/data_state_view.dart';
+import '../../../core/presentation/profile_navigation.dart';
+import '../../../core/presentation/readable_label.dart';
 import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
+import '../../../core/ui/patient/workspace_home.dart';
 import '../../../core/utils/format.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
@@ -26,8 +27,8 @@ import '../application/admin_providers.dart';
 import '../application/attention_providers.dart';
 import 'admin_quick_actions.dart';
 import 'admin_top_actions.dart';
-import 'attention_list.dart';
 import 'admin_workspace_screens.dart';
+import 'attention_list.dart';
 
 class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});
@@ -51,9 +52,115 @@ class AdminDashboardScreen extends ConsumerWidget {
         ref.invalidate(adminWorkProvider);
         ref.invalidate(auditLogProvider);
       },
+      // Same structure as patient Home: feature card, shortcuts,
+      // workspace cards, Quick Access directly below, then the attention
+      // and activity panels.
       children: [
         const AdminWorkspaceOverview(),
-
+        const SizedBox(height: Space.md),
+        // Shortcuts lead to places not already in the navigation bar.
+        ShortcutGrid(
+          items: [
+            ShortcutItem(
+              icon: Icons.inbox_outlined,
+              label: t.workQueueTitle,
+              onTap: () => context.push(AppRoutes.adminWorkQueue),
+            ),
+            ShortcutItem(
+              icon: Icons.call_split_outlined,
+              label: t.referralRequestsTitle,
+              onTap: () => context.push(AppRoutes.adminReferralRequests),
+            ),
+            ShortcutItem(
+              icon: Icons.home_work_outlined,
+              label: t.homeVisitsTitle,
+              onTap: () => context.push(AppRoutes.adminHomeVisits),
+            ),
+            ShortcutItem(
+              icon: Icons.reviews_outlined,
+              label: t.feedbackTitle,
+              onTap: () => context.push(AppRoutes.adminFeedback),
+            ),
+          ],
+        ),
+        SectionHeader(
+          adminText(context, 'Workspace', 'مساحة العمل'),
+          overline: true,
+        ),
+        WorkspaceCardGrid(
+          items: [
+            WorkspaceItem(
+              icon: Icons.badge_outlined,
+              title: adminText(
+                context,
+                'People & access',
+                'الأشخاص والصلاحيات',
+              ),
+              description: adminText(
+                context,
+                'Accounts, five staff roles, credentials and status.',
+                'الحسابات والأدوار الخمسة والاعتمادات والحالة.',
+              ),
+              onTap: () => context.go(AppRoutes.adminUsers),
+            ),
+            WorkspaceItem(
+              icon: Icons.local_hospital_outlined,
+              title: adminText(context, 'Clinic', 'العيادة'),
+              description: adminText(
+                context,
+                'Departments, clinic hours and schedules.',
+                'الأقسام وساعات العيادة والجداول.',
+              ),
+              onTap: () => context.go(AppRoutes.adminDepartments),
+            ),
+            WorkspaceItem(
+              icon: Icons.description_outlined,
+              title: adminText(context, 'Documents', 'المستندات'),
+              description: adminText(
+                context,
+                'Templates, policies and the verification registry.',
+                'القوالب والسياسات وسجل التحقق.',
+              ),
+              onTap: () => context.push(AppRoutes.adminDocumentPolicies),
+            ),
+            WorkspaceItem(
+              icon: Icons.account_balance_wallet_outlined,
+              title: adminText(context, 'Finance', 'المالية'),
+              description: adminText(
+                context,
+                'Invoices, desk payments, refunds and reconciliation.',
+                'الفواتير ومدفوعات الاستقبال والاسترداد والمطابقة.',
+              ),
+              onTap: () => context.go(AppRoutes.adminBilling),
+            ),
+            WorkspaceItem(
+              icon: Icons.call_split_outlined,
+              title: adminText(
+                context,
+                'Referrals & home visits',
+                'الإحالات والزيارات المنزلية',
+              ),
+              description: adminText(
+                context,
+                'Decide requests. External transport is not connected.',
+                'البت في الطلبات. النقل الخارجي غير متصل.',
+              ),
+              onTap: () => context.push(AppRoutes.adminReferralRequests),
+            ),
+            WorkspaceItem(
+              icon: Icons.insights_outlined,
+              title: adminText(context, 'Reports', 'التقارير'),
+              description: adminText(
+                context,
+                'Historical activity, demand and audit.',
+                'النشاط السابق والطلب وسجل التدقيق.',
+              ),
+              onTap: () => context.push(AppRoutes.adminProfileAnalytics),
+            ),
+          ],
+        ),
+        SectionHeader(t.quickActionsHeader, overline: true),
+        const AdminQuickActions(),
         SectionColumns(
           primary: [
             SectionHeader(
@@ -73,40 +180,24 @@ class AdminDashboardScreen extends ConsumerWidget {
             ),
             const _ActivityCard(),
             const SizedBox(height: Space.sm),
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: TextButton.icon(
-                onPressed: () => context.push(AppRoutes.adminProfileAnalytics),
-                icon: const Icon(Icons.insights_outlined, size: 18),
-                label: Text(t.viewDetailedAnalytics),
-              ),
-            ),
-          ],
-        ),
-        SectionHeader(t.quickActionsHeader, overline: true),
-        const AdminQuickActions(),
-        const SizedBox(height: Space.lg),
-        ProfileNavigationGroup(
-          items: [
-            ProfileNavigationItem(
-              icon: Icons.insights_outlined,
-              label: t.systemAnalyticsTitle,
-              onTap: () => context.push(AppRoutes.adminProfileAnalytics),
-            ),
-            ProfileNavigationItem(
-              icon: Icons.query_stats_outlined,
-              label: t.capacityForecastTitle,
-              onTap: () => context.push(AppRoutes.adminProfileForecast),
-            ),
-            ProfileNavigationItem(
-              icon: Icons.history_toggle_off_outlined,
-              label: t.aiActivityTitle,
-              onTap: () => context.push(AppRoutes.adminProfileAiLog),
-            ),
-            ProfileNavigationItem(
-              icon: Icons.fact_check_outlined,
-              label: t.auditLogTitle,
-              onTap: () => context.push(AppRoutes.adminProfileAudit),
+            ProfileNavigationGroup(
+              items: [
+                ProfileNavigationItem(
+                  icon: Icons.query_stats_outlined,
+                  label: t.capacityForecastTitle,
+                  onTap: () => context.push(AppRoutes.adminProfileForecast),
+                ),
+                ProfileNavigationItem(
+                  icon: Icons.history_toggle_off_outlined,
+                  label: t.aiActivityTitle,
+                  onTap: () => context.push(AppRoutes.adminProfileAiLog),
+                ),
+                ProfileNavigationItem(
+                  icon: Icons.fact_check_outlined,
+                  label: t.auditLogTitle,
+                  onTap: () => context.push(AppRoutes.adminProfileAudit),
+                ),
+              ],
             ),
           ],
         ),

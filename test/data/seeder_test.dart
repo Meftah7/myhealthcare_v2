@@ -33,7 +33,8 @@ void main() {
     expect(result.records, greaterThan(200));
 
     final templates = await db.select(db.scheduleTemplates).get();
-    expect(templates.length, 12 * 5);
+    // Twelve doctors plus the dentist (seed v17), five weekdays each.
+    expect(templates.length, 13 * 5);
 
     final orphans = await db
         .customSelect(

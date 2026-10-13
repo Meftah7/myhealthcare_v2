@@ -15,12 +15,19 @@ import '../../../data/remote/shared_client.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../services/pdf/pdf_text.dart';
 import '../../patient/presentation/document_download_button.dart';
+import 'shared_clinic_views.dart';
 
 /// Isolated shared pilot: deliberately never instantiates a device database.
 /// Existing local Records/Profile UI remains untouched by this entry point.
 class SharedWorkspaceApp extends StatefulWidget {
-  const SharedWorkspaceApp({required this.origin, this.client, super.key});
+  const SharedWorkspaceApp({
+    required this.origin,
+    this.client,
+    this.themeMode = ThemeMode.system,
+    super.key,
+  });
   final String origin;
+  final ThemeMode themeMode;
 
   /// The workspace owns and closes this transport when provided.
   final SharedClient? client;
@@ -485,6 +492,8 @@ class _SharedWorkspaceState extends State<SharedWorkspaceApp> {
     navigatorKey: navigator,
     title: 'myhealth',
     theme: AppTheme.light,
+    darkTheme: AppTheme.dark,
+    themeMode: widget.themeMode,
     locale: Locale(ar ? 'ar' : 'en'),
     supportedLocales: const [Locale('en'), Locale('ar')],
     localizationsDelegates: const [
@@ -525,8 +534,8 @@ class _SharedWorkspaceState extends State<SharedWorkspaceApp> {
                 children: [
                   ReadableLabel(
                     tr(
-                      'Shared pilot: tasks, issued documents and original PDFs use the server. Other clinic modules remain in the local app.',
-                      'نسخة مشتركة تجريبية: المهام والمستندات الصادرة وملفات PDF الأصلية على الخادم. وحدات العيادة الأخرى تبقى في التطبيق المحلي.',
+                      'Shared pilot: tasks, appointments, messages, desk billing records, issued documents and original PDFs use the server. Other clinic modules remain in the local app.',
+                      'نسخة مشتركة تجريبية: المهام والمواعيد والرسائل وسجلات الفواتير والمستندات الصادرة وملفات PDF الأصلية على الخادم. وحدات العيادة الأخرى تبقى في التطبيق المحلي.',
                     ),
                   ),
                   if (busy) const LinearProgressIndicator(),
@@ -576,6 +585,9 @@ class _SharedWorkspaceState extends State<SharedWorkspaceApp> {
                       children: [
                         for (final (key, en, arabic) in [
                           ('home', 'Home', 'الرئيسية'),
+                          ('appointments', 'Appointments', 'المواعيد'),
+                          ('messages', 'Messages', 'الرسائل'),
+                          ('billing', 'Billing', 'الفواتير'),
                           ('documents', 'Documents', 'المستندات'),
                           ('records', 'Records', 'السجلات'),
                           ('profile', 'Profile', 'الملف الشخصي'),
@@ -588,7 +600,7 @@ class _SharedWorkspaceState extends State<SharedWorkspaceApp> {
                       ],
                     ),
                     if (client.user!['role'] != 'patient' &&
-                        view != 'profile') ...[
+                        !{'profile', 'messages'}.contains(view)) ...[
                       for (final person in people.where(
                         (p) => p['role'] == 'patient',
                       ))
@@ -604,7 +616,28 @@ class _SharedWorkspaceState extends State<SharedWorkspaceApp> {
                                 }),
                         ),
                     ],
-                    if (view == 'profile') ...[
+                    if (view == 'appointments')
+                      SharedAppointmentsView(
+                        repository: repository,
+                        user: client.user!,
+                        people: people,
+                        patient: patient,
+                        tr: tr,
+                      )
+                    else if (view == 'messages')
+                      SharedMessagesView(
+                        repository: repository,
+                        user: client.user!,
+                        tr: tr,
+                      )
+                    else if (view == 'billing')
+                      SharedBillingView(
+                        repository: repository,
+                        user: client.user!,
+                        patient: patient,
+                        tr: tr,
+                      )
+                    else if (view == 'profile') ...[
                       ReadableLabel(
                         '${client.user!['email']}\n${client.user!['role']}',
                       ),
@@ -770,8 +803,8 @@ class _SharedWorkspaceState extends State<SharedWorkspaceApp> {
                           ),
                         Text(
                           tr(
-                            'Payments and external delivery are not configured. Restore is restricted to an offline operator.',
-                            'المدفوعات والتوصيل الخارجي غير مهيأة. الاستعادة متاحة فقط لمشغل خارج واجهة الويب.',
+                            'Payments are desk records only (no gateway); external delivery is not configured. Restore is restricted to an offline operator.',
+                            'المدفوعات سجلات استقبال فقط (بدون بوابة دفع)؛ التوصيل الخارجي غير مهيأ. الاستعادة متاحة فقط لمشغل خارج واجهة الويب.',
                           ),
                         ),
                       ],

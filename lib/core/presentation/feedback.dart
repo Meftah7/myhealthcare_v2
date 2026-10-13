@@ -101,6 +101,7 @@ FailureFeedback describeFailure(AppLocalizations t, Object error) {
     ),
     // Specific, actionable messages written by the repository.
     ValidationFailure(:final message) ||
+    SharedModeUnavailableFailure(:final message) ||
     NotFoundFailure(:final message) ||
     PaymentDeclinedFailure(:final message) ||
     FileFailure(

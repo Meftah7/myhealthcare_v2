@@ -54,6 +54,16 @@ class PatientChartScreen extends ConsumerWidget {
       title: patient.valueOrNull?.fullName ?? t.patientChartFallbackTitle,
       centerBody: false,
       actions: [
+        if (ref.watch(canProvider(Permission.recordDentalChart)))
+          IconButton(
+            key: const ValueKey('dental-chart'),
+            tooltip: Localizations.localeOf(context).languageCode == 'ar'
+                ? 'مخطط الأسنان'
+                : 'Dental chart',
+            icon: const Icon(Icons.grid_view_outlined),
+            onPressed: () =>
+                context.push('${AppRoutes.staffPatients}/$patientId/dental'),
+          ),
         IconButton(
           tooltip: Localizations.localeOf(context).languageCode == 'ar'
               ? 'الوثائق'

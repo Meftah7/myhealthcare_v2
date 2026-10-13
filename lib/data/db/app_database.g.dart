@@ -19552,6 +19552,26 @@ class $MedicationDispensesTable extends MedicationDispenses
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _stockBatchIdMeta = const VerificationMeta(
+    'stockBatchId',
+  );
+  @override
+  late final GeneratedColumn<String> stockBatchId = GeneratedColumn<String>(
+    'stock_batch_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _unitsMeta = const VerificationMeta('units');
+  @override
+  late final GeneratedColumn<int> units = GeneratedColumn<int>(
+    'units',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -19565,6 +19585,8 @@ class $MedicationDispensesTable extends MedicationDispenses
     note,
     idempotencyKey,
     recordedAt,
+    stockBatchId,
+    units,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -19656,6 +19678,21 @@ class $MedicationDispensesTable extends MedicationDispenses
     } else if (isInserting) {
       context.missing(_recordedAtMeta);
     }
+    if (data.containsKey('stock_batch_id')) {
+      context.handle(
+        _stockBatchIdMeta,
+        stockBatchId.isAcceptableOrUnknown(
+          data['stock_batch_id']!,
+          _stockBatchIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('units')) {
+      context.handle(
+        _unitsMeta,
+        units.isAcceptableOrUnknown(data['units']!, _unitsMeta),
+      );
+    }
     return context;
   }
 
@@ -19711,6 +19748,14 @@ class $MedicationDispensesTable extends MedicationDispenses
         DriftSqlType.dateTime,
         data['${effectivePrefix}recorded_at'],
       )!,
+      stockBatchId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}stock_batch_id'],
+      ),
+      units: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}units'],
+      ),
     );
   }
 
@@ -19736,6 +19781,10 @@ class MedicationDispenseRow extends DataClass
   final String? note;
   final String idempotencyKey;
   final DateTime recordedAt;
+
+  /// v33: the stock batch supplied from and how many units it lost.
+  final String? stockBatchId;
+  final int? units;
   const MedicationDispenseRow({
     required this.id,
     required this.medicationId,
@@ -19748,6 +19797,8 @@ class MedicationDispenseRow extends DataClass
     this.note,
     required this.idempotencyKey,
     required this.recordedAt,
+    this.stockBatchId,
+    this.units,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -19775,6 +19826,12 @@ class MedicationDispenseRow extends DataClass
     }
     map['idempotency_key'] = Variable<String>(idempotencyKey);
     map['recorded_at'] = Variable<DateTime>(recordedAt);
+    if (!nullToAbsent || stockBatchId != null) {
+      map['stock_batch_id'] = Variable<String>(stockBatchId);
+    }
+    if (!nullToAbsent || units != null) {
+      map['units'] = Variable<int>(units);
+    }
     return map;
   }
 
@@ -19797,6 +19854,12 @@ class MedicationDispenseRow extends DataClass
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
       idempotencyKey: Value(idempotencyKey),
       recordedAt: Value(recordedAt),
+      stockBatchId: stockBatchId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(stockBatchId),
+      units: units == null && nullToAbsent
+          ? const Value.absent()
+          : Value(units),
     );
   }
 
@@ -19819,6 +19882,8 @@ class MedicationDispenseRow extends DataClass
       note: serializer.fromJson<String?>(json['note']),
       idempotencyKey: serializer.fromJson<String>(json['idempotencyKey']),
       recordedAt: serializer.fromJson<DateTime>(json['recordedAt']),
+      stockBatchId: serializer.fromJson<String?>(json['stockBatchId']),
+      units: serializer.fromJson<int?>(json['units']),
     );
   }
   @override
@@ -19838,6 +19903,8 @@ class MedicationDispenseRow extends DataClass
       'note': serializer.toJson<String?>(note),
       'idempotencyKey': serializer.toJson<String>(idempotencyKey),
       'recordedAt': serializer.toJson<DateTime>(recordedAt),
+      'stockBatchId': serializer.toJson<String?>(stockBatchId),
+      'units': serializer.toJson<int?>(units),
     };
   }
 
@@ -19853,6 +19920,8 @@ class MedicationDispenseRow extends DataClass
     Value<String?> note = const Value.absent(),
     String? idempotencyKey,
     DateTime? recordedAt,
+    Value<String?> stockBatchId = const Value.absent(),
+    Value<int?> units = const Value.absent(),
   }) => MedicationDispenseRow(
     id: id ?? this.id,
     medicationId: medicationId ?? this.medicationId,
@@ -19865,6 +19934,8 @@ class MedicationDispenseRow extends DataClass
     note: note.present ? note.value : this.note,
     idempotencyKey: idempotencyKey ?? this.idempotencyKey,
     recordedAt: recordedAt ?? this.recordedAt,
+    stockBatchId: stockBatchId.present ? stockBatchId.value : this.stockBatchId,
+    units: units.present ? units.value : this.units,
   );
   MedicationDispenseRow copyWithCompanion(MedicationDispensesCompanion data) {
     return MedicationDispenseRow(
@@ -19887,6 +19958,10 @@ class MedicationDispenseRow extends DataClass
       recordedAt: data.recordedAt.present
           ? data.recordedAt.value
           : this.recordedAt,
+      stockBatchId: data.stockBatchId.present
+          ? data.stockBatchId.value
+          : this.stockBatchId,
+      units: data.units.present ? data.units.value : this.units,
     );
   }
 
@@ -19903,7 +19978,9 @@ class MedicationDispenseRow extends DataClass
           ..write('expiry: $expiry, ')
           ..write('note: $note, ')
           ..write('idempotencyKey: $idempotencyKey, ')
-          ..write('recordedAt: $recordedAt')
+          ..write('recordedAt: $recordedAt, ')
+          ..write('stockBatchId: $stockBatchId, ')
+          ..write('units: $units')
           ..write(')'))
         .toString();
   }
@@ -19921,6 +19998,8 @@ class MedicationDispenseRow extends DataClass
     note,
     idempotencyKey,
     recordedAt,
+    stockBatchId,
+    units,
   );
   @override
   bool operator ==(Object other) =>
@@ -19936,7 +20015,9 @@ class MedicationDispenseRow extends DataClass
           other.expiry == this.expiry &&
           other.note == this.note &&
           other.idempotencyKey == this.idempotencyKey &&
-          other.recordedAt == this.recordedAt);
+          other.recordedAt == this.recordedAt &&
+          other.stockBatchId == this.stockBatchId &&
+          other.units == this.units);
 }
 
 class MedicationDispensesCompanion
@@ -19952,6 +20033,8 @@ class MedicationDispensesCompanion
   final Value<String?> note;
   final Value<String> idempotencyKey;
   final Value<DateTime> recordedAt;
+  final Value<String?> stockBatchId;
+  final Value<int?> units;
   final Value<int> rowid;
   const MedicationDispensesCompanion({
     this.id = const Value.absent(),
@@ -19965,6 +20048,8 @@ class MedicationDispensesCompanion
     this.note = const Value.absent(),
     this.idempotencyKey = const Value.absent(),
     this.recordedAt = const Value.absent(),
+    this.stockBatchId = const Value.absent(),
+    this.units = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   MedicationDispensesCompanion.insert({
@@ -19979,6 +20064,8 @@ class MedicationDispensesCompanion
     this.note = const Value.absent(),
     required String idempotencyKey,
     required DateTime recordedAt,
+    this.stockBatchId = const Value.absent(),
+    this.units = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        medicationId = Value(medicationId),
@@ -19999,6 +20086,8 @@ class MedicationDispensesCompanion
     Expression<String>? note,
     Expression<String>? idempotencyKey,
     Expression<DateTime>? recordedAt,
+    Expression<String>? stockBatchId,
+    Expression<int>? units,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -20013,6 +20102,8 @@ class MedicationDispensesCompanion
       if (note != null) 'note': note,
       if (idempotencyKey != null) 'idempotency_key': idempotencyKey,
       if (recordedAt != null) 'recorded_at': recordedAt,
+      if (stockBatchId != null) 'stock_batch_id': stockBatchId,
+      if (units != null) 'units': units,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -20029,6 +20120,8 @@ class MedicationDispensesCompanion
     Value<String?>? note,
     Value<String>? idempotencyKey,
     Value<DateTime>? recordedAt,
+    Value<String?>? stockBatchId,
+    Value<int?>? units,
     Value<int>? rowid,
   }) {
     return MedicationDispensesCompanion(
@@ -20043,6 +20136,8 @@ class MedicationDispensesCompanion
       note: note ?? this.note,
       idempotencyKey: idempotencyKey ?? this.idempotencyKey,
       recordedAt: recordedAt ?? this.recordedAt,
+      stockBatchId: stockBatchId ?? this.stockBatchId,
+      units: units ?? this.units,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -20085,6 +20180,12 @@ class MedicationDispensesCompanion
     if (recordedAt.present) {
       map['recorded_at'] = Variable<DateTime>(recordedAt.value);
     }
+    if (stockBatchId.present) {
+      map['stock_batch_id'] = Variable<String>(stockBatchId.value);
+    }
+    if (units.present) {
+      map['units'] = Variable<int>(units.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -20105,6 +20206,1313 @@ class MedicationDispensesCompanion
           ..write('note: $note, ')
           ..write('idempotencyKey: $idempotencyKey, ')
           ..write('recordedAt: $recordedAt, ')
+          ..write('stockBatchId: $stockBatchId, ')
+          ..write('units: $units, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PharmacyStockBatchesTable extends PharmacyStockBatches
+    with TableInfo<$PharmacyStockBatchesTable, StockBatchRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PharmacyStockBatchesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _itemNameMeta = const VerificationMeta(
+    'itemName',
+  );
+  @override
+  late final GeneratedColumn<String> itemName = GeneratedColumn<String>(
+    'item_name',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 200,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _batchMeta = const VerificationMeta('batch');
+  @override
+  late final GeneratedColumn<String> batch = GeneratedColumn<String>(
+    'batch',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 80,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _expiryMeta = const VerificationMeta('expiry');
+  @override
+  late final GeneratedColumn<DateTime> expiry = GeneratedColumn<DateTime>(
+    'expiry',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _quantityMeta = const VerificationMeta(
+    'quantity',
+  );
+  @override
+  late final GeneratedColumn<int> quantity = GeneratedColumn<int>(
+    'quantity',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _unitMeta = const VerificationMeta('unit');
+  @override
+  late final GeneratedColumn<String> unit = GeneratedColumn<String>(
+    'unit',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('units'),
+  );
+  static const VerificationMeta _receivedByMeta = const VerificationMeta(
+    'receivedBy',
+  );
+  @override
+  late final GeneratedColumn<String> receivedBy = GeneratedColumn<String>(
+    'received_by',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _receivedAtMeta = const VerificationMeta(
+    'receivedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> receivedAt = GeneratedColumn<DateTime>(
+    'received_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _idempotencyKeyMeta = const VerificationMeta(
+    'idempotencyKey',
+  );
+  @override
+  late final GeneratedColumn<String> idempotencyKey = GeneratedColumn<String>(
+    'idempotency_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    itemName,
+    batch,
+    expiry,
+    quantity,
+    unit,
+    receivedBy,
+    receivedAt,
+    idempotencyKey,
+    version,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'pharmacy_stock_batches';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<StockBatchRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('item_name')) {
+      context.handle(
+        _itemNameMeta,
+        itemName.isAcceptableOrUnknown(data['item_name']!, _itemNameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_itemNameMeta);
+    }
+    if (data.containsKey('batch')) {
+      context.handle(
+        _batchMeta,
+        batch.isAcceptableOrUnknown(data['batch']!, _batchMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_batchMeta);
+    }
+    if (data.containsKey('expiry')) {
+      context.handle(
+        _expiryMeta,
+        expiry.isAcceptableOrUnknown(data['expiry']!, _expiryMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_expiryMeta);
+    }
+    if (data.containsKey('quantity')) {
+      context.handle(
+        _quantityMeta,
+        quantity.isAcceptableOrUnknown(data['quantity']!, _quantityMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_quantityMeta);
+    }
+    if (data.containsKey('unit')) {
+      context.handle(
+        _unitMeta,
+        unit.isAcceptableOrUnknown(data['unit']!, _unitMeta),
+      );
+    }
+    if (data.containsKey('received_by')) {
+      context.handle(
+        _receivedByMeta,
+        receivedBy.isAcceptableOrUnknown(data['received_by']!, _receivedByMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_receivedByMeta);
+    }
+    if (data.containsKey('received_at')) {
+      context.handle(
+        _receivedAtMeta,
+        receivedAt.isAcceptableOrUnknown(data['received_at']!, _receivedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_receivedAtMeta);
+    }
+    if (data.containsKey('idempotency_key')) {
+      context.handle(
+        _idempotencyKeyMeta,
+        idempotencyKey.isAcceptableOrUnknown(
+          data['idempotency_key']!,
+          _idempotencyKeyMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_idempotencyKeyMeta);
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  StockBatchRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StockBatchRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      itemName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}item_name'],
+      )!,
+      batch: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}batch'],
+      )!,
+      expiry: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}expiry'],
+      )!,
+      quantity: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}quantity'],
+      )!,
+      unit: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}unit'],
+      )!,
+      receivedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}received_by'],
+      )!,
+      receivedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}received_at'],
+      )!,
+      idempotencyKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}idempotency_key'],
+      )!,
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+    );
+  }
+
+  @override
+  $PharmacyStockBatchesTable createAlias(String alias) {
+    return $PharmacyStockBatchesTable(attachedDatabase, alias);
+  }
+}
+
+class StockBatchRow extends DataClass implements Insertable<StockBatchRow> {
+  final String id;
+  final String itemName;
+  final String batch;
+  final DateTime expiry;
+  final int quantity;
+  final String unit;
+  final String receivedBy;
+  final DateTime receivedAt;
+  final String idempotencyKey;
+  final int version;
+  const StockBatchRow({
+    required this.id,
+    required this.itemName,
+    required this.batch,
+    required this.expiry,
+    required this.quantity,
+    required this.unit,
+    required this.receivedBy,
+    required this.receivedAt,
+    required this.idempotencyKey,
+    required this.version,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['item_name'] = Variable<String>(itemName);
+    map['batch'] = Variable<String>(batch);
+    map['expiry'] = Variable<DateTime>(expiry);
+    map['quantity'] = Variable<int>(quantity);
+    map['unit'] = Variable<String>(unit);
+    map['received_by'] = Variable<String>(receivedBy);
+    map['received_at'] = Variable<DateTime>(receivedAt);
+    map['idempotency_key'] = Variable<String>(idempotencyKey);
+    map['version'] = Variable<int>(version);
+    return map;
+  }
+
+  PharmacyStockBatchesCompanion toCompanion(bool nullToAbsent) {
+    return PharmacyStockBatchesCompanion(
+      id: Value(id),
+      itemName: Value(itemName),
+      batch: Value(batch),
+      expiry: Value(expiry),
+      quantity: Value(quantity),
+      unit: Value(unit),
+      receivedBy: Value(receivedBy),
+      receivedAt: Value(receivedAt),
+      idempotencyKey: Value(idempotencyKey),
+      version: Value(version),
+    );
+  }
+
+  factory StockBatchRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StockBatchRow(
+      id: serializer.fromJson<String>(json['id']),
+      itemName: serializer.fromJson<String>(json['itemName']),
+      batch: serializer.fromJson<String>(json['batch']),
+      expiry: serializer.fromJson<DateTime>(json['expiry']),
+      quantity: serializer.fromJson<int>(json['quantity']),
+      unit: serializer.fromJson<String>(json['unit']),
+      receivedBy: serializer.fromJson<String>(json['receivedBy']),
+      receivedAt: serializer.fromJson<DateTime>(json['receivedAt']),
+      idempotencyKey: serializer.fromJson<String>(json['idempotencyKey']),
+      version: serializer.fromJson<int>(json['version']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'itemName': serializer.toJson<String>(itemName),
+      'batch': serializer.toJson<String>(batch),
+      'expiry': serializer.toJson<DateTime>(expiry),
+      'quantity': serializer.toJson<int>(quantity),
+      'unit': serializer.toJson<String>(unit),
+      'receivedBy': serializer.toJson<String>(receivedBy),
+      'receivedAt': serializer.toJson<DateTime>(receivedAt),
+      'idempotencyKey': serializer.toJson<String>(idempotencyKey),
+      'version': serializer.toJson<int>(version),
+    };
+  }
+
+  StockBatchRow copyWith({
+    String? id,
+    String? itemName,
+    String? batch,
+    DateTime? expiry,
+    int? quantity,
+    String? unit,
+    String? receivedBy,
+    DateTime? receivedAt,
+    String? idempotencyKey,
+    int? version,
+  }) => StockBatchRow(
+    id: id ?? this.id,
+    itemName: itemName ?? this.itemName,
+    batch: batch ?? this.batch,
+    expiry: expiry ?? this.expiry,
+    quantity: quantity ?? this.quantity,
+    unit: unit ?? this.unit,
+    receivedBy: receivedBy ?? this.receivedBy,
+    receivedAt: receivedAt ?? this.receivedAt,
+    idempotencyKey: idempotencyKey ?? this.idempotencyKey,
+    version: version ?? this.version,
+  );
+  StockBatchRow copyWithCompanion(PharmacyStockBatchesCompanion data) {
+    return StockBatchRow(
+      id: data.id.present ? data.id.value : this.id,
+      itemName: data.itemName.present ? data.itemName.value : this.itemName,
+      batch: data.batch.present ? data.batch.value : this.batch,
+      expiry: data.expiry.present ? data.expiry.value : this.expiry,
+      quantity: data.quantity.present ? data.quantity.value : this.quantity,
+      unit: data.unit.present ? data.unit.value : this.unit,
+      receivedBy: data.receivedBy.present
+          ? data.receivedBy.value
+          : this.receivedBy,
+      receivedAt: data.receivedAt.present
+          ? data.receivedAt.value
+          : this.receivedAt,
+      idempotencyKey: data.idempotencyKey.present
+          ? data.idempotencyKey.value
+          : this.idempotencyKey,
+      version: data.version.present ? data.version.value : this.version,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StockBatchRow(')
+          ..write('id: $id, ')
+          ..write('itemName: $itemName, ')
+          ..write('batch: $batch, ')
+          ..write('expiry: $expiry, ')
+          ..write('quantity: $quantity, ')
+          ..write('unit: $unit, ')
+          ..write('receivedBy: $receivedBy, ')
+          ..write('receivedAt: $receivedAt, ')
+          ..write('idempotencyKey: $idempotencyKey, ')
+          ..write('version: $version')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    itemName,
+    batch,
+    expiry,
+    quantity,
+    unit,
+    receivedBy,
+    receivedAt,
+    idempotencyKey,
+    version,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StockBatchRow &&
+          other.id == this.id &&
+          other.itemName == this.itemName &&
+          other.batch == this.batch &&
+          other.expiry == this.expiry &&
+          other.quantity == this.quantity &&
+          other.unit == this.unit &&
+          other.receivedBy == this.receivedBy &&
+          other.receivedAt == this.receivedAt &&
+          other.idempotencyKey == this.idempotencyKey &&
+          other.version == this.version);
+}
+
+class PharmacyStockBatchesCompanion extends UpdateCompanion<StockBatchRow> {
+  final Value<String> id;
+  final Value<String> itemName;
+  final Value<String> batch;
+  final Value<DateTime> expiry;
+  final Value<int> quantity;
+  final Value<String> unit;
+  final Value<String> receivedBy;
+  final Value<DateTime> receivedAt;
+  final Value<String> idempotencyKey;
+  final Value<int> version;
+  final Value<int> rowid;
+  const PharmacyStockBatchesCompanion({
+    this.id = const Value.absent(),
+    this.itemName = const Value.absent(),
+    this.batch = const Value.absent(),
+    this.expiry = const Value.absent(),
+    this.quantity = const Value.absent(),
+    this.unit = const Value.absent(),
+    this.receivedBy = const Value.absent(),
+    this.receivedAt = const Value.absent(),
+    this.idempotencyKey = const Value.absent(),
+    this.version = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PharmacyStockBatchesCompanion.insert({
+    required String id,
+    required String itemName,
+    required String batch,
+    required DateTime expiry,
+    required int quantity,
+    this.unit = const Value.absent(),
+    required String receivedBy,
+    required DateTime receivedAt,
+    required String idempotencyKey,
+    this.version = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       itemName = Value(itemName),
+       batch = Value(batch),
+       expiry = Value(expiry),
+       quantity = Value(quantity),
+       receivedBy = Value(receivedBy),
+       receivedAt = Value(receivedAt),
+       idempotencyKey = Value(idempotencyKey);
+  static Insertable<StockBatchRow> custom({
+    Expression<String>? id,
+    Expression<String>? itemName,
+    Expression<String>? batch,
+    Expression<DateTime>? expiry,
+    Expression<int>? quantity,
+    Expression<String>? unit,
+    Expression<String>? receivedBy,
+    Expression<DateTime>? receivedAt,
+    Expression<String>? idempotencyKey,
+    Expression<int>? version,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (itemName != null) 'item_name': itemName,
+      if (batch != null) 'batch': batch,
+      if (expiry != null) 'expiry': expiry,
+      if (quantity != null) 'quantity': quantity,
+      if (unit != null) 'unit': unit,
+      if (receivedBy != null) 'received_by': receivedBy,
+      if (receivedAt != null) 'received_at': receivedAt,
+      if (idempotencyKey != null) 'idempotency_key': idempotencyKey,
+      if (version != null) 'version': version,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PharmacyStockBatchesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? itemName,
+    Value<String>? batch,
+    Value<DateTime>? expiry,
+    Value<int>? quantity,
+    Value<String>? unit,
+    Value<String>? receivedBy,
+    Value<DateTime>? receivedAt,
+    Value<String>? idempotencyKey,
+    Value<int>? version,
+    Value<int>? rowid,
+  }) {
+    return PharmacyStockBatchesCompanion(
+      id: id ?? this.id,
+      itemName: itemName ?? this.itemName,
+      batch: batch ?? this.batch,
+      expiry: expiry ?? this.expiry,
+      quantity: quantity ?? this.quantity,
+      unit: unit ?? this.unit,
+      receivedBy: receivedBy ?? this.receivedBy,
+      receivedAt: receivedAt ?? this.receivedAt,
+      idempotencyKey: idempotencyKey ?? this.idempotencyKey,
+      version: version ?? this.version,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (itemName.present) {
+      map['item_name'] = Variable<String>(itemName.value);
+    }
+    if (batch.present) {
+      map['batch'] = Variable<String>(batch.value);
+    }
+    if (expiry.present) {
+      map['expiry'] = Variable<DateTime>(expiry.value);
+    }
+    if (quantity.present) {
+      map['quantity'] = Variable<int>(quantity.value);
+    }
+    if (unit.present) {
+      map['unit'] = Variable<String>(unit.value);
+    }
+    if (receivedBy.present) {
+      map['received_by'] = Variable<String>(receivedBy.value);
+    }
+    if (receivedAt.present) {
+      map['received_at'] = Variable<DateTime>(receivedAt.value);
+    }
+    if (idempotencyKey.present) {
+      map['idempotency_key'] = Variable<String>(idempotencyKey.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PharmacyStockBatchesCompanion(')
+          ..write('id: $id, ')
+          ..write('itemName: $itemName, ')
+          ..write('batch: $batch, ')
+          ..write('expiry: $expiry, ')
+          ..write('quantity: $quantity, ')
+          ..write('unit: $unit, ')
+          ..write('receivedBy: $receivedBy, ')
+          ..write('receivedAt: $receivedAt, ')
+          ..write('idempotencyKey: $idempotencyKey, ')
+          ..write('version: $version, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DentalChartEntriesTable extends DentalChartEntries
+    with TableInfo<$DentalChartEntriesTable, DentalChartEntryRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DentalChartEntriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _patientIdMeta = const VerificationMeta(
+    'patientId',
+  );
+  @override
+  late final GeneratedColumn<String> patientId = GeneratedColumn<String>(
+    'patient_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _appointmentIdMeta = const VerificationMeta(
+    'appointmentId',
+  );
+  @override
+  late final GeneratedColumn<String> appointmentId = GeneratedColumn<String>(
+    'appointment_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES appointments (id)',
+    ),
+  );
+  static const VerificationMeta _toothMeta = const VerificationMeta('tooth');
+  @override
+  late final GeneratedColumn<int> tooth = GeneratedColumn<int>(
+    'tooth',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<DentalEntryKind, String> kind =
+      GeneratedColumn<String>(
+        'kind',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<DentalEntryKind>($DentalChartEntriesTable.$converterkind);
+  static const VerificationMeta _surfaceMeta = const VerificationMeta(
+    'surface',
+  );
+  @override
+  late final GeneratedColumn<String> surface = GeneratedColumn<String>(
+    'surface',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 1000,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _fulfilsIdMeta = const VerificationMeta(
+    'fulfilsId',
+  );
+  @override
+  late final GeneratedColumn<String> fulfilsId = GeneratedColumn<String>(
+    'fulfils_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _authorIdMeta = const VerificationMeta(
+    'authorId',
+  );
+  @override
+  late final GeneratedColumn<String> authorId = GeneratedColumn<String>(
+    'author_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _idempotencyKeyMeta = const VerificationMeta(
+    'idempotencyKey',
+  );
+  @override
+  late final GeneratedColumn<String> idempotencyKey = GeneratedColumn<String>(
+    'idempotency_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    patientId,
+    appointmentId,
+    tooth,
+    kind,
+    surface,
+    note,
+    fulfilsId,
+    authorId,
+    createdAt,
+    idempotencyKey,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'dental_chart_entries';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DentalChartEntryRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('patient_id')) {
+      context.handle(
+        _patientIdMeta,
+        patientId.isAcceptableOrUnknown(data['patient_id']!, _patientIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_patientIdMeta);
+    }
+    if (data.containsKey('appointment_id')) {
+      context.handle(
+        _appointmentIdMeta,
+        appointmentId.isAcceptableOrUnknown(
+          data['appointment_id']!,
+          _appointmentIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_appointmentIdMeta);
+    }
+    if (data.containsKey('tooth')) {
+      context.handle(
+        _toothMeta,
+        tooth.isAcceptableOrUnknown(data['tooth']!, _toothMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_toothMeta);
+    }
+    if (data.containsKey('surface')) {
+      context.handle(
+        _surfaceMeta,
+        surface.isAcceptableOrUnknown(data['surface']!, _surfaceMeta),
+      );
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_noteMeta);
+    }
+    if (data.containsKey('fulfils_id')) {
+      context.handle(
+        _fulfilsIdMeta,
+        fulfilsId.isAcceptableOrUnknown(data['fulfils_id']!, _fulfilsIdMeta),
+      );
+    }
+    if (data.containsKey('author_id')) {
+      context.handle(
+        _authorIdMeta,
+        authorId.isAcceptableOrUnknown(data['author_id']!, _authorIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_authorIdMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('idempotency_key')) {
+      context.handle(
+        _idempotencyKeyMeta,
+        idempotencyKey.isAcceptableOrUnknown(
+          data['idempotency_key']!,
+          _idempotencyKeyMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_idempotencyKeyMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DentalChartEntryRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DentalChartEntryRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      patientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}patient_id'],
+      )!,
+      appointmentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}appointment_id'],
+      )!,
+      tooth: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}tooth'],
+      )!,
+      kind: $DentalChartEntriesTable.$converterkind.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}kind'],
+        )!,
+      ),
+      surface: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}surface'],
+      ),
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      )!,
+      fulfilsId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}fulfils_id'],
+      ),
+      authorId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}author_id'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      idempotencyKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}idempotency_key'],
+      )!,
+    );
+  }
+
+  @override
+  $DentalChartEntriesTable createAlias(String alias) {
+    return $DentalChartEntriesTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<DentalEntryKind, String, String> $converterkind =
+      const EnumNameConverter<DentalEntryKind>(DentalEntryKind.values);
+}
+
+class DentalChartEntryRow extends DataClass
+    implements Insertable<DentalChartEntryRow> {
+  final String id;
+  final String patientId;
+  final String appointmentId;
+  final int tooth;
+  final DentalEntryKind kind;
+  final String? surface;
+  final String note;
+
+  /// For a completed entry: the planned entry it fulfils.
+  final String? fulfilsId;
+  final String authorId;
+  final DateTime createdAt;
+  final String idempotencyKey;
+  const DentalChartEntryRow({
+    required this.id,
+    required this.patientId,
+    required this.appointmentId,
+    required this.tooth,
+    required this.kind,
+    this.surface,
+    required this.note,
+    this.fulfilsId,
+    required this.authorId,
+    required this.createdAt,
+    required this.idempotencyKey,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['patient_id'] = Variable<String>(patientId);
+    map['appointment_id'] = Variable<String>(appointmentId);
+    map['tooth'] = Variable<int>(tooth);
+    {
+      map['kind'] = Variable<String>(
+        $DentalChartEntriesTable.$converterkind.toSql(kind),
+      );
+    }
+    if (!nullToAbsent || surface != null) {
+      map['surface'] = Variable<String>(surface);
+    }
+    map['note'] = Variable<String>(note);
+    if (!nullToAbsent || fulfilsId != null) {
+      map['fulfils_id'] = Variable<String>(fulfilsId);
+    }
+    map['author_id'] = Variable<String>(authorId);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['idempotency_key'] = Variable<String>(idempotencyKey);
+    return map;
+  }
+
+  DentalChartEntriesCompanion toCompanion(bool nullToAbsent) {
+    return DentalChartEntriesCompanion(
+      id: Value(id),
+      patientId: Value(patientId),
+      appointmentId: Value(appointmentId),
+      tooth: Value(tooth),
+      kind: Value(kind),
+      surface: surface == null && nullToAbsent
+          ? const Value.absent()
+          : Value(surface),
+      note: Value(note),
+      fulfilsId: fulfilsId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fulfilsId),
+      authorId: Value(authorId),
+      createdAt: Value(createdAt),
+      idempotencyKey: Value(idempotencyKey),
+    );
+  }
+
+  factory DentalChartEntryRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DentalChartEntryRow(
+      id: serializer.fromJson<String>(json['id']),
+      patientId: serializer.fromJson<String>(json['patientId']),
+      appointmentId: serializer.fromJson<String>(json['appointmentId']),
+      tooth: serializer.fromJson<int>(json['tooth']),
+      kind: $DentalChartEntriesTable.$converterkind.fromJson(
+        serializer.fromJson<String>(json['kind']),
+      ),
+      surface: serializer.fromJson<String?>(json['surface']),
+      note: serializer.fromJson<String>(json['note']),
+      fulfilsId: serializer.fromJson<String?>(json['fulfilsId']),
+      authorId: serializer.fromJson<String>(json['authorId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      idempotencyKey: serializer.fromJson<String>(json['idempotencyKey']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'patientId': serializer.toJson<String>(patientId),
+      'appointmentId': serializer.toJson<String>(appointmentId),
+      'tooth': serializer.toJson<int>(tooth),
+      'kind': serializer.toJson<String>(
+        $DentalChartEntriesTable.$converterkind.toJson(kind),
+      ),
+      'surface': serializer.toJson<String?>(surface),
+      'note': serializer.toJson<String>(note),
+      'fulfilsId': serializer.toJson<String?>(fulfilsId),
+      'authorId': serializer.toJson<String>(authorId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'idempotencyKey': serializer.toJson<String>(idempotencyKey),
+    };
+  }
+
+  DentalChartEntryRow copyWith({
+    String? id,
+    String? patientId,
+    String? appointmentId,
+    int? tooth,
+    DentalEntryKind? kind,
+    Value<String?> surface = const Value.absent(),
+    String? note,
+    Value<String?> fulfilsId = const Value.absent(),
+    String? authorId,
+    DateTime? createdAt,
+    String? idempotencyKey,
+  }) => DentalChartEntryRow(
+    id: id ?? this.id,
+    patientId: patientId ?? this.patientId,
+    appointmentId: appointmentId ?? this.appointmentId,
+    tooth: tooth ?? this.tooth,
+    kind: kind ?? this.kind,
+    surface: surface.present ? surface.value : this.surface,
+    note: note ?? this.note,
+    fulfilsId: fulfilsId.present ? fulfilsId.value : this.fulfilsId,
+    authorId: authorId ?? this.authorId,
+    createdAt: createdAt ?? this.createdAt,
+    idempotencyKey: idempotencyKey ?? this.idempotencyKey,
+  );
+  DentalChartEntryRow copyWithCompanion(DentalChartEntriesCompanion data) {
+    return DentalChartEntryRow(
+      id: data.id.present ? data.id.value : this.id,
+      patientId: data.patientId.present ? data.patientId.value : this.patientId,
+      appointmentId: data.appointmentId.present
+          ? data.appointmentId.value
+          : this.appointmentId,
+      tooth: data.tooth.present ? data.tooth.value : this.tooth,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      surface: data.surface.present ? data.surface.value : this.surface,
+      note: data.note.present ? data.note.value : this.note,
+      fulfilsId: data.fulfilsId.present ? data.fulfilsId.value : this.fulfilsId,
+      authorId: data.authorId.present ? data.authorId.value : this.authorId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      idempotencyKey: data.idempotencyKey.present
+          ? data.idempotencyKey.value
+          : this.idempotencyKey,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DentalChartEntryRow(')
+          ..write('id: $id, ')
+          ..write('patientId: $patientId, ')
+          ..write('appointmentId: $appointmentId, ')
+          ..write('tooth: $tooth, ')
+          ..write('kind: $kind, ')
+          ..write('surface: $surface, ')
+          ..write('note: $note, ')
+          ..write('fulfilsId: $fulfilsId, ')
+          ..write('authorId: $authorId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('idempotencyKey: $idempotencyKey')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    patientId,
+    appointmentId,
+    tooth,
+    kind,
+    surface,
+    note,
+    fulfilsId,
+    authorId,
+    createdAt,
+    idempotencyKey,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DentalChartEntryRow &&
+          other.id == this.id &&
+          other.patientId == this.patientId &&
+          other.appointmentId == this.appointmentId &&
+          other.tooth == this.tooth &&
+          other.kind == this.kind &&
+          other.surface == this.surface &&
+          other.note == this.note &&
+          other.fulfilsId == this.fulfilsId &&
+          other.authorId == this.authorId &&
+          other.createdAt == this.createdAt &&
+          other.idempotencyKey == this.idempotencyKey);
+}
+
+class DentalChartEntriesCompanion extends UpdateCompanion<DentalChartEntryRow> {
+  final Value<String> id;
+  final Value<String> patientId;
+  final Value<String> appointmentId;
+  final Value<int> tooth;
+  final Value<DentalEntryKind> kind;
+  final Value<String?> surface;
+  final Value<String> note;
+  final Value<String?> fulfilsId;
+  final Value<String> authorId;
+  final Value<DateTime> createdAt;
+  final Value<String> idempotencyKey;
+  final Value<int> rowid;
+  const DentalChartEntriesCompanion({
+    this.id = const Value.absent(),
+    this.patientId = const Value.absent(),
+    this.appointmentId = const Value.absent(),
+    this.tooth = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.surface = const Value.absent(),
+    this.note = const Value.absent(),
+    this.fulfilsId = const Value.absent(),
+    this.authorId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.idempotencyKey = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DentalChartEntriesCompanion.insert({
+    required String id,
+    required String patientId,
+    required String appointmentId,
+    required int tooth,
+    required DentalEntryKind kind,
+    this.surface = const Value.absent(),
+    required String note,
+    this.fulfilsId = const Value.absent(),
+    required String authorId,
+    required DateTime createdAt,
+    required String idempotencyKey,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       patientId = Value(patientId),
+       appointmentId = Value(appointmentId),
+       tooth = Value(tooth),
+       kind = Value(kind),
+       note = Value(note),
+       authorId = Value(authorId),
+       createdAt = Value(createdAt),
+       idempotencyKey = Value(idempotencyKey);
+  static Insertable<DentalChartEntryRow> custom({
+    Expression<String>? id,
+    Expression<String>? patientId,
+    Expression<String>? appointmentId,
+    Expression<int>? tooth,
+    Expression<String>? kind,
+    Expression<String>? surface,
+    Expression<String>? note,
+    Expression<String>? fulfilsId,
+    Expression<String>? authorId,
+    Expression<DateTime>? createdAt,
+    Expression<String>? idempotencyKey,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (patientId != null) 'patient_id': patientId,
+      if (appointmentId != null) 'appointment_id': appointmentId,
+      if (tooth != null) 'tooth': tooth,
+      if (kind != null) 'kind': kind,
+      if (surface != null) 'surface': surface,
+      if (note != null) 'note': note,
+      if (fulfilsId != null) 'fulfils_id': fulfilsId,
+      if (authorId != null) 'author_id': authorId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (idempotencyKey != null) 'idempotency_key': idempotencyKey,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DentalChartEntriesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? patientId,
+    Value<String>? appointmentId,
+    Value<int>? tooth,
+    Value<DentalEntryKind>? kind,
+    Value<String?>? surface,
+    Value<String>? note,
+    Value<String?>? fulfilsId,
+    Value<String>? authorId,
+    Value<DateTime>? createdAt,
+    Value<String>? idempotencyKey,
+    Value<int>? rowid,
+  }) {
+    return DentalChartEntriesCompanion(
+      id: id ?? this.id,
+      patientId: patientId ?? this.patientId,
+      appointmentId: appointmentId ?? this.appointmentId,
+      tooth: tooth ?? this.tooth,
+      kind: kind ?? this.kind,
+      surface: surface ?? this.surface,
+      note: note ?? this.note,
+      fulfilsId: fulfilsId ?? this.fulfilsId,
+      authorId: authorId ?? this.authorId,
+      createdAt: createdAt ?? this.createdAt,
+      idempotencyKey: idempotencyKey ?? this.idempotencyKey,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (patientId.present) {
+      map['patient_id'] = Variable<String>(patientId.value);
+    }
+    if (appointmentId.present) {
+      map['appointment_id'] = Variable<String>(appointmentId.value);
+    }
+    if (tooth.present) {
+      map['tooth'] = Variable<int>(tooth.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(
+        $DentalChartEntriesTable.$converterkind.toSql(kind.value),
+      );
+    }
+    if (surface.present) {
+      map['surface'] = Variable<String>(surface.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (fulfilsId.present) {
+      map['fulfils_id'] = Variable<String>(fulfilsId.value);
+    }
+    if (authorId.present) {
+      map['author_id'] = Variable<String>(authorId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (idempotencyKey.present) {
+      map['idempotency_key'] = Variable<String>(idempotencyKey.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DentalChartEntriesCompanion(')
+          ..write('id: $id, ')
+          ..write('patientId: $patientId, ')
+          ..write('appointmentId: $appointmentId, ')
+          ..write('tooth: $tooth, ')
+          ..write('kind: $kind, ')
+          ..write('surface: $surface, ')
+          ..write('note: $note, ')
+          ..write('fulfilsId: $fulfilsId, ')
+          ..write('authorId: $authorId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('idempotencyKey: $idempotencyKey, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -36670,6 +38078,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $DocumentCopyConfirmationsTable(this);
   late final $MedicationDispensesTable medicationDispenses =
       $MedicationDispensesTable(this);
+  late final $PharmacyStockBatchesTable pharmacyStockBatches =
+      $PharmacyStockBatchesTable(this);
+  late final $DentalChartEntriesTable dentalChartEntries =
+      $DentalChartEntriesTable(this);
   late final $StaffTasksTable staffTasks = $StaffTasksTable(this);
   late final $TaskSourcesTable taskSources = $TaskSourcesTable(this);
   late final $TaskHistoryTable taskHistory = $TaskHistoryTable(this);
@@ -36746,6 +38158,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     documentDeliveryEvents,
     documentCopyConfirmations,
     medicationDispenses,
+    pharmacyStockBatches,
+    dentalChartEntries,
     staffTasks,
     taskSources,
     taskHistory,

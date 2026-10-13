@@ -48,44 +48,75 @@ class AdminReferralRequestsScreen extends ConsumerWidget {
         ),
       ),
       onRefresh: () async => ref.invalidate(pendingReferralRequestsProvider),
-      body: queue.when(
-        loading: () => const SkeletonList(),
-        error: (e, _) => ErrorStateView(
-          message: t.couldNotLoadQueue,
-          onRetry: () => ref.invalidate(pendingReferralRequestsProvider),
-        ),
-        data: (list) {
-          if (list.isEmpty) {
-            return EmptyState(
-              icon: Icons.forward_to_inbox_outlined,
-              message: t.noReferralRequestsWaiting,
-            );
-          }
-          return Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: Space.maxContentWidth,
-              ),
-              child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(
-                  Space.md,
-                  Space.md,
-                  Space.md,
-                  Space.xxl,
-                ),
-                itemCount: list.length,
-                separatorBuilder: (_, _) => const SizedBox(height: Space.sm),
-                itemBuilder: (context, i) => _RequestCard(
-                  request: list[i],
-                  patientName: patients[list[i].patientId] ?? t.rolePatient,
-                  doctorName:
-                      doctors[list[i].requestedByStaffId] ??
-                      t.aClinicianFallback,
+      body: LayoutBuilder(
+        builder: (context, box) => Column(
+          children: [
+            // Status changes are recorded locally; no external service exists.
+            // Capped and scrollable so large text never hides the list.
+            ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: box.maxHeight * 0.3),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    Space.md,
+                    Space.xs,
+                    Space.md,
+                    0,
+                  ),
+                  child: InlineBanner.info(
+                    Localizations.localeOf(context).languageCode == 'ar'
+                        ? 'تُسجَّل القرارات في myhealth فقط. لا توجد خدمة إحالة أو مستشفى خارجي متصل: رتّب الموعد مع الجهة المستقبلة مباشرة؛ لا يُرسل شيء تلقائيًا.'
+                        : 'Decisions are recorded in myhealth only. No external hospital or referral service is connected: arrange the receiving appointment directly; nothing is sent automatically.',
+                  ),
                 ),
               ),
             ),
-          );
-        },
+            Expanded(
+              child: queue.when(
+                loading: () => const SkeletonList(),
+                error: (e, _) => ErrorStateView(
+                  message: t.couldNotLoadQueue,
+                  onRetry: () =>
+                      ref.invalidate(pendingReferralRequestsProvider),
+                ),
+                data: (list) {
+                  if (list.isEmpty) {
+                    return EmptyState(
+                      icon: Icons.forward_to_inbox_outlined,
+                      message: t.noReferralRequestsWaiting,
+                    );
+                  }
+                  return Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        maxWidth: Space.maxContentWidth,
+                      ),
+                      child: ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(
+                          Space.md,
+                          Space.md,
+                          Space.md,
+                          Space.xxl,
+                        ),
+                        itemCount: list.length,
+                        separatorBuilder: (_, _) =>
+                            const SizedBox(height: Space.sm),
+                        itemBuilder: (context, i) => _RequestCard(
+                          request: list[i],
+                          patientName:
+                              patients[list[i].patientId] ?? t.rolePatient,
+                          doctorName:
+                              doctors[list[i].requestedByStaffId] ??
+                              t.aClinicianFallback,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

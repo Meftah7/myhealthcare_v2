@@ -73,6 +73,8 @@ part 'app_database.g.dart';
     DocumentDeliveryEvents,
     DocumentCopyConfirmations,
     MedicationDispenses,
+    PharmacyStockBatches,
+    DentalChartEntries,
     TaskSources,
     TaskHistory,
     // AI
@@ -200,7 +202,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 32;
+  int get schemaVersion => 33;
 
   /// Preserve legacy flag/task IDs by aliasing only sources known when the
   /// old flag was last detected. Later readings/reports get their own work.
@@ -406,7 +408,14 @@ class AppDatabase extends _$AppDatabase {
       );
     }
     await _installPaymentRules();
-    for (final table in ['issued_document_versions', 'task_history']) {
+    // Append-only records: corrections are new rows, never edits.
+    for (final table in [
+      'issued_document_versions',
+      'task_history',
+      'document_copy_confirmations',
+      'medication_dispenses',
+      'dental_chart_entries',
+    ]) {
       if (!await _hasTableNamed(table)) continue;
       for (final action in ['update', 'delete']) {
         await customStatement(
@@ -1020,6 +1029,20 @@ class AppDatabase extends _$AppDatabase {
         await _createTableIfMissing(m, documentCopyConfirmations);
         await _createTableIfMissing(m, medicationDispenses);
         await _backfillTaskReviewTimes();
+      }
+      if (from < 33) {
+        await _addColumnIfMissing(
+          m,
+          medicationDispenses,
+          medicationDispenses.stockBatchId,
+        );
+        await _addColumnIfMissing(
+          m,
+          medicationDispenses,
+          medicationDispenses.units,
+        );
+        await _createTableIfMissing(m, pharmacyStockBatches);
+        await _createTableIfMissing(m, dentalChartEntries);
       }
     }),
     beforeOpen: (details) async {

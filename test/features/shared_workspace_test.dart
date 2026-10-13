@@ -5,11 +5,47 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:myhealthcare/app/theme/theme.dart';
 import 'package:myhealthcare/core/failures.dart';
 import 'package:myhealthcare/data/remote/shared_client.dart';
 import 'package:myhealthcare/features/shared/presentation/shared_workspace_app.dart';
 
 void main() {
+  testWidgets('shared workspace changes theme with an open nested dialog', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const SharedWorkspaceApp(
+        origin: 'http://localhost:8787',
+        themeMode: ThemeMode.light,
+      ),
+    );
+    await tester.pumpAndSettle();
+      final context = tester.element(find.byType(Scaffold));
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (_) => const AlertDialog(title: Text('Nested')),
+      ),
+    );
+    await tester.pumpAndSettle();
+    for (final mode in [ThemeMode.dark, ThemeMode.light]) {
+      await tester.pumpWidget(
+        SharedWorkspaceApp(origin: 'http://localhost:8787', themeMode: mode),
+      );
+      await tester.pumpAndSettle();
+      final theme = Theme.of(tester.element(find.text('Nested')));
+      expect(
+        theme.colorScheme,
+        mode == ThemeMode.dark ? AppColors.patientDark : AppColors.patientLight,
+      );
+      expect(theme.extension<PatientPalette>(), isNotNull);
+      expect(tester.takeException(), isNull);
+    }
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump();
+  });
+
   testWidgets(
     'revocation closes an active private preview and returns to login',
     (tester) async {

@@ -65,7 +65,8 @@ class Seeder {
   /// department walk-in tickets for the new admin / staff queues.
   /// v16: one demo account per remaining staff role (nurse, receptionist,
   /// pharmacist, dentist).
-  static const seedVersion = 16;
+  /// v17: a Dental department and weekday schedule for the dentist.
+  static const seedVersion = 17;
 
   /// Password for every seeded account (documented in the README).
   static const demoPassword = 'password';
@@ -246,6 +247,19 @@ class Seeder {
       ('staff_pharmacy', StaffRole.pharmacist, 'Yusuf Karim', 'pharmacy', true),
       ('staff_dentist', StaffRole.dentist, 'Sara Abbas', 'dentist', false),
     ];
+    // A Dental department so the dentist is bookable end to end.
+    const dentalId = 'dept_dental';
+    await _db
+        .into(_db.departments)
+        .insert(
+          DepartmentsCompanion.insert(
+            id: dentalId,
+            name: 'Dental',
+            description: const Value(
+              'Dental check-ups, fillings and oral health follow-up.',
+            ),
+          ),
+        );
     for (final (id, role, name, login, male) in accounts) {
       await _insertUser(
         id: id,
@@ -259,12 +273,33 @@ class Seeder {
           .insert(
             StaffProfilesCompanion.insert(
               userId: id,
-              departmentId: Value(
-                role == StaffRole.nurse ? deptIds.first : null,
+              departmentId: Value(switch (role) {
+                StaffRole.nurse => deptIds.first,
+                StaffRole.dentist => dentalId,
+                _ => null,
+              }),
+              specialty: Value(
+                role == StaffRole.dentist ? 'General dentistry' : null,
               ),
               jobTitle: Value(role.jobTitle),
             ),
           );
+      if (role.takesAppointments) {
+        // Sun–Thu, 08:00–16:00, like the doctors' template.
+        for (final weekday in const [7, 1, 2, 3, 4]) {
+          await _db
+              .into(_db.scheduleTemplates)
+              .insert(
+                ScheduleTemplatesCompanion.insert(
+                  id: '${id}_wd$weekday',
+                  staffId: id,
+                  weekday: weekday,
+                  startMinutes: 8 * 60,
+                  endMinutes: 16 * 60,
+                ),
+              );
+        }
+      }
     }
   }
 

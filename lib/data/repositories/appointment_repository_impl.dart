@@ -510,6 +510,72 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     });
   }
 
+  /// Future booked/confirmed appointments of [staffId] that the current
+  /// schedule covers but [templates] would not. Bookings that already sit
+  /// outside the current slot grid (e.g. a different visit length) are not
+  /// caused by the change, so they never block it.
+  Future<List<AppointmentRow>> _uncoveredBy(
+    String staffId,
+    List<NewScheduleTemplate> templates,
+  ) async {
+    final existing =
+        await (_db.select(_db.appointments)
+              ..where(
+                (a) =>
+                    a.staffId.equals(staffId) &
+                    a.slotStart.isBiggerThanValue(DateTime.now()) &
+                    a.status.isInValues([
+                      AppointmentStatus.booked,
+                      AppointmentStatus.confirmed,
+                    ]),
+              )
+              ..orderBy([(a) => OrderingTerm(expression: a.slotStart)]))
+            .get();
+    final current = [
+      for (final t in await (_db.select(
+        _db.scheduleTemplates,
+      )..where((t) => t.staffId.equals(staffId))).get())
+        NewScheduleTemplate(
+          weekday: t.weekday,
+          startMinutes: t.startMinutes,
+          endMinutes: t.endMinutes,
+          slotMinutes: t.slotMinutes,
+        ),
+    ];
+    bool covers(List<NewScheduleTemplate> set, AppointmentRow a) {
+      final start = a.slotStart.hour * 60 + a.slotStart.minute;
+      final end = a.slotEnd.hour * 60 + a.slotEnd.minute;
+      return set.any(
+        (t) =>
+            t.weekday == a.slotStart.weekday &&
+            start >= t.startMinutes &&
+            end <= t.endMinutes &&
+            end - start == t.slotMinutes &&
+            (start - t.startMinutes) % t.slotMinutes == 0,
+      );
+    }
+
+    return [
+      for (final a in existing)
+        if ((current.isEmpty || covers(current, a)) && !covers(templates, a)) a,
+    ];
+  }
+
+  @override
+  Future<Result<List<Appointment>>> previewScheduleChange({
+    required String staffId,
+    required List<NewScheduleTemplate> templates,
+  }) => Result.guardAsync(() async {
+    await _access.require(
+      Permission.manageClinicSchedules,
+      entityType: 'schedule',
+      entityId: staffId,
+    );
+    return [
+      for (final r in await _uncoveredBy(staffId, templates)) r.toEntity(),
+    ];
+  });
+
   @override
   Future<Result<List<ScheduleTemplate>>> setTemplates({
     required String staffId,
@@ -563,38 +629,16 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
           }
         }
       }
-      final existingAppointments =
-          await (_db.select(_db.appointments)..where(
-                (a) =>
-                    a.staffId.equals(staffId) &
-                    a.slotStart.isBiggerThanValue(DateTime.now()) &
-                    a.status.isInValues([
-                      AppointmentStatus.booked,
-                      AppointmentStatus.confirmed,
-                    ]),
-              ))
-              .get();
-      for (final appointment in existingAppointments) {
-        final startMinutes =
-            appointment.slotStart.hour * 60 + appointment.slotStart.minute;
-        final endMinutes =
-            appointment.slotEnd.hour * 60 + appointment.slotEnd.minute;
-        final covered = templates.any(
-          (template) =>
-              template.weekday == appointment.slotStart.weekday &&
-              startMinutes >= template.startMinutes &&
-              endMinutes <= template.endMinutes &&
-              endMinutes - startMinutes == template.slotMinutes &&
-              (startMinutes - template.startMinutes) % template.slotMinutes ==
-                  0,
-        );
-        if (!covered) {
-          throw const ValidationFailure(
-            'The new schedule conflicts with an existing appointment.',
+      await _db.transaction(() async {
+        // Checked inside the transaction so a booking made meanwhile cannot
+        // slip through: every future booking must stay covered.
+        final uncovered = await _uncoveredBy(staffId, templates);
+        if (uncovered.isNotEmpty) {
+          throw ValidationFailure(
+            'The new schedule leaves ${uncovered.length} booked '
+            'appointment(s) uncovered. Move or cancel them first.',
           );
         }
-      }
-      await _db.transaction(() async {
         await (_db.delete(
           _db.scheduleTemplates,
         )..where((t) => t.staffId.equals(staffId))).go();

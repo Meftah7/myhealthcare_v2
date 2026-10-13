@@ -139,7 +139,7 @@ test('encrypted backup restores exact files, schema and data while invalidating 
   assert.throws(() => restoreBackup({ archive, key: backupKey, directory: target }));
   const restored = new Store({ directory: target, fileKey: f.key });
   try { assert.deepEqual(restored.readFile(uploaded.body.id), original); assert.equal(restored.get('SELECT count(*) n FROM sessions').n, 0);
-    assert.equal(restored.get('PRAGMA user_version').user_version, 1); }
+    assert.equal(restored.get('PRAGMA user_version').user_version, 2); }
   finally { restored.close(); }
   assert.equal(existsSync(join(target, '.restore-incomplete')), false);
 });
@@ -147,7 +147,7 @@ test('encrypted backup restores exact files, schema and data while invalidating 
 test('admin health, request allowlists, CORS, deactivation and safe retry conflicts', async t => {
   const f = await fixture(t);
   assert.equal((await f.clients.patient('/api/health')).status, 403);
-  const health = await f.clients.admin('/api/health'); assert.equal(health.body.storage, 'ok'); assert.equal(health.body.payments, 'notConfigured');
+  const health = await f.clients.admin('/api/health'); assert.equal(health.body.storage, 'ok'); assert.equal(health.body.payments, 'deskRecordOnly');
   assert.equal((await f.clients.admin(`/api/people/${f.admin}/active`, { method: 'POST', body: { active: false, reason: 'Self' } })).status, 400);
   assert.equal((await f.clients.patient('/api/session', { headers: { Origin: 'https://evil.example' } })).status, 403);
   const key = id(), base = { patientId: f.patient, sourceId: 'test', title: 'Test', kind: 'followUpDue', idempotencyKey: key };

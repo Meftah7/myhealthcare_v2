@@ -1,3 +1,4 @@
+import 'dart:convert';
 import '../../../domain/entities/staff_task.dart';
 import '../../../domain/enums.dart';
 
@@ -63,4 +64,36 @@ List<StaffTask> visibleStaffWork(
     return compareStaffTasks(a, b, aiWeight: aiWeight);
   });
   return result;
+}
+
+/// The latest handover offer on a task. An offer never transfers
+/// responsibility by itself: only an acceptance does, and only until the
+/// offer's expiry.
+enum HandoverState { none, pending, accepted, declined, expired }
+
+/// Derives [HandoverState] from task history entries
+/// `(action, afterJson, at)`.
+HandoverState handoverState(
+  Iterable<(String, String, DateTime)> history,
+  DateTime now,
+) {
+  Map<String, dynamic> data(String json) =>
+      jsonDecode(json) as Map<String, dynamic>;
+  final offers = [
+    for (final h in history)
+      if (h.$1 == 'task.offer') h,
+  ]..sort((a, b) => a.$3.compareTo(b.$3));
+  if (offers.isEmpty) return HandoverState.none;
+  final latest = data(offers.last.$2);
+  final bundle = latest['bundle'];
+  final expires = DateTime.tryParse('${latest['expires']}');
+  final expired = expires != null && !expires.isAfter(now);
+  for (final h in history) {
+    if (data(h.$2)['bundle'] != bundle) continue;
+    if (h.$1 == 'task.offer.accepted') {
+      return expired ? HandoverState.expired : HandoverState.accepted;
+    }
+    if (h.$1 == 'task.offer.declined') return HandoverState.declined;
+  }
+  return expired ? HandoverState.expired : HandoverState.pending;
 }

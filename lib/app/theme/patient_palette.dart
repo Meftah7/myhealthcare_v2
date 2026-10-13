@@ -1,8 +1,7 @@
 /// Semantic colour tokens for the patient experience (approved blue rebuild).
 ///
-/// The patient app uses a brighter action blue than the staff/admin
-/// workspaces, so its tokens live in a [ThemeExtension] rather than replacing
-/// the shared [AppColors] palette. Read them with `PatientPalette.of(context)`.
+/// Shared by patient, staff and admin themes. Read the active light/dark
+/// tokens with `PatientPalette.of(context)`; never copy the palette locally.
 ///
 /// Red is semantic only (emergencies, errors) — never brand decoration.
 library;

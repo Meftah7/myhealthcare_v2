@@ -150,6 +150,26 @@ void main() {
       expect(await db.select(db.issuedDocumentVersions).get(), hasLength(1));
     });
 
+    test('desk looks a copy up by its printed reference', () async {
+      final ((c, db), id) = await issued();
+      final code = (await (db.select(
+        db.documentVerifications,
+      )..where((v) => v.issuedVersionId.equals(id))).getSingle()).code;
+      await signInAs(c, 'reception@myhealth.demo');
+      final service = c.read(documentServiceProvider);
+      final found = value(await service.findForDesk(' ${code.toLowerCase()} '));
+      expect(found.id, id);
+      expect(
+        (await service.findForDesk('NOPE-0000')).failureOrNull,
+        isA<NotFoundFailure>(),
+      );
+      await signInAs(c, 'staff1@myhealth.demo');
+      expect(
+        (await c.read(documentServiceProvider).findForDesk(code)).failureOrNull,
+        isA<AccessDeniedFailure>(),
+      );
+    });
+
     test('a revoked copy cannot be confirmed', () async {
       final ((c, db), id) = await issued();
       await grant(db, 'staff_01', Permission.revokeDocument);

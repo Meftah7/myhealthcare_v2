@@ -118,7 +118,7 @@
   "walkInStatusCancelled": "Cancelled",
 
   "referralRequestStatusPending": "Pending",
-  "referralRequestStatusActioned": "Actioned",
+  "referralRequestStatusActioned": "Actioned in clinic",
   "referralRequestStatusRejected": "Rejected",
 
   "riskBandLow": "Low",
@@ -1908,7 +1908,7 @@
   "@labSourceLabel": {"placeholders": {"source": {"type": "String"}}},
   "referralRequestStatusClarification": "Needs clarification",
   "referralRequestStatusAccepted": "Accepted",
-  "referralRequestStatusArranged": "Arranged",
+  "referralRequestStatusArranged": "Arranged in clinic",
   "referralRequestStatusClosed": "Closed",
   "invoiceStatusRefunded": "Refunded",
   "paymentPendingTitle": "Confirming your payment",
@@ -2453,5 +2453,52 @@
   "svcTrackersBody": "See blood pressure, heart rate, temperature, weight, oxygen saturation and glucose readings saved in myhealth, with trends over time. Live or continuous monitoring is not available.",
   "svcWatchesTitle": "Smartwatch connections are planned for myhealth",
   "svcWatchesBody": "A future version may connect supported smartwatches. No device integration or permissions exist in this version, so nothing is synced.",
-  "@onboardingProgress": {"placeholders": {"current": {"type": "int"}, "total": {"type": "int"}}}
+  "@onboardingProgress": {"placeholders": {"current": {"type": "int"}, "total": {"type": "int"}}},
+  "htIdealWeightDesc": "Estimate a reference weight for your height, with the healthy-weight range.",
+  "htBodyFatDesc": "Estimate body-fat percentage from tape measurements.",
+  "htDueDateDesc": "Estimate a due date from the first day of your last period.",
+  "htOvulationDesc": "Estimate your next ovulation and likely fertile days.",
+  "htSexLabel": "Sex used by the formula",
+  "htMale": "Male",
+  "htFemale": "Female",
+  "htNeckCm": "Neck (cm)",
+  "htWaistCm": "Waist at navel (cm)",
+  "htHipCm": "Hips at widest (cm)",
+  "htLmpLabel": "First day of last period",
+  "htPickDate": "Choose date",
+  "htCycleLabel": "Usual cycle length (days, 21–35)",
+  "htEstimate": "Estimate",
+  "htIdealDevine": "Reference weight (Devine)",
+  "htHealthyRange": "Healthy-weight range for your height (BMI 18.5–24.9)",
+  "htBodyFatResult": "Estimated body fat",
+  "htDueResult": "Estimated due date",
+  "htGestation": "About {weeks} weeks {days} days today",
+  "@htGestation": {
+    "placeholders": {"weeks": {"type": "String"}, "days": {"type": "String"}}
+  },
+  "htOvulationResult": "Estimated ovulation",
+  "htFertileWindow": "Likely fertile days",
+  "htNextPeriod": "Next period expected",
+  "htInvalidInput": "Check the values. This estimate only works for adults within the ranges shown.",
+  "htPregnancyLimits": "For regular 21–35 day cycles only. Calendar estimates can be off by a week or more. This is not a pregnancy test or contraception; confirm pregnancy dating with your clinician. Nothing you enter is saved.",
+  "htBodyLimits": "For adults. Tape-measure and height formulas can differ from clinical body-composition tests and do not suit pregnancy, amputation or very muscular builds. Nothing you enter is saved.",
+  "htMethod": "Method: {method}",
+  "@htMethod": {
+    "placeholders": {"method": {"type": "String"}}
+  },
+  "encStageDraft": "Draft — not yet signed",
+  "encStageAwaitingSignature": "Draft saved — awaiting a doctor's signature",
+  "encStageSaveFailed": "Save failed — your latest changes are not saved",
+  "encStageSigned": "Signed and completed",
+  "encStageNotStarted": "Visit not started",
+  "encOpenVisit": "Visit",
+  "encResponsible": "Responsible: {name}",
+  "@encResponsible": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "encYou": "you",
+  "encPatientRef": "ID {id}",
+  "@encPatientRef": {
+    "placeholders": {"id": {"type": "String"}}
+  }
 }

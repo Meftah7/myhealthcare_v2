@@ -26,6 +26,19 @@ if (command === 'restore') {
         const nurse = store.addUser({ email: 'nurse@shared.demo', name: 'Synthetic Nurse', role: 'staff', job: 'nurse', password });
         const admin = store.addUser({ email: 'admin@shared.demo', name: 'Synthetic Admin', role: 'admin', password });
         store.run('INSERT INTO care VALUES(?,?)', patient, doctor); store.run('INSERT INTO care VALUES(?,?)', patient, nurse);
+        // Directory, extra roles and Sun–Thu 08:00–16:00 clinic schedules.
+        const family = id(), dental = id();
+        store.run('INSERT INTO departments VALUES(?,?,?)', family, 'Family Medicine', 'General adult and family care.');
+        store.run('INSERT INTO departments VALUES(?,?,?)', dental, 'Dental', 'Dental check-ups and treatment.');
+        const dentist = store.addUser({ email: 'dentist@shared.demo', name: 'Synthetic Dentist', role: 'staff', job: 'dentist',
+          credentialUntil: Date.now() + 30 * 86400000, password });
+        store.addUser({ email: 'reception@shared.demo', name: 'Synthetic Receptionist', role: 'staff', job: 'receptionist', password });
+        store.addUser({ email: 'pharmacy@shared.demo', name: 'Synthetic Pharmacist', role: 'staff', job: 'pharmacist', password });
+        store.run('UPDATE users SET department=? WHERE id IN (?,?)', family, doctor, nurse);
+        store.run('UPDATE users SET department=? WHERE id=?', dental, dentist);
+        for (const staff of [doctor, dentist]) for (const weekday of [7, 1, 2, 3, 4]) {
+          store.run('INSERT INTO schedules(staff,weekday,start_min,end_min) VALUES(?,?,?,?)', staff, weekday, 480, 960);
+        }
         store.run("INSERT INTO visits(id,patient,staff,at,status) VALUES(?,?,?,?,'completed')", id(), patient, doctor, Date.now());
         store.run("INSERT INTO settings VALUES('clinicName','Synthetic Shared Demo Clinic')");
         store.run("INSERT INTO settings VALUES('synthetic','true')");

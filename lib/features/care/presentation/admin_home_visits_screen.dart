@@ -80,41 +80,72 @@ class _AdminHomeVisitsScreenState extends ConsumerState<AdminHomeVisitsScreen> {
           ),
         ),
       ),
-      body: queue.when(
-        loading: () => const SkeletonList(),
-        error: (e, _) => ErrorStateView(
-          message: t.couldNotLoadQueue,
-          onRetry: () => ref.invalidate(homeVisitQueueProvider(_filter)),
-        ),
-        data: (list) {
-          if (list.isEmpty) {
-            return EmptyState(
-              icon: Icons.home_outlined,
-              message: t.nothingHere,
-            );
-          }
-          return Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: Space.maxContentWidth,
-              ),
-              child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(
-                  Space.md,
-                  Space.md,
-                  Space.md,
-                  Space.xxl,
-                ),
-                itemCount: list.length,
-                separatorBuilder: (_, _) => const SizedBox(height: Space.sm),
-                itemBuilder: (context, i) => _QueueCard(
-                  request: list[i],
-                  patientName: patients[list[i].patientId] ?? t.rolePatient,
+      body: LayoutBuilder(
+        builder: (context, box) => Column(
+          children: [
+            // Status changes are recorded locally; no external service exists.
+            // Capped and scrollable so large text never hides the list.
+            ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: box.maxHeight * 0.3),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    Space.md,
+                    Space.xs,
+                    Space.md,
+                    0,
+                  ),
+                  child: InlineBanner.info(
+                    Localizations.localeOf(context).languageCode == 'ar'
+                        ? 'الجدولة هنا تسجل الزيارة في myhealth فقط. لا توجد خدمة إرسال أو نقل متصلة؛ لا يُرسل فريق تلقائيًا.'
+                        : 'Scheduling here records the visit in myhealth only. No dispatch or transport service is connected; a team is not sent automatically.',
+                  ),
                 ),
               ),
             ),
-          );
-        },
+            Expanded(
+              child: queue.when(
+                loading: () => const SkeletonList(),
+                error: (e, _) => ErrorStateView(
+                  message: t.couldNotLoadQueue,
+                  onRetry: () =>
+                      ref.invalidate(homeVisitQueueProvider(_filter)),
+                ),
+                data: (list) {
+                  if (list.isEmpty) {
+                    return EmptyState(
+                      icon: Icons.home_outlined,
+                      message: t.nothingHere,
+                    );
+                  }
+                  return Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        maxWidth: Space.maxContentWidth,
+                      ),
+                      child: ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(
+                          Space.md,
+                          Space.md,
+                          Space.md,
+                          Space.xxl,
+                        ),
+                        itemCount: list.length,
+                        separatorBuilder: (_, _) =>
+                            const SizedBox(height: Space.sm),
+                        itemBuilder: (context, i) => _QueueCard(
+                          request: list[i],
+                          patientName:
+                              patients[list[i].patientId] ?? t.rolePatient,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
       centerBody: false,
     );

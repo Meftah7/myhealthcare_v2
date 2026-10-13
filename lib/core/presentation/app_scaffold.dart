@@ -258,11 +258,12 @@ class _AppScaffoldState extends State<AppScaffold> {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     // Patient pages share Home's header: the canvas with a bold charcoal
-    // title, no tinted band. Staff/admin keep the tinted hero band.
+    // title. Staff/admin share those colours and preserve their header shape.
     final patientLook = theme.extension<PatientPalette>();
     final headerBg = patientLook?.canvas ?? scheme.primaryContainer;
     final headerFg = patientLook?.text ?? scheme.onPrimaryContainer;
-    final bandRadius = patientLook == null
+    final patientGeometry = Radii.cardOf(context) != Radii.card;
+    final bandRadius = !patientGeometry
         ? const BorderRadius.vertical(bottom: Radius.circular(24))
         : null;
     Widget? title =
@@ -276,7 +277,7 @@ class _AppScaffoldState extends State<AppScaffold> {
                 overflow: hero ? TextOverflow.visible : TextOverflow.ellipsis,
                 style: hero
                     ? theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: patientLook == null
+                        fontWeight: !patientGeometry
                             ? FontWeight.w600
                             : FontWeight.w700,
                         color: headerFg,

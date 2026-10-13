@@ -2,9 +2,10 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'admin_workspace_screens.dart' show readableAuditAction;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
@@ -15,6 +16,7 @@ import '../../../core/presentation/states.dart';
 import '../../../core/utils/format.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/admin_providers.dart';
+import 'admin_workspace_screens.dart' show readableAuditAction;
 
 class AuditLogScreen extends ConsumerWidget {
   const AuditLogScreen({super.key});
@@ -74,8 +76,16 @@ class AuditLogScreen extends ConsumerWidget {
                     );
                   }
                   final e = list[i];
+                  final link = auditLink(e.entityType, e.entityId);
+                  final names = {
+                    ...?ref.watch(adminStaffNamesProvider).valueOrNull,
+                    ...?ref.watch(adminPatientNamesProvider).valueOrNull,
+                  };
                   return AppCard(
                     padding: const EdgeInsets.all(Space.md),
+                    // Opens the related record only where an administrator
+                    // is authorized; clinical entries have no link.
+                    onTap: link == null ? null : () => context.push(link),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -99,7 +109,9 @@ class AuditLogScreen extends ConsumerWidget {
                             e.entityType,
                             if (e.entityId != null) e.entityId,
                             if (e.actorUserId != null)
-                              t.byActorLabel(e.actorUserId!),
+                              t.byActorLabel(
+                                names[e.actorUserId] ?? e.actorUserId!,
+                              ),
                             if (e.detail != null) e.detail,
                           ].whereType<String>().join(' · '),
                           style: theme.textTheme.bodySmall?.copyWith(
@@ -119,3 +131,20 @@ class AuditLogScreen extends ConsumerWidget {
     );
   }
 }
+
+/// The admin screen for an audited entity, or `null` when there is none an
+/// administrator may open (clinical notes, vitals, messages…).
+String? auditLink(String entityType, String? entityId) => switch (entityType) {
+  'account' || 'patient' when entityId != null =>
+    '${AppRoutes.adminUsers}/${Uri.encodeComponent(entityId)}',
+  'referral_request' => AppRoutes.adminReferralRequests,
+  'home_visit' => AppRoutes.adminHomeVisits,
+  'feedback' => AppRoutes.adminFeedback,
+  'billing' || 'invoice' || 'payment' => AppRoutes.adminBilling,
+  'schedule' || 'availability_exception' => '/admin/clinic/schedules',
+  'appointment' => AppRoutes.adminAppointments,
+  'task' || 'staff_task' || 'admin_work' => AppRoutes.adminWorkQueue,
+  'scoped_grant' => '/admin/profile/document-access',
+  'document_template' => AppRoutes.adminDocumentPolicies,
+  _ => null,
+};

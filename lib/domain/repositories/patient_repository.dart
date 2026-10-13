@@ -27,6 +27,15 @@ abstract interface class PatientRepository {
 
   Future<Result<List<Patient>>> all({int limit, int offset});
 
+  /// Patients the signed-in clinician may open clinically (appointment,
+  /// active care assignment or walk-in relationship), filtered by [query]
+  /// and limited **after** that scope is applied, so authorized matches are
+  /// never lost to a page limit.
+  Future<Result<List<Patient>>> clinicallyVisible({
+    String query = '',
+    int limit = 30,
+  });
+
   /// The patient directory one page at a time, name order; [query] filters
   /// by name / national ID / phone when non-empty.
   Future<Result<Page<Patient>>> directoryPage({String query, PageRequest page});

@@ -181,6 +181,10 @@ abstract interface class DocumentService {
   /// issued version is intact and released to an identity-checked recipient.
   /// Never signs, issues or edits; refused for revoked or unrendered
   /// versions. A retry with the same [idempotencyKey] records nothing new.
+  /// Front-desk lookup of an issued version by its printed verification
+  /// reference (case-insensitive). Needs the desk permission; audited.
+  Future<Result<IssuedDocument>> findForDesk(String reference);
+
   Future<Result<DateTime>> confirmIssuedCopy(
     String issuedVersionId, {
     required bool recipientIdentityChecked,

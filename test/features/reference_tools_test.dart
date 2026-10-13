@@ -239,8 +239,31 @@ void main() {
       await settle(tester);
       await tester.tap(find.text(t.htOvulation));
       await settle(tester);
-      expect(find.byType(TextField), findsNothing);
-      await tester.tap(find.text(t.paClose));
+      expect(c.read(routerProvider).state.uri.path, AppRoutes.patientOvulation);
+      // No period date entered: no estimate, an explanation instead.
+      await tester.ensureVisible(find.text(t.paCalculate));
+      await tester.tap(find.text(t.paCalculate));
+      await tester.pump();
+      expect(find.text(t.htInvalidInput), findsOneWidget);
+      expect(find.text(t.htOvulationResult), findsNothing);
+
+      // Body fat: a real estimate, cleared when an input changes.
+      c.read(routerProvider).go(AppRoutes.patientBodyFat);
+      await settle(tester);
+      await tester.tap(find.text(t.htMale));
+      await tester.pump();
+      final bf = find.byType(TextField);
+      await tester.enterText(bf.at(0), '180');
+      await tester.enterText(bf.at(1), '38');
+      await tester.enterText(bf.at(2), '85');
+      await tester.ensureVisible(find.text(t.paCalculate));
+      await tester.tap(find.text(t.paCalculate));
+      await tester.pump();
+      expect(find.text('16.1%'), findsOneWidget);
+      await tester.enterText(bf.at(2), '86');
+      await tester.pump();
+      expect(find.text('16.1%'), findsNothing);
+      c.read(routerProvider).go(AppRoutes.patientCalculators);
       await settle(tester);
       await Scrollable.ensureVisible(
         tester.element(find.byKey(const ValueKey('bmi'))),
@@ -385,13 +408,11 @@ void main() {
     ]);
     expect(PatientCatalog.selectHospital.isAvailable, isFalse);
     expect(PatientCatalog.selectHospital.isFutureWork, isTrue);
-    for (final item in [
-      PatientCatalog.calculators,
-      PatientCatalog.converters,
-      PatientCatalog.emergency,
-    ]) {
+    for (final item in [PatientCatalog.converters, PatientCatalog.emergency]) {
       expect(item.isFutureWork, isTrue);
     }
+    // Owner-approved (2026-10-13): the calculators are current scope.
+    expect(PatientCatalog.calculators.isFutureWork, isFalse);
     expect(PatientCatalog.weather.isAvailable, isFalse);
     expect(PatientCatalog.news.isAvailable, isFalse);
   });

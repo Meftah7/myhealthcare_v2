@@ -30,6 +30,7 @@ import '../data/repositories/record_repository_impl.dart';
 import '../data/repositories/result_review_repository_impl.dart';
 import '../data/repositories/scoped_grant_repository_impl.dart';
 import '../data/repositories/system_repository_impl.dart';
+import '../data/repositories/dental_chart_repository_impl.dart';
 import '../data/repositories/pharmacy_repository_impl.dart';
 import '../data/repositories/task_repository_impl.dart';
 import '../data/seed/seeder.dart';
@@ -38,6 +39,7 @@ import '../domain/repositories/document_policy_repository.dart';
 import '../domain/repositories/document_service.dart';
 import '../domain/repositories/document_verification_repository.dart';
 import '../domain/repositories/record_activity_repository.dart';
+import '../domain/repositories/dental_chart_repository.dart';
 import '../domain/repositories/pharmacy_repository.dart';
 import '../domain/repositories/repositories.dart';
 import '../domain/repositories/scoped_grant_repository.dart';
@@ -400,6 +402,13 @@ final vitalsRepositoryProvider = Provider<VitalsRepository>(
 
 final medicationRepositoryProvider = Provider<MedicationRepository>(
   (ref) => MedicationRepositoryImpl(
+    ref.watch(appDatabaseProvider),
+    access: ref.watch(accessPolicyProvider),
+  ),
+);
+
+final dentalChartRepositoryProvider = Provider<DentalChartRepository>(
+  (ref) => DentalChartRepositoryImpl(
     ref.watch(appDatabaseProvider),
     access: ref.watch(accessPolicyProvider),
   ),

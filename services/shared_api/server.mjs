@@ -1,6 +1,8 @@
 import { createServer } from 'node:http';
 import { ApiError, digest, fields, id, passwordMatches, requireThat, text, token } from './store.mjs';
 import { REPORT_INSTRUCTIONS, answerReportQuestion, clipReport } from './ai.mjs';
+import { clinicOps } from './clinic_ops.mjs';
+import { clinicalOps } from './clinical_ops.mjs';
 
 const idle = 24 * 60 * 1000, lifetime = 12 * 60 * 60 * 1000;
 const statuses = ['open', 'inProgress', 'waiting', 'blocked', 'done', 'dismissed'];
@@ -347,8 +349,11 @@ export function createApi({ store, origins = [], renderDocument, aiProvider, rep
         jobs: store.all('SELECT * FROM jobs'), failedDelivery: store.get("SELECT count(*) n FROM deliveries WHERE state='failed'").n,
         pendingDelivery: store.get("SELECT count(*) n FROM deliveries WHERE state='pending'").n,
         aiConfigured: !!aiProvider, reportExplainerConfigured: !!reportExplainer, reportChatConfigured: !!reportChat, pdfRendererConfigured: !!renderDocument,
-        payments: 'notConfigured', externalDelivery: 'notConfigured', inAppDelivery: 'serverWorker' };
+        payments: 'deskRecordOnly', externalDelivery: 'notConfigured', inAppDelivery: 'serverWorker' };
     }
+    const ops = clinicOps({ store, now, path, method, url, body, actor }) ??
+      clinicalOps({ store, now, path, method, url, body, actor });
+    if (ops !== undefined) return ops;
     throw new ApiError(404, 'Endpoint unavailable.');
   }
   const server = createServer(async (req, res) => {

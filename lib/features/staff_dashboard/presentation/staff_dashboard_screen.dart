@@ -25,15 +25,18 @@ import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
 import '../../../core/result.dart';
+import '../../../core/ui/patient/workspace_home.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../domain/identity/permissions.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
 import '../../care/application/care_providers.dart';
 import '../../patient_chart/application/result_review_providers.dart';
 import '../../patient_chart/presentation/chart_write_sheets.dart';
 import '../../patient_chart/presentation/result_review_sheet.dart';
+import '../../tasks/presentation/task_detail_screen.dart' show workText;
 import '../application/staff_providers.dart';
 import 'role_workspaces.dart';
 import 'staff_quick_actions.dart';
@@ -74,20 +77,22 @@ class StaffDashboardScreen extends ConsumerWidget {
           ..invalidate(staffAwaitingReplyProvider)
           ..invalidate(staffTasksProvider);
       },
+      // Same structure as patient Home: feature card, four shortcuts,
+      // workspace cards, Quick Access directly below them, then the owned
+      // work and attention panels side by side on wide screens.
       children: [
         const _NextPatientHero(),
-
+        const SizedBox(height: Space.md),
+        const _StaffShortcuts(),
+        SectionHeader(
+          workText(context, 'Workspace', 'مساحة العمل'),
+          overline: true,
+        ),
+        const _StaffWorkspaceCards(),
+        SectionHeader(t.quickActionsHeader, overline: true),
+        const StaffQuickActions(),
         SectionColumns(
           primary: [
-            SectionHeader(t.resultsToReviewHeader, overline: true),
-            const _ResultReviewQueue(),
-            SectionHeader(
-              t.awaitingReplyHeader,
-              overline: true,
-              action: t.messagesTitle,
-              onAction: () => context.push(AppRoutes.staffInbox),
-            ),
-            const _AwaitingReply(),
             const _DepartmentWalkIns(),
             SectionHeader(
               t.todaysQueueHeader,
@@ -96,13 +101,6 @@ class StaffDashboardScreen extends ConsumerWidget {
               onAction: () => context.go(AppRoutes.staffSchedule),
             ),
             _QueueCard(),
-            SectionHeader(
-              t.riskFlagsHeader,
-              overline: true,
-              action: t.patientsAction,
-              onAction: () => context.go(AppRoutes.staffPatients),
-            ),
-            _RiskFlags(),
             SectionHeader(
               t.tasksHeader,
               overline: true,
@@ -114,8 +112,24 @@ class StaffDashboardScreen extends ConsumerWidget {
           secondary: [
             SectionHeader(t.yourShiftHeader, overline: true),
             _ShiftSnapshot(),
-            SectionHeader(t.quickActionsHeader, overline: true),
-            const StaffQuickActions(),
+            if (ref.watch(canProvider(Permission.reviewResults))) ...[
+              SectionHeader(t.resultsToReviewHeader, overline: true),
+              const _ResultReviewQueue(),
+            ],
+            SectionHeader(
+              t.awaitingReplyHeader,
+              overline: true,
+              action: t.messagesTitle,
+              onAction: () => context.push(AppRoutes.staffInbox),
+            ),
+            const _AwaitingReply(),
+            SectionHeader(
+              t.riskFlagsHeader,
+              overline: true,
+              action: t.patientsAction,
+              onAction: () => context.go(AppRoutes.staffPatients),
+            ),
+            _RiskFlags(),
           ],
         ),
       ],
@@ -281,27 +295,154 @@ class _NextPatientHero extends ConsumerWidget {
     final t = AppLocalizations.of(context)!;
     final queue = ref.watch(staffQueueProvider).valueOrNull;
     final names = ref.watch(patientNameLookupProvider).valueOrNull ?? const {};
+    final profile = ref.watch(staffProfileProvider).valueOrNull;
+    final department = ref
+        .watch(departmentNameProvider(profile?.departmentId))
+        .valueOrNull;
+    final role = switch (profile?.role) {
+      StaffRole.doctor => workText(context, 'Doctor', 'طبيب'),
+      StaffRole.dentist => workText(context, 'Dentist', 'طبيب أسنان'),
+      StaffRole.nurse => workText(context, 'Nurse', 'ممرض/ة'),
+      _ => null,
+    };
+    final context_ = [?role, ?department].join(' · ');
     final next = (queue == null || queue.isEmpty) ? null : queue.first;
 
     if (next == null) {
-      return GradientHeroCard(
+      return NavyFeatureCard(
+        overline: context_.isEmpty ? null : context_,
         icon: Icons.event_available_outlined,
         title: t.yourQueueIsClear,
-        subtitle: t.nobodyWaitingOpenWeek,
-        onTap: () => context.go(AppRoutes.staffSchedule),
+        body: t.nobodyWaitingOpenWeek,
+        actionLabel: t.scheduleAction,
+        onAction: () => context.go(AppRoutes.staffSchedule),
       );
     }
 
     final who = names[next.patientId] ?? visitTypeLabel(next.visitType);
-    return GradientHeroCard(
+    return NavyFeatureCard(
+      overline: context_.isEmpty ? null : context_,
       icon: Icons.play_circle_outline,
       title: t.nextPatientLabel(who),
-      subtitle: [
+      body: [
         fmtTime(next.slotStart),
         visitTypeLabel(next.visitType),
         if (next.roomNumber != null) t.roomNumber('${next.roomNumber}'),
       ].join(' · '),
-      onTap: () => context.push(AppRoutes.staffConsultation(next.id)),
+      actionLabel: workText(context, 'Open visit', 'فتح الزيارة'),
+      onAction: () => context.push(AppRoutes.staffConsultation(next.id)),
+    );
+  }
+}
+
+class _StaffShortcuts extends ConsumerWidget {
+  const _StaffShortcuts();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
+    // Shortcuts lead to places not already in the navigation bar.
+    final scribe = ref.watch(canProvider(Permission.useClinicalScribe));
+    return ShortcutGrid(
+      items: [
+        ShortcutItem(
+          icon: Icons.forum_outlined,
+          label: t.messagesTitle,
+          badge: ref.watch(staffUnreadCountProvider),
+          onTap: () => context.push(AppRoutes.staffInbox),
+        ),
+        ShortcutItem(
+          icon: Icons.notifications_outlined,
+          label: t.notificationsTooltip,
+          onTap: () => context.push(AppRoutes.staffNotifications),
+        ),
+        if (scribe)
+          ShortcutItem(
+            icon: Icons.mic_none_outlined,
+            label: t.aiFeatureClinicalScribe,
+            onTap: () => context.push(AppRoutes.staffScribe),
+          )
+        else
+          ShortcutItem(
+            icon: Icons.tune_outlined,
+            label: workText(context, 'Preferences', 'التفضيلات'),
+            onTap: () => context.push(AppRoutes.staffProfilePreferences),
+          ),
+        ShortcutItem(
+          icon: Icons.history_outlined,
+          label: t.myActivityTitle,
+          onTap: () => context.push(AppRoutes.staffProfileActivity),
+        ),
+      ],
+    );
+  }
+}
+
+/// Role-aware workspace cards; each opens a real destination.
+class _StaffWorkspaceCards extends ConsumerWidget {
+  const _StaffWorkspaceCards();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final dental = ref.watch(canProvider(Permission.recordDentalChart));
+    final prescribes = ref.watch(canProvider(Permission.prescribe));
+    return WorkspaceCardGrid(
+      items: [
+        WorkspaceItem(
+          icon: dental
+              ? Icons.grid_view_outlined
+              : Icons.folder_shared_outlined,
+          title: dental
+              ? workText(
+                  context,
+                  'Patients & dental charts',
+                  'المرضى ومخططات الأسنان',
+                )
+              : workText(context, 'Patient charts', 'ملفات المرضى'),
+          description: workText(
+            context,
+            'Patients you have a care relationship with.',
+            'المرضى الذين لديك علاقة رعاية معهم.',
+          ),
+          onTap: () => context.go(AppRoutes.staffPatients),
+        ),
+        WorkspaceItem(
+          icon: Icons.description_outlined,
+          title: workText(context, 'Documents', 'المستندات'),
+          description: prescribes
+              ? workText(
+                  context,
+                  'Prepare and sign certificates from a patient chart.',
+                  'جهّز ووقّع الشهادات من ملف المريض.',
+                )
+              : workText(
+                  context,
+                  'View patient documents from the chart.',
+                  'اعرض مستندات المريض من الملف.',
+                ),
+          onTap: () => context.go(AppRoutes.staffPatients),
+        ),
+        WorkspaceItem(
+          icon: Icons.swap_horiz,
+          title: workText(context, 'Handover & cover', 'التسليم والتغطية'),
+          description: workText(
+            context,
+            'Offer, accept or track handed-over work.',
+            'اعرض أو اقبل أو تابع العمل المسلَّم.',
+          ),
+          onTap: () => context.go(AppRoutes.staffTasks),
+        ),
+        WorkspaceItem(
+          icon: Icons.groups_2_outlined,
+          title: workText(context, 'Team directory', 'دليل الفريق'),
+          description: workText(
+            context,
+            'Colleagues, roles and who is on duty.',
+            'الزملاء وأدوارهم ومن هو في المناوبة.',
+          ),
+          onTap: () => context.push(AppRoutes.staffProfileDirectory),
+        ),
+      ],
     );
   }
 }
@@ -319,18 +460,18 @@ class _ShiftSnapshot extends ConsumerWidget {
     return MetricRow(
       children: [
         MetricTile(
-          value: '${today?.length ?? 0}',
+          value: today == null ? '—' : '${today.length}',
           label: t.todayLabel,
           icon: Icons.calendar_today_outlined,
           onTap: () => context.go(AppRoutes.staffSchedule),
         ),
         MetricTile(
-          value: '${queue?.length ?? 0}',
+          value: queue == null ? '—' : '${queue.length}',
           label: t.inQueueLabel,
           icon: Icons.groups_outlined,
         ),
         MetricTile(
-          value: '${flags?.length ?? 0}',
+          value: flags == null ? '—' : '${flags.length}',
           label: t.openFlagsLabel,
           icon: Icons.flag_outlined,
           onTap: () => context.go(AppRoutes.staffPatients),

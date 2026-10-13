@@ -415,3 +415,7 @@ The patient app has the reference-style rounded layout with approved blue light/
 - [x] Messages Future work badge removed from tab and screen (approved scope; real repository-backed messaging, draft kept on failed send, duplicate taps blocked).
 - [x] Text size verified: Small/Default/Large map to stored xSmall/small/medium; name-based, no double migration; new users get Default.
 - [x] Existing approved blue/navy palette kept (no purple).
+- [x] Four calculators built as working estimates (owner-approved 2026-10-13): ovulation, due date, ideal weight, body fat — sourced formulas, validation, no stale results (`docs/patient_reference_tools.md`).
+- [x] myhealth branding (logo, name, icons, PDF header) — `docs/branding.md`.
+- [x] Patients can book the dentist (Dental department, seed v17).
+- [ ] Guest browsing: the app keeps signed-in patient access; public screens are splash, onboarding and sign-in. Guest catalogue remains Future work.

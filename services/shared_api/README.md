@@ -5,8 +5,40 @@ database. It has durable SQLite storage, authenticated sessions, current account
 and patient authorization, versioned tasks, immutable issued snapshots, encrypted
 PDF storage, live minimal verification, in-app delivery and encrypted backups.
 It does not automatically convert the entire existing clinic app into a shared app.
-The Flutter pilot currently exposes tasks, documents, uploaded PDF originals,
-profiles and admin health. Other existing modules still use local repositories.
+**The full app runs on this server** when built with
+`--dart-define=SHARED_API_ORIGIN=https://…` (see `lib/app/shared_mode.dart`).
+Patient, staff and admin use the same screens as the local app, backed by
+server repositories for accounts, departments, clinicians, slots,
+appointments, consultations (draft → sign), prescriptions, pharmacy (queue,
+dispensing, stock), dental chart, messages, desk billing and tasks. Every
+other repository fails with "Not available in shared mode yet"; screens that
+read the device database directly are replaced by an explanation; admins get
+a shared admin home (health, people, desk billing). A separate, never-seeded
+scratch database guarantees no local or demo data appears as clinic data.
+The older pilot workspace (`SharedWorkspaceApp`) remains in the code base.
+
+### Schema v2 endpoints (`clinic_ops.mjs`, `clinical_ops.mjs`)
+
+| Endpoint | Who | Rules |
+| --- | --- | --- |
+| `GET /api/appointments` | patient (own), clinician (own), desk (`?patientId` or `?from&to`, ≤ 62 days) | administrative fields only |
+| `POST /api/appointments` | patient for self; receptionist/admin for anyone | doctor/dentist only, future, ≤ 2 h, overlap → 409, retry key, creates the care link |
+| `POST /api/appointments/:id/cancel` | patient, the clinician, desk | `expectedVersion`, reason, only from `booked` |
+| `POST /api/appointments/:id/check-in` | desk | `expectedVersion`; repeating is a no-op |
+| `GET /api/threads`, `GET/POST /api/messages`, `POST /api/messages/read` | the patient and the clinician of a care link | admins excluded; retry key never duplicates |
+| `GET /api/invoices` | patient (own), desk | integer fils |
+| `POST /api/invoices` | admin | retry key |
+| `POST /api/invoices/:id/payments` | desk | desk record only (`recordedOnly: true`, no gateway); ≤ amount due; append-only rows |
+
+| `GET /api/departments`, `GET /api/clinicians`, `GET /api/slots?staffId&day` | any signed-in user | slots from weekly `schedules` minus bookings |
+| `GET /api/staff`, `GET /api/patients[?query]`, `GET /api/patients/:id` | staff / desk / self | clinicians see care-linked patients only |
+| `GET /api/encounters/:id`, `POST …/start`, `POST …/draft`, `POST …/finalize` | clinicians with care; booked doctor/dentist signs | draft versioned; signing once (retry key), creates prescriptions, completes the visit; signed notes immutable |
+| `GET /api/prescriptions?patientId` | patient, care clinicians, pharmacist | |
+| `GET /api/pharmacy/queue`, `POST /api/pharmacy/dispense`, `GET/POST /api/pharmacy/stock` | pharmacist | never dispensed twice; stock decremented once; dispenses immutable |
+| `GET/POST /api/dental` | care clinicians read; dentist writes | FDI validation; entries immutable |
+
+Health reports `payments: 'deskRecordOnly'`. Backups record the schema version;
+a v1 backup restored and opened by this server migrates to v2.
 The old Records layout and staff Profile navigation are preserved.
 
 ## Run locally (PowerShell, Node 24.13+ and the pinned Flutter SDK)

@@ -13,6 +13,7 @@ import '../../../domain/identity/permissions.dart';
 import '../../../domain/repositories/scoped_grant_repository.dart';
 import '../../auth/application/session.dart';
 import '../../auth/presentation/reauth_prompt.dart';
+import 'admin_pickers.dart';
 import 'admin_profile_pages.dart';
 
 T _value<T>(Result<T> result) => switch (result) {
@@ -47,9 +48,10 @@ class _DocumentAccessScreenState extends ConsumerState<DocumentAccessScreen> {
   String? _account;
   Permission _permission = Permission.prepareDocument;
   GrantScope _scope = GrantScope.patient;
-  final _scopeId = TextEditingController();
+  // Chosen with pickers, never typed as raw IDs.
+  String? _scopeId;
   final _reason = TextEditingController();
-  final _patient = TextEditingController();
+  String? _patient;
   bool _busy = false;
   String? _error;
   String s(String en, String ar) =>
@@ -73,9 +75,7 @@ class _DocumentAccessScreenState extends ConsumerState<DocumentAccessScreen> {
   };
   @override
   void dispose() {
-    _scopeId.dispose();
     _reason.dispose();
-    _patient.dispose();
     super.dispose();
   }
 
@@ -180,15 +180,18 @@ class _DocumentAccessScreenState extends ConsumerState<DocumentAccessScreen> {
         ),
         if (_scope != GrantScope.clinic) ...[
           const SizedBox(height: Space.md),
-          TextField(
-            controller: _scopeId,
-            enabled: !_busy,
-            decoration: InputDecoration(
-              labelText: _scope == GrantScope.patient
-                  ? s('Patient ID', 'معرف المريض')
-                  : s('Department ID', 'معرف القسم'),
+          if (_scope == GrantScope.patient)
+            PatientPickerField(
+              key: const ValueKey('grant-patient'),
+              enabled: !_busy,
+              onSelected: (id) => setState(() => _scopeId = id),
+            )
+          else
+            DepartmentPickerField(
+              value: _scopeId,
+              enabled: !_busy,
+              onChanged: (id) => setState(() => _scopeId = id),
             ),
-          ),
         ],
         const SizedBox(height: Space.md),
         TextField(
@@ -211,7 +214,10 @@ class _DocumentAccessScreenState extends ConsumerState<DocumentAccessScreen> {
             ),
           ),
         FilledButton(
-          onPressed: _busy || _account == null
+          onPressed:
+              _busy ||
+                  _account == null ||
+                  (_scope != GrantScope.clinic && _scopeId == null)
               ? null
               : () => _run(
                   () => ref
@@ -220,9 +226,7 @@ class _DocumentAccessScreenState extends ConsumerState<DocumentAccessScreen> {
                         accountId: _account!,
                         permission: _permission,
                         scope: _scope,
-                        scopeId: _scope == GrantScope.clinic
-                            ? ''
-                            : _scopeId.text.trim(),
+                        scopeId: _scope == GrantScope.clinic ? '' : _scopeId!,
                         reason: _reason.text.trim(),
                       ),
                 ),
@@ -251,7 +255,7 @@ class _DocumentAccessScreenState extends ConsumerState<DocumentAccessScreen> {
                     )) ...[
                       const Divider(),
                       Text(
-                        '${permission(g.permission)} · ${g.scope.name} ${g.scopeId}',
+                        '${permission(g.permission)} · ${g.scope.name}${g.scopeId.isEmpty ? '' : ' · ${g.scopeId}'}',
                       ),
                       if (g.revokedAt != null)
                         Text(s('Revoked', 'ملغاة'))
@@ -305,21 +309,17 @@ class _DocumentAccessScreenState extends ConsumerState<DocumentAccessScreen> {
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: Space.md),
-        TextField(
-          controller: _patient,
-          decoration: InputDecoration(
-            labelText: s('Patient ID', 'معرف المريض'),
-          ),
+        PatientPickerField(
+          key: const ValueKey('workspace-patient'),
+          onSelected: (id) => setState(() => _patient = id),
         ),
         const SizedBox(height: Space.sm),
         OutlinedButton(
-          onPressed: () async {
-            if (_patient.text.trim().isNotEmpty) {
-              await context.push<void>(
-                '/admin/profile/document-workspace?patientId=${Uri.encodeQueryComponent(_patient.text.trim())}',
-              );
-            }
-          },
+          onPressed: _patient == null
+              ? null
+              : () => context.push<void>(
+                  '/admin/profile/document-workspace?patientId=${Uri.encodeQueryComponent(_patient!)}',
+                ),
           child: Text(s('Open documents', 'فتح الوثائق')),
         ),
       ],

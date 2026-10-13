@@ -3,12 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/ui/patient/patient_components.dart';
 import '../../../core/utils/format.dart';
+import '../../../data/db/app_database.dart';
 import '../../../data/repositories/admin_workspace.dart';
+import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
 import '../../../domain/identity/permissions.dart';
+import '../../../domain/repositories/scoped_grant_repository.dart';
 import 'admin_workspace_screens.dart';
 
 final adminPeopleAssignmentsProvider = FutureProvider.autoDispose((ref) async {
@@ -60,7 +65,7 @@ final adminPersonSectionProvider = FutureProvider.autoDispose
                         a.patientId.equals(key.id) | a.staffId.equals(key.id),
                   ))
                   .get())
-            '${a.id} · ${fmtDateTime(a.slotStart)} · ${a.status.name}',
+            '${fmtDateTime(a.slotStart)} · ${a.status.name}',
         ];
       }
       if (key.section == 'finance') {
@@ -68,7 +73,7 @@ final adminPersonSectionProvider = FutureProvider.autoDispose
           for (final i in await (db.select(
             db.invoices,
           )..where((i) => i.patientId.equals(key.id))).get())
-            '${i.id} · ${i.status.name} · ${fmtBhd(i.totalAmount)}',
+            '${fmtDate(i.issuedAt)} · ${fmtBhd(i.totalAmount)} · ${i.status.name}',
         ];
       }
       return [
@@ -78,9 +83,48 @@ final adminPersonSectionProvider = FutureProvider.autoDispose
                       d.patientId.equals(key.id) | d.requestedBy.equals(key.id),
                 ))
                 .get())
-          '${d.id} · ${d.status}',
+          '${fmtDate(d.createdAt)} · ${d.status}',
       ];
     });
+
+/// Credentials, scoped permissions and temporary cover for one account.
+final adminPersonAccessProvider = FutureProvider.autoDispose.family((
+  ref,
+  String id,
+) async {
+  final service = ref.watch(adminWorkspaceProvider);
+  await service.authorize(Permission.manageUsers);
+  final db = service.db;
+  final now = DateTime.now();
+  final credentials = await (db.select(
+    db.staffCredentials,
+  )..where((c) => c.staffId.equals(id))).get();
+  final grants =
+      (await ref.watch(scopedGrantRepositoryProvider).forAccount(id))
+          .valueOrNull ??
+      const <ScopedGrant>[];
+  final cover =
+      await (db.select(db.careTeamAssignments)..where(
+            (a) =>
+                a.staffId.equals(id) &
+                a.assignedAt.isSmallerOrEqualValue(now) &
+                (a.endedAt.isNull() | a.endedAt.isBiggerThanValue(now)),
+          ))
+          .get();
+  final covering =
+      await (db.select(db.staffTasks)..where(
+            (t) =>
+                t.coverageStaffId.equals(id) &
+                t.status.isNotInValues([TaskStatus.done, TaskStatus.dismissed]),
+          ))
+          .get();
+  return (
+    credentials: credentials,
+    grants: grants,
+    cover: cover,
+    covering: covering,
+  );
+});
 
 class AdminPeopleProfileScreen extends ConsumerStatefulWidget {
   const AdminPeopleProfileScreen(this.id, {super.key});
@@ -125,20 +169,7 @@ class _ProfileState extends ConsumerState<AdminPeopleProfileScreen> {
                   ],
                 ),
                 if (section == 'account')
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(p.user.email),
-                      Text(
-                        '${p.user.role.name} · ${p.user.isActive ? adminText(c, 'Active', 'نشط') : adminText(c, 'Inactive', 'غير نشط')}',
-                      ),
-                      if (p.department != null) Text(p.department!.name),
-                      if (p.profile != null)
-                        Text(
-                          '${p.profile!.jobTitle ?? ''} · ${p.profile!.presence?.name ?? ''}',
-                        ),
-                    ],
-                  )
+                  _AccessSections(person: p, id: widget.id)
                 else
                   ref
                       .watch(
@@ -193,4 +224,132 @@ class _ProfileState extends ConsumerState<AdminPeopleProfileScreen> {
           ),
     ],
   );
+}
+
+/// Identity, role & assignment, clinical credentials, scoped permissions and
+/// temporary cover, each in its own card.
+class _AccessSections extends ConsumerWidget {
+  const _AccessSections({required this.person, required this.id});
+
+  final ({User user, StaffProfileRow? profile, DepartmentRow? department})
+  person;
+  final String id;
+
+  @override
+  Widget build(BuildContext c, WidgetRef ref) {
+    final u = person.user;
+    final profile = person.profile;
+    final role = StaffRole.parse(profile?.jobTitle);
+    final access = u.role == UserRole.staff
+        ? ref.watch(adminPersonAccessProvider(id))
+        : null;
+    Widget card(String en, String ar, List<Widget> children) => Padding(
+      padding: const EdgeInsets.only(top: Space.sm),
+      child: SurfaceCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(adminText(c, en, ar), style: Theme.of(c).textTheme.titleSmall),
+            const SizedBox(height: Space.xs),
+            ...children,
+          ],
+        ),
+      ),
+    );
+    String date(DateTime? d) => d == null ? '—' : fmtDate(d);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        card('Identity', 'الهوية', [
+          Text(u.email),
+          Text(
+            '${u.role.name} · ${u.isActive ? adminText(c, 'Active', 'نشط') : adminText(c, 'Inactive', 'غير نشط')}',
+          ),
+        ]),
+        if (u.role == UserRole.staff) ...[
+          card('Role & assignment', 'الدور والتعيين', [
+            Text(
+              role == null
+                  ? adminText(
+                      c,
+                      'Role not set — no clinical or desk permissions.',
+                      'الدور غير محدد — لا توجد صلاحيات سريرية أو استقبال.',
+                    )
+                  : role.jobTitle,
+            ),
+            Text(
+              '${adminText(c, 'Department', 'القسم')}: ${person.department?.name ?? '—'}',
+            ),
+            if (profile?.specialty != null) Text(profile!.specialty!),
+            Text(
+              '${adminText(c, 'Availability (local preference)', 'التوفر (تفضيل محلي)')}: ${profile?.presence?.name ?? '—'}',
+            ),
+          ]),
+          ...?access?.when(
+            loading: () => const [LinearProgressIndicator()],
+            error: (e, _) => [
+              Text(
+                adminText(
+                  c,
+                  'Could not load access details.',
+                  'تعذّر تحميل تفاصيل الصلاحيات.',
+                ),
+              ),
+            ],
+            data: (a) => [
+              card('Clinical credentials', 'الاعتمادات السريرية', [
+                if (a.credentials.isEmpty)
+                  Text(adminText(c, 'None recorded.', 'لا يوجد.')),
+                for (final cr in a.credentials)
+                  Text(
+                    '${cr.kind.name} · ${cr.identifier} · '
+                    '${cr.revokedAt != null
+                        ? adminText(c, 'revoked', 'ملغى')
+                        : cr.verifiedAt == null
+                        ? adminText(c, 'not verified', 'غير موثق')
+                        : adminText(c, 'verified', 'موثق')} · '
+                    '${adminText(c, 'valid until', 'صالح حتى')} ${date(cr.validUntil)}',
+                  ),
+              ]),
+              card('Scoped permissions', 'الصلاحيات المحددة', [
+                if (a.grants.isEmpty)
+                  Text(
+                    adminText(
+                      c,
+                      'Role permissions only; no extra grants.',
+                      'صلاحيات الدور فقط؛ لا توجد صلاحيات إضافية.',
+                    ),
+                  ),
+                for (final g in a.grants)
+                  Text(
+                    '${g.permission.name} · ${g.scope.name} · '
+                    '${g.revokedAt != null ? adminText(c, 'revoked', 'ملغاة') : '${adminText(c, 'until', 'حتى')} ${date(g.expiresAt)}'}',
+                  ),
+                TextButton(
+                  onPressed: () => c.push('/admin/profile/document-access'),
+                  child: Text(adminText(c, 'Manage access', 'إدارة الصلاحيات')),
+                ),
+              ]),
+              card('Temporary cover', 'التغطية المؤقتة', [
+                if (a.cover.isEmpty && a.covering.isEmpty)
+                  Text(adminText(c, 'No active cover.', 'لا توجد تغطية نشطة.')),
+                for (final x in a.cover)
+                  Text(
+                    '${x.role.name} · ${adminText(c, 'ends', 'تنتهي')} ${date(x.endedAt)}',
+                  ),
+                if (a.covering.isNotEmpty)
+                  Text(
+                    adminText(
+                      c,
+                      'Covering ${a.covering.length} open task(s) for colleagues.',
+                      'يغطي ${a.covering.length} مهمة مفتوحة لزملاء.',
+                    ),
+                  ),
+              ]),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
 }

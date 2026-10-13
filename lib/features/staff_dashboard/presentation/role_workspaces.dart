@@ -19,10 +19,13 @@ import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/result.dart';
 import '../../../core/ui/patient/patient_components.dart';
+import '../../../core/ui/patient/workspace_home.dart';
 import '../../../core/utils/format.dart';
+import '../../../domain/documents/document_rules.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
 import '../../../domain/identity/permissions.dart';
+import '../../../domain/repositories/document_service.dart';
 import '../../../domain/repositories/pharmacy_repository.dart';
 import '../../../domain/repositories/repositories.dart';
 import '../../auth/application/session.dart';
@@ -156,15 +159,16 @@ class _FrontDeskState extends ConsumerState<FrontDeskWorkspace> {
       actions: const [StaffTopActions()],
       onRefresh: () async => ref.invalidate(deskArrivalsProvider),
       children: [
-        GradientHeroCard(
+        NavyFeatureCard(
           icon: Icons.badge_outlined,
           title: workText(context, 'Find a patient', 'ابحث عن مريض'),
-          subtitle: workText(
+          actionLabel: workText(context, 'Search', 'بحث'),
+          onAction: _focus.requestFocus,
+          body: workText(
             context,
             'Search by CPR / ID, name or phone, confirm identity, then book or check in.',
             'ابحث بالرقم الشخصي أو الاسم أو الهاتف، وتحقق من الهوية، ثم احجز أو سجّل الوصول.',
           ),
-          onTap: _focus.requestFocus,
         ),
         const SizedBox(height: Space.md),
         TextField(
@@ -662,6 +666,67 @@ class _ConfirmCopyState extends ConsumerState<ConfirmCopySheet> {
   bool _busy = false;
   String? _error;
   DateTime? _done;
+  IssuedDocument? _found;
+  String? _foundPatient;
+
+  Future<void> _lookUp() async {
+    if (_busy) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+      _found = null;
+    });
+    final r = await ref
+        .read(documentServiceProvider)
+        .findForDesk(_reference.text);
+    String? name;
+    if (r case Ok(:final value)) {
+      name = (await ref.read(patientRepositoryProvider).byId(value.patientId))
+          .valueOrNull
+          ?.user
+          .fullName;
+    }
+    if (!mounted) return;
+    setState(() {
+      _busy = false;
+      switch (r) {
+        case Ok(:final value):
+          _found = value;
+          _foundPatient = name;
+        case Err(:final failure):
+          _error = failure.message;
+      }
+    });
+  }
+
+  /// Plain status for the found copy; only a valid, ready copy can be
+  /// confirmed.
+  (String, PatientAccent, bool) _status(IssuedDocument d) {
+    if (d.validity != DocumentValidity.valid) {
+      return (
+        workText(context, 'Revoked or no longer valid', 'ملغى أو غير صالح'),
+        PatientAccent.red,
+        false,
+      );
+    }
+    return switch (d.renderStatus) {
+      DocumentRenderStatus.ready => (
+        workText(context, 'Issued', 'صادر'),
+        PatientAccent.green,
+        true,
+      ),
+      DocumentRenderStatus.failed => (
+        workText(context, 'Rendering failed', 'فشل إنشاء الملف'),
+        PatientAccent.red,
+        false,
+      ),
+      _ => (
+        workText(context, 'Rendering pending', 'إنشاء الملف قيد الانتظار'),
+        PatientAccent.amber,
+        false,
+      ),
+    };
+  }
 
   @override
   void dispose() {
@@ -679,7 +744,7 @@ class _ConfirmCopyState extends ConsumerState<ConfirmCopySheet> {
     final r = await ref
         .read(documentServiceProvider)
         .confirmIssuedCopy(
-          _reference.text.trim(),
+          _found!.id,
           recipientIdentityChecked: _identityChecked,
           reason: _reason.text,
           idempotencyKey: _key.value,
@@ -742,14 +807,49 @@ class _ConfirmCopyState extends ConsumerState<ConfirmCopySheet> {
               const SizedBox(height: Space.md),
               TextField(
                 controller: _reference,
+                textInputAction: TextInputAction.search,
+                onSubmitted: (_) => unawaited(_lookUp()),
+                onChanged: (_) {
+                  if (_found != null) setState(() => _found = null);
+                },
                 decoration: InputDecoration(
                   labelText: workText(
                     context,
-                    'Document reference',
-                    'مرجع المستند',
+                    'Document reference (printed / QR code)',
+                    'مرجع المستند (المطبوع / رمز QR)',
+                  ),
+                  suffixIcon: IconButton(
+                    tooltip: workText(context, 'Look up', 'بحث'),
+                    icon: const Icon(Icons.search),
+                    onPressed: () => unawaited(_lookUp()),
                   ),
                 ),
               ),
+              if (_found case final d?) ...[
+                const SizedBox(height: Space.sm),
+                SurfaceCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        DocumentRules.title(
+                          d.documentType,
+                          arabic:
+                              Localizations.localeOf(context).languageCode ==
+                              'ar',
+                        ),
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      if (_foundPatient != null) Text(_foundPatient!),
+                      Text(
+                        '${workText(context, 'Issued', 'صدر')} ${d.issuedAt == null ? '' : fmtDate(d.issuedAt!)} · ${d.verificationCode}',
+                      ),
+                      const SizedBox(height: Space.xs),
+                      StatusBadge(_status(d).$1, accent: _status(d).$2),
+                    ],
+                  ),
+                ),
+              ],
               CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
                 value: _identityChecked,
@@ -786,7 +886,9 @@ class _ConfirmCopyState extends ConsumerState<ConfirmCopySheet> {
                   'تحقق وأكّد النسخة',
                 ),
                 busy: _busy,
-                onPressed: _busy ? null : () => unawaited(_submit()),
+                onPressed: _busy || _found == null || !_status(_found!).$3
+                    ? null
+                    : () => unawaited(_submit()),
               ),
             ],
           ],
@@ -799,6 +901,10 @@ class _ConfirmCopyState extends ConsumerState<ConfirmCopySheet> {
 // ---------------------------------------------------------------------------
 // Pharmacy
 // ---------------------------------------------------------------------------
+
+final pharmacyStockProvider = FutureProvider.autoDispose<List<StockBatch>>(
+  (ref) async => _unwrap(await ref.watch(pharmacyRepositoryProvider).stock()),
+);
 
 final pharmacyQueueProvider = FutureProvider.autoDispose<List<PharmacyOrder>>(
   (ref) async => _unwrap(await ref.watch(pharmacyRepositoryProvider).queue()),
@@ -838,10 +944,10 @@ class PharmacyWorkspace extends ConsumerWidget {
       actions: const [StaffTopActions()],
       onRefresh: () async => ref.invalidate(pharmacyQueueProvider),
       children: [
-        GradientHeroCard(
+        NavyFeatureCard(
           icon: Icons.medication_outlined,
           title: workText(context, 'Prescription queue', 'قائمة الوصفات'),
-          subtitle: waiting == null
+          body: waiting == null
               ? workText(context, 'Loading orders…', 'جارٍ تحميل الطلبات…')
               : workText(
                   context,
@@ -941,6 +1047,87 @@ class PharmacyWorkspace extends ConsumerWidget {
                 ),
         ),
         const SizedBox(height: Space.lg),
+        SectionHeading(
+          workText(context, 'Stock', 'المخزون'),
+          actionLabel: workText(context, 'Receive stock', 'استلام مخزون'),
+          onAction: () => unawaited(
+            showModalBottomSheet<void>(
+              context: context,
+              isScrollControlled: true,
+              useSafeArea: true,
+              builder: (_) => const ReceiveStockSheet(),
+            ),
+          ),
+        ),
+        ref
+            .watch(pharmacyStockProvider)
+            .when(
+              loading: () =>
+                  const PatientStateView(kind: PatientStateKind.loading),
+              error: (e, _) => PatientStateView(
+                kind: PatientStateKind.error,
+                message: _failureText(e),
+                actionLabel: workText(context, 'Retry', 'إعادة المحاولة'),
+                onAction: () => ref.invalidate(pharmacyStockProvider),
+              ),
+              data: (batches) => batches.isEmpty
+                  ? PatientStateView(
+                      kind: PatientStateKind.empty,
+                      message: workText(
+                        context,
+                        'No stock recorded yet. Receive a batch to track quantities and expiry.',
+                        'لا يوجد مخزون مسجل بعد. استلم دفعة لتتبع الكميات وتاريخ الانتهاء.',
+                      ),
+                    )
+                  : Column(
+                      children: [
+                        for (final b in batches)
+                          Padding(
+                            padding: const EdgeInsets.only(top: Space.sm),
+                            child: SurfaceCard(
+                              child: Wrap(
+                                spacing: Space.sm,
+                                runSpacing: Space.xxs,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  Text(
+                                    '${b.itemName} · ${b.batch}',
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleSmall,
+                                  ),
+                                  Text(
+                                    '${b.quantity} ${b.unit} · '
+                                    '${workText(context, 'expires', 'ينتهي')} ${fmtDate(b.expiry)}',
+                                  ),
+                                  if (b.isExpired(DateTime.now()))
+                                    StatusBadge(
+                                      workText(context, 'Expired', 'منتهي'),
+                                      accent: PatientAccent.red,
+                                      icon: Icons.block,
+                                    )
+                                  else if (b.expiresSoon(DateTime.now()))
+                                    StatusBadge(
+                                      workText(
+                                        context,
+                                        'Expires within 30 days',
+                                        'ينتهي خلال ٣٠ يومًا',
+                                      ),
+                                      accent: PatientAccent.amber,
+                                      icon: Icons.schedule,
+                                    ),
+                                  if (b.quantity == 0)
+                                    StatusBadge(
+                                      workText(context, 'Out of stock', 'نفد'),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+            ),
+        const SizedBox(height: Space.lg),
         SurfaceCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -952,10 +1139,8 @@ class PharmacyWorkspace extends ConsumerWidget {
               Text(
                 workText(
                   context,
-                  'Stock levels, barcode scanning and automatic expiry alerts are not part of this release. '
-                      'Batch and expiry entered here are recorded with the dispensing record only.',
-                  'مستويات المخزون ومسح الباركود وتنبيهات انتهاء الصلاحية التلقائية ليست ضمن هذا الإصدار. '
-                      'تُسجّل الدفعة وتاريخ الانتهاء المدخلة هنا مع سجل الصرف فقط.',
+                  'Barcode scanning and supplier ordering are not part of this release.',
+                  'مسح الباركود والطلب من الموردين ليسا ضمن هذا الإصدار.',
                 ),
               ),
             ],
@@ -980,8 +1165,10 @@ class _DispenseState extends ConsumerState<DispenseSheet> {
   final _quantity = TextEditingController();
   final _batch = TextEditingController();
   final _note = TextEditingController();
+  final _units = TextEditingController();
   DispenseOutcome _outcome = DispenseOutcome.dispensed;
   DateTime? _expiry;
+  StockBatch? _stock;
   bool _verified = false;
   bool _busy = false;
   String? _error;
@@ -989,6 +1176,7 @@ class _DispenseState extends ConsumerState<DispenseSheet> {
   @override
   void dispose() {
     _quantity.dispose();
+    _units.dispose();
     _batch.dispose();
     _note.dispose();
     super.dispose();
@@ -1012,12 +1200,16 @@ class _DispenseState extends ConsumerState<DispenseSheet> {
             batch: _batch.text,
             expiry: _expiry,
             note: _note.text,
+            stockBatchId: _stock?.id,
+            units: _stock == null ? null : int.tryParse(_units.text.trim()),
           ),
         );
     if (!mounted) return;
     switch (r) {
       case Ok():
-        ref.invalidate(pharmacyQueueProvider);
+        ref
+          ..invalidate(pharmacyQueueProvider)
+          ..invalidate(pharmacyStockProvider);
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -1096,41 +1288,104 @@ class _DispenseState extends ConsumerState<DispenseSheet> {
                   ),
                 ),
               ),
-              TextField(
-                controller: _batch,
-                decoration: InputDecoration(
-                  labelText: workText(
-                    context,
-                    'Batch (optional)',
-                    'رقم الدفعة (اختياري)',
+              ...() {
+                final now = DateTime.now();
+                final usable = [
+                  for (final b
+                      in ref.watch(pharmacyStockProvider).valueOrNull ??
+                          const <StockBatch>[])
+                    if (b.matches(o.name) &&
+                        !b.isExpired(now) &&
+                        b.quantity > 0)
+                      b,
+                ];
+                if (usable.isEmpty) return const <Widget>[];
+                return <Widget>[
+                  DropdownButtonFormField<String?>(
+                    initialValue: _stock?.id,
+                    isExpanded: true,
+                    decoration: InputDecoration(
+                      labelText: workText(
+                        context,
+                        'Supply from stock batch',
+                        'الصرف من دفعة المخزون',
+                      ),
+                    ),
+                    items: [
+                      DropdownMenuItem(
+                        child: Text(
+                          workText(
+                            context,
+                            'Not from recorded stock',
+                            'ليس من المخزون المسجل',
+                          ),
+                        ),
+                      ),
+                      for (final b in usable)
+                        DropdownMenuItem(
+                          value: b.id,
+                          child: Text(
+                            '${b.batch} · ${b.quantity} ${b.unit} · ${fmtDate(b.expiry)}',
+                          ),
+                        ),
+                    ],
+                    onChanged: (id) => setState(
+                      () => _stock = id == null
+                          ? null
+                          : usable.firstWhere((b) => b.id == id),
+                    ),
+                  ),
+                  if (_stock != null)
+                    TextField(
+                      controller: _units,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: workText(
+                          context,
+                          'Units taken from this batch',
+                          'الوحدات المأخوذة من هذه الدفعة',
+                        ),
+                      ),
+                    ),
+                ];
+              }(),
+              if (_stock == null)
+                TextField(
+                  controller: _batch,
+                  decoration: InputDecoration(
+                    labelText: workText(
+                      context,
+                      'Batch (optional)',
+                      'رقم الدفعة (اختياري)',
+                    ),
                   ),
                 ),
-              ),
               const SizedBox(height: Space.xs),
-              OutlinedButton.icon(
-                icon: const Icon(Icons.event_outlined),
-                label: Text(
-                  _expiry == null
-                      ? workText(
-                          context,
-                          'Expiry date (optional)',
-                          'تاريخ الانتهاء (اختياري)',
-                        )
-                      : fmtDate(_expiry!),
+              if (_stock == null)
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.event_outlined),
+                  label: Text(
+                    _expiry == null
+                        ? workText(
+                            context,
+                            'Expiry date (optional)',
+                            'تاريخ الانتهاء (اختياري)',
+                          )
+                        : fmtDate(_expiry!),
+                  ),
+                  onPressed: () async {
+                    final now = DateTime.now();
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: _expiry ?? now.add(const Duration(days: 30)),
+                      firstDate: now,
+                      lastDate: now.add(const Duration(days: 365 * 10)),
+                    );
+                    if (picked != null && mounted) {
+                      setState(() => _expiry = picked);
+                    }
+                  },
                 ),
-                onPressed: () async {
-                  final now = DateTime.now();
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate: _expiry ?? now.add(const Duration(days: 30)),
-                    firstDate: now,
-                    lastDate: now.add(const Duration(days: 365 * 10)),
-                  );
-                  if (picked != null && mounted) {
-                    setState(() => _expiry = picked);
-                  }
-                },
-              ),
             ],
             TextField(
               controller: _note,
@@ -1192,6 +1447,158 @@ class UnassignedRoleWorkspace extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Records a received batch (item, batch number, expiry, quantity).
+class ReceiveStockSheet extends ConsumerStatefulWidget {
+  const ReceiveStockSheet({super.key});
+
+  @override
+  ConsumerState<ReceiveStockSheet> createState() => _ReceiveStockState();
+}
+
+class _ReceiveStockState extends ConsumerState<ReceiveStockSheet> {
+  final _key = IdempotencyKey.generate();
+  final _item = TextEditingController();
+  final _batch = TextEditingController();
+  final _quantity = TextEditingController();
+  final _unit = TextEditingController(text: 'tablets');
+  DateTime? _expiry;
+  bool _busy = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    for (final c in [_item, _batch, _quantity, _unit]) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final quantity = int.tryParse(_quantity.text.trim());
+    if (_busy) return;
+    if (_expiry == null || quantity == null) {
+      setState(
+        () => _error = workText(
+          context,
+          'Enter a whole-number quantity and choose the expiry date.',
+          'أدخل كمية بعدد صحيح واختر تاريخ الانتهاء.',
+        ),
+      );
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    final r = await ref
+        .read(pharmacyRepositoryProvider)
+        .receive(
+          ReceiveStockInput(
+            itemName: _item.text,
+            batch: _batch.text,
+            expiry: _expiry!,
+            quantity: quantity,
+            unit: _unit.text,
+            idempotencyKey: _key.value,
+          ),
+        );
+    if (!mounted) return;
+    switch (r) {
+      case Ok():
+        ref.invalidate(pharmacyStockProvider);
+        Navigator.of(context).pop();
+      case Err(:final failure):
+        setState(() {
+          _busy = false;
+          _error = failure.message;
+        });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: Space.md,
+        right: Space.md,
+        top: Space.md,
+        bottom: MediaQuery.viewInsetsOf(context).bottom + Space.md,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              workText(context, 'Receive stock', 'استلام مخزون'),
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            TextField(
+              controller: _item,
+              decoration: InputDecoration(
+                labelText: workText(context, 'Item name', 'اسم الصنف'),
+              ),
+            ),
+            TextField(
+              controller: _batch,
+              decoration: InputDecoration(
+                labelText: workText(context, 'Batch number', 'رقم الدفعة'),
+              ),
+            ),
+            TextField(
+              controller: _quantity,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: workText(context, 'Quantity', 'الكمية'),
+              ),
+            ),
+            TextField(
+              controller: _unit,
+              decoration: InputDecoration(
+                labelText: workText(context, 'Unit', 'الوحدة'),
+              ),
+            ),
+            const SizedBox(height: Space.xs),
+            OutlinedButton.icon(
+              icon: const Icon(Icons.event_outlined),
+              label: Text(
+                _expiry == null
+                    ? workText(context, 'Expiry date', 'تاريخ الانتهاء')
+                    : fmtDate(_expiry!),
+              ),
+              onPressed: () async {
+                final now = DateTime.now();
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: now.add(const Duration(days: 180)),
+                  firstDate: now.add(const Duration(days: 1)),
+                  lastDate: now.add(const Duration(days: 365 * 10)),
+                );
+                if (picked != null && mounted) {
+                  setState(() => _expiry = picked);
+                }
+              },
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: Space.sm),
+              Text(
+                _error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ],
+            const SizedBox(height: Space.md),
+            PrimaryActionButton(
+              label: workText(context, 'Record batch', 'تسجيل الدفعة'),
+              busy: _busy,
+              onPressed: _busy ? null : () => unawaited(_submit()),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

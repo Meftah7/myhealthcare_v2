@@ -50,7 +50,7 @@ class StaffScheduleScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 104,
-        backgroundColor: theme.colorScheme.primaryContainer,
+        backgroundColor: theme.appBarTheme.backgroundColor,
         surfaceTintColor: Colors.transparent,
         scrolledUnderElevation: 0,
         shape: const RoundedRectangleBorder(
@@ -74,7 +74,7 @@ class StaffScheduleScreen extends ConsumerWidget {
           title,
           style: theme.textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.w700,
-            color: theme.colorScheme.onPrimaryContainer,
+            color: theme.appBarTheme.foregroundColor,
           ),
         ),
         actions: [
@@ -214,10 +214,22 @@ class _MiniMonth extends StatelessWidget {
   /// rail does — and a six-row month overflows by a few pixels. Measuring the
   /// content instead makes the tile correct at any width and any text scale.
   static double extentFor(BuildContext context) {
-    // Paragraph line boxes round up at fractional app scales (e.g. 0.92).
-    final label = MediaQuery.textScalerOf(context).scale(16).ceilToDouble();
+    // Measure the real label line (style × text scale) rather than assume
+    // one; line boxes round up at fractional scales, hence ceil + 1.
+    final painter = TextPainter(
+      text: TextSpan(text: 'May', style: _labelStyle(context)),
+      textDirection: TextDirection.ltr,
+      textScaler: MediaQuery.textScalerOf(context),
+      maxLines: 1,
+    )..layout();
+    final label = painter.height.ceilToDouble() + 1;
+    painter.dispose();
     return Space.xs * 2 + label + Space.xxs + _cellSize(context) * _maxWeekRows;
   }
+
+  static TextStyle? _labelStyle(BuildContext context) => Theme.of(
+    context,
+  ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700);
 
   @override
   Widget build(BuildContext context) {
@@ -231,36 +243,46 @@ class _MiniMonth extends StatelessWidget {
     final isThisMonth = now.year == year && now.month == month;
     final cell = _cellSize(context);
 
-    return AppCard(
-      padding: const EdgeInsets.all(Space.xs),
-      onTap: onTap,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            DateFormat('MMM').format(first),
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: isThisMonth ? scheme.primary : scheme.onSurface,
-              fontWeight: FontWeight.w700,
+    return Semantics(
+      button: true,
+      label: DateFormat('MMMM yyyy').format(first),
+      excludeSemantics: true,
+      child: AppCard(
+        padding: const EdgeInsets.all(Space.xs),
+        onTap: onTap,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // One line always: a long month name shrinks rather than wraps.
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: AlignmentDirectional.centerStart,
+              child: Text(
+                DateFormat('MMM').format(first),
+                maxLines: 1,
+                style: _labelStyle(context)?.copyWith(
+                  color: isThisMonth ? scheme.primary : scheme.onSurface,
+                ),
+              ),
             ),
-          ),
-          const SizedBox(height: Space.xxs),
-          for (var r = 0; r < rows; r++)
-            Row(
-              children: [
-                for (var c = 0; c < 7; c++)
-                  Expanded(
-                    child: _miniCell(
-                      theme,
-                      r * 7 + c - lead + 1,
-                      days,
-                      now,
-                      cell,
+            const SizedBox(height: Space.xxs),
+            for (var r = 0; r < rows; r++)
+              Row(
+                children: [
+                  for (var c = 0; c < 7; c++)
+                    Expanded(
+                      child: _miniCell(
+                        theme,
+                        r * 7 + c - lead + 1,
+                        days,
+                        now,
+                        cell,
+                      ),
                     ),
-                  ),
-              ],
-            ),
-        ],
+                ],
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -478,58 +500,78 @@ class _MonthCell extends StatelessWidget {
       numberColor = scheme.onSurface;
     }
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: Radii.chip,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 30,
-            height: 30,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isToday
-                  ? scheme.primary
-                  : selected
-                  ? scheme.secondaryContainer
-                  : null,
-            ),
-            child: Text(
-              '${date.day}',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: selected && !isToday
-                    ? scheme.onSecondaryContainer
-                    : numberColor,
-                fontWeight: isToday || selected ? FontWeight.w700 : null,
-                fontFeatures: kTabularFigures,
-              ),
-            ),
-          ),
-          const SizedBox(height: 3),
-          // Up to three marks, so a busy day reads as busy at a glance.
-          SizedBox(
-            height: 5,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                for (var i = 0; i < count.clamp(0, 3); i++)
-                  Container(
-                    width: 4,
-                    height: 4,
-                    margin: const EdgeInsets.symmetric(horizontal: 1),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: inMonth
-                          ? scheme.primary
-                          : scheme.primary.withValues(alpha: 0.4),
-                    ),
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final label = [
+      DateFormat('EEEE d MMMM').format(date),
+      if (isToday) ar ? 'اليوم' : 'today',
+      if (count > 0)
+        ar
+            ? '$count ${count == 1 ? 'زيارة' : 'زيارات'}'
+            : '$count ${count == 1 ? 'visit' : 'visits'}',
+    ].join(', ');
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      excludeSemantics: true,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: Radii.chip,
+        // Scales down instead of overflowing a short cell at large text.
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 30,
+                height: 30,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isToday
+                      ? scheme.primary
+                      : selected
+                      ? scheme.secondaryContainer
+                      : null,
+                ),
+                child: Text(
+                  '${date.day}',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: selected && !isToday
+                        ? scheme.onSecondaryContainer
+                        : numberColor,
+                    fontWeight: isToday || selected ? FontWeight.w700 : null,
+                    fontFeatures: kTabularFigures,
                   ),
-              ],
-            ),
+                ),
+              ),
+              const SizedBox(height: 3),
+              // Up to three marks, so a busy day reads as busy at a glance.
+              SizedBox(
+                height: 5,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    for (var i = 0; i < count.clamp(0, 3); i++)
+                      Container(
+                        width: 4,
+                        height: 4,
+                        margin: const EdgeInsets.symmetric(horizontal: 1),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: inMonth
+                              ? scheme.primary
+                              : scheme.primary.withValues(alpha: 0.4),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

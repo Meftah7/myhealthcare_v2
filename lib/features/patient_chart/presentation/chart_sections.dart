@@ -2,8 +2,11 @@ import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../app/router.dart';
+import '../../../app/shared_mode.dart';
 import '../../../core/di.dart';
+import '../../../core/ui/patient/patient_components.dart';
 import '../../../core/utils/format.dart';
 import '../../../data/db/app_database.dart';
 import '../../../domain/enums.dart';
@@ -82,6 +85,13 @@ class ChartSectionContent extends ConsumerWidget {
   final String patient;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Reads the device database: no server data in shared mode.
+    if (ref.watch(sharedModeProvider)) {
+      return const PatientStateView(
+        kind: PatientStateKind.unavailable,
+        message: 'Not available in shared mode yet. No local data is shown.',
+      );
+    }
     final section = ref.watch(chartSectionProvider(patient));
     if (section == ChartSection.documents) {
       return OutlinedButton.icon(

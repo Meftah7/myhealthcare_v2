@@ -11,6 +11,7 @@ import '../../../data/repositories/admin_workspace.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/identity/permissions.dart';
 import '../../staff_dashboard/application/staff_providers.dart';
+import '../application/admin_providers.dart';
 import 'admin_top_actions.dart';
 import 'admin_workspace_screens.dart';
 import 'verify_document_screen.dart';
@@ -298,7 +299,7 @@ class _ScheduleState extends ConsumerState<AdminStaffScheduleScreen> {
                       ),
                       for (final a in data.bookings)
                         ListTile(
-                          title: Text('${a.id} · ${fmtDateTime(a.slotStart)}'),
+                          title: Text(fmtDateTime(a.slotStart)),
                           subtitle: Text(a.status.name),
                         ),
                       DropdownButtonFormField<String>(
@@ -497,21 +498,53 @@ class _ScheduleState extends ConsumerState<AdminStaffScheduleScreen> {
       ),
     );
     if (yes != true || !mounted) return;
+    final templates = [
+      for (final d in days)
+        NewScheduleTemplate(
+          weekday: d,
+          startMinutes: start * 60,
+          endMinutes: end * 60,
+          slotMinutes: slot,
+        ),
+    ];
+    // Preview first: the change is blocked until every booking it would
+    // leave uncovered has been moved to an authorized replacement.
+    final preview = await ref
+        .read(appointmentRepositoryProvider)
+        .previewScheduleChange(staffId: staff!, templates: templates);
+    if (!mounted) return;
+    if (preview.isErr) {
+      showMutationFeedback(context, preview);
+      return;
+    }
+    final affected = preview.valueOrNull!;
+    if (affected.isNotEmpty) {
+      final resolved = await showDialog<bool>(
+        context: context,
+        builder: (_) =>
+            _ScheduleConflictDialog(staffId: staff!, affected: affected),
+      );
+      if (!mounted) return;
+      ref.invalidate(adminScheduleProvider(staff!));
+      if (resolved != true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              adminText(
+                context,
+                'Schedule not saved: resolve the affected bookings first.',
+                'لم يُحفظ الجدول: عالج الحجوزات المتأثرة أولاً.',
+              ),
+            ),
+          ),
+        );
+        return;
+      }
+    }
     await _run(() async {
       final r = await ref
           .read(appointmentRepositoryProvider)
-          .setTemplates(
-            staffId: staff!,
-            templates: [
-              for (final d in days)
-                NewScheduleTemplate(
-                  weekday: d,
-                  startMinutes: start * 60,
-                  endMinutes: end * 60,
-                  slotMinutes: slot,
-                ),
-            ],
-          );
+          .setTemplates(staffId: staff!, templates: templates);
       if (r.isErr) throw r.failureOrNull!;
     });
   }
@@ -569,4 +602,150 @@ Future<String?> _reason(BuildContext context, String title) async {
       ),
     ),
   );
+}
+
+/// Lists the bookings a schedule change would leave uncovered and moves
+/// them to an authorized replacement (with a reason) before the change can
+/// be saved. Pops `true` only when they were all moved.
+class _ScheduleConflictDialog extends ConsumerStatefulWidget {
+  const _ScheduleConflictDialog({
+    required this.staffId,
+    required this.affected,
+  });
+
+  final String staffId;
+  final List<Appointment> affected;
+
+  @override
+  ConsumerState<_ScheduleConflictDialog> createState() =>
+      _ScheduleConflictState();
+}
+
+class _ScheduleConflictState extends ConsumerState<_ScheduleConflictDialog> {
+  String? _replacement;
+  final _reason = TextEditingController();
+  bool _busy = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _reason.dispose();
+    super.dispose();
+  }
+
+  Future<void> _move() async {
+    final to = _replacement;
+    if (_busy || to == null || _reason.text.trim().isEmpty) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    final result = await Result.guardAsync(() async {
+      final service = ref.read(adminWorkspaceProvider);
+      final ids = [for (final a in widget.affected) a.id];
+      final rows = await (service.db.select(
+        service.db.appointments,
+      )..where((a) => a.id.isIn(ids))).get();
+      await service.moveBookings(widget.staffId, to, rows, _reason.text.trim());
+    });
+    if (!mounted) return;
+    if (result.isOk) {
+      Navigator.pop(context, true);
+    } else {
+      setState(() {
+        _busy = false;
+        _error = result.failureOrNull!.message;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext c) {
+    final names = ref.watch(adminPatientNamesProvider).valueOrNull ?? const {};
+    final people = ref.watch(staffDirectoryProvider).valueOrNull ?? const [];
+    return AlertDialog(
+      title: Text(
+        adminText(
+          c,
+          '${widget.affected.length} booking(s) would be left uncovered',
+          '${widget.affected.length} حجز/حجوزات ستبقى دون تغطية',
+        ),
+      ),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              adminText(
+                c,
+                'Move them to an authorized replacement before saving. The new hours are not saved yet.',
+                'انقلها إلى بديل مصرح له قبل الحفظ. لم تُحفظ الساعات الجديدة بعد.',
+              ),
+            ),
+            const SizedBox(height: 8),
+            for (final a in widget.affected)
+              ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.event_busy_outlined),
+                title: Text(fmtDateTime(a.slotStart)),
+                subtitle: Text(names[a.patientId] ?? a.status.name),
+              ),
+            DropdownButtonFormField<String>(
+              initialValue: _replacement,
+              isExpanded: true,
+              decoration: InputDecoration(
+                labelText: adminText(
+                  c,
+                  'Replacement clinician',
+                  'الطبيب البديل',
+                ),
+              ),
+              items: [
+                for (final s in people)
+                  if (s.id != widget.staffId &&
+                      s.user.isActive &&
+                      s.takesAppointments)
+                    DropdownMenuItem(
+                      value: s.id,
+                      child: Text(staffDisplayName(s.fullName, s.jobTitle)),
+                    ),
+              ],
+              onChanged: _busy ? null : (v) => setState(() => _replacement = v),
+            ),
+            TextField(
+              controller: _reason,
+              enabled: !_busy,
+              maxLength: 300,
+              decoration: InputDecoration(
+                labelText: adminText(c, 'Reason (recorded)', 'السبب (يُسجّل)'),
+              ),
+              onChanged: (_) => setState(() {}),
+            ),
+            if (_error != null)
+              Text(
+                _error!,
+                style: TextStyle(color: Theme.of(c).colorScheme.error),
+              ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _busy ? null : () => Navigator.pop(c, false),
+          child: Text(
+            adminText(c, 'Keep current hours', 'إبقاء الساعات الحالية'),
+          ),
+        ),
+        FilledButton(
+          onPressed:
+              _busy || _replacement == null || _reason.text.trim().isEmpty
+              ? null
+              : _move,
+          child: Text(adminText(c, 'Move bookings', 'نقل الحجوزات')),
+        ),
+      ],
+    );
+  }
 }

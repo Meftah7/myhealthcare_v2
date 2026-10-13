@@ -6,8 +6,6 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'patient_palette.dart';
-
 /// 4dp-based spacing scale (DESIGN.md §4.1).
 abstract final class Space {
   static const double xxs = 4;
@@ -57,7 +55,10 @@ abstract final class Radii {
       _isPatient(context) ? const BorderRadius.all(Radius.circular(24)) : hero;
 
   static bool _isPatient(BuildContext context) =>
-      Theme.of(context).extension<PatientPalette>() != null;
+      Theme.of(context).cardTheme.shape is RoundedRectangleBorder &&
+      (Theme.of(context).cardTheme.shape! as RoundedRectangleBorder)
+              .borderRadius ==
+          const BorderRadius.all(Radius.circular(22));
 }
 
 /// Depth (DESIGN.md §4.3). The redesign moves off heavy M3 surface-tint onto

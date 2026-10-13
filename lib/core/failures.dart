@@ -161,6 +161,16 @@ class FileFailure extends Failure {
   const FileFailure(super.message, {super.cause, super.stackTrace});
 }
 
+/// Shared-server mode: this screen or action has no server adapter yet. It
+/// never falls back to local data; retrying cannot help.
+class SharedModeUnavailableFailure extends Failure {
+  const SharedModeUnavailableFailure([
+    super.message =
+        'Not available in shared mode yet. This feature still needs a server '
+        'adapter; no local data is used.',
+  ]);
+}
+
 /// Anything not covered above. Prefer a specific failure where possible.
 class UnexpectedFailure extends Failure {
   const UnexpectedFailure(super.message, {super.cause, super.stackTrace});

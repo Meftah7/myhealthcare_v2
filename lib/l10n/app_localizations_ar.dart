@@ -318,7 +318,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get referralRequestStatusPending => 'قيد الانتظار';
 
   @override
-  String get referralRequestStatusActioned => 'تم اتخاذ إجراء';
+  String get referralRequestStatusActioned => 'تم اتخاذ إجراء في العيادة';
 
   @override
   String get referralRequestStatusRejected => 'مرفوض';
@@ -4097,7 +4097,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get referralRequestStatusAccepted => 'مقبول';
 
   @override
-  String get referralRequestStatusArranged => 'تم الترتيب';
+  String get referralRequestStatusArranged => 'تم الترتيب في العيادة';
 
   @override
   String get referralRequestStatusClosed => 'مغلق';
@@ -5785,4 +5785,125 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get svcWatchesBody =>
       'قد يربط إصدار مستقبلي الساعات الذكية المدعومة. لا يوجد تكامل مع الأجهزة أو أذونات في هذا الإصدار، لذا لا تتم أي مزامنة.';
+
+  @override
+  String get htIdealWeightDesc =>
+      'قدّر وزنًا مرجعيًا لطولك، مع نطاق الوزن الصحي.';
+
+  @override
+  String get htBodyFatDesc => 'قدّر نسبة دهون الجسم من قياسات شريط القياس.';
+
+  @override
+  String get htDueDateDesc =>
+      'قدّري موعد الولادة من أول يوم في آخر دورة شهرية.';
+
+  @override
+  String get htOvulationDesc =>
+      'قدّري موعد الإباضة القادم والأيام الأكثر خصوبة.';
+
+  @override
+  String get htSexLabel => 'الجنس المستخدم في المعادلة';
+
+  @override
+  String get htMale => 'ذكر';
+
+  @override
+  String get htFemale => 'أنثى';
+
+  @override
+  String get htNeckCm => 'الرقبة (سم)';
+
+  @override
+  String get htWaistCm => 'الخصر عند السرة (سم)';
+
+  @override
+  String get htHipCm => 'الورك عند أعرض نقطة (سم)';
+
+  @override
+  String get htLmpLabel => 'أول يوم في آخر دورة';
+
+  @override
+  String get htPickDate => 'اختر التاريخ';
+
+  @override
+  String get htCycleLabel => 'طول الدورة المعتاد (أيام، ٢١–٣٥)';
+
+  @override
+  String get htEstimate => 'تقدير';
+
+  @override
+  String get htIdealDevine => 'الوزن المرجعي (معادلة ديفاين)';
+
+  @override
+  String get htHealthyRange =>
+      'نطاق الوزن الصحي لطولك (مؤشر كتلة الجسم ١٨٫٥–٢٤٫٩)';
+
+  @override
+  String get htBodyFatResult => 'نسبة الدهون التقديرية';
+
+  @override
+  String get htDueResult => 'موعد الولادة التقديري';
+
+  @override
+  String htGestation(String weeks, String days) {
+    return 'حوالي $weeks أسابيع و$days أيام اليوم';
+  }
+
+  @override
+  String get htOvulationResult => 'موعد الإباضة التقديري';
+
+  @override
+  String get htFertileWindow => 'الأيام الأكثر خصوبة على الأرجح';
+
+  @override
+  String get htNextPeriod => 'موعد الدورة القادمة المتوقع';
+
+  @override
+  String get htInvalidInput =>
+      'تحقق من القيم. هذا التقدير مخصص للبالغين ضمن النطاقات الموضحة فقط.';
+
+  @override
+  String get htPregnancyLimits =>
+      'للدورات المنتظمة من ٢١ إلى ٣٥ يومًا فقط. قد تخطئ التقديرات بالتقويم بأسبوع أو أكثر. هذا ليس اختبار حمل ولا وسيلة لمنع الحمل؛ أكدي عمر الحمل مع طبيبك. لا يتم حفظ أي شيء تدخلينه.';
+
+  @override
+  String get htBodyLimits =>
+      'للبالغين. قد تختلف معادلات القياس بالشريط والطول عن فحوص تركيب الجسم السريرية، ولا تناسب الحمل أو البتر أو البنية العضلية الكبيرة. لا يتم حفظ أي شيء تدخله.';
+
+  @override
+  String htMethod(String method) {
+    return 'الطريقة: $method';
+  }
+
+  @override
+  String get encStageDraft => 'مسودة — لم تُوقَّع بعد';
+
+  @override
+  String get encStageAwaitingSignature =>
+      'حُفظت المسودة — بانتظار توقيع الطبيب';
+
+  @override
+  String get encStageSaveFailed => 'فشل الحفظ — آخر تغييراتك غير محفوظة';
+
+  @override
+  String get encStageSigned => 'موقَّعة ومكتملة';
+
+  @override
+  String get encStageNotStarted => 'لم تبدأ الزيارة';
+
+  @override
+  String get encOpenVisit => 'الزيارة';
+
+  @override
+  String encResponsible(String name) {
+    return 'المسؤول: $name';
+  }
+
+  @override
+  String get encYou => 'أنت';
+
+  @override
+  String encPatientRef(String id) {
+    return 'الرقم $id';
+  }
 }

@@ -81,6 +81,9 @@ enum Permission {
 
   /// Review signed prescriptions and record dispensing outcomes.
   dispenseMedication,
+
+  /// Append FDI dental chart entries (dentists only).
+  recordDentalChart,
 }
 
 /// Grants per role. Staff grants depend on the validated [StaffRole]: a nurse
@@ -129,6 +132,7 @@ abstract final class RolePermissions {
     Permission.useClinicalScribe,
     Permission.requestReferral,
     Permission.signEncounter,
+    Permission.recordDentalChart,
   };
 
   static const receptionist = <Permission>{

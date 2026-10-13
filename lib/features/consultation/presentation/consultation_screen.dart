@@ -27,6 +27,7 @@ import '../../../domain/identity/permissions.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
 import '../application/consultation_providers.dart';
+import 'encounter_context.dart';
 import 'encounter_steps.dart';
 
 class ConsultationScreen extends ConsumerStatefulWidget {
@@ -68,6 +69,10 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
     _seeded = true;
     _note.addListener(_flushNote);
     unawaited(_restoreDraft());
+    // Keep this encounter's context visible across the staff workspace.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.read(activeEncounterProvider.notifier).state = _id;
+    });
   }
 
   @override
@@ -215,9 +220,14 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
                           : 'Documents for this visit',
                     ),
                   ),
-                if (a.status == AppointmentStatus.completed)
-                  _CompletedCard(appointment: a)
-                else if (a.status != AppointmentStatus.inProgress)
+                if (a.status == AppointmentStatus.completed) ...[
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: EncounterStageBadge(appointmentId: a.id),
+                  ),
+                  const SizedBox(height: Space.xs),
+                  _CompletedCard(appointment: a),
+                ] else if (a.status != AppointmentStatus.inProgress)
                   _PreVisitActions(appointment: a, busy: _busy, run: _run)
                 else
                   ..._workingBody(a),
@@ -238,6 +248,10 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
     final canSign = ref.watch(canProvider(Permission.signEncounter));
 
     return [
+      Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: EncounterStageBadge(appointmentId: _id),
+      ),
       SectionHeader(t.clinicalNoteHeader, overline: true, first: true),
       TextField(
         controller: _note,
@@ -447,6 +461,7 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
                   ? null
                   : _outcome.text.trim(),
             );
+        if (r.isOk) ref.read(activeEncounterProvider.notifier).state = null;
         return r;
       },
       ok: t.consultationCompletedSnackbar,

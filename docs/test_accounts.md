@@ -26,7 +26,7 @@ Reset demo data (or a fresh install) to get these accounts.
 | `nurse@myhealth.demo` | `staff_nurse` | Nurse | Clinical dashboard (no prescribing/signing). |
 | `reception@myhealth.demo` | `staff_reception` | Receptionist | Front desk: CPR/ID search, desk booking, arrivals, issued-copy confirmation. No chart access. |
 | `pharmacy@myhealth.demo` | `staff_pharmacy` | Pharmacist | Prescription queue and dispensing outcomes. No chart access. |
-| `dentist@myhealth.demo` | `staff_dentist` | Dentist | Clinical dashboard with dental scope (no result-review queue). No department or schedule seeded. |
+| `dentist@myhealth.demo` | `staff_dentist` | Dentist | Clinical dashboard with dental scope (no result-review queue). Dental department, Sun–Thu 08:00–16:00 (seed v17). |
 
 ## Staff (12)
 

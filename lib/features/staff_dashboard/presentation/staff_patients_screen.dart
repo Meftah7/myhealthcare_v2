@@ -19,6 +19,7 @@ import '../../../core/presentation/states.dart';
 import '../../../core/presentation/two_pane.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../consultation/presentation/encounter_context.dart';
 import '../../patient_chart/application/chart_providers.dart';
 import '../../patient_chart/presentation/patient_chart_screen.dart';
 import '../application/staff_providers.dart';
@@ -127,6 +128,10 @@ class StaffPatientContextHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // An open encounter takes precedence: its patient, visit and note stage
+    // stay visible on every staff screen until it is completed or closed.
+    final encounter = ref.watch(activeEncounterProvider);
+    if (encounter != null) return EncounterContextBar(appointmentId: encounter);
     final id = ref.watch(selectedPatientIdProvider);
     // Reserve the same strip height before selection so choosing a patient
     // never moves the queue or loses the operator's visual position.

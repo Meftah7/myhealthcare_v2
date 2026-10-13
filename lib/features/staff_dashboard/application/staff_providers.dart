@@ -163,21 +163,13 @@ final patientSearchResultsProvider = FutureProvider<List<Patient>>(
 /// transfer). Keyed on the raw query so each picker dialog owns its own state.
 final patientPickerResultsProvider =
     FutureProvider.family<List<Patient>, String>((ref, query) async {
-      final repo = ref.watch(patientRepositoryProvider);
-      final q = query.trim();
-      final candidates = q.isEmpty
-          ? _unwrap(await repo.all(limit: 30))
-          : _unwrap(await repo.search(q, limit: 30));
-      final staffId = _staffId(ref);
-      final appointments = _unwrap(
+      // Scope (appointments, care assignments, walk-ins) is applied in the
+      // query before the limit — the same rule the chart enforces.
+      return _unwrap(
         await ref
-            .watch(appointmentRepositoryProvider)
-            .forStaffInRange(staffId, DateTime(2000), DateTime(2100)),
+            .watch(patientRepositoryProvider)
+            .clinicallyVisible(query: query, limit: 30),
       );
-      final assignedPatientIds = appointments.map((a) => a.patientId).toSet();
-      return candidates
-          .where((patient) => assignedPatientIds.contains(patient.id))
-          .toList();
     });
 
 final unacknowledgedFlagsProvider = FutureProvider<List<RiskFlag>>((ref) async {

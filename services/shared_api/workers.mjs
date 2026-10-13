@@ -67,7 +67,8 @@ export async function encryptedBackup(store, { directory, key, retentionDays = 3
     const database = readFileSync(snapshotPath);
     requireThat(database.length + files.reduce((n, f) => n + f.bytes.length, 0) < 256 * 1024 * 1024,
       503, 'Backup exceeds the supported archive size. Configure streaming backups before expanding storage.');
-    const payload = Buffer.from(JSON.stringify({ schema: 1, created: store.now(), database: database.toString('base64'),
+    const schema = store.get('PRAGMA user_version').user_version;
+    const payload = Buffer.from(JSON.stringify({ schema, created: store.now(), database: database.toString('base64'),
       fileKey: store.fileKey.toString('hex'), files }));
     const name = `backup-${store.now()}-${id()}.mhcb`, path = join(backupDirectory, name);
     writeFileSync(`${path}.tmp`, encrypt(payload, Buffer.from(key, 'hex')), { mode: 0o600 }); renameSync(`${path}.tmp`, path);
@@ -90,14 +91,16 @@ export function restoreBackup({ archive, key, directory }) {
   const target = resolve(directory);
   requireThat(!existsSync(target), 409, 'Restore into a new directory, then validate and switch storage offline.');
   const payload = JSON.parse(decrypt(readFileSync(archive), Buffer.from(key, 'hex')).toString());
-  requireThat(payload.schema === 1 && /^[a-f0-9]{64}$/.test(payload.fileKey) && Array.isArray(payload.files));
+  requireThat([1, 2].includes(payload.schema) && /^[a-f0-9]{64}$/.test(payload.fileKey) && Array.isArray(payload.files));
   mkdirSync(join(target, 'files'), { recursive: true, mode: 0o700 });
   const marker = join(target, '.restore-incomplete'); writeFileSync(marker, '', { mode: 0o600 });
   writeFileSync(join(target, 'clinic.sqlite'), Buffer.from(payload.database, 'base64'), { mode: 0o600 });
   const db = new DatabaseSync(join(target, 'clinic.sqlite'));
   try {
     requireThat(db.prepare('PRAGMA integrity_check').get().integrity_check === 'ok', 400, 'Restore integrity failed.');
-    requireThat(db.prepare('PRAGMA user_version').get().user_version === 1);
+    // The archive's schema must match its database; opening a v1 restore
+    // with this server migrates it forward.
+    requireThat(db.prepare('PRAGMA user_version').get().user_version === payload.schema);
     const expected = db.prepare('SELECT * FROM files').all();
     requireThat(expected.length === payload.files.length);
     const seen = new Set();

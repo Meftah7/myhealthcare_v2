@@ -701,7 +701,7 @@ abstract class AppLocalizations {
   /// No description provided for @referralRequestStatusActioned.
   ///
   /// In en, this message translates to:
-  /// **'Actioned'**
+  /// **'Actioned in clinic'**
   String get referralRequestStatusActioned;
 
   /// No description provided for @referralRequestStatusRejected.
@@ -7229,7 +7229,7 @@ abstract class AppLocalizations {
   /// No description provided for @referralRequestStatusArranged.
   ///
   /// In en, this message translates to:
-  /// **'Arranged'**
+  /// **'Arranged in clinic'**
   String get referralRequestStatusArranged;
 
   /// No description provided for @referralRequestStatusClosed.
@@ -10213,6 +10213,216 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A future version may connect supported smartwatches. No device integration or permissions exist in this version, so nothing is synced.'**
   String get svcWatchesBody;
+
+  /// No description provided for @htIdealWeightDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimate a reference weight for your height, with the healthy-weight range.'**
+  String get htIdealWeightDesc;
+
+  /// No description provided for @htBodyFatDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimate body-fat percentage from tape measurements.'**
+  String get htBodyFatDesc;
+
+  /// No description provided for @htDueDateDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimate a due date from the first day of your last period.'**
+  String get htDueDateDesc;
+
+  /// No description provided for @htOvulationDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimate your next ovulation and likely fertile days.'**
+  String get htOvulationDesc;
+
+  /// No description provided for @htSexLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sex used by the formula'**
+  String get htSexLabel;
+
+  /// No description provided for @htMale.
+  ///
+  /// In en, this message translates to:
+  /// **'Male'**
+  String get htMale;
+
+  /// No description provided for @htFemale.
+  ///
+  /// In en, this message translates to:
+  /// **'Female'**
+  String get htFemale;
+
+  /// No description provided for @htNeckCm.
+  ///
+  /// In en, this message translates to:
+  /// **'Neck (cm)'**
+  String get htNeckCm;
+
+  /// No description provided for @htWaistCm.
+  ///
+  /// In en, this message translates to:
+  /// **'Waist at navel (cm)'**
+  String get htWaistCm;
+
+  /// No description provided for @htHipCm.
+  ///
+  /// In en, this message translates to:
+  /// **'Hips at widest (cm)'**
+  String get htHipCm;
+
+  /// No description provided for @htLmpLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'First day of last period'**
+  String get htLmpLabel;
+
+  /// No description provided for @htPickDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose date'**
+  String get htPickDate;
+
+  /// No description provided for @htCycleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Usual cycle length (days, 21–35)'**
+  String get htCycleLabel;
+
+  /// No description provided for @htEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimate'**
+  String get htEstimate;
+
+  /// No description provided for @htIdealDevine.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference weight (Devine)'**
+  String get htIdealDevine;
+
+  /// No description provided for @htHealthyRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Healthy-weight range for your height (BMI 18.5–24.9)'**
+  String get htHealthyRange;
+
+  /// No description provided for @htBodyFatResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated body fat'**
+  String get htBodyFatResult;
+
+  /// No description provided for @htDueResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated due date'**
+  String get htDueResult;
+
+  /// No description provided for @htGestation.
+  ///
+  /// In en, this message translates to:
+  /// **'About {weeks} weeks {days} days today'**
+  String htGestation(String weeks, String days);
+
+  /// No description provided for @htOvulationResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated ovulation'**
+  String get htOvulationResult;
+
+  /// No description provided for @htFertileWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'Likely fertile days'**
+  String get htFertileWindow;
+
+  /// No description provided for @htNextPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Next period expected'**
+  String get htNextPeriod;
+
+  /// No description provided for @htInvalidInput.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the values. This estimate only works for adults within the ranges shown.'**
+  String get htInvalidInput;
+
+  /// No description provided for @htPregnancyLimits.
+  ///
+  /// In en, this message translates to:
+  /// **'For regular 21–35 day cycles only. Calendar estimates can be off by a week or more. This is not a pregnancy test or contraception; confirm pregnancy dating with your clinician. Nothing you enter is saved.'**
+  String get htPregnancyLimits;
+
+  /// No description provided for @htBodyLimits.
+  ///
+  /// In en, this message translates to:
+  /// **'For adults. Tape-measure and height formulas can differ from clinical body-composition tests and do not suit pregnancy, amputation or very muscular builds. Nothing you enter is saved.'**
+  String get htBodyLimits;
+
+  /// No description provided for @htMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Method: {method}'**
+  String htMethod(String method);
+
+  /// No description provided for @encStageDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft — not yet signed'**
+  String get encStageDraft;
+
+  /// No description provided for @encStageAwaitingSignature.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft saved — awaiting a doctor\'s signature'**
+  String get encStageAwaitingSignature;
+
+  /// No description provided for @encStageSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Save failed — your latest changes are not saved'**
+  String get encStageSaveFailed;
+
+  /// No description provided for @encStageSigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed and completed'**
+  String get encStageSigned;
+
+  /// No description provided for @encStageNotStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit not started'**
+  String get encStageNotStarted;
+
+  /// No description provided for @encOpenVisit.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit'**
+  String get encOpenVisit;
+
+  /// No description provided for @encResponsible.
+  ///
+  /// In en, this message translates to:
+  /// **'Responsible: {name}'**
+  String encResponsible(String name);
+
+  /// No description provided for @encYou.
+  ///
+  /// In en, this message translates to:
+  /// **'you'**
+  String get encYou;
+
+  /// No description provided for @encPatientRef.
+  ///
+  /// In en, this message translates to:
+  /// **'ID {id}'**
+  String encPatientRef(String id);
 }
 
 class _AppLocalizationsDelegate

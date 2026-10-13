@@ -95,6 +95,75 @@ void main() {
     });
   });
 
+  group('stock', () {
+    test('receives a batch once and refuses an expired one', () async {
+      final (c, db) = await seededContainer();
+      await signInAs(c, 'pharmacy@myhealth.demo');
+      final repo = c.read(pharmacyRepositoryProvider);
+      final input = ReceiveStockInput(
+        itemName: 'Amoxicillin',
+        batch: 'B-1',
+        expiry: DateTime.now().add(const Duration(days: 100)),
+        quantity: 50,
+        idempotencyKey: 'rx-1',
+      );
+      expect((await repo.receive(input)).isOk, isTrue);
+      expect((await repo.receive(input)).isOk, isTrue); // retry
+      expect(await db.select(db.pharmacyStockBatches).get(), hasLength(1));
+      final expired = await repo.receive(
+        ReceiveStockInput(
+          itemName: 'Amoxicillin',
+          batch: 'B-0',
+          expiry: DateTime.now().subtract(const Duration(days: 1)),
+          quantity: 5,
+          idempotencyKey: 'rx-0',
+        ),
+      );
+      expect(expired.failureOrNull, isA<ValidationFailure>());
+    });
+
+    test('dispensing from a batch decrements it exactly once', () async {
+      final (c, db) = await seededContainer();
+      await signInAs(c, 'pharmacy@myhealth.demo');
+      final repo = c.read(pharmacyRepositoryProvider);
+      final order = (await repo.queue()).valueOrNull!.first;
+      final batch = (await repo.receive(
+        ReceiveStockInput(
+          itemName: order.name,
+          batch: 'LOT-9',
+          expiry: DateTime.now().add(const Duration(days: 200)),
+          quantity: 10,
+          idempotencyKey: 'rx-9',
+        ),
+      )).valueOrNull!;
+      DispenseInput take(int units, String key) => DispenseInput(
+        medicationId: order.medicationId,
+        outcome: DispenseOutcome.partial,
+        patientVerified: true,
+        quantity: '$units',
+        note: 'Rest to follow',
+        stockBatchId: batch.id,
+        units: units,
+        idempotencyKey: key,
+      );
+      expect((await repo.record(take(4, 'd1'))).isOk, isTrue);
+      expect((await repo.record(take(4, 'd1'))).isOk, isTrue); // retry
+      var left = (await repo.stock()).valueOrNull!.single.quantity;
+      expect(left, 6);
+      // More than is left is refused and changes nothing.
+      expect(
+        (await repo.record(take(7, 'd2'))).failureOrNull,
+        isA<ConflictFailure>(),
+      );
+      left = (await repo.stock()).valueOrNull!.single.quantity;
+      expect(left, 6);
+      final rows = await db.select(db.medicationDispenses).get();
+      expect(rows, hasLength(1));
+      expect(rows.single.batch, 'LOT-9');
+      expect(rows.single.units, 4);
+    });
+  });
+
   test('waiting work stores a first-class next review time', () async {
     final (c, _) = await seededContainer();
     const owner = 'staff_01';

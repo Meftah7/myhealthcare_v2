@@ -1416,6 +1416,43 @@ class DocumentServiceImpl implements DocumentService {
       });
 
   @override
+  Future<Result<IssuedDocument>> findForDesk(String reference) =>
+      Result.guardAsync(() async {
+        await _access.require(
+          Permission.confirmDocumentCopy,
+          entityType: 'issued_document',
+        );
+        final code = reference.trim().toUpperCase();
+        if (code.isEmpty) {
+          throw const ValidationFailure('Enter the document reference.');
+        }
+        final row = await (_db.select(
+          _db.documentVerifications,
+        )..where((t) => t.code.upper().equals(code))).getSingleOrNull();
+        if (row == null) {
+          throw const NotFoundFailure(
+            'No issued document has that reference. Check it, or the copy '
+            'may still be awaiting clinical signature.',
+          );
+        }
+        final versionId = row.issuedVersionId;
+        if (versionId == null) {
+          throw const NotFoundFailure(
+            'This reference belongs to an older document format. Use '
+            'Verify document to check it; it cannot be confirmed here.',
+          );
+        }
+        final issued = await _issued(versionId);
+        await _access.audit(
+          'document.desk_lookup',
+          entityType: 'issued_document',
+          entityId: issued.id,
+          subjectPatientId: issued.patientId,
+        );
+        return issued;
+      });
+
+  @override
   Future<Result<DateTime>> confirmIssuedCopy(
     String issuedVersionId, {
     required bool recipientIdentityChecked,

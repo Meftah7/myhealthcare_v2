@@ -28,7 +28,7 @@ class MyHealthCareApp extends ConsumerWidget {
     final highContrast = ref.watch(highContrastProvider);
     final user = ref.watch(currentUserProvider);
     // Patients, guests and the sign-in screens use the approved blue patient
-    // theme; staff and admin workspaces keep their own palette.
+    // geometry; staff/admin share these colours with their existing geometry.
     final patientLook = user == null || user.role == UserRole.patient;
     return MaterialApp.router(
       // Dispose the navigator, open dialogs/PDF previews and widget-local

@@ -175,8 +175,12 @@ class AdminWorkspace {
       }
     }
     if (actor.permissions.contains(Permission.manageSettings)) {
-      for (final r in await db.select(db.documentRequests).get()) {
-        if (!{'draft', 'submitted', 'approved'}.contains(r.status)) continue;
+      // Filter in SQL, not by loading every request ever made.
+      for (final r
+          in await (db.select(db.documentRequests)..where(
+                (d) => d.status.isIn(const ['draft', 'submitted', 'approved']),
+              ))
+              .get()) {
         work.add(
           AdminWork(
             type: AdminQueue.document,
@@ -192,8 +196,12 @@ class AdminWorkspace {
       }
     }
     if (actor.permissions.contains(Permission.broadcastNotifications)) {
-      for (final r in await db.select(db.reminders).get()) {
-        if (r.deliveryStatus != ReminderDeliveryStatus.failed) continue;
+      for (final r
+          in await (db.select(db.reminders)..where(
+                (m) =>
+                    m.deliveryStatus.equalsValue(ReminderDeliveryStatus.failed),
+              ))
+              .get()) {
         work.add(
           AdminWork(
             type: AdminQueue.delivery,
@@ -205,8 +213,9 @@ class AdminWorkspace {
           ),
         );
       }
-      for (final r in await db.select(db.outboxEvents).get()) {
-        if (r.status != OutboxStatus.failed) continue;
+      for (final r in await (db.select(
+        db.outboxEvents,
+      )..where((o) => o.status.equalsValue(OutboxStatus.failed))).get()) {
         work.add(
           AdminWork(
             type: AdminQueue.delivery,

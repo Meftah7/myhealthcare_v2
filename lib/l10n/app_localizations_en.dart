@@ -320,7 +320,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get referralRequestStatusPending => 'Pending';
 
   @override
-  String get referralRequestStatusActioned => 'Actioned';
+  String get referralRequestStatusActioned => 'Actioned in clinic';
 
   @override
   String get referralRequestStatusRejected => 'Rejected';
@@ -4035,7 +4035,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get referralRequestStatusAccepted => 'Accepted';
 
   @override
-  String get referralRequestStatusArranged => 'Arranged';
+  String get referralRequestStatusArranged => 'Arranged in clinic';
 
   @override
   String get referralRequestStatusClosed => 'Closed';
@@ -5732,4 +5732,127 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get svcWatchesBody =>
       'A future version may connect supported smartwatches. No device integration or permissions exist in this version, so nothing is synced.';
+
+  @override
+  String get htIdealWeightDesc =>
+      'Estimate a reference weight for your height, with the healthy-weight range.';
+
+  @override
+  String get htBodyFatDesc =>
+      'Estimate body-fat percentage from tape measurements.';
+
+  @override
+  String get htDueDateDesc =>
+      'Estimate a due date from the first day of your last period.';
+
+  @override
+  String get htOvulationDesc =>
+      'Estimate your next ovulation and likely fertile days.';
+
+  @override
+  String get htSexLabel => 'Sex used by the formula';
+
+  @override
+  String get htMale => 'Male';
+
+  @override
+  String get htFemale => 'Female';
+
+  @override
+  String get htNeckCm => 'Neck (cm)';
+
+  @override
+  String get htWaistCm => 'Waist at navel (cm)';
+
+  @override
+  String get htHipCm => 'Hips at widest (cm)';
+
+  @override
+  String get htLmpLabel => 'First day of last period';
+
+  @override
+  String get htPickDate => 'Choose date';
+
+  @override
+  String get htCycleLabel => 'Usual cycle length (days, 21–35)';
+
+  @override
+  String get htEstimate => 'Estimate';
+
+  @override
+  String get htIdealDevine => 'Reference weight (Devine)';
+
+  @override
+  String get htHealthyRange =>
+      'Healthy-weight range for your height (BMI 18.5–24.9)';
+
+  @override
+  String get htBodyFatResult => 'Estimated body fat';
+
+  @override
+  String get htDueResult => 'Estimated due date';
+
+  @override
+  String htGestation(String weeks, String days) {
+    return 'About $weeks weeks $days days today';
+  }
+
+  @override
+  String get htOvulationResult => 'Estimated ovulation';
+
+  @override
+  String get htFertileWindow => 'Likely fertile days';
+
+  @override
+  String get htNextPeriod => 'Next period expected';
+
+  @override
+  String get htInvalidInput =>
+      'Check the values. This estimate only works for adults within the ranges shown.';
+
+  @override
+  String get htPregnancyLimits =>
+      'For regular 21–35 day cycles only. Calendar estimates can be off by a week or more. This is not a pregnancy test or contraception; confirm pregnancy dating with your clinician. Nothing you enter is saved.';
+
+  @override
+  String get htBodyLimits =>
+      'For adults. Tape-measure and height formulas can differ from clinical body-composition tests and do not suit pregnancy, amputation or very muscular builds. Nothing you enter is saved.';
+
+  @override
+  String htMethod(String method) {
+    return 'Method: $method';
+  }
+
+  @override
+  String get encStageDraft => 'Draft — not yet signed';
+
+  @override
+  String get encStageAwaitingSignature =>
+      'Draft saved — awaiting a doctor\'s signature';
+
+  @override
+  String get encStageSaveFailed =>
+      'Save failed — your latest changes are not saved';
+
+  @override
+  String get encStageSigned => 'Signed and completed';
+
+  @override
+  String get encStageNotStarted => 'Visit not started';
+
+  @override
+  String get encOpenVisit => 'Visit';
+
+  @override
+  String encResponsible(String name) {
+    return 'Responsible: $name';
+  }
+
+  @override
+  String get encYou => 'you';
+
+  @override
+  String encPatientRef(String id) {
+    return 'ID $id';
+  }
 }

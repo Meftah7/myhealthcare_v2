@@ -75,7 +75,7 @@ void main() {
       final initial = nameColor();
       expect(
         initial,
-        AppColors.light.onSurface,
+        AppColors.patientLight.onSurface,
         reason: 'first-launch colour should be the light-theme onSurface',
       );
 
@@ -85,7 +85,7 @@ void main() {
       final afterDark = nameColor();
       expect(
         afterDark,
-        AppColors.dark.onSurface,
+        AppColors.patientDark.onSurface,
         reason:
             'after switching to dark, colour should be the dark-theme '
             'onSurface, not the stale light-theme value',
@@ -99,7 +99,7 @@ void main() {
       final backToLight = nameColor();
       expect(
         backToLight,
-        AppColors.light.onSurface,
+        AppColors.patientLight.onSurface,
         reason:
             'switching back to light should restore the exact original '
             'colour, not something else',

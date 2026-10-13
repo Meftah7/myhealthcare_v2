@@ -38,6 +38,9 @@ enum StaffRole {
   }
 }
 
+/// One dental chart entry: what was seen, what is planned, what was done.
+enum DentalEntryKind { observation, planned, completed }
+
 /// A pharmacy outcome recorded against a prescription.
 enum DispenseOutcome { dispensed, partial, held, clarificationRequested }
 

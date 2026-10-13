@@ -14,7 +14,6 @@ import '../features/admin/presentation/admin_ai_log_screen.dart';
 import '../features/admin/presentation/admin_appointments_screen.dart';
 import '../features/admin/presentation/admin_billing_screen.dart';
 import '../features/admin/presentation/admin_clinic_documents.dart';
-import '../features/admin/presentation/admin_dashboard_screen.dart';
 import '../features/admin/presentation/admin_feedback_screen.dart';
 import '../features/admin/presentation/admin_finance_report.dart';
 import '../features/admin/presentation/admin_forecast_screen.dart';
@@ -56,6 +55,7 @@ import '../features/care/presentation/staff_inbox_screen.dart';
 import '../features/consultation/presentation/consultation_screen.dart';
 import '../features/health_tools/domain/lab_conversion.dart';
 import '../features/health_tools/presentation/emergency_services_screen.dart';
+import '../features/health_tools/presentation/estimate_screens.dart';
 import '../features/health_tools/presentation/health_tools_directory.dart';
 import '../features/health_tools/presentation/health_tools_screens.dart';
 import '../features/health_tools/presentation/lab_converter_screen.dart';
@@ -67,6 +67,7 @@ import '../features/patient/presentation/linked_account_screen.dart';
 import '../features/patient/presentation/patient_drawer.dart';
 import '../features/patient/presentation/profile_section_pages.dart';
 import '../features/patient/presentation/visited_doctors_screen.dart';
+import '../features/patient_chart/presentation/dental_chart_screen.dart';
 import '../features/patient_chart/presentation/patient_chart_screen.dart';
 import '../features/patient_chart/presentation/patient_summary_screen.dart';
 import '../features/patient_home/presentation/patient_home_screen.dart';
@@ -91,6 +92,7 @@ import '../features/tasks/presentation/task_detail_screen.dart';
 import '../features/timeline/presentation/health_records_screen.dart';
 import '../features/vitals/presentation/vitals_screen.dart';
 import '../l10n/app_localizations.dart';
+import 'shared_mode.dart';
 import 'shell/app_shell.dart';
 
 /// The app's [GoRouter], rebuilt-aware of the session and the one-time
@@ -117,6 +119,7 @@ bool _canAccess(String location, UserRole role) {
     UserRole.admin => '/admin',
   };
   return location == '/' ||
+      location == sharedUnavailableRoute ||
       location.startsWith(area) ||
       isPublicInfoRoute(location);
 }
@@ -177,6 +180,10 @@ abstract final class AppRoutes {
   static const patientCalculators = '/patient/home/calculators';
   static const patientConverters = '/patient/home/converters';
   static const patientBodyMeasurements = '$patientCalculators/bmi';
+  static const patientIdealWeight = '$patientCalculators/ideal-weight';
+  static const patientBodyFat = '$patientCalculators/body-fat';
+  static const patientDueDate = '$patientCalculators/due-date';
+  static const patientOvulation = '$patientCalculators/ovulation';
   static const patientGeneralConverters = '$patientConverters/general';
   static const patientEmergency = '/patient/home/emergency';
 
@@ -279,6 +286,12 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
     redirect: (context, state) => _guard(ref, state, launch),
     routes: [
       GoRoute(path: '/', builder: (_, _) => const _SplashScreen()),
+      GoRoute(
+        path: sharedUnavailableRoute,
+        builder: (_, state) => SharedModeUnavailableScreen(
+          from: state.uri.queryParameters['from'],
+        ),
+      ),
       GoRoute(path: AppRoutes.login, builder: (_, _) => const LoginScreen()),
       GoRoute(
         path: AppRoutes.register,
@@ -461,6 +474,14 @@ String? _guard(Ref ref, GoRouterState state, _LaunchState launch) {
     return homeForRole(user.role);
   }
   if (!_canAccess(loc, user.role)) return homeForRole(user.role);
+  // Shared-server mode: a screen that reads the device database has no
+  // server data to show; explain instead of showing empty local data.
+  if (ref.read(sharedModeProvider) && sharedModeBlocks(loc)) {
+    return Uri(
+      path: sharedUnavailableRoute,
+      queryParameters: {'from': loc},
+    ).toString();
+  }
   return null;
 }
 
@@ -620,6 +641,22 @@ StatefulShellRoute _patientShell() {
                   GoRoute(
                     path: 'bmi',
                     builder: (_, _) => const BodyMeasurementsScreen(),
+                  ),
+                  GoRoute(
+                    path: 'ideal-weight',
+                    builder: (_, _) => const IdealWeightScreen(),
+                  ),
+                  GoRoute(
+                    path: 'body-fat',
+                    builder: (_, _) => const BodyFatScreen(),
+                  ),
+                  GoRoute(
+                    path: 'due-date',
+                    builder: (_, _) => const DueDateScreen(),
+                  ),
+                  GoRoute(
+                    path: 'ovulation',
+                    builder: (_, _) => const OvulationScreen(),
                   ),
                 ],
               ),
@@ -909,6 +946,12 @@ StatefulShellRoute _staffShell() {
                       patientId: state.pathParameters['id']!,
                     ),
                   ),
+                  GoRoute(
+                    path: 'dental',
+                    builder: (_, state) => DentalChartScreen(
+                      patientId: state.pathParameters['id']!,
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -1037,7 +1080,7 @@ StatefulShellRoute _adminShell() {
         routes: [
           GoRoute(
             path: AppRoutes.adminDashboard,
-            builder: (_, _) => const AdminDashboardScreen(),
+            builder: (_, _) => const AdminHomeSwitch(),
             routes: [
               GoRoute(
                 path: 'search',

@@ -120,6 +120,31 @@ class PatientRepositoryImpl implements PatientRepository {
   }
 
   @override
+  Future<Result<List<Patient>>> clinicallyVisible({
+    String query = '',
+    int limit = 30,
+  }) => Result.guardAsync(() async {
+    await _access.requireStaffOrAdmin(entityType: 'patient');
+    final ids = await _access.clinicallyVisiblePatientIds();
+    if (ids != null && ids.isEmpty) return const <Patient>[];
+    final q = '%${query.trim()}%';
+    final users =
+        await (_db.select(_db.users)
+              ..where(
+                (u) =>
+                    u.role.equalsValue(UserRole.patient) &
+                    (ids == null ? const Constant(true) : u.id.isIn(ids)) &
+                    (u.fullName.like(q) |
+                        u.nationalId.like(q) |
+                        u.phone.like(q)),
+              )
+              ..orderBy([(u) => OrderingTerm(expression: u.fullName)])
+              ..limit(limit))
+            .get();
+    return _redact(await _attachProfiles(users));
+  });
+
+  @override
   Future<Result<List<Patient>>> all({int limit = 100, int offset = 0}) {
     return Result.guardAsync(() async {
       await _access.requireStaffOrAdmin(entityType: 'patient');

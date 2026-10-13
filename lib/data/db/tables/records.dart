@@ -246,6 +246,51 @@ class MedicationDispenses extends Table {
   TextColumn get idempotencyKey => text().unique()();
   DateTimeColumn get recordedAt => dateTime()();
 
+  /// v33: the stock batch supplied from and how many units it lost.
+  TextColumn get stockBatchId => text().nullable()();
+  IntColumn get units => integer().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+/// Pharmacy stock, one row per received batch. [quantity] only changes by
+/// receipt and by dispensing records in the same transaction.
+@DataClassName('StockBatchRow')
+class PharmacyStockBatches extends Table {
+  TextColumn get id => text()();
+  TextColumn get itemName => text().withLength(min: 1, max: 200)();
+  TextColumn get batch => text().withLength(min: 1, max: 80)();
+  DateTimeColumn get expiry => dateTime()();
+  IntColumn get quantity => integer()();
+  TextColumn get unit => text().withDefault(const Constant('units'))();
+  TextColumn get receivedBy => text().references(Users, #id)();
+  DateTimeColumn get receivedAt => dateTime()();
+  TextColumn get idempotencyKey => text().unique()();
+  IntColumn get version => integer().withDefault(const Constant(1))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+/// Append-only dental chart (FDI two-digit tooth numbers), bound to the
+/// patient and the visit it was recorded in.
+@DataClassName('DentalChartEntryRow')
+class DentalChartEntries extends Table {
+  TextColumn get id => text()();
+  TextColumn get patientId => text().references(Users, #id)();
+  TextColumn get appointmentId => text().references(Appointments, #id)();
+  IntColumn get tooth => integer()();
+  TextColumn get kind => textEnum<DentalEntryKind>()();
+  TextColumn get surface => text().nullable()();
+  TextColumn get note => text().withLength(min: 1, max: 1000)();
+
+  /// For a completed entry: the planned entry it fulfils.
+  TextColumn get fulfilsId => text().nullable()();
+  TextColumn get authorId => text().references(Users, #id)();
+  DateTimeColumn get createdAt => dateTime()();
+  TextColumn get idempotencyKey => text().unique()();
+
   @override
   Set<Column<Object>> get primaryKey => {id};
 }

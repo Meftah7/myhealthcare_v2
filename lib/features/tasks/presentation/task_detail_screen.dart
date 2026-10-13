@@ -5,12 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
+import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
 import '../../../core/failures.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
+import '../../../core/ui/patient/patient_components.dart';
 import '../../../core/utils/format.dart';
 import '../../../data/repositories/task_workflow.dart';
 import '../../../domain/entities/staff_task.dart';
@@ -18,6 +20,7 @@ import '../../../domain/enums.dart';
 import '../../auth/application/session.dart';
 import '../../patient_chart/presentation/result_review_sheet.dart';
 import '../../staff_dashboard/application/staff_providers.dart';
+import '../application/task_list.dart';
 
 String workText(BuildContext c, String en, String ar) =>
     Localizations.localeOf(c).languageCode == 'ar' ? ar : en;
@@ -286,6 +289,11 @@ class TaskDetailScreen extends ConsumerWidget {
                   ],
                 ),
               const Divider(),
+              _HandoverBadge(
+                handoverState([
+                  for (final h in data.history) (h.action, h.afterJson, h.at),
+                ], DateTime.now()),
+              ),
               Text(
                 workText(context, 'History and reasons', 'السجل والأسباب'),
                 style: Theme.of(context).textTheme.titleMedium,
@@ -780,6 +788,60 @@ class _HandoverScreenState extends ConsumerState<HandoverScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _HandoverBadge extends StatelessWidget {
+  const _HandoverBadge(this.state);
+
+  final HandoverState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final (label, accent, icon) = switch (state) {
+      HandoverState.none => (null, PatientAccent.neutral, Icons.remove),
+      HandoverState.pending => (
+        workText(
+          context,
+          'Handover offered: awaiting acceptance. Responsibility has not moved.',
+          'تم عرض التسليم: بانتظار القبول. لم تنتقل المسؤولية.',
+        ),
+        PatientAccent.amber,
+        Icons.hourglass_top,
+      ),
+      HandoverState.accepted => (
+        workText(
+          context,
+          'Handover accepted by the receiving colleague.',
+          'قبل الزميل المستلم التسليم.',
+        ),
+        PatientAccent.green,
+        Icons.check,
+      ),
+      HandoverState.declined => (
+        workText(
+          context,
+          'Handover declined. Responsibility stays with the owner.',
+          'رُفض التسليم. تبقى المسؤولية على المسؤول الأصلي.',
+        ),
+        PatientAccent.red,
+        Icons.close,
+      ),
+      HandoverState.expired => (
+        workText(
+          context,
+          'Handover expired. Temporary access has ended; the owner is responsible.',
+          'انتهى التسليم. انتهى الوصول المؤقت؛ المسؤولية على المسؤول الأصلي.',
+        ),
+        PatientAccent.neutral,
+        Icons.timer_off_outlined,
+      ),
+    };
+    if (label == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: Space.sm),
+      child: StatusBadge(label, accent: accent, icon: icon),
     );
   }
 }

@@ -75,9 +75,17 @@ void main() {
       expect(dark.extension<PatientPalette>()!.link, const Color(0xFF9ABEFF));
     });
 
-    test('staff/admin themes keep their own palette', () {
-      expect(AppTheme.light.colorScheme.primary, const Color(0xFF4275A3));
-      expect(AppTheme.light.extension<PatientPalette>(), isNull);
+    test('staff/admin themes share the approved patient palette', () {
+      expect(AppTheme.light.colorScheme, AppTheme.patientLight.colorScheme);
+      expect(AppTheme.dark.colorScheme, AppTheme.patientDark.colorScheme);
+      expect(
+        AppTheme.light.extension<PatientPalette>(),
+        same(PatientPalette.light),
+      );
+      expect(
+        AppTheme.dark.extension<PatientPalette>(),
+        same(PatientPalette.dark),
+      );
     });
   });
 
@@ -148,13 +156,11 @@ void main() {
         'nutrition',
         'vitals',
         'summary',
-        'messages',
         'notifications',
         'home-visits',
         'billing',
         'family',
         'feedback',
-        'calculators',
         'converters',
         'emergency',
         'specialty-guide',
@@ -169,6 +175,14 @@ void main() {
         expect(
           all.firstWhere((i) => i.id == id).isFutureWork,
           isTrue,
+          reason: id,
+        );
+      }
+      // Owner-approved scope (2026-10-13): Messages and the calculators.
+      for (final id in ['messages', 'calculators']) {
+        expect(
+          all.firstWhere((i) => i.id == id).isFutureWork,
+          isFalse,
           reason: id,
         );
       }

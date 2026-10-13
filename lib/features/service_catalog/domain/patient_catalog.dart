@@ -225,7 +225,8 @@ abstract final class PatientCatalog {
     icon: Icons.forum_outlined,
     action: CatalogActionKind.route,
     route: AppRoutes.patientMessages,
-    scope: CatalogScope.supplementary,
+    // Owner-approved primary destination (2026-10-13 brief).
+    scope: CatalogScope.core,
   );
   static final notifications = CatalogItem(
     id: 'notifications',
@@ -297,7 +298,8 @@ abstract final class PatientCatalog {
     accent: PatientAccent.green,
     action: CatalogActionKind.route,
     route: AppRoutes.patientCalculators,
-    scope: CatalogScope.supplementary,
+    // Owner-approved current scope (2026-10-13): working estimates.
+    scope: CatalogScope.core,
   );
   static final converters = CatalogItem(
     id: 'converters',

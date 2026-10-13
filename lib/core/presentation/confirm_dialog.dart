@@ -19,6 +19,12 @@ Future<bool> confirm(
     context: context,
     builder: (context) {
       final t = AppLocalizations.of(context)!;
+      final theme = Theme.of(context);
+      // Preserve the existing patient destructive action; staff/admin resolve
+      // their semantic foreground/background pair from the active theme.
+      final destructiveScheme = Radii.cardOf(context) == Radii.card
+          ? theme.colorScheme
+          : AppColors.patientLight;
       return AlertDialog(
         title: Text(title),
         content: Text(message),
@@ -31,12 +37,8 @@ Future<bool> confirm(
             onPressed: () => Navigator.of(context).pop(true),
             style: destructive
                 ? FilledButton.styleFrom(
-                    // Fixed to the light scheme's red in both modes — dark
-                    // mode's `error` role is a pale pink meant for
-                    // text-on-surface, not a button fill (see profile
-                    // screens' Sign out button, which hits the same issue).
-                    backgroundColor: AppColors.light.error,
-                    foregroundColor: Colors.white,
+                    backgroundColor: destructiveScheme.error,
+                    foregroundColor: destructiveScheme.onError,
                   )
                 : null,
             child: Text(confirmLabel ?? t.confirm),

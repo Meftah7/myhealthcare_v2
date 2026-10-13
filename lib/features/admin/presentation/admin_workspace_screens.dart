@@ -5,11 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
 import '../../../core/presentation/app_scaffold.dart';
-import '../../../core/presentation/readable_label.dart';
 import '../../../core/presentation/feedback.dart';
 import '../../../core/result.dart';
+import '../../../core/ui/patient/workspace_home.dart';
 import '../../../core/utils/format.dart';
 import '../../../data/repositories/admin_workspace.dart';
 import '../../../domain/identity/permissions.dart';
@@ -65,79 +66,86 @@ class _OverviewState extends ConsumerState<AdminWorkspaceOverview> {
   Widget build(BuildContext c) => ref
       .watch(adminWorkProvider)
       .when(
-        loading: () => Column(
-          children: [
-            const LinearProgressIndicator(),
-            Text(
-              adminText(
-                c,
-                'Checking operational queues…',
-                'جار التحقق من قوائم العمل…',
-              ),
-            ),
-          ],
+        loading: () => NavyFeatureCard(
+          icon: Icons.hourglass_top,
+          title: adminText(
+            c,
+            'Checking operational queues…',
+            'جار التحقق من قوائم العمل…',
+          ),
+          body: adminText(
+            c,
+            'Counts appear once every queue has been read.',
+            'تظهر الأعداد بعد قراءة جميع القوائم.',
+          ),
         ),
-        error: (e, _) => Column(
-          children: [
-            Text(
-              adminText(
-                c,
-                'Queues could not be checked.',
-                'تعذر التحقق من قوائم العمل',
-              ),
-            ),
-            TextButton(
-              onPressed: () => ref.invalidate(adminWorkProvider),
-              child: Text(adminText(c, 'Retry', 'إعادة المحاولة')),
-            ),
-          ],
+        // A failed read is never shown as "nothing to do".
+        error: (e, _) => NavyFeatureCard(
+          icon: Icons.error_outline,
+          title: adminText(
+            c,
+            'Queues could not be checked.',
+            'تعذر التحقق من قوائم العمل',
+          ),
+          body: adminText(
+            c,
+            'Work may be waiting. Retry before assuming the queues are clear.',
+            'قد يكون هناك عمل بانتظارك. أعد المحاولة قبل افتراض خلو القوائم.',
+          ),
+          actionLabel: adminText(c, 'Retry', 'إعادة المحاولة'),
+          onAction: () => ref.invalidate(adminWorkProvider),
         ),
         data: (rows) {
           final open = {
             for (final w in rows.where((w) => w.state != 'resolved')) w.id: w,
           };
+          final unassigned = open.values.where((w) => w.owner == null).length;
+          final overdue = open.values.where((w) => w.overdue).length;
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ReadableLabel(
-                '${adminText(c, 'Operational items needing attention', 'عناصر المتابعة الإدارية')}: ${open.length}',
-                style: Theme.of(c).textTheme.headlineSmall,
+              NavyFeatureCard(
+                icon: Icons.assignment_late_outlined,
+                overline: adminText(c, 'Clinic operations', 'عمليات العيادة'),
+                title:
+                    '${adminText(c, 'Operational items needing attention', 'عناصر المتابعة الإدارية')}: ${open.length}',
+                body:
+                    '${adminText(c, 'Unassigned', 'غير مسند')}: $unassigned · '
+                    '${adminText(c, 'Overdue', 'متأخر')}: $overdue',
+                actionLabel: adminText(c, 'Open work queue', 'فتح قائمة العمل'),
+                onAction: () => c.push('/admin/work'),
               ),
-              for (final (en, ar, filter, count) in [
-                (
-                  'Unassigned',
-                  'غير مسند',
-                  'unassigned',
-                  open.values.where((w) => w.owner == null).length,
-                ),
-                (
-                  'Overdue',
-                  'متأخر',
-                  'overdue',
-                  open.values.where((w) => w.overdue).length,
-                ),
-                (
-                  'Document approvals',
-                  'اعتمادات المستندات',
-                  'document',
-                  open.values
-                      .where((w) => w.type == AdminQueue.document)
-                      .length,
-                ),
-                (
-                  'Delivery failures',
-                  'فشل التسليم',
-                  'delivery',
-                  open.values
-                      .where((w) => w.type == AdminQueue.delivery)
-                      .length,
-                ),
-              ])
-                ListTile(
-                  title: Text(adminText(c, en, ar)),
-                  trailing: Text('$count'),
-                  onTap: () => c.push('/admin/work?filter=$filter'),
-                ),
+              const SizedBox(height: Space.sm),
+              Wrap(
+                spacing: Space.xs,
+                runSpacing: Space.xs,
+                children: [
+                  for (final (en, ar, filter, count) in [
+                    ('Unassigned', 'غير مسند', 'unassigned', unassigned),
+                    ('Overdue', 'متأخر', 'overdue', overdue),
+                    (
+                      'Document approvals',
+                      'اعتمادات المستندات',
+                      'document',
+                      open.values
+                          .where((w) => w.type == AdminQueue.document)
+                          .length,
+                    ),
+                    (
+                      'Delivery failures',
+                      'فشل التسليم',
+                      'delivery',
+                      open.values
+                          .where((w) => w.type == AdminQueue.delivery)
+                          .length,
+                    ),
+                  ])
+                    ActionChip(
+                      label: Text('${adminText(c, en, ar)}: $count'),
+                      onPressed: () => c.push('/admin/work?filter=$filter'),
+                    ),
+                ],
+              ),
             ],
           );
         },

@@ -18,34 +18,44 @@ import 'patient_palette.dart';
 import 'status_colors.dart';
 
 abstract final class AppTheme {
-  static ThemeData get light =>
-      _build(AppColors.light, ClinicalStatusColors.light, Brightness.light);
+  static ThemeData get light => _build(
+    AppColors.patientLight,
+    ClinicalStatusColors.light,
+    Brightness.light,
+    patient: PatientPalette.light,
+  );
 
-  static ThemeData get dark =>
-      _build(AppColors.dark, ClinicalStatusColors.dark, Brightness.dark);
+  static ThemeData get dark => _build(
+    AppColors.patientDark,
+    ClinicalStatusColors.dark,
+    Brightness.dark,
+    patient: PatientPalette.dark,
+  );
 
   /// High-contrast variants (Preferences → Accessibility): the same palette
   /// with full-strength text and borders, for low-vision users for whom the
   /// default hairline + tinted-surface separation is too subtle.
   static ThemeData get lightHighContrast => _build(
-    _highContrast(AppColors.light, Brightness.light),
+    _highContrast(AppColors.patientLight, Brightness.light),
     ClinicalStatusColors.light,
     Brightness.light,
+    patient: PatientPalette.light,
   );
 
   static ThemeData get darkHighContrast => _build(
-    _highContrast(AppColors.dark, Brightness.dark),
+    _highContrast(AppColors.patientDark, Brightness.dark),
     ClinicalStatusColors.dark,
     Brightness.dark,
+    patient: PatientPalette.dark,
   );
 
-  /// Patient / guest / sign-in themes — the approved blue rebuild. Staff and
-  /// admin keep [light]/[dark]; MaterialApp picks by the signed-in role.
+  /// Patient geometry with the same shared colours as staff/admin.
   static ThemeData get patientLight => _build(
     AppColors.patientLight,
     ClinicalStatusColors.light,
     Brightness.light,
     patient: PatientPalette.light,
+    patientGeometry: true,
   );
 
   static ThemeData get patientDark => _build(
@@ -53,6 +63,7 @@ abstract final class AppTheme {
     ClinicalStatusColors.dark,
     Brightness.dark,
     patient: PatientPalette.dark,
+    patientGeometry: true,
   );
 
   static ThemeData get patientLightHighContrast => _build(
@@ -60,6 +71,7 @@ abstract final class AppTheme {
     ClinicalStatusColors.light,
     Brightness.light,
     patient: PatientPalette.light,
+    patientGeometry: true,
   );
 
   static ThemeData get patientDarkHighContrast => _build(
@@ -67,6 +79,7 @@ abstract final class AppTheme {
     ClinicalStatusColors.dark,
     Brightness.dark,
     patient: PatientPalette.dark,
+    patientGeometry: true,
   );
 
   static ColorScheme _highContrast(ColorScheme s, Brightness b) {
@@ -87,6 +100,7 @@ abstract final class AppTheme {
     ClinicalStatusColors status,
     Brightness brightness, {
     PatientPalette? patient,
+    bool patientGeometry = false,
   }) {
     final text = buildTextTheme().apply(
       bodyColor: scheme.onSurface,
@@ -119,11 +133,11 @@ abstract final class AppTheme {
 
     // Patient screens use the larger rounded shapes of the approved preview
     // (cards 22, buttons 14) and keep filled actions on #246BFD in both
-    // modes; staff/admin keep the denser DESIGN.md radii.
-    final cardRadius = patient == null
+    // modes. Staff/admin share these colours and keep the denser radii.
+    final cardRadius = !patientGeometry
         ? Radii.card
         : const BorderRadius.all(Radius.circular(22));
-    final buttonRadius = patient == null
+    final buttonRadius = !patientGeometry
         ? Radii.button
         : const BorderRadius.all(Radius.circular(14));
     final action = patient?.action ?? scheme.primary;
@@ -140,8 +154,7 @@ abstract final class AppTheme {
       // Also covers primaryTextTheme and styles built outside [text].
       fontFamilyFallback: AppFonts.fallback,
       textTheme: text,
-      // Only patient themes carry PatientPalette; shared widgets use its
-      // presence to pick the patient blue over the staff/admin seed.
+      // Every role shares the approved patient colour extension.
       extensions: [status, ?patient],
       scaffoldBackgroundColor: patient?.canvas ?? scheme.surface,
       splashFactory: InkSparkle.splashFactory,
@@ -230,7 +243,7 @@ abstract final class AppTheme {
         style: FilledButton.styleFrom(
           backgroundColor: action,
           foregroundColor: onAction,
-          minimumSize: Size(0, patient == null ? 50 : 52),
+          minimumSize: Size(0, patientGeometry ? 52 : 50),
           padding: const EdgeInsets.symmetric(
             horizontal: Space.md,
             vertical: Space.sm,

@@ -104,6 +104,53 @@ class PharmacyRepositoryImpl implements PharmacyRepository {
           );
         }
         final at = DateTime.now();
+        var batchText = _blankToNull(input.batch);
+        var expiry = input.expiry;
+        final batchId = input.stockBatchId;
+        if (batchId != null) {
+          final units = input.units;
+          if (units == null || units <= 0) {
+            throw const ValidationFailure(
+              'Enter how many units leave the selected batch.',
+            );
+          }
+          final stock = await (_db.select(
+            _db.pharmacyStockBatches,
+          )..where((b) => b.id.equals(batchId))).getSingleOrNull();
+          if (stock == null) {
+            throw const ConflictFailure('That stock batch no longer exists.');
+          }
+          final today = DateTime(at.year, at.month, at.day);
+          if (!stock.expiry.isAfter(today)) {
+            throw const ValidationFailure('This batch has expired.');
+          }
+          if (stock.quantity < units) {
+            throw ConflictFailure(
+              'Only ${stock.quantity} ${stock.unit} left in batch '
+              '${stock.batch}.',
+            );
+          }
+          // Optimistic version check: two dispenses racing on one batch
+          // cannot both decrement from the same starting quantity.
+          final changed =
+              await (_db.update(_db.pharmacyStockBatches)..where(
+                    (b) =>
+                        b.id.equals(batchId) & b.version.equals(stock.version),
+                  ))
+                  .write(
+                    PharmacyStockBatchesCompanion(
+                      quantity: Value(stock.quantity - units),
+                      version: Value(stock.version + 1),
+                    ),
+                  );
+          if (changed != 1) {
+            throw const ConflictFailure(
+              'Stock changed while you were recording. Reload and retry.',
+            );
+          }
+          batchText = stock.batch;
+          expiry = stock.expiry;
+        }
         await _db
             .into(_db.medicationDispenses)
             .insert(
@@ -114,8 +161,10 @@ class PharmacyRepositoryImpl implements PharmacyRepository {
                 pharmacistId: p?.accountId ?? 'local',
                 outcome: input.outcome,
                 quantity: Value(input.quantity?.trim()),
-                batch: Value(_blankToNull(input.batch)),
-                expiry: Value(input.expiry),
+                batch: Value(batchText),
+                expiry: Value(expiry),
+                stockBatchId: Value(batchId),
+                units: Value(batchId == null ? null : input.units),
                 note: Value(_blankToNull(input.note)),
                 idempotencyKey: input.idempotencyKey,
                 recordedAt: at,
@@ -130,6 +179,86 @@ class PharmacyRepositoryImpl implements PharmacyRepository {
         return at;
       });
     },
+  );
+
+  @override
+  Future<Result<List<StockBatch>>> stock() => Result.guardAsync(() async {
+    await _access.require(
+      Permission.dispenseMedication,
+      entityType: 'pharmacy_stock',
+    );
+    final rows = await (_db.select(
+      _db.pharmacyStockBatches,
+    )..orderBy([(b) => OrderingTerm.asc(b.expiry)])).get();
+    return [for (final r in rows) _batch(r)];
+  });
+
+  @override
+  Future<Result<StockBatch>> receive(ReceiveStockInput input) =>
+      Result.guardAsync(() async {
+        final p = await _access.require(
+          Permission.dispenseMedication,
+          entityType: 'pharmacy_stock',
+        );
+        final name = input.itemName.trim();
+        final batch = input.batch.trim();
+        if (name.isEmpty || batch.isEmpty) {
+          throw const ValidationFailure('Enter the item and batch number.');
+        }
+        if (input.quantity <= 0 || input.quantity > 100000) {
+          throw const ValidationFailure('Enter a quantity from 1 to 100000.');
+        }
+        final now = DateTime.now();
+        if (!input.expiry.isAfter(DateTime(now.year, now.month, now.day))) {
+          throw const ValidationFailure('This batch has already expired.');
+        }
+        return _db.transaction(() async {
+          final prior =
+              await (_db.select(_db.pharmacyStockBatches)..where(
+                    (b) => b.idempotencyKey.equals(input.idempotencyKey),
+                  ))
+                  .getSingleOrNull();
+          if (prior != null) return _batch(prior);
+          final id = const Uuid().v4();
+          await _db
+              .into(_db.pharmacyStockBatches)
+              .insert(
+                PharmacyStockBatchesCompanion.insert(
+                  id: id,
+                  itemName: name,
+                  batch: batch,
+                  expiry: input.expiry,
+                  quantity: input.quantity,
+                  unit: Value(
+                    input.unit.trim().isEmpty ? 'units' : input.unit.trim(),
+                  ),
+                  receivedBy: p?.accountId ?? 'local',
+                  receivedAt: now,
+                  idempotencyKey: input.idempotencyKey,
+                ),
+              );
+          await _access.audit(
+            'pharmacy.stock_received',
+            entityType: 'pharmacy_stock',
+            entityId: id,
+          );
+          return _batch(
+            await (_db.select(
+              _db.pharmacyStockBatches,
+            )..where((b) => b.id.equals(id))).getSingle(),
+          );
+        });
+      });
+
+  static StockBatch _batch(StockBatchRow r) => StockBatch(
+    id: r.id,
+    itemName: r.itemName,
+    batch: r.batch,
+    expiry: r.expiry,
+    quantity: r.quantity,
+    unit: r.unit,
+    receivedAt: r.receivedAt,
+    version: r.version,
   );
 
   static void _validate(DispenseInput input) {

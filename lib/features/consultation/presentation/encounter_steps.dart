@@ -2,7 +2,9 @@ import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../app/router.dart';
+import '../../../app/shared_mode.dart';
 import '../../../core/di.dart';
 import '../../../core/failures.dart';
 import '../../../core/presentation/feedback.dart';
@@ -257,128 +259,144 @@ class EncounterSteps extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => ref
-      .watch(encounterStepsProvider(visit))
-      .when(
-        loading: () => const LinearProgressIndicator(),
-        error: (e, _) => Text('$e'),
-        data: (s) => Card(
-          child: ExpansionTile(
-            key: PageStorageKey('encounter-steps-$visit'),
-            title: Text(
-              workText(
-                context,
-                'Visit completion steps',
-                'خطوات إكمال الزيارة',
-              ),
-            ),
-            children: [
-              if (s.signed)
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: SelectableText(
-                    [s.original, ...s.amendments].join('\n\n---\n'),
+  Widget build(BuildContext context, WidgetRef ref) =>
+      // Reads the device database: no server data in shared mode.
+      ref.watch(sharedModeProvider)
+      ? const SizedBox.shrink()
+      : ref
+            .watch(encounterStepsProvider(visit))
+            .when(
+              loading: () => const LinearProgressIndicator(),
+              error: (e, _) => Text('$e'),
+              data: (s) => Card(
+                child: ExpansionTile(
+                  key: PageStorageKey('encounter-steps-$visit'),
+                  title: Text(
+                    workText(
+                      context,
+                      'Visit completion steps',
+                      'خطوات إكمال الزيارة',
+                    ),
                   ),
-                ),
-              ListTile(
-                leading: Icon(s.signed ? Icons.check_circle : Icons.edit_note),
-                title: Text(workText(context, 'Note', 'الملاحظة')),
-                subtitle: Text(
-                  s.signed
-                      ? workText(
-                          context,
-                          'Signed; corrections append to the original',
-                          'موقعة؛ تضاف التصحيحات إلى الأصل',
-                        )
-                      : s.draft
-                      ? workText(
-                          context,
-                          'Draft saved; signature pending',
-                          'المسودة محفوظة؛ التوقيع معلق',
-                        )
-                      : workText(
-                          context,
-                          'Draft not yet saved',
-                          'المسودة غير محفوظة بعد',
+                  children: [
+                    if (s.signed)
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: SelectableText(
+                          [s.original, ...s.amendments].join('\n\n---\n'),
                         ),
-                ),
-                trailing:
-                    s.signed && ref.watch(canProvider(Permission.signEncounter))
-                    ? IconButton(
-                        tooltip: workText(context, 'Amend', 'تعديل'),
-                        onPressed: () => _amend(context, ref),
-                        icon: const Icon(Icons.edit_outlined),
-                      )
-                    : null,
-              ),
-              ListTile(
-                title: Text(workText(context, 'Orders', 'الأوامر')),
-                subtitle: Text(
-                  s.orders
-                      ? workText(
+                      ),
+                    ListTile(
+                      leading: Icon(
+                        s.signed ? Icons.check_circle : Icons.edit_note,
+                      ),
+                      title: Text(workText(context, 'Note', 'الملاحظة')),
+                      subtitle: Text(
+                        s.signed
+                            ? workText(
+                                context,
+                                'Signed; corrections append to the original',
+                                'موقعة؛ تضاف التصحيحات إلى الأصل',
+                              )
+                            : s.draft
+                            ? workText(
+                                context,
+                                'Draft saved; signature pending',
+                                'المسودة محفوظة؛ التوقيع معلق',
+                              )
+                            : workText(
+                                context,
+                                'Draft not yet saved',
+                                'المسودة غير محفوظة بعد',
+                              ),
+                      ),
+                      trailing:
+                          s.signed &&
+                              ref.watch(canProvider(Permission.signEncounter))
+                          ? IconButton(
+                              tooltip: workText(context, 'Amend', 'تعديل'),
+                              onPressed: () => _amend(context, ref),
+                              icon: const Icon(Icons.edit_outlined),
+                            )
+                          : null,
+                    ),
+                    ListTile(
+                      title: Text(workText(context, 'Orders', 'الأوامر')),
+                      subtitle: Text(
+                        s.orders
+                            ? workText(
+                                context,
+                                'Orders recorded / finalized; verify below',
+                                'الأوامر مسجلة / مكتملة؛ راجع أدناه',
+                              )
+                            : workText(
+                                context,
+                                'No medication orders recorded; review whether needed',
+                                'لا توجد أوامر دوائية؛ راجع الحاجة إليها',
+                              ),
+                      ),
+                    ),
+                    ListTile(
+                      title: Text(
+                        workText(
                           context,
-                          'Orders recorded / finalized; verify below',
-                          'الأوامر مسجلة / مكتملة؛ راجع أدناه',
-                        )
-                      : workText(
-                          context,
-                          'No medication orders recorded; review whether needed',
-                          'لا توجد أوامر دوائية؛ راجع الحاجة إليها',
+                          'Review chart, results and orders',
+                          'مراجعة الملف والنتائج والأوامر',
                         ),
-                ),
-              ),
-              ListTile(
-                title: Text(
-                  workText(
-                    context,
-                    'Review chart, results and orders',
-                    'مراجعة الملف والنتائج والأوامر',
-                  ),
-                ),
-                leading: Icon(s.reviewed ? Icons.check_circle : Icons.rule),
-                onTap: () => context.push(AppRoutes.staffPatientChart(patient)),
-                trailing: IconButton(
-                  tooltip: workText(
-                    context,
-                    'Confirm reviewed',
-                    'تأكيد المراجعة',
-                  ),
-                  onPressed: s.reviewed ? null : () => _review(context, ref),
-                  icon: const Icon(Icons.check),
-                ),
-              ),
-              ListTile(
-                title: Text(workText(context, 'Follow-up', 'المتابعة')),
-                subtitle: Text(
-                  s.followUp
-                      ? workText(
+                      ),
+                      leading: Icon(
+                        s.reviewed ? Icons.check_circle : Icons.rule,
+                      ),
+                      onTap: () =>
+                          context.push(AppRoutes.staffPatientChart(patient)),
+                      trailing: IconButton(
+                        tooltip: workText(
                           context,
-                          'Follow-up task recorded',
-                          'تم تسجيل مهمة المتابعة',
-                        )
-                      : workText(
-                          context,
-                          'Record a next action and deadline if needed',
-                          'سجل الإجراء التالي والموعد عند الحاجة',
+                          'Confirm reviewed',
+                          'تأكيد المراجعة',
                         ),
-                ),
-                trailing: IconButton(
-                  tooltip: workText(context, 'Add follow-up', 'إضافة متابعة'),
-                  onPressed: () => _followUp(context, ref),
-                  icon: const Icon(Icons.add_task),
+                        onPressed: s.reviewed
+                            ? null
+                            : () => _review(context, ref),
+                        icon: const Icon(Icons.check),
+                      ),
+                    ),
+                    ListTile(
+                      title: Text(workText(context, 'Follow-up', 'المتابعة')),
+                      subtitle: Text(
+                        s.followUp
+                            ? workText(
+                                context,
+                                'Follow-up task recorded',
+                                'تم تسجيل مهمة المتابعة',
+                              )
+                            : workText(
+                                context,
+                                'Record a next action and deadline if needed',
+                                'سجل الإجراء التالي والموعد عند الحاجة',
+                              ),
+                      ),
+                      trailing: IconButton(
+                        tooltip: workText(
+                          context,
+                          'Add follow-up',
+                          'إضافة متابعة',
+                        ),
+                        onPressed: () => _followUp(context, ref),
+                        icon: const Icon(Icons.add_task),
+                      ),
+                    ),
+                    ListTile(
+                      title: Text(workText(context, 'Documents', 'الوثائق')),
+                      subtitle: Text(
+                        '${s.documents} ${workText(context, 'requests; issuance is separate', 'طلبات؛ الإصدار مستقل')}',
+                      ),
+                      onTap: () => context.push(
+                        '${AppRoutes.staffPatients}/$patient/documents?appointmentId=$visit',
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              ListTile(
-                title: Text(workText(context, 'Documents', 'الوثائق')),
-                subtitle: Text(
-                  '${s.documents} ${workText(context, 'requests; issuance is separate', 'طلبات؛ الإصدار مستقل')}',
-                ),
-                onTap: () => context.push(
-                  '${AppRoutes.staffPatients}/$patient/documents?appointmentId=$visit',
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
+            );
 }
