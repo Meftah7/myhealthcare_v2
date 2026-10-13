@@ -22,18 +22,6 @@ class HealthCalculatorsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
-    Widget unavailable(
-      String id,
-      String title,
-      String description,
-      IconData icon,
-    ) => ToolEntryRow(
-      key: ValueKey(id),
-      title: title,
-      description: description,
-      icon: icon,
-      onTap: () => explainFutureTool(context, title, description),
-    );
     Widget nutrition(String id, String title, IconData icon) => ToolEntryRow(
       key: ValueKey(id),
       title: title,
