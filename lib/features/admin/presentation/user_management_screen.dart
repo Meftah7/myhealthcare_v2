@@ -129,244 +129,264 @@ class _State extends ConsumerState<UserManagementScreen>
         icon: Icon(add.icon),
         label: Text(add.label),
       ),
-      body: Column(
-        children: [
-          TabBar(
-            controller: _tabs,
-            isScrollable: narrow || largeText,
-            tabAlignment: narrow || largeText ? TabAlignment.start : null,
-            tabs: [
-              Tab(text: t.patientsAction),
-              Tab(text: t.staffCountLabel),
-              Tab(text: t.adminsLabel),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: SearchBar(
-              controller: _search,
-              hintText: t.searchByNameOrEmailHint,
-              leading: const Icon(Icons.search),
-              onChanged: (v) => change(() => _query = v),
-            ),
-          ),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 220),
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: [
-                    field(
-                      DropdownButtonFormField<String>(
-                        key: ValueKey('status-$_status'),
-                        initialValue: _status,
-                        isExpanded: true,
-                        decoration: InputDecoration(
-                          labelText: adminText(
-                            context,
-                            'Account status',
-                            'حالة الحساب',
-                          ),
-                        ),
-                        items: [
-                          for (final v in ['all', 'active', 'inactive'])
-                            DropdownMenuItem(
-                              value: v,
-                              child: Text(
-                                v == 'all'
-                                    ? adminText(context, 'All', 'الكل')
-                                    : v == 'active'
-                                    ? adminText(context, 'Active', 'نشط')
-                                    : adminText(context, 'Inactive', 'غير نشط'),
-                              ),
-                            ),
-                        ],
-                        onChanged: (v) => change(() => _status = v!),
-                      ),
-                    ),
-                    if (_role == UserRole.staff) ...[
-                      field(
-                        DropdownButtonFormField<StaffRole>(
-                          key: ValueKey(_staffRole),
-                          initialValue: _staffRole,
-                          isExpanded: true,
-                          decoration: InputDecoration(
-                            labelText: adminText(
-                              context,
-                              'Staff role',
-                              'دور الموظف',
-                            ),
-                          ),
-                          items: [
-                            DropdownMenuItem(
-                              value: null,
-                              child: Text(
-                                adminText(context, 'All roles', 'جميع الأدوار'),
-                              ),
-                            ),
-                            for (final r in StaffRole.values)
-                              DropdownMenuItem(
-                                value: r,
-                                child: Text(wlabel(context, r.name)),
-                              ),
-                          ],
-                          onChanged: (v) => change(() => _staffRole = v),
-                        ),
-                      ),
-                      field(
-                        DropdownButtonFormField<String>(
-                          key: ValueKey(_department),
-                          initialValue: _department,
-                          isExpanded: true,
-                          decoration: InputDecoration(
-                            labelText: adminText(
-                              context,
-                              'Department',
-                              'القسم',
-                            ),
-                          ),
-                          items: [
-                            DropdownMenuItem(
-                              value: null,
-                              child: Text(
-                                adminText(
-                                  context,
-                                  'All departments',
-                                  'كل الأقسام',
-                                ),
-                              ),
-                            ),
-                            for (final d
-                                in ref.watch(departmentsProvider).valueOrNull ??
-                                    <Department>[])
-                              DropdownMenuItem(
-                                value: d.id,
-                                child: Text(d.name),
-                              ),
-                          ],
-                          onChanged: (v) => change(() => _department = v),
-                        ),
-                      ),
-                    ],
-                    if (_role == UserRole.patient)
-                      field(
-                        DropdownButtonFormField<String>(
-                          key: ValueKey(_clinician),
-                          initialValue: _clinician,
-                          isExpanded: true,
-                          decoration: InputDecoration(
-                            labelText: adminText(
-                              context,
-                              'Treating clinician',
-                              'الممارس المعالج',
-                            ),
-                          ),
-                          items: [
-                            DropdownMenuItem(
-                              value: null,
-                              child: Text(
-                                adminText(
-                                  context,
-                                  'All clinicians',
-                                  'كل الممارسين',
-                                ),
-                              ),
-                            ),
-                            for (final staff
-                                in ref
-                                        .watch(staffDirectoryProvider)
-                                        .valueOrNull ??
-                                    <Staff>[])
-                              DropdownMenuItem(
-                                value: staff.id,
-                                child: Text(staff.fullName),
-                              ),
-                          ],
-                          onChanged: (v) => change(() => _clinician = v),
-                        ),
-                      ),
-                    TextButton(
-                      onPressed: () => change(() {
-                        _search.clear();
-                        _query = '';
-                        _status = 'all';
-                        _department = null;
-                        _clinician = null;
-                        _staffRole = null;
-                      }),
-                      child: Text(
-                        adminText(
-                          context,
-                          'Reset filters',
-                          'إعادة ضبط التصفية',
-                        ),
-                      ),
-                    ),
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                TabBar(
+                  controller: _tabs,
+                  isScrollable: narrow || largeText,
+                  tabAlignment: narrow || largeText ? TabAlignment.start : null,
+                  tabs: [
+                    Tab(text: t.patientsAction),
+                    Tab(text: t.staffCountLabel),
+                    Tab(text: t.adminsLabel),
                   ],
                 ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Wrap(
-              spacing: 12,
-              runSpacing: 8,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                OutlinedButton(
-                  onPressed: () => setState(() {
-                    _bulk = !_bulk;
-                    _selected.clear();
-                  }),
-                  child: Text(
-                    _bulk
-                        ? adminText(
-                            context,
-                            'Cancel selection',
-                            'إلغاء التحديد',
-                          )
-                        : adminText(context, 'Select accounts', 'تحديد حسابات'),
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: SearchBar(
+                    controller: _search,
+                    hintText: t.searchByNameOrEmailHint,
+                    leading: const Icon(Icons.search),
+                    onChanged: (v) => change(() => _query = v),
                   ),
                 ),
-                if (_bulk) ...[
-                  Text(
-                    '${_selected.length} ${adminText(context, "selected", "محدد")}',
-                  ),
-                  FilledButton(
-                    onPressed: _selected.isEmpty ? null : _deactivateSelected,
-                    child: Text(
-                      adminText(
-                        context,
-                        'Review deactivation',
-                        'مراجعة التعطيل',
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 220),
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: [
+                          field(
+                            DropdownButtonFormField<String>(
+                              key: ValueKey('status-$_status'),
+                              initialValue: _status,
+                              isExpanded: true,
+                              decoration: InputDecoration(
+                                labelText: adminText(
+                                  context,
+                                  'Account status',
+                                  'حالة الحساب',
+                                ),
+                              ),
+                              items: [
+                                for (final v in ['all', 'active', 'inactive'])
+                                  DropdownMenuItem(
+                                    value: v,
+                                    child: Text(
+                                      v == 'all'
+                                          ? adminText(context, 'All', 'الكل')
+                                          : v == 'active'
+                                          ? adminText(context, 'Active', 'نشط')
+                                          : adminText(
+                                              context,
+                                              'Inactive',
+                                              'غير نشط',
+                                            ),
+                                    ),
+                                  ),
+                              ],
+                              onChanged: (v) => change(() => _status = v!),
+                            ),
+                          ),
+                          if (_role == UserRole.staff) ...[
+                            field(
+                              DropdownButtonFormField<StaffRole>(
+                                key: ValueKey(_staffRole),
+                                initialValue: _staffRole,
+                                isExpanded: true,
+                                decoration: InputDecoration(
+                                  labelText: adminText(
+                                    context,
+                                    'Staff role',
+                                    'دور الموظف',
+                                  ),
+                                ),
+                                items: [
+                                  DropdownMenuItem(
+                                    value: null,
+                                    child: Text(
+                                      adminText(
+                                        context,
+                                        'All roles',
+                                        'جميع الأدوار',
+                                      ),
+                                    ),
+                                  ),
+                                  for (final r in StaffRole.values)
+                                    DropdownMenuItem(
+                                      value: r,
+                                      child: Text(wlabel(context, r.name)),
+                                    ),
+                                ],
+                                onChanged: (v) => change(() => _staffRole = v),
+                              ),
+                            ),
+                            field(
+                              DropdownButtonFormField<String>(
+                                key: ValueKey(_department),
+                                initialValue: _department,
+                                isExpanded: true,
+                                decoration: InputDecoration(
+                                  labelText: adminText(
+                                    context,
+                                    'Department',
+                                    'القسم',
+                                  ),
+                                ),
+                                items: [
+                                  DropdownMenuItem(
+                                    value: null,
+                                    child: Text(
+                                      adminText(
+                                        context,
+                                        'All departments',
+                                        'كل الأقسام',
+                                      ),
+                                    ),
+                                  ),
+                                  for (final d
+                                      in ref
+                                              .watch(departmentsProvider)
+                                              .valueOrNull ??
+                                          <Department>[])
+                                    DropdownMenuItem(
+                                      value: d.id,
+                                      child: Text(d.name),
+                                    ),
+                                ],
+                                onChanged: (v) => change(() => _department = v),
+                              ),
+                            ),
+                          ],
+                          if (_role == UserRole.patient)
+                            field(
+                              DropdownButtonFormField<String>(
+                                key: ValueKey(_clinician),
+                                initialValue: _clinician,
+                                isExpanded: true,
+                                decoration: InputDecoration(
+                                  labelText: adminText(
+                                    context,
+                                    'Treating clinician',
+                                    'الممارس المعالج',
+                                  ),
+                                ),
+                                items: [
+                                  DropdownMenuItem(
+                                    value: null,
+                                    child: ReadableLabel(
+                                      adminText(
+                                        context,
+                                        'All clinicians',
+                                        'كل الممارسين',
+                                      ),
+                                    ),
+                                  ),
+                                  for (final staff
+                                      in ref
+                                              .watch(staffDirectoryProvider)
+                                              .valueOrNull ??
+                                          <Staff>[])
+                                    DropdownMenuItem(
+                                      value: staff.id,
+                                      child: Text(staff.fullName),
+                                    ),
+                                ],
+                                onChanged: (v) => change(() => _clinician = v),
+                              ),
+                            ),
+                          TextButton(
+                            onPressed: () => change(() {
+                              _search.clear();
+                              _query = '';
+                              _status = 'all';
+                              _department = null;
+                              _clinician = null;
+                              _staffRole = null;
+                            }),
+                            child: Text(
+                              adminText(
+                                context,
+                                'Reset filters',
+                                'إعادة ضبط التصفية',
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Wrap(
+                    spacing: 12,
+                    runSpacing: 8,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      OutlinedButton(
+                        onPressed: () => setState(() {
+                          _bulk = !_bulk;
+                          _selected.clear();
+                        }),
+                        child: Text(
+                          _bulk
+                              ? adminText(
+                                  context,
+                                  'Cancel selection',
+                                  'إلغاء التحديد',
+                                )
+                              : adminText(
+                                  context,
+                                  'Select accounts',
+                                  'تحديد حسابات',
+                                ),
+                        ),
+                      ),
+                      if (_bulk) ...[
+                        Text(
+                          '${_selected.length} ${adminText(context, "selected", "محدد")}',
+                        ),
+                        FilledButton(
+                          onPressed: _selected.isEmpty
+                              ? null
+                              : _deactivateSelected,
+                          child: Text(
+                            adminText(
+                              context,
+                              'Review deactivation',
+                              'مراجعة التعطيل',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
-          Expanded(
-            child: _UserList(
-              role: _role,
-              query: _query,
-              status: _status,
-              department: _department,
-              clinician: _clinician,
-              staffRole: _staffRole,
-              selected: _selected,
-              bulk: _bulk,
-              onSelect: (id, value) => setState(() {
-                value ? _selected.add(id) : _selected.remove(id);
-              }),
-              onSelectVisible: (ids) => setState(() => _selected.addAll(ids)),
-            ),
-          ),
         ],
+        body: _UserList(
+          role: _role,
+          query: _query,
+          status: _status,
+          department: _department,
+          clinician: _clinician,
+          staffRole: _staffRole,
+          selected: _selected,
+          bulk: _bulk,
+          onSelect: (id, value) => setState(() {
+            value ? _selected.add(id) : _selected.remove(id);
+          }),
+          onSelectVisible: (ids) => setState(() => _selected.addAll(ids)),
+        ),
       ),
       centerBody: false,
     );
@@ -530,40 +550,42 @@ class _UserList extends ConsumerWidget {
             message: q.isEmpty ? t.noUsersInGroup : t.noUsersMatchQuery(query),
           );
         }
-        return Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Wrap(
-                spacing: 12,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Text(
-                    '${list.length} ${adminText(context, "matching accounts", "حسابات مطابقة")}',
-                  ),
-                  if (bulk)
-                    TextButton(
-                      onPressed: () =>
-                          onSelectVisible(list.map((u) => u.id).toList()),
-                      child: Text(
-                        adminText(
-                          context,
-                          'Select visible filtered accounts',
-                          'تحديد الحسابات الظاهرة المطابقة',
+        return CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Wrap(
+                  spacing: 12,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    ReadableLabel(
+                      '${list.length} ${adminText(context, "matching accounts", "حسابات مطابقة")}',
+                    ),
+                    if (bulk)
+                      TextButton(
+                        onPressed: () =>
+                            onSelectVisible(list.map((u) => u.id).toList()),
+                        child: Text(
+                          adminText(
+                            context,
+                            'Select visible filtered accounts',
+                            'تحديد الحسابات الظاهرة المطابقة',
+                          ),
                         ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.fromLTRB(
-                  Space.md,
-                  Space.sm,
-                  Space.md,
-                  Space.xxl,
-                ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(
+                Space.md,
+                Space.sm,
+                Space.md,
+                Space.xxl,
+              ),
+              sliver: SliverList.builder(
                 itemCount: list.length,
                 itemBuilder: (context, i) => bulk
                     ? Row(

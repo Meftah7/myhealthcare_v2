@@ -211,7 +211,16 @@ void main() {
   });
 
   test('blocked screens and admin home are decided by shared mode', () {
-    expect(sharedModeBlocks('/admin/users'), isTrue);
+    for (final route in [
+      '/admin/users',
+      '/admin/rooms',
+      '/admin/feedback',
+      '/admin/appointments',
+      '/admin/billing',
+    ]) {
+      expect(sharedModeBlocks(route), isFalse);
+    }
+    expect(sharedModeBlocks('/admin/profile/audit'), isTrue);
     expect(sharedModeBlocks('/admin/dashboard'), isFalse);
     expect(sharedModeBlocks('/patient/timeline/documents'), isTrue);
     expect(sharedModeBlocks('/patient/appointments'), isFalse);

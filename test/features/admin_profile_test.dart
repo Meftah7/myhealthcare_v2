@@ -1,7 +1,4 @@
-// The admin page rebuilt on the patient/staff pattern: a Profile hub of rows
-// that open their own pages, a device-local working-status pill, and the
-// dashboard's new layout (date overline + greeting + one hero + a three-figure
-// row + row-tile Quick actions).
+// Admin overview, Profile hub, and persistent theme control.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -73,21 +70,10 @@ void main() {
     final container = await _signInAdmin(tester);
     addTearDown(container.dispose);
 
-    expect(
-      find.descendant(
-        of: find.byType(AppBar),
-        matching: find.textContaining('Good '),
-      ),
-      findsOneWidget,
-    );
-    expect(
-      find.textContaining('Operational items needing attention'),
-      findsOneWidget,
-    );
-    // Phase 6: exception queues lead, not system totals.
-    expect(find.text('Needs attention'), findsOneWidget);
+    expect(find.widgetWithText(AppBar, 'Clinic overview'), findsOneWidget);
+    expect(find.text('Total Patients'), findsOneWidget);
+    expect(find.text('Upcoming Appointments'), findsOneWidget);
     expect(find.text('SYSTEM HEALTH'), findsNothing);
-    expect(find.text('Quick actions'), findsOneWidget);
 
     // The five nav tabs.
     for (final tab in const [
@@ -141,7 +127,7 @@ void main() {
     await _teardown(tester);
   });
 
-  testWidgets('the working-status pill changes and persists per device', (
+  testWidgets('manual status is absent and the theme persists per device', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(1200, 2600);
@@ -152,17 +138,14 @@ void main() {
     final container = await _signInAdmin(tester);
     addTearDown(container.dispose);
 
-    expect(container.read(adminStatusProvider), AdminStatus.available);
-    expect(find.text('Available'), findsWidgets);
-
-    await tester.tap(find.text('Available').first);
-    await _settle(tester);
-    await tester.tap(find.text('In a meeting').last);
+    expect(find.text('Available'), findsNothing);
+    expect(find.text('In a meeting'), findsNothing);
+    await tester.tap(find.byTooltip('Switch to dark mode'));
     await _settle(tester);
 
-    expect(container.read(adminStatusProvider), AdminStatus.meeting);
+    expect(container.read(themeModeProvider), ThemeMode.dark);
     final prefs = container.read(sharedPreferencesProvider);
-    expect(prefs.getString('ui.adminStatus'), 'meeting');
+    expect(prefs.getString('ui.themeMode'), 'dark');
 
     await _teardown(tester);
   });

@@ -24,6 +24,21 @@ Future<void> _settle(WidgetTester tester) async {
   }
 }
 
+Future<void> _reveal(WidgetTester tester, Finder target) async {
+  await tester.scrollUntilVisible(
+    target,
+    500,
+    scrollable: find
+        .descendant(
+          of: find.byType(CustomScrollView).first,
+          matching: find.byType(Scrollable),
+        )
+        .first,
+    maxScrolls: 40,
+  );
+  await _settle(tester);
+}
+
 Future<ProviderContainer> _signInAdmin(WidgetTester tester) async {
   final db = newTestDatabase();
   await Seeder(db).run();
@@ -80,13 +95,8 @@ void main() {
     final container = await _signInAdmin(tester);
     addTearDown(container.dispose);
 
-    expect(
-      find.descendant(
-        of: find.byType(AppBar),
-        matching: find.textContaining('Good '),
-      ),
-      findsOneWidget,
-    );
+    expect(find.widgetWithText(AppBar, 'Clinic overview'), findsOneWidget);
+    await _reveal(tester, find.text('Quick actions'));
     expect(find.text('Quick actions'), findsOneWidget);
     expect(find.text('Broadcast'), findsOneWidget);
     expect(find.text('Create invoice'), findsOneWidget);
@@ -104,6 +114,7 @@ void main() {
     final container = await _signInAdmin(tester);
     addTearDown(container.dispose);
 
+    await _reveal(tester, find.text('Broadcast'));
     await tester.tap(find.text('Broadcast'));
     await _settle(tester);
     expect(find.text('Broadcast a notification'), findsOneWidget);
@@ -157,6 +168,7 @@ void main() {
     final container = await _signInAdmin(tester);
     addTearDown(container.dispose);
 
+    await _reveal(tester, find.text('Create invoice'));
     await tester.tap(find.text('Create invoice'));
     await _settle(tester);
     expect(find.text('Create an invoice'), findsOneWidget);
@@ -264,6 +276,7 @@ void main() {
     final container = await _signInAdmin(tester);
     addTearDown(container.dispose);
 
+    await _reveal(tester, find.text('Appointments'));
     await tester.tap(find.text('Appointments'));
     await _settle(tester);
     expect(find.widgetWithText(AppBar, 'Appointments'), findsOneWidget);

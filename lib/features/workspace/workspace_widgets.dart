@@ -10,6 +10,7 @@ import '../../core/di.dart';
 import '../../core/presentation/app_card.dart';
 import '../../core/presentation/app_scaffold.dart';
 import '../../core/presentation/feedback.dart';
+import '../../core/presentation/readable_label.dart';
 import '../../core/result.dart';
 import '../../domain/enums.dart';
 import '../../domain/identity/permissions.dart';
@@ -84,7 +85,7 @@ class WorkspaceSection extends StatelessWidget {
               spacing: 12,
               runSpacing: 8,
               children: [
-                Text(title, style: Theme.of(c).textTheme.titleLarge),
+                ReadableLabel(title, style: Theme.of(c).textTheme.titleLarge),
                 ?action,
               ],
             ),
@@ -127,10 +128,13 @@ class WorkspaceMetrics extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(label),
+                      ReadableLabel(label),
                       const SizedBox(height: 8),
                       Text(value, style: Theme.of(c).textTheme.headlineSmall),
-                      Text(period, style: Theme.of(c).textTheme.bodySmall),
+                      ReadableLabel(
+                        period,
+                        style: Theme.of(c).textTheme.bodySmall,
+                      ),
                     ],
                   ),
                 ),

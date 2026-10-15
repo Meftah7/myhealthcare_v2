@@ -6,7 +6,8 @@ import 'appointments.dart';
 class ClinicRooms extends Table {
   TextColumn get id => text()();
   TextColumn get displayLabel => text().withLength(min: 1, max: 80)();
-  TextColumn get departmentId => text().nullable().references(Departments, #id)();
+  TextColumn get departmentId =>
+      text().nullable().references(Departments, #id)();
   BoolColumn get enabled => boolean().withDefault(const Constant(true))();
   IntColumn get version => integer().withDefault(const Constant(1))();
   @override

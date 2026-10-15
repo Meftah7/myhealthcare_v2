@@ -176,12 +176,25 @@ void main() {
     addTearDown(container.dispose);
 
     // "Feedback" is a Quick-action row tile (the label may carry a count).
+    await tester.scrollUntilVisible(
+      find.textContaining('Feedback').first,
+      500,
+      scrollable: find
+          .descendant(
+            of: find.byType(CustomScrollView).first,
+            matching: find.byType(Scrollable),
+          )
+          .first,
+      maxScrolls: 40,
+    );
     await tester.tap(find.textContaining('Feedback').first);
     await _settle(tester);
     expect(find.widgetWithText(AppBar, 'Feedback'), findsOneWidget);
-    expect(find.widgetWithText(FilledButton, 'Mark resolved'), findsWidgets);
+    expect(find.widgetWithText(OutlinedButton, 'Mark resolved'), findsWidgets);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Mark resolved').first);
+    await tester.tap(
+      find.widgetWithText(OutlinedButton, 'Mark resolved').first,
+    );
     await _settle(tester);
 
     await tester.pumpWidget(const SizedBox());

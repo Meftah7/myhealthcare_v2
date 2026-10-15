@@ -4,6 +4,7 @@ import '../../app/shared_mode.dart';
 import '../../core/failures.dart';
 import '../../core/presentation/app_scaffold.dart';
 import '../../core/presentation/feedback.dart';
+import '../../core/presentation/readable_label.dart';
 import '../../core/result.dart';
 import '../../core/utils/ids.dart';
 import '../../data/remote/shared_client.dart';
@@ -42,18 +43,26 @@ class _FeedbackState extends ConsumerState<WorkspaceFeedbackScreen> {
               selected: status == s,
               onSelected: (_) => setState(() => status = s),
             ),
-          DropdownButton<String>(
-            value: role,
-            items: [
-              for (final (r, en, ar) in [
-                ('all', 'All submitters', 'جميع المرسلين'),
-                ('patient', 'Patients', 'مرضى'),
-                ('staff', 'Staff', 'موظفون'),
-                ('admin', 'Admins', 'مديرون'),
-              ])
-                DropdownMenuItem(value: r, child: Text(wt(c, en, ar))),
-            ],
-            onChanged: (r) => setState(() => role = r!),
+          SizedBox(
+            width: 240,
+            child: DropdownButton<String>(
+              isExpanded: true,
+              itemHeight: null,
+              value: role,
+              items: [
+                for (final (r, en, ar) in [
+                  ('all', 'All submitters', 'جميع المرسلين'),
+                  ('patient', 'Patients', 'مرضى'),
+                  ('staff', 'Staff', 'موظفون'),
+                  ('admin', 'Admins', 'مديرون'),
+                ])
+                  DropdownMenuItem(
+                    value: r,
+                    child: ReadableLabel(wt(c, en, ar)),
+                  ),
+              ],
+              onChanged: (r) => setState(() => role = r!),
+            ),
           ),
         ],
       ),

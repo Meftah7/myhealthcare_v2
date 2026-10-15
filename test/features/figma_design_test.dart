@@ -7,7 +7,7 @@ import 'package:myhealthcare/core/failures.dart';
 import 'package:myhealthcare/data/db/app_database.dart';
 import 'package:myhealthcare/domain/enums.dart';
 import 'package:myhealthcare/features/admin/presentation/admin_dashboard_screen.dart';
-import 'package:myhealthcare/features/admin/presentation/admin_status_menu.dart';
+import 'package:myhealthcare/features/settings/presentation/theme_mode_icon_toggle.dart';
 import 'package:myhealthcare/features/auth/presentation/auth_scaffold.dart';
 import 'package:myhealthcare/features/staff_dashboard/application/staff_providers.dart';
 import 'package:myhealthcare/features/staff_dashboard/presentation/staff_dashboard_screen.dart';
@@ -56,7 +56,8 @@ void main() {
         }
         expect(tester.takeException(), isNull);
         if (role == 'admin') {
-          expect(tester.getSize(find.byType(AdminStatusMenu)).width, 48);
+          expect(find.byType(ThemeModeIconToggle), findsOneWidget);
+          expect(find.text('Available'), findsNothing);
         }
         await tester.pumpWidget(const SizedBox());
         await tester.pump(const Duration(seconds: 1));
