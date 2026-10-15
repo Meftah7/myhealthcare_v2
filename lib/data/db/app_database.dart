@@ -33,6 +33,7 @@ import 'tables/records.dart';
 import 'tables/sync.dart';
 import 'tables/system.dart';
 import 'tables/users.dart';
+import 'tables/workspace.dart';
 
 part 'app_database.g.dart';
 
@@ -52,6 +53,8 @@ part 'app_database.g.dart';
     AvailabilityExceptions,
     Appointments,
     Reminders,
+    ClinicRooms,
+    EncounterParticipants,
     // clinical content
     MedicalRecords,
     LabValues,
@@ -202,7 +205,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 33;
+  int get schemaVersion => 34;
 
   /// Preserve legacy flag/task IDs by aliasing only sources known when the
   /// old flag was last detected. Later readings/reports get their own work.
@@ -1030,6 +1033,15 @@ class AppDatabase extends _$AppDatabase {
         await _createTableIfMissing(m, medicationDispenses);
         await _backfillTaskReviewTimes();
       }
+      if (from < 34) {
+        await _createTableIfMissing(m, clinicRooms);
+        await _createTableIfMissing(m, encounterParticipants);
+        await _addColumnIfMissing(m, appointments, appointments.completedAt);
+        await _addColumnIfMissing(m, medications, medications.issuedAt);
+        await customStatement(
+          "UPDATE medications SET issued_at=(SELECT signed_at FROM signed_notes WHERE appointment_id=medications.appointment_id) WHERE issued_at IS NULL",
+        );
+      }
       if (from < 33) {
         await _addColumnIfMissing(
           m,
@@ -1046,6 +1058,12 @@ class AppDatabase extends _$AppDatabase {
       }
     }),
     beforeOpen: (details) async {
+      await customStatement(
+        "CREATE TRIGGER IF NOT EXISTS prescription_issued_time AFTER INSERT ON medications WHEN NEW.issued_at IS NULL BEGIN UPDATE medications SET issued_at=unixepoch() WHERE id=NEW.id; END",
+      );
+      await customStatement(
+        "CREATE TRIGGER IF NOT EXISTS appointment_completion_time AFTER UPDATE OF status ON appointments WHEN NEW.status='completed' AND OLD.status!='completed' BEGIN UPDATE appointments SET completed_at=COALESCE(completed_at,unixepoch()) WHERE id=NEW.id; END",
+      );
       // Referential integrity is off by default in SQLite.
       await customStatement('PRAGMA foreign_keys = ON');
       await installProposedDocumentPolicies();

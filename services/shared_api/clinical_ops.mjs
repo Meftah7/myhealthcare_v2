@@ -5,6 +5,7 @@
 // care relationships scope patient data, signed records are immutable and
 // writes are versioned or idempotent. Nothing is reported as done before it
 // is stored.
+import { availableDoctorSlots } from './workspace_ops.mjs';
 import { fields, id, requireThat, text } from './store.mjs';
 
 const clinical = ['doctor', 'nurse', 'dentist'];
@@ -29,7 +30,10 @@ function meds(value) {
 /** Returns a result for a handled route, or `undefined` to fall through. */
 export function clinicalOps({ store, now, path, method, url, body, actor }) {
   const job = actor.role === 'staff' ? actor.job : null;
-  const hasCare = patient => !!store.get('SELECT 1 FROM care WHERE patient=? AND staff=?', patient, actor.id);
+  const hasCare = patient => clinical.includes(job) && (
+    !!store.get('SELECT 1 FROM care WHERE patient=? AND staff=?', patient, actor.id) ||
+    !!store.get('SELECT 1 FROM appointments WHERE patient=? AND staff=?',patient,actor.id) ||
+    !!store.get('SELECT 1 FROM encounter_participants ep JOIN appointments a ON a.id=ep.appointment WHERE a.patient=? AND ep.staff=?',patient,actor.id));
   const safeStaff = u => ({ id: u.id, fullName: u.name, job: u.job, departmentId: u.department, specialty: u.specialty });
 
   // ---- directory ------------------------------------------------------------
@@ -48,30 +52,21 @@ export function clinicalOps({ store, now, path, method, url, body, actor }) {
   if (path === '/api/slots' && method === 'GET') {
     const staffId = text(url.searchParams.get('staffId'), 128), day = text(url.searchParams.get('day'), 10);
     requireThat(/^\d{4}-\d{2}-\d{2}$/.test(day), 400, 'Use YYYY-MM-DD.');
-    const [y, m, d] = day.split('-').map(Number);
-    const midnight = new Date(y, m - 1, d).getTime();
-    const weekday = ((new Date(midnight).getDay() + 6) % 7) + 1; // Mon=1 … Sun=7
-    const s = store.get('SELECT * FROM schedules WHERE staff=? AND weekday=?', staffId, weekday);
-    if (!s) return [];
-    const taken = store.all("SELECT start,end FROM appointments WHERE staff=? AND status!='cancelled' AND start<? AND end>?",
-      staffId, midnight + 86400000, midnight);
-    const slots = [];
-    for (let t = s.start_min; t + s.slot_min <= s.end_min; t += s.slot_min) {
-      const start = midnight + t * 60000, end = start + s.slot_min * 60000;
-      if (start <= now()) continue;
-      if (taken.some(a => a.start < end && a.end > start)) continue;
-      slots.push({ staffId, start: iso(start), end: iso(end) });
-    }
-    return slots;
+    return availableDoctorSlots(store,staffId,day,now());
   }
   if (path === '/api/patients' && method === 'GET') {
     const q = `%${(url.searchParams.get('query') ?? '').trim().toLowerCase()}%`;
     const desk = actor.role === 'admin' || job === 'receptionist';
     requireThat(desk || clinical.includes(job), 403, 'Patient search is for clinicians and the front desk.');
+    const limit=Number(url.searchParams.get('limit')??50),offset=Number(url.searchParams.get('offset')??0);
+    requireThat(Number.isInteger(limit)&&limit>0&&limit<=200&&Number.isInteger(offset)&&offset>=0,400,'Invalid page.');
     const rows = desk
-      ? store.all("SELECT * FROM users WHERE role='patient' AND (lower(name) LIKE ? OR lower(email) LIKE ?) ORDER BY name LIMIT 50", q, q)
-      : store.all(`SELECT users.* FROM users JOIN care ON care.patient=users.id AND care.staff=?
-          WHERE users.role='patient' AND (lower(users.name) LIKE ? OR lower(users.email) LIKE ?) ORDER BY users.name LIMIT 50`, actor.id, q, q);
+      ? store.all("SELECT * FROM users WHERE role='patient' AND (lower(name) LIKE ? OR lower(email) LIKE ?) ORDER BY name,id LIMIT ? OFFSET ?", q, q,limit,offset)
+      : store.all(`SELECT users.* FROM users WHERE users.role='patient' AND (
+          EXISTS(SELECT 1 FROM care WHERE care.patient=users.id AND care.staff=?) OR
+          EXISTS(SELECT 1 FROM appointments a WHERE a.patient=users.id AND a.staff=?) OR
+          EXISTS(SELECT 1 FROM encounter_participants ep JOIN appointments a ON a.id=ep.appointment WHERE a.patient=users.id AND ep.staff=?))
+          AND (lower(users.name) LIKE ? OR lower(users.email) LIKE ?) ORDER BY users.name,users.id LIMIT ? OFFSET ?`, actor.id,actor.id,actor.id,q,q,limit,offset);
     return rows.map(u => store.safeUser(u));
   }
 
@@ -152,11 +147,11 @@ export function clinicalOps({ store, now, path, method, url, body, actor }) {
         store.run('INSERT INTO signed_notes(appointment,patient,signer,note,outcome,signed_at) VALUES(?,?,?,?,?,?)',
           a.id, a.patient, actor.id, body.note, body.outcome == null ? null : text(body.outcome, 2000), now());
         for (const m of list) {
-          store.run('INSERT INTO prescriptions(id,patient,prescriber,appointment,name,dose,frequency,start) VALUES(?,?,?,?,?,?,?,?)',
-            id(), a.patient, actor.id, a.id, m.name, m.dose, m.frequency, now());
+          store.run('INSERT INTO prescriptions(id,patient,prescriber,appointment,name,dose,frequency,start,issued_at) VALUES(?,?,?,?,?,?,?,?,?)',
+            id(), a.patient, actor.id, a.id, m.name, m.dose, m.frequency, now(), now());
         }
         store.run('DELETE FROM encounter_drafts WHERE appointment=?', a.id);
-        store.run("UPDATE appointments SET status='completed',version=version+1 WHERE id=?", a.id);
+        store.run("UPDATE appointments SET status='completed',completed_at=?,version=version+1 WHERE id=?", now(), a.id);
         store.audit(actor.id, 'encounter.signed', a.id);
         return { appointmentId: a.id, signerId: actor.id, signedAt: iso(now()), prescriptions: list.length };
       }));

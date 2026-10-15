@@ -3,6 +3,7 @@
 library;
 
 import 'dart:async';
+import '../../workspace/workspace_repository.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -62,11 +63,16 @@ final departmentNameProvider = FutureProvider.family<String?, String?>((
 
 /// Today's appointments for the signed-in staff member (P5-05, P5-12).
 final staffTodayProvider = FutureProvider<List<Appointment>>((ref) async {
+  ref.watch(workspaceChangesProvider);
   final id = _staffId(ref);
   return _unwrap(
     await ref
         .watch(appointmentRepositoryProvider)
-        .forStaffOnDay(id, DateTime.now()),
+        .forStaffInRange(
+          id,
+          clinicStart(clinicDay()),
+          clinicStart(clinicDay().add(const Duration(days: 1))),
+        ),
   );
 });
 
@@ -141,18 +147,48 @@ final patientSearchPagesProvider = StateProvider<int>((ref) {
 
 /// The directory (or search results), paged — the list says when more
 /// exist and offers "Load more" instead of silently stopping at a cap.
+final patientHistoryFilterProvider = StateProvider<String>((ref) => 'all');
+final historyRowsPageProvider = FutureProvider<Page<WorkspaceData>>((
+  ref,
+) async {
+  ref.watch(workspaceChangesProvider);
+  ref.watch(currentUserProvider);
+  final query = ref.watch(patientSearchQueryProvider),
+      filter = ref.watch(patientHistoryFilterProvider);
+  final pages = ref.watch(patientSearchPagesProvider),
+      repo = ref.watch(workspaceRepositoryProvider);
+  return loadPages(pages, (request) async {
+    final d = await repo.read('history', {
+      'query': query,
+      'filter': filter,
+      'limit': request.size,
+      'offset': request.offset,
+    });
+    final rows = [
+      for (final r in d['rows'] as List) Map<String, dynamic>.from(r as Map),
+    ];
+    final total = d['total'] as int;
+    return Page(
+      items: rows,
+      offset: request.offset,
+      hasMore: request.offset + rows.length < total,
+      total: total,
+    );
+  });
+});
 final patientSearchPageProvider = FutureProvider<Page<Patient>>((ref) async {
-  final q = ref.watch(patientSearchQueryProvider).trim();
-  final pages = ref.watch(patientSearchPagesProvider);
+  final data = await ref.watch(historyRowsPageProvider.future);
   final repo = ref.watch(patientRepositoryProvider);
-  var request = const PageRequest();
-  Page<Patient>? all;
-  for (var i = 0; i < pages; i++, request = request.next) {
-    final page = _unwrap(await repo.directoryPage(query: q, page: request));
-    all = all == null ? page : all.append(page);
-    if (!page.hasMore) break;
+  final patients = <Patient>[];
+  for (final row in data.items) {
+    patients.add(_unwrap(await repo.byId(row['id'] as String)));
   }
-  return all!;
+  return Page(
+    items: patients,
+    offset: data.offset,
+    hasMore: data.hasMore,
+    total: data.total,
+  );
 });
 
 final patientSearchResultsProvider = FutureProvider<List<Patient>>(

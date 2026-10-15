@@ -119,7 +119,7 @@ void main() {
     await _pump(tester);
 
     expect(find.text('Demo accounts'), findsOneWidget);
-    final staffTile = find.widgetWithText(InkWell, 'Staff');
+    final staffTile = find.widgetWithText(InkWell, 'Doctor');
     await tester.ensureVisible(staffTile);
     await tester.tap(staffTile);
     await passMfa(tester);

@@ -212,19 +212,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   },
             child: Text(t.createPatientAccount),
           ),
-          Wrap(
-            alignment: WrapAlignment.center,
-            children: [
-              TextButton(
-                onPressed: () => context.push(AppRoutes.policyTerms),
-                child: Text(t.paTerms),
-              ),
-              TextButton(
-                onPressed: () => context.push(AppRoutes.policyPrivacy),
-                child: Text(t.paPrivacy),
-              ),
-            ],
-          ),
           // Demo credentials belong to the explicit demo runtime only.
           if (ref.watch(appModeProvider).isDemo) ...[
             const SizedBox(height: Space.lg),
@@ -262,7 +249,31 @@ class _DemoQuickActions extends StatelessWidget {
     final t = AppLocalizations.of(context)!;
     final accounts = [
       (t.demoPatient, Icons.person_outline, 'patient1@myhealth.demo'),
-      (t.demoStaff, Icons.medical_services_outlined, 'staff1@myhealth.demo'),
+      (
+        t.localeName == 'ar' ? 'طبيب' : 'Doctor',
+        Icons.medical_services_outlined,
+        'staff1@myhealth.demo',
+      ),
+      (
+        t.localeName == 'ar' ? 'تمريض' : 'Nurse',
+        Icons.health_and_safety_outlined,
+        'nurse@myhealth.demo',
+      ),
+      (
+        t.localeName == 'ar' ? 'استقبال' : 'Receptionist',
+        Icons.support_agent,
+        'reception@myhealth.demo',
+      ),
+      (
+        t.localeName == 'ar' ? 'صيدلي' : 'Pharmacist',
+        Icons.medication_outlined,
+        'pharmacy@myhealth.demo',
+      ),
+      (
+        t.localeName == 'ar' ? 'طبيب أسنان' : 'Dentist',
+        Icons.medical_information_outlined,
+        'dentist@myhealth.demo',
+      ),
       (t.demoAdmin, Icons.admin_panel_settings_outlined, 'admin@myhealth.demo'),
     ];
     return Container(

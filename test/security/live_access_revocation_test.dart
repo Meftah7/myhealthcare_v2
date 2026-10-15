@@ -313,6 +313,11 @@ void main() {
         c.read(routerProvider).routerDelegate.currentConfiguration.uri.path,
         AppRoutes.login,
       );
+      // Unmount the routed tree before the fixture closes its database.
+      await tester.pumpWidget(const SizedBox());
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
     },
     timeout: const Timeout(Duration(seconds: 60)),
   );

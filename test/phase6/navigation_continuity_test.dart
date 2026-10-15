@@ -5,8 +5,8 @@ import 'package:myhealthcare/app/app.dart';
 import 'package:myhealthcare/app/router.dart';
 import 'package:myhealthcare/app/shell/app_shell.dart';
 import 'package:myhealthcare/core/di.dart';
-import 'package:myhealthcare/core/presentation/app_card.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
+import 'package:myhealthcare/features/staff_dashboard/application/staff_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/mfa.dart';
@@ -62,13 +62,18 @@ void main() {
 
       container.read(routerProvider).go(AppRoutes.staffPatients);
       await _settle(tester);
-      await tester.tap(find.byType(AppCard).first);
+      final patients = await container.read(
+        patientSearchResultsProvider.future,
+      );
+      final patientRow = find.text(patients.first.fullName).last;
+      await tester.ensureVisible(patientRow);
+      await tester.tap(patientRow);
       await _settle(tester);
 
       expect(find.byType(CompactNavigation), findsOneWidget);
       expect(find.text('Open chart'), findsOneWidget);
 
-      await selectCompactDestination(tester, 'Tasks');
+      await selectCompactDestination(tester, 'Chat');
       await _settle(tester);
       expect(find.byType(CompactNavigation), findsOneWidget);
       expect(find.text('Open chart'), findsOneWidget);

@@ -5,6 +5,7 @@ library;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../../workspace/workspace_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -54,6 +55,8 @@ class PatientChartScreen extends ConsumerWidget {
       title: patient.valueOrNull?.fullName ?? t.patientChartFallbackTitle,
       centerBody: false,
       actions: [
+        if (ref.watch(canProvider(Permission.readPatientChart)))
+          ParticipationButton(patientId),
         if (ref.watch(canProvider(Permission.recordDentalChart)))
           IconButton(
             key: const ValueKey('dental-chart'),

@@ -4,6 +4,8 @@
 library;
 
 import 'package:flutter/material.dart';
+import '../../../app/shared_mode.dart';
+import '../../workspace/workspace_admin_screens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -33,6 +35,8 @@ class _AdminAppointmentsScreenState
 
   @override
   Widget build(BuildContext context) {
+    if (ref.watch(sharedModeProvider))
+      return const SharedAdminOperationsScreen(billing: false);
     final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final appts = ref.watch(allAppointmentsProvider);

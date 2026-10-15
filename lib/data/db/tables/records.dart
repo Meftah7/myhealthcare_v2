@@ -212,6 +212,9 @@ class Medications extends Table {
       text().references(Users, #id, onDelete: KeyAction.cascade)();
   TextColumn get prescriberId => text().nullable().references(Users, #id)();
 
+  /// Issuance is independent of the medication treatment start date.
+  DateTimeColumn get issuedAt => dateTime().nullable()();
+
   /// The visit it was prescribed in, if any.
   TextColumn get appointmentId => text().nullable().references(
     Appointments,

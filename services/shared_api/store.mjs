@@ -53,7 +53,7 @@ export class Store {
     this.db = new DatabaseSync(join(this.directory, 'clinic.sqlite'), { timeout: 5000 });
     this.db.exec('PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; PRAGMA synchronous=FULL;');
     const version = this.db.prepare('PRAGMA user_version').get().user_version;
-    requireThat(version <= 2, 500, 'Database is newer than this server.');
+    requireThat(version <= 3, 500, 'Database is newer than this server.');
     if (version === 0) this.db.exec(`BEGIN IMMEDIATE;
       CREATE TABLE users (id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, name TEXT NOT NULL,
         role TEXT NOT NULL CHECK(role IN ('patient','staff','admin')), job TEXT,
@@ -158,6 +158,26 @@ export class Store {
       CREATE TRIGGER dental_no_update BEFORE UPDATE ON dental BEGIN SELECT RAISE(ABORT,'immutable dental entry'); END;
       CREATE TRIGGER dental_no_delete BEFORE DELETE ON dental BEGIN SELECT RAISE(ABORT,'immutable dental entry'); END;
       PRAGMA user_version=2; COMMIT;`);
+    if (this.get('PRAGMA user_version').user_version < 3) this.db.exec(`BEGIN IMMEDIATE;
+      ALTER TABLE users ADD COLUMN gender TEXT;
+      ALTER TABLE users ADD COLUMN national_id TEXT;
+      ALTER TABLE users ADD COLUMN dob INTEGER;
+      ALTER TABLE users ADD COLUMN conditions TEXT NOT NULL DEFAULT '[]';
+      ALTER TABLE appointments ADD COLUMN completed_at INTEGER;
+      ALTER TABLE prescriptions ADD COLUMN issued_at INTEGER;
+      UPDATE prescriptions SET issued_at=(SELECT signed_at FROM signed_notes WHERE appointment=prescriptions.appointment);
+      ALTER TABLE appointments ADD COLUMN room_label TEXT;
+      CREATE TABLE rooms(id TEXT PRIMARY KEY,display_label TEXT NOT NULL,department_id TEXT REFERENCES departments(id),enabled INTEGER NOT NULL DEFAULT 1,version INTEGER NOT NULL DEFAULT 1);
+      CREATE TABLE encounter_participants(appointment TEXT REFERENCES appointments(id),staff TEXT REFERENCES users(id),participated_at INTEGER NOT NULL,recorded_by TEXT REFERENCES users(id),PRIMARY KEY(appointment,staff));
+      CREATE TABLE schedule_exceptions(id TEXT PRIMARY KEY,staff TEXT REFERENCES users(id),start INTEGER NOT NULL,end INTEGER NOT NULL,CHECK(start<end));
+      CREATE TABLE feedback(id TEXT PRIMARY KEY,reporter TEXT REFERENCES users(id),category TEXT NOT NULL,message TEXT NOT NULL,created INTEGER NOT NULL,status TEXT NOT NULL DEFAULT 'open',handler TEXT REFERENCES users(id),handled INTEGER,version INTEGER NOT NULL DEFAULT 1);
+      CREATE TABLE referral_requests(id TEXT PRIMARY KEY,patient TEXT NOT NULL REFERENCES users(id),appointment TEXT REFERENCES appointments(id),requested_by TEXT NOT NULL REFERENCES users(id),reason TEXT NOT NULL,status TEXT NOT NULL DEFAULT 'pending',created INTEGER NOT NULL,version INTEGER NOT NULL DEFAULT 1);
+      CREATE TABLE payment_refunds(id TEXT PRIMARY KEY,payment TEXT NOT NULL REFERENCES payments(id),amount_fils INTEGER NOT NULL CHECK(amount_fils>0),status TEXT NOT NULL CHECK(status IN ('pending','settled','failed')),settled_at INTEGER,recorded_by TEXT NOT NULL REFERENCES users(id),reason TEXT NOT NULL);
+      CREATE TRIGGER refunds_no_update BEFORE UPDATE ON payment_refunds WHEN OLD.status='settled' BEGIN SELECT RAISE(ABORT,'immutable settled refund'); END;
+      CREATE TRIGGER refunds_no_delete BEFORE DELETE ON payment_refunds BEGIN SELECT RAISE(ABORT,'immutable refund'); END;
+      CREATE TRIGGER prescription_issued AFTER INSERT ON prescriptions WHEN NEW.issued_at IS NULL BEGIN UPDATE prescriptions SET issued_at=CAST(unixepoch('subsec')*1000 AS INTEGER) WHERE id=NEW.id; END;
+      CREATE TRIGGER appointment_completed AFTER UPDATE OF status ON appointments WHEN NEW.status='completed' AND OLD.status!='completed' BEGIN UPDATE appointments SET completed_at=COALESCE(completed_at,CAST(unixepoch('subsec')*1000 AS INTEGER)) WHERE id=NEW.id; END;
+      PRAGMA user_version=3; COMMIT;`);
     const keyDigest = digest(this.fileKey);
     const storedKey = this.get("SELECT value FROM settings WHERE key='fileKeyDigest'");
     requireThat(!storedKey || storedKey.value === keyDigest, 500, 'File key does not match this database.');
@@ -200,7 +220,10 @@ export class Store {
     const subject = this.get("SELECT * FROM users WHERE id=? AND role='patient'", patient);
     requireThat(subject, 404, 'Patient unavailable.');
     requireThat(actor.id === patient || administrative && actor.role === 'admin' ||
-      actor.role === 'staff' && !!this.get('SELECT 1 FROM care WHERE patient=? AND staff=?', patient, actor.id),
+      actor.role === 'staff' && ['doctor','dentist','nurse'].includes(actor.job) && (
+        !!this.get('SELECT 1 FROM care WHERE patient=? AND staff=?', patient, actor.id) ||
+        !!this.get('SELECT 1 FROM appointments WHERE patient=? AND staff=?', patient, actor.id) ||
+        !!this.get('SELECT 1 FROM encounter_participants ep JOIN appointments a ON a.id=ep.appointment WHERE a.patient=? AND ep.staff=?',patient,actor.id)),
     403, 'Patient access denied.');
     return subject;
   }

@@ -47,7 +47,14 @@ final sharedClientProvider = Provider<SharedClient>(
 /// they show [SharedModeUnavailableScreen] instead of empty local data.
 bool sharedModeBlocks(String location) {
   if (location.startsWith('/admin')) {
-    return location != '/admin/dashboard' &&
+    return ![
+          '/admin/dashboard',
+          '/admin/rooms',
+          '/admin/appointments',
+          '/admin/feedback',
+          '/admin/users',
+          '/admin/billing',
+        ].contains(location) &&
         !location.startsWith('/admin/profile/preferences');
   }
   return location.startsWith('/patient/timeline/documents') ||
@@ -90,11 +97,19 @@ class SharedAccessPolicy extends AccessPolicy {
 
   @override
   Future<Set<String>?> clinicallyVisiblePatientIds() async {
-    final rows =
-        (await _client.request('/api/patients', query: {'query': ''})) as List;
-    return {
-      for (final r in rows.cast<Map<String, dynamic>>()) r['id'] as String,
-    };
+    final ids = <String>{};
+    for (var offset = 0; ; offset += 200) {
+      final rows =
+          (await _client.request(
+                '/api/patients',
+                query: {'query': '', 'limit': 200, 'offset': offset},
+              ))
+              as List<dynamic>;
+      ids.addAll(
+        rows.cast<Map<String, dynamic>>().map((r) => r['id'] as String),
+      );
+      if (rows.length < 200) return ids;
+    }
   }
 }
 
@@ -189,7 +204,7 @@ List<Override> sharedModeOverrides(
     UnavailableResultReviewRepository(),
   ),
   referralRequestRepositoryProvider.overrideWithValue(
-    UnavailableReferralRequestRepository(),
+    RemoteReferralRequestRepository(client),
   ),
   notificationRepositoryProvider.overrideWithValue(
     UnavailableNotificationRepository(),
@@ -202,7 +217,9 @@ List<Override> sharedModeOverrides(
   ),
   auditRepositoryProvider.overrideWithValue(UnavailableAuditRepository()),
   settingsRepositoryProvider.overrideWithValue(UnavailableSettingsRepository()),
-  feedbackRepositoryProvider.overrideWithValue(UnavailableFeedbackRepository()),
+  feedbackRepositoryProvider.overrideWithValue(
+    RemoteFeedbackRepository(client),
+  ),
   aiUsageRepositoryProvider.overrideWithValue(UnavailableAiUsageRepository()),
   careTeamRepositoryProvider.overrideWithValue(UnavailableCareTeamRepository()),
   staffCredentialRepositoryProvider.overrideWithValue(
@@ -364,7 +381,5 @@ class AdminHomeSwitch extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) =>
-      ref.watch(sharedModeProvider)
-      ? const SharedAdminHomeScreen()
-      : const AdminDashboardScreen();
+      const AdminDashboardScreen();
 }

@@ -74,6 +74,9 @@ class Appointments extends Table {
   /// The doctor's closing summary, written at "Complete consultation".
   TextColumn get outcomeNote => text().nullable()();
 
+  /// Explicit completion instant. Legacy unknown timestamps stay null.
+  DateTimeColumn get completedAt => dateTime().nullable()();
+
   /// `[Hour letter A-X]-[facility-wide ticket number for that hour today]`,
   /// assigned once at booking time (redesign v2 patient dashboard spec).
   TextColumn get ticketTag => text().nullable()();

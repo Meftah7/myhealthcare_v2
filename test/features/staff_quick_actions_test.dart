@@ -9,7 +9,6 @@ import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:myhealthcare/domain/enums.dart';
 import 'package:myhealthcare/features/auth/application/session.dart';
-import 'package:myhealthcare/features/staff_dashboard/presentation/staff_top_actions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/mfa.dart';
@@ -131,8 +130,6 @@ void main() {
     addTearDown(container.dispose);
 
     // Now reached from the Profile hub, not a Quick action.
-    await tester.tap(find.byType(PresenceMenu).first);
-    await _settle(tester);
     await tester.tap(find.text('Profile').last);
     await _settle(tester);
     await tester.tap(find.text('Staff directory'));
@@ -159,8 +156,6 @@ void main() {
     final container = await _signInStaff(tester);
     addTearDown(container.dispose);
 
-    await tester.tap(find.byType(PresenceMenu).first);
-    await _settle(tester);
     await tester.tap(find.text('Profile').last);
     await _settle(tester);
     await tester.tap(find.text('My activity'));
@@ -176,29 +171,24 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
   });
 
-  testWidgets('presence menu updates the pill', (tester) async {
-    tester.view.physicalSize = const Size(1400, 2600);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+  testWidgets(
+    'manual presence is absent and theme and profile stay accessible',
+    (tester) async {
+      tester.view.physicalSize = const Size(1400, 2600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-    final container = await _signInStaff(tester);
-    addTearDown(container.dispose);
+      final container = await _signInStaff(tester);
+      addTearDown(container.dispose);
 
-    // staff1 seeds as on duty.
-    expect(find.text('On duty'), findsWidgets);
-    await tester.tap(find.text('On duty').first);
-    await _settle(tester);
-    await tester.tap(find.text('On break').last);
-    await _settle(tester);
-    expect(find.text('On break'), findsWidgets);
+      expect(find.text('On duty'), findsNothing);
+      expect(find.text('On break'), findsNothing);
+      expect(find.byTooltip('Switch to dark mode'), findsOneWidget);
+      expect(find.text('Profile'), findsWidgets);
 
-    // Persisted.
-    final me = container.read(currentUserProvider)!.id;
-    final staff = await container.read(userRepositoryProvider).staffById(me);
-    expect(staff.valueOrNull?.presence, PresenceStatus.onBreak);
-
-    await tester.pumpWidget(const SizedBox());
-    await tester.pump(const Duration(seconds: 1));
-  });
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 1));
+    },
+  );
 }

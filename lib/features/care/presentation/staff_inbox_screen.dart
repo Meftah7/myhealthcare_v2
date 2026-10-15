@@ -30,7 +30,7 @@ class StaffInboxScreen extends ConsumerWidget {
     final awaiting = ref.watch(staffAwaitingReplyProvider);
 
     return AppScaffold(
-      title: t.messagesTitle,
+      title: t.localeName == 'ar' ? 'المحادثات' : 'Chat',
       actions: const [StaffTopActions()],
       body: RefreshIndicator(
         onRefresh: () async => ref.invalidate(staffThreadsProvider),

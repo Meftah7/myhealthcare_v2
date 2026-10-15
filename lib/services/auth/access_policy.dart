@@ -238,6 +238,7 @@ class AccessPolicy {
                 _db.careTeamAssignments,
                 _db.appointments,
                 _db.walkInTickets,
+                _db.encounterParticipants,
                 _db.staffCredentials,
                 _db.scopedGrants,
               },
@@ -544,6 +545,12 @@ class AccessPolicy {
             .get();
     return {
       ...appts,
+      for (final r in await (_db.select(
+        _db.encounterParticipants,
+      )..where((r) => r.staffId.equals(accountId))).get())
+        (await (_db.select(
+          _db.appointments,
+        )..where((a) => a.id.equals(r.appointmentId))).getSingle()).patientId,
       for (final a in assigned) a.patientId,
       for (final w in walkIns) w.patientId,
     };

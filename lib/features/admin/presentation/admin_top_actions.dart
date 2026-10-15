@@ -11,7 +11,6 @@ import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../patient_home/presentation/notifications_button.dart';
 import '../../settings/presentation/theme_mode_icon_toggle.dart';
-import 'admin_status_menu.dart';
 
 /// Drop straight into `AppBar.actions`: `actions: const [AdminTopActions()]`.
 class AdminTopActions extends ConsumerWidget {
@@ -22,7 +21,6 @@ class AdminTopActions extends ConsumerWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const AdminStatusMenu(),
         IconButton(
           tooltip: Localizations.localeOf(context).languageCode == 'ar'
               ? 'بحث'
@@ -31,8 +29,7 @@ class AdminTopActions extends ConsumerWidget {
           onPressed: () => context.push('/admin/dashboard/search'),
         ),
         const NotificationsButton(route: AppRoutes.adminNotifications),
-        if (MediaQuery.sizeOf(context).width >= 600)
-          const ThemeModeIconToggle(),
+        const ThemeModeIconToggle(),
         const SizedBox(width: Space.xs),
       ],
     );

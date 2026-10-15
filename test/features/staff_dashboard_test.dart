@@ -7,7 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/app.dart';
 import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/core/presentation/app_scaffold.dart';
-import 'package:myhealthcare/core/ui/patient/workspace_home.dart';
+import 'package:myhealthcare/app/router.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -67,14 +67,10 @@ void main() {
     // The desktop toolbar shows the signed-in clinician's name.
     final scaffold = tester.widget<AppScaffold>(find.byType(AppScaffold).first);
     expect(find.text(scaffold.title!), findsOneWidget);
-    expect(find.text('On duty'), findsWidgets);
-    expect(find.byType(NavyFeatureCard), findsOneWidget);
-    expect(find.text('Your shift'), findsOneWidget);
-    for (final label in const ['Today', 'In queue', 'Open flags']) {
-      expect(
-        find.text(label),
-        label == 'Today' ? findsWidgets : findsOneWidget,
-      );
+    expect(find.text('On duty'), findsNothing);
+    expect(find.text('Quick Statistics'), findsOneWidget);
+    for (final label in ['Ongoing', 'Upcoming', 'Completed']) {
+      expect(find.text(label), findsOneWidget);
     }
     expect(find.text('Quick actions'), findsOneWidget);
 
@@ -89,17 +85,16 @@ void main() {
     expect(find.textContaining('Panel scan complete'), findsOneWidget);
 
     // Task board is reachable and renders.
-    await tester.tap(find.text('Tasks').first);
+    final scope = ProviderScope.containerOf(
+      tester.element(find.byType(AppScaffold).first),
+    );
+    scope.read(routerProvider).go(AppRoutes.staffTasks);
     await _settle(tester);
     expect(find.text('Task board'), findsOneWidget);
 
-    await tester.tap(find.text('Today').last);
+    scope.read(routerProvider).go(AppRoutes.staffChat);
     await _settle(tester);
-    final inbox = find.byIcon(Icons.inbox_outlined);
-    await tester.ensureVisible(inbox);
-    await tester.tap(inbox);
-    await _settle(tester);
-    expect(find.widgetWithText(AppBar, 'Messages'), findsOneWidget);
+    expect(find.widgetWithText(AppBar, 'Chat'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));

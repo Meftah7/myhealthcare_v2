@@ -75,6 +75,76 @@ class UnavailableResultReviewRepository extends SharedUnavailable
 class UnavailableReferralRequestRepository extends SharedUnavailable
     implements ReferralRequestRepository {}
 
+class RemoteReferralRequestRepository extends SharedUnavailable
+    implements ReferralRequestRepository {
+  RemoteReferralRequestRepository(this.client);
+  final SharedClient client;
+  ReferralRequest _request(Map<String, dynamic> r) => ReferralRequest(
+    id: r['id'] as String,
+    patientId: r['patient'] as String,
+    requestedByStaffId: r['requested_by'] as String,
+    reason: r['reason'] as String,
+    status: ReferralRequestStatus.values.byName(r['status'] as String),
+    createdAt: DateTime.fromMillisecondsSinceEpoch(
+      (r['created'] as num).toInt(),
+      isUtc: true,
+    ),
+    appointmentId: r['appointment'] as String?,
+    version: r['version'] as int,
+  );
+  @override
+  Future<Result<ReferralRequest>> create(
+    NewReferralRequest request, {
+    IdempotencyKey? idempotencyKey,
+  }) => _guard(() async {
+    if (request.requestedByStaffId != client.user?['id'])
+      throw const AuthFailure('Requesting clinician must be signed in.');
+    return _request(
+      Map<String, dynamic>.from(
+        await client.request(
+              '/api/workspace/referrals',
+              method: 'POST',
+              body: {
+                'patientId': request.patientId,
+                'appointmentId': request.appointmentId,
+                'reason': request.reason,
+                'idempotencyKey':
+                    (idempotencyKey ?? IdempotencyKey.generate()).value,
+              },
+            )
+            as Map,
+      ),
+    );
+  });
+  @override
+  Future<Result<List<ReferralRequest>>> pending() => _guard(
+    () async => [
+      for (final r in await _list(client, '/api/workspace/referrals'))
+        if (r['status'] == 'pending') _request(r),
+    ],
+  );
+  @override
+  Future<Result<List<ReferralRequest>>> forPatient(String patientId) => _guard(
+    () async => [
+      for (final r in await _list(client, '/api/workspace/referrals', {
+        'patientId': patientId,
+      }))
+        _request(r),
+    ],
+  );
+  @override
+  Future<Result<ReferralRequest?>> pendingForAppointment(
+    String appointmentId,
+  ) => _guard(
+    () async => ([
+      for (final r in await _list(client, '/api/workspace/referrals', {
+        'appointmentId': appointmentId,
+      }))
+        if (r['status'] == 'pending') _request(r),
+    ]).firstOrNull,
+  );
+}
+
 class UnavailableNotificationRepository extends SharedUnavailable
     implements NotificationRepository {}
 
@@ -98,6 +168,77 @@ class UnavailableSettingsRepository extends SharedUnavailable
 
 class UnavailableFeedbackRepository extends SharedUnavailable
     implements FeedbackRepository {}
+
+/// The same feedback store backs submission and administrator handling.
+class RemoteFeedbackRepository implements FeedbackRepository {
+  RemoteFeedbackRepository(this.client);
+  final SharedClient client;
+  @override
+  Future<Result<void>> submit({
+    required FeedbackCategory category,
+    required String message,
+    String? reporterId,
+  }) => _guard(() async {
+    if (reporterId != null && reporterId != client.user?['id'])
+      throw const AuthFailure('Reporter must be the signed-in account.');
+    await client.request(
+      '/api/workspace/feedback-submit',
+      method: 'POST',
+      body: {'category': category.name, 'message': message},
+    );
+  });
+  @override
+  Future<Result<List<UserFeedback>>> all({
+    FeedbackStatus? status,
+  }) => _guard(() async {
+    final data =
+        await client.request('/api/workspace/feedback') as Map<String, dynamic>;
+    return [
+      for (final raw in data['rows'] as List)
+        if (status == null || (raw as Map)['status'] == status.name)
+          UserFeedback(
+            id: (raw as Map)['id'] as String,
+            category: FeedbackCategory.values.byName(raw['category'] as String),
+            message: raw['message'] as String,
+            status: FeedbackStatus.values.byName(raw['status'] as String),
+            createdAt: DateTime.fromMillisecondsSinceEpoch(
+              (raw['created_at'] as num).toInt() * 1000,
+              isUtc: true,
+            ),
+            reporterId: raw['reporter'] as String?,
+            reporterName: raw['reporter_name'] as String?,
+            handledByAdminId: raw['handler'] as String?,
+            handledAt: raw['handled_at'] == null
+                ? null
+                : DateTime.fromMillisecondsSinceEpoch(
+                    (raw['handled_at'] as num).toInt() * 1000,
+                    isUtc: true,
+                  ),
+          ),
+    ];
+  });
+  @override
+  Future<Result<void>> setStatus({
+    required String id,
+    required FeedbackStatus status,
+    String? adminId,
+  }) => _guard(() async {
+    if (adminId != null && adminId != client.user?['id'])
+      throw const AuthFailure('Handler must be the signed-in account.');
+    final data =
+        await client.request('/api/workspace/feedback') as Map<String, dynamic>;
+    final item = (data['rows'] as List)
+        .cast<Map<String, dynamic>>()
+        .where((f) => f['id'] == id)
+        .firstOrNull;
+    if (item == null) throw const NotFoundFailure('Feedback unavailable.');
+    await client.request(
+      '/api/workspace/feedback',
+      method: 'POST',
+      body: {'id': id, 'status': status.name, 'version': item['version']},
+    );
+  });
+}
 
 class UnavailableAiUsageRepository extends SharedUnavailable
     implements AiUsageRepository {}

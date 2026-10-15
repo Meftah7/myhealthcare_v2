@@ -75,6 +75,11 @@ class StaffProfileScreen extends ConsumerWidget {
             SectionHeader(t.accountSection, overline: true),
             ProfileNavigationGroup(
               items: [
+                ProfileNavigationItem(
+                  icon: Icons.checklist_outlined,
+                  label: t.tasksHeader,
+                  onTap: () => context.push(AppRoutes.staffTasks),
+                ),
                 for (final (icon, title, route) in sections)
                   ProfileNavigationItem(
                     icon: icon,

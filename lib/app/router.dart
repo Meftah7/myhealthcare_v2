@@ -14,7 +14,6 @@ import '../features/admin/presentation/admin_ai_log_screen.dart';
 import '../features/admin/presentation/admin_appointments_screen.dart';
 import '../features/admin/presentation/admin_billing_screen.dart';
 import '../features/admin/presentation/admin_clinic_documents.dart';
-import '../features/admin/presentation/admin_feedback_screen.dart';
 import '../features/admin/presentation/admin_finance_report.dart';
 import '../features/admin/presentation/admin_forecast_screen.dart';
 import '../features/admin/presentation/admin_people_profile.dart';
@@ -93,6 +92,8 @@ import '../features/timeline/presentation/health_records_screen.dart';
 import '../features/vitals/presentation/vitals_screen.dart';
 import '../l10n/app_localizations.dart';
 import 'shared_mode.dart';
+import '../features/workspace/workspace_widgets.dart';
+import '../features/workspace/workspace_admin_screens.dart';
 import 'shell/app_shell.dart';
 
 /// The app's [GoRouter], rebuilt-aware of the session and the one-time
@@ -202,6 +203,7 @@ abstract final class AppRoutes {
   static const staffDashboard = '/staff/dashboard';
   static const staffPatients = '/staff/patients';
   static const staffTasks = '/staff/tasks';
+  static const staffChat = '/staff/chat';
   static const staffSchedule = '/staff/schedule';
   static const staffScribe = '/staff/scribe';
 
@@ -372,12 +374,16 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
       // Operational pushes from the dashboard Quick actions — full-screen over
       // the shell, with the admin top bar.
       GoRoute(
+        path: '/admin/rooms',
+        builder: (_, _) => const ClinicRoomsScreen(),
+      ),
+      GoRoute(
         path: AppRoutes.adminAppointments,
         builder: (_, _) => const AdminAppointmentsScreen(),
       ),
       GoRoute(
         path: AppRoutes.adminFeedback,
-        builder: (_, _) => const AdminFeedbackScreen(),
+        builder: (_, _) => const WorkspaceFeedbackScreen(),
       ),
 
       _patientShell(),
@@ -875,9 +881,9 @@ StatefulShellRoute _staffShell() {
             label: t.navPatients,
           ),
           AppDestination(
-            icon: Icons.checklist_outlined,
-            selectedIcon: Icons.checklist,
-            label: t.navTasks,
+            icon: Icons.chat_bubble_outline,
+            selectedIcon: Icons.chat_bubble,
+            label: t.localeName == 'ar' ? 'المحادثات' : 'Chat',
           ),
           AppDestination(
             icon: Icons.calendar_month_outlined,
@@ -901,7 +907,14 @@ StatefulShellRoute _staffShell() {
             routes: [
               GoRoute(
                 path: 'inbox',
-                builder: (_, _) => const StaffInboxScreen(),
+                redirect: (_, state) =>
+                    state.pathParameters['patientId'] == null
+                    ? AppRoutes.staffChat
+                    : Uri(
+                        path:
+                            '${AppRoutes.staffChat}/${state.pathParameters['patientId']}',
+                        query: state.uri.hasQuery ? state.uri.query : null,
+                      ).toString(),
                 routes: [
                   GoRoute(
                     path: ':patientId',
@@ -961,27 +974,16 @@ StatefulShellRoute _staffShell() {
       StatefulShellBranch(
         routes: [
           GoRoute(
-            path: AppRoutes.staffTasks,
-            builder: (_, _) => const TaskBoardScreen(),
+            path: AppRoutes.staffChat,
+            builder: (_, _) => const StaffInboxScreen(),
             routes: [
               GoRoute(
-                path: 'handover',
-                builder: (_, _) => const HandoverScreen(),
-              ),
-              GoRoute(
-                path: ':taskId',
-                builder: (_, s) =>
-                    TaskDetailScreen(id: s.pathParameters['taskId']!),
-                routes: [
-                  GoRoute(
-                    path: 'source/:type/:sourceId',
-                    builder: (_, s) => TaskSourceScreen(
-                      task: s.pathParameters['taskId']!,
-                      type: s.pathParameters['type']!,
-                      source: s.pathParameters['sourceId']!,
-                    ),
-                  ),
-                ],
+                path: ':patientId',
+                builder: (_, state) => StaffMessageThreadPage(
+                  patientId: state.pathParameters['patientId']!,
+                  title: state.uri.queryParameters['name'],
+                  ownerId: state.uri.queryParameters['owner'],
+                ),
               ),
             ],
           ),
@@ -1026,6 +1028,31 @@ StatefulShellRoute _staffShell() {
               GoRoute(
                 path: 'preferences',
                 builder: (_, _) => const StaffPreferencesPage(),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: AppRoutes.staffTasks,
+            builder: (_, _) => const TaskBoardScreen(),
+            routes: [
+              GoRoute(
+                path: 'handover',
+                builder: (_, _) => const HandoverScreen(),
+              ),
+              GoRoute(
+                path: ':taskId',
+                builder: (_, s) =>
+                    TaskDetailScreen(id: s.pathParameters['taskId']!),
+                routes: [
+                  GoRoute(
+                    path: 'source/:type/:sourceId',
+                    builder: (_, s) => TaskSourceScreen(
+                      task: s.pathParameters['taskId']!,
+                      type: s.pathParameters['type']!,
+                      source: s.pathParameters['sourceId']!,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

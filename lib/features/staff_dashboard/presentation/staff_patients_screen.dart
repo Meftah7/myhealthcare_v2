@@ -7,6 +7,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import '../../workspace/workspace_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -31,24 +32,22 @@ final selectedPatientIdProvider = StateProvider<String?>((ref) => null);
 
 class StaffPatientsScreen extends ConsumerWidget {
   const StaffPatientsScreen({super.key});
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final t = AppLocalizations.of(context)!;
-    final results = ref.watch(patientSearchResultsProvider);
+    final t = AppLocalizations.of(context)!,
+        results = ref.watch(patientSearchResultsProvider),
+        selectedId = ref.watch(selectedPatientIdProvider),
+        split = TwoPane.isSplit(context);
     final hasMore =
         ref.watch(patientSearchPageProvider).valueOrNull?.hasMore ?? false;
-    final selectedId = ref.watch(selectedPatientIdProvider);
-    final split = TwoPane.isSplit(context);
-
     return AppScaffold(
-      hero: true,
       title: t.navPatients,
       actions: const [StaffTopActions()],
+      centerBody: !split,
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(60),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(Space.md, 0, Space.md, Space.xs),
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
           child: SearchBar(
             hintText: t.searchByNameOrNationalId,
             leading: const Icon(Icons.search),
@@ -57,8 +56,6 @@ class StaffPatientsScreen extends ConsumerWidget {
           ),
         ),
       ),
-      // The panes manage their own scrolling and want the full window width.
-      centerBody: !split,
       body: TwoPane(
         placeholderIcon: Icons.folder_shared_outlined,
         placeholderMessage: t.pickPatientPlaceholder,
@@ -72,49 +69,76 @@ class StaffPatientsScreen extends ConsumerWidget {
         list: results.when(
           loading: () => const SkeletonList(),
           error: (e, _) => ErrorStateView(
-            message: t.couldNotLoadPatients,
+            message: '$e',
             onRetry: () => ref.invalidate(patientSearchResultsProvider),
           ),
-          data: (patients) {
-            if (patients.isEmpty) {
-              return EmptyState(
-                icon: Icons.person_search_outlined,
-                message: t.noPatientsMatchSearch,
-              );
-            }
-            return ListView.builder(
-              padding: const EdgeInsets.fromLTRB(
-                Space.md,
-                Space.sm,
-                Space.md,
-                Space.xxl,
-              ),
-              // One extra row for "Load more" while more pages exist.
-              itemCount: patients.length + (hasMore ? 1 : 0),
-              itemBuilder: (context, i) {
-                if (i == patients.length) {
-                  return LoadMoreFooter(
-                    onLoadMore: () =>
-                        ref.read(patientSearchPagesProvider.notifier).state++,
-                  );
-                }
-                final p = patients[i];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: Space.xs),
-                  child: _PatientRow(
-                    patient: p,
-                    selected: split && p.id == selectedId,
-                    onTap: () {
-                      ref.read(selectedPatientIdProvider.notifier).state = p.id;
-                      if (!split) {
-                        context.go(AppRoutes.staffPatientChart(p.id));
-                      }
-                    },
-                  ),
+          data: (patients) => ListView.builder(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 48),
+            itemCount: patients.length + 1 + (hasMore ? 1 : 0),
+            itemBuilder: (context, i) {
+              if (i == 0)
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const PatientHistoryStatistics(),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        for (final (value, en, ar) in [
+                          ('all', 'All', 'الكل'),
+                          ('critical', 'Critical', 'حرجة'),
+                          ('followUp', 'Follow-up', 'المتابعة'),
+                        ])
+                          FilterChip(
+                            label: Text(wt(context, en, ar)),
+                            selected:
+                                ref.watch(patientHistoryFilterProvider) ==
+                                value,
+                            onSelected: (_) {
+                              ref
+                                      .read(
+                                        patientHistoryFilterProvider.notifier,
+                                      )
+                                      .state =
+                                  value;
+                              ref
+                                      .read(patientSearchPagesProvider.notifier)
+                                      .state =
+                                  1;
+                            },
+                          ),
+                      ],
+                    ),
+                    if (patients.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Text(t.noPatientsMatchSearch),
+                      ),
+                    const SizedBox(height: 12),
+                  ],
                 );
-              },
-            );
-          },
+              if (i == patients.length + 1)
+                return LoadMoreFooter(
+                  onLoadMore: () =>
+                      ref.read(patientSearchPagesProvider.notifier).state++,
+                );
+              final patient = patients[i - 1];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _PatientRow(
+                  patient: patient,
+                  selected: split && patient.id == selectedId,
+                  onTap: () {
+                    ref.read(selectedPatientIdProvider.notifier).state =
+                        patient.id;
+                    if (!split)
+                      context.go(AppRoutes.staffPatientChart(patient.id));
+                  },
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
@@ -174,7 +198,7 @@ class StaffPatientContextHeader extends ConsumerWidget {
   }
 }
 
-class _PatientRow extends StatelessWidget {
+class _PatientRow extends ConsumerWidget {
   const _PatientRow({
     required this.patient,
     required this.selected,
@@ -186,7 +210,7 @@ class _PatientRow extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final t = AppLocalizations.of(context)!;
@@ -197,7 +221,25 @@ class _PatientRow extends StatelessWidget {
         .map((s) => s[0])
         .join();
 
+    final history = ref
+        .watch(historyRowsPageProvider)
+        .valueOrNull
+        ?.items
+        .where((r) => r['id'] == patient.id)
+        .firstOrNull;
     final meta = [
+      if (history != null)
+        '${wt(context, "Last qualifying visit", "آخر زيارة مؤهلة")}: ${wallDate(history['last_visit'])}',
+      if (history?['legacy_completion'] == 1)
+        wt(
+          context,
+          'Legacy visits may use scheduled dates',
+          'قد تستخدم الزيارات القديمة تواريخ المواعيد',
+        ),
+      if (patient.user.dob != null)
+        '${patient.user.ageYears} · ${wlabel(context, patient.user.gender?.name)}',
+      if (history?['critical'] == 1) wt(context, 'Critical', 'حرجة'),
+      if (history?['follow_up'] == 1) wt(context, 'Follow-up', 'المتابعة'),
       if (patient.user.nationalId != null)
         t.idValueLabel(patient.user.nationalId!),
       if (patient.chronicConditions.isNotEmpty)
@@ -238,8 +280,6 @@ class _PatientRow extends StatelessWidget {
                 ),
                 Text(
                   meta,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: selected
                         ? scheme.onSecondaryContainer

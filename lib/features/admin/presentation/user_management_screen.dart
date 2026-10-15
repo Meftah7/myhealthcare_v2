@@ -4,6 +4,9 @@
 library;
 
 import 'package:flutter/material.dart';
+import '../../../app/shared_mode.dart';
+import '../../workspace/workspace_admin_screens.dart';
+import '../../workspace/workspace_widgets.dart' show wlabel;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -48,6 +51,7 @@ class _State extends ConsumerState<UserManagementScreen>
   String _query = '';
   String _status = 'all';
   String? _department, _clinician;
+  StaffRole? _staffRole;
   bool _bulk = false;
   final _selected = <String>{};
 
@@ -56,7 +60,14 @@ class _State extends ConsumerState<UserManagementScreen>
     super.initState();
     _tabs = TabController(length: 3, vsync: this);
     _tabs.addListener(() {
-      if (!_tabs.indexIsChanging) setState(() {});
+      setState(() {
+        _selected.clear();
+        _bulk = false;
+        _department = null;
+        _clinician = null;
+        _staffRole = null;
+        _status = 'all';
+      });
     });
   }
 
@@ -93,51 +104,25 @@ class _State extends ConsumerState<UserManagementScreen>
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
+    if (ref.watch(sharedModeProvider)) return const SharedUsersScreen();
     final add = _addLabel(t);
+    void change(VoidCallback action) => setState(() {
+      action();
+      _selected.clear();
+    });
+    final narrow = MediaQuery.sizeOf(context).width < 600;
+    final largeText = MediaQuery.textScalerOf(context).scale(14) > 18;
+    Widget field(Widget child) => SizedBox(
+      width: narrow
+          ? MediaQuery.sizeOf(context).width - 32
+          : largeText
+          ? 300
+          : 180,
+      child: child,
+    );
     return AppScaffold(
-      hero: true,
-      title: t.userManagementTitle,
+      title: adminText(context, 'Users', 'المستخدمون'),
       actions: const [AdminTopActions()],
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(104),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                Space.md,
-                0,
-                Space.md,
-                Space.sm,
-              ),
-              child: SearchBar(
-                controller: _search,
-                hintText: t.searchByNameOrEmailHint,
-                leading: const Icon(Icons.search),
-                trailing: [
-                  if (_query.isNotEmpty)
-                    IconButton(
-                      tooltip: AppLocalizations.of(context)!.clearSearchTooltip,
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        _search.clear();
-                        setState(() => _query = '');
-                      },
-                    ),
-                ],
-                onChanged: (v) => setState(() => _query = v),
-              ),
-            ),
-            TabBar(
-              controller: _tabs,
-              tabs: [
-                Tab(text: t.patientsAction),
-                Tab(text: t.staffCountLabel),
-                Tab(text: t.adminsLabel),
-              ],
-            ),
-          ],
-        ),
-      ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'users-add',
         onPressed: _onAddPressed,
@@ -146,50 +131,94 @@ class _State extends ConsumerState<UserManagementScreen>
       ),
       body: Column(
         children: [
-          Flexible(
+          TabBar(
+            controller: _tabs,
+            isScrollable: narrow || largeText,
+            tabAlignment: narrow || largeText ? TabAlignment.start : null,
+            tabs: [
+              Tab(text: t.patientsAction),
+              Tab(text: t.staffCountLabel),
+              Tab(text: t.adminsLabel),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: SearchBar(
+              controller: _search,
+              hintText: t.searchByNameOrEmailHint,
+              leading: const Icon(Icons.search),
+              onChanged: (v) => change(() => _query = v),
+            ),
+          ),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 220),
             child: SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
+                  spacing: 10,
+                  runSpacing: 10,
                   children: [
-                    TextButton(
-                      onPressed: () => setState(() {
-                        _bulk = !_bulk;
-                        _selected.clear();
-                      }),
-                      child: ReadableLabel(
-                        adminText(
-                          context,
-                          _bulk ? 'End selection' : 'Select accounts',
-                          _bulk ? 'إنهاء التحديد' : 'تحديد حسابات',
+                    field(
+                      DropdownButtonFormField<String>(
+                        key: ValueKey('status-$_status'),
+                        initialValue: _status,
+                        isExpanded: true,
+                        decoration: InputDecoration(
+                          labelText: adminText(
+                            context,
+                            'Account status',
+                            'حالة الحساب',
+                          ),
                         ),
+                        items: [
+                          for (final v in ['all', 'active', 'inactive'])
+                            DropdownMenuItem(
+                              value: v,
+                              child: Text(
+                                v == 'all'
+                                    ? adminText(context, 'All', 'الكل')
+                                    : v == 'active'
+                                    ? adminText(context, 'Active', 'نشط')
+                                    : adminText(context, 'Inactive', 'غير نشط'),
+                              ),
+                            ),
+                        ],
+                        onChanged: (v) => change(() => _status = v!),
                       ),
                     ),
-                    if (_bulk)
-                      TextButton(
-                        onPressed: _selected.isEmpty
-                            ? null
-                            : _deactivateSelected,
-                        child: Text(
-                          '${adminText(context, 'Preview deactivation', 'معاينة التعطيل')} (${_selected.length})',
+                    if (_role == UserRole.staff) ...[
+                      field(
+                        DropdownButtonFormField<StaffRole>(
+                          key: ValueKey(_staffRole),
+                          initialValue: _staffRole,
+                          isExpanded: true,
+                          decoration: InputDecoration(
+                            labelText: adminText(
+                              context,
+                              'Staff role',
+                              'دور الموظف',
+                            ),
+                          ),
+                          items: [
+                            DropdownMenuItem(
+                              value: null,
+                              child: Text(
+                                adminText(context, 'All roles', 'جميع الأدوار'),
+                              ),
+                            ),
+                            for (final r in StaffRole.values)
+                              DropdownMenuItem(
+                                value: r,
+                                child: Text(wlabel(context, r.name)),
+                              ),
+                          ],
+                          onChanged: (v) => change(() => _staffRole = v),
                         ),
                       ),
-                    for (final s in ['all', 'active', 'inactive'])
-                      ChoiceChip(
-                        label: Text(switch (s) {
-                          'all' => adminText(context, 'All', 'الكل'),
-                          'active' => adminText(context, 'Active', 'نشط'),
-                          _ => adminText(context, 'Inactive', 'غير نشط'),
-                        }),
-                        selected: _status == s,
-                        onSelected: (_) => setState(() => _status = s),
-                      ),
-                    if (_role == UserRole.staff)
-                      SizedBox(
-                        width: 200,
-                        child: DropdownButtonFormField<String>(
+                      field(
+                        DropdownButtonFormField<String>(
+                          key: ValueKey(_department),
                           initialValue: _department,
                           isExpanded: true,
                           decoration: InputDecoration(
@@ -203,8 +232,6 @@ class _State extends ConsumerState<UserManagementScreen>
                             DropdownMenuItem(
                               value: null,
                               child: Text(
-                                softWrap: false,
-                                overflow: TextOverflow.ellipsis,
                                 adminText(
                                   context,
                                   'All departments',
@@ -220,28 +247,27 @@ class _State extends ConsumerState<UserManagementScreen>
                                 child: Text(d.name),
                               ),
                           ],
-                          onChanged: (v) => setState(() => _department = v),
+                          onChanged: (v) => change(() => _department = v),
                         ),
                       ),
-                    if (_role != UserRole.admin)
-                      SizedBox(
-                        width: 200,
-                        child: DropdownButtonFormField<String>(
+                    ],
+                    if (_role == UserRole.patient)
+                      field(
+                        DropdownButtonFormField<String>(
+                          key: ValueKey(_clinician),
                           initialValue: _clinician,
                           isExpanded: true,
                           decoration: InputDecoration(
                             labelText: adminText(
                               context,
-                              'Clinician',
-                              'الممارس السريري',
+                              'Treating clinician',
+                              'الممارس المعالج',
                             ),
                           ),
                           items: [
                             DropdownMenuItem(
                               value: null,
                               child: Text(
-                                softWrap: false,
-                                overflow: TextOverflow.ellipsis,
                                 adminText(
                                   context,
                                   'All clinicians',
@@ -249,43 +275,95 @@ class _State extends ConsumerState<UserManagementScreen>
                                 ),
                               ),
                             ),
-                            for (final s
+                            for (final staff
                                 in ref
                                         .watch(staffDirectoryProvider)
                                         .valueOrNull ??
                                     <Staff>[])
                               DropdownMenuItem(
-                                value: s.id,
-                                child: Text(s.fullName),
+                                value: staff.id,
+                                child: Text(staff.fullName),
                               ),
                           ],
-                          onChanged: (v) => setState(() => _clinician = v),
+                          onChanged: (v) => change(() => _clinician = v),
                         ),
                       ),
+                    TextButton(
+                      onPressed: () => change(() {
+                        _search.clear();
+                        _query = '';
+                        _status = 'all';
+                        _department = null;
+                        _clinician = null;
+                        _staffRole = null;
+                      }),
+                      child: Text(
+                        adminText(
+                          context,
+                          'Reset filters',
+                          'إعادة ضبط التصفية',
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
           ),
-          Expanded(
-            flex: 2,
-            child: TabBarView(
-              controller: _tabs,
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Wrap(
+              spacing: 12,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                for (final r in _roles)
-                  _UserList(
-                    role: r,
-                    query: _query,
-                    status: _status,
-                    department: _department,
-                    clinician: _clinician,
-                    selected: _selected,
-                    bulk: _bulk,
-                    onSelect: (id, v) => setState(() {
-                      v ? _selected.add(id) : _selected.remove(id);
-                    }),
+                OutlinedButton(
+                  onPressed: () => setState(() {
+                    _bulk = !_bulk;
+                    _selected.clear();
+                  }),
+                  child: Text(
+                    _bulk
+                        ? adminText(
+                            context,
+                            'Cancel selection',
+                            'إلغاء التحديد',
+                          )
+                        : adminText(context, 'Select accounts', 'تحديد حسابات'),
                   ),
+                ),
+                if (_bulk) ...[
+                  Text(
+                    '${_selected.length} ${adminText(context, "selected", "محدد")}',
+                  ),
+                  FilledButton(
+                    onPressed: _selected.isEmpty ? null : _deactivateSelected,
+                    child: Text(
+                      adminText(
+                        context,
+                        'Review deactivation',
+                        'مراجعة التعطيل',
+                      ),
+                    ),
+                  ),
+                ],
               ],
+            ),
+          ),
+          Expanded(
+            child: _UserList(
+              role: _role,
+              query: _query,
+              status: _status,
+              department: _department,
+              clinician: _clinician,
+              staffRole: _staffRole,
+              selected: _selected,
+              bulk: _bulk,
+              onSelect: (id, value) => setState(() {
+                value ? _selected.add(id) : _selected.remove(id);
+              }),
+              onSelectVisible: (ids) => setState(() => _selected.addAll(ids)),
             ),
           ),
         ],
@@ -382,6 +460,8 @@ class _UserList extends ConsumerWidget {
     required this.status,
     this.department,
     this.clinician,
+    this.staffRole,
+    required this.onSelectVisible,
     required this.selected,
     required this.bulk,
     required this.onSelect,
@@ -390,6 +470,8 @@ class _UserList extends ConsumerWidget {
   final String query;
   final String status;
   final String? department, clinician;
+  final StaffRole? staffRole;
+  final void Function(List<String>) onSelectVisible;
   final Set<String> selected;
   final bool bulk;
   final void Function(String, bool) onSelect;
@@ -422,8 +504,13 @@ class _UserList extends ConsumerWidget {
             .where(
               (u) =>
                   (u.fullName.toLowerCase().contains(q) ||
-                      u.email.toLowerCase().contains(q)) &&
+                      u.email.toLowerCase().contains(q) ||
+                      u.id.toLowerCase().contains(q) ||
+                      (u.nationalId?.toLowerCase().contains(q) ?? false)) &&
                   (status == 'all' || u.isActive == (status == 'active')) &&
+                  (role != UserRole.staff ||
+                      staffRole == null ||
+                      staff[u.id]?.role == staffRole) &&
                   (role != UserRole.staff ||
                       department == null ||
                       staff[u.id]?.departmentId == department) &&
@@ -443,26 +530,56 @@ class _UserList extends ConsumerWidget {
             message: q.isEmpty ? t.noUsersInGroup : t.noUsersMatchQuery(query),
           );
         }
-        return ListView.builder(
-          padding: const EdgeInsets.fromLTRB(
-            Space.md,
-            Space.sm,
-            Space.md,
-            Space.xxl,
-          ),
-          itemCount: list.length,
-          itemBuilder: (context, i) => bulk
-              ? Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Checkbox(
-                      value: selected.contains(list[i].id),
-                      onChanged: (v) => onSelect(list[i].id, v == true),
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Wrap(
+                spacing: 12,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(
+                    '${list.length} ${adminText(context, "matching accounts", "حسابات مطابقة")}',
+                  ),
+                  if (bulk)
+                    TextButton(
+                      onPressed: () =>
+                          onSelectVisible(list.map((u) => u.id).toList()),
+                      child: Text(
+                        adminText(
+                          context,
+                          'Select visible filtered accounts',
+                          'تحديد الحسابات الظاهرة المطابقة',
+                        ),
+                      ),
                     ),
-                    Expanded(child: _UserCard(user: list[i])),
-                  ],
-                )
-              : _UserCard(user: list[i]),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.fromLTRB(
+                  Space.md,
+                  Space.sm,
+                  Space.md,
+                  Space.xxl,
+                ),
+                itemCount: list.length,
+                itemBuilder: (context, i) => bulk
+                    ? Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Checkbox(
+                            value: selected.contains(list[i].id),
+                            onChanged: (v) => onSelect(list[i].id, v == true),
+                          ),
+                          Expanded(child: _UserCard(user: list[i])),
+                        ],
+                      )
+                    : _UserCard(user: list[i]),
+              ),
+            ),
+          ],
         );
       },
     );

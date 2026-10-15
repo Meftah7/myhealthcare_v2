@@ -347,13 +347,14 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
               (t) => t.staffId.equals(staffId) & t.weekday.equals(day.weekday),
             ))
             .get();
-    return _gridFor(staffId, day, templates, settings);
+    return scheduleGridFor(staffId, day, templates, settings);
   }
 
   /// The pure slot grid for one clinician-day: clinic open days/hours clip
   /// each template. One rule for [openSlots], booking validation and
   /// [availabilitySummaries].
-  static List<OpenSlot> _gridFor(
+  /// Shared pure grid for booking and clinic dashboard availability.
+  static List<OpenSlot> scheduleGridFor(
     String staffId,
     DateTime day,
     Iterable<ScheduleTemplateRow> templates,
@@ -440,7 +441,7 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
         var count = 0;
         for (var i = 0; i < window; i++) {
           final day = from.add(Duration(days: i));
-          for (final s in _gridFor(id, day, own, settings)) {
+          for (final s in scheduleGridFor(id, day, own, settings)) {
             if (!s.start.isAfter(now)) continue;
             if (busy.any(
               (a) => a.slotStart.isBefore(s.end) && a.slotEnd.isAfter(s.start),

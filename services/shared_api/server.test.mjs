@@ -139,7 +139,7 @@ test('encrypted backup restores exact files, schema and data while invalidating 
   assert.throws(() => restoreBackup({ archive, key: backupKey, directory: target }));
   const restored = new Store({ directory: target, fileKey: f.key });
   try { assert.deepEqual(restored.readFile(uploaded.body.id), original); assert.equal(restored.get('SELECT count(*) n FROM sessions').n, 0);
-    assert.equal(restored.get('PRAGMA user_version').user_version, 2); }
+    assert.equal(restored.get('PRAGMA user_version').user_version, 3); }
   finally { restored.close(); }
   assert.equal(existsSync(join(target, '.restore-incomplete')), false);
 });

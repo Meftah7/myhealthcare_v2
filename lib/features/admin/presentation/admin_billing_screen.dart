@@ -8,6 +8,8 @@
 library;
 
 import 'package:flutter/material.dart';
+import '../../../app/shared_mode.dart';
+import '../../workspace/workspace_admin_screens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'admin_workspace_screens.dart';
@@ -42,6 +44,8 @@ class _AdminBillingScreenState extends ConsumerState<AdminBillingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (ref.watch(sharedModeProvider))
+      return const SharedAdminOperationsScreen(billing: true);
     final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final invoices = ref.watch(allInvoicesProvider(_filter));

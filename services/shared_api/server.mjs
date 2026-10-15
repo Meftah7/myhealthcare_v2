@@ -1,6 +1,7 @@
 import { createServer } from 'node:http';
 import { ApiError, digest, fields, id, passwordMatches, requireThat, text, token } from './store.mjs';
 import { REPORT_INSTRUCTIONS, answerReportQuestion, clipReport } from './ai.mjs';
+import { workspaceOps } from './workspace_ops.mjs';
 import { clinicOps } from './clinic_ops.mjs';
 import { clinicalOps } from './clinical_ops.mjs';
 
@@ -351,7 +352,7 @@ export function createApi({ store, origins = [], renderDocument, aiProvider, rep
         aiConfigured: !!aiProvider, reportExplainerConfigured: !!reportExplainer, reportChatConfigured: !!reportChat, pdfRendererConfigured: !!renderDocument,
         payments: 'deskRecordOnly', externalDelivery: 'notConfigured', inAppDelivery: 'serverWorker' };
     }
-    const ops = clinicOps({ store, now, path, method, url, body, actor }) ??
+    const ops = workspaceOps({ store, now, path, method, url, body, actor }) ?? clinicOps({ store, now, path, method, url, body, actor }) ??
       clinicalOps({ store, now, path, method, url, body, actor });
     if (ops !== undefined) return ops;
     throw new ApiError(404, 'Endpoint unavailable.');
