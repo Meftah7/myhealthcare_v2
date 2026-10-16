@@ -23,6 +23,8 @@ import '../core/ui/patient/patient_components.dart';
 import '../core/utils/format.dart';
 import '../data/db/app_database.dart';
 import '../data/remote/shared_client.dart';
+import '../data/remote/remote_document_service.dart';
+import '../data/remote/remote_vitals_repository.dart';
 import '../data/remote/shared_repositories.dart';
 import '../domain/identity/principal.dart';
 import '../features/admin/presentation/admin_dashboard_screen.dart';
@@ -57,10 +59,7 @@ bool sharedModeBlocks(String location) {
         ].contains(location) &&
         !location.startsWith('/admin/profile/preferences');
   }
-  return location.startsWith('/patient/timeline/documents') ||
-      location.startsWith('/patient/home/vitals') ||
-      RegExp(r'^/staff/tasks/[^/]+$').hasMatch(location) ||
-      location.startsWith('/staff/schedule/work');
+  return false;
 }
 
 const sharedUnavailableRoute = '/shared-unavailable';
@@ -120,7 +119,11 @@ List<Override> sharedModeOverrides(
 }) => [
   sharedModeProvider.overrideWithValue(true),
   sharedClientProvider.overrideWithValue(client),
-  appModeProvider.overrideWithValue(AppMode.production),
+  appModeProvider.overrideWithValue(
+    AppMode.parse(
+      const String.fromEnvironment('APP_MODE', defaultValue: 'production'),
+    ),
+  ),
   // A separate scratch store, never seeded: nothing local can pass as
   // clinic data.
   appDatabaseProvider.overrideWith((ref) {
@@ -183,7 +186,7 @@ List<Override> sharedModeOverrides(
   documentPolicyRepositoryProvider.overrideWithValue(
     UnavailableDocumentPolicyRepository(),
   ),
-  documentServiceProvider.overrideWithValue(UnavailableDocumentService()),
+  documentServiceProvider.overrideWithValue(RemoteDocumentService(client)),
   familyLinkRepositoryProvider.overrideWithValue(
     UnavailableFamilyLinkRepository(),
   ),
@@ -210,7 +213,7 @@ List<Override> sharedModeOverrides(
     UnavailableNotificationRepository(),
   ),
   recordRepositoryProvider.overrideWithValue(UnavailableRecordRepository()),
-  vitalsRepositoryProvider.overrideWithValue(UnavailableVitalsRepository()),
+  vitalsRepositoryProvider.overrideWithValue(RemoteVitalsRepository(client)),
   riskRepositoryProvider.overrideWithValue(UnavailableRiskRepository()),
   aiSummaryRepositoryProvider.overrideWithValue(
     UnavailableAiSummaryRepository(),

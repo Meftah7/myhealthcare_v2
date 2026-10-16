@@ -53,7 +53,7 @@ export class Store {
     this.db = new DatabaseSync(join(this.directory, 'clinic.sqlite'), { timeout: 5000 });
     this.db.exec('PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; PRAGMA synchronous=FULL;');
     const version = this.db.prepare('PRAGMA user_version').get().user_version;
-    requireThat(version <= 3, 500, 'Database is newer than this server.');
+    requireThat(version <= 4, 500, 'Database is newer than this server.');
     if (version === 0) this.db.exec(`BEGIN IMMEDIATE;
       CREATE TABLE users (id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, name TEXT NOT NULL,
         role TEXT NOT NULL CHECK(role IN ('patient','staff','admin')), job TEXT,
@@ -178,6 +178,24 @@ export class Store {
       CREATE TRIGGER prescription_issued AFTER INSERT ON prescriptions WHEN NEW.issued_at IS NULL BEGIN UPDATE prescriptions SET issued_at=CAST(unixepoch('subsec')*1000 AS INTEGER) WHERE id=NEW.id; END;
       CREATE TRIGGER appointment_completed AFTER UPDATE OF status ON appointments WHEN NEW.status='completed' AND OLD.status!='completed' BEGIN UPDATE appointments SET completed_at=COALESCE(completed_at,CAST(unixepoch('subsec')*1000 AS INTEGER)) WHERE id=NEW.id; END;
       PRAGMA user_version=3; COMMIT;`);
+    if (this.get('PRAGMA user_version').user_version < 4) this.db.exec(`BEGIN IMMEDIATE;
+      ALTER TABLE files ADD COLUMN released INTEGER NOT NULL DEFAULT 0;
+      ALTER TABLE prescriptions ADD COLUMN ordered_units INTEGER;
+      ALTER TABLE tasks ADD COLUMN coverage_staff TEXT REFERENCES users(id);
+      ALTER TABLE tasks ADD COLUMN coverage_until INTEGER;
+      CREATE TABLE duty_offers(id TEXT PRIMARY KEY,sender TEXT NOT NULL REFERENCES users(id),recipient TEXT NOT NULL REFERENCES users(id),tasks TEXT NOT NULL,reason TEXT NOT NULL,expires INTEGER NOT NULL,status TEXT NOT NULL DEFAULT 'pending',created INTEGER NOT NULL,decided INTEGER);
+      CREATE TABLE duty_time_off(id TEXT PRIMARY KEY,staff TEXT NOT NULL REFERENCES users(id),start INTEGER NOT NULL,end INTEGER NOT NULL,reason TEXT NOT NULL,created INTEGER NOT NULL,active INTEGER NOT NULL DEFAULT 1);
+      CREATE TABLE staff_shifts(id TEXT PRIMARY KEY,staff TEXT NOT NULL REFERENCES users(id),weekday INTEGER NOT NULL CHECK(weekday BETWEEN 1 AND 7),start_min INTEGER NOT NULL,end_min INTEGER NOT NULL,department TEXT REFERENCES departments(id));
+      CREATE TABLE vitals(id TEXT PRIMARY KEY,patient TEXT NOT NULL REFERENCES users(id),appointment TEXT REFERENCES appointments(id),recorded_by TEXT REFERENCES users(id),recorded_at INTEGER NOT NULL,temp_c REAL,heart_rate INTEGER,spo2 INTEGER,systolic INTEGER,diastolic INTEGER,weight_kg REAL,height_cm REAL,glucose REAL);
+      CREATE TABLE nursing_intakes(id TEXT PRIMARY KEY,appointment TEXT NOT NULL REFERENCES appointments(id),nurse TEXT NOT NULL REFERENCES users(id),status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','completed')),note TEXT NOT NULL DEFAULT '',vitals TEXT REFERENCES vitals(id),assigned_at INTEGER NOT NULL,recorded_at INTEGER,recorded_by TEXT REFERENCES users(id),last_request_key TEXT,version INTEGER NOT NULL DEFAULT 1,UNIQUE(appointment,nurse));
+      CREATE TABLE staff_conversations(id TEXT PRIMARY KEY,pair_key TEXT NOT NULL UNIQUE,created_by TEXT NOT NULL REFERENCES users(id),created_at INTEGER NOT NULL);
+      CREATE TABLE staff_conversation_members(conversation TEXT NOT NULL REFERENCES staff_conversations(id),user TEXT NOT NULL REFERENCES users(id),last_read_at INTEGER,PRIMARY KEY(conversation,user));
+      CREATE TABLE staff_messages(id TEXT PRIMARY KEY,conversation TEXT NOT NULL REFERENCES staff_conversations(id),sender TEXT NOT NULL REFERENCES users(id),body TEXT NOT NULL,request_key TEXT NOT NULL UNIQUE,sent_at INTEGER NOT NULL);
+      CREATE INDEX staff_messages_thread ON staff_messages(conversation,sent_at);
+      CREATE TABLE document_copy_confirmations(id TEXT PRIMARY KEY,document TEXT NOT NULL REFERENCES documents(id),document_version INTEGER NOT NULL,operator TEXT NOT NULL REFERENCES users(id),at INTEGER NOT NULL,reason TEXT NOT NULL,request_key TEXT NOT NULL UNIQUE);
+      CREATE TABLE document_events(id TEXT PRIMARY KEY,target TEXT NOT NULL,actor TEXT NOT NULL REFERENCES users(id),action TEXT NOT NULL,at INTEGER NOT NULL,reason TEXT NOT NULL);
+      CREATE TABLE medication_clarifications(id TEXT PRIMARY KEY,prescription TEXT NOT NULL REFERENCES prescriptions(id),requested_by TEXT NOT NULL REFERENCES users(id),question TEXT NOT NULL,requested_at INTEGER NOT NULL,resolved_by TEXT REFERENCES users(id),resolution TEXT,resolved_at INTEGER,version INTEGER NOT NULL DEFAULT 1);
+      PRAGMA user_version=4; COMMIT;`);
     const keyDigest = digest(this.fileKey);
     const storedKey = this.get("SELECT value FROM settings WHERE key='fileKeyDigest'");
     requireThat(!storedKey || storedKey.value === keyDigest, 500, 'File key does not match this database.');
@@ -207,10 +225,10 @@ export class Store {
     this.run('INSERT INTO retries VALUES(?,?,?,?)', actor, key, fingerprint, JSON.stringify(result));
     return result;
   }
-  addUser({ email, name, role, job = null, password, credentialUntil = null }) {
+  addUser({ email, name, role, job = null, password, credentialUntil = null, userId = id() }) {
     requireThat(['patient', 'staff', 'admin'].includes(role));
     requireThat(role === 'staff' ? ['doctor', 'nurse', 'receptionist', 'pharmacist', 'dentist'].includes(job) : job === null);
-    const userId = id(), passwordData = passwordHash(password);
+    const passwordData = passwordHash(password);
     this.run('INSERT INTO users(id,email,name,role,job,password_hash,salt,credential_until) VALUES(?,?,?,?,?,?,?,?)',
       userId, text(email, 254).toLowerCase(), text(name, 200), role, job, passwordData.hash, passwordData.salt, credentialUntil);
     return userId;
@@ -223,7 +241,8 @@ export class Store {
       actor.role === 'staff' && ['doctor','dentist','nurse'].includes(actor.job) && (
         !!this.get('SELECT 1 FROM care WHERE patient=? AND staff=?', patient, actor.id) ||
         !!this.get('SELECT 1 FROM appointments WHERE patient=? AND staff=?', patient, actor.id) ||
-        !!this.get('SELECT 1 FROM encounter_participants ep JOIN appointments a ON a.id=ep.appointment WHERE a.patient=? AND ep.staff=?',patient,actor.id)),
+        !!this.get('SELECT 1 FROM encounter_participants ep JOIN appointments a ON a.id=ep.appointment WHERE a.patient=? AND ep.staff=?',patient,actor.id) ||
+        !!this.get("SELECT 1 FROM tasks WHERE patient=? AND coverage_staff=? AND coverage_until>? AND status NOT IN ('done','dismissed')",patient,actor.id,this.now())),
     403, 'Patient access denied.');
     return subject;
   }
@@ -233,7 +252,7 @@ export class Store {
     const fileId = id(), path = this.filePath(fileId);
     writeFileSync(`${path}.tmp`, encrypt(bytes, this.fileKey), { mode: 0o600 });
     renameSync(`${path}.tmp`, path);
-    this.run('INSERT INTO files VALUES(?,?,?,?,?)', fileId, patient, digest(bytes), bytes.length, purpose);
+    this.run('INSERT INTO files(id,patient,sha256,bytes,purpose) VALUES(?,?,?,?,?)', fileId, patient, digest(bytes), bytes.length, purpose);
     return fileId;
   }
   readFile(fileId) {

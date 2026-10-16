@@ -38,6 +38,8 @@ void main() {
               outcome: DispenseOutcome.dispensed,
               patientVerified: verified,
               quantity: '30 tablets',
+              stockBatchId: 'demo_workforce_stock',
+              units: 30,
               expiry: DateTime.now().add(const Duration(days: 200)),
               idempotencyKey: key,
             );
@@ -46,6 +48,17 @@ void main() {
           (await repo.record(input('a', verified: false))).failureOrNull,
           isA<ValidationFailure>(),
         );
+        final untracked = await repo.record(
+          DispenseInput(
+            medicationId: order.medicationId,
+            outcome: DispenseOutcome.dispensed,
+            patientVerified: true,
+            quantity: '30 tablets',
+            idempotencyKey: 'untracked',
+          ),
+        );
+        expect(untracked.failureOrNull, isA<ValidationFailure>());
+        expect(await db.select(db.medicationDispenses).get(), isEmpty);
         expect((await repo.record(input('a'))).isOk, isTrue);
         expect((await repo.record(input('a'))).isOk, isTrue); // retry
         expect(
@@ -109,7 +122,12 @@ void main() {
       );
       expect((await repo.receive(input)).isOk, isTrue);
       expect((await repo.receive(input)).isOk, isTrue); // retry
-      expect(await db.select(db.pharmacyStockBatches).get(), hasLength(1));
+      expect(
+        await (db.select(
+          db.pharmacyStockBatches,
+        )..where((b) => b.idempotencyKey.equals('rx-1'))).get(),
+        hasLength(1),
+      );
       final expired = await repo.receive(
         ReceiveStockInput(
           itemName: 'Amoxicillin',
@@ -148,14 +166,18 @@ void main() {
       );
       expect((await repo.record(take(4, 'd1'))).isOk, isTrue);
       expect((await repo.record(take(4, 'd1'))).isOk, isTrue); // retry
-      var left = (await repo.stock()).valueOrNull!.single.quantity;
+      var left = (await repo.stock()).valueOrNull!
+          .firstWhere((b) => b.id == batch.id)
+          .quantity;
       expect(left, 6);
       // More than is left is refused and changes nothing.
       expect(
         (await repo.record(take(7, 'd2'))).failureOrNull,
         isA<ConflictFailure>(),
       );
-      left = (await repo.stock()).valueOrNull!.single.quantity;
+      left = (await repo.stock()).valueOrNull!
+          .firstWhere((b) => b.id == batch.id)
+          .quantity;
       expect(left, 6);
       final rows = await db.select(db.medicationDispenses).get();
       expect(rows, hasLength(1));

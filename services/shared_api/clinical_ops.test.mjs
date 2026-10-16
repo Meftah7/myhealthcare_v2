@@ -103,6 +103,8 @@ test('pharmacy dispenses from stock exactly once', async t => {
   const take = key => ({ prescriptionId: order.medicationId, outcome: 'partial', patientVerified: true, quantity: '4',
     batch: null, expiry: null, note: 'Rest later', stockId: stock.body.id, units: 4, idempotencyKey: key });
   const key = id();
+  assert.equal((await f.as.pharmacist('/api/pharmacy/dispense',{method:'POST',body:{...take('untracked-stock'),stockId:null,units:null}})).status,400);
+  assert.equal(f.store.get('SELECT COUNT(*) n FROM dispenses').n,0);
   assert.equal((await f.as.pharmacist('/api/pharmacy/dispense', { method: 'POST', body: take(key) })).status, 200);
   assert.equal((await f.as.pharmacist('/api/pharmacy/dispense', { method: 'POST', body: take(key) })).status, 200);
   assert.equal((await f.as.pharmacist('/api/pharmacy/stock')).body[0].quantity, 6);

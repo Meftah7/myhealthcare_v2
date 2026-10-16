@@ -228,7 +228,12 @@ void main() {
         await repo.finalize(request, idempotencyKey: key),
         _fails<DatabaseFailure>(),
       );
-      expect(await db.select(db.signedNotes).get(), isEmpty);
+      expect(
+        await (db.select(
+          db.signedNotes,
+        )..where((n) => n.appointmentId.equals(appt.id))).get(),
+        isEmpty,
+      );
       final orders = db.select(db.medications)
         ..where((m) => m.appointmentId.equals(appt.id));
       expect(await orders.get(), isEmpty);
@@ -251,7 +256,12 @@ void main() {
         idempotencyKey: IdempotencyKey.generate(),
       );
       expect(again.valueOrNull!.id, signed.valueOrNull!.id);
-      expect(await db.select(db.signedNotes).get(), hasLength(1));
+      expect(
+        await (db.select(
+          db.signedNotes,
+        )..where((n) => n.appointmentId.equals(appt.id))).get(),
+        hasLength(1),
+      );
       expect(await orders.get(), hasLength(2));
       expect(await _prescriptionNotices(db), noticesBefore + 2);
       final done = await (db.select(

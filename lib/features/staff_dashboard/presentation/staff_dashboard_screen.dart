@@ -5,6 +5,7 @@
 library;
 
 import 'dart:async';
+import '../../workforce/workforce_home.dart';
 import '../../workspace/workspace_widgets.dart';
 
 import 'package:flutter/material.dart';
@@ -50,6 +51,11 @@ class StaffDashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Reception, pharmacy and unknown roles get their own Today workspace;
     // clinicians (doctor, dentist, nurse) keep this dashboard.
+    if (StaffRole.parse(
+          ref.watch(staffProfileProvider).valueOrNull?.jobTitle,
+        ) ==
+        StaffRole.nurse)
+      return const NurseWorkspace();
     final workspace = roleWorkspaceFor(ref.watch(permissionsProvider));
     if (workspace != null) return workspace;
     final t = AppLocalizations.of(context)!;
@@ -82,10 +88,13 @@ class StaffDashboardScreen extends ConsumerWidget {
       // workspace cards, Quick Access directly below them, then the owned
       // work and attention panels side by side on wide screens.
       children: [
+        const WorkforceOverview(showStatistics: false),
         const StaffQuickStatistics(),
         const _TodayScheduleSummary(),
         SectionHeader(t.quickActionsHeader, overline: true),
         const StaffQuickActions(),
+        const WorkforceQuickAccess(),
+        const PrescriptionClarifications(),
         SectionColumns(
           primary: [const _DepartmentWalkIns()],
           secondary: [

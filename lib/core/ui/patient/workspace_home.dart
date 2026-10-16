@@ -19,6 +19,7 @@ class NavyFeatureCard extends StatelessWidget {
     this.actionLabel,
     this.onAction,
     this.overline,
+    this.navy = false,
     super.key,
   });
 
@@ -26,6 +27,7 @@ class NavyFeatureCard extends StatelessWidget {
   final String body;
   final IconData icon;
   final String? overline;
+  final bool navy;
   final String? actionLabel;
   final VoidCallback? onAction;
 
@@ -33,12 +35,12 @@ class NavyFeatureCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final palette = PatientPalette.of(context);
-    final fg = palette.onAction;
+    final fg = navy ? PatientPalette.dark.text : palette.onAction;
     final muted = fg;
     return Semantics(
       container: true,
       child: Material(
-        color: palette.action,
+        color: navy ? PatientPalette.dark.canvas : palette.action,
         shape: const RoundedRectangleBorder(borderRadius: kPatientCardRadius),
         clipBehavior: Clip.antiAlias,
         child: Padding(

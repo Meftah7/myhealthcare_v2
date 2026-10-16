@@ -117,7 +117,9 @@ void main() {
       final patient = (await users.byRole(
         UserRole.patient,
       )).valueOrNull!.firstWhere((u) => u.email == 'patient1@myhealth.demo');
-      final admin = (await users.byRole(UserRole.admin)).valueOrNull!.first;
+      final admin = (await users.byRole(
+        UserRole.admin,
+      )).valueOrNull!.firstWhere((u) => u.email == 'admin@myhealth.demo');
 
       final pending = await users.userIdsWithPendingPasswordResetRequests();
       expect(pending.valueOrNull, contains(patient.id));

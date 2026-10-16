@@ -288,6 +288,7 @@ extension MedicationRowX on MedicationRow {
     appointmentId: appointmentId,
     dose: dose,
     frequency: frequency,
+    orderedUnits: orderedUnits,
     endDate: endDate,
   );
 }

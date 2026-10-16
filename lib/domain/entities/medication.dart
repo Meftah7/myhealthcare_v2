@@ -17,6 +17,7 @@ abstract class Medication with _$Medication {
     String? appointmentId,
     String? dose,
     String? frequency,
+    int? orderedUnits,
     DateTime? endDate,
   }) = _Medication;
 

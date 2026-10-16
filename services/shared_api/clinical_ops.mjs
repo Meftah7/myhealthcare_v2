@@ -22,18 +22,16 @@ function meds(value) {
   requireThat(Array.isArray(value) && value.length <= 30, 400, 'Invalid medications.');
   return value.map(m => {
     requireThat(m && typeof m === 'object', 400, 'Invalid medication.');
+    requireThat(m.orderedUnits==null||Number.isInteger(m.orderedUnits)&&m.orderedUnits>0,400,'Ordered quantity must be positive whole units.');
     return { name: text(m.name, 200), dose: m.dose == null ? null : text(m.dose, 100),
-      frequency: m.frequency == null ? null : text(m.frequency, 100) };
+      frequency: m.frequency == null ? null : text(m.frequency, 100),orderedUnits:m.orderedUnits??null };
   });
 }
 
 /** Returns a result for a handled route, or `undefined` to fall through. */
 export function clinicalOps({ store, now, path, method, url, body, actor }) {
   const job = actor.role === 'staff' ? actor.job : null;
-  const hasCare = patient => clinical.includes(job) && (
-    !!store.get('SELECT 1 FROM care WHERE patient=? AND staff=?', patient, actor.id) ||
-    !!store.get('SELECT 1 FROM appointments WHERE patient=? AND staff=?',patient,actor.id) ||
-    !!store.get('SELECT 1 FROM encounter_participants ep JOIN appointments a ON a.id=ep.appointment WHERE a.patient=? AND ep.staff=?',patient,actor.id));
+  const hasCare = patient => { if(!clinical.includes(job))return false;try{store.patientAccess(actor,patient);return true;}catch(error){if(error.status===403)return false;throw error;} };
   const safeStaff = u => ({ id: u.id, fullName: u.name, job: u.job, departmentId: u.department, specialty: u.specialty });
 
   // ---- directory ------------------------------------------------------------
@@ -147,11 +145,12 @@ export function clinicalOps({ store, now, path, method, url, body, actor }) {
         store.run('INSERT INTO signed_notes(appointment,patient,signer,note,outcome,signed_at) VALUES(?,?,?,?,?,?)',
           a.id, a.patient, actor.id, body.note, body.outcome == null ? null : text(body.outcome, 2000), now());
         for (const m of list) {
-          store.run('INSERT INTO prescriptions(id,patient,prescriber,appointment,name,dose,frequency,start,issued_at) VALUES(?,?,?,?,?,?,?,?,?)',
-            id(), a.patient, actor.id, a.id, m.name, m.dose, m.frequency, now(), now());
+          store.run('INSERT INTO prescriptions(id,patient,prescriber,appointment,name,dose,frequency,start,issued_at,ordered_units) VALUES(?,?,?,?,?,?,?,?,?,?)',
+            id(), a.patient, actor.id, a.id, m.name, m.dose, m.frequency, now(), now(),m.orderedUnits);
         }
         store.run('DELETE FROM encounter_drafts WHERE appointment=?', a.id);
         store.run("UPDATE appointments SET status='completed',completed_at=?,version=version+1 WHERE id=?", now(), a.id);
+        store.run("INSERT OR IGNORE INTO visits(id,patient,staff,at,status) VALUES(?,?,?,?,'completed')",a.id,a.patient,a.staff,a.start);
         store.audit(actor.id, 'encounter.signed', a.id);
         return { appointmentId: a.id, signerId: actor.id, signedAt: iso(now()), prescriptions: list.length };
       }));
@@ -166,7 +165,7 @@ export function clinicalOps({ store, now, path, method, url, body, actor }) {
     return store.all(`SELECT p.*, u.name prescriberName FROM prescriptions p JOIN users u ON u.id=p.prescriber
       WHERE p.patient=? ORDER BY p.start DESC`, patientId).map(p => ({ id: p.id, patientId: p.patient,
       prescriberId: p.prescriber, prescriberName: p.prescriberName, appointmentId: p.appointment, name: p.name,
-      dose: p.dose, frequency: p.frequency, startDate: iso(p.start), isActive: !!p.active }));
+      dose: p.dose, frequency: p.frequency, orderedUnits:p.ordered_units, startDate: iso(p.start), isActive: !!p.active }));
   }
   if (path === '/api/pharmacy/queue' && method === 'GET') {
     requireThat(job === 'pharmacist', 403, 'Pharmacy access required.');
@@ -174,9 +173,10 @@ export function clinicalOps({ store, now, path, method, url, body, actor }) {
         (SELECT outcome FROM dispenses d WHERE d.prescription=p.id ORDER BY at DESC, rowid DESC LIMIT 1) lastOutcome,
         (SELECT at FROM dispenses d WHERE d.prescription=p.id ORDER BY at DESC, rowid DESC LIMIT 1) lastAt
       FROM prescriptions p JOIN users pt ON pt.id=p.patient JOIN users pr ON pr.id=p.prescriber
-      WHERE p.active=1 ORDER BY p.start DESC LIMIT 100`).map(p => ({ medicationId: p.id, patientId: p.patient,
+      WHERE p.active=1 AND EXISTS(SELECT 1 FROM signed_notes s WHERE s.appointment=p.appointment AND s.patient=p.patient AND s.signer=p.prescriber) ORDER BY p.start DESC LIMIT 100`).map(p => ({ medicationId: p.id, patientId: p.patient,
       patientName: p.patientName, prescriberName: p.prescriberName, name: p.name, dose: p.dose, frequency: p.frequency,
-      startDate: iso(p.start), lastOutcome: p.lastOutcome, lastOutcomeAt: iso(p.lastAt) }));
+      startDate: iso(p.start), lastOutcome: p.lastOutcome, lastOutcomeAt: iso(p.lastAt),
+      clarificationPending: !!store.get('SELECT 1 FROM medication_clarifications WHERE prescription=? AND resolved_at IS NULL',p.id),orderedUnits:p.ordered_units }));
   }
   if (path === '/api/pharmacy/dispense' && method === 'POST') {
     fields(body, ['prescriptionId', 'outcome', 'patientVerified', 'quantity', 'batch', 'expiry', 'note', 'stockId', 'units', 'idempotencyKey']);
@@ -189,13 +189,19 @@ export function clinicalOps({ store, now, path, method, url, body, actor }) {
     return store.transaction(() => store.retry(actor.id, body.idempotencyKey, { path, body }, () => {
       const p = store.get('SELECT * FROM prescriptions WHERE id=?', text(body.prescriptionId, 128));
       requireThat(p && p.active, 409, 'This order is no longer active.');
+      requireThat(store.get('SELECT 1 FROM signed_notes WHERE appointment=? AND patient=? AND signer=?',p.appointment,p.patient,p.prescriber),409,'Only a signed, prescriber-attributed order can be reviewed.');
+      if(supplying)requireThat(!store.get('SELECT 1 FROM medication_clarifications WHERE prescription=? AND resolved_at IS NULL',p.id),409,'The responsible prescriber must resolve the outstanding clarification before supply.');
       requireThat(!store.get("SELECT 1 FROM dispenses WHERE prescription=? AND outcome='dispensed'", p.id), 409, 'This order has already been fully dispensed.');
+      if(supplying)requireThat(body.stockId,400,'Choose a recorded stock batch before supplying medication.');
       let batch = body.batch ?? null, expiry = body.expiry ? Date.parse(body.expiry) : null, stockId = null, units = null;
+      requireThat(supplying || !body.stockId,400,'A hold or clarification cannot consume stock.');
+      if(supplying&&p.ordered_units!=null){const used=store.get("SELECT COALESCE(SUM(units),0) n FROM dispenses WHERE prescription=? AND outcome IN ('partial','dispensed')",p.id).n;requireThat(Number.isInteger(body.units)&&body.units>0&&used+body.units<=p.ordered_units,409,'Supply exceeds the remaining ordered units.');requireThat(body.stockId,400,'Choose the recorded stock batch for this supply.');}
       if (body.stockId) {
         units = body.units;
         requireThat(Number.isInteger(units) && units > 0, 400, 'Enter how many units leave the batch.');
         const st = store.get('SELECT * FROM stock WHERE id=?', text(body.stockId, 128));
         requireThat(st, 409, 'That stock batch no longer exists.');
+        requireThat(st.item.trim().toLowerCase()===p.name.trim().toLowerCase(),400,'The selected stock item does not match the signed order.');
         requireThat(st.expiry > now(), 400, 'This batch has expired.');
         requireThat(st.quantity >= units, 409, `Only ${st.quantity} ${st.unit} left in batch ${st.batch}.`);
         store.run('UPDATE stock SET quantity=quantity-?,version=version+1 WHERE id=? AND version=?', units, st.id, st.version);
@@ -205,6 +211,7 @@ export function clinicalOps({ store, now, path, method, url, body, actor }) {
       }
       store.run('INSERT INTO dispenses(id,prescription,patient,pharmacist,outcome,quantity,batch,expiry,note,stock,units,at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',
         id(), p.id, p.patient, actor.id, body.outcome, body.quantity ?? null, batch, expiry, body.note ?? null, stockId, units, now());
+      if(body.outcome==='clarificationRequested')store.run('INSERT INTO medication_clarifications(id,prescription,requested_by,question,requested_at) VALUES(?,?,?,?,?)',id(),p.id,actor.id,text(body.note,4000),now());
       store.audit(actor.id, `pharmacy.${body.outcome}`, p.id);
       return { recordedAt: iso(now()) };
     }));

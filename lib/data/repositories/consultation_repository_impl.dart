@@ -155,6 +155,7 @@ class EncounterDraftRepositoryImpl implements EncounterDraftRepository {
             'name': medication.name,
             'dose': medication.dose,
             'frequency': medication.frequency,
+            'orderedUnits': medication.orderedUnits,
           },
       ]);
 
@@ -171,6 +172,7 @@ class EncounterDraftRepositoryImpl implements EncounterDraftRepository {
             name: value['name'] as String,
             dose: value['dose'] as String?,
             frequency: value['frequency'] as String?,
+            orderedUnits: value['orderedUnits'] as int?,
           ),
       ],
       referralRequested: row.referralRequested,
@@ -848,6 +850,10 @@ class EncounterRepositoryImpl implements EncounterRepository {
         for (final m in r.medications)
           if (m.name.trim().isNotEmpty) m,
       ];
+      if (meds.any((m) => m.orderedUnits != null && m.orderedUnits! <= 0))
+        throw const ValidationFailure(
+          'Ordered quantity must be positive whole units.',
+        );
       if (meds.isNotEmpty) {
         await _access.actAsStaff(
           r.staffId,
@@ -922,6 +928,7 @@ class EncounterRepositoryImpl implements EncounterRepository {
                   name: m.name.trim(),
                   dose: Value(m.dose),
                   frequency: Value(m.frequency),
+                  orderedUnits: Value(m.orderedUnits),
                   prescriberId: Value(r.staffId),
                   appointmentId: Value(r.appointmentId),
                   startDate: now,

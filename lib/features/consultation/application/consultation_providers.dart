@@ -21,11 +21,17 @@ import '../../staff_dashboard/application/staff_providers.dart';
 // --- draft (mirrors the saved draft, keyed by appointment id) ------------
 
 class DraftMed {
-  const DraftMed({required this.name, this.dose, this.frequency});
+  const DraftMed({
+    required this.name,
+    this.dose,
+    this.frequency,
+    this.orderedUnits,
+  });
 
   final String name;
   final String? dose;
   final String? frequency;
+  final int? orderedUnits;
 }
 
 class ConsultationDraft {
@@ -138,6 +144,7 @@ class ConsultationController {
                       name: medication.name,
                       dose: medication.dose,
                       frequency: medication.frequency,
+                      orderedUnits: medication.orderedUnits,
                     ),
                 ],
                 referralRequested: value.referralRequested,
@@ -170,6 +177,7 @@ class ConsultationController {
                   name: medication.name,
                   dose: medication.dose,
                   frequency: medication.frequency,
+                  orderedUnits: medication.orderedUnits,
                 ),
             ],
             referralRequested: draft.referralRequested,
@@ -325,6 +333,7 @@ class ConsultationController {
                   name: m.name,
                   dose: m.dose,
                   frequency: m.frequency,
+                  orderedUnits: m.orderedUnits,
                 ),
             ],
             outcomeNote: outcomeNote,

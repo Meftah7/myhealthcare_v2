@@ -48,6 +48,7 @@ void main() {
     test('setActive deactivates and login is then refused', () async {
       final s = (await users.createStaff(
         fullName: 'Dr B',
+        jobTitle: 'Doctor',
         email: 'b@clinic.test',
         temporaryPassword: 'temp12345',
       )).valueOrNull!;
@@ -69,6 +70,7 @@ void main() {
     test('resetPassword changes the credential', () async {
       final s = (await users.createStaff(
         fullName: 'Dr C',
+        jobTitle: 'Doctor',
         email: 'c@clinic.test',
         temporaryPassword: 'temp12345',
       )).valueOrNull!;

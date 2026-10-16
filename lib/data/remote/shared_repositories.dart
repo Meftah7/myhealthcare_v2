@@ -567,7 +567,9 @@ class RemoteAppointmentRepository extends SharedUnavailable
           ];
     return [
       for (final a in all)
-        if (a.staffId == staffId &&
+        if ((a.staffId == staffId ||
+                client.user?['job'] == 'nurse' &&
+                    client.user?['id'] == staffId) &&
             !a.slotStart.isBefore(from) &&
             a.slotStart.isBefore(to))
           a,
@@ -687,6 +689,7 @@ class RemoteEncounterDraftRepository extends SharedUnavailable
           name: m['name'] as String,
           dose: m['dose'] as String?,
           frequency: m['frequency'] as String?,
+          orderedUnits: m['orderedUnits'] as int?,
         ),
     ],
     version: (d['version'] as num?)?.toInt() ?? 1,
@@ -715,7 +718,12 @@ class RemoteEncounterDraftRepository extends SharedUnavailable
         'note': draft.note,
         'meds': [
           for (final m in draft.medications)
-            {'name': m.name, 'dose': m.dose, 'frequency': m.frequency},
+            {
+              'name': m.name,
+              'dose': m.dose,
+              'frequency': m.frequency,
+              'orderedUnits': m.orderedUnits,
+            },
         ],
         'expectedVersion': expectedVersion,
       },
@@ -742,7 +750,12 @@ class RemoteEncounterRepository extends SharedUnavailable
         'note': request.note,
         'meds': [
           for (final m in request.medications)
-            {'name': m.name, 'dose': m.dose, 'frequency': m.frequency},
+            {
+              'name': m.name,
+              'dose': m.dose,
+              'frequency': m.frequency,
+              'orderedUnits': m.orderedUnits,
+            },
         ],
         'outcome': request.outcomeNote,
         'idempotencyKey': (idempotencyKey ?? IdempotencyKey.generate()).value,
@@ -941,6 +954,7 @@ class RemoteTaskRepository extends SharedUnavailable implements TaskRepository {
   StaffTask _task(Map<String, dynamic> t) => StaffTask(
     id: t['id'] as String,
     staffId: t['owner'] as String,
+    coverageStaffId: t['coverage_staff'] as String?,
     title: t['title'] as String,
     kind: switch (t['kind']) {
       'resultReview' => TaskKind.unreviewedAbnormalLab,
@@ -1034,6 +1048,7 @@ class RemoteMedicationRepository extends SharedUnavailable
             appointmentId: m['appointmentId'] as String?,
             dose: m['dose'] as String?,
             frequency: m['frequency'] as String?,
+            orderedUnits: m['orderedUnits'] as int?,
           ),
     ],
   );
@@ -1125,6 +1140,8 @@ class RemotePharmacyRepository implements PharmacyRepository {
                   DispenseOutcome.held,
                 ),
           lastOutcomeAt: _atOrNull(o['lastOutcomeAt']),
+          clarificationPending: o['clarificationPending'] == true,
+          orderedUnits: o['orderedUnits'] as int?,
         ),
     ],
   );

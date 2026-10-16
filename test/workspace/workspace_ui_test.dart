@@ -78,6 +78,11 @@ void main() {
       await settle(tester);
       c.read(routerProvider).go(AppRoutes.staffDashboard);
       await settle(tester);
+      await tester.scrollUntilVisible(
+        find.text('Ongoing'),
+        250,
+        scrollable: find.byType(Scrollable).first,
+      );
       expect(find.text('Ongoing'), findsOneWidget);
       expect(find.text('Upcoming'), findsOneWidget);
       expect(find.text('Completed'), findsOneWidget);

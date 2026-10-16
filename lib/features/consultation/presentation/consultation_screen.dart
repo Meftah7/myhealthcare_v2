@@ -794,6 +794,9 @@ class _AddMedicationSheetState extends State<_AddMedicationSheet> {
   late final _name = TextEditingController(text: widget.initial?.name);
   late final _dose = TextEditingController(text: widget.initial?.dose);
   late final _freq = TextEditingController(text: widget.initial?.frequency);
+  late final _units = TextEditingController(
+    text: widget.initial?.orderedUnits?.toString(),
+  );
 
   bool get _isEditing => widget.initial != null;
 
@@ -802,6 +805,7 @@ class _AddMedicationSheetState extends State<_AddMedicationSheet> {
     _name.dispose();
     _dose.dispose();
     _freq.dispose();
+    _units.dispose();
     super.dispose();
   }
 
@@ -836,13 +840,34 @@ class _AddMedicationSheetState extends State<_AddMedicationSheet> {
               controller: _freq,
               decoration: InputDecoration(labelText: t.frequencyOptionalLabel),
             ),
+            TextField(
+              controller: _units,
+              keyboardType: TextInputType.number,
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                labelText: t.localeName == 'ar'
+                    ? 'الكمية المطلوبة (وحدات كاملة)'
+                    : 'Ordered quantity (whole units)',
+                errorText:
+                    _units.text.isNotEmpty &&
+                        (int.tryParse(_units.text) ?? 0) <= 0
+                    ? (t.localeName == 'ar'
+                          ? 'أدخل عدداً صحيحاً موجباً'
+                          : 'Enter a positive whole number')
+                    : null,
+              ),
+            ),
             const SizedBox(height: Space.lg),
             FilledButton(
-              onPressed: _name.text.trim().isEmpty
+              onPressed:
+                  _name.text.trim().isEmpty ||
+                      (_units.text.isNotEmpty &&
+                          (int.tryParse(_units.text) ?? 0) <= 0)
                   ? null
                   : () => Navigator.of(context).pop(
                       DraftMed(
                         name: _name.text.trim(),
+                        orderedUnits: int.tryParse(_units.text),
                         dose: _dose.text.trim().isEmpty
                             ? null
                             : _dose.text.trim(),

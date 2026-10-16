@@ -55,6 +55,12 @@ part 'app_database.g.dart';
     Reminders,
     ClinicRooms,
     EncounterParticipants,
+    StaffShifts,
+    NursingIntakes,
+    StaffConversations,
+    StaffConversationMembers,
+    StaffMessages,
+    MedicationClarifications,
     // clinical content
     MedicalRecords,
     LabValues,
@@ -205,7 +211,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 34;
+  int get schemaVersion => 35;
 
   /// Preserve legacy flag/task IDs by aliasing only sources known when the
   /// old flag was last detected. Later readings/reports get their own work.
@@ -1041,6 +1047,15 @@ class AppDatabase extends _$AppDatabase {
         await customStatement(
           "UPDATE medications SET issued_at=(SELECT signed_at FROM signed_notes WHERE appointment_id=medications.appointment_id) WHERE issued_at IS NULL",
         );
+      }
+      if (from < 35) {
+        await _addColumnIfMissing(m, medications, medications.orderedUnits);
+        await _createTableIfMissing(m, staffShifts);
+        await _createTableIfMissing(m, nursingIntakes);
+        await _createTableIfMissing(m, staffConversations);
+        await _createTableIfMissing(m, staffConversationMembers);
+        await _createTableIfMissing(m, staffMessages);
+        await _createTableIfMissing(m, medicationClarifications);
       }
       if (from < 33) {
         await _addColumnIfMissing(

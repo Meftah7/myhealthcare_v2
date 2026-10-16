@@ -34,6 +34,10 @@ import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../workforce/workforce_home.dart';
+import '../../workforce/workforce_repository.dart';
+import '../../workspace/workspace_widgets.dart' show wt, rows;
+import '../../../core/presentation/readable_label.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../consultation/application/consultation_providers.dart';
 import '../application/staff_providers.dart';
@@ -209,6 +213,39 @@ class _ScheduleAppointmentCardState
 
   @override
   Widget build(BuildContext context) {
+    if (StaffRole.parse(
+          ref.watch(staffProfileProvider).valueOrNull?.jobTitle,
+        ) ==
+        StaffRole.nurse) {
+      final intake = rows(
+        ref.watch(workforceDataProvider('intakes')).valueOrNull?['rows'],
+      ).where((n) => n['appointment_id'] == _a.id).firstOrNull;
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ReadableLabel(
+                '${_a.patientId} · ${fmtTime(_a.slotStart)}–${fmtTime(_a.slotEnd)}',
+              ),
+              ReadableLabel(
+                '${_a.reasonText ?? ''} · ${intake?['status'] ?? ''}',
+              ),
+              if (intake != null)
+                OutlinedButton(
+                  onPressed: () =>
+                      unawaited(showNursingIntake(context, ref, intake)),
+                  child: ReadableLabel(
+                    wt(context, 'Nursing intake', 'التقييم التمريضي'),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      );
+    }
     final theme = Theme.of(context);
     final state = scheduleCardStateOf(_a);
     final pal = _CardPalette.of(context, state);
@@ -274,23 +311,18 @@ class _ScheduleAppointmentCardState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          who,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            color: pal.fg,
-                            fontWeight: FontWeight.w700,
-                          ),
+                      ReadableLabel(
+                        who,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: pal.fg,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                      const SizedBox(width: Space.xs),
-                      Text(
+                      const SizedBox(height: Space.xxs),
+                      ReadableLabel(
                         '${fmtTime(_a.slotStart)} – ${fmtTime(_a.slotEnd)}',
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: pal.subtle,
@@ -300,21 +332,17 @@ class _ScheduleAppointmentCardState
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Row(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _StateBadge(state: state, appointment: _a),
-                      const SizedBox(width: Space.xs),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 1),
-                          child: Text(
-                            _detailLine(),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: pal.subtle,
-                            ),
+                      const SizedBox(height: Space.xxs),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 1),
+                        child: ReadableLabel(
+                          _detailLine(),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: pal.subtle,
                           ),
                         ),
                       ),
@@ -650,7 +678,7 @@ class _CardButton extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final ramp = theme.clinicalStatus;
-    final label = Text(action.label);
+    final label = ReadableLabel(action.label);
     final icon = Icon(action.icon, size: 18);
     final textStyle = theme.textTheme.labelMedium;
 

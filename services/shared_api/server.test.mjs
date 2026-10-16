@@ -60,6 +60,22 @@ async function issued(f) {
   return { ...result.body, path, body };
 }
 
+test('front desk confirms only the exact current issued copy and never gains signing or chart access',async t=>{
+ const f=await fixture(t),document=await issued(f);const receptionist=f.store.addUser({email:'reception@test.demo',name:'Synthetic Reception',role:'staff',job:'receptionist',password:'Synthetic-Test-Password-2026!'});
+ const login=await f.request('/api/login',{method:'POST',body:{email:'reception@test.demo',password:'Synthetic-Test-Password-2026!'}});assert.equal(login.status,200);
+ const desk=(path,args={})=>f.request(path,{...args,token:login.body.token});
+ const found=await desk('/api/workforce/document-desk?reference='+encodeURIComponent(document.reference.toUpperCase()));assert.equal(found.status,200);assert.equal(found.body.id,document.id);assert.equal(found.body.snapshot,undefined);
+ const input={id:document.id,recipientIdentityChecked:true,reason:'Synthetic identity checked collection',idempotencyKey:'copy-once'};
+ assert.equal((await desk('/api/workforce/document-copy',{method:'POST',body:input})).status,409);
+ assert.equal((await f.clients.doctor(`/api/documents/${document.id}/render`,{method:'POST',body:{}})).status,200);
+ assert.equal((await desk('/api/workforce/document-copy',{method:'POST',body:input})).status,200);assert.equal((await desk('/api/workforce/document-copy',{method:'POST',body:input})).status,200);
+ assert.equal(f.store.get('SELECT COUNT(*) n FROM document_copy_confirmations WHERE operator=?',receptionist).n,1);
+ assert.equal((await desk('/api/document-workspace?patientId='+f.patient)).status,403);
+ assert.equal((await desk(document.path.replace('/issue','/approve'),{method:'POST',body:{expectedVersion:1}})).status,403);
+ assert.equal((await f.clients.doctor(`/api/documents/${document.id}/revoke`,{method:'POST',body:{expectedVersion:1,reason:'Synthetic revocation'}})).status,200);
+ assert.equal((await desk('/api/workforce/document-copy',{method:'POST',body:input})).status,409);
+});
+
 test('independent clients share versioned tasks without cross-panel access or duplicate regeneration', async t => {
   const f = await fixture(t), input = { patientId: f.patient, sourceId: 'visit:followup', title: 'Review visit', kind: 'followUpDue', idempotencyKey: id() };
   const first = await f.clients.doctor('/api/tasks', { method: 'POST', body: input }); assert.equal(first.status, 200);
@@ -139,7 +155,7 @@ test('encrypted backup restores exact files, schema and data while invalidating 
   assert.throws(() => restoreBackup({ archive, key: backupKey, directory: target }));
   const restored = new Store({ directory: target, fileKey: f.key });
   try { assert.deepEqual(restored.readFile(uploaded.body.id), original); assert.equal(restored.get('SELECT count(*) n FROM sessions').n, 0);
-    assert.equal(restored.get('PRAGMA user_version').user_version, 3); }
+    assert.equal(restored.get('PRAGMA user_version').user_version, 4); }
   finally { restored.close(); }
   assert.equal(existsSync(join(target, '.restore-incomplete')), false);
 });

@@ -8,11 +8,17 @@ import '../entities/entities.dart';
 import '../enums.dart';
 
 class DraftMedicationData {
-  const DraftMedicationData({required this.name, this.dose, this.frequency});
+  const DraftMedicationData({
+    required this.name,
+    this.dose,
+    this.frequency,
+    this.orderedUnits,
+  });
 
   final String name;
   final String? dose;
   final String? frequency;
+  final int? orderedUnits;
 }
 
 class EncounterDraftData {

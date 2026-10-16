@@ -14,6 +14,7 @@ import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/core/presentation/responsive.dart';
 import 'package:myhealthcare/core/presentation/two_pane.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
+import 'package:myhealthcare/features/staff_dashboard/presentation/staff_dashboard_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/mfa.dart';
@@ -226,6 +227,16 @@ void main() {
         tester,
         email: 'staff1@myhealth.demo',
         size: const Size(1200, 1600),
+      );
+      await tester.scrollUntilVisible(
+        find.byType(SectionColumns),
+        300,
+        scrollable: find
+            .descendant(
+              of: find.byType(StaffDashboardScreen),
+              matching: find.byType(Scrollable),
+            )
+            .first,
       );
 
       expect(find.byType(SectionColumns), findsWidgets);

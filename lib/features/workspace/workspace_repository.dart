@@ -77,6 +77,12 @@ final workspaceChangesProvider = StreamProvider<int>((ref) {
     'availability_exceptions',
     'clinic_configurations',
     'care_team_assignments',
+    'nursing_intakes',
+    'staff_shifts',
+    'staff_messages',
+    'staff_conversations',
+    'medication_clarifications',
+    'vitals',
   };
   var revision = 0;
   return db

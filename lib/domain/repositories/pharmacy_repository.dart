@@ -22,6 +22,8 @@ class PharmacyOrder {
     this.frequency,
     this.lastOutcome,
     this.lastOutcomeAt,
+    this.clarificationPending = false,
+    this.orderedUnits,
   });
 
   final String medicationId;
@@ -36,6 +38,8 @@ class PharmacyOrder {
   /// The most recent recorded pharmacy outcome, if any.
   final DispenseOutcome? lastOutcome;
   final DateTime? lastOutcomeAt;
+  final bool clarificationPending;
+  final int? orderedUnits;
 
   /// Fully supplied: no further dispensing is recorded for this order.
   bool get isDispensed => lastOutcome == DispenseOutcome.dispensed;

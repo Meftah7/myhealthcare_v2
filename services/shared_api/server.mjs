@@ -2,6 +2,9 @@ import { createServer } from 'node:http';
 import { ApiError, digest, fields, id, passwordMatches, requireThat, text, token } from './store.mjs';
 import { REPORT_INSTRUCTIONS, answerReportQuestion, clipReport } from './ai.mjs';
 import { workspaceOps } from './workspace_ops.mjs';
+import { workforceOps } from './workforce_ops.mjs';
+import { dutyOps } from './duty_ops.mjs';
+import { demoRoster } from './workforce_manifest.mjs';
 import { clinicOps } from './clinic_ops.mjs';
 import { clinicalOps } from './clinical_ops.mjs';
 
@@ -39,7 +42,7 @@ export function createApi({ store, origins = [], renderDocument, aiProvider, rep
   function taskAccess(actor, taskId) {
     const task = store.get('SELECT * FROM tasks WHERE id=?', taskId);
     requireThat(task, 404, 'Task unavailable.');
-    requireThat(actor.role === 'staff' && actor.id === task.owner, 403, 'Task access denied.');
+    requireThat(actor.role === 'staff' && (actor.id === task.owner || actor.id===task.coverage_staff&&task.coverage_until>now()), 403, 'Task access denied.');
     store.patientAccess(actor, task.patient); return task;
   }
   function documentAccess(actor, docId) {
@@ -55,9 +58,10 @@ export function createApi({ store, origins = [], renderDocument, aiProvider, rep
     store.patientAccess(actor, request.patient); return request;
   }
   function signer(actor, template) {
+    fresh(store,actor);
     requireThat(template.approved === 1, 403, 'Clinic policy approval required.');
-    requireThat(actor.role === 'staff' && actor.job === 'doctor' && actor.credential_until > now(),
-      403, 'A doctor with a current verified qualification must sign.');
+    requireThat(actor.role === 'staff' && ['doctor','dentist'].includes(actor.job) && actor.credential_until > now(),
+      403, 'A doctor or dentist with a current verified qualification must sign.');
   }
   function validateContent(template, content) {
     const required = requiredContent[template.type];
@@ -78,6 +82,11 @@ export function createApi({ store, origins = [], renderDocument, aiProvider, rep
   }
   async function dispatch(req, url, body) {
     const path = url.pathname, method = req.method;
+    if (path === '/api/demo/accounts' && method === 'GET') {
+      requireThat(store.get("SELECT value FROM settings WHERE key='synthetic'")?.value==='true',404,'Demo account listing is unavailable.');
+      const emails=demoRoster().map(a=>a.sharedEmail);
+      return store.all(`SELECT u.id,u.name,u.email,u.job AS professional_role,u.role AS account_type,u.active,d.name AS department FROM users u LEFT JOIN departments d ON d.id=u.department WHERE u.email IN (${emails.map(()=>'?').join(',')}) ORDER BY u.job,u.name`,...emails);
+    }
     if (path === '/api/login' && method === 'POST') {
       fields(body, ['email', 'password']);
       limit(`login-ip:${req.socket.remoteAddress}`, 15);
@@ -87,6 +96,7 @@ export function createApi({ store, origins = [], renderDocument, aiProvider, rep
       const check = user ?? { salt: '0'.repeat(32), password_hash: '0'.repeat(64) };
       const matched = passwordMatches(body.password, check);
       requireThat(user?.active && matched, 401, 'Invalid credentials.');
+      requireThat(user.role!=='staff'||['doctor','dentist','nurse','receptionist','pharmacist'].includes(user.job),403,'Staff profile is missing or unassigned. Ask an administrator to repair this account.');
       const sessionToken = token();
       store.transaction(() => {
         store.run('INSERT INTO sessions VALUES(?,?,?,?,?,?)', digest(sessionToken), user.id, user.auth_version, now(), now(), now());
@@ -149,7 +159,7 @@ export function createApi({ store, origins = [], renderDocument, aiProvider, rep
     }
     if (path === '/api/tasks' && method === 'GET') {
       requireThat(actor.role === 'staff', 403);
-      return store.all('SELECT tasks.* FROM tasks JOIN care ON care.patient=tasks.patient AND care.staff=tasks.owner WHERE owner=? ORDER BY CASE priority WHEN \'urgent\' THEN 0 WHEN \'high\' THEN 1 ELSE 2 END, due IS NULL,due,id', actor.id);
+      return store.all('SELECT * FROM tasks WHERE owner=? OR (coverage_staff=? AND coverage_until>?) ORDER BY due IS NULL,due,id',actor.id,actor.id,now()).filter(t=>{try{if(t.patient)store.patientAccess(actor,t.patient);return true;}catch(error){if(error.status===403)return false;throw error;}});
     }
     if (path === '/api/tasks' && method === 'POST') {
       fields(body, ['patientId','sourceId','title','kind','dueAt','priority','idempotencyKey']);
@@ -164,6 +174,7 @@ export function createApi({ store, origins = [], renderDocument, aiProvider, rep
         store.audit(actor.id, 'task.created', taskId); return store.get('SELECT * FROM tasks WHERE id=?', taskId);
       }));
     }
+    if (/^\/api\/tasks\/[^/]+$/.test(path) && method === 'GET') return taskAccess(actor,path.split('/')[3]);
     if (/^\/api\/tasks\/[^/]+$/.test(path) && method === 'PATCH') {
       fields(body, ['status','expectedVersion','outcome','reviewAt']);
       return store.transaction(() => {
@@ -179,6 +190,43 @@ export function createApi({ store, origins = [], renderDocument, aiProvider, rep
     }
     if (/^\/api\/tasks\/[^/]+\/history$/.test(path) && method === 'GET') {
       const task = taskAccess(actor, path.split('/')[3]); return store.all('SELECT * FROM task_history WHERE task=? ORDER BY at,id', task.id);
+    }
+    if (path === '/api/document-workspace' && method === 'GET') {
+      const patientId=text(url.searchParams.get('patientId'),128),patient=store.patientAccess(actor,patientId);
+      const preparing=actor.role==='staff'&&['doctor','dentist','nurse'].includes(actor.job);
+      const documents=store.all('SELECT id,request,patient,type,language,issued,validity,render,version,snapshot FROM documents WHERE patient=? ORDER BY issued DESC,id',patientId).map(d=>({...d,reference:JSON.parse(d.snapshot).verificationReference,snapshot:undefined}));
+      return {patientName:patient.name,visits:preparing?store.all("SELECT id,at FROM visits WHERE patient=? AND staff=? AND status='completed' ORDER BY at DESC",patientId,actor.id):[],templates:preparing?store.all('SELECT * FROM templates'):[],requests:preparing?store.all('SELECT * FROM requests WHERE patient=? AND author=? ORDER BY id',patientId,actor.id).map(r=>({...r,content:JSON.parse(r.content)})):[],issued:documents,sources:[]};
+    }
+    if (path==='/api/document-metadata'&&method==='GET') {
+      const d=documentAccess(actor,text(url.searchParams.get('id'),128));return {...d,reference:JSON.parse(d.snapshot).verificationReference,snapshot:undefined,file_id:undefined,sha256:undefined,reference_hash:undefined};
+    }
+    if(path==='/api/document-delivery'&&method==='POST') {
+      fields(body,['id']);const d=documentAccess(actor,text(body.id,128));requireThat(d.issuer===actor.id&&d.validity==='valid',403,'Only the issuer can retry current document delivery.');
+      store.run("UPDATE deliveries SET state='pending',next_at=?,last_error=NULL WHERE document=? AND state!='delivered'",now(),d.id);store.audit(actor.id,'document.deliveryRetried',d.id);return {ok:true};
+    }
+    if(path==='/api/document-replacement'&&method==='POST') {
+      fields(body,['id','expectedVersion','content','reason','templateId','idempotencyKey']);const reason=text(body.reason,1000);
+      return store.transaction(()=>store.retry(actor.id,body.idempotencyKey,{path,body},()=>{
+        const d=documentAccess(actor,text(body.id,128));requireThat(d.issuer===actor.id&&d.validity==='valid',403,'Only the issuer can replace a current document.');version(d,body.expectedVersion);
+        const original=store.get('SELECT * FROM requests WHERE id=?',d.request),template=store.get('SELECT * FROM templates WHERE id=?',body.templateId??original.template);requireThat(template,404);signer(actor,template);validateContent(template,body.content);
+        const key=id();store.run("INSERT INTO requests(id,patient,visit,template,author,content) VALUES(?,?,?,?,?,?)",key,d.patient,original.visit,template.id,actor.id,JSON.stringify(body.content));
+        store.run('INSERT INTO settings(key,value) VALUES(?,?)','document.replaces:'+key,JSON.stringify({id:d.id,version:d.version,reason}));store.audit(actor.id,'document.replacementPrepared',key);return store.get('SELECT * FROM requests WHERE id=?',key);
+      }));
+    }
+    if(path==='/api/document-source-release'&&method==='POST') {
+      fields(body,['id','released','reason']);text(body.reason,1000);requireThat(typeof body.released==='boolean'&&actor.role==='staff'&&['doctor','dentist'].includes(actor.job),403,'Responsible clinician access required.');
+      const file=store.get("SELECT * FROM files WHERE id=? AND purpose='original'",text(body.id,128));requireThat(file,404,'Source file unavailable.');store.patientAccess(actor,file.patient);
+      store.transaction(()=>{store.run('UPDATE files SET released=? WHERE id=?',body.released?1:0,file.id);store.run('INSERT INTO document_events VALUES(?,?,?,?,?,?)',id(),file.id,actor.id,body.released?'sourceReleased':'sourceWithheld',now(),body.reason);store.audit(actor.id,body.released?'document.sourceReleased':'document.sourceWithheld',file.id);});return {ok:true};
+    }
+    if(path==='/api/document-verification-manifest'&&method==='GET') {
+      admin(actor);fresh(store,actor);store.audit(actor.id,'document.verificationManifestExported','clinic');return {generatedAt:new Date(now()).toISOString(),documents:store.all('SELECT id,reference_hash,validity,issued,version FROM documents ORDER BY id')};
+    }
+    if (/^\/api\/requests\/[^/]+\/preview$/.test(path) && method === 'GET') {
+      const request=requestAccess(actor,path.split('/')[3]),template=store.get('SELECT * FROM templates WHERE id=?',request.template),patient=store.get('SELECT * FROM users WHERE id=?',request.patient),visit=store.get('SELECT * FROM visits WHERE id=?',request.visit);
+      requireThat(request.author===actor.id,403,'Only the request author can preview.');validateContent(template,JSON.parse(request.content));
+      requireThat(typeof renderDocument==='function',503,'Server PDF renderer is not configured.');
+      const bytes=await renderDocument({patient:{id:patient.id,name:patient.name},issuer:{id:actor.id,name:actor.name},visit:{id:visit.id,at:visit.at},template,clinic:store.get("SELECT value FROM settings WHERE key='clinicName'")?.value??'',content:JSON.parse(request.content),issuedAt:now(),verificationReference:'DRAFT — NOT VALID'});
+      const current=actorFor(req);requestAccess(current,request.id);requireThat(current.id===request.author,403);store.audit(current.id,'document.previewed',request.id);return {binary:bytes,mime:'application/pdf'};
     }
     if (path === '/api/templates' && method === 'GET') {
       requireThat(actor.role !== 'patient', 403); return store.all('SELECT * FROM templates');
@@ -237,6 +285,8 @@ export function createApi({ store, origins = [], renderDocument, aiProvider, rep
             visit: { id: visit.id, at: visit.at }, template, clinic, content: JSON.parse(request.content), issuedAt: now(), verificationReference: reference };
           store.run('INSERT INTO documents(id,request,patient,issuer,type,language,issued,snapshot,reference_hash) VALUES(?,?,?,?,?,?,?,?,?)',
             documentId, request.id, request.patient, actor.id, template.type, template.language, now(), JSON.stringify(snapshot), digest(reference));
+          const replacement=store.get('SELECT value FROM settings WHERE key=?','document.replaces:'+request.id);
+          if(replacement){const old=JSON.parse(replacement.value);const changed=store.run("UPDATE documents SET validity='superseded',version=version+1 WHERE id=? AND version=? AND validity='valid'",old.id,old.version);requireThat(changed.changes===1,409,'The replaced document changed. Prepare a fresh replacement.');store.audit(actor.id,'document.superseded',old.id);}
           store.run("UPDATE requests SET status='issued',version=version+1 WHERE id=?", request.id);
           store.run('INSERT INTO deliveries(id,document,recipient,next_at) VALUES(?,?,?,?)', id(), documentId, request.patient, now());
           store.audit(actor.id, 'document.issued', documentId);
@@ -277,8 +327,9 @@ export function createApi({ store, origins = [], renderDocument, aiProvider, rep
     if (/^\/api\/documents\/[^/]+\/revoke$/.test(path) && method === 'POST') {
       fields(body, ['reason','expectedVersion']); text(body.reason); fresh(store, actor);
       return store.transaction(() => {
-        const document = documentAccess(actor, path.split('/')[3]); requireThat(document.issuer === actor.id && actor.job === 'doctor', 403);
+        const document = documentAccess(actor, path.split('/')[3]); requireThat(document.issuer === actor.id && ['doctor','dentist'].includes(actor.job), 403);
         version(document, body.expectedVersion); store.run("UPDATE documents SET validity='revoked',version=version+1 WHERE id=?", document.id);
+        store.run('INSERT INTO document_events VALUES(?,?,?,?,?,?)',id(),document.id,actor.id,'revoked',now(),body.reason);
         store.audit(actor.id, 'document.revoked', document.id); return { ok: true };
       });
     }
@@ -352,7 +403,7 @@ export function createApi({ store, origins = [], renderDocument, aiProvider, rep
         aiConfigured: !!aiProvider, reportExplainerConfigured: !!reportExplainer, reportChatConfigured: !!reportChat, pdfRendererConfigured: !!renderDocument,
         payments: 'deskRecordOnly', externalDelivery: 'notConfigured', inAppDelivery: 'serverWorker' };
     }
-    const ops = workspaceOps({ store, now, path, method, url, body, actor }) ?? clinicOps({ store, now, path, method, url, body, actor }) ??
+    const ops = dutyOps({ store, now, path, method, url, body, actor }) ?? workforceOps({ store, now, path, method, url, body, actor }) ?? workspaceOps({ store, now, path, method, url, body, actor }) ?? clinicOps({ store, now, path, method, url, body, actor }) ??
       clinicalOps({ store, now, path, method, url, body, actor });
     if (ops !== undefined) return ops;
     throw new ApiError(404, 'Endpoint unavailable.');

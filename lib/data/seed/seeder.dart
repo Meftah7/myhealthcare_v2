@@ -17,6 +17,7 @@ import '../../core/utils/ticketing.dart';
 import '../../domain/enums.dart';
 import '../../services/auth/password_hasher.dart';
 import '../db/app_database.dart';
+import 'demo_workforce.dart';
 import 'vocab/clinical.dart';
 import 'vocab/names.dart';
 
@@ -80,13 +81,16 @@ class Seeder {
       throw StateError('Demo seeding is disabled in production mode.');
     }
     final current = await _currentSeedVersion();
-    if (!force && current == seedVersion) return null;
-    if (!force && current != 0) {
-      await _setSeedVersion(seedVersion);
+    final existing = await _db.select(_db.users).get();
+    if (!force && (current != 0 || existing.isNotEmpty)) {
+      await _db.transaction(() async {
+        await DemoWorkforce(_db, demoEnabled: seedingEnabled).repair();
+        if (current < seedVersion) await _setSeedVersion(seedVersion);
+      });
       return null;
     }
     return _db.transaction(() async {
-      await _wipe();
+      if (force) await _wipe();
       final result = await _generate();
       await _db.installProposedDocumentPolicies();
       await _setSeedVersion(seedVersion);
@@ -133,11 +137,13 @@ class Seeder {
     );
     // One account per remaining staff role, seeded last so the deterministic
     // patient/doctor data above is unchanged.
-    await _seedRoleStaff(deptIds);
+    await DemoWorkforce(_db, demoEnabled: seedingEnabled).repair();
 
     return SeedResult(
-      departments: deptIds.length,
-      staff: staff.length,
+      departments: (await _db.select(_db.departments).get()).length,
+      staff: (await (_db.select(
+        _db.users,
+      )..where((u) => u.role.equalsValue(UserRole.staff))).get()).length,
       patients: patients.length,
       appointments: appts,
       records: records,
@@ -230,77 +236,6 @@ class Seeder {
       }
     }
     return staff;
-  }
-
-  /// Demo accounts for the nurse, receptionist, pharmacist and dentist roles
-  /// (`nurse@`, `reception@`, `pharmacy@`, `dentist@myhealth.demo`).
-  Future<void> _seedRoleStaff(List<String> deptIds) async {
-    const accounts = [
-      ('staff_nurse', StaffRole.nurse, 'Maryam Hasan', 'nurse', false),
-      (
-        'staff_reception',
-        StaffRole.receptionist,
-        'Huda Saleh',
-        'reception',
-        false,
-      ),
-      ('staff_pharmacy', StaffRole.pharmacist, 'Yusuf Karim', 'pharmacy', true),
-      ('staff_dentist', StaffRole.dentist, 'Sara Abbas', 'dentist', false),
-    ];
-    // A Dental department so the dentist is bookable end to end.
-    const dentalId = 'dept_dental';
-    await _db
-        .into(_db.departments)
-        .insert(
-          DepartmentsCompanion.insert(
-            id: dentalId,
-            name: 'Dental',
-            description: const Value(
-              'Dental check-ups, fillings and oral health follow-up.',
-            ),
-          ),
-        );
-    for (final (id, role, name, login, male) in accounts) {
-      await _insertUser(
-        id: id,
-        role: UserRole.staff,
-        fullName: name,
-        email: '$login@myhealth.demo',
-        male: male,
-      );
-      await _db
-          .into(_db.staffProfiles)
-          .insert(
-            StaffProfilesCompanion.insert(
-              userId: id,
-              departmentId: Value(switch (role) {
-                StaffRole.nurse => deptIds.first,
-                StaffRole.dentist => dentalId,
-                _ => null,
-              }),
-              specialty: Value(
-                role == StaffRole.dentist ? 'General dentistry' : null,
-              ),
-              jobTitle: Value(role.jobTitle),
-            ),
-          );
-      if (role.takesAppointments) {
-        // Sun–Thu, 08:00–16:00, like the doctors' template.
-        for (final weekday in const [7, 1, 2, 3, 4]) {
-          await _db
-              .into(_db.scheduleTemplates)
-              .insert(
-                ScheduleTemplatesCompanion.insert(
-                  id: '${id}_wd$weekday',
-                  staffId: id,
-                  weekday: weekday,
-                  startMinutes: 8 * 60,
-                  endMinutes: 16 * 60,
-                ),
-              );
-        }
-      }
-    }
   }
 
   Future<List<_Patient>> _seedPatients() async {
@@ -1312,6 +1247,21 @@ class Seeder {
     }
     // Children first; app_settings kept (holds seedVersion).
     final tables = <TableInfo<Table, Object?>>[
+      _db.staffMessages,
+      _db.documentCopyConfirmations,
+      _db.medicationDispenses,
+      _db.pharmacyStockBatches,
+      _db.dentalChartEntries,
+      _db.careTeamAssignments,
+      _db.staffCredentials,
+      _db.medicationClarifications,
+      _db.staffConversationMembers,
+      _db.staffConversations,
+      _db.nursingIntakes,
+      _db.staffShifts,
+      _db.encounterParticipants,
+      _db.clinicRooms,
+      _db.clinicConfigurations,
       _db.documentDeliveryEvents,
       _db.documentArtifacts,
       _db.documentVerifications,

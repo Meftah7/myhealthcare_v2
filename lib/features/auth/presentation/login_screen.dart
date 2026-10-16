@@ -8,6 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
+import '../../../app/shared_mode.dart';
+import '../../workforce/demo_account_picker.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/di.dart';
 import '../../../core/presentation/app_card.dart';
@@ -218,9 +220,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             _DemoQuickActions(
               enabled: !_busy,
               onSelect: (email) {
+                if (ref.read(sharedModeProvider)) {
+                  _email.text = email
+                      .replaceAll('staff1@myhealth.demo', 'doctor@shared.demo')
+                      .replaceAll(
+                        'patient1@myhealth.demo',
+                        'patient@shared.demo',
+                      )
+                      .replaceAll('@myhealth.demo', '@shared.demo');
+                  _password.clear();
+                  _passwordFocus.requestFocus();
+                } else {
+                  _email.text = email;
+                  _password.text = Seeder.demoPassword;
+                  unawaited(_submit());
+                }
+              },
+            ),
+            DemoAccountPicker(
+              onSelect: (email) {
                 _email.text = email;
-                _password.text = Seeder.demoPassword;
-                unawaited(_submit());
+                _password.clear();
+                _passwordFocus.requestFocus();
               },
             ),
           ],
@@ -236,17 +257,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 }
 
-class _DemoQuickActions extends StatelessWidget {
+class _DemoQuickActions extends ConsumerWidget {
   const _DemoQuickActions({required this.enabled, required this.onSelect});
 
   final bool enabled;
   final void Function(String email) onSelect;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final t = AppLocalizations.of(context)!;
+    final shared = ref.watch(sharedModeProvider);
     final accounts = [
       (t.demoPatient, Icons.person_outline, 'patient1@myhealth.demo'),
       (
@@ -313,33 +335,49 @@ class _DemoQuickActions extends StatelessWidget {
                     onTap: enabled ? () => onSelect(email) : null,
                   ),
               ];
-              // Three across needs ~96dp per tile at the current text size;
-              // otherwise (narrow phone, large text) stack them full width.
-              final scale = MediaQuery.textScalerOf(context).scale(1);
-              if (constraints.maxWidth / 3 < 96 * scale) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    for (final (i, tile) in tiles.indexed) ...[
-                      if (i > 0) const SizedBox(height: Space.xs),
-                      tile,
-                    ],
-                  ],
-                );
+              // Size columns for the actual translated labels and text scale.
+              // The account list can grow without squeezing every tile into
+              // one row. Labels may wrap when even one column is narrow.
+              var minimumWidth = 96.0;
+              for (final (label, _, _) in accounts) {
+                final text = TextPainter(
+                  text: TextSpan(
+                    text: label,
+                    style: theme.textTheme.labelLarge,
+                  ),
+                  textDirection: Directionality.of(context),
+                  textScaler: MediaQuery.textScalerOf(context),
+                )..layout();
+                final width = text.width + Space.xs * 2 + 16;
+                if (width > minimumWidth) minimumWidth = width;
+                text.dispose();
               }
-              return Row(
+              final columns =
+                  ((constraints.maxWidth + Space.xs) /
+                          (minimumWidth + Space.xs))
+                      .floor()
+                      .clamp(1, 3);
+              final tileWidth =
+                  (constraints.maxWidth - Space.xs * (columns - 1)) / columns;
+              return Wrap(
+                spacing: Space.xs,
+                runSpacing: Space.xs,
                 children: [
-                  for (final (i, tile) in tiles.indexed) ...[
-                    if (i > 0) const SizedBox(width: Space.xs),
-                    Expanded(child: tile),
-                  ],
+                  for (final tile in tiles)
+                    SizedBox(width: tileWidth, child: tile),
                 ],
               );
             },
           ),
           const SizedBox(height: Space.sm),
           Text(
-            t.demoPasswordNote(Seeder.demoPassword),
+            shared
+                ? (t.localeName == 'ar'
+                      ? 'أدخل كلمة المرور المحددة للخادم التجريبي.'
+                      : 'Enter the password configured for the shared demo server.')
+                : (t.localeName == 'ar'
+                      ? 'كلمة مرور الحسابات التجريبية الجديدة: password. يتم الاحتفاظ بكلمات المرور المعدلة.'
+                      : 'New demo accounts use password. Existing custom passwords are preserved.'),
             style: theme.textTheme.bodySmall?.copyWith(
               color: scheme.onSurfaceVariant,
             ),
@@ -390,8 +428,7 @@ class _DemoAccountTile extends StatelessWidget {
                 Text(
                   label,
                   textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  softWrap: true,
                   style: theme.textTheme.labelLarge,
                 ),
               ],

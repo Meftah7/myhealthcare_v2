@@ -2,6 +2,9 @@
 // one replace-all operation per staff member.
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:drift/drift.dart' hide isNull, isNotNull;
+import 'package:myhealthcare/data/db/app_database.dart';
+import 'package:myhealthcare/domain/enums.dart';
 import 'package:myhealthcare/data/repositories/appointment_repository_impl.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:myhealthcare/domain/entities/entities.dart';
@@ -17,10 +20,23 @@ void main() {
     await Seeder(db).run();
     final repo = AppointmentRepositoryImpl(db);
 
-    final staff = (await db.select(db.staffProfiles).get()).first;
-    await (db.delete(
-      db.appointments,
-    )..where((appointment) => appointment.staffId.equals(staff.userId))).go();
+    final staff = (await db.select(db.staffProfiles).get()).firstWhere(
+      (p) => p.userId == 'staff_02',
+    );
+    await (db.update(db.appointments)..where(
+          (appointment) =>
+              appointment.staffId.equals(staff.userId) &
+              appointment.status.isInValues([
+                AppointmentStatus.booked,
+                AppointmentStatus.confirmed,
+                AppointmentStatus.inProgress,
+              ]),
+        ))
+        .write(
+          const AppointmentsCompanion(
+            status: Value(AppointmentStatus.cancelled),
+          ),
+        );
 
     final saved = await repo.setTemplates(
       staffId: staff.userId,
@@ -56,7 +72,9 @@ void main() {
     addTearDown(db.close);
     await Seeder(db).run();
     final repo = AppointmentRepositoryImpl(db);
-    final staff = (await db.select(db.staffProfiles).get()).first;
+    final staff = (await db.select(db.staffProfiles).get()).firstWhere(
+      (p) => p.userId == 'staff_02',
+    );
     final before = (await repo.templatesFor(staff.userId)).valueOrNull!;
 
     final result = await repo.setTemplates(
@@ -79,7 +97,9 @@ void main() {
     addTearDown(db.close);
     await Seeder(db).run();
     final repo = AppointmentRepositoryImpl(db);
-    final staff = (await db.select(db.staffProfiles).get()).first;
+    final staff = (await db.select(db.staffProfiles).get()).firstWhere(
+      (p) => p.userId == 'staff_02',
+    );
 
     final result = await repo.setTemplates(
       staffId: staff.userId,
@@ -101,10 +121,23 @@ void main() {
     addTearDown(db.close);
     await Seeder(db).run();
     final repo = AppointmentRepositoryImpl(db);
-    final staff = (await db.select(db.staffProfiles).get()).first;
-    await (db.delete(
-      db.appointments,
-    )..where((appointment) => appointment.staffId.equals(staff.userId))).go();
+    final staff = (await db.select(db.staffProfiles).get()).firstWhere(
+      (p) => p.userId == 'staff_02',
+    );
+    await (db.update(db.appointments)..where(
+          (appointment) =>
+              appointment.staffId.equals(staff.userId) &
+              appointment.status.isInValues([
+                AppointmentStatus.booked,
+                AppointmentStatus.confirmed,
+                AppointmentStatus.inProgress,
+              ]),
+        ))
+        .write(
+          const AppointmentsCompanion(
+            status: Value(AppointmentStatus.cancelled),
+          ),
+        );
 
     final result = await repo.setTemplates(
       staffId: staff.userId,

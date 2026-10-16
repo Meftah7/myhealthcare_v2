@@ -719,6 +719,7 @@ class MedicationRepositoryImpl implements MedicationRepository {
               appointmentId: Value(m.appointmentId),
               dose: Value(m.dose),
               frequency: Value(m.frequency),
+              orderedUnits: Value(m.orderedUnits),
               endDate: Value(m.endDate),
               isActive: Value(m.isActive),
             ),

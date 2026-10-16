@@ -26,15 +26,15 @@ void main() {
     addTearDown(db.close);
 
     final result = (await Seeder(db).run())!;
-    expect(result.departments, 5);
-    expect(result.staff, 12);
+    expect(result.departments, 8);
+    expect(result.staff, 44);
     expect(result.patients, 60);
     expect(result.appointments, greaterThan(400));
     expect(result.records, greaterThan(200));
 
     final templates = await db.select(db.scheduleTemplates).get();
-    // Twelve doctors plus the dentist (seed v17), five weekdays each.
-    expect(templates.length, 13 * 5);
+    // Twelve doctors and four dentists, five weekdays each.
+    expect(templates.length, 16 * 5);
 
     final orphans = await db
         .customSelect(

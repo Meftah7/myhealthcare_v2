@@ -8,11 +8,13 @@
 // so a plain `flutter test` never rewrites it.
 
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/data/db/app_database.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
+import 'package:myhealthcare/data/seed/demo_workforce.dart';
 
 void main() {
   test('write the pre-seeded demo database for the web build', () async {
@@ -21,6 +23,10 @@ void main() {
 
     final db = AppDatabase(NativeDatabase(out));
     await Seeder(db).run();
+    final manifest = await DemoWorkforce(db, demoEnabled: true).manifest();
+    File('docs/demo-workforce-manifest.json').writeAsStringSync(
+      '${const JsonEncoder.withIndent('  ').convert(manifest)}\n',
+    );
     final version = await db.customSelect('PRAGMA user_version').getSingle();
     final users = await db
         .customSelect('SELECT count(*) AS n FROM users')

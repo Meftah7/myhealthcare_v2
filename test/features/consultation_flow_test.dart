@@ -52,6 +52,11 @@ Future<String> _bookAppointment(ProviderContainer c) async {
       start.weekday == DateTime.saturday) {
     start = start.add(const Duration(days: 1));
   }
+  final slots =
+      (await c.read(appointmentRepositoryProvider).openSlots('staff_01', start))
+          .valueOrNull!;
+  expect(slots, isNotEmpty);
+  start = slots.first.start;
   final r = await c
       .read(appointmentRepositoryProvider)
       .book(
@@ -59,7 +64,7 @@ Future<String> _bookAppointment(ProviderContainer c) async {
           patientId: 'patient_001',
           staffId: 'staff_01',
           start: start,
-          end: start.add(const Duration(minutes: 20)),
+          end: slots.first.end,
           visitType: VisitType.followUp,
         ),
       );

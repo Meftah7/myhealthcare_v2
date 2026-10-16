@@ -1,0 +1,11 @@
+{
+  "description": "Synthetic medium-sized outpatient demonstration roster; not a staffing standard.",
+  "groups": [
+    {"role":"doctor","count":12,"idPrefix":"staff_","idWidth":2,"emailPrefix":"staff","firstLocalLogin":"staff1","firstSharedLogin":"doctor","departmentId":"dept_1","departmentName":"Family Medicine","names":["Wadha Smith","Isa Al Hashmi","Ahmed Al Noor","Fatima Al Khalifa","Omar Al Saeed","Layla Al Mansoori","Hassan Al Amin","Noor Al Zayani","Ali Al Saleh","Mariam Al Haddad","Yusuf Al Jaber","Sara Al Nasser"]},
+    {"role":"nurse","count":18,"idPrefix":"staff_nurse","emailPrefix":"nurse","departmentId":"dept_1","departmentName":"Family Medicine","names":["Maryam Hasan","Noor Al Khalifa","Zainab Al Noor","Aisha Al Amin","Hana Al Saleh","Reem Al Jaber","Dana Al Nasser","Laila Al Zayani","Hessa Al Saeed","Amal Al Haddad","Noura Al Mansoori","Salma Al Faraj","Huda Al Hayki","Basma Al Aali","Rana Al Qattan","Nadia Al Moayyed","Iman Al Ansari","Safiya Al Mahdi"]},
+    {"role":"receptionist","count":6,"idPrefix":"staff_reception","emailPrefix":"reception","departmentId":"dept_reception","departmentName":"Reception","names":["Huda Saleh","Maha Al Noor","Jassim Al Khalifa","Dalia Al Amin","Fahad Al Zayani","Rasha Al Jaber"]},
+    {"role":"pharmacist","count":4,"idPrefix":"staff_pharmacy","emailPrefix":"pharmacy","departmentId":"dept_pharmacy","departmentName":"Pharmacy","names":["Yusuf Karim","Asma Al Saeed","Khalid Al Haddad","Mona Al Nasser"]},
+    {"role":"dentist","count":4,"idPrefix":"staff_dentist","emailPrefix":"dentist","departmentId":"dept_dental","departmentName":"Dental","names":["Sara Abbas","Tariq Al Noor","Nawal Al Khalifa","Adel Al Amin"]},
+    {"role":"admin","count":2,"idPrefix":"admin_","idWidth":2,"emailPrefix":"admin","firstLocalLogin":"admin","firstSharedLogin":"admin","departmentId":null,"departmentName":null,"names":["System Administrator","Demonstration Administrator"]}
+  ]
+}

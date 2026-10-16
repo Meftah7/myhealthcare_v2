@@ -47,6 +47,7 @@ export function clinicOps({ store, now, path, method, url, body, actor }) {
       return store.all('SELECT * FROM appointments WHERE start>=? AND start<? ORDER BY start', from, to).map(safeAppointment);
     }
     requireThat(actor.role === 'staff', 403);
+    if(actor.job==='nurse')return store.all('SELECT a.* FROM appointments a JOIN nursing_intakes n ON n.appointment=a.id WHERE n.nurse=? ORDER BY a.start',actor.id).map(safeAppointment);
     return store.all('SELECT * FROM appointments WHERE staff=? ORDER BY start', actor.id).map(safeAppointment);
   }
   if (path === '/api/appointments' && method === 'POST') {

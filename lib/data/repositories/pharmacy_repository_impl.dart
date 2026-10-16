@@ -28,11 +28,31 @@ class PharmacyRepositoryImpl implements PharmacyRepository {
         );
         final meds =
             await (_db.select(_db.medications)
-                  ..where((m) => m.isActive & m.prescriberId.isNotNull())
+                  ..where(
+                    (m) =>
+                        m.isActive &
+                        (m.endDate.isNull() |
+                            m.endDate.isBiggerThanValue(DateTime.now())) &
+                        m.prescriberId.isNotNull() &
+                        existsQuery(
+                          _db.select(_db.signedNotes)..where(
+                            (s) =>
+                                s.appointmentId.equalsExp(m.appointmentId) &
+                                s.patientId.equalsExp(m.patientId) &
+                                s.authorStaffId.equalsExp(m.prescriberId),
+                          ),
+                        ),
+                  )
                   ..orderBy([(m) => OrderingTerm.desc(m.startDate)])
                   ..limit(limit))
                 .get();
         if (meds.isEmpty) return const <PharmacyOrder>[];
+        final pending =
+            (await (_db.select(
+                  _db.medicationClarifications,
+                )..where((c) => c.resolvedAt.isNull())).get())
+                .map((c) => c.medicationId)
+                .toSet();
         final people = {
           for (final u
               in await (_db.select(_db.users)..where(
@@ -64,122 +84,205 @@ class PharmacyRepositoryImpl implements PharmacyRepository {
               startDate: m.startDate,
               lastOutcome: latest[m.id]?.outcome,
               lastOutcomeAt: latest[m.id]?.recordedAt,
+              clarificationPending: pending.contains(m.id),
+              orderedUnits: m.orderedUnits,
             ),
         ];
       });
 
   @override
-  Future<Result<DateTime>> record(DispenseInput input) => Result.guardAsync(
-    () async {
-      final p = await _access.require(
-        Permission.dispenseMedication,
-        entityType: 'medication',
-        entityId: input.medicationId,
-      );
-      _validate(input);
-      return _db.transaction(() async {
-        final prior =
-            await (_db.select(_db.medicationDispenses)
-                  ..where((d) => d.idempotencyKey.equals(input.idempotencyKey)))
-                .getSingleOrNull();
-        if (prior != null) return prior.recordedAt;
-        final med = await (_db.select(
-          _db.medications,
-        )..where((m) => m.id.equals(input.medicationId))).getSingleOrNull();
-        if (med == null || !med.isActive || med.prescriberId == null) {
+  Future<Result<DateTime>> record(
+    DispenseInput input,
+  ) => Result.guardAsync(() async {
+    final p = await _access.require(
+      Permission.dispenseMedication,
+      entityType: 'medication',
+      entityId: input.medicationId,
+    );
+    _validate(input);
+    return _db.transaction(() async {
+      final prior =
+          await (_db.select(_db.medicationDispenses)
+                ..where((d) => d.idempotencyKey.equals(input.idempotencyKey)))
+              .getSingleOrNull();
+      if (prior != null) {
+        if (prior.pharmacistId != (p?.accountId ?? 'local') ||
+            prior.medicationId != input.medicationId ||
+            prior.outcome != input.outcome ||
+            prior.quantity != input.quantity?.trim() ||
+            prior.note != _blankToNull(input.note) ||
+            prior.stockBatchId != input.stockBatchId ||
+            prior.units != (input.stockBatchId == null ? null : input.units)) {
           throw const ConflictFailure(
-            'This order is no longer active. Ask the prescriber to review it.',
+            'This retry key belongs to a different dispensing request.',
           );
         }
-        final done =
-            await (_db.select(_db.medicationDispenses)..where(
-                  (d) =>
-                      d.medicationId.equals(med.id) &
-                      d.outcome.equalsValue(DispenseOutcome.dispensed),
+        return prior.recordedAt;
+      }
+      final med = await (_db.select(
+        _db.medications,
+      )..where((m) => m.id.equals(input.medicationId))).getSingleOrNull();
+      if (med == null ||
+          !med.isActive ||
+          med.prescriberId == null ||
+          med.endDate?.isBefore(DateTime.now()) == true) {
+        throw const ConflictFailure(
+          'This order is no longer active. Ask the prescriber to review it.',
+        );
+      }
+      final signed =
+          await (_db.select(_db.signedNotes)..where(
+                (s) =>
+                    s.appointmentId.equals(med.appointmentId ?? '') &
+                    s.patientId.equals(med.patientId) &
+                    s.authorStaffId.equals(med.prescriberId!),
+              ))
+              .getSingleOrNull();
+      if (signed == null)
+        throw const ConflictFailure(
+          'Only a signed, prescriber-attributed order can be reviewed.',
+        );
+      final supplying =
+          input.outcome == DispenseOutcome.dispensed ||
+          input.outcome == DispenseOutcome.partial;
+      final clarification =
+          await (_db.select(_db.medicationClarifications)..where(
+                (c) => c.medicationId.equals(med.id) & c.resolvedAt.isNull(),
+              ))
+              .get();
+      if (supplying && clarification.isNotEmpty)
+        throw const ConflictFailure(
+          'The responsible prescriber must resolve the outstanding clarification before supply.',
+        );
+      if (!supplying && input.stockBatchId != null)
+        throw const ValidationFailure(
+          'A hold or clarification cannot consume stock.',
+        );
+      final done =
+          await (_db.select(_db.medicationDispenses)..where(
+                (d) =>
+                    d.medicationId.equals(med.id) &
+                    d.outcome.equalsValue(DispenseOutcome.dispensed),
+              ))
+              .get();
+      if (done.isNotEmpty) {
+        throw const ConflictFailure(
+          'This order has already been fully dispensed.',
+        );
+      }
+      final at = DateTime.now();
+      if (supplying && input.stockBatchId == null)
+        throw const ValidationFailure(
+          'Choose a recorded stock batch before supplying medication.',
+        );
+      if (supplying && med.orderedUnits != null) {
+        final used = await (_db.select(
+          _db.medicationDispenses,
+        )..where((d) => d.medicationId.equals(med.id))).get();
+        final total = used.fold<int>(0, (sum, d) => sum + (d.units ?? 0));
+        if (input.units == null ||
+            input.units! <= 0 ||
+            total + input.units! > med.orderedUnits!)
+          throw const ConflictFailure(
+            'Supply exceeds the remaining ordered units.',
+          );
+        if (input.stockBatchId == null)
+          throw const ValidationFailure(
+            'Choose the recorded stock batch for this supply.',
+          );
+      }
+      var batchText = _blankToNull(input.batch);
+      var expiry = input.expiry;
+      final batchId = input.stockBatchId;
+      if (batchId != null) {
+        final units = input.units;
+        if (units == null || units <= 0) {
+          throw const ValidationFailure(
+            'Enter how many units leave the selected batch.',
+          );
+        }
+        final stock = await (_db.select(
+          _db.pharmacyStockBatches,
+        )..where((b) => b.id.equals(batchId))).getSingleOrNull();
+        if (stock == null) {
+          throw const ConflictFailure('That stock batch no longer exists.');
+        }
+        if (stock.itemName.trim().toLowerCase() !=
+            med.name.trim().toLowerCase())
+          throw const ValidationFailure(
+            'The selected stock item does not match the signed order.',
+          );
+        final today = DateTime(at.year, at.month, at.day);
+        if (!stock.expiry.isAfter(today)) {
+          throw const ValidationFailure('This batch has expired.');
+        }
+        if (stock.quantity < units) {
+          throw ConflictFailure(
+            'Only ${stock.quantity} ${stock.unit} left in batch '
+            '${stock.batch}.',
+          );
+        }
+        // Optimistic version check: two dispenses racing on one batch
+        // cannot both decrement from the same starting quantity.
+        final changed =
+            await (_db.update(_db.pharmacyStockBatches)..where(
+                  (b) => b.id.equals(batchId) & b.version.equals(stock.version),
                 ))
-                .get();
-        if (done.isNotEmpty) {
+                .write(
+                  PharmacyStockBatchesCompanion(
+                    quantity: Value(stock.quantity - units),
+                    version: Value(stock.version + 1),
+                  ),
+                );
+        if (changed != 1) {
           throw const ConflictFailure(
-            'This order has already been fully dispensed.',
+            'Stock changed while you were recording. Reload and retry.',
           );
         }
-        final at = DateTime.now();
-        var batchText = _blankToNull(input.batch);
-        var expiry = input.expiry;
-        final batchId = input.stockBatchId;
-        if (batchId != null) {
-          final units = input.units;
-          if (units == null || units <= 0) {
-            throw const ValidationFailure(
-              'Enter how many units leave the selected batch.',
-            );
-          }
-          final stock = await (_db.select(
-            _db.pharmacyStockBatches,
-          )..where((b) => b.id.equals(batchId))).getSingleOrNull();
-          if (stock == null) {
-            throw const ConflictFailure('That stock batch no longer exists.');
-          }
-          final today = DateTime(at.year, at.month, at.day);
-          if (!stock.expiry.isAfter(today)) {
-            throw const ValidationFailure('This batch has expired.');
-          }
-          if (stock.quantity < units) {
-            throw ConflictFailure(
-              'Only ${stock.quantity} ${stock.unit} left in batch '
-              '${stock.batch}.',
-            );
-          }
-          // Optimistic version check: two dispenses racing on one batch
-          // cannot both decrement from the same starting quantity.
-          final changed =
-              await (_db.update(_db.pharmacyStockBatches)..where(
-                    (b) =>
-                        b.id.equals(batchId) & b.version.equals(stock.version),
-                  ))
-                  .write(
-                    PharmacyStockBatchesCompanion(
-                      quantity: Value(stock.quantity - units),
-                      version: Value(stock.version + 1),
-                    ),
-                  );
-          if (changed != 1) {
-            throw const ConflictFailure(
-              'Stock changed while you were recording. Reload and retry.',
-            );
-          }
-          batchText = stock.batch;
-          expiry = stock.expiry;
-        }
+        batchText = stock.batch;
+        expiry = stock.expiry;
+      }
+      await _db
+          .into(_db.medicationDispenses)
+          .insert(
+            MedicationDispensesCompanion.insert(
+              id: const Uuid().v4(),
+              medicationId: med.id,
+              patientId: med.patientId,
+              pharmacistId: p?.accountId ?? 'local',
+              outcome: input.outcome,
+              quantity: Value(input.quantity?.trim()),
+              batch: Value(batchText),
+              expiry: Value(expiry),
+              stockBatchId: Value(batchId),
+              units: Value(batchId == null ? null : input.units),
+              note: Value(_blankToNull(input.note)),
+              idempotencyKey: input.idempotencyKey,
+              recordedAt: at,
+            ),
+          );
+      await _access.audit(
+        'pharmacy.${input.outcome.name}',
+        entityType: 'medication',
+        entityId: med.id,
+        subjectPatientId: med.patientId,
+      );
+      if (input.outcome == DispenseOutcome.clarificationRequested) {
         await _db
-            .into(_db.medicationDispenses)
+            .into(_db.medicationClarifications)
             .insert(
-              MedicationDispensesCompanion.insert(
+              MedicationClarificationsCompanion.insert(
                 id: const Uuid().v4(),
                 medicationId: med.id,
-                patientId: med.patientId,
-                pharmacistId: p?.accountId ?? 'local',
-                outcome: input.outcome,
-                quantity: Value(input.quantity?.trim()),
-                batch: Value(batchText),
-                expiry: Value(expiry),
-                stockBatchId: Value(batchId),
-                units: Value(batchId == null ? null : input.units),
-                note: Value(_blankToNull(input.note)),
-                idempotencyKey: input.idempotencyKey,
-                recordedAt: at,
+                requestedBy: p?.accountId ?? 'local',
+                question: input.note!.trim(),
+                requestedAt: at,
               ),
             );
-        await _access.audit(
-          'pharmacy.${input.outcome.name}',
-          entityType: 'medication',
-          entityId: med.id,
-          subjectPatientId: med.patientId,
-        );
-        return at;
-      });
-    },
-  );
+      }
+      return at;
+    });
+  });
 
   @override
   Future<Result<List<StockBatch>>> stock() => Result.guardAsync(() async {

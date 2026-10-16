@@ -214,6 +214,7 @@ class Medications extends Table {
 
   /// Issuance is independent of the medication treatment start date.
   DateTimeColumn get issuedAt => dateTime().nullable()();
+  IntColumn get orderedUnits => integer().nullable()();
 
   /// The visit it was prescribed in, if any.
   TextColumn get appointmentId => text().nullable().references(

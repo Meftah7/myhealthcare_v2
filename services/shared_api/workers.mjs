@@ -91,7 +91,7 @@ export function restoreBackup({ archive, key, directory }) {
   const target = resolve(directory);
   requireThat(!existsSync(target), 409, 'Restore into a new directory, then validate and switch storage offline.');
   const payload = JSON.parse(decrypt(readFileSync(archive), Buffer.from(key, 'hex')).toString());
-  requireThat([1, 2, 3].includes(payload.schema) && /^[a-f0-9]{64}$/.test(payload.fileKey) && Array.isArray(payload.files));
+  requireThat([1, 2, 3, 4].includes(payload.schema) && /^[a-f0-9]{64}$/.test(payload.fileKey) && Array.isArray(payload.files));
   mkdirSync(join(target, 'files'), { recursive: true, mode: 0o700 });
   const marker = join(target, '.restore-incomplete'); writeFileSync(marker, '', { mode: 0o600 });
   writeFileSync(join(target, 'clinic.sqlite'), Buffer.from(payload.database, 'base64'), { mode: 0o600 });

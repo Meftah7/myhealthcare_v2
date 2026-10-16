@@ -130,9 +130,16 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     DateTime day,
   ) {
     return Result.guardAsync(() async {
-      await _access.requireStaffOrAdmin(entityType: 'appointment');
-      final rows = await _forStaffOnDayQuery(staffId, day).get();
-      return rows.map((r) => r.toEntity()).toList();
+      final start = DateTime(day.year, day.month, day.day);
+      final result = await forStaffInRange(
+        staffId,
+        start,
+        start.add(const Duration(days: 1)),
+      );
+      return switch (result) {
+        Ok(:final value) => value,
+        Err(:final failure) => throw failure,
+      };
     });
   }
 
@@ -143,12 +150,31 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     DateTime to,
   ) {
     return Result.guardAsync(() async {
-      await _access.requireStaffOrAdmin(entityType: 'appointment');
+      final actor = await _access.requireStaffOrAdmin(
+        entityType: 'appointment',
+      );
+      if (actor?.isStaff == true &&
+          actor!.accountId != staffId &&
+          !actor.can(Permission.bookForPatients))
+        throw const AccessDeniedFailure('Read only your own staff schedule.');
+      final profile = await (_db.select(
+        _db.staffProfiles,
+      )..where((p) => p.userId.equals(staffId))).getSingleOrNull();
+      final nursing = StaffRole.parse(profile?.jobTitle) == StaffRole.nurse;
+
       final rows =
           await (_db.select(_db.appointments)
                 ..where(
                   (a) =>
-                      a.staffId.equals(staffId) &
+                      (nursing
+                          ? existsQuery(
+                              _db.select(_db.nursingIntakes)..where(
+                                (n) =>
+                                    n.nurseId.equals(staffId) &
+                                    n.appointmentId.equalsExp(a.id),
+                              ),
+                            )
+                          : a.staffId.equals(staffId)) &
                       a.slotStart.isBiggerOrEqualValue(from) &
                       a.slotStart.isSmallerThanValue(to),
                 )

@@ -7,6 +7,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/di.dart';
+import '../features/workforce/role_navigation.dart';
+import '../features/workforce/duty_screens.dart';
+import '../features/workforce/shared_task_screen.dart';
+import '../features/workforce/staff_secondary_pages.dart';
+import '../features/staff_dashboard/presentation/staff_patients_screen.dart'
+    show StaffPatientContextHeader;
+import '../features/workforce/team_screens.dart';
 import '../core/presentation/app_scaffold.dart';
 import '../core/ui/patient/patient_bottom_navigation.dart';
 import '../domain/enums.dart';
@@ -50,7 +57,6 @@ import '../features/care/presentation/home_visit_screen.dart';
 import '../features/care/presentation/issued_documents_screen.dart';
 import '../features/care/presentation/messages_screen.dart';
 import '../features/care/presentation/sick_leave_screen.dart';
-import '../features/care/presentation/staff_inbox_screen.dart';
 import '../features/consultation/presentation/consultation_screen.dart';
 import '../features/health_tools/domain/lab_conversion.dart';
 import '../features/health_tools/presentation/emergency_services_screen.dart';
@@ -81,10 +87,8 @@ import '../features/staff_dashboard/presentation/schedule_work_screen.dart';
 import '../features/staff_dashboard/presentation/staff_activity_screen.dart';
 import '../features/staff_dashboard/presentation/staff_dashboard_screen.dart';
 import '../features/staff_dashboard/presentation/staff_directory_screen.dart';
-import '../features/staff_dashboard/presentation/staff_patients_screen.dart';
 import '../features/staff_dashboard/presentation/staff_profile_pages.dart';
 import '../features/staff_dashboard/presentation/staff_profile_screen.dart';
-import '../features/staff_dashboard/presentation/staff_schedule_screen.dart';
 import '../features/staff_dashboard/presentation/staff_top_actions.dart';
 import '../features/tasks/presentation/task_board_screen.dart';
 import '../features/tasks/presentation/task_detail_screen.dart';
@@ -864,38 +868,55 @@ StatefulShellRoute _staffShell() {
   return StatefulShellRoute.indexedStack(
     builder: (context, state, navigationShell) {
       final t = AppLocalizations.of(context)!;
-      return AppShell(
-        navigationShell: navigationShell,
-        contextHeader: const StaffPatientContextHeader(),
-        destinations: [
-          AppDestination(
-            icon: Icons.dashboard_outlined,
-            selectedIcon: Icons.dashboard,
-            label: t.localeName == 'ar'
-                ? '\u0627\u0644\u064a\u0648\u0645'
-                : 'Today',
-          ),
-          AppDestination(
-            icon: Icons.people_outline,
-            selectedIcon: Icons.people,
-            label: t.navPatients,
-          ),
-          AppDestination(
-            icon: Icons.chat_bubble_outline,
-            selectedIcon: Icons.chat_bubble,
-            label: t.localeName == 'ar' ? 'المحادثات' : 'Chat',
-          ),
-          AppDestination(
-            icon: Icons.calendar_month_outlined,
-            selectedIcon: Icons.calendar_month,
-            label: t.navSchedule,
-          ),
-          AppDestination(
-            icon: Icons.account_circle_outlined,
-            selectedIcon: Icons.account_circle,
-            label: t.profile,
-          ),
-        ],
+      return Consumer(
+        builder: (context, ref, _) {
+          final role = ref.watch(currentStaffRoleProvider);
+          return AppShell(
+            navigationShell: navigationShell,
+            contextHeader: const StaffPatientContextHeader(),
+            destinations: [
+              AppDestination(
+                icon: Icons.dashboard_outlined,
+                selectedIcon: Icons.dashboard,
+                label: t.localeName == 'ar'
+                    ? '\u0627\u0644\u064a\u0648\u0645'
+                    : 'Today',
+              ),
+              AppDestination(
+                icon: Icons.people_outline,
+                selectedIcon: Icons.people,
+                label: role == StaffRole.pharmacist
+                    ? (t.localeName == 'ar' ? 'الوصفات' : 'Prescriptions')
+                    : role == StaffRole.receptionist
+                    ? (t.localeName == 'ar'
+                          ? 'البحث عن مريض'
+                          : 'Patient Lookup')
+                    : t.navPatients,
+              ),
+              AppDestination(
+                icon: Icons.chat_bubble_outline,
+                selectedIcon: Icons.chat_bubble,
+                label: t.localeName == 'ar' ? 'المحادثات' : 'Chat',
+              ),
+              AppDestination(
+                icon: Icons.calendar_month_outlined,
+                selectedIcon: Icons.calendar_month,
+                label: role == StaffRole.pharmacist
+                    ? (t.localeName == 'ar' ? 'جدول العمل' : 'Work Schedule')
+                    : role == StaffRole.receptionist
+                    ? (t.localeName == 'ar'
+                          ? 'مواعيد العيادة'
+                          : 'Clinic Appointments')
+                    : t.navSchedule,
+              ),
+              AppDestination(
+                icon: Icons.account_circle_outlined,
+                selectedIcon: Icons.account_circle,
+                label: t.profile,
+              ),
+            ],
+          );
+        },
       );
     },
     branches: [
@@ -939,7 +960,7 @@ StatefulShellRoute _staffShell() {
         routes: [
           GoRoute(
             path: AppRoutes.staffPatients,
-            builder: (_, _) => const StaffPatientsScreen(),
+            builder: (_, _) => const StaffRolePatients(),
             routes: [
               GoRoute(
                 path: ':id',
@@ -975,7 +996,7 @@ StatefulShellRoute _staffShell() {
         routes: [
           GoRoute(
             path: AppRoutes.staffChat,
-            builder: (_, _) => const StaffInboxScreen(),
+            builder: (_, _) => const StaffRoleChat(),
             routes: [
               GoRoute(
                 path: ':patientId',
@@ -993,11 +1014,20 @@ StatefulShellRoute _staffShell() {
         routes: [
           GoRoute(
             path: AppRoutes.staffSchedule,
-            builder: (_, _) => const StaffScheduleScreen(),
+            builder: (_, _) => const StaffRoleSchedule(),
             routes: [
               GoRoute(
                 path: 'work',
-                builder: (_, _) => const ScheduleWorkScreen(),
+                builder: (_, _) => Consumer(
+                  builder: (context, ref, _) =>
+                      ref.watch(sharedModeProvider) ||
+                          [
+                            StaffRole.receptionist,
+                            StaffRole.pharmacist,
+                          ].contains(ref.watch(currentStaffRoleProvider))
+                      ? const WorkforceTimeOffScreen()
+                      : const ScheduleWorkScreen(),
+                ),
               ),
             ],
           ),
@@ -1032,17 +1062,76 @@ StatefulShellRoute _staffShell() {
             ],
           ),
           GoRoute(
+            path: '/staff/documents',
+            builder: (_, _) => const StaffDocumentsHub(),
+          ),
+          GoRoute(
+            path: '/staff/activity',
+            builder: (_, _) => const WorkforceActivityScreen(),
+          ),
+          GoRoute(
+            path: '/staff/help',
+            builder: (_, _) => const StaffHelpScreen(),
+          ),
+          GoRoute(
+            path: '/staff/care-tools',
+            builder: (_, _) => const StaffCareToolsScreen(),
+            routes: [
+              GoRoute(
+                path: 'bmi',
+                builder: (_, _) => const BodyMeasurementsScreen(),
+              ),
+              GoRoute(
+                path: 'ideal-weight',
+                builder: (_, _) => const IdealWeightScreen(),
+              ),
+              GoRoute(
+                path: 'body-fat',
+                builder: (_, _) => const BodyFatScreen(),
+              ),
+              GoRoute(
+                path: 'due-date',
+                builder: (_, _) => const DueDateScreen(),
+              ),
+              GoRoute(
+                path: 'ovulation',
+                builder: (_, _) => const OvulationScreen(),
+              ),
+              for (final analyte in LabAnalyte.values)
+                GoRoute(
+                  path: analyte.name,
+                  builder: (_, _) => LabConverterScreen(analyte: analyte),
+                ),
+            ],
+          ),
+          GoRoute(
+            path: '/staff/team',
+            builder: (_, _) => const TeamDirectoryScreen(),
+          ),
+          GoRoute(
+            path: '/staff/team-chat/:threadId',
+            builder: (_, state) =>
+                TeamThreadScreen(id: state.pathParameters['threadId']!),
+          ),
+          GoRoute(
             path: AppRoutes.staffTasks,
             builder: (_, _) => const TaskBoardScreen(),
             routes: [
               GoRoute(
                 path: 'handover',
-                builder: (_, _) => const HandoverScreen(),
+                builder: (_, _) => Consumer(
+                  builder: (context, ref, _) => ref.watch(sharedModeProvider)
+                      ? const SharedHandoverScreen()
+                      : const HandoverScreen(),
+                ),
               ),
               GoRoute(
                 path: ':taskId',
-                builder: (_, s) =>
-                    TaskDetailScreen(id: s.pathParameters['taskId']!),
+                builder: (_, s) => Consumer(
+                  builder: (context, ref, _) => ref.watch(sharedModeProvider)
+                      ? SharedTaskScreen(id: s.pathParameters['taskId']!)
+                      : TaskDetailScreen(id: s.pathParameters['taskId']!),
+                ),
                 routes: [
                   GoRoute(
                     path: 'source/:type/:sourceId',

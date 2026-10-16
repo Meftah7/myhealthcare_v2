@@ -69,7 +69,9 @@ void main() {
       final original = (await service.queue()).singleWhere(
         (w) => w.sourceId == 'coordination',
       );
-      final owner = (await service.owners()).single.id;
+      final owner = (await service.owners())
+          .firstWhere((u) => u.id == 'admin_01')
+          .id;
       await service.updateWork(
         original,
         owner: owner,
@@ -162,7 +164,9 @@ void main() {
       await expectLater(
         service.updateWork(
           item,
-          owner: (await service.owners()).single.id,
+          owner: (await service.owners())
+              .firstWhere((u) => u.id == 'admin_01')
+              .id,
           due: DateTime.now().subtract(const Duration(hours: 1)),
           status: 'waiting',
           reason: 'Wait',
@@ -209,7 +213,9 @@ void main() {
       );
       expect(
         jsonDecode(
-          (await db.select(db.clinicConfigurations).get()).single.valueJson,
+          (await (db.select(
+            db.clinicConfigurations,
+          )..where((r) => r.id.equals('clinic'))).get()).single.valueJson,
         )['name'],
         'Clinic A',
       );
@@ -221,7 +227,12 @@ void main() {
     () async {
       final (c, db) = await seededContainer();
       await signInAs(c, 'admin@myhealth.demo');
-      final admin = (await c.read(adminWorkspaceProvider).owners()).single;
+      final admin = (await c.read(adminWorkspaceProvider).owners()).firstWhere(
+        (u) => u.id == 'admin_01',
+      );
+      await (db.update(db.users)..where((u) => u.id.equals('admin_02'))).write(
+        const UsersCompanion(isActive: Value(false)),
+      );
       await expectLater(
         requireSafeDeactivation(db, admin.id),
         throwsA(isA<ValidationFailure>()),
@@ -326,12 +337,16 @@ void main() {
       )..where((s) => s.userId.equals('staff_02'))).write(
         StaffProfilesCompanion(departmentId: Value(from.departmentId)),
       );
-      await (db.delete(db.appointments)..where(
+      await (db.update(db.appointments)..where(
             (a) =>
                 a.staffId.equals('staff_02') &
                 a.status.isInValues(activeBookingStates),
           ))
-          .go();
+          .write(
+            const AppointmentsCompanion(
+              status: Value(AppointmentStatus.cancelled),
+            ),
+          );
       await db
           .into(db.scheduleTemplates)
           .insert(

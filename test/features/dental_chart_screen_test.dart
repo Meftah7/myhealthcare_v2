@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/theme/theme.dart';
+import 'package:myhealthcare/features/auth/application/session.dart';
 import 'package:myhealthcare/data/db/app_database.dart';
 import 'package:myhealthcare/domain/enums.dart';
 import 'package:myhealthcare/features/patient_chart/presentation/dental_chart_screen.dart';
@@ -65,6 +66,7 @@ void main() {
       expect(find.bySemanticsLabel('Tooth 11'), findsOneWidget);
       semantics.dispose();
       await tester.pumpWidget(const SizedBox());
+      c.invalidate(sessionProvider);
       await tester.pump(const Duration(seconds: 1));
     });
   }

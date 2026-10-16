@@ -7,6 +7,8 @@
 library;
 
 import 'dart:async';
+import '../../workforce/workforce_home.dart';
+import '../../workforce/workforce_repository.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,7 +21,6 @@ import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/result.dart';
 import '../../../core/ui/patient/patient_components.dart';
-import '../../../core/ui/patient/workspace_home.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/documents/document_rules.dart';
 import '../../../domain/entities/entities.dart';
@@ -154,22 +155,20 @@ class _FrontDeskState extends ConsumerState<FrontDeskWorkspace> {
     final user = ref.watch(currentUserProvider);
     final arrivals = ref.watch(deskArrivalsProvider);
     return AppScaffold(
-      heroOverline: workText(context, 'Front desk', 'الاستقبال'),
+      heroOverline: workText(
+        context,
+        'Hello, ${user?.fullName.split(' ').first ?? ''}',
+        'مرحباً، ${user?.fullName.split(' ').first ?? ''}',
+      ),
       title: user?.fullName ?? '',
       actions: const [StaffTopActions()],
-      onRefresh: () async => ref.invalidate(deskArrivalsProvider),
+      onRefresh: () async {
+        ref.invalidate(deskArrivalsProvider);
+        ref.invalidate(workforceDataProvider('home'));
+      },
       children: [
-        NavyFeatureCard(
-          icon: Icons.badge_outlined,
-          title: workText(context, 'Find a patient', 'ابحث عن مريض'),
-          actionLabel: workText(context, 'Search', 'بحث'),
-          onAction: _focus.requestFocus,
-          body: workText(
-            context,
-            'Search by CPR / ID, name or phone, confirm identity, then book or check in.',
-            'ابحث بالرقم الشخصي أو الاسم أو الهاتف، وتحقق من الهوية، ثم احجز أو سجّل الوصول.',
-          ),
-        ),
+        const WorkforceOverview(),
+        const WorkforceQuickAccess(),
         const SizedBox(height: Space.md),
         TextField(
           key: const ValueKey('desk-search'),
@@ -937,24 +936,21 @@ class PharmacyWorkspace extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
     final queue = ref.watch(pharmacyQueueProvider);
-    final waiting = queue.valueOrNull?.where((o) => !o.isDispensed).length;
     return AppScaffold(
-      heroOverline: workText(context, 'Pharmacy', 'الصيدلية'),
+      heroOverline: workText(
+        context,
+        'Hello, ${user?.fullName.split(' ').first ?? ''}',
+        'مرحباً، ${user?.fullName.split(' ').first ?? ''}',
+      ),
       title: user?.fullName ?? '',
       actions: const [StaffTopActions()],
-      onRefresh: () async => ref.invalidate(pharmacyQueueProvider),
+      onRefresh: () async {
+        ref.invalidate(pharmacyQueueProvider);
+        ref.invalidate(workforceDataProvider('home'));
+      },
       children: [
-        NavyFeatureCard(
-          icon: Icons.medication_outlined,
-          title: workText(context, 'Prescription queue', 'قائمة الوصفات'),
-          body: waiting == null
-              ? workText(context, 'Loading orders…', 'جارٍ تحميل الطلبات…')
-              : workText(
-                  context,
-                  '$waiting order(s) not yet fully dispensed. Verify the patient and order before supplying.',
-                  '$waiting طلب لم يُصرف بالكامل بعد. تحقق من المريض والطلب قبل الصرف.',
-                ),
-        ),
+        const WorkforceOverview(),
+        const WorkforceQuickAccess(),
         const SizedBox(height: Space.lg),
         SectionHeading(workText(context, 'Orders', 'الطلبات')),
         queue.when(
@@ -995,7 +991,13 @@ class PharmacyWorkspace extends ConsumerWidget {
                                     ).textTheme.titleSmall,
                                   ),
                                   StatusBadge(
-                                    _outcomeLabel(context, o.lastOutcome),
+                                    o.clarificationPending
+                                        ? workText(
+                                            context,
+                                            'Clarification unresolved',
+                                            'استيضاح غير محسوم',
+                                          )
+                                        : _outcomeLabel(context, o.lastOutcome),
                                     accent: _outcomeAccent(o.lastOutcome),
                                   ),
                                 ],
@@ -1047,6 +1049,7 @@ class PharmacyWorkspace extends ConsumerWidget {
                 ),
         ),
         const SizedBox(height: Space.lg),
+        const PharmacyDispensingHistory(),
         SectionHeading(
           workText(context, 'Stock', 'المخزون'),
           actionLabel: workText(context, 'Receive stock', 'استلام مخزون'),
@@ -1163,11 +1166,9 @@ class DispenseSheet extends ConsumerStatefulWidget {
 class _DispenseState extends ConsumerState<DispenseSheet> {
   final _key = IdempotencyKey.generate();
   final _quantity = TextEditingController();
-  final _batch = TextEditingController();
   final _note = TextEditingController();
   final _units = TextEditingController();
   DispenseOutcome _outcome = DispenseOutcome.dispensed;
-  DateTime? _expiry;
   StockBatch? _stock;
   bool _verified = false;
   bool _busy = false;
@@ -1177,7 +1178,6 @@ class _DispenseState extends ConsumerState<DispenseSheet> {
   void dispose() {
     _quantity.dispose();
     _units.dispose();
-    _batch.dispose();
     _note.dispose();
     super.dispose();
   }
@@ -1188,6 +1188,9 @@ class _DispenseState extends ConsumerState<DispenseSheet> {
       _busy = true;
       _error = null;
     });
+    final supplying =
+        _outcome == DispenseOutcome.dispensed ||
+        _outcome == DispenseOutcome.partial;
     final r = await ref
         .read(pharmacyRepositoryProvider)
         .record(
@@ -1197,11 +1200,11 @@ class _DispenseState extends ConsumerState<DispenseSheet> {
             patientVerified: _verified,
             idempotencyKey: _key.value,
             quantity: _quantity.text,
-            batch: _batch.text,
-            expiry: _expiry,
             note: _note.text,
-            stockBatchId: _stock?.id,
-            units: _stock == null ? null : int.tryParse(_units.text.trim()),
+            stockBatchId: supplying ? _stock?.id : null,
+            units: !supplying || _stock == null
+                ? null
+                : int.tryParse(_units.text.trim()),
           ),
         );
     if (!mounted) return;
@@ -1209,7 +1212,10 @@ class _DispenseState extends ConsumerState<DispenseSheet> {
       case Ok():
         ref
           ..invalidate(pharmacyQueueProvider)
-          ..invalidate(pharmacyStockProvider);
+          ..invalidate(pharmacyStockProvider)
+          ..invalidate(workforceDataProvider('home'))
+          ..invalidate(workforceDataProvider('dispensing-history'))
+          ..invalidate(workforceDataProvider('clarifications'));
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -1249,6 +1255,27 @@ class _DispenseState extends ConsumerState<DispenseSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(o.name, style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              o.orderedUnits == null
+                  ? workText(
+                      context,
+                      'Ordered quantity not recorded — verify with the prescriber.',
+                      'الكمية المطلوبة غير مسجلة — تحقق مع الواصف.',
+                    )
+                  : workText(
+                      context,
+                      'Ordered quantity: ${o.orderedUnits} whole units',
+                      'الكمية المطلوبة: ${o.orderedUnits} وحدات كاملة',
+                    ),
+            ),
+            if (o.clarificationPending)
+              Text(
+                workText(
+                  context,
+                  'Unresolved clarification. Supply remains blocked until the responsible prescriber responds.',
+                  'استيضاح غير محسوم. يظل الصرف محظوراً حتى يرد الواصف المسؤول.',
+                ),
+              ),
             Text('${o.patientName} · ${clinicianName(o.prescriberName)}'),
             CheckboxListTile(
               contentPadding: EdgeInsets.zero,
@@ -1299,7 +1326,16 @@ class _DispenseState extends ConsumerState<DispenseSheet> {
                         b.quantity > 0)
                       b,
                 ];
-                if (usable.isEmpty) return const <Widget>[];
+                if (usable.isEmpty)
+                  return <Widget>[
+                    Text(
+                      workText(
+                        context,
+                        'No matching unexpired stock is available. Receive stock or record a hold.',
+                        '\u0644\u0627 \u064a\u0648\u062c\u062f \u0645\u062e\u0632\u0648\u0646 \u0645\u0637\u0627\u0628\u0642 \u0648\u0633\u0627\u0631\u064d.',
+                      ),
+                    ),
+                  ];
                 return <Widget>[
                   DropdownButtonFormField<String?>(
                     initialValue: _stock?.id,
@@ -1316,8 +1352,8 @@ class _DispenseState extends ConsumerState<DispenseSheet> {
                         child: Text(
                           workText(
                             context,
-                            'Not from recorded stock',
-                            'ليس من المخزون المسجل',
+                            'Choose a recorded stock batch',
+                            'اختر دفعة مخزون مسجلة',
                           ),
                         ),
                       ),
@@ -1349,43 +1385,6 @@ class _DispenseState extends ConsumerState<DispenseSheet> {
                     ),
                 ];
               }(),
-              if (_stock == null)
-                TextField(
-                  controller: _batch,
-                  decoration: InputDecoration(
-                    labelText: workText(
-                      context,
-                      'Batch (optional)',
-                      'رقم الدفعة (اختياري)',
-                    ),
-                  ),
-                ),
-              const SizedBox(height: Space.xs),
-              if (_stock == null)
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.event_outlined),
-                  label: Text(
-                    _expiry == null
-                        ? workText(
-                            context,
-                            'Expiry date (optional)',
-                            'تاريخ الانتهاء (اختياري)',
-                          )
-                        : fmtDate(_expiry!),
-                  ),
-                  onPressed: () async {
-                    final now = DateTime.now();
-                    final picked = await showDatePicker(
-                      context: context,
-                      initialDate: _expiry ?? now.add(const Duration(days: 30)),
-                      firstDate: now,
-                      lastDate: now.add(const Duration(days: 365 * 10)),
-                    );
-                    if (picked != null && mounted) {
-                      setState(() => _expiry = picked);
-                    }
-                  },
-                ),
             ],
             TextField(
               controller: _note,

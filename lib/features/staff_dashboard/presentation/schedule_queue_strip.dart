@@ -73,7 +73,9 @@ class ScheduleQueueStrip extends ConsumerWidget {
               Space.xxs,
               0,
             ),
-            child: Row(
+            child: Wrap(
+              spacing: Space.sm,
+              runSpacing: Space.xxs,
               children: [
                 Text(
                   t.todaysQueueCaps,
@@ -82,7 +84,6 @@ class ScheduleQueueStrip extends ConsumerWidget {
                     letterSpacing: 0.8,
                   ),
                 ),
-                const Spacer(),
                 Text(
                   t.waitingCount(queue.length),
                   style: theme.textTheme.labelSmall?.copyWith(

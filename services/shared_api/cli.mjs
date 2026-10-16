@@ -1,6 +1,7 @@
+import {provisionSharedDemo,sharedDemoManifest} from './workforce_demo.mjs';
 import { resolve } from 'node:path';
 import { geminiReportChat, geminiReportExplainer } from './ai.mjs';
-import { Store, id, requireThat } from './store.mjs';
+import { Store, requireThat } from './store.mjs';
 import { createApi } from './server.mjs';
 import { encryptedBackup, restoreBackup, renderEnglishPdf, startWorkers } from './workers.mjs';
 
@@ -16,40 +17,17 @@ if (command === 'restore') {
       store.addUser({ email: process.env.MYHEALTH_ADMIN_EMAIL, name: process.env.MYHEALTH_ADMIN_NAME,
         role: 'admin', password: process.env.MYHEALTH_ADMIN_PASSWORD });
       console.log('Administrator initialized offline. Provision clinic users and verified credentials before real use.');
-    } else if (command === 'init-demo') {
-      requireThat(store.get('SELECT count(*) n FROM users').n === 0, 409, 'Initialize only an empty synthetic database.');
-      const password = process.env.MYHEALTH_DEMO_PASSWORD; requireThat(password?.length >= 12);
-      store.transaction(() => {
-        const patient = store.addUser({ email: 'patient@shared.demo', name: 'Synthetic Patient', role: 'patient', password });
-        const doctor = store.addUser({ email: 'doctor@shared.demo', name: 'Synthetic Doctor', role: 'staff', job: 'doctor',
-          credentialUntil: Date.now() + 30 * 86400000, password });
-        const nurse = store.addUser({ email: 'nurse@shared.demo', name: 'Synthetic Nurse', role: 'staff', job: 'nurse', password });
-        const admin = store.addUser({ email: 'admin@shared.demo', name: 'Synthetic Admin', role: 'admin', password });
-        store.run('INSERT INTO care VALUES(?,?)', patient, doctor); store.run('INSERT INTO care VALUES(?,?)', patient, nurse);
-        // Directory, extra roles and Sun–Thu 08:00–16:00 clinic schedules.
-        const family = id(), dental = id();
-        store.run('INSERT INTO departments VALUES(?,?,?)', family, 'Family Medicine', 'General adult and family care.');
-        store.run('INSERT INTO departments VALUES(?,?,?)', dental, 'Dental', 'Dental check-ups and treatment.');
-        const dentist = store.addUser({ email: 'dentist@shared.demo', name: 'Synthetic Dentist', role: 'staff', job: 'dentist',
-          credentialUntil: Date.now() + 30 * 86400000, password });
-        store.addUser({ email: 'reception@shared.demo', name: 'Synthetic Receptionist', role: 'staff', job: 'receptionist', password });
-        store.addUser({ email: 'pharmacy@shared.demo', name: 'Synthetic Pharmacist', role: 'staff', job: 'pharmacist', password });
-        store.run('UPDATE users SET department=? WHERE id IN (?,?)', family, doctor, nurse);
-        store.run('UPDATE users SET department=? WHERE id=?', dental, dentist);
-        for (const staff of [doctor, dentist]) for (const weekday of [7, 1, 2, 3, 4]) {
-          store.run('INSERT INTO schedules(staff,weekday,start_min,end_min) VALUES(?,?,?,?)', staff, weekday, 480, 960);
-        }
-        store.run("INSERT INTO visits(id,patient,staff,at,status) VALUES(?,?,?,?,'completed')", id(), patient, doctor, Date.now());
-        store.run("INSERT INTO settings VALUES('clinicName','Synthetic Shared Demo Clinic')");
-        store.run("INSERT INTO settings VALUES('synthetic','true')");
-        store.audit(admin, 'synthetic.initialized', patient);
-      });
-      console.log('Synthetic shared accounts created. Document policies remain unapproved.');
+    } else if (command === 'init-demo' || command === 'repair-demo') {
+      const result=provisionSharedDemo(store,{password:process.env.MYHEALTH_DEMO_PASSWORD,initialize:command==='init-demo'});
+      console.log(JSON.stringify(result));
+    } else if (command === 'demo-manifest') {
+      console.log(JSON.stringify(sharedDemoManifest(store)));
     } else if (command === 'backup') {
       console.log(await encryptedBackup(store, { directory: process.env.MYHEALTH_BACKUP_DIR, key: process.env.MYHEALTH_BACKUP_KEY }));
     } else if (command === 'serve') {
       requireThat(process.env.MYHEALTH_BACKUP_DIR && /^[a-f0-9]{64}$/.test(process.env.MYHEALTH_BACKUP_KEY ?? ''), 500, 'Configure encrypted scheduled backups.');
       requireThat(store.get('SELECT count(*) n FROM users').n > 0, 500, 'Initialize server accounts offline first.');
+      if(store.get("SELECT value FROM settings WHERE key='synthetic'")?.value==='true' && process.env.MYHEALTH_DEMO_PASSWORD) provisionSharedDemo(store,{password:process.env.MYHEALTH_DEMO_PASSWORD});
       const renderDocument = process.env.MYHEALTH_PDF_RENDERER === 'english' ? renderEnglishPdf : undefined;
       // Report explanation is optional: only with a server-held provider key.
       const reportExplainer = process.env.MYHEALTH_AI_KEY
@@ -68,6 +46,6 @@ if (command === 'restore') {
         const stop = async () => { if (stopping) return; stopping = true; await stopWorkers(); server.close(done); server.closeIdleConnections(); };
         process.once('SIGINT', stop); process.once('SIGTERM', stop);
       });
-    } else throw new Error('Use init-admin, init-demo, serve, backup or restore.');
+    } else throw new Error('Use init-admin, init-demo, repair-demo, demo-manifest, serve, backup or restore.');
   } finally { store.close(); }
 }

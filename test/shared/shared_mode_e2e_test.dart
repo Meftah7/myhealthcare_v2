@@ -187,11 +187,22 @@ void main() {
     final repo = pharmacy.read(pharmacyRepositoryProvider);
     final order = (await repo.queue()).valueOrNull!.single;
     expect(order.name, 'Paracetamol');
+    final batch = (await repo.receive(
+      ReceiveStockInput(
+        itemName: order.name,
+        batch: 'E2E-001',
+        expiry: DateTime.now().add(const Duration(days: 100)),
+        quantity: 30,
+        idempotencyKey: 'e2e-stock',
+      ),
+    )).valueOrNull!;
     final input = DispenseInput(
       medicationId: order.medicationId,
       outcome: DispenseOutcome.dispensed,
       patientVerified: true,
       quantity: '20 tablets',
+      stockBatchId: batch.id,
+      units: 20,
       idempotencyKey: 'e2e-dispense',
     );
     expect((await repo.record(input)).isOk, isTrue);
@@ -222,9 +233,9 @@ void main() {
     }
     expect(sharedModeBlocks('/admin/profile/audit'), isTrue);
     expect(sharedModeBlocks('/admin/dashboard'), isFalse);
-    expect(sharedModeBlocks('/patient/timeline/documents'), isTrue);
+    expect(sharedModeBlocks('/patient/timeline/documents'), isFalse);
     expect(sharedModeBlocks('/patient/appointments'), isFalse);
-    expect(sharedModeBlocks('/staff/tasks/t1'), isTrue);
+    expect(sharedModeBlocks('/staff/tasks/t1'), isFalse);
     expect(sharedModeBlocks('/staff/tasks'), isFalse);
   });
 }

@@ -202,6 +202,16 @@ class AuthRepositoryImpl implements AuthRepository {
       if (!row.isActive) {
         throw const AuthFailure('This account has been deactivated.');
       }
+      if (row.role == UserRole.staff) {
+        final profile = await (_db.select(
+          _db.staffProfiles,
+        )..where((p) => p.userId.equals(row.id))).getSingleOrNull();
+        if (StaffRole.parse(profile?.jobTitle) == null) {
+          throw const AuthFailure(
+            'Staff profile is missing or unassigned. Ask an administrator to repair this account.',
+          );
+        }
+      }
 
       if (row.failedLoginAttempts > 0 || row.lockedUntil != null) {
         await (_db.update(_db.users)..where((u) => u.id.equals(row.id))).write(
