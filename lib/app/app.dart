@@ -112,25 +112,42 @@ class _AppFrame extends StatelessWidget {
       // through, so it's the reliable spot to keep it in sync with the
       // current theme instead of matching only where an AppBar happens to
       // be present.
-      child: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: isLight ? Brightness.dark : Brightness.light,
-          statusBarBrightness: isLight ? Brightness.light : Brightness.dark,
-          systemNavigationBarColor: scheme.surface,
-          systemNavigationBarIconBrightness: isLight
-              ? Brightness.dark
-              : Brightness.light,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: AppColors.pageGradient(
+            isLight ? Brightness.light : Brightness.dark,
+          ),
         ),
-        child: NotificationSoundCue(
-          child: SessionActivityMonitor(
-            child: Stack(
-              children: [
-                child,
-                const AppointmentConfirmationOverlay(),
-                const OnboardingOverlay(),
-                const SplashOverlay(),
-              ],
+        child: Theme(
+          // AppTheme stays opaque when used on its own. Only the real root,
+          // which guarantees a painted gradient underneath, makes route
+          // scaffolds transparent.
+          data: Theme.of(
+            context,
+          ).copyWith(scaffoldBackgroundColor: Colors.transparent),
+          child: AnnotatedRegion<SystemUiOverlayStyle>(
+            value: SystemUiOverlayStyle(
+              statusBarColor: Colors.transparent,
+              statusBarIconBrightness: isLight
+                  ? Brightness.dark
+                  : Brightness.light,
+              statusBarBrightness: isLight ? Brightness.light : Brightness.dark,
+              systemNavigationBarColor: scheme.surface,
+              systemNavigationBarIconBrightness: isLight
+                  ? Brightness.dark
+                  : Brightness.light,
+            ),
+            child: NotificationSoundCue(
+              child: SessionActivityMonitor(
+                child: Stack(
+                  children: [
+                    child,
+                    const AppointmentConfirmationOverlay(),
+                    const OnboardingOverlay(),
+                    const SplashOverlay(),
+                  ],
+                ),
+              ),
             ),
           ),
         ),

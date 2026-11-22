@@ -1,11 +1,12 @@
 /// Shared layout for the signed-out forms (Figma redesign, "auth" frames): a
 /// pale-blue header panel carrying the brand mark, title and subtitle, with
-/// the form on the page below it.
+/// the form on a raised clay card below it (clinical clay redesign v4).
 library;
 
 import 'package:flutter/material.dart';
 
 import '../../../app/theme/theme.dart';
+import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/readable_label.dart';
 import 'auth_app_bar_actions.dart';
@@ -43,6 +44,7 @@ class AuthScaffold extends StatelessWidget {
                 borderRadius: const BorderRadius.vertical(
                   bottom: Radius.circular(28),
                 ),
+                boxShadow: Shadows.bento(scheme),
               ),
               child: SafeArea(
                 bottom: false,
@@ -128,7 +130,12 @@ class AuthScaffold extends StatelessWidget {
                     Space.lg,
                     Space.xxl,
                   ),
-                  child: child,
+                  // The form is the first full clay object a visitor meets.
+                  child: AppCard(
+                    elevated: true,
+                    padding: const EdgeInsets.all(Space.lg),
+                    child: child,
+                  ),
                 ),
               ),
             ),

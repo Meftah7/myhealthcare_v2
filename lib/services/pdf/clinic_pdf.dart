@@ -77,13 +77,13 @@ class DocumentProvenance {
 
 /// Brand colours, kept in step with `AppColors` but declared here so the PDF
 /// layer has no dependency on the Flutter theme.
-const _ink = PdfColor.fromInt(0xFF1A1A2E);
-const _muted = PdfColor.fromInt(0xFF6B6B80);
-const _brand = PdfColor.fromInt(0xFF1E5FAF);
-const _hairline = PdfColor.fromInt(0xFFD9D9E3);
+const _ink = PdfColor.fromInt(0xFF001233);
+const _muted = PdfColor.fromInt(0xFF5C677D);
+const _brand = PdfColor.fromInt(0xFF0466C8);
+const _hairline = PdfColor.fromInt(0xFF979DAC);
 const _alertBg = PdfColor.fromInt(0xFFFDECEC);
 const _alertInk = PdfColor.fromInt(0xFFB3261E);
-const _panel = PdfColor.fromInt(0xFFF6F6FA);
+const _panel = PdfColor.fromInt(0xFFF0F3F8);
 
 /// Dates in documents. English spells the month; Arabic uses an unambiguous
 /// numeric form that needs no locale data.

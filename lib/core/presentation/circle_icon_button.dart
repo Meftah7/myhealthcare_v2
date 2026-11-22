@@ -4,6 +4,8 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../../app/theme/theme.dart';
+
 /// Surface-filled, hairline-bordered circle around an icon — same look for
 /// every top-bar icon action, so the toggle, notifications and profile buttons
 /// read as one family.
@@ -48,6 +50,8 @@ class CircleIconButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: scheme.surfaceContainerLowest,
           shape: BoxShape.circle,
+          border: Border.all(color: Clay.seam(scheme)),
+          boxShadow: Shadows.clay(scheme),
         ),
         child: Icon(icon, size: 19, color: scheme.primary),
       ),

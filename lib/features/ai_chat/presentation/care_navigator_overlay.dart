@@ -322,7 +322,7 @@ class _DraggableFabState extends ConsumerState<_DraggableFab>
                             color: scheme.surfaceContainerLowest,
                             shape: BoxShape.circle,
                             border: Border.all(color: scheme.outlineVariant),
-                            boxShadow: Shadows.e1,
+                            boxShadow: Shadows.clay(scheme),
                           ),
                           child: Icon(
                             Icons.close,

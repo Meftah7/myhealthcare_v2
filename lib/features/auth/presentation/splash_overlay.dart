@@ -198,7 +198,7 @@ class SplashBrandMark extends StatelessWidget {
               const DecoratedBox(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: AppColors.patientBrandGlow,
+                  gradient: AppColors.brandGlow,
                 ),
                 child: SizedBox.expand(),
               ),

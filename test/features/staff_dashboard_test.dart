@@ -76,6 +76,8 @@ void main() {
 
     // Run a panel scan from the Quick actions grid.
     expect(find.text('Panel scan'), findsOneWidget);
+    await tester.ensureVisible(find.text('Panel scan'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Panel scan'));
     // Let the in-memory scan finish and the result snackbar animate in, but
     // stop before its ~4s auto-dismiss.

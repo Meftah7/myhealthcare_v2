@@ -674,7 +674,7 @@ class _PreVisitActions extends ConsumerWidget {
           else
             Padding(
               padding: const EdgeInsets.only(bottom: Space.sm),
-              // Violet, tonal — same weight and colour as "Call patient" on
+              // Blue, tonal — same weight and colour as "Call patient" on
               // the schedule card; "Patient arrived" below is the stronger
               // solid action.
               child: FilledButton.tonalIcon(

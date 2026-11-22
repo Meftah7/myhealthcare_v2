@@ -1,9 +1,9 @@
 /// Layout primitives that re-flow with the window size class (DESIGN.md §6.4).
 ///
 /// One widget tree, re-flowed — never a separate phone build and desktop build.
-/// These are the two shapes the app actually needs: a dashboard that splits
-/// into columns when there is room, and a grid of tiles whose row height is
-/// driven by the text, not by a fixed aspect ratio.
+/// Dashboards use unequal bento rows, long collections use columns, and compact
+/// actions use a grid whose row height is driven by text instead of a fixed
+/// pixel height.
 library;
 
 import 'dart:math' as math;
@@ -35,6 +35,100 @@ class ScrollableHeaderBody extends StatelessWidget {
       ],
     ),
   );
+}
+
+/// One cell in a [BentoRow]. [flex] is its share of the row on wide windows;
+/// compact layouts ignore it and preserve the source order.
+class BentoCell {
+  const BentoCell({required this.child, this.flex = 1}) : assert(flex > 0);
+
+  final Widget child;
+  final int flex;
+}
+
+/// A dashboard made from deliberately asymmetric rows rather than two endless
+/// columns. Each row owns a meaningful group (hero + summary, actions + queue),
+/// while [BentoRow] handles the responsive re-flow.
+class BentoGrid extends StatelessWidget {
+  const BentoGrid({required this.rows, this.gap = Space.sm, super.key});
+
+  final List<BentoRow> rows;
+  final double gap;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      for (var i = 0; i < rows.length; i++) ...[
+        if (i > 0) SizedBox(height: gap),
+        rows[i],
+      ],
+    ],
+  );
+}
+
+/// One horizontal bento band. Modules keep their natural heights: forcing equal
+/// heights makes shrink-wrapped grids and pagers report unreliable intrinsic
+/// sizes, and can leave visible controls outside their hit-test bounds.
+///
+/// The row stacks when its actual content pane is narrow (rather than relying
+/// only on the full-window size class) and when text is enlarged. That keeps
+/// the bento composition useful without making 200% text compete for width.
+class BentoRow extends StatelessWidget {
+  const BentoRow({
+    required this.cells,
+    this.stackedChildren,
+    this.gap = Space.sm,
+    this.minWideWidth = 720,
+    super.key,
+  });
+
+  final List<BentoCell> cells;
+
+  /// Optional compact composition when the wide cells contain nested groups.
+  /// This lets a phone preserve the true priority order without forcing the
+  /// desktop row to use the same grouping.
+  final List<Widget>? stackedChildren;
+  final double gap;
+  final double minWideWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    assert(cells.isNotEmpty);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final textScale = MediaQuery.textScalerOf(context).scale(1);
+        final stacked =
+            cells.length == 1 ||
+            constraints.maxWidth < minWideWidth ||
+            textScale > 1.6;
+
+        if (stacked) {
+          final children =
+              stackedChildren ?? [for (final cell in cells) cell.child];
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (var i = 0; i < children.length; i++) ...[
+                if (i > 0) SizedBox(height: gap),
+                children[i],
+              ],
+            ],
+          );
+        }
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (var i = 0; i < cells.length; i++) ...[
+              if (i > 0) SizedBox(width: gap),
+              Expanded(flex: cells[i].flex, child: cells[i].child),
+            ],
+          ],
+        );
+      },
+    );
+  }
 }
 
 /// Splits a screen's sections into two columns once the window is `expanded`
@@ -194,10 +288,16 @@ class TileGrid extends StatelessWidget {
 /// A row of [MetricTile]s that stays readable at every width: evenly divided,
 /// but capped so three figures don't stretch to 370dp each on a desktop.
 class MetricRow extends StatelessWidget {
-  const MetricRow({required this.children, this.maxTileWidth = 260, super.key});
+  const MetricRow({
+    required this.children,
+    this.maxTileWidth = 260,
+    this.divided = false,
+    super.key,
+  });
 
   final List<Widget> children;
   final double maxTileWidth;
+  final bool divided;
 
   @override
   Widget build(BuildContext context) {
