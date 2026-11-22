@@ -14,6 +14,12 @@ concurrency:
 jobs:
  build:
    runs-on: ubuntu-latest
+   # The clinic runs on Bahrain time (UTC+3) and parts of the app and its
+   # demo seed read the device clock as clinic time. On a UTC runner the two
+   # disagree between 21:00 and 24:00 UTC, so date-sensitive tests failed
+   # depending on when CI ran. Match the devices the app ships to.
+   env:
+     TZ: Asia/Bahrain
    steps:
      - name: Checkout
        uses: actions/checkout@v4
