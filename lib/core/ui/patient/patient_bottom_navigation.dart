@@ -32,10 +32,8 @@ class PatientBottomNavigation extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = PatientPalette.of(context);
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: palette.card,
-        border: Border(top: BorderSide(color: palette.divider)),
-      ),
+      // Hosted inside the shell's floating clay dock, which draws the seam.
+      decoration: BoxDecoration(color: palette.card),
       child: LayoutBuilder(
         builder: (context, constraints) {
           // Labels are never shrunk: when five full labels cannot fit (large

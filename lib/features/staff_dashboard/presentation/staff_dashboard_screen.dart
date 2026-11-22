@@ -91,31 +91,57 @@ class StaffDashboardScreen extends ConsumerWidget {
         const WorkforceOverview(showStatistics: false),
         const StaffQuickStatistics(),
         const _TodayScheduleSummary(),
-        SectionHeader(t.quickActionsHeader, overline: true),
-        const StaffQuickActions(),
+        Padding(
+          padding: const EdgeInsets.only(bottom: Space.md),
+          child: BentoPanel(
+            title: t.quickActionsHeader,
+            icon: Icons.bolt_outlined,
+            child: const StaffQuickActions(),
+          ),
+        ),
         const WorkforceQuickAccess(),
         const PrescriptionClarifications(),
-        SectionColumns(
-          primary: [const _DepartmentWalkIns()],
-          secondary: [
-            if (ref.watch(canProvider(Permission.reviewResults))) ...[
-              SectionHeader(t.resultsToReviewHeader, overline: true),
-              const _ResultReviewQueue(),
-            ],
-            SectionHeader(
-              t.awaitingReplyHeader,
-              overline: true,
-              action: t.messagesTitle,
-              onAction: () => context.push(AppRoutes.staffInbox),
+        const _DepartmentWalkIns(),
+        // Clinical bento (DESIGN.md §0.3): owned work and attention modules
+        // share asymmetric rows on wide windows and stack in priority order.
+        BentoGrid(
+          rows: [
+            BentoRow(
+              cells: [
+                if (ref.watch(canProvider(Permission.reviewResults)))
+                  BentoCell(
+                    flex: 7,
+                    child: BentoPanel(
+                      title: t.resultsToReviewHeader,
+                      icon: Icons.science_outlined,
+                      child: const _ResultReviewQueue(),
+                    ),
+                  ),
+                BentoCell(
+                  flex: 5,
+                  child: BentoPanel(
+                    title: t.awaitingReplyHeader,
+                    icon: Icons.mark_email_unread_outlined,
+                    action: t.messagesTitle,
+                    onAction: () => context.push(AppRoutes.staffInbox),
+                    child: const _AwaitingReply(),
+                  ),
+                ),
+              ],
             ),
-            const _AwaitingReply(),
-            SectionHeader(
-              t.riskFlagsHeader,
-              overline: true,
-              action: t.patientsAction,
-              onAction: () => context.go(AppRoutes.staffPatients),
+            BentoRow(
+              cells: [
+                BentoCell(
+                  child: BentoPanel(
+                    title: t.riskFlagsHeader,
+                    icon: Icons.flag_outlined,
+                    action: t.patientsAction,
+                    onAction: () => context.go(AppRoutes.staffPatients),
+                    child: _RiskFlags(),
+                  ),
+                ),
+              ],
             ),
-            _RiskFlags(),
           ],
         ),
       ],
@@ -149,21 +175,29 @@ class _DepartmentWalkIns extends ConsumerWidget {
     final list = walkIns.valueOrNull ?? const [];
     if (list.isEmpty) return const SizedBox.shrink();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        SectionHeader(t.departmentWalkInsHeader(list.length), overline: true),
-        FreshnessBar(
-          fetchedAt: ref.watch(departmentWalkInsFetchedAtProvider),
-          onRefresh: () => ref.invalidate(departmentWalkInsProvider),
-        ),
-        ListCard(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: Space.sm),
+      child: BentoPanel(
+        title: t.departmentWalkInsHeader(list.length),
+        icon: Icons.directions_walk_outlined,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            for (final t in list)
-              _WalkInRow(ticket: t, patientName: names[t.patientId]),
+            FreshnessBar(
+              fetchedAt: ref.watch(departmentWalkInsFetchedAtProvider),
+              onRefresh: () => ref.invalidate(departmentWalkInsProvider),
+            ),
+            const SizedBox(height: Space.xs),
+            ListCard(
+              embedded: true,
+              children: [
+                for (final t in list)
+                  _WalkInRow(ticket: t, patientName: names[t.patientId]),
+              ],
+            ),
           ],
         ),
-      ],
+      ),
     );
   }
 }
@@ -431,6 +465,7 @@ class _RiskFlags extends ConsumerWidget {
           final sorted = [...list]
             ..sort((a, b) => b.severity.index.compareTo(a.severity.index));
           return ListCard(
+            embedded: true,
             key: const ValueKey('f-data'),
             emptyIcon: Icons.verified_outlined,
             emptyText: t.noOpenRiskFlagsRunScan,
@@ -502,6 +537,7 @@ class _ResultReviewQueue extends ConsumerWidget {
           key: const ValueKey('rr-err'),
         ),
         data: (list) => ListCard(
+          embedded: true,
           key: const ValueKey('rr-data'),
           emptyIcon: Icons.science_outlined,
           emptyText: t.noResultsToReview,
@@ -569,11 +605,13 @@ class _AwaitingReply extends ConsumerWidget {
       loading: const LoadingSkeleton(height: 72),
       isEmpty: (list) => list.isEmpty,
       empty: ListCard(
+        embedded: true,
         emptyIcon: Icons.mark_email_read_outlined,
         emptyText: t.noMessagesAwaiting,
         children: const [],
       ),
       builder: (context, list) => ListCard(
+        embedded: true,
         children: [
           for (final m in list.take(5))
             Builder(

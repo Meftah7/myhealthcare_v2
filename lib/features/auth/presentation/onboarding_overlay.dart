@@ -102,8 +102,10 @@ class _OnboardingOverlayState extends ConsumerState<OnboardingOverlay> {
     ];
     final last = _page == pages.length - 1;
 
-    return ColoredBox(
-      color: scheme.surface,
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: AppColors.pageGradient(Theme.of(context).brightness),
+      ),
       child: SafeArea(
         child: Column(
           children: [
@@ -308,7 +310,8 @@ class _IconCircle extends StatelessWidget {
               decoration: BoxDecoration(
                 color: scheme.surfaceContainerLowest,
                 shape: BoxShape.circle,
-                border: Border.all(color: scheme.outlineVariant),
+                border: Border.all(color: Clay.seam(scheme)),
+                boxShadow: Shadows.clay(scheme),
               ),
               child: icon != null
                   ? Icon(icon, size: 19, color: scheme.onSurfaceVariant)
@@ -421,7 +424,7 @@ class _Illustration extends StatelessWidget {
                       color: palette.card,
                       borderRadius: BorderRadius.circular(chip * .3),
                       border: Border.all(color: palette.divider),
-                      boxShadow: Shadows.e1,
+                      boxShadow: Shadows.clay(Theme.of(context).colorScheme),
                     ),
                     child: Icon(icon, size: chip * .5, color: palette.action),
                   ),
@@ -471,7 +474,10 @@ class _BookingArt extends StatelessWidget {
               color: palette.card,
               borderRadius: BorderRadius.circular(h * .1),
               border: Border.all(color: palette.divider, width: 2),
-              boxShadow: Shadows.e2,
+              boxShadow: Shadows.clay(
+                Theme.of(context).colorScheme,
+                raised: true,
+              ),
             ),
             child: Column(
               children: [

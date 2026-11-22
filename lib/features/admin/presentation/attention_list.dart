@@ -71,7 +71,9 @@ void openAttentionRoute(BuildContext context, String route) {
 }
 
 class AdminAttentionList extends ConsumerWidget {
-  const AdminAttentionList({super.key});
+  const AdminAttentionList({this.embedded = false, super.key});
+
+  final bool embedded;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -127,42 +129,44 @@ class AdminAttentionList extends ConsumerWidget {
       );
     }
 
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ...rows,
+        for (var i = 0; i < loading; i++)
+          const Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: Space.md,
+              vertical: Space.xs,
+            ),
+            child: LoadingSkeleton(height: 40),
+          ),
+        if (rows.isEmpty && loading == 0)
+          Padding(
+            padding: const EdgeInsets.all(Space.md),
+            child: Text(t.nothingNeedsAttention),
+          ),
+        if (clear.isNotEmpty && loading == 0)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              Space.md,
+              Space.xs,
+              Space.md,
+              Space.xs,
+            ),
+            child: Text(
+              t.checkedAndClear(clear.join(', ')),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+      ],
+    );
+    if (embedded) return content;
     return AppCard(
       padding: const EdgeInsets.symmetric(vertical: Space.xs),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          ...rows,
-          for (var i = 0; i < loading; i++)
-            const Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: Space.md,
-                vertical: Space.xs,
-              ),
-              child: LoadingSkeleton(height: 40),
-            ),
-          if (rows.isEmpty && loading == 0)
-            Padding(
-              padding: const EdgeInsets.all(Space.md),
-              child: Text(t.nothingNeedsAttention),
-            ),
-          if (clear.isNotEmpty && loading == 0)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                Space.md,
-                Space.xs,
-                Space.md,
-                Space.xs,
-              ),
-              child: Text(
-                t.checkedAndClear(clear.join(', ')),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
-        ],
-      ),
+      child: content,
     );
   }
 }

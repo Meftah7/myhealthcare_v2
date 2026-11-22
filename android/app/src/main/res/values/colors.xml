@@ -5,5 +5,5 @@
          so nothing but the app's own dark-mode-aware surface ever shows behind
          the Flutter view (a status-bar-height gap during rotation otherwise
          flashes the system's default light background). -->
-    <color name="window_background">#F7F8FB</color>
+    <color name="window_background">#EEF2F7</color>
 </resources>

@@ -1,4 +1,4 @@
-/// Semantic colour tokens for the patient experience (approved blue rebuild).
+/// Semantic colour tokens for the patient experience (clinical clay palette).
 ///
 /// Shared by patient, staff and admin themes. Read the active light/dark
 /// tokens with `PatientPalette.of(context)`; never copy the palette locally.
@@ -32,7 +32,6 @@ class PatientPalette extends ThemeExtension<PatientPalette> {
   });
 
   /// Filled primary actions (CTAs, selected segments, the appointment tile).
-  /// The same #246BFD in both modes — white labels stay readable on it.
   final Color action;
   final Color onAction;
 
@@ -47,7 +46,7 @@ class PatientPalette extends ThemeExtension<PatientPalette> {
   final Color divider;
 
   /// Small links and icons on the card/canvas. In dark mode this is a lighter
-  /// blue, because #246BFD on navy does not meet text contrast.
+  /// blue, because smart blue on navy does not meet text contrast.
   final Color link;
 
   final Color success;
@@ -59,46 +58,49 @@ class PatientPalette extends ThemeExtension<PatientPalette> {
   final Color danger;
   final Color dangerContainer;
 
+  // Retuned to the clinical clay palette (DESIGN.md §2): smart-blue actions,
+  // blue-slate neutrals and Prussian-blue dark surfaces. Status hues keep
+  // their established clinical meaning.
   static const light = PatientPalette(
-    action: Color(0xFF246BFD),
+    action: Color(0xFF0466C8), // smartBlue
     onAction: Color(0xFFFFFFFF),
-    softAccent: Color(0xFFE9F0FF),
-    onSoftAccent: Color(0xFF1F5FE0),
-    canvas: Color(0xFFF7F7F8),
+    softAccent: Color(0xFFDCEAF8),
+    onSoftAccent: Color(0xFF0353A4), // sapphire
+    canvas: Color(0xFFEEF2F7),
     card: Color(0xFFFFFFFF),
-    text: Color(0xFF2D333C),
-    // #727A83 from the preview, nudged darker to reach 4.5:1 on white.
-    textMuted: Color(0xFF5F6770),
-    divider: Color(0xFFEBEDF0),
-    // #246BFD is 4.27:1 on the canvas; small text links use a deeper blue.
-    link: Color(0xFF1F5FE0),
+    text: Color(0xFF001233), // prussianBlue3
+    textMuted: Color(0xFF33415C), // twilightIndigo
+    divider: Color(0xFFDDE2EA),
+    link: Color(0xFF0466C8),
     success: Color(0xFF0E8F65),
     successContainer: Color(0xFFE6F7F0),
     warning: Color(0xFFB26A00),
     warningContainer: Color(0xFFFFF3DD),
-    info: Color(0xFF1F5FE0),
-    infoContainer: Color(0xFFE9F0FF),
+    info: Color(0xFF0353A4),
+    infoContainer: Color(0xFFDCEAF8),
     danger: Color(0xFFD12E3B),
     dangerContainer: Color(0xFFFDE8EA),
   );
 
   static const dark = PatientPalette(
-    action: Color(0xFF246BFD),
-    onAction: Color(0xFFFFFFFF),
-    softAccent: Color(0xFF213858),
-    onSoftAccent: Color(0xFFBFD3FF),
-    canvas: Color(0xFF111B28),
-    card: Color(0xFF1C2839),
-    text: Color(0xFFEEF3F9),
-    textMuted: Color(0xFFA4B1C2),
-    divider: Color(0xFF2C394A),
-    link: Color(0xFF9ABEFF),
+    // Dark-theme actions use the lightest palette step so labels and
+    // selected controls keep WCAG AA contrast on navy.
+    action: Color(0xFF979DAC), // lavenderGrey
+    onAction: Color(0xFF001233),
+    softAccent: Color(0xFF023E7D), // regalNavy
+    onSoftAccent: Color(0xFFFFFFFF),
+    canvas: Color(0xFF001233),
+    card: Color(0xFF002855), // prussianBlue
+    text: Color(0xFFFFFFFF),
+    textMuted: Color(0xFF979DAC),
+    divider: Color(0xFF33415C),
+    link: Color(0xFFB9C4D6),
     success: Color(0xFF4FD1A5),
     successContainer: Color(0xFF163C36),
     warning: Color(0xFFF5C26B),
     warningContainer: Color(0xFF3F3220),
-    info: Color(0xFF9ABEFF),
-    infoContainer: Color(0xFF213858),
+    info: Color(0xFFB9C4D6),
+    infoContainer: Color(0xFF023E7D),
     danger: Color(0xFFFF8A8F),
     dangerContainer: Color(0xFF4A1C22),
   );

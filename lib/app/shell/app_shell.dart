@@ -183,7 +183,7 @@ class _AppShellState extends State<AppShell> {
         drawer: expanded ? null : widget.drawer,
         onDrawerChanged: _drawerChanged,
         bottomNavigationBar: compact
-            ? widget.compactBarBuilder!(context, current, _go)
+            ? _ClayDock(child: widget.compactBarBuilder!(context, current, _go))
             : null,
         body: Row(
           children: [
@@ -197,46 +197,51 @@ class _AppShellState extends State<AppShell> {
                   ? null
                   : expanded
                   ? widget.expandedAccountBuilder!(entries)
-                  : Column(
-                      children: [
-                        Expanded(
-                          child: _Rail(
-                            destinations: widget.destinations,
-                            currentIndex: current,
-                            onSelected: _go,
-                            extended: false,
-                            labelWidth: patientRailWidth - 24,
+                  : _ClayDock.rail(
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: _Rail(
+                              destinations: widget.destinations,
+                              currentIndex: current,
+                              onSelected: _go,
+                              extended: false,
+                              // 24 for rail padding + 16 for the clay dock inset.
+                              labelWidth: patientRailWidth - 40,
+                            ),
                           ),
-                        ),
-                        SafeArea(
-                          top: false,
-                          child: Padding(
-                            padding: const EdgeInsets.all(4),
-                            child: Tooltip(
-                              message: t.paDrawerAccount,
-                              child: TextButton(
-                                key: const ValueKey('patient-rail-account'),
-                                onPressed: () =>
-                                    _scaffoldKey.currentState?.openDrawer(),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.manage_accounts_outlined),
-                                    Text(
-                                      t.paDrawerAccount,
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ],
+                          SafeArea(
+                            top: false,
+                            child: Padding(
+                              padding: const EdgeInsets.all(4),
+                              child: Tooltip(
+                                message: t.paDrawerAccount,
+                                child: TextButton(
+                                  key: const ValueKey('patient-rail-account'),
+                                  onPressed: () =>
+                                      _scaffoldKey.currentState?.openDrawer(),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.manage_accounts_outlined,
+                                      ),
+                                      Text(
+                                        t.paDrawerAccount,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
             ),
             SizedBox(
-              width: compact ? 0 : 1,
+              width: compact || !expanded ? 0 : 1,
               child: VerticalDivider(width: 1, color: hairline),
             ),
             Expanded(child: body),
@@ -251,7 +256,9 @@ class _AppShellState extends State<AppShell> {
         drawer: widget.drawer,
         onDrawerChanged: _drawerChanged,
         body: body,
-        bottomNavigationBar: widget.compactBarBuilder!(context, current, _go),
+        bottomNavigationBar: _ClayDock(
+          child: widget.compactBarBuilder!(context, current, _go),
+        ),
       );
     }
 
@@ -299,10 +306,8 @@ class _AppShellState extends State<AppShell> {
 
       return Scaffold(
         body: body,
-        bottomNavigationBar: DecoratedBox(
-          decoration: BoxDecoration(
-            border: Border(top: BorderSide(color: hairline)),
-          ),
+        // The floating clay dock is the redesign's signature element.
+        bottomNavigationBar: _ClayDock(
           child: CompactNavigation(
             destinations: compact,
             currentIndex: leading == null ? current : current.clamp(0, leading),
@@ -326,16 +331,53 @@ class _AppShellState extends State<AppShell> {
       onDrawerChanged: widget.drawer == null ? null : _drawerChanged,
       body: Row(
         children: [
-          _Rail(
-            destinations: widget.destinations,
-            currentIndex: current,
-            onSelected: _go,
-            extended: extended,
+          _ClayDock.rail(
+            child: _Rail(
+              destinations: widget.destinations,
+              currentIndex: current,
+              onSelected: _go,
+              extended: extended,
+            ),
           ),
-          VerticalDivider(width: 1, color: hairline),
           Expanded(child: body),
         ],
       ),
+    );
+  }
+}
+
+/// A rounded, raised clay object that hosts navigation: compact bottom bars
+/// float above the content, and rails sit inset from the window edge.
+class _ClayDock extends StatelessWidget {
+  const _ClayDock({required this.child}) : _rail = false;
+  const _ClayDock.rail({required this.child}) : _rail = true;
+
+  final Widget child;
+  final bool _rail;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final dock = DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: Radii.cardLarge,
+        border: Border.all(color: Clay.seam(scheme)),
+        boxShadow: Shadows.clay(scheme, raised: true),
+      ),
+      child: ClipRRect(borderRadius: Radii.cardLarge, child: child),
+    );
+    if (_rail) {
+      return Padding(padding: const EdgeInsets.all(Space.sm), child: dock);
+    }
+    return SafeArea(
+      top: false,
+      minimum: const EdgeInsets.fromLTRB(
+        Space.sm,
+        Space.xxs,
+        Space.sm,
+        Space.sm,
+      ),
+      child: dock,
     );
   }
 }

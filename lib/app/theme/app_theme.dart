@@ -1,10 +1,10 @@
 /// Assembles [ThemeData] for MyHealth Care from the design tokens
-/// (redesign v2).
+/// (clinical bento redesign v5).
 ///
 /// Spec: DESIGN.md §9. `MaterialApp` consumes [AppTheme.light] / [AppTheme.dark]
-/// with the device theme-mode preference. The look: flat neutral surfaces,
-/// hairline borders, whisper-soft shadows on the surfaces that lift, one
-/// blue accent, and distinct colours for clinical status.
+/// with the device theme-mode preference. The look: modular blue-slate bento
+/// surfaces, low vertical depth, one smart-blue accent, and saturated colour
+/// reserved for clinical risk.
 library;
 
 import 'package:flutter/material.dart';
@@ -19,14 +19,14 @@ import 'status_colors.dart';
 
 abstract final class AppTheme {
   static ThemeData get light => _build(
-    AppColors.patientLight,
+    AppColors.light,
     ClinicalStatusColors.light,
     Brightness.light,
     patient: PatientPalette.light,
   );
 
   static ThemeData get dark => _build(
-    AppColors.patientDark,
+    AppColors.dark,
     ClinicalStatusColors.dark,
     Brightness.dark,
     patient: PatientPalette.dark,
@@ -36,14 +36,14 @@ abstract final class AppTheme {
   /// with full-strength text and borders, for low-vision users for whom the
   /// default hairline + tinted-surface separation is too subtle.
   static ThemeData get lightHighContrast => _build(
-    _highContrast(AppColors.patientLight, Brightness.light),
+    _highContrast(AppColors.light, Brightness.light),
     ClinicalStatusColors.light,
     Brightness.light,
     patient: PatientPalette.light,
   );
 
   static ThemeData get darkHighContrast => _build(
-    _highContrast(AppColors.patientDark, Brightness.dark),
+    _highContrast(AppColors.dark, Brightness.dark),
     ClinicalStatusColors.dark,
     Brightness.dark,
     patient: PatientPalette.dark,
@@ -51,7 +51,7 @@ abstract final class AppTheme {
 
   /// Patient geometry with the same shared colours as staff/admin.
   static ThemeData get patientLight => _build(
-    AppColors.patientLight,
+    AppColors.light,
     ClinicalStatusColors.light,
     Brightness.light,
     patient: PatientPalette.light,
@@ -59,7 +59,7 @@ abstract final class AppTheme {
   );
 
   static ThemeData get patientDark => _build(
-    AppColors.patientDark,
+    AppColors.dark,
     ClinicalStatusColors.dark,
     Brightness.dark,
     patient: PatientPalette.dark,
@@ -67,7 +67,7 @@ abstract final class AppTheme {
   );
 
   static ThemeData get patientLightHighContrast => _build(
-    _highContrast(AppColors.patientLight, Brightness.light),
+    _highContrast(AppColors.light, Brightness.light),
     ClinicalStatusColors.light,
     Brightness.light,
     patient: PatientPalette.light,
@@ -75,7 +75,7 @@ abstract final class AppTheme {
   );
 
   static ThemeData get patientDarkHighContrast => _build(
-    _highContrast(AppColors.patientDark, Brightness.dark),
+    _highContrast(AppColors.dark, Brightness.dark),
     ClinicalStatusColors.dark,
     Brightness.dark,
     patient: PatientPalette.dark,
@@ -90,8 +90,8 @@ abstract final class AppTheme {
       onSurfaceVariant: ink,
       outline: ink,
       outlineVariant: isLight
-          ? const Color(0xFF5A5F6B)
-          : const Color(0xFFB4B9C6),
+          ? AppColors.twilightIndigo
+          : AppColors.lavenderGrey,
     );
   }
 
@@ -109,13 +109,13 @@ abstract final class AppTheme {
     );
     final isLight = brightness == Brightness.light;
 
-    // The hairline is the whole border story: full-strength outlineVariant is
-    // already a whisper (#DCDFE8 / #2E323C), so it needs no further alpha.
+    // Borders are quiet seams between clay planes, never the primary source of
+    // depth. Paired highlights and shadows carry that job.
     final hairline = scheme.outlineVariant;
 
-    // Cards sit one step *above* the page in both themes — white on a tinted
-    // page in light, a lifted slate on near-black in dark. That single step is
-    // what lets a card read as a card without a heavy shadow.
+    // Cards sit one step above the page in both themes. AppCard adds the low
+    // bento shadow; Material Card stays flat so arbitrary M3 cards do not float
+    // above the intentional dashboard modules.
     final cardColor = isLight
         ? scheme.surfaceContainerLowest
         : scheme.surfaceContainerHigh;
@@ -154,10 +154,16 @@ abstract final class AppTheme {
       // Also covers primaryTextTheme and styles built outside [text].
       fontFamilyFallback: AppFonts.fallback,
       textTheme: text,
-      // Every role shares the approved patient colour extension.
+      // Every role shares the patient colour extension, retuned to the clay
+      // palette so newer screens built on it follow the same identity.
       extensions: [status, ?patient],
-      scaffoldBackgroundColor: patient?.canvas ?? scheme.surface,
-      splashFactory: InkSparkle.splashFactory,
+      // Opaque by default so a screen remains accessible when hosted outside
+      // MyHealthCareApp (tests, previews, embedded flows). The app frame opts
+      // its routed subtree into transparency over the ambient clay gradient.
+      scaffoldBackgroundColor: scheme.surface,
+      // InkRipple is deterministic across Skia/Impeller and reads more like a
+      // soft compression on clay than the glittery shader-based sparkle.
+      splashFactory: InkRipple.splashFactory,
 
       // Accessibility defaults (DESIGN.md §8): 48dp tap targets, standard
       // density everywhere so targets stay predictable.
@@ -175,9 +181,7 @@ abstract final class AppTheme {
       ),
 
       appBarTheme: AppBarTheme(
-        backgroundColor: scheme.surface,
-        // Content scrolling underneath tints the bar a step darker instead of
-        // dropping a shadow — a quieter separation that survives dark mode.
+        backgroundColor: Colors.transparent,
         foregroundColor: scheme.onSurface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -198,7 +202,7 @@ abstract final class AppTheme {
         shadowColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: cardRadius,
-          side: BorderSide(color: hairline),
+          side: BorderSide(color: Clay.seam(scheme)),
         ),
         margin: EdgeInsets.zero,
       ),
@@ -222,8 +226,8 @@ abstract final class AppTheme {
           horizontal: Space.md,
           vertical: Space.md,
         ),
-        // A hairline at rest so the field has an edge on a white card as well
-        // as on the tinted page; the focus ring is the only saturated stroke.
+        // Fields are shallow clay wells. The seam stays quiet until focus,
+        // where the saturated two-pixel ring remains unmistakable.
         border: fieldBorder(hairline),
         enabledBorder: fieldBorder(hairline),
         focusedBorder: fieldBorder(scheme.primary, 2),
@@ -250,6 +254,8 @@ abstract final class AppTheme {
           ),
           textStyle: text.labelLarge,
           elevation: 0,
+          shadowColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
           shape: RoundedRectangleBorder(borderRadius: buttonRadius),
         ),
       ),
@@ -261,7 +267,11 @@ abstract final class AppTheme {
             vertical: Space.sm,
           ),
           textStyle: text.labelLarge,
+          backgroundColor: cardColor,
           side: BorderSide(color: hairline),
+          elevation: 0,
+          shadowColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
           shape: RoundedRectangleBorder(borderRadius: buttonRadius),
         ),
       ),
@@ -278,14 +288,14 @@ abstract final class AppTheme {
       ),
 
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        elevation: 2,
-        focusElevation: 2,
-        hoverElevation: 4,
-        highlightElevation: 2,
+        elevation: 8,
+        focusElevation: 8,
+        hoverElevation: 12,
+        highlightElevation: 6,
         backgroundColor: action,
         foregroundColor: onAction,
         extendedTextStyle: text.labelLarge,
-        shape: const RoundedRectangleBorder(borderRadius: Radii.button),
+        shape: const RoundedRectangleBorder(borderRadius: Radii.cardSmall),
       ),
 
       chipTheme: ChipThemeData(
@@ -329,15 +339,21 @@ abstract final class AppTheme {
         backgroundColor: isLight ? scheme.surfaceContainerLowest : cardColor,
         dragHandleColor: scheme.outlineVariant,
         surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        modalElevation: 0,
+        elevation: 10,
+        modalElevation: 14,
+        shadowColor: isLight
+            ? const Color(0x527D8597)
+            : const Color(0xA6001233),
         shape: const RoundedRectangleBorder(borderRadius: Radii.sheet),
       ),
 
       dialogTheme: DialogThemeData(
         backgroundColor: isLight ? scheme.surfaceContainerLowest : cardColor,
         surfaceTintColor: Colors.transparent,
-        elevation: 0,
+        elevation: 14,
+        shadowColor: isLight
+            ? const Color(0x527D8597)
+            : const Color(0xA6001233),
         shape: RoundedRectangleBorder(
           borderRadius: cardRadius,
           side: BorderSide(color: hairline),
@@ -349,7 +365,10 @@ abstract final class AppTheme {
       popupMenuTheme: PopupMenuThemeData(
         color: isLight ? scheme.surfaceContainerLowest : cardColor,
         surfaceTintColor: Colors.transparent,
-        elevation: 0,
+        elevation: 10,
+        shadowColor: isLight
+            ? const Color(0x527D8597)
+            : const Color(0xA6001233),
         shape: RoundedRectangleBorder(
           borderRadius: Radii.cardSmall,
           side: BorderSide(color: hairline),
@@ -369,15 +388,13 @@ abstract final class AppTheme {
         insetPadding: const EdgeInsets.all(Space.md),
       ),
 
-      // Navigation surfaces sit one step above the page (white on the tinted
-      // light page, lifted slate in dark) so the chrome reads as a frame around
-      // the content rather than more of the same field.
+      // The shell rounds and shadows these into floating clay docks.
       navigationBarTheme: NavigationBarThemeData(
         elevation: 0,
         height: 68,
         backgroundColor: navSurface,
         surfaceTintColor: Colors.transparent,
-        indicatorColor: patient?.softAccent ?? scheme.surfaceContainer,
+        indicatorColor: scheme.secondaryContainer,
         indicatorShape: const RoundedRectangleBorder(
           borderRadius: Radii.button,
         ),
@@ -404,11 +421,11 @@ abstract final class AppTheme {
       navigationRailTheme: NavigationRailThemeData(
         elevation: 0,
         backgroundColor: navSurface,
-        indicatorColor: scheme.surfaceContainer,
+        indicatorColor: scheme.secondaryContainer,
         indicatorShape: const RoundedRectangleBorder(
           borderRadius: Radii.button,
         ),
-        selectedIconTheme: IconThemeData(color: scheme.primary),
+        selectedIconTheme: IconThemeData(color: scheme.onSecondaryContainer),
         unselectedIconTheme: IconThemeData(color: scheme.onSurfaceVariant),
         selectedLabelTextStyle: text.labelMedium?.copyWith(
           fontWeight: FontWeight.w600,
@@ -443,6 +460,21 @@ abstract final class AppTheme {
       ),
 
       dividerTheme: DividerThemeData(color: hairline, thickness: 1, space: 1),
+
+      searchBarTheme: SearchBarThemeData(
+        backgroundColor: WidgetStatePropertyAll(fieldFill),
+        surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
+        shadowColor: const WidgetStatePropertyAll(Colors.transparent),
+        elevation: const WidgetStatePropertyAll(0),
+        shape: const WidgetStatePropertyAll(
+          RoundedRectangleBorder(borderRadius: Radii.field),
+        ),
+        side: WidgetStatePropertyAll(BorderSide(color: hairline)),
+        textStyle: WidgetStatePropertyAll(text.bodyMedium),
+        hintStyle: WidgetStatePropertyAll(
+          text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+        ),
+      ),
 
       progressIndicatorTheme: ProgressIndicatorThemeData(
         color: scheme.primary,

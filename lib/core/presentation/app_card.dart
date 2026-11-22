@@ -1,7 +1,7 @@
-/// Shared surface components (DESIGN.md §5.2, redesign v2).
+/// Shared clinical-bento surface components (DESIGN.md §5.2, redesign v5).
 ///
-/// [AppCard] is the one card the whole app uses: flat, hairline-bordered, an
-/// optional soft lift, optional press feedback. [MetricTile] is the honest
+/// [AppCard] is the one card the whole app uses: quiet, rounded, with optional
+/// extra lift and press feedback. [MetricTile] is the honest
 /// "one number + label + trend" used on every dashboard.
 library;
 
@@ -20,8 +20,8 @@ import 'readable_label.dart';
 /// pixels apart, which reads as sloppiness long before anyone can name it.
 const double kTrailingChevronSize = 20;
 
-/// The app's single card. Flat fill + hairline border by default; pass
-/// [elevated] for [Shadows.e1]; pass [onTap] for press feedback.
+/// The app's single card. Every card receives the low bento shadow; pass
+/// [elevated] for the stronger raised state and [onTap] for press feedback.
 ///
 /// The card colour comes one step above the page (white on the tinted light
 /// page, lifted slate in dark), so the hairline is a definition line rather
@@ -52,32 +52,146 @@ class AppCard extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
 
-    // A Material surface so nested ListTiles / InkWells get an ink host and
-    // their splashes stay visible.
-    Widget surface = Material(
-      type: MaterialType.card,
-      color: color ?? theme.cardTheme.color ?? scheme.surface,
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(
-        borderRadius: Radii.cardOf(context),
-        side: BorderSide(color: borderColor ?? scheme.outlineVariant),
-      ),
-      child: Padding(padding: padding, child: child),
-    );
+    final seam = borderColor ?? Clay.seam(scheme);
+    final fill =
+        color ??
+        (theme.brightness == Brightness.light
+            ? scheme.surfaceContainerLowest
+            : scheme.surfaceContainerHigh);
 
-    if (elevated) {
-      surface = DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: Radii.cardOf(context),
-          boxShadow: Shadows.e1,
-        ),
-        child: surface,
-      );
-    }
+    // A solid plane and one low, vertical shadow make neighbouring cards read
+    // as a composed grid. Floating navigation keeps the stronger paired clay
+    // light; content cards deliberately do not compete with it.
+    Widget surface = DecoratedBox(
+      decoration: BoxDecoration(
+        color: fill,
+        borderRadius: Radii.cardOf(context),
+        border: Border.all(color: seam),
+        boxShadow: Shadows.bento(scheme, raised: elevated),
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(borderRadius: Radii.cardOf(context)),
+        child: Padding(padding: padding, child: child),
+      ),
+    );
     if (onTap != null) {
       surface = Pressable(onTap: onTap, child: surface);
     }
     return surface;
+  }
+}
+
+/// A labelled dashboard module. The title lives inside the surface so the
+/// heading and its data remain one visual object when bento rows re-flow.
+/// The small icon tab is the shared identifying detail across patient, staff,
+/// and admin dashboards.
+class BentoPanel extends StatelessWidget {
+  const BentoPanel({
+    required this.title,
+    required this.icon,
+    required this.child,
+    this.action,
+    this.onAction,
+    this.color,
+    this.contentPadding = const EdgeInsets.fromLTRB(
+      Space.md,
+      Space.xs,
+      Space.md,
+      Space.md,
+    ),
+    this.elevated = false,
+    super.key,
+  }) : assert(
+         (action == null && onAction == null) ||
+             (action != null && onAction != null),
+       );
+
+  final String title;
+  final IconData icon;
+  final Widget child;
+  final String? action;
+  final VoidCallback? onAction;
+  final Color? color;
+  final EdgeInsetsGeometry contentPadding;
+  final bool elevated;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    Widget actionButton() => TextButton(
+      onPressed: onAction,
+      style: TextButton.styleFrom(
+        minimumSize: const Size(0, 40),
+        padding: const EdgeInsets.symmetric(horizontal: Space.xs),
+        textStyle: theme.textTheme.labelMedium,
+      ),
+      child: Text(action!),
+    );
+
+    return AppCard(
+      color: color,
+      elevated: elevated,
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(Space.md, Space.md, Space.xs, 0),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final actionBelow =
+                    action != null && constraints.maxWidth < 360;
+                final label = Row(
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: scheme.primaryContainer,
+                        borderRadius: Radii.chip,
+                      ),
+                      child: Icon(
+                        icon,
+                        size: 17,
+                        color: scheme.onPrimaryContainer,
+                      ),
+                    ),
+                    const SizedBox(width: Space.sm),
+                    Expanded(
+                      child: Text(
+                        title.toUpperCase(),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ),
+                    if (action != null && !actionBelow) actionButton(),
+                  ],
+                );
+                if (!actionBelow) return label;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    label,
+                    Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: actionButton(),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+          Padding(padding: contentPadding, child: child),
+        ],
+      ),
+    );
   }
 }
 
@@ -106,81 +220,145 @@ class GradientHeroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final surface = DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: Radii.heroOf(context),
-        color: PatientPalette.brandOf(context, AppColors.seed),
-      ),
-      child: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(Space.lg),
-            child: Row(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.18),
-                    borderRadius: Radii.cardSmall,
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.22),
+    final surface = ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 176),
+      child: DecoratedBox(
+        decoration: const BoxDecoration(
+          borderRadius: Radii.card,
+          gradient: AppColors.heroGradient,
+        ),
+        child: Stack(
+          children: [
+            // A soft highlight bloom in the top-right corner keeps the gradient
+            // from reading as a flat two-stop fill.
+            Positioned(
+              right: -40,
+              top: -60,
+              child: Container(
+                width: 180,
+                height: 180,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.10),
+                ),
+              ),
+            ),
+            const Positioned.fill(
+              child: ExcludeSemantics(
+                child: CustomPaint(painter: _PulseTracePainter()),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(Space.lg),
+              child: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.18),
+                      borderRadius: Radii.cardSmall,
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.22),
+                      ),
+                    ),
+                    child: Icon(icon, color: Colors.white, size: 22),
+                  ),
+                  const SizedBox(width: Space.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ReadableLabel(
+                          title,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        ReadableLabel(
+                          subtitle,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: Colors.white.withValues(alpha: 0.82),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  child: Icon(icon, color: Colors.white, size: 22),
-                ),
-                const SizedBox(width: Space.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ReadableLabel(
-                        title,
-                        style: theme.textTheme.titleMedium?.copyWith(
+                  const SizedBox(width: Space.xs),
+                  trailing ??
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withValues(alpha: 0.18),
+                        ),
+                        // The same chevron every other tappable row uses — an
+                        // arrow here would make the hero look like a different
+                        // kind of control than the cards under it.
+                        child: const Icon(
+                          Icons.chevron_right,
+                          size: kTrailingChevronSize,
                           color: Colors.white,
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      ReadableLabel(
-                        subtitle,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.82),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: Space.xs),
-                trailing ??
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withValues(alpha: 0.18),
-                      ),
-                      // The same chevron every other tappable row uses — an
-                      // arrow here would make the hero look like a different
-                      // kind of control than the cards under it.
-                      child: const Icon(
-                        Icons.chevron_right,
-                        size: kTrailingChevronSize,
-                        color: Colors.white,
-                      ),
-                    ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
 
-    final lifted = ClipRRect(
-      borderRadius: Radii.heroOf(context),
-      child: surface,
+    // Shadow outside the clip, gradient inside it — a ClipRRect wrapping the
+    // shadow would eat the bloom.
+    final lifted = DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: Radii.card,
+        boxShadow: [
+          ...Shadows.bento(theme.colorScheme, raised: true),
+          ...Shadows.glow(AppColors.smartBlue),
+        ],
+      ),
+      child: ClipRRect(borderRadius: Radii.card, child: surface),
     );
     return onTap == null ? lifted : Pressable(onTap: onTap, child: lifted);
   }
+}
+
+/// A restrained ECG trace gives the single saturated tile a healthcare-native
+/// signature without adding another colour or an ambient animation.
+class _PulseTracePainter extends CustomPainter {
+  const _PulseTracePainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) return;
+    final y = size.height * 0.72;
+    final path = Path()
+      ..moveTo(0, y)
+      ..lineTo(size.width * 0.48, y)
+      ..lineTo(size.width * 0.53, y)
+      ..lineTo(size.width * 0.56, y - size.height * 0.08)
+      ..lineTo(size.width * 0.59, y + size.height * 0.13)
+      ..lineTo(size.width * 0.63, y - size.height * 0.24)
+      ..lineTo(size.width * 0.67, y + size.height * 0.06)
+      ..lineTo(size.width * 0.70, y)
+      ..lineTo(size.width, y);
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.12)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_PulseTracePainter oldDelegate) => false;
 }
 
 /// Heading for a group of content, with an optional trailing action.
@@ -263,6 +441,7 @@ class NavRow extends StatelessWidget {
     this.subtitle,
     this.tinted = false,
     this.trailing,
+    this.embedded = false,
     super.key,
   });
 
@@ -278,59 +457,79 @@ class NavRow extends StatelessWidget {
 
   final Widget? trailing;
 
+  /// Uses a quiet inset plane instead of another full card. Dashboard bento
+  /// panels use this for their internal action grids.
+  final bool embedded;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final dense = subtitle == null;
 
-    return AppCard(
-      onTap: onTap,
-      padding: EdgeInsets.symmetric(
-        horizontal: dense ? Space.sm : Space.md,
-        vertical: dense ? Space.sm : Space.md,
-      ),
-      child: Row(
-        children: [
-          if (tinted)
-            Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                color: scheme.primaryContainer,
-                borderRadius: Radii.chip,
-              ),
-              child: Icon(icon, size: 18, color: scheme.onPrimaryContainer),
-            )
-          else
-            Icon(icon, size: 20, color: scheme.onSurfaceVariant),
-          const SizedBox(width: Space.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ReadableLabel(title, style: theme.textTheme.titleSmall),
-                if (subtitle != null)
-                  ReadableLabel(
-                    subtitle!,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
+    final padding = EdgeInsets.symmetric(
+      horizontal: dense ? Space.sm : Space.md,
+      vertical: dense ? Space.sm : Space.md,
+    );
+    final content = Row(
+      children: [
+        if (tinted)
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: scheme.primaryContainer,
+              borderRadius: Radii.chip,
+            ),
+            child: Icon(icon, size: 18, color: scheme.onPrimaryContainer),
+          )
+        else
+          Icon(icon, size: 20, color: scheme.onSurfaceVariant),
+        const SizedBox(width: Space.sm),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ReadableLabel(title, style: theme.textTheme.titleSmall),
+              if (subtitle != null)
+                ReadableLabel(
+                  subtitle!,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
                   ),
-              ],
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(width: Space.xs),
+        trailing ??
+            Icon(
+              Icons.chevron_right,
+              size: kTrailingChevronSize,
+              color: scheme.onSurfaceVariant,
+            ),
+      ],
+    );
+
+    if (embedded) {
+      return Pressable(
+        onTap: onTap,
+        borderRadius: Radii.cardSmall,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: scheme.surfaceContainerLow,
+            borderRadius: Radii.cardSmall,
+            border: Border.all(
+              color: scheme.outlineVariant.withValues(alpha: 0.55),
             ),
           ),
-          const SizedBox(width: Space.xs),
-          trailing ??
-              Icon(
-                Icons.chevron_right,
-                size: kTrailingChevronSize,
-                color: scheme.onSurfaceVariant,
-              ),
-        ],
-      ),
-    );
+          child: Padding(padding: padding, child: content),
+        ),
+      );
+    }
+
+    return AppCard(onTap: onTap, padding: padding, child: content);
   }
 }
 
@@ -361,48 +560,54 @@ class EntryCard extends StatelessWidget {
     final scheme = theme.colorScheme;
     final fg = filled ? scheme.onPrimary : scheme.onSurface;
 
-    return Pressable(
+    final card = Pressable(
       onTap: onTap,
-      child: Material(
-        color: filled ? scheme.primary : scheme.surfaceContainerLowest,
-        clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: filled ? scheme.primary : scheme.surfaceContainerLowest,
           borderRadius: Radii.cardOf(context),
-          side: BorderSide(
-            // The filled card carries its own weight; the bordered one gets the
-            // same hairline as every other surface, at full strength.
-            color: filled ? Colors.transparent : scheme.outlineVariant,
+          border: Border.all(
+            color: filled
+                ? scheme.primary.withValues(alpha: 0.82)
+                : Clay.seam(scheme),
           ),
+          boxShadow: Shadows.bento(scheme),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(Space.md),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: fg),
-              const SizedBox(height: Space.sm),
-              Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleMedium?.copyWith(color: fg),
-              ),
-              Text(
-                subtitle,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: filled
-                      ? scheme.onPrimary.withValues(alpha: 0.85)
-                      : scheme.onSurfaceVariant,
+        child: Material(
+          type: MaterialType.transparency,
+          clipBehavior: Clip.antiAlias,
+          shape: RoundedRectangleBorder(borderRadius: Radii.cardOf(context)),
+          child: Padding(
+            padding: const EdgeInsets.all(Space.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, color: fg),
+                const SizedBox(height: Space.sm),
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleMedium?.copyWith(color: fg),
                 ),
-              ),
-            ],
+                Text(
+                  subtitle,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: filled
+                        ? scheme.onPrimary.withValues(alpha: 0.85)
+                        : scheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
+    return card;
   }
 }
 
@@ -417,6 +622,7 @@ class ListCard extends StatelessWidget {
     this.emptyIcon,
     this.emptyText,
     this.elevated = false,
+    this.embedded = false,
     super.key,
   });
 
@@ -424,6 +630,7 @@ class ListCard extends StatelessWidget {
   final IconData? emptyIcon;
   final String? emptyText;
   final bool elevated;
+  final bool embedded;
 
   @override
   Widget build(BuildContext context) {
@@ -431,39 +638,38 @@ class ListCard extends StatelessWidget {
     final scheme = theme.colorScheme;
 
     if (children.isEmpty) {
-      return AppCard(
-        padding: const EdgeInsets.all(Space.md),
-        child: Row(
-          children: [
-            Icon(
-              emptyIcon ?? Icons.check_circle_outline,
-              color: scheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: Space.sm),
-            Expanded(
-              child: Text(
-                emptyText ?? AppLocalizations.of(context)!.nothingHere,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                ),
+      final empty = Row(
+        children: [
+          Icon(
+            emptyIcon ?? Icons.check_circle_outline,
+            color: scheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: Space.sm),
+          Expanded(
+            child: Text(
+              emptyText ?? AppLocalizations.of(context)!.nothingHere,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurfaceVariant,
               ),
             ),
-          ],
-        ),
-      );
-    }
-    return AppCard(
-      padding: EdgeInsets.zero,
-      elevated: elevated,
-      child: Column(
-        children: [
-          for (var i = 0; i < children.length; i++) ...[
-            if (i > 0) const Divider(height: 1, indent: Space.md),
-            children[i],
-          ],
+          ),
         ],
-      ),
+      );
+      if (embedded) {
+        return Padding(padding: const EdgeInsets.all(Space.sm), child: empty);
+      }
+      return AppCard(padding: const EdgeInsets.all(Space.md), child: empty);
+    }
+    final list = Column(
+      children: [
+        for (var i = 0; i < children.length; i++) ...[
+          if (i > 0) const Divider(height: 1, indent: Space.md),
+          children[i],
+        ],
+      ],
     );
+    if (embedded) return list;
+    return AppCard(padding: EdgeInsets.zero, elevated: elevated, child: list);
   }
 }
 
@@ -844,6 +1050,7 @@ class MetricTile extends StatelessWidget {
     this.trendIsGood,
     this.icon,
     this.onTap,
+    this.embedded = false,
     super.key,
   });
 
@@ -858,80 +1065,89 @@ class MetricTile extends StatelessWidget {
   final bool? trendIsGood;
   final IconData? icon;
   final VoidCallback? onTap;
+  final bool embedded;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
 
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: ReadableLabel(
+                label,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            if (icon != null) ...[
+              const SizedBox(width: Space.xxs),
+              // A seated chip, not a floating glyph — it keeps the tile's
+              // top row weighted at both ends.
+              Container(
+                width: 26,
+                height: 26,
+                decoration: BoxDecoration(
+                  color: scheme.surfaceContainerHigh,
+                  borderRadius: Radii.chip,
+                ),
+                child: Icon(icon, size: 15, color: scheme.onSurfaceVariant),
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: Space.xs),
+        // A plain count rolls up to its figure; anything else (a date, a
+        // percentage, an em dash) is written straight out. headlineSmall, not
+        // Medium: these tiles sit three-up on a 360dp phone.
+        Builder(
+          builder: (context) {
+            final style = theme.textTheme.headlineSmall;
+            final number = int.tryParse(value);
+            if (number == null) {
+              return Text(
+                localizeDigits(value),
+                style: style?.copyWith(fontFeatures: kTabularFigures),
+              );
+            }
+            return AppCountUp(number, style: style);
+          },
+        ),
+        if (trend != null && trendLabel != null) ...[
+          const SizedBox(height: Space.xs),
+          _TrendChip(
+            direction: trend!,
+            label: trendLabel!,
+            isGood: trendIsGood,
+          ),
+        ],
+        if (caption != null) ...[
+          const SizedBox(height: Space.xxs),
+          Text(
+            caption!,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ],
+    );
+    if (embedded) {
+      final padded = Padding(
+        padding: const EdgeInsets.symmetric(vertical: Space.xs),
+        child: content,
+      );
+      return onTap == null ? padded : Pressable(onTap: onTap, child: padded);
+    }
     return AppCard(
       onTap: onTap,
       padding: const EdgeInsets.all(Space.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: ReadableLabel(
-                  label,
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-              if (icon != null) ...[
-                const SizedBox(width: Space.xxs),
-                // A seated chip, not a floating glyph — it keeps the tile's
-                // top row weighted at both ends.
-                Container(
-                  width: 26,
-                  height: 26,
-                  decoration: BoxDecoration(
-                    color: scheme.surfaceContainerHigh,
-                    borderRadius: Radii.chip,
-                  ),
-                  child: Icon(icon, size: 15, color: scheme.onSurfaceVariant),
-                ),
-              ],
-            ],
-          ),
-          const SizedBox(height: Space.xs),
-          // A plain count rolls up to its figure; anything else (a date, a
-          // percentage, an em dash) is written straight out. headlineSmall, not
-          // Medium: these tiles sit three-up on a 360dp phone.
-          Builder(
-            builder: (context) {
-              final style = theme.textTheme.headlineSmall;
-              final number = int.tryParse(value);
-              if (number == null) {
-                return Text(
-                  localizeDigits(value),
-                  style: style?.copyWith(fontFeatures: kTabularFigures),
-                );
-              }
-              return AppCountUp(number, style: style);
-            },
-          ),
-          if (trend != null && trendLabel != null) ...[
-            const SizedBox(height: Space.xs),
-            _TrendChip(
-              direction: trend!,
-              label: trendLabel!,
-              isGood: trendIsGood,
-            ),
-          ],
-          if (caption != null) ...[
-            const SizedBox(height: Space.xxs),
-            Text(
-              caption!,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ],
-      ),
+      child: content,
     );
   }
 }

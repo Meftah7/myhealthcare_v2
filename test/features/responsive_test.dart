@@ -3,7 +3,7 @@
 //
 // One widget tree, re-flowed by window size class: a bottom NavigationBar on
 // compact, an icon NavigationRail on medium, an extended rail from expanded up,
-// and dashboards that split into two columns once there is room for them.
+// and dashboard bento rows that split once there is room for them.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

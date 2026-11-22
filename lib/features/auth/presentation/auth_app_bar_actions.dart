@@ -1,5 +1,5 @@
 /// Shared app-bar actions for the public auth screens (sign-in, forgot
-/// password, reset password): a language pill + a bare theme icon.
+/// password, reset password): a language pill + a clay theme control.
 library;
 
 import 'package:flutter/material.dart';
@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/settings/ui_prefs.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/readable_label.dart';
+import '../../../core/presentation/circle_icon_button.dart';
 import '../../../l10n/app_localizations.dart';
 
 /// The [AppBar.actions] list every auth screen shares.
@@ -33,39 +34,46 @@ class AuthLanguagePill extends ConsumerWidget {
     final next = isArabic ? const Locale('en') : const Locale('ar');
     final label = isArabic ? 'English' : 'العربية';
 
-    return Material(
-      color: scheme.surfaceContainerLowest,
-      shape: const StadiumBorder(),
-      child: InkWell(
-        customBorder: const StadiumBorder(),
-        onTap: () => ref.read(localeProvider.notifier).set(next),
-        // The drawn pill reads as compact, but the tappable/semantics area
-        // still meets the 48dp a11y minimum (DESIGN.md §8) via this floor
-        // rather than by inflating the visible padding to match.
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: Space.sm),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.language_outlined,
-                  size: 16,
-                  color: scheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: 6),
-                Flexible(
-                  child: ReadableLabel(
-                    label,
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w600,
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: Radii.pill,
+        boxShadow: Shadows.clay(scheme),
+      ),
+      child: Material(
+        color: scheme.surfaceContainerLowest,
+        shape: const StadiumBorder(),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          customBorder: const StadiumBorder(),
+          onTap: () => ref.read(localeProvider.notifier).set(next),
+          // The drawn pill reads as compact, but the tappable/semantics area
+          // still meets the 48dp a11y minimum (DESIGN.md §8) via this floor
+          // rather than by inflating the visible padding to match.
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: Space.sm),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.language_outlined,
+                    size: 16,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: ReadableLabel(
+                      label,
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -74,9 +82,7 @@ class AuthLanguagePill extends ConsumerWidget {
   }
 }
 
-/// A bare theme icon — same light/dark logic as the shared theme toggle used
-/// elsewhere, but without its circular chip, to sit quietly beside the
-/// language pill.
+/// A compact theme icon beside the language pill.
 class AuthThemeIconButton extends ConsumerWidget {
   const AuthThemeIconButton({super.key});
 
@@ -88,17 +94,12 @@ class AuthThemeIconButton extends ConsumerWidget {
         MediaQuery.platformBrightnessOf(context) == Brightness.dark;
     final isDark =
         mode == ThemeMode.dark || (mode == ThemeMode.system && platformIsDark);
-    final scheme = Theme.of(context).colorScheme;
-
-    return IconButton(
+    return CircleIconButton(
+      icon: isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
       tooltip: isDark ? t.switchToLightMode : t.switchToDarkMode,
       onPressed: () => ref
           .read(themeModeProvider.notifier)
           .set(isDark ? ThemeMode.light : ThemeMode.dark),
-      icon: Icon(
-        isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-        color: scheme.onSurfaceVariant,
-      ),
     );
   }
 }

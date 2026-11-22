@@ -684,7 +684,7 @@ class _CardButton extends StatelessWidget {
 
     switch (action.kind) {
       case _ActionKind.call:
-        // Violet, tonal — a lighter touch than the solid "Start appointment".
+        // Blue, tonal — a lighter touch than the solid "Start appointment".
         return FilledButton.tonalIcon(
           onPressed: action.onTap,
           icon: icon,
@@ -743,7 +743,7 @@ class _CardButton extends StatelessWidget {
           ),
         );
       case _ActionKind.completeVisit:
-        // Solid violet — the most prominent action once the patient has
+        // Solid blue — the most prominent action once the patient has
         // arrived.
         return FilledButton.icon(
           onPressed: action.onTap,
@@ -805,7 +805,7 @@ class _FlashMark extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Palette — violet identity kept for booked / called; the status ramp for the
+// Palette — blue identity kept for booked / called; the status ramp for the
 // rest (green arrived, red not-arrived, muted done).
 // ---------------------------------------------------------------------------
 
