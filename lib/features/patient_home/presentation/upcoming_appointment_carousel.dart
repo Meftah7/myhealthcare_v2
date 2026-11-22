@@ -241,6 +241,9 @@ class _AppointmentCard extends StatelessWidget {
             onPressed: () => context.push(detail),
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.white,
+              // The theme fills outlined buttons with the card colour; on
+              // this blue ticket the blue must show through the white label.
+              backgroundColor: Colors.transparent,
               side: const BorderSide(color: Colors.white54),
             ),
             child: Row(

@@ -176,8 +176,9 @@ void main() {
     addTearDown(container.dispose);
 
     // "Feedback" is a Quick-action row tile (the label may carry a count).
+    // No `.first` on the scroll target: it throws while nothing matches yet.
     await tester.scrollUntilVisible(
-      find.textContaining('Feedback').first,
+      find.textContaining('Feedback'),
       500,
       scrollable: find
           .descendant(
@@ -187,6 +188,11 @@ void main() {
           .first,
       maxScrolls: 40,
     );
+    // The open-feedback count loads in after the first scroll and can shift
+    // the tile; settle, then bring it fully on screen before tapping.
+    await _settle(tester);
+    await tester.ensureVisible(find.textContaining('Feedback').first);
+    await _settle(tester);
     await tester.tap(find.textContaining('Feedback').first);
     await _settle(tester);
     expect(find.widgetWithText(AppBar, 'Feedback'), findsOneWidget);

@@ -229,7 +229,7 @@ void main() {
         size: const Size(1200, 1600),
       );
       await tester.scrollUntilVisible(
-        find.byType(SectionColumns),
+        find.byType(BentoGrid),
         300,
         scrollable: find
             .descendant(
@@ -239,10 +239,11 @@ void main() {
             .first,
       );
 
-      expect(find.byType(SectionColumns), findsWidgets);
+      // Clinical bento: the owned-work modules share one row on wide windows.
+      expect(find.byType(BentoGrid), findsWidgets);
       expect(
         find.descendant(
-          of: find.byType(SectionColumns).first,
+          of: find.byType(BentoRow).first,
           matching: find.byType(Row),
         ),
         findsWidgets,
