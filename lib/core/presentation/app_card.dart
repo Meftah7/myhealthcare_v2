@@ -161,13 +161,13 @@ class BentoPanel extends StatelessWidget {
                     ),
                     const SizedBox(width: Space.sm),
                     Expanded(
-                      child: Text(
-                        title.toUpperCase(),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                          letterSpacing: 0.8,
+                      // Same treatment as SectionHeader: sentence case, and
+                      // never clipped at enlarged text sizes.
+                      child: ReadableLabel(
+                        title,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontSize: 15,
+                          color: scheme.onSurface,
                         ),
                       ),
                     ),

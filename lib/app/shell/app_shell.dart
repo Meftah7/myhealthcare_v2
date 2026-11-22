@@ -182,8 +182,10 @@ class _AppShellState extends State<AppShell> {
         key: _scaffoldKey,
         drawer: expanded ? null : widget.drawer,
         onDrawerChanged: _drawerChanged,
+        // The patient bar stays full width: its five labels and centre tile
+        // need the whole row, so it does not sit in the inset clay dock.
         bottomNavigationBar: compact
-            ? _ClayDock(child: widget.compactBarBuilder!(context, current, _go))
+            ? widget.compactBarBuilder!(context, current, _go)
             : null,
         body: Row(
           children: [
@@ -256,9 +258,7 @@ class _AppShellState extends State<AppShell> {
         drawer: widget.drawer,
         onDrawerChanged: _drawerChanged,
         body: body,
-        bottomNavigationBar: _ClayDock(
-          child: widget.compactBarBuilder!(context, current, _go),
-        ),
+        bottomNavigationBar: widget.compactBarBuilder!(context, current, _go),
       );
     }
 

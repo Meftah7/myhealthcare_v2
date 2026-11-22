@@ -112,23 +112,26 @@ class ScheduleQueueStrip extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: Space.xs),
-          Row(
+          // A Wrap, not a Row: on a narrow phone at large text the action
+          // drops below the status line instead of overflowing.
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: Space.xs,
+            runSpacing: Space.xxs,
             children: [
-              Expanded(
-                child: Text(
-                  idx < 0
-                      ? t.tapPatientOrPressNext
-                      : atEnd
-                      ? t.lastPatientInQueue
-                      : t.nowLabel(nameOf(queue[idx])),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
+              Text(
+                idx < 0
+                    ? t.tapPatientOrPressNext
+                    : atEnd
+                    ? t.lastPatientInQueue
+                    : t.nowLabel(nameOf(queue[idx])),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(width: Space.xs),
               atEnd
                   ? const _NoMore()
                   : FilledButton.tonalIcon(
@@ -169,10 +172,12 @@ class _NoMore extends StatelessWidget {
           color: theme.colorScheme.onSurfaceVariant,
         ),
         const SizedBox(width: Space.xxs),
-        Text(
-          t.noMorePatients,
-          style: theme.textTheme.labelMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+        Flexible(
+          child: Text(
+            t.noMorePatients,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
       ],

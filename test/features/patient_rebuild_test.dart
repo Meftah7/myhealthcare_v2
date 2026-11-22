@@ -55,24 +55,26 @@ String _location(ProviderContainer c) =>
 
 void main() {
   group('blue patient theme', () {
-    test('patient themes use the approved tokens', () {
+    test('patient themes use the approved clay tokens', () {
       final light = AppTheme.patientLight;
       Color filled(ThemeData t) =>
           t.filledButtonTheme.style!.backgroundColor!.resolve(<WidgetState>{})!;
-      expect(filled(light), const Color(0xFF246BFD));
-      expect(light.scaffoldBackgroundColor, const Color(0xFFF7F7F8));
-      expect(light.colorScheme.onSurface, const Color(0xFF2D333C));
+      // Smart blue actions on the blue-slate clay page (DESIGN.md §2).
+      expect(filled(light), AppColors.smartBlue);
+      expect(light.scaffoldBackgroundColor, const Color(0xFFEEF2F7));
+      expect(light.colorScheme.onSurface, AppColors.prussianBlue3);
       expect(
         light.extension<PatientPalette>()!.softAccent,
-        const Color(0xFFE9F0FF),
+        const Color(0xFFDCEAF8),
       );
 
       final dark = AppTheme.patientDark;
-      expect(dark.scaffoldBackgroundColor, const Color(0xFF111B28));
-      expect(dark.extension<PatientPalette>()!.card, const Color(0xFF1C2839));
-      expect(filled(dark), const Color(0xFF246BFD));
-      // Readable light blue for small links/icons on navy.
-      expect(dark.extension<PatientPalette>()!.link, const Color(0xFF9ABEFF));
+      expect(dark.scaffoldBackgroundColor, AppColors.prussianBlue3);
+      expect(dark.extension<PatientPalette>()!.card, AppColors.prussianBlue);
+      // The lightest palette step keeps filled actions AA on navy.
+      expect(filled(dark), AppColors.lavenderGrey);
+      // Readable light blue-grey for small links/icons on navy.
+      expect(dark.extension<PatientPalette>()!.link, const Color(0xFFB9C4D6));
     });
 
     test('staff/admin themes share the approved patient palette', () {
