@@ -180,19 +180,19 @@ class _MascotArt {
 
 // Bounds measured from the alpha channel (alpha > 16) of each file.
 const _fullBody = _MascotArt(
-  'assets/images/full body, glowing teal eyes, both hands lowered',
+  'assets/images/care_navigator_full_body.png',
   Rect.fromLTRB(211, 83, 1013, 1153),
 );
 
 /// Cut off at its left edge (x = 0) and peeking right: docks on the left.
 const _headLeft = _MascotArt(
-  'assets/images/just his head peeking in from the left',
+  'assets/images/care_navigator_head_left.png',
   Rect.fromLTRB(0, 109, 752, 1086),
 );
 
 /// Cut off at its right edge (x = 1254) and peeking left: docks on the right.
 const _headRight = _MascotArt(
-  'assets/images/just his head peeking in from the right',
+  'assets/images/care_navigator_head_right.png',
   Rect.fromLTRB(470, 113, 1254, 1082),
 );
 

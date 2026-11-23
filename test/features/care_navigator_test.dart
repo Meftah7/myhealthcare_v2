@@ -30,10 +30,9 @@ Future<void> _settle(WidgetTester tester) async {
 const _fab = ValueKey('care-nav-fab');
 const _dock = ValueKey('care-nav-dock');
 const _head = ValueKey('care-nav-head');
-const _fullBodyAsset =
-    'assets/images/full body, glowing teal eyes, both hands lowered';
-const _headLeftAsset = 'assets/images/just his head peeking in from the left';
-const _headRightAsset = 'assets/images/just his head peeking in from the right';
+const _fullBodyAsset = 'assets/images/care_navigator_full_body.png';
+const _headLeftAsset = 'assets/images/care_navigator_head_left.png';
+const _headRightAsset = 'assets/images/care_navigator_head_right.png';
 
 /// The asset names of every image currently on screen.
 Set<String> _imageAssets(WidgetTester tester) => {
@@ -220,6 +219,10 @@ void main() {
 
   test('the three mascot images are bundled PNGs that decode', () async {
     for (final asset in [_fullBodyAsset, _headLeftAsset, _headRightAsset]) {
+      // The web build writes asset files under their URL-encoded names (a
+      // space becomes a literal "%20" in the filename), which static hosts
+      // such as GitHub Pages then 404. Keep names URL-safe.
+      expect(asset, matches(RegExp(r'^[A-Za-z0-9_./-]+$')), reason: asset);
       final data = await rootBundle.load(asset);
       final bytes = data.buffer.asUint8List();
       // PNG signature.
