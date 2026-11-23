@@ -1,10 +1,12 @@
 // Family Network account linking: request an existing account, the owner
 // must accept before any access, and either side can undo it.
 
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/core/failures.dart';
+import 'package:myhealthcare/data/db/app_database.dart';
 import 'package:myhealthcare/data/repositories/appointment_repository_impl.dart';
 import 'package:myhealthcare/data/repositories/family_link_repository_impl.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
@@ -168,34 +170,35 @@ void main() {
       final manager = patients[0];
       final viewer = patients[1];
 
-      // Only appointments still cancellable: open status and outside the
-      // 2-hour cutoff, so the check does not depend on the time of day.
-      final cutoff = DateTime.now().add(const Duration(hours: 3));
-      Future<List<Appointment>> cancellable(String patientId) async =>
-          (await apptRepo.forPatient(patientId)).valueOrNull!
-              .where(
-                (a) =>
-                    (a.status == AppointmentStatus.booked ||
-                        a.status == AppointmentStatus.confirmed) &&
-                    a.checkedInAt == null &&
-                    a.slotStart.isAfter(cutoff),
-              )
-              .toList();
-      var owner = patients[2];
-      var ownerAppts = await cancellable(owner.id);
-      for (final candidate in patients.skip(2)) {
-        final appts = await cancellable(candidate.id);
-        if (appts.length >= 2) {
-          owner = candidate;
-          ownerAppts = appts;
-          break;
-        }
+      // Two open appointments a few days out, well clear of the 2-hour
+      // cancellation cutoff. Created here rather than taken from the seed:
+      // the seed's "today" is a fixed date, so its upcoming visits run out
+      // as the real clock moves past them.
+      final owner = patients[2];
+      final staffId = (await db.select(db.appointments).get()).first.staffId;
+      final day = DateTime.now().add(const Duration(days: 3));
+      for (final i in [0, 1]) {
+        final start = DateTime(day.year, day.month, day.day, 10 + i);
+        await db
+            .into(db.appointments)
+            .insert(
+              AppointmentsCompanion.insert(
+                id: 'family-link-cancel-$i',
+                patientId: owner.id,
+                staffId: staffId,
+                slotStart: start,
+                slotEnd: start.add(const Duration(minutes: 30)),
+                visitType: VisitType.followUp,
+                status: const Value(AppointmentStatus.booked),
+              ),
+            );
       }
-      expect(
-        ownerAppts.length,
-        greaterThanOrEqualTo(2),
-        reason: 'need two of this patient\'s appointments for the two checks',
-      );
+      final ownerAppts = <Appointment>[
+        for (final i in [0, 1])
+          (await apptRepo.forPatient(
+            owner.id,
+          )).valueOrNull!.firstWhere((a) => a.id == 'family-link-cancel-$i'),
+      ];
 
       final manageReq = await familyRepo.request(
         ownerPatientId: owner.id,
