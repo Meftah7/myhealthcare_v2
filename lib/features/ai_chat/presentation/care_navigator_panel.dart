@@ -13,6 +13,7 @@ import '../../../app/theme/theme.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../timeline/presentation/import_record_sheet.dart';
 import '../application/care_navigator.dart';
+import 'care_navigator_mascot.dart';
 
 class CareNavigatorPanel extends ConsumerStatefulWidget {
   const CareNavigatorPanel({super.key});
@@ -75,15 +76,8 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
             color: scheme.surfaceContainerHighest,
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 18,
-                  backgroundColor: scheme.primary,
-                  child: const Icon(
-                    Icons.smart_toy_outlined,
-                    color: Colors.white,
-                    size: 18,
-                  ),
-                ),
+                // The same mascot avatar as the floating launcher.
+                const CareNavigatorAvatar(size: 40),
                 const SizedBox(width: Space.sm),
                 Expanded(
                   child: Column(
@@ -343,7 +337,8 @@ class _Bubble extends StatelessWidget {
               const SizedBox(height: Space.xxs),
             ],
             SelectableText(
-              message.text,
+              // The greeting follows the app's language at display time.
+              message.isGreeting ? t.careNavigatorGreeting : message.text,
               style: theme.textTheme.bodyMedium?.copyWith(color: fg),
             ),
             if (message.quotes.isNotEmpty) ...[

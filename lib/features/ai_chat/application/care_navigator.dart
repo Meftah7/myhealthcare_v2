@@ -56,6 +56,7 @@ class ChatMessage {
     this.supported,
     this.note,
     this.retryQuestion,
+    this.isGreeting = false,
   });
 
   final ChatRole role;
@@ -74,13 +75,18 @@ class ChatMessage {
 
   /// For [ChatKind.error] on a follow-up: the question to retry.
   final String? retryQuestion;
+
+  /// The opening welcome. The chat shows it from the app's translations
+  /// (`careNavigatorGreeting`) so it follows the chosen language; [text] is
+  /// the English copy for anything outside the UI.
+  final bool isGreeting;
 }
 
 const _greeting = ChatMessage(
   ChatRole.model,
-  "Hello! 👋 I'm your Care Navigator. I can help you get around myhealth — "
-  'appointments, health records, medications, billing and your profile. '
-  'What are you looking for?',
+  "Hi! I'm here to help you use the app. Ask me about your appointments, "
+  'records, medicines or bills.',
+  isGreeting: true,
 );
 
 /// Lower-cased phrases that trigger the emergency response (from ai_chat.php).

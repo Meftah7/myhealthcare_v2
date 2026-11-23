@@ -28,6 +28,7 @@ import '../../../app/theme/theme.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
 import '../application/care_navigator.dart';
+import 'care_navigator_mascot.dart';
 import 'care_navigator_panel.dart';
 
 class CareNavigatorOverlay extends ConsumerWidget {
@@ -149,92 +150,6 @@ class _PanelHost extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Mascot artwork
-// ---------------------------------------------------------------------------
-
-/// One mascot PNG and the rectangle (in source pixels) its visible artwork
-/// occupies. The files are 1254×1254 canvases with transparent padding around
-/// the art (plus a few near-invisible specks below alpha 16); drawing just
-/// [content] lets the art be sized precisely, and lets a head's cut edge sit
-/// exactly on the page edge with no transparent gap.
-class _MascotArt {
-  const _MascotArt(this.asset, this.content);
-
-  static const double _canvas = 1254;
-
-  final String asset;
-  final Rect content;
-
-  double get aspect => content.width / content.height;
-
-  /// Decoded at roughly the size it is drawn, not the full 1254px canvas.
-  ImageProvider provider(double height, double dpr) {
-    final scale = height / content.height;
-    return ResizeImage(
-      AssetImage(asset),
-      width: (_canvas * scale * dpr).ceil(),
-      policy: ResizeImagePolicy.fit,
-    );
-  }
-}
-
-// Bounds measured from the alpha channel (alpha > 16) of each file.
-const _fullBody = _MascotArt(
-  'assets/images/care_navigator_full_body.png',
-  Rect.fromLTRB(211, 83, 1013, 1153),
-);
-
-/// Cut off at its left edge (x = 0) and peeking right: docks on the left.
-const _headLeft = _MascotArt(
-  'assets/images/care_navigator_head_left.png',
-  Rect.fromLTRB(0, 109, 752, 1086),
-);
-
-/// Cut off at its right edge (x = 1254) and peeking left: docks on the right.
-const _headRight = _MascotArt(
-  'assets/images/care_navigator_head_right.png',
-  Rect.fromLTRB(470, 113, 1254, 1082),
-);
-
-/// Draws [art]'s [_MascotArt.content] at [height], keeping its aspect ratio.
-class _MascotImage extends StatelessWidget {
-  const _MascotImage(this.art, {required this.height});
-
-  final _MascotArt art;
-  final double height;
-
-  @override
-  Widget build(BuildContext context) {
-    final scale = height / art.content.height;
-    final canvas = _MascotArt._canvas * scale;
-    return SizedBox(
-      width: height * art.aspect,
-      height: height,
-      // Stack clips to its box by default: only the art's content shows.
-      child: Stack(
-        children: [
-          Positioned(
-            left: -art.content.left * scale,
-            top: -art.content.top * scale,
-            width: canvas,
-            height: canvas,
-            child: Image(
-              image: art.provider(
-                height,
-                MediaQuery.devicePixelRatioOf(context),
-              ),
-              fit: BoxFit.fill,
-              gaplessPlayback: true,
-              excludeFromSemantics: true,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Shared geometry
 // ---------------------------------------------------------------------------
 
@@ -243,7 +158,7 @@ class _MascotImage extends StatelessWidget {
 // target that clears the circle's centre and stays on screen.
 const double _fabBox = 104;
 const double _fabCircle = 56;
-const double _mascotHeight = 44;
+const double _mascotHeight = _fabCircle * CareNavigatorAvatar.mascotShare;
 const double _headHeight = 68;
 const double _edgeMargin = 6;
 
@@ -344,9 +259,9 @@ class _LauncherState extends State<_Launcher>
     // doesn't slide in an empty box while the PNG loads.
     final dpr = MediaQuery.devicePixelRatioOf(context);
     for (final (art, height) in [
-      (_fullBody, _mascotHeight),
-      (_headLeft, _headHeight),
-      (_headRight, _headHeight),
+      (mascotFullBody, _mascotHeight),
+      (mascotHeadLeft, _headHeight),
+      (mascotHeadRight, _headHeight),
     ]) {
       unawaited(precacheImage(art.provider(height, dpr), context));
     }
@@ -557,21 +472,10 @@ class _FloatingButtonState extends ConsumerState<_FloatingButton>
                                     shape: BoxShape.circle,
                                     boxShadow: Shadows.glow(scheme.primary),
                                   ),
-                                  child: Material(
-                                    color: scheme.primary,
-                                    shape: const CircleBorder(),
-                                    clipBehavior: Clip.antiAlias,
-                                    child: const SizedBox(
-                                      key: ValueKey('care-nav-fab'),
-                                      width: _fabCircle,
-                                      height: _fabCircle,
-                                      child: Center(
-                                        child: _MascotImage(
-                                          _fullBody,
-                                          height: _mascotHeight,
-                                        ),
-                                      ),
-                                    ),
+                                  // Same avatar as the chat panel header.
+                                  // (Its default size is the 56dp circle.)
+                                  child: const CareNavigatorAvatar(
+                                    key: ValueKey('care-nav-fab'),
                                   ),
                                 ),
                               ),
@@ -667,19 +571,19 @@ class _DockedHeadState extends ConsumerState<_DockedHead> {
   /// the release, can arrive before the next frame rebuilds the closures.
   late _Geometry _geo;
 
-  static double _widthOf(_MascotArt art) => _headHeight * art.aspect;
+  static double _widthOf(MascotArt art) => _headHeight * art.aspect;
 
   /// The head's left edge: at rest flush with its side, while dragged
   /// following the finger.
   double _left(bool onRight) {
     final rest = onRight
-        ? _geo.rightEdge - _widthOf(_headRight)
+        ? _geo.rightEdge - _widthOf(mascotHeadRight)
         : _geo.leftEdge;
     final drag = _dragX;
     if (drag == null) return rest;
     return (rest + drag).clamp(
       _geo.leftEdge,
-      math.max(_geo.leftEdge, _geo.rightEdge - _widthOf(_headRight)),
+      math.max(_geo.leftEdge, _geo.rightEdge - _widthOf(mascotHeadRight)),
     );
   }
 
@@ -687,7 +591,7 @@ class _DockedHeadState extends ConsumerState<_DockedHead> {
   /// screen it is over, so it turns to face into the page from there.
   bool _facesFromRight(bool onRight) => _dragX == null
       ? onRight
-      : _left(onRight) + _widthOf(_headRight) / 2 > _geo.page.center.dx;
+      : _left(onRight) + _widthOf(mascotHeadRight) / 2 > _geo.page.center.dx;
 
   void _endDrag() {
     final placer = ref.read(careNavPlacementProvider.notifier);
@@ -708,7 +612,7 @@ class _DockedHeadState extends ConsumerState<_DockedHead> {
     final dragging = _dragX != null;
     final left = _left(onRight);
     final facesFromRight = _facesFromRight(onRight);
-    final art = facesFromRight ? _headRight : _headLeft;
+    final art = facesFromRight ? mascotHeadRight : mascotHeadLeft;
     final width = _widthOf(art);
 
     // Sliding in from (and out past) its own edge.
@@ -748,7 +652,7 @@ class _DockedHeadState extends ConsumerState<_DockedHead> {
                 onPanCancel: () {
                   if (_dragX != null) _endDrag();
                 },
-                child: _MascotImage(art, height: _headHeight),
+                child: MascotImage(art, height: _headHeight),
               ),
             ),
           ),

@@ -47,6 +47,7 @@ Future<void> _loadFonts() async {
     'assets/fonts/static/Inter-SemiBold.ttf',
     'assets/fonts/static/Inter-Bold.ttf',
   ]);
+  await family('NotoNaskhArabic', ['assets/fonts/NotoNaskhArabic.ttf']);
   await loadMaterialIcons();
 }
 
@@ -161,6 +162,11 @@ void main() {
     await tester.tap(find.byKey(fab));
     await _settle(tester);
     await _shot(tester, 'launcher_6_chat_open');
+    await c.read(localeProvider.notifier).set(const Locale('ar'));
+    await _settle(tester);
+    await _shot(tester, 'launcher_6b_chat_open_ar');
+    await c.read(localeProvider.notifier).set(const Locale('en'));
+    await _settle(tester);
     c.read(careNavigatorViewProvider.notifier).state = CareNavView.fab;
     await _settle(tester);
 

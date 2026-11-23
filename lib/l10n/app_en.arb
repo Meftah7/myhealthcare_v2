@@ -632,6 +632,7 @@
   "openCareNavigator": "Open Care Navigator",
   "hideCareNavigator": "Hide Care Navigator",
   "showCareNavigator": "Show Care Navigator",
+  "careNavigatorGreeting": "Hi! I'm here to help you use the app. Ask me about your appointments, records, medicines or bills.",
 
   "taskBoardTitle": "Task board",
   "couldNotLoadTasks": "Could not load tasks.",

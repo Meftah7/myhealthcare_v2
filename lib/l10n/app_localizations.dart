@@ -2546,6 +2546,12 @@ abstract class AppLocalizations {
   /// **'Show Care Navigator'**
   String get showCareNavigator;
 
+  /// No description provided for @careNavigatorGreeting.
+  ///
+  /// In en, this message translates to:
+  /// **'Hi! I\'m here to help you use the app. Ask me about your appointments, records, medicines or bills.'**
+  String get careNavigatorGreeting;
+
   /// No description provided for @taskBoardTitle.
   ///
   /// In en, this message translates to:

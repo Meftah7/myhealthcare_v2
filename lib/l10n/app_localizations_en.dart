@@ -1327,6 +1327,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get showCareNavigator => 'Show Care Navigator';
 
   @override
+  String get careNavigatorGreeting =>
+      'Hi! I\'m here to help you use the app. Ask me about your appointments, records, medicines or bills.';
+
+  @override
   String get taskBoardTitle => 'Task board';
 
   @override

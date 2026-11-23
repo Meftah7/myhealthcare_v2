@@ -632,6 +632,7 @@
   "openCareNavigator": "فتح Care Navigator",
   "hideCareNavigator": "إخفاء Care Navigator",
   "showCareNavigator": "إظهار Care Navigator",
+  "careNavigatorGreeting": "مرحبًا! أنا هنا لمساعدتك في استخدام التطبيق. اسألني عن مواعيدك أو سجلاتك أو أدويتك أو فواتيرك.",
 
   "taskBoardTitle": "لوحة المهام",
   "couldNotLoadTasks": "تعذّر تحميل المهام.",

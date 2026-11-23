@@ -8,11 +8,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/app.dart';
+import 'package:myhealthcare/app/settings/ui_prefs.dart';
 import 'package:myhealthcare/core/app_environment.dart';
 import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/core/ui/patient/patient_bottom_navigation.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:myhealthcare/features/ai_chat/application/care_navigator.dart';
+import 'package:myhealthcare/features/ai_chat/presentation/care_navigator_mascot.dart';
 import 'package:myhealthcare/features/ai_chat/presentation/care_navigator_panel.dart';
 import 'package:myhealthcare/features/auth/application/session.dart';
 import 'package:myhealthcare/features/patient_home/presentation/patient_home_screen.dart';
@@ -415,4 +417,52 @@ void main() {
 
     await _tearDownApp(tester);
   });
+
+  testWidgets(
+    'the chat header shows the launcher mascot, and the greeting follows the '
+    'app language',
+    (tester) async {
+      final container = await _signIn(tester);
+      const en =
+          "Hi! I'm here to help you use the app. Ask me about your "
+          'appointments, records, medicines or bills.';
+      const ar =
+          'مرحبًا! أنا هنا لمساعدتك في استخدام التطبيق. اسألني عن مواعيدك '
+          'أو سجلاتك أو أدويتك أو فواتيرك.';
+
+      // The launcher and the open panel show the same avatar.
+      expect(
+        find.descendant(
+          of: find.byKey(_fab),
+          matching: find.byType(MascotImage),
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(_fab));
+      await _settle(tester);
+      final header = find.descendant(
+        of: find.byType(CareNavigatorPanel),
+        matching: find.byType(CareNavigatorAvatar),
+      );
+      expect(header, findsOneWidget);
+      expect(_imageAssets(tester), {_fullBodyAsset});
+
+      // Short, plain greeting in English…
+      expect(find.text(en), findsOneWidget);
+      expect(find.textContaining('👋'), findsNothing);
+
+      // …and in Arabic as soon as the language changes, even mid-chat.
+      await container.read(localeProvider.notifier).set(const Locale('ar'));
+      await _settle(tester);
+      expect(find.text(ar), findsOneWidget);
+      expect(find.text(en), findsNothing);
+
+      // Restarting the conversation keeps it in Arabic.
+      container.read(careNavigatorProvider.notifier).reset();
+      await _settle(tester);
+      expect(find.text(ar), findsOneWidget);
+
+      await _tearDownApp(tester);
+    },
+  );
 }

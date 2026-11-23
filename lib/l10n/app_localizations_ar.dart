@@ -1327,6 +1327,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get showCareNavigator => 'إظهار Care Navigator';
 
   @override
+  String get careNavigatorGreeting =>
+      'مرحبًا! أنا هنا لمساعدتك في استخدام التطبيق. اسألني عن مواعيدك أو سجلاتك أو أدويتك أو فواتيرك.';
+
+  @override
   String get taskBoardTitle => 'لوحة المهام';
 
   @override
