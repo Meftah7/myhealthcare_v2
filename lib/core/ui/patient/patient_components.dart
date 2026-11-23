@@ -507,6 +507,10 @@ class PatientPageTitle extends StatelessWidget {
 
 /// A scrollable patient page with the ≈22px inset, width cap and a bottom
 /// spacer that clears the navigation bar / safe area.
+///
+/// The spacer is tall enough for the last item to scroll fully clear of the
+/// floating Care Navigator button, which rests up to 86dp above the bottom
+/// navigation (6dp margin + 24dp of its tap box + the 56dp circle).
 class PatientPageScaffold extends StatelessWidget {
   const PatientPageScaffold({
     required this.children,
@@ -533,7 +537,7 @@ class PatientPageScaffold extends StatelessWidget {
         kPatientInset,
         appBar == null ? Space.xs : Space.md,
         kPatientInset,
-        Space.xxl + bottom,
+        Space.xxl * 2 + bottom,
       ),
       children: [?header, ...children],
     );

@@ -14,6 +14,7 @@ import '../../core/presentation/readable_label.dart';
 import '../../core/ui/patient/patient_components.dart';
 import '../../l10n/app_localizations.dart';
 import '../theme/theme.dart';
+import 'shell_insets.dart';
 
 /// One navigation destination in a role shell.
 class AppDestination {
@@ -92,9 +93,18 @@ class _AppShellState extends State<AppShell> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _drawerOpen = false;
 
+  /// Where the shell's navigation is, for the floating overlay to stay clear
+  /// of it: the bottom bar's measured height and whether the current layout
+  /// builds one at all, and the width of the patient rail / sidebar. The last
+  /// two are set by [_content] on every build, before the overlay is wrapped.
+  final _bottomBarHeight = ValueNotifier<double>(0);
+  bool _hasBottomBar = false;
+  double _sideNavWidth = 0;
+
   @override
   void dispose() {
     _scrollToTop.dispose();
+    _bottomBarHeight.dispose();
     super.dispose();
   }
 
@@ -115,11 +125,45 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
+    _hasBottomBar = false;
+    _sideNavWidth = 0;
     final scaffold = _content(context);
-    // The floating overlay steps aside while the drawer is open.
-    return widget.overlay == null
-        ? scaffold
-        : Stack(children: [scaffold, if (!_drawerOpen) widget.overlay!]);
+    if (widget.overlay == null) return scaffold;
+    final hasBar = _hasBottomBar;
+    // The rail / sidebar sits on the start side: the right in RTL.
+    final navOnLeft = Directionality.of(context) == TextDirection.ltr;
+    final side = _sideNavWidth;
+    // The floating overlay steps aside while the drawer is open, and is told
+    // where the shell's navigation is so it never parks on top of it.
+    return Stack(
+      children: [
+        scaffold,
+        if (!_drawerOpen)
+          ValueListenableBuilder<double>(
+            valueListenable: _bottomBarHeight,
+            builder: (context, height, overlay) => ShellInsets(
+              navigation: EdgeInsets.only(
+                left: navOnLeft ? side : 0,
+                right: navOnLeft ? 0 : side,
+                bottom: hasBar ? height : 0,
+              ),
+              child: overlay!,
+            ),
+            child: widget.overlay,
+          ),
+      ],
+    );
+  }
+
+  /// Wraps a bottom bar so its height reaches [_bottomBarHeight].
+  Widget _bottomBar(Widget bar) {
+    _hasBottomBar = true;
+    return MeasureHeight(
+      onHeight: (h) {
+        if (mounted) _bottomBarHeight.value = h;
+      },
+      child: bar,
+    );
   }
 
   Widget _content(BuildContext context) {
@@ -159,6 +203,12 @@ class _AppShellState extends State<AppShell> {
       final compact = width < 600;
       final expanded = width >= 1024;
       final t = AppLocalizations.of(context)!;
+      // Rail or sidebar, plus the sidebar's 1px hairline.
+      _sideNavWidth = compact
+          ? 0
+          : expanded
+          ? 273
+          : patientRailWidth;
       final entries = <Widget>[
         for (final (i, destination) in widget.destinations.indexed)
           ListTile(
@@ -185,7 +235,7 @@ class _AppShellState extends State<AppShell> {
         // The patient bar stays full width: its five labels and centre tile
         // need the whole row, so it does not sit in the inset clay dock.
         bottomNavigationBar: compact
-            ? widget.compactBarBuilder!(context, current, _go)
+            ? _bottomBar(widget.compactBarBuilder!(context, current, _go))
             : null,
         body: Row(
           children: [
@@ -258,7 +308,9 @@ class _AppShellState extends State<AppShell> {
         drawer: widget.drawer,
         onDrawerChanged: _drawerChanged,
         body: body,
-        bottomNavigationBar: widget.compactBarBuilder!(context, current, _go),
+        bottomNavigationBar: _bottomBar(
+          widget.compactBarBuilder!(context, current, _go),
+        ),
       );
     }
 
@@ -307,12 +359,16 @@ class _AppShellState extends State<AppShell> {
       return Scaffold(
         body: body,
         // The floating clay dock is the redesign's signature element.
-        bottomNavigationBar: _ClayDock(
-          child: CompactNavigation(
-            destinations: compact,
-            currentIndex: leading == null ? current : current.clamp(0, leading),
-            onSelected: selectCompact,
-            keepSectionsVisible: widget.keepCompactSectionsVisible,
+        bottomNavigationBar: _bottomBar(
+          _ClayDock(
+            child: CompactNavigation(
+              destinations: compact,
+              currentIndex: leading == null
+                  ? current
+                  : current.clamp(0, leading),
+              onSelected: selectCompact,
+              keepSectionsVisible: widget.keepCompactSectionsVisible,
+            ),
           ),
         ),
       );
