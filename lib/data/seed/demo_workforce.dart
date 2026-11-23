@@ -228,13 +228,14 @@ class DemoWorkforce {
       wall.month,
       wall.day,
     ).subtract(const Duration(hours: 3));
-    Future<String> ticket(DateTime start) async {
-      final bucket = DateTime.utc(
-        start.toUtc().year,
-        start.toUtc().month,
-        start.toUtc().day,
-        start.toUtc().hour,
-      );
+    // Same scheme as the live booking flow and the main seeder: the letter
+    // and the per-hour count both use the slot's *local* hour. (`start` is a
+    // UTC DateTime; lettering it by its UTC hour while the rest of the data
+    // uses local hours could repeat a tag on the same day and trip the
+    // unique daily-ticket index, depending on the device's time zone.)
+    Future<String> ticket(DateTime utcStart) async {
+      final start = utcStart.toLocal();
+      final bucket = DateTime(start.year, start.month, start.day, start.hour);
       final existing =
           await (db.select(db.appointments)..where(
                 (a) =>
