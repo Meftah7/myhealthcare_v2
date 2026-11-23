@@ -2,10 +2,13 @@
 /// tools, the service-promotion carousel and the Quick Access grid.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
+import '../../../core/presentation/pointer_input.dart';
 import '../../../core/presentation/readable_label.dart';
 import '../../../core/ui/patient/patient_components.dart';
 import '../../../l10n/app_localizations.dart';
@@ -200,20 +203,6 @@ class _QuickToolsPagerState extends State<QuickToolsPager> {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
-    void browse(bool forward) {
-      if (!_controller.hasClients) return;
-      final position = _controller.position;
-      final target =
-          (position.pixels +
-                  (forward ? 1 : -1) * position.viewportDimension * .8)
-              .clamp(position.minScrollExtent, position.maxScrollExtent);
-      _controller.animateTo(
-        target,
-        duration: Motion.reduced(context) ? Duration.zero : Motion.medium,
-        curve: Motion.standard,
-      );
-    }
-
     return SurfaceCard(
       padding: const EdgeInsets.all(Space.sm),
       child: Column(
@@ -237,27 +226,73 @@ class _QuickToolsPagerState extends State<QuickToolsPager> {
               ),
             ),
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                tooltip: t.htPreviousShortcuts,
-                onPressed: () => browse(false),
-                icon: const BackButtonIcon(),
-              ),
-              IconButton(
-                tooltip: t.htNextShortcuts,
-                onPressed: () => browse(true),
-                icon: Icon(
-                  Directionality.of(context) == TextDirection.rtl
-                      ? Icons.arrow_back
-                      : Icons.arrow_forward,
-                ),
-              ),
-            ],
+          _ScrollArrows(
+            controller: _controller,
+            step: (position) => position.viewportDimension * .8,
+            previousTooltip: t.htPreviousShortcuts,
+            nextTooltip: t.htNextShortcuts,
           ),
         ],
       ),
+    );
+  }
+}
+
+/// "<" / ">" buttons under a horizontal row, scrolling it by [step]. Shown
+/// only to mouse and trackpad users ([PointerInput.usesMouse]): on a touch
+/// screen the row is simply swiped, so the buttons would only take up room.
+class _ScrollArrows extends StatelessWidget {
+  const _ScrollArrows({
+    required this.controller,
+    required this.step,
+    required this.previousTooltip,
+    required this.nextTooltip,
+  });
+
+  final ScrollController controller;
+
+  /// How far one press scrolls, given the row's current position.
+  final double Function(ScrollPosition position) step;
+
+  final String previousTooltip;
+  final String nextTooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!PointerInput.usesMouse(context)) return const SizedBox.shrink();
+    void browse(bool forward) {
+      if (!controller.hasClients) return;
+      final position = controller.position;
+      final target = (position.pixels + (forward ? 1 : -1) * step(position))
+          .clamp(position.minScrollExtent, position.maxScrollExtent);
+      unawaited(
+        controller.animateTo(
+          target,
+          duration: Motion.reduced(context) ? Duration.zero : Motion.medium,
+          curve: Motion.standard,
+        ),
+      );
+    }
+
+    return Row(
+      key: const ValueKey('scroll-arrows'),
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          tooltip: previousTooltip,
+          onPressed: () => browse(false),
+          icon: const BackButtonIcon(),
+        ),
+        IconButton(
+          tooltip: nextTooltip,
+          onPressed: () => browse(true),
+          icon: Icon(
+            Directionality.of(context) == TextDirection.rtl
+                ? Icons.arrow_back
+                : Icons.arrow_forward,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -445,28 +480,56 @@ class ServicePromotionCard extends ConsumerWidget {
 
 /// One horizontal carousel of [ServicePromotionCard]s — never auto-moving;
 /// the next card peeks in so it reads as swipeable. Every card is also a
-/// normal focusable button, so it works without swiping.
-class ServiceCarousel extends StatelessWidget {
+/// normal focusable button, so it works without swiping, and mouse users get
+/// "<" / ">" buttons that move one card at a time.
+class ServiceCarousel extends StatefulWidget {
   const ServiceCarousel({required this.items, super.key});
 
   final List<CatalogItem> items;
 
   @override
+  State<ServiceCarousel> createState() => _ServiceCarouselState();
+}
+
+class _ServiceCarouselState extends State<ServiceCarousel> {
+  final _controller = ScrollController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
     return LayoutBuilder(
       builder: (context, constraints) {
         final cardWidth = (constraints.maxWidth * .78).clamp(220.0, 340.0);
-        return SizedBox(
-          height: 250 * scale.clamp(1.0, 1.6),
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            clipBehavior: Clip.none,
-            itemCount: items.length,
-            separatorBuilder: (_, _) => const SizedBox(width: Space.sm),
-            itemBuilder: (_, i) =>
-                ServicePromotionCard(item: items[i], width: cardWidth),
-          ),
+        return Column(
+          children: [
+            SizedBox(
+              height: 250 * scale.clamp(1.0, 1.6),
+              child: ListView.separated(
+                controller: _controller,
+                scrollDirection: Axis.horizontal,
+                clipBehavior: Clip.none,
+                itemCount: widget.items.length,
+                separatorBuilder: (_, _) => const SizedBox(width: Space.sm),
+                itemBuilder: (_, i) => ServicePromotionCard(
+                  item: widget.items[i],
+                  width: cardWidth,
+                ),
+              ),
+            ),
+            _ScrollArrows(
+              controller: _controller,
+              step: (_) => cardWidth + Space.sm,
+              previousTooltip: t.paPreviousServices,
+              nextTooltip: t.paNextServices,
+            ),
+          ],
         );
       },
     );

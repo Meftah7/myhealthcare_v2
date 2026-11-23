@@ -2358,6 +2358,8 @@
   "htDoctorIntro": "ابحث في دليل الأطباء المنشور بالاسم أو التخصص، ثم تحقق من التوافر المحدث قبل الحجز.",
   "htPreviousShortcuts": "الاختصارات السابقة",
   "htNextShortcuts": "الاختصارات التالية",
+  "paPreviousServices": "الخدمات السابقة",
+  "paNextServices": "الخدمات التالية",
   "htEmergencyTitle": "خدمات الطوارئ",
   "htDepartmentUnavailable": "تعذر تحميل عوامل تصفية الأقسام. لا يزال البحث بالاسم والتخصص متاحاً.",
   "splashLoadingLabel": "جارٍ تحميل myhealth",

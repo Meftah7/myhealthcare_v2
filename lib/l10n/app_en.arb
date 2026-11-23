@@ -2432,6 +2432,8 @@
   "htDoctorIntro": "Search the published clinician directory by name or specialty, then check fresh availability before booking.",
   "htPreviousShortcuts": "Previous shortcuts",
   "htNextShortcuts": "Next shortcuts",
+  "paPreviousServices": "Previous services",
+  "paNextServices": "Next services",
   "htEmergencyTitle": "Emergency Services",
   "htDepartmentUnavailable": "Department filters could not load. Name and specialty search still work.",
   "splashLoadingLabel": "Loading myhealth",

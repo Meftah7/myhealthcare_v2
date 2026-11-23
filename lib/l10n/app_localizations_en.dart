@@ -5657,6 +5657,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get htNextShortcuts => 'Next shortcuts';
 
   @override
+  String get paPreviousServices => 'Previous services';
+
+  @override
+  String get paNextServices => 'Next services';
+
+  @override
   String get htEmergencyTitle => 'Emergency Services';
 
   @override

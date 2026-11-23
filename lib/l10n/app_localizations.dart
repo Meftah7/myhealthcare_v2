@@ -10088,6 +10088,18 @@ abstract class AppLocalizations {
   /// **'Next shortcuts'**
   String get htNextShortcuts;
 
+  /// No description provided for @paPreviousServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous services'**
+  String get paPreviousServices;
+
+  /// No description provided for @paNextServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Next services'**
+  String get paNextServices;
+
   /// No description provided for @htEmergencyTitle.
   ///
   /// In en, this message translates to:

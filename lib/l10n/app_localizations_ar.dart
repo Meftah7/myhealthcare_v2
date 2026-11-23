@@ -5714,6 +5714,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get htNextShortcuts => 'الاختصارات التالية';
 
   @override
+  String get paPreviousServices => 'الخدمات السابقة';
+
+  @override
+  String get paNextServices => 'الخدمات التالية';
+
+  @override
   String get htEmergencyTitle => 'خدمات الطوارئ';
 
   @override

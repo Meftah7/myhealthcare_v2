@@ -9,6 +9,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/presentation/appointment_confirmation_overlay.dart';
+import '../core/presentation/pointer_input.dart';
 import '../domain/enums.dart';
 import '../features/auth/application/session.dart';
 import '../features/auth/presentation/onboarding_overlay.dart';
@@ -58,10 +59,14 @@ class MyHealthCareApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       routerConfig: ref.watch(routerProvider),
-      builder: (context, child) => _AppFrame(
-        textScale: ref.watch(textScaleProvider).factor,
-        motionPreference: ref.watch(motionPreferenceProvider),
-        child: child ?? const SizedBox.shrink(),
+      // PointerInput tells mouse/trackpad use apart from touch, for controls
+      // that only show with a pointer.
+      builder: (context, child) => PointerInput(
+        child: _AppFrame(
+          textScale: ref.watch(textScaleProvider).factor,
+          motionPreference: ref.watch(motionPreferenceProvider),
+          child: child ?? const SizedBox.shrink(),
+        ),
       ),
     );
   }
