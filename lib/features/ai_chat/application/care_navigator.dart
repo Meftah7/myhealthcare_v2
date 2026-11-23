@@ -633,8 +633,8 @@ final careNavigatorProvider =
     NotifierProvider<CareNavigator, CareNavigatorState>(CareNavigator.new);
 
 /// How the floating widget is showing:
-///  - [edge]  a slim tab tucked against the nearest side (dismissed)
-///  - [fab]   the round button, ready to open
+///  - [edge]  the mascot's head peeking in from the nearest side (docked)
+///  - [fab]   the round mascot button, ready to open
 ///  - [panel] the chat panel is open
 /// Kept out of [CareNavigator] so toggling it doesn't rebuild the conversation.
 enum CareNavView { edge, fab, panel }
@@ -644,15 +644,17 @@ final careNavigatorViewProvider = StateProvider<CareNavView>(
 );
 
 /// Where the patient has parked the floating button. [dx] / [dy] are fractions
-/// (0–1) of the free area — `dx` is which side it gravitates to, `dy` its
-/// height. Persisted per device so it stays where they put it.
+/// (0–1) of the free area (the safe area above the bottom navigation) — `dx`
+/// is which side it gravitates to, `dy` its height. The default is the
+/// lower-right corner, just above the bottom navigation. Persisted per device
+/// so it stays where they put it.
 class CareNavPlacement {
-  const CareNavPlacement({this.dx = 1, this.dy = 0.82});
+  const CareNavPlacement({this.dx = 1, this.dy = 1});
 
   final double dx;
   final double dy;
 
-  /// The button (and, once dismissed, the edge tab) sits on the right half.
+  /// The button (and, once docked, the head) sits on the right half.
   bool get onRight => dx >= 0.5;
 
   CareNavPlacement copyWith({double? dx, double? dy}) => CareNavPlacement(
@@ -676,7 +678,7 @@ class CareNavPlacementController extends Notifier<CareNavPlacement> {
     if (parts.length != 2) return const CareNavPlacement();
     return CareNavPlacement(
       dx: double.tryParse(parts[0]) ?? 1,
-      dy: double.tryParse(parts[1]) ?? 0.82,
+      dy: double.tryParse(parts[1]) ?? 1,
     );
   }
 

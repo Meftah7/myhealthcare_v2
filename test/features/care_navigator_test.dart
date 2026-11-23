@@ -1,5 +1,7 @@
 // The Care Navigator: emergency guard, offline navigation replies, and the
-// floating widget opening from the FAB.
+// floating mascot launcher — open, dock, restore and change sides.
+
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,11 +10,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/app.dart';
 import 'package:myhealthcare/core/app_environment.dart';
 import 'package:myhealthcare/core/di.dart';
+import 'package:myhealthcare/core/ui/patient/patient_bottom_navigation.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:myhealthcare/features/ai_chat/application/care_navigator.dart';
-import 'package:myhealthcare/features/ai_chat/presentation/care_navigator_overlay.dart';
 import 'package:myhealthcare/features/ai_chat/presentation/care_navigator_panel.dart';
 import 'package:myhealthcare/features/auth/application/session.dart';
+import 'package:myhealthcare/features/patient_home/presentation/patient_home_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/mfa.dart';
@@ -22,6 +25,80 @@ Future<void> _settle(WidgetTester tester) async {
   for (var i = 0; i < 20; i++) {
     await tester.pump(const Duration(milliseconds: 80));
   }
+}
+
+const _fab = ValueKey('care-nav-fab');
+const _dock = ValueKey('care-nav-dock');
+const _head = ValueKey('care-nav-head');
+const _fullBodyAsset =
+    'assets/images/full body, glowing teal eyes, both hands lowered';
+const _headLeftAsset = 'assets/images/just his head peeking in from the left';
+const _headRightAsset = 'assets/images/just his head peeking in from the right';
+
+/// The asset names of every image currently on screen.
+Set<String> _imageAssets(WidgetTester tester) => {
+  for (final image in tester.widgetList<Image>(find.byType(Image)))
+    if (image.image case ResizeImage(
+      imageProvider: AssetImage(:final assetName),
+    ))
+      assetName,
+};
+
+Size _viewSize(WidgetTester tester) =>
+    tester.view.physicalSize / tester.view.devicePixelRatio;
+
+/// Boots the app on a phone-sized view and signs the demo patient in through
+/// the UI.
+Future<ProviderContainer> _signIn(WidgetTester tester) async {
+  tester.view.physicalSize = const Size(390, 844);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+  final db = newTestDatabase();
+  await Seeder(db).run();
+  SharedPreferences.setMockInitialValues({'ui.hasSeenOnboarding': true});
+  final prefs = await SharedPreferences.getInstance();
+  final container = ProviderContainer(
+    overrides: [
+      sharedPreferencesProvider.overrideWithValue(prefs),
+      appDatabaseProvider.overrideWith((ref) {
+        ref.onDispose(db.close);
+        return db;
+      }),
+    ],
+  );
+  addTearDown(container.dispose);
+
+  await tester.pumpWidget(
+    UncontrolledProviderScope(
+      container: container,
+      child: const MyHealthCareApp(),
+    ),
+  );
+  await _settle(tester);
+
+  // Not shown on the sign-in screen.
+  expect(find.byKey(_fab), findsNothing);
+  expect(find.byType(CareNavigatorPanel), findsNothing);
+
+  await tester.enterText(
+    find.widgetWithText(TextFormField, 'Email'),
+    'patient3@myhealth.demo',
+  );
+  await tester.enterText(
+    find.widgetWithText(TextFormField, 'Password'),
+    Seeder.demoPassword,
+  );
+  await tester.ensureVisible(find.widgetWithText(FilledButton, 'Sign in'));
+  await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
+  await passMfa(tester);
+  await _settle(tester);
+  return container;
+}
+
+Future<void> _tearDownApp(WidgetTester tester) async {
+  await tester.pumpWidget(const SizedBox());
+  await tester.pump(const Duration(seconds: 1));
 }
 
 void main() {
@@ -141,153 +218,198 @@ void main() {
     },
   );
 
-  testWidgets('FAB opens the chat panel for a signed-in patient', (
-    tester,
-  ) async {
-    final db = newTestDatabase();
-    await Seeder(db).run();
-    SharedPreferences.setMockInitialValues({'ui.hasSeenOnboarding': true});
-    final prefs = await SharedPreferences.getInstance();
-    final container = ProviderContainer(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(prefs),
-        appDatabaseProvider.overrideWith((ref) {
-          ref.onDispose(db.close);
-          return db;
-        }),
-      ],
-    );
-    addTearDown(container.dispose);
-
-    await tester.pumpWidget(
-      UncontrolledProviderScope(
-        container: container,
-        child: const MyHealthCareApp(),
-      ),
-    );
-    await _settle(tester);
-
-    // Not shown on the sign-in screen.
-    expect(find.byType(CareNavigatorPanel), findsNothing);
-
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Email'),
-      'patient3@myhealth.demo',
-    );
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Password'),
-      Seeder.demoPassword,
-    );
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Sign in'));
-    await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
-    await passMfa(tester);
-    await _settle(tester);
-
-    // The FAB is now floating on Home.
-    expect(find.byIcon(Icons.smart_toy_outlined), findsWidgets);
-    await tester.tap(find.byIcon(Icons.smart_toy_outlined).first);
-    await _settle(tester);
-
-    expect(find.byType(CareNavigatorPanel), findsOneWidget);
-    expect(find.text('Care Navigator'), findsOneWidget);
-    expect(find.text('Offline guide · no live AI'), findsOneWidget);
-
-    // Ask something and get a navigation answer.
-    await tester.enterText(
-      find.widgetWithText(TextField, 'Ask about the app…'),
-      'how do I book an appointment',
-    );
-    await tester.pump();
-    await tester.tap(find.widgetWithIcon(IconButton, Icons.send));
-    await _settle(tester);
-    expect(find.textContaining('Appointments'), findsWidgets);
-
-    // Close the panel → back to the FAB.
-    await tester.tap(find.byIcon(Icons.close).first);
-    await _settle(tester);
-    expect(find.byType(CareNavigatorPanel), findsNothing);
-
-    // Dismiss the FAB with its "×" → it tucks to a right-edge tab.
-    expect(find.byType(CareNavigatorOverlay), findsOneWidget);
-    await tester.tap(find.byIcon(Icons.close).first);
-    await _settle(tester);
-    expect(find.byIcon(Icons.smart_toy_outlined), findsOneWidget); // the tab
-
-    // Tapping the edge tab brings the FAB back.
-    await tester.tap(find.byIcon(Icons.smart_toy_outlined));
-    await _settle(tester);
-    // FAB + its dismiss badge are both back.
-    expect(find.byIcon(Icons.close), findsWidgets);
-
-    await tester.pumpWidget(const SizedBox());
-    await tester.pump(const Duration(seconds: 1));
+  test('the three mascot images are bundled PNGs that decode', () async {
+    for (final asset in [_fullBodyAsset, _headLeftAsset, _headRightAsset]) {
+      final data = await rootBundle.load(asset);
+      final bytes = data.buffer.asUint8List();
+      // PNG signature.
+      expect(bytes.sublist(0, 8), [137, 80, 78, 71, 13, 10, 26, 10]);
+      final codec = await ui.instantiateImageCodec(bytes);
+      final frame = await codec.getNextFrame();
+      expect(frame.image.width, 1254, reason: asset);
+      expect(frame.image.height, 1254, reason: asset);
+      frame.image.dispose();
+      codec.dispose();
+    }
   });
 
-  testWidgets('the button can be dragged to the left and the tab follows', (
+  testWidgets(
+    'the mascot button opens chat; × docks it; the head restores it',
+    (tester) async {
+      final container = await _signIn(tester);
+      final view = _viewSize(tester);
+
+      // The floating mascot button sits in the lower-right, above the bottom
+      // navigation bar.
+      expect(find.byKey(_fab), findsOneWidget);
+      expect(find.byKey(_head), findsNothing);
+      final fabRect = tester.getRect(find.byKey(_fab));
+      expect(fabRect.size, const Size(56, 56));
+      expect(fabRect.center.dx, greaterThan(view.width / 2));
+      final nav = tester.getRect(find.byType(PatientBottomNavigation));
+      expect(fabRect.bottom, lessThan(nav.top), reason: 'clear of the nav');
+      expect(fabRect.bottom, greaterThan(nav.top - 60), reason: 'near it');
+      expect(_imageAssets(tester), {_fullBodyAsset});
+
+      // Accessible labels on the button and its ×.
+      expect(find.bySemanticsLabel('Open Care Navigator'), findsOneWidget);
+      expect(find.bySemanticsLabel('Hide Care Navigator'), findsOneWidget);
+      expect(tester.getSize(find.byKey(_dock)), const Size(48, 48));
+
+      await tester.tap(find.byKey(_fab));
+      await _settle(tester);
+
+      expect(find.byType(CareNavigatorPanel), findsOneWidget);
+      expect(find.text('Care Navigator'), findsOneWidget);
+      expect(find.text('Offline guide · no live AI'), findsOneWidget);
+
+      // Ask something and get a navigation answer.
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Ask about the app…'),
+        'how do I book an appointment',
+      );
+      await tester.pump();
+      await tester.tap(find.widgetWithIcon(IconButton, Icons.send));
+      await _settle(tester);
+      expect(find.textContaining('Appointments'), findsWidgets);
+      final messages = container.read(careNavigatorProvider).messages;
+      expect(messages.length, greaterThan(1));
+
+      // Close the panel → back to the button.
+      await tester.tap(find.byIcon(Icons.close).first);
+      await _settle(tester);
+      expect(find.byType(CareNavigatorPanel), findsNothing);
+      expect(find.byKey(_fab), findsOneWidget);
+
+      // × docks the mascot on its own (right) side: just the head, flush with
+      // the right edge, with no button behind it.
+      await tester.tap(find.byKey(_dock));
+      await _settle(tester);
+      expect(find.byKey(_fab), findsNothing);
+      expect(find.byKey(_head), findsOneWidget);
+      expect(tester.getRect(find.byKey(_head)).right, view.width);
+      expect(_imageAssets(tester), {_headRightAsset});
+      expect(find.bySemanticsLabel('Show Care Navigator'), findsOneWidget);
+
+      // Docking keeps the conversation.
+      expect(container.read(careNavigatorProvider).messages, same(messages));
+
+      // Tapping the head brings the button back on the right — it does not
+      // open the chat by itself.
+      await tester.tap(find.byKey(_head));
+      await _settle(tester);
+      expect(find.byKey(_head), findsNothing);
+      expect(find.byType(CareNavigatorPanel), findsNothing);
+      expect(
+        tester.getRect(find.byKey(_fab)).center.dx,
+        greaterThan(view.width / 2),
+      );
+
+      // …and a separate tap opens the same conversation.
+      await tester.tap(find.byKey(_fab));
+      await _settle(tester);
+      expect(find.byType(CareNavigatorPanel), findsOneWidget);
+      expect(container.read(careNavigatorProvider).messages, same(messages));
+
+      await _tearDownApp(tester);
+    },
+  );
+
+  testWidgets('the launcher changes sides by dragging, docked or floating', (
     tester,
   ) async {
-    final db = newTestDatabase();
-    await Seeder(db).run();
-    SharedPreferences.setMockInitialValues({'ui.hasSeenOnboarding': true});
-    final prefs = await SharedPreferences.getInstance();
-    final container = ProviderContainer(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(prefs),
-        appDatabaseProvider.overrideWith((ref) {
-          ref.onDispose(db.close);
-          return db;
-        }),
-      ],
-    );
-    addTearDown(container.dispose);
-
-    await tester.pumpWidget(
-      UncontrolledProviderScope(
-        container: container,
-        child: const MyHealthCareApp(),
-      ),
-    );
-    await _settle(tester);
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Email'),
-      'patient3@myhealth.demo',
-    );
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Password'),
-      Seeder.demoPassword,
-    );
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Sign in'));
-    await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
-    await passMfa(tester);
-    await _settle(tester);
+    final container = await _signIn(tester);
+    final prefs = container.read(sharedPreferencesProvider);
+    final view = _viewSize(tester);
 
     // Starts on the right.
     expect(container.read(careNavPlacementProvider).onRight, isTrue);
 
     // Drag the button across to the left half of the screen and release.
-    final fab = find.byIcon(Icons.smart_toy_outlined).first;
-    await tester.drag(fab, const Offset(-500, -120));
+    await tester.drag(find.byKey(_fab), const Offset(-500, -120));
     await _settle(tester);
 
-    final placement = container.read(careNavPlacementProvider);
-    expect(placement.onRight, isFalse, reason: 'snapped to the near side');
-    // Persisted.
+    expect(
+      container.read(careNavPlacementProvider).onRight,
+      isFalse,
+      reason: 'snapped to the near side',
+    );
     expect(prefs.getString('ui.careNav.placement'), isNotNull);
 
-    // Dismiss → the edge tab appears on the left now.
-    await tester.tap(find.byIcon(Icons.close).first);
+    // × → the head docks flush on the left edge, peeking right.
+    await tester.tap(find.byKey(_dock));
     await _settle(tester);
-    final tab = tester.getTopLeft(
-      find
-          .ancestor(
-            of: find.byIcon(Icons.smart_toy_outlined),
-            matching: find.byType(Material),
-          )
-          .first,
-    );
-    expect(tab.dx, lessThan(40), reason: 'tab is on the left edge');
+    expect(tester.getRect(find.byKey(_head)).left, 0);
+    expect(_imageAssets(tester), {_headLeftAsset});
 
-    await tester.pumpWidget(const SizedBox());
-    await tester.pump(const Duration(seconds: 1));
+    // Restoring from the left keeps the button on the left.
+    await tester.tap(find.byKey(_head));
+    await _settle(tester);
+    expect(
+      tester.getRect(find.byKey(_fab)).center.dx,
+      lessThan(view.width / 2),
+    );
+
+    // Dock again, then drag the head across: it snaps to the right edge and
+    // turns to peek in from there.
+    await tester.tap(find.byKey(_dock));
+    await _settle(tester);
+    await tester.drag(find.byKey(_head), Offset(view.width * 0.7, 0));
+    await _settle(tester);
+    expect(container.read(careNavPlacementProvider).onRight, isTrue);
+    expect(tester.getRect(find.byKey(_head)).right, view.width);
+    expect(_imageAssets(tester), {_headRightAsset});
+
+    // A short drag that doesn't cross the middle stays on the same side.
+    await tester.drag(find.byKey(_head), const Offset(-60, 0));
+    await _settle(tester);
+    expect(tester.getRect(find.byKey(_head)).right, view.width);
+
+    // Restoring from the right brings the button back on the right.
+    await tester.tap(find.byKey(_head));
+    await _settle(tester);
+    expect(
+      tester.getRect(find.byKey(_fab)).center.dx,
+      greaterThan(view.width / 2),
+    );
+
+    await _tearDownApp(tester);
+  });
+
+  testWidgets('taps away from the launcher reach the page beneath', (
+    tester,
+  ) async {
+    await _signIn(tester);
+
+    bool reaches(Offset point, Finder target) {
+      final hits = tester.hitTestOnBinding(point).path.map((e) => e.target);
+      final targets = target.evaluate().map((e) => e.renderObject).toSet();
+      return hits.any(targets.contains);
+    }
+
+    final home = find.byType(PatientHomeScreen);
+    final nav = find.byType(PatientBottomNavigation);
+    final fab = tester.getRect(find.byKey(_fab));
+    final dock = tester.getRect(find.byKey(_dock));
+
+    // The dashboard, the bottom navigation, and the empty corners of the
+    // button's box (outside the circle and the × target) all reach the page.
+    expect(reaches(tester.getCenter(home), home), isTrue);
+    expect(reaches(tester.getCenter(nav), nav), isTrue);
+    expect(reaches(fab.bottomLeft + const Offset(-20, 20), home), isTrue);
+    expect(reaches(fab.topLeft - const Offset(20, 20), home), isTrue);
+    // The launcher's own targets do not.
+    expect(reaches(fab.center, home), isFalse);
+    expect(reaches(dock.center, home), isFalse);
+
+    // Same once docked: only the head itself is a target.
+    await tester.tap(find.byKey(_dock));
+    await _settle(tester);
+    final head = tester.getRect(find.byKey(_head));
+    expect(reaches(head.center, home), isFalse);
+    expect(reaches(head.centerLeft + const Offset(-12, 0), home), isTrue);
+    expect(reaches(head.topCenter + const Offset(0, -12), home), isTrue);
+
+    await _tearDownApp(tester);
   });
 }
