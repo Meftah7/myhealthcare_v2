@@ -211,7 +211,7 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
                     onPressed: _busy
                         ? null
                         : () => context.push(
-                            AppRoutes.staffPatientChart(a.patientId),
+                            AppRoutes.staffConsultationChart(a.id, a.patientId),
                           ),
                     icon: const Icon(Icons.assignment_outlined),
                     label: Text(t.openChartAction),
@@ -223,7 +223,7 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
                     onPressed: _busy
                         ? null
                         : () => context.push(
-                            '${AppRoutes.staffPatients}/${Uri.encodeComponent(a.patientId)}/documents?appointmentId=${Uri.encodeQueryComponent(a.id)}',
+                            '${AppRoutes.staffConsultationChart(a.id, a.patientId)}/documents?appointmentId=${Uri.encodeQueryComponent(a.id)}',
                           ),
                     icon: const Icon(Icons.description_outlined),
                     label: Text(

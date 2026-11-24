@@ -215,6 +215,13 @@ abstract final class AppRoutes {
   /// The consultation page for one appointment — full-screen over the shell.
   static String staffConsultation(String appointmentId) =>
       '/staff/consultation/$appointmentId';
+
+  /// The patient's chart opened from a consultation — full-screen over it,
+  /// so Back returns to the visit.
+  static String staffConsultationChart(
+    String appointmentId,
+    String patientId,
+  ) => '${staffConsultation(appointmentId)}/chart/$patientId';
   static const staffNotifications = '/staff/dashboard/notifications';
   static const staffProfile = '/staff/profile';
   static const staffInbox = '/staff/dashboard/inbox';
@@ -376,6 +383,19 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
         builder: (_, state) => ConsultationScreen(
           appointmentId: state.pathParameters['appointmentId']!,
         ),
+        routes: [
+          GoRoute(
+            path: 'chart/:id',
+            builder: (_, state) => PatientChartScreen(
+              patientId: state.pathParameters['id']!,
+              routeBase: AppRoutes.staffConsultationChart(
+                state.pathParameters['appointmentId']!,
+                state.pathParameters['id']!,
+              ),
+            ),
+            routes: _chartPages(),
+          ),
+        ],
       ),
       // Operational pushes from the dashboard Quick actions — full-screen over
       // the shell, with the admin top bar.
@@ -866,6 +886,27 @@ class _ReturnHome extends StatelessWidget {
 // Staff
 // ---------------------------------------------------------------------------
 
+/// The pages under a patient's chart (`.../:id/...`), wherever the chart is.
+List<RouteBase> _chartPages() => [
+  GoRoute(
+    path: 'documents',
+    builder: (_, state) => DocumentWorkspaceScreen(
+      patientId: state.pathParameters['id']!,
+      appointmentId: state.uri.queryParameters['appointmentId'],
+    ),
+  ),
+  GoRoute(
+    path: 'summary',
+    builder: (_, state) =>
+        PatientSummaryScreen(patientId: state.pathParameters['id']!),
+  ),
+  GoRoute(
+    path: 'dental',
+    builder: (_, state) =>
+        DentalChartScreen(patientId: state.pathParameters['id']!),
+  ),
+];
+
 StatefulShellRoute _staffShell() {
   return StatefulShellRoute.indexedStack(
     builder: (context, state, navigationShell) {
@@ -968,27 +1009,7 @@ StatefulShellRoute _staffShell() {
                 path: ':id',
                 builder: (_, state) =>
                     PatientChartScreen(patientId: state.pathParameters['id']!),
-                routes: [
-                  GoRoute(
-                    path: 'documents',
-                    builder: (_, state) => DocumentWorkspaceScreen(
-                      patientId: state.pathParameters['id']!,
-                      appointmentId: state.uri.queryParameters['appointmentId'],
-                    ),
-                  ),
-                  GoRoute(
-                    path: 'summary',
-                    builder: (_, state) => PatientSummaryScreen(
-                      patientId: state.pathParameters['id']!,
-                    ),
-                  ),
-                  GoRoute(
-                    path: 'dental',
-                    builder: (_, state) => DentalChartScreen(
-                      patientId: state.pathParameters['id']!,
-                    ),
-                  ),
-                ],
+                routes: _chartPages(),
               ),
             ],
           ),

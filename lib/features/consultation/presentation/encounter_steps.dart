@@ -347,8 +347,9 @@ class EncounterSteps extends ConsumerWidget {
                       leading: Icon(
                         s.reviewed ? Icons.check_circle : Icons.rule,
                       ),
-                      onTap: () =>
-                          context.push(AppRoutes.staffPatientChart(patient)),
+                      onTap: () => context.push(
+                        AppRoutes.staffConsultationChart(visit, patient),
+                      ),
                       trailing: IconButton(
                         tooltip: workText(
                           context,
@@ -392,7 +393,7 @@ class EncounterSteps extends ConsumerWidget {
                         '${s.documents} ${workText(context, 'requests; issuance is separate', 'طلبات؛ الإصدار مستقل')}',
                       ),
                       onTap: () => context.push(
-                        '${AppRoutes.staffPatients}/$patient/documents?appointmentId=$visit',
+                        '${AppRoutes.staffConsultationChart(visit, patient)}/documents?appointmentId=$visit',
                       ),
                     ),
                   ],

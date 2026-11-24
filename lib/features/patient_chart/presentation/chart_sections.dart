@@ -81,8 +81,11 @@ class ChartSectionPicker extends ConsumerWidget {
 }
 
 class ChartSectionContent extends ConsumerWidget {
-  const ChartSectionContent(this.patient, {super.key});
+  const ChartSectionContent(this.patient, {this.routeBase, super.key});
   final String patient;
+
+  /// The chart's route; see [PatientChartScreen.routeBase].
+  final String? routeBase;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Reads the device database: no server data in shared mode.
@@ -95,8 +98,9 @@ class ChartSectionContent extends ConsumerWidget {
     final section = ref.watch(chartSectionProvider(patient));
     if (section == ChartSection.documents) {
       return OutlinedButton.icon(
-        onPressed: () =>
-            context.push('${AppRoutes.staffPatients}/$patient/documents'),
+        onPressed: () => context.push(
+          '${routeBase ?? AppRoutes.staffPatientChart(patient)}/documents',
+        ),
         icon: const Icon(Icons.description_outlined),
         label: Text(
           workText(context, 'Open document workspace', 'فتح مساحة الوثائق'),

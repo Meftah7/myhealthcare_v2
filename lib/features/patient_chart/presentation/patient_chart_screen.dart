@@ -33,10 +33,18 @@ class PatientChartScreen extends ConsumerWidget {
   const PatientChartScreen({
     required this.patientId,
     this.embedded = false,
+    this.routeBase,
     super.key,
   });
 
   final String patientId;
+
+  /// Where this chart lives; its documents, summary and dental pages are
+  /// pushed below it. Defaults to the Patients tab's chart. A consultation
+  /// opens the chart on its own full-screen route instead, because pushing
+  /// a page of the staff shell over the full-screen consultation (with the
+  /// shell already beneath it) would put the shell in the stack twice.
+  final String? routeBase;
 
   /// True when this chart is the detail pane of a list-detail layout rather
   /// than a pushed screen. The pane keeps its own toolbar — it names the
@@ -49,6 +57,7 @@ class PatientChartScreen extends ConsumerWidget {
     final t = AppLocalizations.of(context)!;
     final patient = ref.watch(chartPatientProvider(patientId));
     final section = ref.watch(chartSectionProvider(patientId));
+    final base = routeBase ?? AppRoutes.staffPatientChart(patientId);
     return AppScaffold(
       hero: !embedded,
       automaticallyImplyLeading: !embedded,
@@ -64,22 +73,19 @@ class PatientChartScreen extends ConsumerWidget {
                 ? 'مخطط الأسنان'
                 : 'Dental chart',
             icon: const Icon(Icons.grid_view_outlined),
-            onPressed: () =>
-                context.push('${AppRoutes.staffPatients}/$patientId/dental'),
+            onPressed: () => context.push('$base/dental'),
           ),
         IconButton(
           tooltip: Localizations.localeOf(context).languageCode == 'ar'
               ? 'الوثائق'
               : 'Documents',
           icon: const Icon(Icons.description_outlined),
-          onPressed: () =>
-              context.push('${AppRoutes.staffPatients}/$patientId/documents'),
+          onPressed: () => context.push('$base/documents'),
         ),
         IconButton(
           tooltip: t.aiSummaryTooltip,
           icon: const Icon(Icons.summarize_outlined),
-          onPressed: () =>
-              context.push(AppRoutes.staffPatientSummary(patientId)),
+          onPressed: () => context.push('$base/summary'),
         ),
       ],
       floatingActionButton: patient.hasValue
@@ -116,7 +122,7 @@ class PatientChartScreen extends ConsumerWidget {
                 ] else if (section == ChartSection.medicines)
                   _MedicationsCard(patientId: patientId)
                 else
-                  ChartSectionContent(patientId),
+                  ChartSectionContent(patientId, routeBase: base),
               ],
             ),
           ),
