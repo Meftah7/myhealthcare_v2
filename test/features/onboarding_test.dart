@@ -19,8 +19,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../support/mfa.dart';
 import '../support/test_database.dart';
 
-const _bookTitle = 'Book appointments with ease';
-const _recordsTitle = 'Your health records, in one place';
+const _bookTitle = 'Good care starts with a time that suits you.';
+const _recordsTitle = 'Your health records, in one place.';
 
 Future<void> _pumpPastSplash(WidgetTester tester) async {
   await tester.pump(kSplashDuration + const Duration(milliseconds: 100));

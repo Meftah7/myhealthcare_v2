@@ -1,12 +1,21 @@
 /// The intro carousel — shown once per device (stored independently of the
 /// session) to a signed-out visitor, as soon as the app is ready (storage open,
-/// session restored). Two pages: finding a doctor and booking, then records,
-/// documents and PDF report explanations. Skip / Get Started save completion
-/// and reveal the sign-in screen already routed underneath, so a protected
-/// deep link's `?from=` destination survives.
+/// session restored). Two pages: booking an appointment, then health records
+/// with the AI report explanation. Skip / Get started save completion and
+/// reveal the sign-in screen already routed underneath, so a protected deep
+/// link's `?from=` destination survives.
+///
+/// Designed phone-first (320 × 568): one centred column — header, artwork,
+/// text, page indicator and buttons — capped at [_maxContentWidth] on larger
+/// screens. Both pages share one artwork height, so the heading and the
+/// buttons stay put when paging. The height is what is left after the longer
+/// page's text at the reader's text size: a short screen shrinks the artwork
+/// first, and only when it would get too small (large accessibility text)
+/// does the page scroll, with the buttons always on screen below it.
 library;
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,18 +29,47 @@ import 'splash_overlay.dart';
 
 class _OnboardingPage {
   const _OnboardingPage({
-    required this.illustration,
+    required this.art,
     required this.title,
     required this.body,
   });
 
-  final _Illustration illustration;
+  /// The page's illustration asset, drawn whole with [BoxFit.contain] and
+  /// never mirrored.
+  final String art;
   final String title;
   final String body;
 }
 
-/// Readable content width on tablets and desktops.
-const double _maxContentWidth = 560;
+/// The column's width cap on tablets and desktops.
+const double _maxContentWidth = 480;
+
+/// Side padding of the text and buttons.
+const double _gutter = 20;
+
+/// Artwork height limits: it never grows past [_maxArt]; below [_minArt]
+/// the page scrolls instead of shrinking it further.
+const double _maxArt = 300;
+const double _minArt = 120;
+
+/// Space above the artwork and between it and the heading.
+const double _artTop = Space.xs;
+const double _artGap = Space.md;
+
+TextStyle _headingStyle(BuildContext context) =>
+    Theme.of(context).textTheme.headlineSmall!.copyWith(
+      fontSize: 24,
+      fontWeight: FontWeight.w700,
+      height: 1.25,
+      color: PatientPalette.of(context).text,
+    );
+
+TextStyle _bodyStyle(BuildContext context) =>
+    Theme.of(context).textTheme.bodyLarge!.copyWith(
+      fontSize: 16,
+      height: 1.5,
+      color: PatientPalette.of(context).textMuted,
+    );
 
 class OnboardingOverlay extends ConsumerStatefulWidget {
   const OnboardingOverlay({super.key});
@@ -56,8 +94,9 @@ class _OnboardingOverlayState extends ConsumerState<OnboardingOverlay> {
     unawaited(ref.read(hasSeenOnboardingProvider.notifier).markSeen());
   }
 
-  void _next() => unawaited(
-    _controller.nextPage(
+  void _go(int page) => unawaited(
+    _controller.animateToPage(
+      page,
       duration: Motion.reduced(context) ? Duration.zero : Motion.medium,
       curve: Motion.standard,
     ),
@@ -71,164 +110,114 @@ class _OnboardingOverlayState extends ConsumerState<OnboardingOverlay> {
     if (!ready || hasSeen || signedIn) return const SizedBox.shrink();
 
     final t = AppLocalizations.of(context)!;
-    final scheme = Theme.of(context).colorScheme;
-    final palette = PatientPalette.of(context);
     final pages = [
       _OnboardingPage(
-        illustration: const _Illustration(
-          center: _BookingArt(),
-          chips: [
-            (Icons.person_search_rounded, AlignmentDirectional(-.92, -.78)),
-            (Icons.calendar_month_rounded, AlignmentDirectional(.9, -.62)),
-            (Icons.schedule_rounded, AlignmentDirectional(.86, .74)),
-          ],
-        ),
+        art: 'assets/images/doctor-appointment-legs-uncrossed',
         title: t.paOnboardBookTitle,
         body: t.paOnboardBookBody,
       ),
       _OnboardingPage(
-        illustration: const _Illustration(
-          center: _RecordsArt(),
-          chips: [
-            (Icons.science_outlined, AlignmentDirectional(-.9, -.7)),
-            (Icons.medication_outlined, AlignmentDirectional(-.2, -.96)),
-            (Icons.picture_as_pdf_outlined, AlignmentDirectional(.6, -.9)),
-            (Icons.auto_awesome_rounded, AlignmentDirectional(.92, -.2)),
-          ],
-        ),
+        // The MyHealth AI character holding a report.
+        art: 'assets/images/explain-report-illustration.png',
         title: t.paOnboardRecordsTitle,
         body: t.paOnboardRecordsBody,
       ),
     ];
-    final last = _page == pages.length - 1;
 
     return DecoratedBox(
       decoration: BoxDecoration(
         gradient: AppColors.pageGradient(Theme.of(context).brightness),
       ),
       child: SafeArea(
-        child: Column(
-          children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(
-                Space.lg,
-                Space.xs,
-                Space.xs,
-                Space.xs,
-              ),
-              child: Row(
-                children: [
-                  // Expanded (not a bare child + Spacer) so the lockup's own
-                  // ellipsis gets a bounded width to shrink against on a
-                  // 360dp-wide phone.
-                  Expanded(child: AppBrandLockup()),
-                  _OnboardingThemeToggle(),
-                  _OnboardingLanguageToggle(),
-                ],
-              ),
-            ),
-            Expanded(
-              child: PageView(
-                controller: _controller,
-                onPageChanged: (i) => setState(() => _page = i),
-                children: [
-                  for (final page in pages) _OnboardingPageView(page: page),
-                ],
-              ),
-            ),
-            Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: _maxContentWidth),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    Space.lg,
-                    Space.sm,
-                    Space.lg,
-                    Space.lg,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+            child: Column(
+              children: [
+                const Padding(
+                  padding: EdgeInsetsDirectional.fromSTEB(
+                    _gutter,
+                    Space.xxs,
+                    Space.xxs,
+                    0,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                  child: Row(
                     children: [
-                      Semantics(
-                        container: true,
-                        label: t.onboardingProgress(_page + 1, pages.length),
-                        excludeSemantics: true,
-                        child: Row(
-                          children: [
-                            for (final (i, _) in pages.indexed)
-                              AnimatedContainer(
-                                duration: Motion.fast,
-                                margin: const EdgeInsetsDirectional.only(
-                                  end: Space.xxs + 2,
-                                ),
-                                width: i == _page ? 28 : 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  color: i == _page
-                                      ? palette.action
-                                      : scheme.outlineVariant,
-                                  borderRadius: Radii.pill,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: Space.lg),
-                      if (last)
-                        FilledButton(
-                          key: const ValueKey('onboarding-get-started'),
-                          onPressed: _finish,
-                          style: FilledButton.styleFrom(
-                            minimumSize: const Size.fromHeight(56),
-                          ),
-                          child: Text(t.onboardingGetStarted),
-                        )
-                      else
-                        Row(
-                          children: [
-                            Flexible(
-                              child: FilledButton(
-                                key: const ValueKey('onboarding-skip'),
-                                onPressed: _finish,
-                                style: FilledButton.styleFrom(
-                                  backgroundColor: palette.softAccent,
-                                  foregroundColor: palette.onSoftAccent,
-                                  minimumSize: const Size(112, 56),
-                                ),
-                                child: Text(t.onboardingSkip),
-                              ),
-                            ),
-                            const Spacer(),
-                            Semantics(
-                              button: true,
-                              label: t.nextLabel,
-                              excludeSemantics: true,
-                              onTap: _next,
-                              child: FilledButton(
-                                key: const ValueKey('onboarding-next'),
-                                onPressed: _next,
-                                style: FilledButton.styleFrom(
-                                  minimumSize: const Size(64, 56),
-                                  padding: EdgeInsets.zero,
-                                ),
-                                // arrow_forward mirrors itself in RTL.
-                                child: const Icon(
-                                  Icons.arrow_forward_rounded,
-                                  size: 28,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                      // Expanded (not a bare child + Spacer) so the
+                      // lockup's own ellipsis gets a bounded width to shrink
+                      // against on a narrow phone.
+                      Expanded(child: AppBrandLockup()),
+                      _OnboardingThemeToggle(),
+                      _OnboardingLanguageToggle(),
                     ],
                   ),
                 ),
-              ),
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, box) {
+                      final art = _artHeight(context, box, pages);
+                      return PageView(
+                        controller: _controller,
+                        onPageChanged: (i) => setState(() => _page = i),
+                        children: [
+                          for (final page in pages)
+                            _OnboardingPageView(page: page, artHeight: art),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+                _OnboardingNav(
+                  page: _page,
+                  count: pages.length,
+                  onSkip: _finish,
+                  onNext: () => _go(_page + 1),
+                  onBack: () => _go(_page - 1),
+                  onDone: _finish,
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
+  }
+
+  /// One artwork height for both pages: the space left once the longer
+  /// page's text is laid out at the reader's text size, within
+  /// [_minArt]–[_maxArt].
+  static double _artHeight(
+    BuildContext context,
+    BoxConstraints box,
+    List<_OnboardingPage> pages,
+  ) {
+    final width = box.maxWidth - 2 * _gutter;
+    final scaler = MediaQuery.textScalerOf(context);
+    final direction = Directionality.of(context);
+    double measure(String text, TextStyle style) {
+      final painter = TextPainter(
+        text: TextSpan(text: text, style: style),
+        textDirection: direction,
+        textScaler: scaler,
+      )..layout(maxWidth: width);
+      final h = painter.height;
+      painter.dispose();
+      return h;
+    }
+
+    final heading = _headingStyle(context);
+    final body = _bodyStyle(context);
+    var text = 0.0;
+    for (final p in pages) {
+      text = math.max(
+        text,
+        measure(p.title, heading) + Space.xs + measure(p.body, body),
+      );
+    }
+    // A few pixels of slack: laid-out text can round a little taller than
+    // its measurement.
+    final room = box.maxHeight - _artTop - _artGap - text - Space.sm - 8;
+    return room.clamp(_minArt, _maxArt);
   }
 }
 
@@ -332,209 +321,154 @@ class _IconCircle extends StatelessWidget {
   }
 }
 
+/// One page: the artwork centred in its area, then the heading and body
+/// aligned to the reading start. Scrolls only when the text alone needs more
+/// room than the screen has (large accessibility text).
 class _OnboardingPageView extends StatelessWidget {
-  const _OnboardingPageView({required this.page});
+  const _OnboardingPageView({required this.page, required this.artHeight});
 
   final _OnboardingPage page;
+  final double artHeight;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final palette = PatientPalette.of(context);
-    return LayoutBuilder(
-      builder: (context, c) {
-        // The art takes up to half the height but never squeezes the text:
-        // on a short screen or at large text sizes the page scrolls instead.
-        final artHeight = (c.maxHeight * .5).clamp(140.0, 340.0);
-        return SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: Space.lg),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: _maxContentWidth),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: Space.md),
-                  SizedBox(
-                    height: artHeight,
-                    width: double.infinity,
-                    child: ExcludeSemantics(child: page.illustration),
-                  ),
-                  const SizedBox(height: Space.xl),
-                  Text(
-                    page.title,
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: palette.text,
-                      height: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: Space.sm),
-                  Text(
-                    page.body,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: palette.textMuted,
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: Space.md),
-                ],
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: _gutter),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: _artTop),
+          SizedBox(
+            height: artHeight,
+            child: ExcludeSemantics(
+              // The whole picture, in its original orientation in both
+              // languages (images are never mirrored unless asked).
+              child: Image.asset(
+                page.art,
+                key: ValueKey('onboarding-art-${page.art}'),
+                fit: BoxFit.contain,
               ),
             ),
           ),
-        );
-      },
-    );
-  }
-}
-
-/// Original MyHealth artwork: a soft blue panel, a central motif and small
-/// floating icon tiles. Built from vectors so it follows the theme, mirrors
-/// in RTL and scales without assets.
-class _Illustration extends StatelessWidget {
-  const _Illustration({required this.center, required this.chips});
-
-  final Widget center;
-  final List<(IconData, AlignmentDirectional)> chips;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = PatientPalette.of(context);
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: palette.softAccent.withValues(alpha: .55),
-        borderRadius: Radii.cardLarge,
-      ),
-      child: LayoutBuilder(
-        builder: (context, c) {
-          final unit = c.biggest.shortestSide;
-          final chip = (unit * .2).clamp(36.0, 60.0);
-          return Stack(
-            children: [
-              Center(
-                child: SizedBox.square(dimension: unit * .72, child: center),
-              ),
-              for (final (icon, align) in chips)
-                Align(
-                  alignment: align,
-                  child: Container(
-                    width: chip,
-                    height: chip,
-                    decoration: BoxDecoration(
-                      color: palette.card,
-                      borderRadius: BorderRadius.circular(chip * .3),
-                      border: Border.all(color: palette.divider),
-                      boxShadow: Shadows.clay(Theme.of(context).colorScheme),
-                    ),
-                    child: Icon(icon, size: chip * .5, color: palette.action),
-                  ),
-                ),
-            ],
-          );
-        },
+          const SizedBox(height: _artGap),
+          Text(page.title, style: _headingStyle(context)),
+          const SizedBox(height: Space.xs),
+          Text(page.body, style: _bodyStyle(context)),
+          const SizedBox(height: Space.sm),
+        ],
       ),
     );
   }
 }
 
-/// A phone-like card listing appointment slots, one picked and confirmed.
-class _BookingArt extends StatelessWidget {
-  const _BookingArt();
+/// The page indicator and the buttons, always on screen below the page:
+/// "Skip" and "Next" on the first page, "Back" and "Get started" on the
+/// last. The row follows the reading direction, so in Arabic it — and its
+/// arrows — mirror.
+class _OnboardingNav extends StatelessWidget {
+  const _OnboardingNav({
+    required this.page,
+    required this.count,
+    required this.onSkip,
+    required this.onNext,
+    required this.onBack,
+    required this.onDone,
+  });
+
+  final int page;
+  final int count;
+  final VoidCallback onSkip;
+  final VoidCallback onNext;
+  final VoidCallback onBack;
+  final VoidCallback onDone;
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
     final palette = PatientPalette.of(context);
-    return LayoutBuilder(
-      builder: (context, c) {
-        final h = c.maxHeight;
-        final w = h * .62;
-        Widget slot({required bool picked}) => Container(
-          height: h * .11,
-          margin: EdgeInsets.only(top: h * .045),
-          padding: EdgeInsets.symmetric(horizontal: w * .08),
-          decoration: BoxDecoration(
-            color: picked ? palette.action : palette.softAccent,
-            borderRadius: BorderRadius.circular(h * .04),
-          ),
-          alignment: AlignmentDirectional.centerEnd,
-          child: picked
-              ? Icon(
-                  Icons.check_circle_rounded,
-                  color: palette.onAction,
-                  size: h * .075,
-                )
-              : null,
-        );
-        return Center(
-          child: Container(
-            width: w,
-            height: h,
-            padding: EdgeInsets.all(w * .1),
-            decoration: BoxDecoration(
-              color: palette.card,
-              borderRadius: BorderRadius.circular(h * .1),
-              border: Border.all(color: palette.divider, width: 2),
-              boxShadow: Shadows.clay(
-                Theme.of(context).colorScheme,
-                raised: true,
-              ),
-            ),
-            child: Column(
+    final last = page == count - 1;
+    const height = Size(0, 48);
+    final secondary = FilledButton.styleFrom(
+      backgroundColor: palette.softAccent,
+      foregroundColor: palette.onSoftAccent,
+      minimumSize: height,
+    );
+    final primary = FilledButton.styleFrom(minimumSize: height);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(_gutter, Space.xs, _gutter, Space.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Semantics(
+            container: true,
+            label: t.onboardingProgress(page + 1, count),
+            excludeSemantics: true,
+            child: Row(
               children: [
-                CircleAvatar(
-                  radius: h * .1,
-                  backgroundColor: palette.softAccent,
-                  child: Icon(
-                    Icons.medical_services_rounded,
-                    color: palette.action,
-                    size: h * .1,
+                for (var i = 0; i < count; i++)
+                  AnimatedContainer(
+                    duration: Motion.fast,
+                    margin: const EdgeInsetsDirectional.only(
+                      end: Space.xxs + 2,
+                    ),
+                    width: i == page ? 28 : 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: i == page ? palette.action : scheme.outlineVariant,
+                      borderRadius: Radii.pill,
+                    ),
                   ),
-                ),
-                slot(picked: false),
-                slot(picked: true),
-                slot(picked: false),
               ],
             ),
           ),
-        );
-      },
-    );
-  }
-}
-
-/// A records folder holding a document.
-class _RecordsArt extends StatelessWidget {
-  const _RecordsArt();
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = PatientPalette.of(context);
-    return LayoutBuilder(
-      builder: (context, c) {
-        final s = c.biggest.shortestSide;
-        return Stack(
-          alignment: Alignment.center,
-          children: [
-            Icon(Icons.folder_rounded, size: s, color: palette.action),
-            Padding(
-              padding: EdgeInsets.only(top: s * .12),
-              child: Container(
-                width: s * .34,
-                height: s * .34,
-                decoration: BoxDecoration(
-                  color: palette.card,
-                  shape: BoxShape.circle,
+          const SizedBox(height: Space.md),
+          // Side by side when they fit; stacked (still in reading order) when
+          // large text makes them too wide for the row.
+          OverflowBar(
+            alignment: MainAxisAlignment.spaceBetween,
+            spacing: Space.sm,
+            overflowSpacing: Space.xs,
+            overflowAlignment: OverflowBarAlignment.end,
+            children: [
+              if (!last)
+                FilledButton(
+                  key: const ValueKey('onboarding-skip'),
+                  onPressed: onSkip,
+                  style: secondary,
+                  child: Text(t.onboardingSkip),
+                )
+              else
+                FilledButton.icon(
+                  key: const ValueKey('onboarding-back'),
+                  onPressed: onBack,
+                  style: secondary,
+                  // arrow_back mirrors itself in RTL.
+                  icon: const Icon(Icons.arrow_back_rounded, size: 20),
+                  label: Text(t.backButton),
                 ),
-                child: Icon(
-                  Icons.description_rounded,
-                  size: s * .2,
-                  color: palette.action,
+              if (!last)
+                FilledButton.icon(
+                  key: const ValueKey('onboarding-next'),
+                  onPressed: onNext,
+                  style: primary,
+                  iconAlignment: IconAlignment.end,
+                  // arrow_forward mirrors itself in RTL.
+                  icon: const Icon(Icons.arrow_forward_rounded, size: 20),
+                  label: Text(t.nextLabel),
+                )
+              else
+                FilledButton(
+                  key: const ValueKey('onboarding-get-started'),
+                  onPressed: onDone,
+                  style: primary,
+                  child: Text(t.onboardingGetStarted),
                 ),
-              ),
-            ),
-          ],
-        );
-      },
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

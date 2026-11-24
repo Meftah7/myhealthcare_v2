@@ -5264,18 +5264,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paYesPlease => 'Yes, Please';
 
   @override
-  String get paOnboardBookTitle => 'Book appointments with ease';
+  String get paOnboardBookTitle =>
+      'Good care starts with a time that suits you.';
 
   @override
   String get paOnboardBookBody =>
-      'Find a doctor and book a suitable appointment in a few simple steps.';
+      'Choose a doctor and find an appointment that fits your day.';
 
   @override
-  String get paOnboardRecordsTitle => 'Your health records, in one place';
+  String get paOnboardRecordsTitle => 'Your health records, in one place.';
 
   @override
   String get paOnboardRecordsBody =>
-      'Access your available reports, prescriptions and visit history.';
+      'Find your reports, prescriptions and visit history. Use the AI assistant to get a plain-language explanation of a PDF report.';
 
   @override
   String get paChatLiveStatus => 'Live AI';

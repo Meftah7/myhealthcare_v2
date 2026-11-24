@@ -2152,7 +2152,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'المرضى والموظفون والإداريون يستخدمون نفس التطبيق، فيبقى الجميع على اطلاع.';
 
   @override
-  String get onboardingSkip => 'تخطي';
+  String get onboardingSkip => 'تخطَّ';
 
   @override
   String get onboardingGetStarted => 'ابدأ الآن';
@@ -5317,18 +5317,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get paYesPlease => 'نعم، من فضلك';
 
   @override
-  String get paOnboardBookTitle => 'احجز مواعيدك بسهولة';
+  String get paOnboardBookTitle => 'احجز موعدك في الوقت الذي يناسبك';
 
   @override
-  String get paOnboardBookBody =>
-      'اعثر على طبيب واحجز موعدًا مناسبًا في خطوات بسيطة.';
+  String get paOnboardBookBody => 'اختر طبيبك واحجز موعدًا يناسب يومك.';
 
   @override
   String get paOnboardRecordsTitle => 'سجلاتك الصحية في مكان واحد';
 
   @override
   String get paOnboardRecordsBody =>
-      'اطّلع على تقاريرك ووصفاتك الطبية وسجل زياراتك المتاحة.';
+      'اطّلع على تقاريرك ووصفاتك الطبية وسجل زياراتك. استخدم مساعد الذكاء الاصطناعي للحصول على شرح مبسّط لتقرير بصيغة PDF.';
 
   @override
   String get paChatLiveStatus => 'ذكاء اصطناعي مباشر';

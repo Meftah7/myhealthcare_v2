@@ -9371,25 +9371,25 @@ abstract class AppLocalizations {
   /// No description provided for @paOnboardBookTitle.
   ///
   /// In en, this message translates to:
-  /// **'Book appointments with ease'**
+  /// **'Good care starts with a time that suits you.'**
   String get paOnboardBookTitle;
 
   /// No description provided for @paOnboardBookBody.
   ///
   /// In en, this message translates to:
-  /// **'Find a doctor and book a suitable appointment in a few simple steps.'**
+  /// **'Choose a doctor and find an appointment that fits your day.'**
   String get paOnboardBookBody;
 
   /// No description provided for @paOnboardRecordsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Your health records, in one place'**
+  /// **'Your health records, in one place.'**
   String get paOnboardRecordsTitle;
 
   /// No description provided for @paOnboardRecordsBody.
   ///
   /// In en, this message translates to:
-  /// **'Access your available reports, prescriptions and visit history.'**
+  /// **'Find your reports, prescriptions and visit history. Use the AI assistant to get a plain-language explanation of a PDF report.'**
   String get paOnboardRecordsBody;
 
   /// No description provided for @paChatLiveStatus.
