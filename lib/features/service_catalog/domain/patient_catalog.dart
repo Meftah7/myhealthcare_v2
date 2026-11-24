@@ -79,6 +79,7 @@ class CatalogItem {
     this.scope = CatalogScope.core,
     this.status = CatalogStatus.available,
     this.illustration,
+    this.illustrationWidthFactor,
   });
 
   /// Stable id (tests and widget keys).
@@ -98,6 +99,11 @@ class CatalogItem {
   /// A transparent illustration asset shown on the item's service card in
   /// place of the large icon watermark, or null for the watermark.
   final String? illustration;
+
+  /// The share of the card's banner (from its end side) the [illustration]
+  /// may use, e.g. 0.6 for the right 60%. Null: everything past the icon
+  /// tile.
+  final double? illustrationWidthFactor;
 
   bool get isAvailable =>
       status == CatalogStatus.available && scope != CatalogScope.planned;
@@ -135,6 +141,7 @@ abstract final class PatientCatalog {
     description: (t) => t.paExplainReportDesc,
     icon: Icons.auto_awesome_outlined,
     action: CatalogActionKind.explainReport,
+    illustration: 'assets/images/explain-report-illustration.png',
   );
   static final medications = CatalogItem(
     id: 'medications',
@@ -179,7 +186,8 @@ abstract final class PatientCatalog {
     icon: Icons.calendar_month_outlined,
     action: CatalogActionKind.route,
     route: AppRoutes.patientBookLanding,
-    illustration: 'assets/images/doctor-with-gitra',
+    illustration: 'assets/images/book-appointment-illustration.png',
+    illustrationWidthFactor: 0.6,
   );
   static final visitedDoctors = CatalogItem(
     id: 'visited-doctors',
@@ -252,6 +260,7 @@ abstract final class PatientCatalog {
     action: CatalogActionKind.route,
     route: AppRoutes.patientHomeVisit,
     scope: CatalogScope.supplementary,
+    illustration: 'assets/images/home-visits-illustration.png',
   );
   static final billing = CatalogItem(
     id: 'billing',
@@ -337,6 +346,7 @@ abstract final class PatientCatalog {
     action: CatalogActionKind.route,
     route: '${AppRoutes.patientBookLanding}?mode=virtual',
     scope: CatalogScope.supplementary,
+    illustration: 'assets/images/virtual-care-illustration.png',
   );
 
   // --- planned: not built ---------------------------------------------------

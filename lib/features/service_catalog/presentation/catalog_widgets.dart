@@ -3,6 +3,7 @@
 library;
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -355,6 +356,10 @@ class ServicePromotionCard extends ConsumerWidget {
   /// Height of the coloured artwork band at the top of the card.
   static const double _bandHeight = 112;
 
+  /// The small icon tile in the band's top-start corner, and its inset.
+  static const double _tileSize = 40;
+  static const double _tileInset = Space.md;
+
   final CatalogItem item;
   final double? width;
 
@@ -389,22 +394,57 @@ class ServicePromotionCard extends ConsumerWidget {
               child: Stack(
                 children: [
                   if (item.illustration case final art?)
-                    // Standing on the band's bottom edge, a little in from
-                    // the end, a touch shorter than the band so the head is
-                    // never cut off; its own aspect ratio is kept.
+                    // The artwork region: from just past the icon tile to a
+                    // small inset from the end, down to the band's bottom
+                    // edge. A "Future work" badge takes its top and the
+                    // picture fills only the space below it, so the two
+                    // never overlap — even with large text. BoxFit.contain
+                    // keeps each picture's own proportions and lets a narrow
+                    // card shrink it rather than crowd the tile.
                     PositionedDirectional(
-                      key: ValueKey('service-illustration-${item.id}'),
+                      start: 0,
                       end: Space.sm,
+                      top: item.isFutureWork ? Space.sm : Space.xs,
                       bottom: 0,
-                      height: _bandHeight - Space.xs,
-                      child: Image.asset(
-                        art,
-                        fit: BoxFit.contain,
-                        alignment: Alignment.bottomCenter,
-                        excludeFromSemantics: true,
+                      child: LayoutBuilder(
+                        // Starts past the icon tile, or — when the item asks
+                        // for a share of the banner — at that share from the
+                        // end, whichever leaves the tile more room.
+                        builder: (context, box) => Padding(
+                          padding: EdgeInsetsDirectional.only(
+                            start: math.max(
+                              _tileInset + _tileSize + Space.sm,
+                              switch (item.illustrationWidthFactor) {
+                                final share? =>
+                                  (box.maxWidth + Space.sm) * (1 - share),
+                                null => 0.0,
+                              },
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              if (item.isFutureWork) ...[
+                                FutureWorkBadge(label: t.paFutureWork),
+                                const SizedBox(height: Space.xxs),
+                              ],
+                              Expanded(
+                                child: Image.asset(
+                                  art,
+                                  key: ValueKey(
+                                    'service-illustration-${item.id}',
+                                  ),
+                                  fit: BoxFit.contain,
+                                  alignment: AlignmentDirectional.bottomEnd,
+                                  excludeFromSemantics: true,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     )
-                  else
+                  else ...[
                     PositionedDirectional(
                       end: -12,
                       bottom: -18,
@@ -414,18 +454,19 @@ class ServicePromotionCard extends ConsumerWidget {
                         color: fg.withValues(alpha: .16),
                       ),
                     ),
-                  if (item.isFutureWork)
-                    PositionedDirectional(
-                      end: Space.sm,
-                      top: Space.sm,
-                      child: FutureWorkBadge(label: t.paFutureWork),
-                    ),
+                    if (item.isFutureWork)
+                      PositionedDirectional(
+                        end: Space.sm,
+                        top: Space.sm,
+                        child: FutureWorkBadge(label: t.paFutureWork),
+                      ),
+                  ],
                   PositionedDirectional(
-                    start: Space.md,
-                    top: Space.md,
+                    start: _tileInset,
+                    top: _tileInset,
                     child: Container(
-                      width: 40,
-                      height: 40,
+                      width: _tileSize,
+                      height: _tileSize,
                       decoration: BoxDecoration(
                         color: palette.card,
                         borderRadius: BorderRadius.circular(12),
