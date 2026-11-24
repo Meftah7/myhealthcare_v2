@@ -22,10 +22,12 @@ import 'task_cover.dart';
 
 class SickLeaveRepositoryImpl implements SickLeaveRepository {
   SickLeaveRepositoryImpl(this._db, {AccessPolicy? access})
-    : _access = access ?? AccessPolicy.unenforced(_db);
+    : _access = access ?? AccessPolicy.unenforced(_db),
+      _outbox = Outbox(_db);
 
   final AppDatabase _db;
   final AccessPolicy _access;
+  final Outbox _outbox;
 
   @override
   Future<Result<List<SickLeaveCertificate>>> forPatient(String patientId) {
@@ -33,7 +35,11 @@ class SickLeaveRepositoryImpl implements SickLeaveRepository {
       await _access.readPatient(patientId, entityType: 'sick_leave');
       final rows =
           await (_db.select(_db.sickLeaveCertificates)
-                ..where((c) => c.patientId.equals(patientId))
+                ..where(
+                  (c) =>
+                      c.patientId.equals(patientId) &
+                      c.status.equalsValue(SickLeaveStatus.approved),
+                )
                 ..orderBy([(c) => OrderingTerm.desc(c.issuedAt)]))
               .get();
       return rows.map((r) => r.toEntity()).toList();
@@ -50,7 +56,11 @@ class SickLeaveRepositoryImpl implements SickLeaveRepository {
       );
       final rows =
           await (_db.select(_db.sickLeaveCertificates)
-                ..where((c) => c.issuedByStaffId.equals(staffId))
+                ..where(
+                  (c) =>
+                      c.issuedByStaffId.equals(staffId) &
+                      c.status.equalsValue(SickLeaveStatus.approved),
+                )
                 ..orderBy([(c) => OrderingTerm.desc(c.issuedAt)]))
               .get();
       return rows.map((r) => r.toEntity()).toList();
@@ -64,6 +74,11 @@ class SickLeaveRepositoryImpl implements SickLeaveRepository {
         _db.sickLeaveCertificates,
       )..where((c) => c.id.equals(id))).getSingleOrNull();
       if (row == null) throw const NotFoundFailure('Certificate not found.');
+      // A request still waiting (or rejected) is staff business, never the
+      // patient's.
+      if (row.status != SickLeaveStatus.approved) {
+        await _access.requireStaffOrAdmin(entityType: 'sick_leave');
+      }
       await _access.readPatient(
         row.patientId,
         entityType: 'sick_leave',
@@ -74,7 +89,32 @@ class SickLeaveRepositoryImpl implements SickLeaveRepository {
   }
 
   @override
-  Future<Result<SickLeaveCertificate>> issue(NewSickLeave c) {
+  Future<Result<List<SickLeaveCertificate>>> forAppointment(
+    String appointmentId,
+  ) {
+    return Result.guardAsync(() async {
+      await _access.requireStaffOrAdmin(entityType: 'sick_leave');
+      final appointment = await (_db.select(
+        _db.appointments,
+      )..where((a) => a.id.equals(appointmentId))).getSingleOrNull();
+      if (appointment == null) {
+        throw const NotFoundFailure('Appointment not found.');
+      }
+      await _access.readPatient(
+        appointment.patientId,
+        entityType: 'sick_leave',
+      );
+      final rows =
+          await (_db.select(_db.sickLeaveCertificates)
+                ..where((c) => c.appointmentId.equals(appointmentId))
+                ..orderBy([(c) => OrderingTerm.desc(c.issuedAt)]))
+              .get();
+      return rows.map((r) => r.toEntity()).toList();
+    });
+  }
+
+  @override
+  Future<Result<SickLeaveCertificate>> request(NewSickLeave c) {
     return Result.guardAsync(() async {
       await _access.clinicalWrite(
         staffId: c.issuedByStaffId,
@@ -101,14 +141,118 @@ class SickLeaveRepositoryImpl implements SickLeaveRepository {
               toDate: _dateOnly(c.toDate),
               appointmentId: Value(c.appointmentId),
               notes: Value(c.notes?.trim()),
+              status: const Value(SickLeaveStatus.requested),
             ),
           );
-      final row = await (_db.select(
-        _db.sickLeaveCertificates,
-      )..where((r) => r.id.equals(id))).getSingle();
-      return row.toEntity();
+      return _row(id);
     });
   }
+
+  @override
+  Future<Result<List<SickLeaveCertificate>>> requests({
+    SickLeaveStatus status = SickLeaveStatus.requested,
+  }) {
+    return Result.guardAsync(() async {
+      await _access.require(
+        Permission.decideSickLeave,
+        entityType: 'sick_leave',
+      );
+      final rows =
+          await (_db.select(_db.sickLeaveCertificates)
+                ..where((c) => c.status.equalsValue(status))
+                ..orderBy([(c) => OrderingTerm.asc(c.issuedAt)]))
+              .get();
+      return rows.map((r) => r.toEntity()).toList();
+    });
+  }
+
+  @override
+  Future<Result<SickLeaveCertificate>> approve(String id) => _decide(
+    id,
+    approve: true,
+    notify: (row) => NewNotification(
+      recipientId: row.patientId,
+      category: NotificationCategory.system,
+      title: 'Your sick leave is ready',
+      body:
+          'Your sick leave from ${_day(row.fromDate)} to '
+          '${_day(row.toDate)} has been approved. You can find it in your '
+          'health records.',
+    ),
+  );
+
+  @override
+  Future<Result<SickLeaveCertificate>> reject(
+    String id, {
+    required String reason,
+  }) {
+    if (reason.trim().isEmpty) {
+      return Future.value(
+        const Err(ValidationFailure('Give a reason for rejecting it.')),
+      );
+    }
+    return _decide(
+      id,
+      approve: false,
+      reason: reason.trim(),
+      notify: (row) => NewNotification(
+        recipientId: row.issuedByStaffId,
+        category: NotificationCategory.system,
+        title: 'Sick leave request not approved',
+        body: reason.trim(),
+      ),
+    );
+  }
+
+  Future<Result<SickLeaveCertificate>> _decide(
+    String id, {
+    required bool approve,
+    required NewNotification Function(SickLeaveRow row) notify,
+    String? reason,
+  }) {
+    return Result.guardAsync(() async {
+      final reviewer = await _access.require(
+        Permission.decideSickLeave,
+        entityType: 'sick_leave',
+        entityId: id,
+      );
+      await _db.transaction(() async {
+        final row = await (_db.select(
+          _db.sickLeaveCertificates,
+        )..where((c) => c.id.equals(id))).getSingleOrNull();
+        if (row == null) throw const NotFoundFailure('Request not found.');
+        if (row.status != SickLeaveStatus.requested) {
+          throw const ConflictFailure('This request has already been decided.');
+        }
+        final now = DateTime.now();
+        await (_db.update(
+          _db.sickLeaveCertificates,
+        )..where((c) => c.id.equals(id))).write(
+          SickLeaveCertificatesCompanion(
+            status: Value(
+              approve ? SickLeaveStatus.approved : SickLeaveStatus.rejected,
+            ),
+            reviewedBy: Value(reviewer?.accountId),
+            reviewedAt: Value(now),
+            // Approval is when the certificate is issued.
+            issuedAt: approve ? Value(now) : const Value.absent(),
+            decisionNote: Value(reason),
+          ),
+        );
+        // Delivered only if the decision commits.
+        await _outbox.enqueueNotification(notify(row));
+      });
+      return _row(id);
+    });
+  }
+
+  Future<SickLeaveCertificate> _row(String id) async => (await (_db.select(
+    _db.sickLeaveCertificates,
+  )..where((c) => c.id.equals(id))).getSingle()).toEntity();
+
+  static String _day(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}/'
+      '${d.month.toString().padLeft(2, '0')}/${d.year}';
 
   static DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 }

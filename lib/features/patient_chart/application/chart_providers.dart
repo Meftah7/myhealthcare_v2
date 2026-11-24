@@ -235,7 +235,9 @@ class ChartActions {
         .firstOrNull;
     final result = await _ref
         .read(sickLeaveRepositoryProvider)
-        .issue(
+        // A request: an administrator approves it before it becomes the
+        // patient's certificate.
+        .request(
           NewSickLeave(
             patientId: _patientId,
             issuedByStaffId: _authorId,
@@ -250,7 +252,7 @@ class ChartActions {
       await _ref
           .read(auditRepositoryProvider)
           .record(
-            action: 'sick_leave.issue',
+            action: 'sick_leave.request',
             entityType: 'sick_leave_certificate',
             entityId: result.valueOrNull!.id,
             actorUserId: _authorId,

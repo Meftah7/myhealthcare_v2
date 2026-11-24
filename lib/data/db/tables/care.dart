@@ -28,7 +28,20 @@ class SickLeaveCertificates extends Table {
   DateTimeColumn get fromDate => dateTime()();
   DateTimeColumn get toDate => dateTime()();
   TextColumn get notes => text().nullable()();
+
+  /// When it was requested, then — on approval — when it was issued.
   DateTimeColumn get issuedAt => dateTime().withDefault(currentDateAndTime)();
+
+  /// Requested by the doctor, then approved or rejected by an administrator.
+  /// Defaults to approved so certificates from before the approval step
+  /// stay valid.
+  TextColumn get status =>
+      textEnum<SickLeaveStatus>().withDefault(const Constant('approved'))();
+  TextColumn get reviewedBy => text().nullable().references(Users, #id)();
+  DateTimeColumn get reviewedAt => dateTime().nullable()();
+
+  /// The administrator's reason when rejecting.
+  TextColumn get decisionNote => text().nullable()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};

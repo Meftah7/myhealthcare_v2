@@ -227,7 +227,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get validEmailRequired => 'Enter a valid email';
 
   @override
-  String get passwordMinLength => 'At least 6 characters';
+  String get passwordMinLength => 'At least 8 characters';
+
+  @override
+  String get phoneNumberRequired =>
+      'Enter a phone number with at least 8 digits.';
+
+  @override
+  String get nationalIdRequired => 'Enter your National ID.';
+
+  @override
+  String get emailAlreadyRegistered =>
+      'An account with this email already exists. Sign in instead.';
+
+  @override
+  String get nationalIdAlreadyRegistered =>
+      'An account with this National ID already exists.';
 
   @override
   String get phoneOptional => 'Phone (optional)';
@@ -2376,7 +2391,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get labResultFallbackTitle => 'Lab result';
 
   @override
-  String get issueSickLeaveAction => 'Issue sick leave';
+  String get issueSickLeaveAction => 'Request sick leave';
 
   @override
   String get titleLabel => 'Title';
@@ -2440,7 +2455,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notesOptionalLabel => 'Notes (optional)';
 
   @override
-  String get certificateIssued => 'Certificate issued.';
+  String get certificateIssued => 'Sent to the admin for approval.';
 
   @override
   String daysCountPlain(int days) {
@@ -2533,6 +2548,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get patientCalledSnackbar => 'Patient called.';
+
+  @override
+  String get callPatientAgainAction => 'Call again';
+
+  @override
+  String patientCalledAtNote(String time) {
+    return 'Patient called at $time.';
+  }
+
+  @override
+  String patientCalledTimesNote(int count, String time) {
+    return 'Patient called $count times · last at $time.';
+  }
 
   @override
   String get patientArrivedAction => 'Patient arrived';
@@ -5865,4 +5893,77 @@ class AppLocalizationsEn extends AppLocalizations {
   String encPatientRef(String id) {
     return 'ID $id';
   }
+
+  @override
+  String get doctorsNotesHeader => 'Doctor\'s notes';
+
+  @override
+  String get doseLabel => 'Dose';
+
+  @override
+  String get frequencyLabel => 'Frequency';
+
+  @override
+  String get quantityLabel => 'Quantity';
+
+  @override
+  String get enterPositiveWholeNumber => 'Enter a positive whole number';
+
+  @override
+  String get sickLeaveHeader => 'Sick leave';
+
+  @override
+  String sickLeaveAwaitingApproval(int days) {
+    return '$days days requested · waiting for admin approval';
+  }
+
+  @override
+  String sickLeaveApprovedNote(String from, String to) {
+    return 'Approved · $from – $to';
+  }
+
+  @override
+  String sickLeaveRejectedNote(String reason) {
+    return 'Not approved: $reason';
+  }
+
+  @override
+  String get sickLeaveRequestsTitle => 'Sick leave requests';
+
+  @override
+  String get sickLeaveRequestsAction => 'Sick leave';
+
+  @override
+  String sickLeaveRequestsActionWithCount(int count) {
+    return 'Sick leave ($count)';
+  }
+
+  @override
+  String get noSickLeaveRequests => 'No sick leave requests are waiting.';
+
+  @override
+  String sickLeaveRequestedBy(String name) {
+    return 'Requested by $name';
+  }
+
+  @override
+  String sickLeaveDates(String from, String to, int days) {
+    return '$from – $to · $days days';
+  }
+
+  @override
+  String get approveAction => 'Approve';
+
+  @override
+  String get sickLeaveApprovedSnackbar =>
+      'Approved. The patient has been told.';
+
+  @override
+  String get sickLeaveRejectedSnackbar => 'Rejected. The doctor has been told.';
+
+  @override
+  String get rejectSickLeaveTitle => 'Reject this sick leave?';
+
+  @override
+  String get rejectReasonHint => 'Why isn\'t it approved?';
 }

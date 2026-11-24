@@ -225,7 +225,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get validEmailRequired => 'أدخل بريداً إلكترونياً صحيحاً';
 
   @override
-  String get passwordMinLength => '6 أحرف على الأقل';
+  String get passwordMinLength => '8 أحرف على الأقل';
+
+  @override
+  String get phoneNumberRequired => 'أدخل رقم هاتف من 8 أرقام على الأقل.';
+
+  @override
+  String get nationalIdRequired => 'أدخل الرقم الوطني.';
+
+  @override
+  String get emailAlreadyRegistered =>
+      'يوجد حساب بهذا البريد الإلكتروني. سجّل الدخول بدلاً من ذلك.';
+
+  @override
+  String get nationalIdAlreadyRegistered => 'يوجد حساب بهذا الرقم الوطني.';
 
   @override
   String get phoneOptional => 'رقم الهاتف (اختياري)';
@@ -2402,7 +2415,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get labResultFallbackTitle => 'نتيجة مختبر';
 
   @override
-  String get issueSickLeaveAction => 'إصدار إجازة مرضية';
+  String get issueSickLeaveAction => 'طلب إجازة مرضية';
 
   @override
   String get titleLabel => 'العنوان';
@@ -2466,7 +2479,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notesOptionalLabel => 'ملاحظات (اختياري)';
 
   @override
-  String get certificateIssued => 'تم إصدار الشهادة.';
+  String get certificateIssued => 'أُرسل الطلب إلى الإدارة للموافقة.';
 
   @override
   String daysCountPlain(int days) {
@@ -2563,6 +2576,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get patientCalledSnackbar => 'تم استدعاء المريض.';
+
+  @override
+  String get callPatientAgainAction => 'استدعاء مرة أخرى';
+
+  @override
+  String patientCalledAtNote(String time) {
+    return 'تم استدعاء المريض الساعة $time.';
+  }
+
+  @override
+  String patientCalledTimesNote(int count, String time) {
+    return 'عدد مرات استدعاء المريض: $count · آخرها الساعة $time.';
+  }
 
   @override
   String get patientArrivedAction => 'وصل المريض';
@@ -5916,4 +5942,76 @@ class AppLocalizationsAr extends AppLocalizations {
   String encPatientRef(String id) {
     return 'الرقم $id';
   }
+
+  @override
+  String get doctorsNotesHeader => 'ملاحظات الطبيب';
+
+  @override
+  String get doseLabel => 'الجرعة';
+
+  @override
+  String get frequencyLabel => 'عدد المرات';
+
+  @override
+  String get quantityLabel => 'الكمية';
+
+  @override
+  String get enterPositiveWholeNumber => 'أدخل عدداً صحيحاً موجباً';
+
+  @override
+  String get sickLeaveHeader => 'الإجازة المرضية';
+
+  @override
+  String sickLeaveAwaitingApproval(int days) {
+    return 'طُلبت $days أيام · بانتظار موافقة الإدارة';
+  }
+
+  @override
+  String sickLeaveApprovedNote(String from, String to) {
+    return 'تمت الموافقة · $from – $to';
+  }
+
+  @override
+  String sickLeaveRejectedNote(String reason) {
+    return 'لم تتم الموافقة: $reason';
+  }
+
+  @override
+  String get sickLeaveRequestsTitle => 'طلبات الإجازة المرضية';
+
+  @override
+  String get sickLeaveRequestsAction => 'الإجازات المرضية';
+
+  @override
+  String sickLeaveRequestsActionWithCount(int count) {
+    return 'الإجازات المرضية ($count)';
+  }
+
+  @override
+  String get noSickLeaveRequests => 'لا توجد طلبات إجازة مرضية بانتظار القرار.';
+
+  @override
+  String sickLeaveRequestedBy(String name) {
+    return 'طلبها $name';
+  }
+
+  @override
+  String sickLeaveDates(String from, String to, int days) {
+    return '$from – $to · $days أيام';
+  }
+
+  @override
+  String get approveAction => 'موافقة';
+
+  @override
+  String get sickLeaveApprovedSnackbar => 'تمت الموافقة وأُبلغ المريض.';
+
+  @override
+  String get sickLeaveRejectedSnackbar => 'تم الرفض وأُبلغ الطبيب.';
+
+  @override
+  String get rejectSickLeaveTitle => 'رفض هذه الإجازة المرضية؟';
+
+  @override
+  String get rejectReasonHint => 'لماذا لم تتم الموافقة؟';
 }

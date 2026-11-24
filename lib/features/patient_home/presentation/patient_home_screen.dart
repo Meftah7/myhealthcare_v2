@@ -95,13 +95,7 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
         const SizedBox(height: Space.md),
         const _HeroCard(),
 
-        // 4. Quick tools.
-        const SizedBox(height: Space.lg),
-        QuickToolsPager(
-          pages: [PatientCatalog.quickTools, PatientCatalog.moreTools],
-        ),
-
-        // 5. Services.
+        // 4. Services.
         SectionHeading(
           t.paServices,
           actionLabel: t.paViewAll,
@@ -109,7 +103,13 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
         ),
         ServiceCarousel(items: PatientCatalog.promotions),
 
-        // 6. Quick Access — directly below the Services carousel.
+        // 5. Quick tools.
+        const SizedBox(height: Space.lg),
+        QuickToolsPager(
+          pages: [PatientCatalog.quickTools, PatientCatalog.moreTools],
+        ),
+
+        // 6. Quick Access.
         const SizedBox(height: Space.sm),
         const QuickAccessSection(),
       ],

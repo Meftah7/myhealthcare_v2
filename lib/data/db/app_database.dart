@@ -211,7 +211,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 35;
+  int get schemaVersion => 36;
 
   /// Preserve legacy flag/task IDs by aliasing only sources known when the
   /// old flag was last detected. Later readings/reports get their own work.
@@ -1056,6 +1056,30 @@ class AppDatabase extends _$AppDatabase {
         await _createTableIfMissing(m, staffConversationMembers);
         await _createTableIfMissing(m, staffMessages);
         await _createTableIfMissing(m, medicationClarifications);
+      }
+      if (from < 36) {
+        // Sick leave is requested by the doctor and approved by an admin;
+        // existing certificates default to approved.
+        await _addColumnIfMissing(
+          m,
+          sickLeaveCertificates,
+          sickLeaveCertificates.status,
+        );
+        await _addColumnIfMissing(
+          m,
+          sickLeaveCertificates,
+          sickLeaveCertificates.reviewedBy,
+        );
+        await _addColumnIfMissing(
+          m,
+          sickLeaveCertificates,
+          sickLeaveCertificates.reviewedAt,
+        );
+        await _addColumnIfMissing(
+          m,
+          sickLeaveCertificates,
+          sickLeaveCertificates.decisionNote,
+        );
       }
       if (from < 33) {
         await _addColumnIfMissing(

@@ -89,6 +89,16 @@ final pendingReferralRequestCountProvider = Provider<int>((ref) {
   return ref.watch(pendingReferralRequestsProvider).valueOrNull?.length ?? 0;
 });
 
+/// Sick leave doctors have requested, waiting for an administrator.
+final pendingSickLeaveRequestsProvider =
+    FutureProvider<List<SickLeaveCertificate>>((ref) async {
+      return _unwrap(await ref.watch(sickLeaveRepositoryProvider).requests());
+    });
+
+final pendingSickLeaveRequestCountProvider = Provider<int>((ref) {
+  return ref.watch(pendingSickLeaveRequestsProvider).valueOrNull?.length ?? 0;
+});
+
 /// requesting staff id → display name, for the referral-request queue rows.
 final referralRequesterNamesProvider = FutureProvider<Map<String, String>>((
   ref,

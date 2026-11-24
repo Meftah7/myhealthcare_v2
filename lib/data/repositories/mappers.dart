@@ -388,6 +388,9 @@ extension SickLeaveRowX on SickLeaveRow {
     issuedAt: issuedAt,
     appointmentId: appointmentId,
     notes: notes,
+    status: status,
+    reviewedAt: reviewedAt,
+    decisionNote: decisionNote,
   );
 }
 

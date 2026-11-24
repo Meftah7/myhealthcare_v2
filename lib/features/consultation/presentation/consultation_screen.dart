@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/failures.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/app_scaffold.dart';
@@ -26,6 +27,8 @@ import '../../../domain/enums.dart';
 import '../../../domain/identity/permissions.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
+import '../../patient_chart/presentation/chart_write_sheets.dart';
+import '../../staff_dashboard/application/staff_providers.dart';
 import '../application/consultation_providers.dart';
 import 'encounter_context.dart';
 import 'encounter_steps.dart';
@@ -41,7 +44,6 @@ class ConsultationScreen extends ConsumerStatefulWidget {
 
 class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
   final _note = TextEditingController();
-  final _outcome = TextEditingController();
   bool _busy = false;
   bool _seeded = false;
 
@@ -85,7 +87,6 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
     _note
       ..removeListener(_flushNote)
       ..dispose();
-    _outcome.dispose();
     super.dispose();
   }
 
@@ -202,11 +203,22 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
                   data: (p) => _PatientHeader(patient: p, appointment: a),
                 ),
                 const SizedBox(height: Space.md),
-                if (a.status == AppointmentStatus.inProgress ||
-                    a.status == AppointmentStatus.completed)
+                // During the visit: the patient's chart (their history) is
+                // one tap away.
+                if (a.status == AppointmentStatus.inProgress)
+                  OutlinedButton.icon(
+                    key: const ValueKey('consultation-open-chart'),
+                    onPressed: _busy
+                        ? null
+                        : () => context.push(
+                            AppRoutes.staffPatientChart(a.patientId),
+                          ),
+                    icon: const Icon(Icons.assignment_outlined),
+                    label: Text(t.openChartAction),
+                  ),
+                if (a.status == AppointmentStatus.completed)
                   EncounterSteps(visit: a.id, patient: a.patientId),
-                if (a.status == AppointmentStatus.inProgress ||
-                    a.status == AppointmentStatus.completed)
+                if (a.status == AppointmentStatus.completed)
                   OutlinedButton.icon(
                     onPressed: _busy
                         ? null
@@ -246,13 +258,14 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
     final saveState = ref.watch(consultationDraftSaveStateProvider(_id));
     final referral = ref.watch(consultationReferralProvider(_id));
     final canSign = ref.watch(canProvider(Permission.signEncounter));
+    final canCertify = ref.watch(canProvider(Permission.issueSickLeave));
 
     return [
       Align(
         alignment: AlignmentDirectional.centerStart,
         child: EncounterStageBadge(appointmentId: _id),
       ),
-      SectionHeader(t.clinicalNoteHeader, overline: true, first: true),
+      SectionHeader(t.doctorsNotesHeader, overline: true, first: true),
       TextField(
         controller: _note,
         minLines: 4,
@@ -268,17 +281,6 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
         restoreFailed: _restoreFailed,
         onRetry: () => unawaited(_persist()),
         onReload: () => unawaited(_restoreDraft()),
-      ),
-      const SizedBox(height: Space.xs),
-      Align(
-        alignment: AlignmentDirectional.centerStart,
-        child: TextButton.icon(
-          onPressed: () => context.push(
-            '${AppRoutes.staffScribe}?patient=${a.patientId}&appointment=$_id',
-          ),
-          icon: const Icon(Icons.auto_awesome, size: 18),
-          label: Text(t.openAiScribeAction),
-        ),
       ),
 
       SectionHeader(t.quickActionMedications, overline: true),
@@ -351,15 +353,12 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
         orElse: () => const LoadingSkeleton(height: 40),
       ),
 
+      if (canCertify) ...[
+        SectionHeader(t.sickLeaveHeader, overline: true),
+        _SickLeaveSection(appointment: a, busy: _busy),
+      ],
+
       const SizedBox(height: Space.lg),
-      TextField(
-        controller: _outcome,
-        decoration: InputDecoration(
-          labelText: t.visitSummaryOptionalLabel,
-          hintText: t.visitSummaryHint,
-        ),
-      ),
-      const SizedBox(height: Space.md),
       if (!canSign)
         InlineBanner.info(t.signingRequiresDoctor)
       else
@@ -455,12 +454,7 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
       () async {
         final r = await ref
             .read(consultationControllerProvider(_id))
-            .complete(
-              _draft,
-              outcomeNote: _outcome.text.trim().isEmpty
-                  ? null
-                  : _outcome.text.trim(),
-            );
+            .complete(_draft);
         if (r.isOk) ref.read(activeEncounterProvider.notifier).state = null;
         return r;
       },
@@ -659,39 +653,56 @@ class _PreVisitActions extends ConsumerWidget {
     final ramp = theme.clinicalStatus;
     final controller = ref.read(consultationControllerProvider(appointment.id));
 
+    // The doctor can page the patient as often as needed until they arrive
+    // or are marked not shown. Presses are counted in the same session log
+    // the schedule card uses, so both show "called ×N"; the database keeps
+    // the latest call time.
+    final calls = ref.watch(scheduleCallLogProvider)[appointment.id];
+    final callCount = calls?.count ?? (appointment.wasCalledIn ? 1 : 0);
+    final lastCall = calls?.at ?? appointment.calledInAt;
+    Future<Result<void>> callPatient() async {
+      final r = await controller.callPatient();
+      if (r.isOk) {
+        ref.read(scheduleCallLogProvider.notifier).bump(appointment.id);
+      }
+      return r;
+    }
+
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (appointment.wasCalledIn)
+          if (callCount > 0 && lastCall != null)
             Padding(
               padding: const EdgeInsets.only(bottom: Space.sm),
               child: Text(
-                t.patientCalledInNote,
+                callCount == 1
+                    ? t.patientCalledAtNote(fmtTime(lastCall))
+                    : t.patientCalledTimesNote(callCount, fmtTime(lastCall)),
+                key: const ValueKey('consultation-call-status'),
                 style: theme.textTheme.bodyMedium,
               ),
-            )
-          else
-            Padding(
-              padding: const EdgeInsets.only(bottom: Space.sm),
-              // Blue, tonal — same weight and colour as "Call patient" on
-              // the schedule card; "Patient arrived" below is the stronger
-              // solid action.
-              child: FilledButton.tonalIcon(
-                onPressed: busy
-                    ? null
-                    : () => run(
-                        controller.callPatient,
-                        ok: t.patientCalledSnackbar,
-                      ),
-                icon: const Icon(Icons.campaign_outlined),
-                label: Text(t.callPatientAction),
-                style: FilledButton.styleFrom(
-                  backgroundColor: scheme.primaryContainer,
-                  foregroundColor: scheme.onPrimaryContainer,
-                ),
+            ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: Space.sm),
+            // Blue, tonal — same weight and colour as "Call patient" on the
+            // schedule card; "Patient arrived" below is the stronger solid
+            // action. Stays available after the first call.
+            child: FilledButton.tonalIcon(
+              key: const ValueKey('consultation-call-patient'),
+              onPressed: busy
+                  ? null
+                  : () => run(callPatient, ok: t.patientCalledSnackbar),
+              icon: const Icon(Icons.campaign_outlined),
+              label: Text(
+                callCount == 0 ? t.callPatientAction : t.callPatientAgainAction,
+              ),
+              style: FilledButton.styleFrom(
+                backgroundColor: scheme.primaryContainer,
+                foregroundColor: scheme.onPrimaryContainer,
               ),
             ),
+          ),
           // Solid green — matches the "Arrived" action on the schedule card.
           FilledButton.icon(
             onPressed: busy
@@ -780,6 +791,100 @@ class _CompletedCard extends StatelessWidget {
 
 // --- sub-sheets --------------------------------------------------------
 
+/// Sick leave for this visit. The doctor requests it; an administrator
+/// approves or rejects it, and the status shows here. A new request can be
+/// made only when none is waiting or approved (e.g. after a rejection).
+class _SickLeaveSection extends ConsumerWidget {
+  const _SickLeaveSection({required this.appointment, required this.busy});
+
+  final Appointment appointment;
+  final bool busy;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final ramp = theme.clinicalStatus;
+    final df = MaterialLocalizations.of(context);
+    final requests = ref.watch(consultationSickLeaveProvider(appointment.id));
+
+    Widget statusOf(SickLeaveCertificate c) {
+      final (label, icon, container, onContainer) = switch (c.status) {
+        SickLeaveStatus.requested => (
+          t.sickLeaveAwaitingApproval(c.days),
+          Icons.hourglass_top_outlined,
+          theme.colorScheme.tertiaryContainer,
+          theme.colorScheme.onTertiaryContainer,
+        ),
+        SickLeaveStatus.approved => (
+          t.sickLeaveApprovedNote(
+            df.formatMediumDate(c.fromDate),
+            df.formatMediumDate(c.toDate),
+          ),
+          Icons.check_circle_outline,
+          ramp.riskLow.container,
+          ramp.riskLow.onContainer,
+        ),
+        SickLeaveStatus.rejected => (
+          t.sickLeaveRejectedNote(c.decisionNote ?? ''),
+          Icons.block_outlined,
+          ramp.riskHigh.container,
+          ramp.riskHigh.onContainer,
+        ),
+      };
+      return Padding(
+        padding: const EdgeInsets.only(bottom: Space.xs),
+        child: Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: StatusPill(
+            label: label,
+            icon: icon,
+            container: container,
+            onContainer: onContainer,
+          ),
+        ),
+      );
+    }
+
+    return requests.when(
+      loading: () => const LoadingSkeleton(height: 40),
+      error: (e, _) => InlineBanner.error(
+        e is Failure ? describeFailure(t, e).message : e.toString(),
+      ),
+      data: (list) {
+        final open = list.any(
+          (c) =>
+              c.status == SickLeaveStatus.requested ||
+              c.status == SickLeaveStatus.approved,
+        );
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (final c in list) statusOf(c),
+            if (!open)
+              OutlinedButton.icon(
+                key: const ValueKey('consultation-request-sick-leave'),
+                onPressed: busy
+                    ? null
+                    : () async {
+                        await showSickLeaveSheet(
+                          context,
+                          appointment.patientId,
+                        );
+                        ref.invalidate(
+                          consultationSickLeaveProvider(appointment.id),
+                        );
+                      },
+                icon: const Icon(Icons.sick_outlined, size: 18),
+                label: Text(t.issueSickLeaveAction),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
 class _AddMedicationSheet extends StatefulWidget {
   const _AddMedicationSheet({this.initial});
 
@@ -799,6 +904,17 @@ class _AddMedicationSheetState extends State<_AddMedicationSheet> {
   );
 
   bool get _isEditing => widget.initial != null;
+
+  /// The quantity is optional, but when given it must be a whole number > 0.
+  bool get _unitsInvalid =>
+      _units.text.isNotEmpty && (int.tryParse(_units.text) ?? 0) <= 0;
+
+  /// Name, dose and frequency are all required.
+  bool get _complete =>
+      _name.text.trim().isNotEmpty &&
+      _dose.text.trim().isNotEmpty &&
+      _freq.text.trim().isNotEmpty &&
+      !_unitsInvalid;
 
   @override
   void dispose() {
@@ -831,49 +947,42 @@ class _AddMedicationSheetState extends State<_AddMedicationSheet> {
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: Space.sm),
+            // Dose and frequency are required: a prescription without them
+            // can't be dispensed safely.
             TextField(
+              key: const ValueKey('med-dose'),
               controller: _dose,
-              decoration: InputDecoration(labelText: t.doseOptionalLabel),
+              decoration: InputDecoration(labelText: t.doseLabel),
+              onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: Space.sm),
             TextField(
+              key: const ValueKey('med-frequency'),
               controller: _freq,
-              decoration: InputDecoration(labelText: t.frequencyOptionalLabel),
+              decoration: InputDecoration(labelText: t.frequencyLabel),
+              onChanged: (_) => setState(() {}),
             ),
+            const SizedBox(height: Space.sm),
             TextField(
+              key: const ValueKey('med-quantity'),
               controller: _units,
               keyboardType: TextInputType.number,
               onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
-                labelText: t.localeName == 'ar'
-                    ? 'الكمية المطلوبة (وحدات كاملة)'
-                    : 'Ordered quantity (whole units)',
-                errorText:
-                    _units.text.isNotEmpty &&
-                        (int.tryParse(_units.text) ?? 0) <= 0
-                    ? (t.localeName == 'ar'
-                          ? 'أدخل عدداً صحيحاً موجباً'
-                          : 'Enter a positive whole number')
-                    : null,
+                labelText: t.quantityLabel,
+                errorText: _unitsInvalid ? t.enterPositiveWholeNumber : null,
               ),
             ),
             const SizedBox(height: Space.lg),
             FilledButton(
-              onPressed:
-                  _name.text.trim().isEmpty ||
-                      (_units.text.isNotEmpty &&
-                          (int.tryParse(_units.text) ?? 0) <= 0)
+              onPressed: !_complete
                   ? null
                   : () => Navigator.of(context).pop(
                       DraftMed(
                         name: _name.text.trim(),
                         orderedUnits: int.tryParse(_units.text),
-                        dose: _dose.text.trim().isEmpty
-                            ? null
-                            : _dose.text.trim(),
-                        frequency: _freq.text.trim().isEmpty
-                            ? null
-                            : _freq.text.trim(),
+                        dose: _dose.text.trim(),
+                        frequency: _freq.text.trim(),
                       ),
                     ),
               child: Text(_isEditing ? t.saveButton : t.addButton),

@@ -82,7 +82,11 @@
   "medicalSectionOptional": "Medical (optional)",
   "fullName": "Full name",
   "validEmailRequired": "Enter a valid email",
-  "passwordMinLength": "At least 6 characters",
+  "passwordMinLength": "At least 8 characters",
+  "phoneNumberRequired": "Enter a phone number with at least 8 digits.",
+  "nationalIdRequired": "Enter your National ID.",
+  "emailAlreadyRegistered": "An account with this email already exists. Sign in instead.",
+  "nationalIdAlreadyRegistered": "An account with this National ID already exists.",
   "phoneOptional": "Phone (optional)",
   "dateOfBirth": "Date of birth",
   "gender": "Gender",
@@ -1131,7 +1135,7 @@
   "prescribeMedicationAction": "Prescribe medication",
   "enterLabResultAction": "Enter lab result",
   "labResultFallbackTitle": "Lab result",
-  "issueSickLeaveAction": "Issue sick leave",
+  "issueSickLeaveAction": "Request sick leave",
 
   "titleLabel": "Title",
   "noteFieldLabel": "Note",
@@ -1162,7 +1166,7 @@
     }
   },
   "notesOptionalLabel": "Notes (optional)",
-  "certificateIssued": "Certificate issued.",
+  "certificateIssued": "Sent to the admin for approval.",
   "daysCountPlain": "{days, plural, one{{days} day} other{{days} days}}",
   "@daysCountPlain": {
     "placeholders": {
@@ -1196,6 +1200,15 @@
   "patientCalledInNote": "Patient has been called in.",
   "callPatientAction": "Call patient",
   "patientCalledSnackbar": "Patient called.",
+  "callPatientAgainAction": "Call again",
+  "patientCalledAtNote": "Patient called at {time}.",
+  "@patientCalledAtNote": {
+    "placeholders": {"time": {"type": "String"}}
+  },
+  "patientCalledTimesNote": "Patient called {count} times · last at {time}.",
+  "@patientCalledTimesNote": {
+    "placeholders": {"count": {"type": "int"}, "time": {"type": "String"}}
+  },
   "patientArrivedAction": "Patient arrived",
   "consultationStartedSnackbar": "Consultation started.",
   "markedAsNoShowSnackbar": "Marked as no-show.",
@@ -2503,5 +2516,31 @@
   "encPatientRef": "ID {id}",
   "@encPatientRef": {
     "placeholders": {"id": {"type": "String"}}
-  }
+  },
+  "doctorsNotesHeader": "Doctor's notes",
+  "doseLabel": "Dose",
+  "frequencyLabel": "Frequency",
+  "quantityLabel": "Quantity",
+  "enterPositiveWholeNumber": "Enter a positive whole number",
+  "sickLeaveHeader": "Sick leave",
+  "sickLeaveAwaitingApproval": "{days} days requested · waiting for admin approval",
+  "@sickLeaveAwaitingApproval": {"placeholders": {"days": {"type": "int"}}},
+  "sickLeaveApprovedNote": "Approved · {from} – {to}",
+  "@sickLeaveApprovedNote": {"placeholders": {"from": {"type": "String"}, "to": {"type": "String"}}},
+  "sickLeaveRejectedNote": "Not approved: {reason}",
+  "@sickLeaveRejectedNote": {"placeholders": {"reason": {"type": "String"}}},
+  "sickLeaveRequestsTitle": "Sick leave requests",
+  "sickLeaveRequestsAction": "Sick leave",
+  "sickLeaveRequestsActionWithCount": "Sick leave ({count})",
+  "@sickLeaveRequestsActionWithCount": {"placeholders": {"count": {"type": "int"}}},
+  "noSickLeaveRequests": "No sick leave requests are waiting.",
+  "sickLeaveRequestedBy": "Requested by {name}",
+  "@sickLeaveRequestedBy": {"placeholders": {"name": {"type": "String"}}},
+  "sickLeaveDates": "{from} – {to} · {days} days",
+  "@sickLeaveDates": {"placeholders": {"from": {"type": "String"}, "to": {"type": "String"}, "days": {"type": "int"}}},
+  "approveAction": "Approve",
+  "sickLeaveApprovedSnackbar": "Approved. The patient has been told.",
+  "sickLeaveRejectedSnackbar": "Rejected. The doctor has been told.",
+  "rejectSickLeaveTitle": "Reject this sick leave?",
+  "rejectReasonHint": "Why isn't it approved?"
 }

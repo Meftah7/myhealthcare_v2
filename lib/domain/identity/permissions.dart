@@ -55,6 +55,9 @@ enum Permission {
   broadcastNotifications,
   decideReferrals,
   decideHomeVisits,
+
+  /// Approve or reject the sick leave doctors request from a visit.
+  decideSickLeave,
   manageCareTeams,
   manageClinicSchedules,
   viewOperationalReports,
@@ -171,6 +174,7 @@ abstract final class RolePermissions {
     Permission.broadcastNotifications,
     Permission.decideReferrals,
     Permission.decideHomeVisits,
+    Permission.decideSickLeave,
     Permission.manageCareTeams,
     Permission.manageClinicSchedules,
     Permission.viewOperationalReports,

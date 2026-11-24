@@ -28,11 +28,43 @@ class NewSickLeave {
   final String? notes;
 }
 
+/// Sick leave is requested by a doctor (or dentist) and approved or rejected
+/// by an administrator. Only approved certificates are the patient's: they
+/// are all [forPatient] and [issuedBy] ever return.
 abstract interface class SickLeaveRepository {
+  /// The patient's approved certificates.
   Future<Result<List<SickLeaveCertificate>>> forPatient(String patientId);
+
+  /// Approved certificates a clinician requested.
   Future<Result<List<SickLeaveCertificate>>> issuedBy(String staffId);
+
   Future<Result<SickLeaveCertificate>> byId(String id);
-  Future<Result<SickLeaveCertificate>> issue(NewSickLeave certificate);
+
+  /// Every request made from one visit, whatever its status — so the
+  /// consultation screen can show "awaiting approval", "approved" or
+  /// "rejected".
+  Future<Result<List<SickLeaveCertificate>>> forAppointment(
+    String appointmentId,
+  );
+
+  /// A clinician asks for a certificate; it waits for an administrator.
+  Future<Result<SickLeaveCertificate>> request(NewSickLeave certificate);
+
+  /// Administrators: requests with [status] (default: awaiting a decision),
+  /// oldest first.
+  Future<Result<List<SickLeaveCertificate>>> requests({
+    SickLeaveStatus status = SickLeaveStatus.requested,
+  });
+
+  /// Administrators: approve a request — it becomes the patient's
+  /// certificate, issued now, and the patient is told.
+  Future<Result<SickLeaveCertificate>> approve(String id);
+
+  /// Administrators: reject a request with a reason the clinician is told.
+  Future<Result<SickLeaveCertificate>> reject(
+    String id, {
+    required String reason,
+  });
 }
 
 abstract interface class CareMessageRepository {

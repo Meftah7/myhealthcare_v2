@@ -46,6 +46,7 @@ class AdminQuickActions extends ConsumerWidget {
     final feedback = ref.watch(openFeedbackCountProvider).valueOrNull ?? 0;
     final homeVisits = ref.watch(openHomeVisitCountProvider) ?? 0;
     final referrals = ref.watch(pendingReferralRequestCountProvider);
+    final sickLeave = ref.watch(pendingSickLeaveRequestCountProvider);
 
     final actions = <_QuickAction>[
       _QuickAction(
@@ -101,6 +102,14 @@ class AdminQuickActions extends ConsumerWidget {
             ? t.referralsAction
             : t.referralsActionWithCount(referrals),
         onTap: () => unawaited(context.push(AppRoutes.adminReferralRequests)),
+      ),
+      _QuickAction(
+        id: 'sickLeave',
+        icon: Icons.sick_outlined,
+        label: sickLeave == 0
+            ? t.sickLeaveRequestsAction
+            : t.sickLeaveRequestsActionWithCount(sickLeave),
+        onTap: () => unawaited(context.push(AppRoutes.adminSickLeaveRequests)),
       ),
       _QuickAction(
         id: 'department',

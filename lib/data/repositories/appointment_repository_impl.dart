@@ -887,6 +887,13 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
             'That time has already passed. Choose a later slot.',
           );
         }
+        // Never book reception, pharmacy or nursing staff, even through a
+        // hand-made link: their role says they don't see patients.
+        if (await _isNonClinicalRole(r.staffId)) {
+          throw const ValidationFailure(
+            'Appointments can only be booked with a doctor or dentist.',
+          );
+        }
         if (!await _isOnScheduleGrid(
           staffId: r.staffId,
           start: r.start,
@@ -1154,6 +1161,17 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
       _db.staffProfiles,
     )..where((p) => p.userId.equals(staffId))).getSingleOrNull();
     return profile?.departmentId;
+  }
+
+  /// Staff whose recorded role doesn't take appointments (receptionist,
+  /// pharmacist, nurse). Only doctors and dentists can be booked; staff with
+  /// no recognised role still have to pass the schedule check.
+  Future<bool> _isNonClinicalRole(String staffId) async {
+    final profile = await (_db.select(
+      _db.staffProfiles,
+    )..where((p) => p.userId.equals(staffId))).getSingleOrNull();
+    final role = StaffRole.parse(profile?.jobTitle);
+    return role != null && !role.takesAppointments;
   }
 
   Future<String?> _assignRoomNumber(String departmentId, String staffId) async {

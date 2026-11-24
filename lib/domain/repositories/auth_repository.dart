@@ -81,6 +81,15 @@ abstract interface class AuthRepository {
   /// Create a patient account + profile, signed in.
   Future<Result<Patient>> registerPatient(PatientRegistration registration);
 
+  /// Whether an account already uses [email] (case-insensitive), so
+  /// self-registration can say so on the step where it is typed instead of
+  /// at the end. [registerPatient] still checks, and already refuses with
+  /// the same answer, so this reveals nothing it didn't.
+  Future<Result<bool>> isEmailRegistered(String email);
+
+  /// The same check for a national ID.
+  Future<Result<bool>> isNationalIdRegistered(String nationalId);
+
   /// Change the signed-in account's own password. Revokes any outstanding
   /// recovery codes.
   Future<Result<void>> changePassword({

@@ -320,6 +320,28 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Result<bool>> isEmailRegistered(String email) =>
+      Result.guardAsync(() async {
+        final normalized = email.trim().toLowerCase();
+        if (normalized.isEmpty) return false;
+        final row = await (_db.select(
+          _db.users,
+        )..where((u) => u.email.equals(normalized))).getSingleOrNull();
+        return row != null;
+      });
+
+  @override
+  Future<Result<bool>> isNationalIdRegistered(String nationalId) =>
+      Result.guardAsync(() async {
+        final id = nationalId.trim();
+        if (id.isEmpty) return false;
+        final row = await (_db.select(
+          _db.users,
+        )..where((u) => u.nationalId.equals(id))).getSingleOrNull();
+        return row != null;
+      });
+
+  @override
   Future<Result<Patient>> registerPatient(PatientRegistration reg) {
     return Result.guardAsync(() async {
       // Signed out: self-registration, which signs the new account in.

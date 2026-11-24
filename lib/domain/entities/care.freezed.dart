@@ -14,7 +14,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SickLeaveCertificate {
 
- String get id; String get patientId; String get issuedByStaffId; String get diagnosis; DateTime get fromDate; DateTime get toDate; DateTime get issuedAt; String? get appointmentId; String? get notes;
+ String get id; String get patientId; String get issuedByStaffId; String get diagnosis; DateTime get fromDate; DateTime get toDate; DateTime get issuedAt; String? get appointmentId; String? get notes; SickLeaveStatus get status; DateTime? get reviewedAt;/// Why an administrator rejected it.
+ String? get decisionNote;
 /// Create a copy of SickLeaveCertificate
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +26,16 @@ $SickLeaveCertificateCopyWith<SickLeaveCertificate> get copyWith => _$SickLeaveC
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SickLeaveCertificate&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.issuedByStaffId, issuedByStaffId) || other.issuedByStaffId == issuedByStaffId)&&(identical(other.diagnosis, diagnosis) || other.diagnosis == diagnosis)&&(identical(other.fromDate, fromDate) || other.fromDate == fromDate)&&(identical(other.toDate, toDate) || other.toDate == toDate)&&(identical(other.issuedAt, issuedAt) || other.issuedAt == issuedAt)&&(identical(other.appointmentId, appointmentId) || other.appointmentId == appointmentId)&&(identical(other.notes, notes) || other.notes == notes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SickLeaveCertificate&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.issuedByStaffId, issuedByStaffId) || other.issuedByStaffId == issuedByStaffId)&&(identical(other.diagnosis, diagnosis) || other.diagnosis == diagnosis)&&(identical(other.fromDate, fromDate) || other.fromDate == fromDate)&&(identical(other.toDate, toDate) || other.toDate == toDate)&&(identical(other.issuedAt, issuedAt) || other.issuedAt == issuedAt)&&(identical(other.appointmentId, appointmentId) || other.appointmentId == appointmentId)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.status, status) || other.status == status)&&(identical(other.reviewedAt, reviewedAt) || other.reviewedAt == reviewedAt)&&(identical(other.decisionNote, decisionNote) || other.decisionNote == decisionNote));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,patientId,issuedByStaffId,diagnosis,fromDate,toDate,issuedAt,appointmentId,notes);
+int get hashCode => Object.hash(runtimeType,id,patientId,issuedByStaffId,diagnosis,fromDate,toDate,issuedAt,appointmentId,notes,status,reviewedAt,decisionNote);
 
 @override
 String toString() {
-  return 'SickLeaveCertificate(id: $id, patientId: $patientId, issuedByStaffId: $issuedByStaffId, diagnosis: $diagnosis, fromDate: $fromDate, toDate: $toDate, issuedAt: $issuedAt, appointmentId: $appointmentId, notes: $notes)';
+  return 'SickLeaveCertificate(id: $id, patientId: $patientId, issuedByStaffId: $issuedByStaffId, diagnosis: $diagnosis, fromDate: $fromDate, toDate: $toDate, issuedAt: $issuedAt, appointmentId: $appointmentId, notes: $notes, status: $status, reviewedAt: $reviewedAt, decisionNote: $decisionNote)';
 }
 
 
@@ -45,7 +46,7 @@ abstract mixin class $SickLeaveCertificateCopyWith<$Res>  {
   factory $SickLeaveCertificateCopyWith(SickLeaveCertificate value, $Res Function(SickLeaveCertificate) _then) = _$SickLeaveCertificateCopyWithImpl;
 @useResult
 $Res call({
- String id, String patientId, String issuedByStaffId, String diagnosis, DateTime fromDate, DateTime toDate, DateTime issuedAt, String? appointmentId, String? notes
+ String id, String patientId, String issuedByStaffId, String diagnosis, DateTime fromDate, DateTime toDate, DateTime issuedAt, String? appointmentId, String? notes, SickLeaveStatus status, DateTime? reviewedAt, String? decisionNote
 });
 
 
@@ -62,7 +63,7 @@ class _$SickLeaveCertificateCopyWithImpl<$Res>
 
 /// Create a copy of SickLeaveCertificate
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? patientId = null,Object? issuedByStaffId = null,Object? diagnosis = null,Object? fromDate = null,Object? toDate = null,Object? issuedAt = null,Object? appointmentId = freezed,Object? notes = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? patientId = null,Object? issuedByStaffId = null,Object? diagnosis = null,Object? fromDate = null,Object? toDate = null,Object? issuedAt = null,Object? appointmentId = freezed,Object? notes = freezed,Object? status = null,Object? reviewedAt = freezed,Object? decisionNote = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,patientId: null == patientId ? _self.patientId : patientId // ignore: cast_nullable_to_non_nullable
@@ -73,6 +74,9 @@ as DateTime,toDate: null == toDate ? _self.toDate : toDate // ignore: cast_nulla
 as DateTime,issuedAt: null == issuedAt ? _self.issuedAt : issuedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,appointmentId: freezed == appointmentId ? _self.appointmentId : appointmentId // ignore: cast_nullable_to_non_nullable
 as String?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
+as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as SickLeaveStatus,reviewedAt: freezed == reviewedAt ? _self.reviewedAt : reviewedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,decisionNote: freezed == decisionNote ? _self.decisionNote : decisionNote // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -158,10 +162,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String patientId,  String issuedByStaffId,  String diagnosis,  DateTime fromDate,  DateTime toDate,  DateTime issuedAt,  String? appointmentId,  String? notes)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String patientId,  String issuedByStaffId,  String diagnosis,  DateTime fromDate,  DateTime toDate,  DateTime issuedAt,  String? appointmentId,  String? notes,  SickLeaveStatus status,  DateTime? reviewedAt,  String? decisionNote)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SickLeaveCertificate() when $default != null:
-return $default(_that.id,_that.patientId,_that.issuedByStaffId,_that.diagnosis,_that.fromDate,_that.toDate,_that.issuedAt,_that.appointmentId,_that.notes);case _:
+return $default(_that.id,_that.patientId,_that.issuedByStaffId,_that.diagnosis,_that.fromDate,_that.toDate,_that.issuedAt,_that.appointmentId,_that.notes,_that.status,_that.reviewedAt,_that.decisionNote);case _:
   return orElse();
 
 }
@@ -179,10 +183,10 @@ return $default(_that.id,_that.patientId,_that.issuedByStaffId,_that.diagnosis,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String patientId,  String issuedByStaffId,  String diagnosis,  DateTime fromDate,  DateTime toDate,  DateTime issuedAt,  String? appointmentId,  String? notes)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String patientId,  String issuedByStaffId,  String diagnosis,  DateTime fromDate,  DateTime toDate,  DateTime issuedAt,  String? appointmentId,  String? notes,  SickLeaveStatus status,  DateTime? reviewedAt,  String? decisionNote)  $default,) {final _that = this;
 switch (_that) {
 case _SickLeaveCertificate():
-return $default(_that.id,_that.patientId,_that.issuedByStaffId,_that.diagnosis,_that.fromDate,_that.toDate,_that.issuedAt,_that.appointmentId,_that.notes);case _:
+return $default(_that.id,_that.patientId,_that.issuedByStaffId,_that.diagnosis,_that.fromDate,_that.toDate,_that.issuedAt,_that.appointmentId,_that.notes,_that.status,_that.reviewedAt,_that.decisionNote);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +203,10 @@ return $default(_that.id,_that.patientId,_that.issuedByStaffId,_that.diagnosis,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String patientId,  String issuedByStaffId,  String diagnosis,  DateTime fromDate,  DateTime toDate,  DateTime issuedAt,  String? appointmentId,  String? notes)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String patientId,  String issuedByStaffId,  String diagnosis,  DateTime fromDate,  DateTime toDate,  DateTime issuedAt,  String? appointmentId,  String? notes,  SickLeaveStatus status,  DateTime? reviewedAt,  String? decisionNote)?  $default,) {final _that = this;
 switch (_that) {
 case _SickLeaveCertificate() when $default != null:
-return $default(_that.id,_that.patientId,_that.issuedByStaffId,_that.diagnosis,_that.fromDate,_that.toDate,_that.issuedAt,_that.appointmentId,_that.notes);case _:
+return $default(_that.id,_that.patientId,_that.issuedByStaffId,_that.diagnosis,_that.fromDate,_that.toDate,_that.issuedAt,_that.appointmentId,_that.notes,_that.status,_that.reviewedAt,_that.decisionNote);case _:
   return null;
 
 }
@@ -214,7 +218,7 @@ return $default(_that.id,_that.patientId,_that.issuedByStaffId,_that.diagnosis,_
 
 
 class _SickLeaveCertificate extends SickLeaveCertificate {
-  const _SickLeaveCertificate({required this.id, required this.patientId, required this.issuedByStaffId, required this.diagnosis, required this.fromDate, required this.toDate, required this.issuedAt, this.appointmentId, this.notes}): super._();
+  const _SickLeaveCertificate({required this.id, required this.patientId, required this.issuedByStaffId, required this.diagnosis, required this.fromDate, required this.toDate, required this.issuedAt, this.appointmentId, this.notes, this.status = SickLeaveStatus.approved, this.reviewedAt, this.decisionNote}): super._();
   
 
 @override final  String id;
@@ -226,6 +230,10 @@ class _SickLeaveCertificate extends SickLeaveCertificate {
 @override final  DateTime issuedAt;
 @override final  String? appointmentId;
 @override final  String? notes;
+@override@JsonKey() final  SickLeaveStatus status;
+@override final  DateTime? reviewedAt;
+/// Why an administrator rejected it.
+@override final  String? decisionNote;
 
 /// Create a copy of SickLeaveCertificate
 /// with the given fields replaced by the non-null parameter values.
@@ -237,16 +245,16 @@ _$SickLeaveCertificateCopyWith<_SickLeaveCertificate> get copyWith => __$SickLea
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SickLeaveCertificate&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.issuedByStaffId, issuedByStaffId) || other.issuedByStaffId == issuedByStaffId)&&(identical(other.diagnosis, diagnosis) || other.diagnosis == diagnosis)&&(identical(other.fromDate, fromDate) || other.fromDate == fromDate)&&(identical(other.toDate, toDate) || other.toDate == toDate)&&(identical(other.issuedAt, issuedAt) || other.issuedAt == issuedAt)&&(identical(other.appointmentId, appointmentId) || other.appointmentId == appointmentId)&&(identical(other.notes, notes) || other.notes == notes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SickLeaveCertificate&&(identical(other.id, id) || other.id == id)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.issuedByStaffId, issuedByStaffId) || other.issuedByStaffId == issuedByStaffId)&&(identical(other.diagnosis, diagnosis) || other.diagnosis == diagnosis)&&(identical(other.fromDate, fromDate) || other.fromDate == fromDate)&&(identical(other.toDate, toDate) || other.toDate == toDate)&&(identical(other.issuedAt, issuedAt) || other.issuedAt == issuedAt)&&(identical(other.appointmentId, appointmentId) || other.appointmentId == appointmentId)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.status, status) || other.status == status)&&(identical(other.reviewedAt, reviewedAt) || other.reviewedAt == reviewedAt)&&(identical(other.decisionNote, decisionNote) || other.decisionNote == decisionNote));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,patientId,issuedByStaffId,diagnosis,fromDate,toDate,issuedAt,appointmentId,notes);
+int get hashCode => Object.hash(runtimeType,id,patientId,issuedByStaffId,diagnosis,fromDate,toDate,issuedAt,appointmentId,notes,status,reviewedAt,decisionNote);
 
 @override
 String toString() {
-  return 'SickLeaveCertificate(id: $id, patientId: $patientId, issuedByStaffId: $issuedByStaffId, diagnosis: $diagnosis, fromDate: $fromDate, toDate: $toDate, issuedAt: $issuedAt, appointmentId: $appointmentId, notes: $notes)';
+  return 'SickLeaveCertificate(id: $id, patientId: $patientId, issuedByStaffId: $issuedByStaffId, diagnosis: $diagnosis, fromDate: $fromDate, toDate: $toDate, issuedAt: $issuedAt, appointmentId: $appointmentId, notes: $notes, status: $status, reviewedAt: $reviewedAt, decisionNote: $decisionNote)';
 }
 
 
@@ -257,7 +265,7 @@ abstract mixin class _$SickLeaveCertificateCopyWith<$Res> implements $SickLeaveC
   factory _$SickLeaveCertificateCopyWith(_SickLeaveCertificate value, $Res Function(_SickLeaveCertificate) _then) = __$SickLeaveCertificateCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String patientId, String issuedByStaffId, String diagnosis, DateTime fromDate, DateTime toDate, DateTime issuedAt, String? appointmentId, String? notes
+ String id, String patientId, String issuedByStaffId, String diagnosis, DateTime fromDate, DateTime toDate, DateTime issuedAt, String? appointmentId, String? notes, SickLeaveStatus status, DateTime? reviewedAt, String? decisionNote
 });
 
 
@@ -274,7 +282,7 @@ class __$SickLeaveCertificateCopyWithImpl<$Res>
 
 /// Create a copy of SickLeaveCertificate
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? patientId = null,Object? issuedByStaffId = null,Object? diagnosis = null,Object? fromDate = null,Object? toDate = null,Object? issuedAt = null,Object? appointmentId = freezed,Object? notes = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? patientId = null,Object? issuedByStaffId = null,Object? diagnosis = null,Object? fromDate = null,Object? toDate = null,Object? issuedAt = null,Object? appointmentId = freezed,Object? notes = freezed,Object? status = null,Object? reviewedAt = freezed,Object? decisionNote = freezed,}) {
   return _then(_SickLeaveCertificate(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,patientId: null == patientId ? _self.patientId : patientId // ignore: cast_nullable_to_non_nullable
@@ -285,6 +293,9 @@ as DateTime,toDate: null == toDate ? _self.toDate : toDate // ignore: cast_nulla
 as DateTime,issuedAt: null == issuedAt ? _self.issuedAt : issuedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,appointmentId: freezed == appointmentId ? _self.appointmentId : appointmentId // ignore: cast_nullable_to_non_nullable
 as String?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
+as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as SickLeaveStatus,reviewedAt: freezed == reviewedAt ? _self.reviewedAt : reviewedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,decisionNote: freezed == decisionNote ? _self.decisionNote : decisionNote // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

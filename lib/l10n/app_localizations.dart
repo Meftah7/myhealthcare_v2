@@ -515,8 +515,32 @@ abstract class AppLocalizations {
   /// No description provided for @passwordMinLength.
   ///
   /// In en, this message translates to:
-  /// **'At least 6 characters'**
+  /// **'At least 8 characters'**
   String get passwordMinLength;
+
+  /// No description provided for @phoneNumberRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a phone number with at least 8 digits.'**
+  String get phoneNumberRequired;
+
+  /// No description provided for @nationalIdRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your National ID.'**
+  String get nationalIdRequired;
+
+  /// No description provided for @emailAlreadyRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'An account with this email already exists. Sign in instead.'**
+  String get emailAlreadyRegistered;
+
+  /// No description provided for @nationalIdAlreadyRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'An account with this National ID already exists.'**
+  String get nationalIdAlreadyRegistered;
 
   /// No description provided for @phoneOptional.
   ///
@@ -4355,7 +4379,7 @@ abstract class AppLocalizations {
   /// No description provided for @issueSickLeaveAction.
   ///
   /// In en, this message translates to:
-  /// **'Issue sick leave'**
+  /// **'Request sick leave'**
   String get issueSickLeaveAction;
 
   /// No description provided for @titleLabel.
@@ -4475,7 +4499,7 @@ abstract class AppLocalizations {
   /// No description provided for @certificateIssued.
   ///
   /// In en, this message translates to:
-  /// **'Certificate issued.'**
+  /// **'Sent to the admin for approval.'**
   String get certificateIssued;
 
   /// No description provided for @daysCountPlain.
@@ -4639,6 +4663,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Patient called.'**
   String get patientCalledSnackbar;
+
+  /// No description provided for @callPatientAgainAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Call again'**
+  String get callPatientAgainAction;
+
+  /// No description provided for @patientCalledAtNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Patient called at {time}.'**
+  String patientCalledAtNote(String time);
+
+  /// No description provided for @patientCalledTimesNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Patient called {count} times · last at {time}.'**
+  String patientCalledTimesNote(int count, String time);
 
   /// No description provided for @patientArrivedAction.
   ///
@@ -10441,6 +10483,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'ID {id}'**
   String encPatientRef(String id);
+
+  /// No description provided for @doctorsNotesHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Doctor\'s notes'**
+  String get doctorsNotesHeader;
+
+  /// No description provided for @doseLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Dose'**
+  String get doseLabel;
+
+  /// No description provided for @frequencyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequency'**
+  String get frequencyLabel;
+
+  /// No description provided for @quantityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity'**
+  String get quantityLabel;
+
+  /// No description provided for @enterPositiveWholeNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a positive whole number'**
+  String get enterPositiveWholeNumber;
+
+  /// No description provided for @sickLeaveHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Sick leave'**
+  String get sickLeaveHeader;
+
+  /// No description provided for @sickLeaveAwaitingApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days requested · waiting for admin approval'**
+  String sickLeaveAwaitingApproval(int days);
+
+  /// No description provided for @sickLeaveApprovedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved · {from} – {to}'**
+  String sickLeaveApprovedNote(String from, String to);
+
+  /// No description provided for @sickLeaveRejectedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Not approved: {reason}'**
+  String sickLeaveRejectedNote(String reason);
+
+  /// No description provided for @sickLeaveRequestsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sick leave requests'**
+  String get sickLeaveRequestsTitle;
+
+  /// No description provided for @sickLeaveRequestsAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Sick leave'**
+  String get sickLeaveRequestsAction;
+
+  /// No description provided for @sickLeaveRequestsActionWithCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Sick leave ({count})'**
+  String sickLeaveRequestsActionWithCount(int count);
+
+  /// No description provided for @noSickLeaveRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'No sick leave requests are waiting.'**
+  String get noSickLeaveRequests;
+
+  /// No description provided for @sickLeaveRequestedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested by {name}'**
+  String sickLeaveRequestedBy(String name);
+
+  /// No description provided for @sickLeaveDates.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} – {to} · {days} days'**
+  String sickLeaveDates(String from, String to, int days);
+
+  /// No description provided for @approveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get approveAction;
+
+  /// No description provided for @sickLeaveApprovedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved. The patient has been told.'**
+  String get sickLeaveApprovedSnackbar;
+
+  /// No description provided for @sickLeaveRejectedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected. The doctor has been told.'**
+  String get sickLeaveRejectedSnackbar;
+
+  /// No description provided for @rejectSickLeaveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject this sick leave?'**
+  String get rejectSickLeaveTitle;
+
+  /// No description provided for @rejectReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Why isn\'t it approved?'**
+  String get rejectReasonHint;
 }
 
 class _AppLocalizationsDelegate

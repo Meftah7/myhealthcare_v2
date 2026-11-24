@@ -1,10 +1,13 @@
 /// Patient self-registration (P2-03).
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/theme.dart';
+import '../../../core/di.dart';
 import '../../../core/presentation/app_card.dart';
 import '../../../core/presentation/feedback.dart';
 import '../../../core/presentation/responsive.dart';
@@ -39,6 +42,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   bool _busy = false;
   String? _error;
 
+  /// An email / national ID found to be in use when Continue was pressed;
+  /// the field shows it until the value is changed.
+  String? _takenEmail;
+  String? _takenNationalId;
+
   @override
   void dispose() {
     for (final c in [
@@ -72,12 +80,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             fullName: _name.text.trim(),
             email: _email.text.trim(),
             password: _password.text,
-            phone: _phone.text.trim().isEmpty ? null : _phone.text.trim(),
+            phone: _phone.text.trim(),
             dob: _dob,
             gender: _gender,
-            nationalId: _nationalId.text.trim().isEmpty
-                ? null
-                : _nationalId.text.trim(),
+            nationalId: _nationalId.text.trim(),
             bloodType: _bloodType,
             allergies: _split(_allergies.text),
             chronicConditions: _split(_conditions.text),
@@ -98,6 +104,39 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
     // On success the router redirect lands the new patient on their home.
   }
+
+  /// Continue to the next step — after checking, on the step where it was
+  /// typed, that the email (step 1) or national ID (step 2) isn't already
+  /// in use, rather than only when the account is finally created.
+  Future<void> _next() async {
+    if (!_formKey.currentState!.validate()) return;
+    final auth = ref.read(authRepositoryProvider);
+    setState(() => _busy = true);
+    var taken = false;
+    if (_step == 0) {
+      final email = _email.text.trim().toLowerCase();
+      // If the check itself can't run, carry on: creating the account
+      // still refuses a duplicate.
+      taken = (await auth.isEmailRegistered(email)).valueOrNull ?? false;
+      if (taken) _takenEmail = email;
+    } else if (_step == 1) {
+      final id = _nationalId.text.trim();
+      taken = (await auth.isNationalIdRegistered(id)).valueOrNull ?? false;
+      if (taken) _takenNationalId = id;
+    }
+    if (!mounted) return;
+    setState(() {
+      _busy = false;
+      if (!taken) _step++;
+    });
+    if (taken) _formKey.currentState!.validate();
+  }
+
+  /// A phone number: digits with optional +, spaces, dashes or brackets,
+  /// and at least 8 digits.
+  static bool _validPhone(String v) =>
+      RegExp(r'^[+\d\s()-]+$').hasMatch(v) &&
+      RegExp(r'\d').allMatches(v).length >= 8;
 
   Future<void> _pickDob() async {
     final now = DateTime.now();
@@ -165,13 +204,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 decoration: InputDecoration(labelText: t.email),
                 validator: (v) => (v == null || !v.contains('@'))
                     ? t.validEmailRequired
+                    : v.trim().toLowerCase() == _takenEmail
+                    ? t.emailAlreadyRegistered
                     : null,
               ),
               const SizedBox(height: Space.md),
               TextFormField(
                 controller: _password,
                 obscureText: true,
-                decoration: InputDecoration(labelText: t.password),
+                // The rule is shown up front, not only after a failed try.
+                decoration: InputDecoration(
+                  labelText: t.password,
+                  helperText: t.passwordMinLength,
+                ),
                 validator: (v) =>
                     (v == null || v.length < 8) ? t.passwordMinLength : null,
               ),
@@ -179,7 +224,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               TextFormField(
                 controller: _phone,
                 keyboardType: TextInputType.phone,
-                decoration: InputDecoration(labelText: t.phoneOptional),
+                decoration: InputDecoration(labelText: t.phoneLabel),
+                validator: (v) => (v == null || !_validPhone(v.trim()))
+                    ? t.phoneNumberRequired
+                    : null,
               ),
               const SizedBox(height: Space.md),
               AdaptiveFormRow(
@@ -217,9 +265,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 children: [
                   TextFormField(
                     controller: _nationalId,
-                    decoration: InputDecoration(
-                      labelText: t.nationalIdOptional,
-                    ),
+                    decoration: InputDecoration(labelText: t.nationalIdLabel),
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? t.nationalIdRequired
+                        : v.trim() == _takenNationalId
+                        ? t.nationalIdAlreadyRegistered
+                        : null,
                   ),
                   DropdownButtonFormField<String>(
                     initialValue: _bloodType,
@@ -274,11 +325,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ? null
                   : last
                   ? _submit
-                  : () {
-                      if (_formKey.currentState!.validate()) {
-                        setState(() => _step++);
-                      }
-                    },
+                  : () => unawaited(_next()),
               child: _busy
                   ? const SizedBox.square(
                       dimension: 20,

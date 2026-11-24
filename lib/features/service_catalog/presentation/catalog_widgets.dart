@@ -352,6 +352,9 @@ class _ToolTile extends ConsumerWidget {
 class ServicePromotionCard extends ConsumerWidget {
   const ServicePromotionCard({required this.item, this.width, super.key});
 
+  /// Height of the coloured artwork band at the top of the card.
+  static const double _bandHeight = 112;
+
   final CatalogItem item;
   final double? width;
 
@@ -373,7 +376,7 @@ class ServicePromotionCard extends ConsumerWidget {
             // Original vector artwork: a soft gradient band with the
             // service glyph — no screenshot crops or third-party media.
             Container(
-              height: 112,
+              height: _bandHeight,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: AlignmentDirectional.topStart,
@@ -381,17 +384,36 @@ class ServicePromotionCard extends ConsumerWidget {
                   colors: [bg, Color.alphaBlend(fg.withValues(alpha: .18), bg)],
                 ),
               ),
+              // Clips the artwork at the band's edges.
+              clipBehavior: Clip.hardEdge,
               child: Stack(
                 children: [
-                  PositionedDirectional(
-                    end: -12,
-                    bottom: -18,
-                    child: Icon(
-                      item.icon,
-                      size: 120,
-                      color: fg.withValues(alpha: .16),
+                  if (item.illustration case final art?)
+                    // Standing on the band's bottom edge, a little in from
+                    // the end, a touch shorter than the band so the head is
+                    // never cut off; its own aspect ratio is kept.
+                    PositionedDirectional(
+                      key: ValueKey('service-illustration-${item.id}'),
+                      end: Space.sm,
+                      bottom: 0,
+                      height: _bandHeight - Space.xs,
+                      child: Image.asset(
+                        art,
+                        fit: BoxFit.contain,
+                        alignment: Alignment.bottomCenter,
+                        excludeFromSemantics: true,
+                      ),
+                    )
+                  else
+                    PositionedDirectional(
+                      end: -12,
+                      bottom: -18,
+                      child: Icon(
+                        item.icon,
+                        size: 120,
+                        color: fg.withValues(alpha: .16),
+                      ),
                     ),
-                  ),
                   if (item.isFutureWork)
                     PositionedDirectional(
                       end: Space.sm,

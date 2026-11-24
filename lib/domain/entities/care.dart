@@ -20,9 +20,17 @@ abstract class SickLeaveCertificate with _$SickLeaveCertificate {
     required DateTime issuedAt,
     String? appointmentId,
     String? notes,
+    @Default(SickLeaveStatus.approved) SickLeaveStatus status,
+    DateTime? reviewedAt,
+
+    /// Why an administrator rejected it.
+    String? decisionNote,
   }) = _SickLeaveCertificate;
 
   const SickLeaveCertificate._();
+
+  /// Approved by an administrator: a real certificate the patient can see.
+  bool get isApproved => status == SickLeaveStatus.approved;
 
   /// Inclusive day count — a note from Mon to Mon is one day, Mon to Tue two.
   int get days => toDate.difference(fromDate).inDays + 1;

@@ -78,6 +78,7 @@ class CatalogItem {
     this.access = CatalogAccess.signedIn,
     this.scope = CatalogScope.core,
     this.status = CatalogStatus.available,
+    this.illustration,
   });
 
   /// Stable id (tests and widget keys).
@@ -93,6 +94,10 @@ class CatalogItem {
   final CatalogAccess access;
   final CatalogScope scope;
   final CatalogStatus status;
+
+  /// A transparent illustration asset shown on the item's service card in
+  /// place of the large icon watermark, or null for the watermark.
+  final String? illustration;
 
   bool get isAvailable =>
       status == CatalogStatus.available && scope != CatalogScope.planned;
@@ -174,6 +179,7 @@ abstract final class PatientCatalog {
     icon: Icons.calendar_month_outlined,
     action: CatalogActionKind.route,
     route: AppRoutes.patientBookLanding,
+    illustration: 'assets/images/doctor-with-gitra',
   );
   static final visitedDoctors = CatalogItem(
     id: 'visited-doctors',

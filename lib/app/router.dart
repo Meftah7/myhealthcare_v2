@@ -27,6 +27,7 @@ import '../features/admin/presentation/admin_people_profile.dart';
 import '../features/admin/presentation/admin_profile_pages.dart';
 import '../features/admin/presentation/admin_profile_screen.dart';
 import '../features/admin/presentation/admin_referral_requests_screen.dart';
+import '../features/admin/presentation/admin_sick_leave_requests_screen.dart';
 import '../features/admin/presentation/admin_top_actions.dart';
 import '../features/admin/presentation/admin_work_queue_screen.dart';
 import '../features/admin/presentation/admin_workspace_screens.dart';
@@ -255,6 +256,7 @@ abstract final class AppRoutes {
   static const adminFeedback = '/admin/feedback';
   static const adminHomeVisits = '/admin/dashboard/home-visits';
   static const adminReferralRequests = '/admin/dashboard/referral-requests';
+  static const adminSickLeaveRequests = '/admin/dashboard/sick-leave-requests';
 
   /// Unowned / overdue clinical work and delivery problems (Phase 6).
   static const adminWorkQueue = '/admin/dashboard/work';
@@ -1214,6 +1216,10 @@ StatefulShellRoute _adminShell() {
               GoRoute(
                 path: 'referral-requests',
                 builder: (_, _) => const AdminReferralRequestsScreen(),
+              ),
+              GoRoute(
+                path: 'sick-leave-requests',
+                builder: (_, _) => const AdminSickLeaveRequestsScreen(),
               ),
               GoRoute(
                 path: 'work',

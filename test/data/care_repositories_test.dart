@@ -69,24 +69,65 @@ void main() {
       toDate: to ?? DateTime(2026, 3, 5),
     );
 
-    test('issue then forPatient / issuedBy return it', () async {
-      final issued = await sick.issue(note());
-      expect(issued.isOk, isTrue);
-      expect(issued.valueOrNull!.days, 4);
+    test('a request stays hidden from the patient until approved', () async {
+      final requested = await sick.request(note());
+      expect(requested.isOk, isTrue);
+      final id = requested.valueOrNull!.id;
+      expect(requested.valueOrNull!.days, 4);
+      expect(requested.valueOrNull!.status, SickLeaveStatus.requested);
+
+      // Waiting: the admin sees it, the patient doesn't.
+      expect((await sick.requests()).valueOrNull!.map((c) => c.id), [id]);
+      expect((await sick.forPatient(patientId)).valueOrNull, isEmpty);
+      expect((await sick.issuedBy(staffId)).valueOrNull, isEmpty);
+
+      final approved = await sick.approve(id);
+      expect(approved.valueOrNull!.status, SickLeaveStatus.approved);
+      expect(approved.valueOrNull!.reviewedAt, isNotNull);
 
       expect((await sick.forPatient(patientId)).valueOrNull, hasLength(1));
       expect((await sick.issuedBy(staffId)).valueOrNull, hasLength(1));
+      expect((await sick.requests()).valueOrNull, isEmpty);
+
+      // The patient is told (queued for delivery with the decision).
+      final queued = await db.select(db.outboxEvents).get();
+      expect(
+        queued.map((e) => e.payload),
+        contains(
+          allOf(contains('Your sick leave is ready'), contains(patientId)),
+        ),
+      );
+    });
+
+    test('a rejected request never reaches the patient', () async {
+      final id = (await sick.request(note())).valueOrNull!.id;
+      expect((await sick.reject(id, reason: '  ')).isErr, isTrue);
+
+      final rejected = await sick.reject(id, reason: 'Not supported by notes');
+      expect(rejected.valueOrNull!.status, SickLeaveStatus.rejected);
+      expect(rejected.valueOrNull!.decisionNote, 'Not supported by notes');
+      expect((await sick.forPatient(patientId)).valueOrNull, isEmpty);
+
+      // Decided once only.
+      expect((await sick.approve(id)).isErr, isTrue);
+
+      // The doctor is told why (queued for delivery with the decision).
+      final queued = await db.select(db.outboxEvents).get();
+      expect(
+        queued.map((e) => e.payload),
+        contains(allOf(contains('Not supported by notes'), contains(staffId))),
+      );
     });
 
     test('rejects an end date before the start date', () async {
-      final r = await sick.issue(
+      final r = await sick.request(
         note(from: DateTime(2026, 3, 5), to: DateTime(2026, 3, 2)),
       );
       expect(r.isErr, isTrue);
     });
 
     test('rejects an empty diagnosis', () async {
-      final r = await sick.issue(
+      final r = await sick.request(
         NewSickLeave(
           patientId: patientId,
           issuedByStaffId: staffId,

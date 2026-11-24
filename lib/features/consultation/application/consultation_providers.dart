@@ -118,6 +118,20 @@ final consultationReferralProvider =
       );
     });
 
+/// Sick leave requested from this visit, newest first, whatever its status —
+/// waiting for an administrator, approved, or rejected.
+final consultationSickLeaveProvider =
+    FutureProvider.family<List<SickLeaveCertificate>, String>((
+      ref,
+      appointmentId,
+    ) async {
+      return _unwrap(
+        await ref
+            .watch(sickLeaveRepositoryProvider)
+            .forAppointment(appointmentId),
+      );
+    });
+
 // --- controller --------------------------------------------------------
 
 class ConsultationController {

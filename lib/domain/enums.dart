@@ -186,6 +186,11 @@ enum ImportReviewStatus { notRequired, pendingReview, reviewed, rejected }
 /// submission; the clinic moves it from there.
 enum HomeVisitStatus { requested, scheduled, completed, declined, cancelled }
 
+/// A sick-leave certificate's state: a doctor *requests* it from the visit
+/// and an administrator *approves* (it becomes the patient's certificate) or
+/// *rejects* it. Only approved certificates ever reach the patient.
+enum SickLeaveStatus { requested, approved, rejected }
+
 /// A movement in the patient's wallet balance: money added, or money spent
 /// settling an invoice. The balance itself is never stored — it's the sum of
 /// these entries, so it can never drift from its history.

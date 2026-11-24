@@ -33478,6 +33478,54 @@ class $SickLeaveCertificatesTable extends SickLeaveCertificates
     defaultValue: currentDateAndTime,
   );
   @override
+  late final GeneratedColumnWithTypeConverter<SickLeaveStatus, String> status =
+      GeneratedColumn<String>(
+        'status',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('approved'),
+      ).withConverter<SickLeaveStatus>(
+        $SickLeaveCertificatesTable.$converterstatus,
+      );
+  static const VerificationMeta _reviewedByMeta = const VerificationMeta(
+    'reviewedBy',
+  );
+  @override
+  late final GeneratedColumn<String> reviewedBy = GeneratedColumn<String>(
+    'reviewed_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _reviewedAtMeta = const VerificationMeta(
+    'reviewedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> reviewedAt = GeneratedColumn<DateTime>(
+    'reviewed_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _decisionNoteMeta = const VerificationMeta(
+    'decisionNote',
+  );
+  @override
+  late final GeneratedColumn<String> decisionNote = GeneratedColumn<String>(
+    'decision_note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
   List<GeneratedColumn> get $columns => [
     id,
     patientId,
@@ -33488,6 +33536,10 @@ class $SickLeaveCertificatesTable extends SickLeaveCertificates
     toDate,
     notes,
     issuedAt,
+    status,
+    reviewedBy,
+    reviewedAt,
+    decisionNote,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -33570,6 +33622,27 @@ class $SickLeaveCertificatesTable extends SickLeaveCertificates
         issuedAt.isAcceptableOrUnknown(data['issued_at']!, _issuedAtMeta),
       );
     }
+    if (data.containsKey('reviewed_by')) {
+      context.handle(
+        _reviewedByMeta,
+        reviewedBy.isAcceptableOrUnknown(data['reviewed_by']!, _reviewedByMeta),
+      );
+    }
+    if (data.containsKey('reviewed_at')) {
+      context.handle(
+        _reviewedAtMeta,
+        reviewedAt.isAcceptableOrUnknown(data['reviewed_at']!, _reviewedAtMeta),
+      );
+    }
+    if (data.containsKey('decision_note')) {
+      context.handle(
+        _decisionNoteMeta,
+        decisionNote.isAcceptableOrUnknown(
+          data['decision_note']!,
+          _decisionNoteMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -33615,6 +33688,24 @@ class $SickLeaveCertificatesTable extends SickLeaveCertificates
         DriftSqlType.dateTime,
         data['${effectivePrefix}issued_at'],
       )!,
+      status: $SickLeaveCertificatesTable.$converterstatus.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}status'],
+        )!,
+      ),
+      reviewedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reviewed_by'],
+      ),
+      reviewedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}reviewed_at'],
+      ),
+      decisionNote: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}decision_note'],
+      ),
     );
   }
 
@@ -33622,6 +33713,9 @@ class $SickLeaveCertificatesTable extends SickLeaveCertificates
   $SickLeaveCertificatesTable createAlias(String alias) {
     return $SickLeaveCertificatesTable(attachedDatabase, alias);
   }
+
+  static JsonTypeConverter2<SickLeaveStatus, String, String> $converterstatus =
+      const EnumNameConverter<SickLeaveStatus>(SickLeaveStatus.values);
 }
 
 class SickLeaveRow extends DataClass implements Insertable<SickLeaveRow> {
@@ -33635,7 +33729,19 @@ class SickLeaveRow extends DataClass implements Insertable<SickLeaveRow> {
   final DateTime fromDate;
   final DateTime toDate;
   final String? notes;
+
+  /// When it was requested, then — on approval — when it was issued.
   final DateTime issuedAt;
+
+  /// Requested by the doctor, then approved or rejected by an administrator.
+  /// Defaults to approved so certificates from before the approval step
+  /// stay valid.
+  final SickLeaveStatus status;
+  final String? reviewedBy;
+  final DateTime? reviewedAt;
+
+  /// The administrator's reason when rejecting.
+  final String? decisionNote;
   const SickLeaveRow({
     required this.id,
     required this.patientId,
@@ -33646,6 +33752,10 @@ class SickLeaveRow extends DataClass implements Insertable<SickLeaveRow> {
     required this.toDate,
     this.notes,
     required this.issuedAt,
+    required this.status,
+    this.reviewedBy,
+    this.reviewedAt,
+    this.decisionNote,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -33663,6 +33773,20 @@ class SickLeaveRow extends DataClass implements Insertable<SickLeaveRow> {
       map['notes'] = Variable<String>(notes);
     }
     map['issued_at'] = Variable<DateTime>(issuedAt);
+    {
+      map['status'] = Variable<String>(
+        $SickLeaveCertificatesTable.$converterstatus.toSql(status),
+      );
+    }
+    if (!nullToAbsent || reviewedBy != null) {
+      map['reviewed_by'] = Variable<String>(reviewedBy);
+    }
+    if (!nullToAbsent || reviewedAt != null) {
+      map['reviewed_at'] = Variable<DateTime>(reviewedAt);
+    }
+    if (!nullToAbsent || decisionNote != null) {
+      map['decision_note'] = Variable<String>(decisionNote);
+    }
     return map;
   }
 
@@ -33681,6 +33805,16 @@ class SickLeaveRow extends DataClass implements Insertable<SickLeaveRow> {
           ? const Value.absent()
           : Value(notes),
       issuedAt: Value(issuedAt),
+      status: Value(status),
+      reviewedBy: reviewedBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reviewedBy),
+      reviewedAt: reviewedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reviewedAt),
+      decisionNote: decisionNote == null && nullToAbsent
+          ? const Value.absent()
+          : Value(decisionNote),
     );
   }
 
@@ -33699,6 +33833,12 @@ class SickLeaveRow extends DataClass implements Insertable<SickLeaveRow> {
       toDate: serializer.fromJson<DateTime>(json['toDate']),
       notes: serializer.fromJson<String?>(json['notes']),
       issuedAt: serializer.fromJson<DateTime>(json['issuedAt']),
+      status: $SickLeaveCertificatesTable.$converterstatus.fromJson(
+        serializer.fromJson<String>(json['status']),
+      ),
+      reviewedBy: serializer.fromJson<String?>(json['reviewedBy']),
+      reviewedAt: serializer.fromJson<DateTime?>(json['reviewedAt']),
+      decisionNote: serializer.fromJson<String?>(json['decisionNote']),
     );
   }
   @override
@@ -33714,6 +33854,12 @@ class SickLeaveRow extends DataClass implements Insertable<SickLeaveRow> {
       'toDate': serializer.toJson<DateTime>(toDate),
       'notes': serializer.toJson<String?>(notes),
       'issuedAt': serializer.toJson<DateTime>(issuedAt),
+      'status': serializer.toJson<String>(
+        $SickLeaveCertificatesTable.$converterstatus.toJson(status),
+      ),
+      'reviewedBy': serializer.toJson<String?>(reviewedBy),
+      'reviewedAt': serializer.toJson<DateTime?>(reviewedAt),
+      'decisionNote': serializer.toJson<String?>(decisionNote),
     };
   }
 
@@ -33727,6 +33873,10 @@ class SickLeaveRow extends DataClass implements Insertable<SickLeaveRow> {
     DateTime? toDate,
     Value<String?> notes = const Value.absent(),
     DateTime? issuedAt,
+    SickLeaveStatus? status,
+    Value<String?> reviewedBy = const Value.absent(),
+    Value<DateTime?> reviewedAt = const Value.absent(),
+    Value<String?> decisionNote = const Value.absent(),
   }) => SickLeaveRow(
     id: id ?? this.id,
     patientId: patientId ?? this.patientId,
@@ -33739,6 +33889,10 @@ class SickLeaveRow extends DataClass implements Insertable<SickLeaveRow> {
     toDate: toDate ?? this.toDate,
     notes: notes.present ? notes.value : this.notes,
     issuedAt: issuedAt ?? this.issuedAt,
+    status: status ?? this.status,
+    reviewedBy: reviewedBy.present ? reviewedBy.value : this.reviewedBy,
+    reviewedAt: reviewedAt.present ? reviewedAt.value : this.reviewedAt,
+    decisionNote: decisionNote.present ? decisionNote.value : this.decisionNote,
   );
   SickLeaveRow copyWithCompanion(SickLeaveCertificatesCompanion data) {
     return SickLeaveRow(
@@ -33755,6 +33909,16 @@ class SickLeaveRow extends DataClass implements Insertable<SickLeaveRow> {
       toDate: data.toDate.present ? data.toDate.value : this.toDate,
       notes: data.notes.present ? data.notes.value : this.notes,
       issuedAt: data.issuedAt.present ? data.issuedAt.value : this.issuedAt,
+      status: data.status.present ? data.status.value : this.status,
+      reviewedBy: data.reviewedBy.present
+          ? data.reviewedBy.value
+          : this.reviewedBy,
+      reviewedAt: data.reviewedAt.present
+          ? data.reviewedAt.value
+          : this.reviewedAt,
+      decisionNote: data.decisionNote.present
+          ? data.decisionNote.value
+          : this.decisionNote,
     );
   }
 
@@ -33769,7 +33933,11 @@ class SickLeaveRow extends DataClass implements Insertable<SickLeaveRow> {
           ..write('fromDate: $fromDate, ')
           ..write('toDate: $toDate, ')
           ..write('notes: $notes, ')
-          ..write('issuedAt: $issuedAt')
+          ..write('issuedAt: $issuedAt, ')
+          ..write('status: $status, ')
+          ..write('reviewedBy: $reviewedBy, ')
+          ..write('reviewedAt: $reviewedAt, ')
+          ..write('decisionNote: $decisionNote')
           ..write(')'))
         .toString();
   }
@@ -33785,6 +33953,10 @@ class SickLeaveRow extends DataClass implements Insertable<SickLeaveRow> {
     toDate,
     notes,
     issuedAt,
+    status,
+    reviewedBy,
+    reviewedAt,
+    decisionNote,
   );
   @override
   bool operator ==(Object other) =>
@@ -33798,7 +33970,11 @@ class SickLeaveRow extends DataClass implements Insertable<SickLeaveRow> {
           other.fromDate == this.fromDate &&
           other.toDate == this.toDate &&
           other.notes == this.notes &&
-          other.issuedAt == this.issuedAt);
+          other.issuedAt == this.issuedAt &&
+          other.status == this.status &&
+          other.reviewedBy == this.reviewedBy &&
+          other.reviewedAt == this.reviewedAt &&
+          other.decisionNote == this.decisionNote);
 }
 
 class SickLeaveCertificatesCompanion extends UpdateCompanion<SickLeaveRow> {
@@ -33811,6 +33987,10 @@ class SickLeaveCertificatesCompanion extends UpdateCompanion<SickLeaveRow> {
   final Value<DateTime> toDate;
   final Value<String?> notes;
   final Value<DateTime> issuedAt;
+  final Value<SickLeaveStatus> status;
+  final Value<String?> reviewedBy;
+  final Value<DateTime?> reviewedAt;
+  final Value<String?> decisionNote;
   final Value<int> rowid;
   const SickLeaveCertificatesCompanion({
     this.id = const Value.absent(),
@@ -33822,6 +34002,10 @@ class SickLeaveCertificatesCompanion extends UpdateCompanion<SickLeaveRow> {
     this.toDate = const Value.absent(),
     this.notes = const Value.absent(),
     this.issuedAt = const Value.absent(),
+    this.status = const Value.absent(),
+    this.reviewedBy = const Value.absent(),
+    this.reviewedAt = const Value.absent(),
+    this.decisionNote = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   SickLeaveCertificatesCompanion.insert({
@@ -33834,6 +34018,10 @@ class SickLeaveCertificatesCompanion extends UpdateCompanion<SickLeaveRow> {
     required DateTime toDate,
     this.notes = const Value.absent(),
     this.issuedAt = const Value.absent(),
+    this.status = const Value.absent(),
+    this.reviewedBy = const Value.absent(),
+    this.reviewedAt = const Value.absent(),
+    this.decisionNote = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        patientId = Value(patientId),
@@ -33851,6 +34039,10 @@ class SickLeaveCertificatesCompanion extends UpdateCompanion<SickLeaveRow> {
     Expression<DateTime>? toDate,
     Expression<String>? notes,
     Expression<DateTime>? issuedAt,
+    Expression<String>? status,
+    Expression<String>? reviewedBy,
+    Expression<DateTime>? reviewedAt,
+    Expression<String>? decisionNote,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -33863,6 +34055,10 @@ class SickLeaveCertificatesCompanion extends UpdateCompanion<SickLeaveRow> {
       if (toDate != null) 'to_date': toDate,
       if (notes != null) 'notes': notes,
       if (issuedAt != null) 'issued_at': issuedAt,
+      if (status != null) 'status': status,
+      if (reviewedBy != null) 'reviewed_by': reviewedBy,
+      if (reviewedAt != null) 'reviewed_at': reviewedAt,
+      if (decisionNote != null) 'decision_note': decisionNote,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -33877,6 +34073,10 @@ class SickLeaveCertificatesCompanion extends UpdateCompanion<SickLeaveRow> {
     Value<DateTime>? toDate,
     Value<String?>? notes,
     Value<DateTime>? issuedAt,
+    Value<SickLeaveStatus>? status,
+    Value<String?>? reviewedBy,
+    Value<DateTime?>? reviewedAt,
+    Value<String?>? decisionNote,
     Value<int>? rowid,
   }) {
     return SickLeaveCertificatesCompanion(
@@ -33889,6 +34089,10 @@ class SickLeaveCertificatesCompanion extends UpdateCompanion<SickLeaveRow> {
       toDate: toDate ?? this.toDate,
       notes: notes ?? this.notes,
       issuedAt: issuedAt ?? this.issuedAt,
+      status: status ?? this.status,
+      reviewedBy: reviewedBy ?? this.reviewedBy,
+      reviewedAt: reviewedAt ?? this.reviewedAt,
+      decisionNote: decisionNote ?? this.decisionNote,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -33923,6 +34127,20 @@ class SickLeaveCertificatesCompanion extends UpdateCompanion<SickLeaveRow> {
     if (issuedAt.present) {
       map['issued_at'] = Variable<DateTime>(issuedAt.value);
     }
+    if (status.present) {
+      map['status'] = Variable<String>(
+        $SickLeaveCertificatesTable.$converterstatus.toSql(status.value),
+      );
+    }
+    if (reviewedBy.present) {
+      map['reviewed_by'] = Variable<String>(reviewedBy.value);
+    }
+    if (reviewedAt.present) {
+      map['reviewed_at'] = Variable<DateTime>(reviewedAt.value);
+    }
+    if (decisionNote.present) {
+      map['decision_note'] = Variable<String>(decisionNote.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -33941,6 +34159,10 @@ class SickLeaveCertificatesCompanion extends UpdateCompanion<SickLeaveRow> {
           ..write('toDate: $toDate, ')
           ..write('notes: $notes, ')
           ..write('issuedAt: $issuedAt, ')
+          ..write('status: $status, ')
+          ..write('reviewedBy: $reviewedBy, ')
+          ..write('reviewedAt: $reviewedAt, ')
+          ..write('decisionNote: $decisionNote, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();

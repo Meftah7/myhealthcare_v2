@@ -24,18 +24,34 @@ final noShowModelProvider = FutureProvider<NoShowModel>(
   (ref) => NoShowModel.load(),
 );
 
+/// The departments an appointment can be booked in: those with at least one
+/// active clinician who sees patients (a doctor or dentist). Departments
+/// staffed only by receptionists or pharmacists — Reception, Pharmacy — are
+/// never offered, and a new clinical department appears as soon as it has a
+/// clinician.
 final departmentsProvider = FutureProvider<List<Department>>((ref) async {
-  return _unwrap(await ref.watch(departmentRepositoryProvider).all());
+  final departments = _unwrap(
+    await ref.watch(departmentRepositoryProvider).all(),
+  );
+  final staff = _unwrap(await ref.watch(userRepositoryProvider).allStaff());
+  final bookable = {
+    for (final s in staff)
+      if (s.takesAppointments && s.user.isActive) s.departmentId,
+  };
+  return departments.where((d) => bookable.contains(d.id)).toList();
 });
 
-/// Staff in a department (id) — for the "choose a doctor" step.
+/// The clinicians in a department (id) who can be booked — for the "choose
+/// a doctor" step. Receptionists, pharmacists and nurses share departments'
+/// staff lists but don't take appointments, so they are left out.
 final departmentStaffProvider = FutureProvider.family<List<Staff>, String>((
   ref,
   departmentId,
 ) async {
-  return _unwrap(
+  final staff = _unwrap(
     await ref.watch(userRepositoryProvider).staffInDepartment(departmentId),
   );
+  return staff.where((s) => s.takesAppointments).toList();
 });
 
 /// A candidate slot with its predicted no-show risk and a plain-language reason.
