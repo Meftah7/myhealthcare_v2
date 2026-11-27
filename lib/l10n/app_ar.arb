@@ -2244,7 +2244,7 @@
   "paOnboardRecordsBody": "اطّلع على تقاريرك ووصفاتك الطبية وسجل زياراتك. استخدم المساعد للحصول على ملخص قصير لمستند.",
   "paChatLiveStatus": "ذكاء اصطناعي مباشر",
   "paChatOfflineStatus": "مساعد على الجهاز · بلا ذكاء اصطناعي مباشر",
-  "paChatReportLabel": "تلخيص: {title}",
+  "paChatReportLabel": "المستند: {title}",
   "paViewOriginal": "عرض الأصل",
   "paFutureWork": "عمل مستقبلي",
   "paFutureWorkBody": "هذه الميزة ضمن العمل المستقبلي وليست جزءًا من هذا الإصدار من myhealth. لم يُربط أي شيء بعد، لذا لا تُعرض أي معلومات هنا.",

@@ -2316,7 +2316,7 @@
   "paOnboardRecordsBody": "Find your reports, prescriptions and visit history. Use the assistant to get a short summary of a document.",
   "paChatLiveStatus": "Live AI",
   "paChatOfflineStatus": "On-device assistant · no live AI",
-  "paChatReportLabel": "Summarizing: {title}",
+  "paChatReportLabel": "Document: {title}",
   "@paChatReportLabel": {
     "placeholders": {
       "title": {"type": "String"}

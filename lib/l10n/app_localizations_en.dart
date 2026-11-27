@@ -5286,7 +5286,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String paChatReportLabel(String title) {
-    return 'Summarizing: $title';
+    return 'Document: $title';
   }
 
   @override

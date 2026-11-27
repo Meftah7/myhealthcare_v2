@@ -5337,7 +5337,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String paChatReportLabel(String title) {
-    return 'تلخيص: $title';
+    return 'المستند: $title';
   }
 
   @override

@@ -461,6 +461,14 @@ void main() {
         await tester.pump(const Duration(milliseconds: 80));
       }
       expect(find.byKey(const ValueKey('assistant-attachment')), findsNothing);
+      expect(
+        find.textContaining(
+          locale == 'ar'
+              ? 'المستند: synthetic-report'
+              : 'Document: synthetic-report',
+        ),
+        findsOneWidget,
+      );
       expect(tester.takeException(), isNull);
 
       await tester.pumpWidget(const SizedBox());

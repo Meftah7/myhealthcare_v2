@@ -9407,7 +9407,7 @@ abstract class AppLocalizations {
   /// No description provided for @paChatReportLabel.
   ///
   /// In en, this message translates to:
-  /// **'Summarizing: {title}'**
+  /// **'Document: {title}'**
   String paChatReportLabel(String title);
 
   /// No description provided for @paViewOriginal.
