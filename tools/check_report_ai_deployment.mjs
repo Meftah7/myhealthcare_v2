@@ -1,19 +1,33 @@
 import { randomUUID } from 'node:crypto';
+import { setTimeout as sleep } from 'node:timers/promises';
 import { pathToFileURL } from 'node:url';
 import { exactOrigin, isInstallToken, isPlaceholder, pageGatewayConfig } from '../services/report_ai/config.mjs';
 
 const pagesOrigin = 'https://meftah7.github.io';
+const startupStatuses = new Set([502, 503, 504]);
 
 export async function checkReportAiGateway({
   origin, token, browserOrigin = pagesOrigin, smoke = false, fetchImpl = fetch,
+  waitForRetry = () => sleep(5_000),
 }) {
   async function request(path, options = {}) {
-    try {
-      return await fetchImpl(origin + path, {
-        ...options, redirect: 'error', signal: AbortSignal.timeout(45_000),
-      });
-    } catch {
-      throw new Error(path + ': could not reach the gateway. Check DNS, TLS and proxy routing.');
+    const attempts = options.method === 'POST' ? 1 : 3;
+    for (let attempt = 1; ; attempt++) {
+      let response;
+      try {
+        response = await fetchImpl(origin + path, {
+          ...options, redirect: 'error', signal: AbortSignal.timeout(45_000),
+        });
+      } catch {
+        if (attempt === attempts) {
+          throw new Error(path + ': could not reach the gateway. Check hosting status, DNS, TLS and proxy routing.');
+        }
+      }
+      if (response && (attempt === attempts || !startupStatuses.has(response.status))) {
+        return response;
+      }
+      await response?.body?.cancel().catch(() => {});
+      await waitForRetry();
     }
   }
   const preflight = await request('/v1/documents/summarize', {
@@ -24,6 +38,9 @@ export async function checkReportAiGateway({
       'Access-Control-Request-Headers': 'authorization,content-type,idempotency-key',
     },
   });
+  if (startupStatuses.has(preflight.status)) {
+    throw new Error('Gateway did not become available for OPTIONS (HTTP ' + preflight.status + '). Check host startup logs.');
+  }
   const allowed = name => (preflight.headers.get(name) ?? '').toLowerCase().split(',').map(v => v.trim());
   if (preflight.status !== 204 ||
       preflight.headers.get('access-control-allow-origin') !== browserOrigin ||

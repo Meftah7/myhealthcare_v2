@@ -1,8 +1,7 @@
 // End to end: the full app's repositories in shared mode against the real
 // Node shared server. A patient books through the app's booking contract,
 // the doctor starts, drafts and signs the visit, the prescription reaches
-// the pharmacist, and unsupported repositories fail visibly instead of
-// returning local data.
+// the pharmacist, and the patient sees the signed note and linked report.
 @TestOn('vm')
 library;
 
@@ -18,6 +17,7 @@ import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/core/failures.dart';
 import 'package:myhealthcare/data/remote/shared_client.dart';
 import 'package:myhealthcare/domain/enums.dart';
+import 'package:myhealthcare/domain/repositories/export_repository.dart';
 import 'package:myhealthcare/domain/repositories/pharmacy_repository.dart';
 import 'package:myhealthcare/domain/repositories/repositories.dart';
 import 'package:myhealthcare/features/auth/application/session.dart';
@@ -116,12 +116,9 @@ void main() {
       (await appointments.forPatient(me.id)).valueOrNull!.single.id,
       booked.id,
     );
-    // An unsupported repository fails visibly, never with local data.
-    expect(
-      (await patient.read(recordRepositoryProvider).timeline(me.id))
-          .failureOrNull,
-      isA<SharedModeUnavailableFailure>(),
-    );
+    final records = patient.read(recordRepositoryProvider);
+    final documents = patient.read(documentServiceProvider);
+    expect((await records.timeline(me.id)).valueOrNull, isEmpty);
 
     // Doctor: start, draft (versioned) and sign once.
     final doc = await signedIn('doctor@shared.demo');
@@ -159,6 +156,8 @@ void main() {
       (await drafts.forAppointment(booked.id)).valueOrNull!.note,
       'Cough for three days',
     );
+    expect((await records.timeline(me.id)).valueOrNull, isEmpty);
+    expect(await documents.watchForPatient(me.id).first, isEmpty);
     final finalizeKey = IdempotencyKey.generate();
     final finalize = FinalizeEncounter(
       appointmentId: booked.id,
@@ -181,6 +180,12 @@ void main() {
       (await encounters.signedNoteFor(booked.id)).valueOrNull!.body,
       'Viral URTI',
     );
+    final note = (await records.timeline(me.id)).valueOrNull!.single;
+    expect(note.appointmentId, booked.id);
+    expect(note.body, 'Viral URTI');
+    final report = (await documents.watchForPatient(me.id).first).single;
+    expect(report.documentType, ExportDocument.completedVisitReport);
+    expect(report.appointmentId, booked.id);
 
     // Pharmacist sees the signed prescription and dispenses it once.
     final pharmacy = await signedIn('pharmacy@shared.demo');

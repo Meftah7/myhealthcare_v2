@@ -93,3 +93,33 @@ test('deployment check verifies preflight, authenticated readiness and both synt
     fetchImpl: async () => new Response(null, { status: 204, headers: { 'Access-Control-Allow-Origin': '*' } }),
   }), /CORS preflight failed/);
 });
+
+test('deployment check waits for a cold gateway and stops on rejected credentials', async () => {
+  const browserOrigin = 'https://meftah7.github.io';
+  const headers = {
+    'Access-Control-Allow-Origin': browserOrigin,
+    'Access-Control-Allow-Methods': 'GET, POST',
+    'Access-Control-Allow-Headers': 'Authorization, Content-Type, Idempotency-Key',
+  };
+  let preflights = 0;
+  let healthChecks = 0;
+  let retries = 0;
+  await assert.rejects(checkReportAiGateway({
+    origin: 'https://ai.myhealth-gateway.org',
+    token: randomBytes(32).toString('base64url'),
+    waitForRetry: async () => { retries++; },
+    fetchImpl: async (_url, request) => {
+      if (request.method === 'OPTIONS') {
+        preflights++;
+        if (preflights === 1) throw new DOMException('Timed out', 'TimeoutError');
+        if (preflights === 2) return new Response('Starting', { status: 503 });
+        return new Response(null, { status: 204, headers });
+      }
+      healthChecks++;
+      return new Response(null, { status: 401, headers });
+    },
+  }), /rejected REPORT_AI_CLIENT_TOKEN/);
+  assert.equal(preflights, 3);
+  assert.equal(healthChecks, 1);
+  assert.equal(retries, 2);
+});

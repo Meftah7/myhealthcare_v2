@@ -242,6 +242,10 @@ node tools/check_report_ai_deployment.mjs --smoke
 
 The first command sends the Pages CORS preflight and an authenticated
 `GET /v1/health`, expecting `ready`, `chat`, and `summarize` to be true.
+The deployment check retries transient connectivity errors and HTTP 502–504
+on the preflight and readiness requests. A rejected token or CORS policy
+fails the check immediately. If a cold Render instance outlasts the browser's
+first check, wait for the service to start and select **Retry** in Care Navigator.
 The second also calls the provider through `/v1/chat` and
 `/v1/documents/summarize` with synthetic inputs. For the loopback gateway
 from the local setup above, add `--local` to either command.

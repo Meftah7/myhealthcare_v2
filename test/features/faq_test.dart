@@ -95,8 +95,12 @@ void main() {
 
     c.read(routerProvider).go(AppRoutes.patientFaq);
     await _settle(tester);
-    await tester.tap(find.text(t.faqQ9));
-    await _settle(tester);
+    if (message.evaluate().isEmpty) {
+      await tester.ensureVisible(find.text(t.faqQ9));
+      await tester.tap(find.text(t.faqQ9));
+      await _settle(tester);
+    }
+    expect(message, findsOneWidget);
     await tester.ensureVisible(message);
     await tester.tap(message);
     await _settle(tester);

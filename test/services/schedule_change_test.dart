@@ -17,6 +17,36 @@ void main() {
     () async {
       final (c, db) = await seededContainer();
       await signInAs(c, 'admin@myhealth.demo');
+      final original = await (db.select(
+        db.staffProfiles,
+      )..where((p) => p.userId.equals('staff_01'))).getSingle();
+      final templates = await (db.select(
+        db.scheduleTemplates,
+      )..where((t) => t.staffId.equals('staff_01'))).get();
+      final template = templates.firstWhere(
+        (t) => t.weekday != DateTime.friday,
+      );
+      final now = DateTime.now();
+      final daysAhead = 7 + (template.weekday - now.weekday) % 7;
+      final start = DateTime(
+        now.year,
+        now.month,
+        now.day + daysAhead,
+      ).add(Duration(minutes: template.startMinutes));
+      const fixtureId = 'schedule-change-future-booking';
+      await db
+          .into(db.appointments)
+          .insert(
+            AppointmentsCompanion.insert(
+              id: fixtureId,
+              patientId: 'patient_050',
+              staffId: 'staff_01',
+              departmentId: Value(original.departmentId),
+              slotStart: start,
+              slotEnd: start.add(Duration(minutes: template.slotMinutes)),
+              visitType: VisitType.routineCheckup,
+            ),
+          );
       final booked =
           await (db.select(db.appointments)..where(
                 (a) =>
@@ -28,7 +58,7 @@ void main() {
                     ]),
               ))
               .get();
-      expect(booked, isNotEmpty, reason: 'seed has future bookings');
+      expect(booked.map((a) => a.id), contains(fixtureId));
       final repo = c.read(appointmentRepositoryProvider);
       // Fridays only: the regular Sunday–Thursday bookings are uncovered.
       const fridays = [
@@ -39,7 +69,7 @@ void main() {
         templates: fridays,
       )).valueOrNull!;
       // Only this clinician's real future bookings, and at least one.
-      expect(preview, isNotEmpty);
+      expect(preview.map((a) => a.id), contains(fixtureId));
       expect(
         {for (final b in booked) b.id}.containsAll(preview.map((a) => a.id)),
         isTrue,
@@ -64,9 +94,6 @@ void main() {
       )..where((a) => a.id.isIn([for (final p in preview) p.id]))).get();
       // A free replacement in the same department with the same weekly
       // schedule and no bookings of its own.
-      final original = await (db.select(
-        db.staffProfiles,
-      )..where((p) => p.userId.equals('staff_01'))).getSingle();
       final replacement =
           (await c
                   .read(userRepositoryProvider)
@@ -78,9 +105,6 @@ void main() {
                     jobTitle: 'Doctor',
                   ))
               .valueOrNull!;
-      final templates = await (db.select(
-        db.scheduleTemplates,
-      )..where((t) => t.staffId.equals('staff_01'))).get();
       for (final t in templates) {
         await db
             .into(db.scheduleTemplates)

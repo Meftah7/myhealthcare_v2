@@ -11,6 +11,7 @@ import '../../../core/di.dart';
 import '../../../core/data/contracts.dart';
 import '../../../core/failures.dart';
 import '../../../core/presentation/app_scaffold.dart';
+import '../../../core/presentation/readable_label.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/result.dart';
 import '../../../core/ui/patient/patient_components.dart';
@@ -84,7 +85,7 @@ class IssuedDocumentsScreen extends ConsumerWidget {
         ref.invalidate(patientLegacyDocumentsProvider(subject));
       },
       children: [
-        Text(t.paIssuedDocumentsIntro),
+        ReadableLabel(t.paIssuedDocumentsIntro),
         const SizedBox(height: Space.md),
         PatientDocumentList(patientId: subject),
       ],
