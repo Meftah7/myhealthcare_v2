@@ -224,8 +224,19 @@ void main() {
       await tester.pumpAndSettle();
       await tester.runAsync(() async {
         await tester.tap(find.byIcon(Icons.upload_file_outlined));
-        await Future<void>.delayed(const Duration(milliseconds: 300));
       });
+      // Picking and reading the PDF runs in real time: wait for the form
+      // (up to 10 s) instead of a fixed delay a busy machine can overrun.
+      for (
+        var i = 0;
+        i < 100 && find.byType(TextField).evaluate().isEmpty;
+        i++
+      ) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 100)),
+        );
+        await tester.pump();
+      }
       await tester.pumpAndSettle();
       await tester.enterText(
         find.byType(TextField).at(0),

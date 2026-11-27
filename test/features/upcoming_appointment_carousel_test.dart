@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/theme/app_theme.dart';
@@ -86,7 +87,8 @@ void main() {
   });
 
   testWidgets(
-    'swipe and arrows work with pause available, and swiping resets the timer',
+    'with a mouse: arrows work, no pause button, and swiping resets the timer',
+    variant: TargetPlatformVariant.only(TargetPlatform.windows),
     (tester) async {
       await _mount(tester);
       await tester.pump(const Duration(seconds: 3));
@@ -99,8 +101,8 @@ void main() {
       expect(find.text('2 of 3'), findsOneWidget);
       await tester.pump(const Duration(seconds: 2));
       expect(find.text('2 of 3'), findsOneWidget);
-      expect(find.byTooltip('Pause appointment slideshow'), findsOneWidget);
-      expect(find.byIcon(Icons.pause), findsOneWidget);
+      expect(find.byIcon(Icons.pause), findsNothing);
+      expect(find.byIcon(Icons.play_arrow), findsNothing);
       await tester.ensureVisible(find.byTooltip('Previous appointment'));
       await tester.tap(find.byTooltip('Previous appointment'));
       await tester.pump(const Duration(milliseconds: 400));
@@ -110,6 +112,42 @@ void main() {
       expect(find.text('2 of 3'), findsOneWidget);
       await tester.pump(const Duration(seconds: 4));
       expect(find.text('3 of 3'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  testWidgets('on a phone or tablet: swipe only, no arrows or pause', (
+    tester,
+  ) async {
+    await _mount(tester);
+    expect(find.byTooltip('Previous appointment'), findsNothing);
+    expect(find.byTooltip('Next appointment'), findsNothing);
+    expect(find.byIcon(Icons.pause), findsNothing);
+    expect(find.text('1 of 3'), findsOneWidget);
+    await tester.fling(
+      find.byType(UpcomingAppointmentCarousel),
+      const Offset(-200, 0),
+      900,
+    );
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('2 of 3'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets(
+    'holds still while the mouse is over it',
+    variant: TargetPlatformVariant.only(TargetPlatform.windows),
+    (tester) async {
+      await _mount(tester);
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await mouse.addPointer(location: Offset.zero);
+      addTearDown(mouse.removePointer);
+      await mouse.moveTo(tester.getCenter(find.text('K-1')));
+      await tester.pump(const Duration(seconds: 10));
+      expect(find.text('1 of 3'), findsOneWidget);
+      await mouse.moveTo(Offset.zero);
+      await tester.pump(const Duration(seconds: 4));
+      expect(find.text('2 of 3'), findsOneWidget);
       await tester.pumpWidget(const SizedBox());
     },
   );
@@ -124,30 +162,36 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
-  testWidgets('reduced motion keeps the card still with manual navigation', (
-    tester,
-  ) async {
-    await _mount(tester, reduceMotion: true);
-    await tester.pump(const Duration(seconds: 12));
-    expect(find.text('1 of 3'), findsOneWidget);
-    await tester.ensureVisible(find.byTooltip('Next appointment'));
-    await tester.tap(find.byTooltip('Next appointment'));
-    await tester.pump();
-    expect(find.text('2 of 3'), findsOneWidget);
-    await tester.pumpWidget(const SizedBox());
-  });
+  testWidgets(
+    'reduced motion keeps the card still with manual navigation',
+    variant: TargetPlatformVariant.only(TargetPlatform.windows),
+    (tester) async {
+      await _mount(tester, reduceMotion: true);
+      await tester.pump(const Duration(seconds: 12));
+      expect(find.text('1 of 3'), findsOneWidget);
+      await tester.ensureVisible(find.byTooltip('Next appointment'));
+      await tester.tap(find.byTooltip('Next appointment'));
+      await tester.pump();
+      expect(find.text('2 of 3'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
 
   for (final language in ['en', 'ar']) {
-    testWidgets('320px card expands at 390% text in $language', (tester) async {
-      await _mount(tester, scale: 3.9, language: language);
-      expect(tester.takeException(), isNull);
-      final t = await AppLocalizations.delegate.load(Locale(language));
-      await tester.ensureVisible(find.byTooltip(t.nextAppointment));
-      await tester.tap(find.byTooltip(t.nextAppointment));
-      await tester.pump(const Duration(milliseconds: 400));
-      expect(find.text(t.carouselPosition(2, 3)), findsOneWidget);
-      expect(tester.takeException(), isNull);
-      await tester.pumpWidget(const SizedBox());
-    });
+    testWidgets(
+      '320px card expands at 390% text in $language',
+      variant: TargetPlatformVariant.only(TargetPlatform.windows),
+      (tester) async {
+        await _mount(tester, scale: 3.9, language: language);
+        expect(tester.takeException(), isNull);
+        final t = await AppLocalizations.delegate.load(Locale(language));
+        await tester.ensureVisible(find.byTooltip(t.nextAppointment));
+        await tester.tap(find.byTooltip(t.nextAppointment));
+        await tester.pump(const Duration(milliseconds: 400));
+        expect(find.text(t.carouselPosition(2, 3)), findsOneWidget);
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox());
+      },
+    );
   }
 }

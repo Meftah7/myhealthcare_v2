@@ -6,12 +6,18 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/app_card.dart';
+import '../../../core/presentation/pointer_input.dart';
 import '../../../core/presentation/readable_label.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../l10n/app_localizations.dart';
 
 /// Natural-height cards: larger text expands the card instead of clipping it.
+///
+/// Moves to the next visit every four seconds; it holds still while the
+/// mouse is over it, and never moves with reduced motion or a screen reader.
+/// Touch users swipe; the "<" / ">" buttons show only to mouse and trackpad
+/// users ([PointerInput]), like the Services and shortcut rows.
 class UpcomingAppointmentCarousel extends StatefulWidget {
   const UpcomingAppointmentCarousel({
     required this.appointments,
@@ -33,7 +39,7 @@ class _UpcomingAppointmentCarouselState
   Timer? _timer;
   int _index = 0;
   bool _foreground = true;
-  bool _paused = false;
+  bool _hovering = false;
   double _direction = 1;
   double _dragDistance = 0;
 
@@ -63,7 +69,7 @@ class _UpcomingAppointmentCarouselState
 
   void _restartTimer() {
     _timer?.cancel();
-    if (!_foreground || _paused || widget.appointments.length < 2) return;
+    if (!_foreground || _hovering || widget.appointments.length < 2) return;
     _timer = Timer.periodic(const Duration(seconds: 4), (_) {
       if (!mounted || !TickerMode.valuesOf(context).enabled) return;
       if (ModalRoute.of(context)?.isCurrent == false) return;
@@ -99,84 +105,90 @@ class _UpcomingAppointmentCarouselState
     final staticMotion =
         MediaQuery.disableAnimationsOf(context) ||
         MediaQuery.accessibleNavigationOf(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        GestureDetector(
-          onHorizontalDragStart: (_) {
-            _dragDistance = 0;
-            _timer?.cancel();
-          },
-          onHorizontalDragUpdate: (details) {
-            _dragDistance += details.primaryDelta ?? 0;
-          },
-          onHorizontalDragEnd: (details) {
-            final velocity = details.primaryVelocity ?? 0;
-            if (velocity.abs() > 100 || _dragDistance.abs() > 40) {
-              final movement = velocity.abs() > 100 ? velocity : _dragDistance;
-              _move(movement < 0 ? 1 : -1);
-            } else {
-              _restartTimer();
-            }
-          },
-          onHorizontalDragCancel: _restartTimer,
-          child: ClipRect(
-            child: AnimatedSwitcher(
-              duration: staticMotion
-                  ? Duration.zero
-                  : const Duration(milliseconds: 350),
-              switchInCurve: Curves.easeOutCubic,
-              switchOutCurve: Curves.easeInCubic,
-              transitionBuilder: (child, animation) => SlideTransition(
-                position: Tween<Offset>(
-                  begin: Offset(
-                    child.key == cardKey ? _direction : -_direction,
-                    0,
-                  ),
-                  end: Offset.zero,
-                ).animate(animation),
-                child: FadeTransition(opacity: animation, child: child),
-              ),
-              child: _AppointmentCard(
-                key: cardKey,
-                appointment: appointment,
-                doctorName: widget.doctorNames[appointment.staffId],
+    return MouseRegion(
+      // Reading a card with the mouse over it: it holds still.
+      onEnter: (_) {
+        _hovering = true;
+        _timer?.cancel();
+      },
+      onExit: (_) {
+        _hovering = false;
+        _restartTimer();
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          GestureDetector(
+            onHorizontalDragStart: (_) {
+              _dragDistance = 0;
+              _timer?.cancel();
+            },
+            onHorizontalDragUpdate: (details) {
+              _dragDistance += details.primaryDelta ?? 0;
+            },
+            onHorizontalDragEnd: (details) {
+              final velocity = details.primaryVelocity ?? 0;
+              if (velocity.abs() > 100 || _dragDistance.abs() > 40) {
+                final movement = velocity.abs() > 100
+                    ? velocity
+                    : _dragDistance;
+                _move(movement < 0 ? 1 : -1);
+              } else {
+                _restartTimer();
+              }
+            },
+            onHorizontalDragCancel: _restartTimer,
+            child: ClipRect(
+              child: AnimatedSwitcher(
+                duration: staticMotion
+                    ? Duration.zero
+                    : const Duration(milliseconds: 350),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (child, animation) => SlideTransition(
+                  position: Tween<Offset>(
+                    begin: Offset(
+                      child.key == cardKey ? _direction : -_direction,
+                      0,
+                    ),
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: FadeTransition(opacity: animation, child: child),
+                ),
+                child: _AppointmentCard(
+                  key: cardKey,
+                  appointment: appointment,
+                  doctorName: widget.doctorNames[appointment.staffId],
+                ),
               ),
             ),
           ),
-        ),
-        if (widget.appointments.length > 1) ...[
-          const SizedBox(height: Space.xs),
-          ReadableLabel(
-            t.carouselPosition(_index + 1, widget.appointments.length),
-            textAlign: TextAlign.center,
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                tooltip: _paused ? t.resumeAppointments : t.pauseAppointments,
-                onPressed: () {
-                  setState(() => _paused = !_paused);
-                  _restartTimer();
-                },
-                icon: Icon(_paused ? Icons.play_arrow : Icons.pause),
+          if (widget.appointments.length > 1) ...[
+            const SizedBox(height: Space.xs),
+            ReadableLabel(
+              t.carouselPosition(_index + 1, widget.appointments.length),
+              textAlign: TextAlign.center,
+            ),
+            if (PointerInput.usesMouse(context))
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    tooltip: t.previousAppointment,
+                    onPressed: () => _move(-1),
+                    icon: const Icon(Icons.chevron_left),
+                  ),
+                  IconButton(
+                    tooltip: t.nextAppointment,
+                    onPressed: () => _move(1),
+                    icon: const Icon(Icons.chevron_right),
+                  ),
+                ],
               ),
-              IconButton(
-                tooltip: t.previousAppointment,
-                onPressed: () => _move(-1),
-                icon: const Icon(Icons.chevron_left),
-              ),
-              IconButton(
-                tooltip: t.nextAppointment,
-                onPressed: () => _move(1),
-                icon: const Icon(Icons.chevron_right),
-              ),
-            ],
-          ),
+          ],
+          const SizedBox(height: Space.sm),
         ],
-        const SizedBox(height: Space.sm),
-      ],
+      ),
     );
   }
 }

@@ -10,6 +10,7 @@ import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:myhealthcare/domain/entities/entities.dart';
 import 'package:myhealthcare/domain/enums.dart';
 import 'package:myhealthcare/features/patient/application/patient_data_providers.dart';
+import 'package:myhealthcare/features/patient_home/presentation/upcoming_appointment_carousel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/sessions.dart';
@@ -95,19 +96,22 @@ void main() {
     // The count is visible.
     expect(find.textContaining(RegExp(r'^\d+ of \d+$')), findsOneWidget);
 
-    // Every four seconds the next card slides in; manual controls remain available.
-    await tester.ensureVisible(find.byTooltip('Pause appointment slideshow'));
-    await tester.tap(find.byTooltip('Pause appointment slideshow'));
+    // Every four seconds the next card slides in. On a phone there is no
+    // pause button and no arrows (those are for mouse users): touch users
+    // swipe.
+    expect(find.byTooltip('Pause appointment slideshow'), findsNothing);
+    expect(find.byTooltip('Previous appointment'), findsNothing);
     final firstCount = tester
         .widget<Text>(find.textContaining(RegExp(r'^\d+ of \d+$')))
         .data!;
-    await tester.pump(const Duration(seconds: 10));
-    expect(find.text(firstCount), findsOneWidget);
-    await tester.tap(find.byTooltip('Resume appointment slideshow'));
     await tester.pump(const Duration(seconds: 4));
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text(firstCount), findsNothing);
-    await tester.tap(find.byTooltip('Previous appointment'));
+    await tester.fling(
+      find.byType(UpcomingAppointmentCarousel),
+      const Offset(200, 0),
+      900,
+    );
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text(firstCount), findsOneWidget);
 
