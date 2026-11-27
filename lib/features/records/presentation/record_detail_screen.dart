@@ -3,6 +3,7 @@ library;
 
 import 'dart:async';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -351,7 +352,12 @@ class _OriginalCard extends ConsumerWidget {
           else ...[
             Row(
               children: [
-                const IconTile(icon: Icons.picture_as_pdf_outlined, size: 40),
+                IconTile(
+                  icon: doc.mimeType == 'application/pdf'
+                      ? Icons.picture_as_pdf_outlined
+                      : Icons.description_outlined,
+                  size: 40,
+                ),
                 const SizedBox(width: Space.sm),
                 Expanded(
                   child: Text(
@@ -369,21 +375,32 @@ class _OriginalCard extends ConsumerWidget {
               spacing: Space.xs,
               runSpacing: Space.xs,
               children: [
-                DocumentDownloadButton(
-                  label: t.openOriginalAction,
-                  filename: doc.fileName,
-                  icon: Icons.visibility_outlined,
-                  build: () => openOriginalFile(ref, record),
-                ),
+                // Only a PDF can be previewed in the app; Word and text
+                // originals are downloaded as they were saved.
+                if (doc.mimeType == 'application/pdf')
+                  DocumentDownloadButton(
+                    label: t.openOriginalAction,
+                    filename: doc.fileName,
+                    icon: Icons.visibility_outlined,
+                    build: () => openOriginalFile(ref, record),
+                  ),
                 OutlinedButton.icon(
                   key: const ValueKey('download-original'),
                   onPressed: () async {
                     try {
                       final bytes = await openOriginalFile(ref, record);
-                      await Printing.sharePdf(
-                        bytes: bytes,
-                        filename: doc.fileName,
-                      );
+                      if (doc.mimeType == 'application/pdf') {
+                        await Printing.sharePdf(
+                          bytes: bytes,
+                          filename: doc.fileName,
+                        );
+                      } else {
+                        await FilePicker.saveFile(
+                          fileName: doc.fileName,
+                          bytes: bytes,
+                          mimeType: doc.mimeType,
+                        );
+                      }
                     } on Object {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(

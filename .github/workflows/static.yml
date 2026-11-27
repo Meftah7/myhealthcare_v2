@@ -1,4 +1,10 @@
-# Build the Flutter web app, then deploy the compiled output to GitHub Pages
+# Build the Flutter web app, check it, then deploy the compiled output to
+# GitHub Pages.
+#
+# Fast path: the site build, the static checks and the Flutter tests run as
+# separate jobs at the same time (the tests split across several machines),
+# instead of one long job. The deploy still waits for every check and test to
+# pass, so a broken commit is never published.
 name: Deploy Flutter web app to Pages
 on:
  push:
@@ -11,47 +17,31 @@ permissions:
 concurrency:
  group: "pages"
  cancel-in-progress: false
+env:
+ # The clinic runs on Bahrain time (UTC+3) and parts of the app and its
+ # demo seed read the device clock as clinic time. On a UTC runner the two
+ # disagree between 21:00 and 24:00 UTC, so date-sensitive tests failed
+ # depending on when CI ran. Match the devices the app ships to.
+ TZ: Asia/Bahrain
+ FLUTTER_VERSION: '3.47.2'
+ NODE_VERSION: '24.13.0'
 jobs:
+ # The site itself. Generated code (Drift, freezed) is committed and checked
+ # for freshness in `checks`, so the build does not regenerate it.
  build:
    runs-on: ubuntu-latest
-   # The clinic runs on Bahrain time (UTC+3) and parts of the app and its
-   # demo seed read the device clock as clinic time. On a UTC runner the two
-   # disagree between 21:00 and 24:00 UTC, so date-sensitive tests failed
-   # depending on when CI ran. Match the devices the app ships to.
-   env:
-     TZ: Asia/Bahrain
    steps:
      - name: Checkout
        uses: actions/checkout@v4
      - name: Set up Flutter
        uses: subosito/flutter-action@v2
        with:
-         flutter-version: '3.47.2'
+         flutter-version: ${{ env.FLUTTER_VERSION }}
          channel: 'stable'
-     - name: Set up server runtime
-       uses: actions/setup-node@v4
-       with:
-         node-version: '24.13.0'
+         # Restores the SDK and the pub package cache between runs.
+         cache: true
      - name: Install dependencies
        run: flutter pub get
-     - name: Generate code (Drift, etc.)
-       run: dart run build_runner build --delete-conflicting-outputs
-     - name: Validate pinned versions
-       run: |
-         flutter --version --machine > /tmp/flutter-version.json
-         node -e "const p=require('./toolchain.json'),v=require('/tmp/flutter-version.json');if(v.frameworkVersion!==p.flutter||v.dartSdkVersion!==p.dart||process.versions.node!==p.node)throw Error('Toolchain mismatch')"
-     - name: Check formatting
-       run: dart format --output=none --set-exit-if-changed lib test integration_test test_driver
-     - name: Validate workforce manifest
-       run: node tools/generate_workforce.mjs --check
-     - name: Analyze
-       run: flutter analyze --no-fatal-infos
-     - name: Test clinic workflows
-       run: flutter test --reporter expanded
-     - name: Test shared server and verification
-       run: node --test tools/serve_local.test.mjs services/shared_api/*.test.mjs services/shared_api/load.mjs services/document_verification/server.test.mjs services/report_ai/evaluate.test.mjs
-     - name: Build shared pilot
-       run: flutter build web --release --no-web-resources-cdn --dart-define=SHARED_API_ORIGIN=http://localhost:8080
      - name: Build web release
        # base-href must match the repo name so asset paths resolve correctly
        # under https://<user>.github.io/<repo>/. --no-web-resources-cdn keeps
@@ -60,8 +50,30 @@ jobs:
        # — without this flag the app loads its JS but never renders (blank
        # white page, no catchable error since the CSP block happens before
        # any Dart code runs).
-       run: flutter build web --release --base-href "/myhealthcare_v2/" --no-web-resources-cdn  --dart-define=APP_MODE=demo
-
+       #
+       # The report assistant's gateway (services/report_ai) is hosted
+       # separately — Pages only serves static files. Set the repository
+       # variables REPORT_AI_ORIGIN (exact https origin, e.g.
+       # https://ai.example.org) and REPORT_AI_CLIENT_TOKEN to connect it.
+       # The token ends up in the public JavaScript: it only identifies this
+       # build to the gateway's rate limits and is not a secret or a patient
+       # credential. Left unset, the assistant reports "not configured" and
+       # summaries are made on the device.
+       env:
+         REPORT_AI_ORIGIN: ${{ vars.REPORT_AI_ORIGIN }}
+         REPORT_AI_CLIENT_TOKEN: ${{ vars.REPORT_AI_CLIENT_TOKEN }}
+       run: >-
+         flutter build web --release --base-href "/myhealthcare_v2/" --no-web-resources-cdn
+         --dart-define=APP_MODE=demo
+         --dart-define=REPORT_AI_ORIGIN="$REPORT_AI_ORIGIN"
+         --dart-define=REPORT_AI_CLIENT_TOKEN="$REPORT_AI_CLIENT_TOKEN"
+     - name: Allow the gateway in the page's Content-Security-Policy
+       # Adds exactly REPORT_AI_ORIGIN to connect-src (nothing else, no
+       # wildcards); the tool rejects anything that is not an exact origin.
+       if: ${{ vars.REPORT_AI_ORIGIN != '' }}
+       env:
+         REPORT_AI_ORIGIN: ${{ vars.REPORT_AI_ORIGIN }}
+       run: node tools/set_csp_connect.mjs build/web/index.html "$REPORT_AI_ORIGIN"
      - name: Setup Pages
        uses: actions/configure-pages@v5
      - name: Upload artifact
@@ -69,8 +81,89 @@ jobs:
        with:
          # Only the compiled web output, not the whole repo
          path: 'build/web'
+
+ # Everything that is not a Flutter test: toolchain, generated code,
+ # formatting, analysis and the Node services.
+ checks:
+   runs-on: ubuntu-latest
+   steps:
+     - name: Checkout
+       uses: actions/checkout@v4
+     - name: Set up Flutter
+       uses: subosito/flutter-action@v2
+       with:
+         flutter-version: ${{ env.FLUTTER_VERSION }}
+         channel: 'stable'
+         cache: true
+     - name: Set up server runtime
+       uses: actions/setup-node@v4
+       with:
+         node-version: ${{ env.NODE_VERSION }}
+     - name: Install dependencies
+       run: flutter pub get
+     - name: Validate pinned versions
+       run: |
+         flutter --version --machine > /tmp/flutter-version.json
+         node -e "const p=require('./toolchain.json'),v=require('/tmp/flutter-version.json');if(v.frameworkVersion!==p.flutter||v.dartSdkVersion!==p.dart||process.versions.node!==p.node)throw Error('Toolchain mismatch')"
+     - name: Generated code is up to date
+       run: |
+         dart run build_runner build --delete-conflicting-outputs
+         git diff --exit-code -- lib test || (echo "::error::Generated code is stale: run dart run build_runner build and commit the result." && exit 1)
+     - name: Check formatting
+       run: dart format --output=none --set-exit-if-changed lib test integration_test test_driver
+     - name: Validate workforce manifest
+       run: node tools/generate_workforce.mjs --check
+     - name: Analyze
+       run: flutter analyze --no-fatal-infos
+     - name: Test shared server and verification
+       run: node --test tools/serve_local.test.mjs services/shared_api/*.test.mjs services/shared_api/load.mjs services/document_verification/server.test.mjs services/report_ai/evaluate.test.mjs tools/set_csp_connect.test.mjs
+
+ # The shared-server pilot must still compile (it is not deployed).
+ shared-pilot:
+   runs-on: ubuntu-latest
+   steps:
+     - name: Checkout
+       uses: actions/checkout@v4
+     - name: Set up Flutter
+       uses: subosito/flutter-action@v2
+       with:
+         flutter-version: ${{ env.FLUTTER_VERSION }}
+         channel: 'stable'
+         cache: true
+     - name: Install dependencies
+       run: flutter pub get
+     - name: Build shared pilot
+       run: flutter build web --release --no-web-resources-cdn --dart-define=SHARED_API_ORIGIN=http://localhost:8080
+
+ # The Flutter test suite, split across machines that run at the same time.
+ tests:
+   runs-on: ubuntu-latest
+   strategy:
+     fail-fast: true
+     matrix:
+       shard: [0, 1, 2, 3, 4, 5]
+   steps:
+     - name: Checkout
+       uses: actions/checkout@v4
+     - name: Set up Flutter
+       uses: subosito/flutter-action@v2
+       with:
+         flutter-version: ${{ env.FLUTTER_VERSION }}
+         channel: 'stable'
+         cache: true
+     - name: Set up server runtime
+       # The shared-mode end-to-end test starts the Node server.
+       uses: actions/setup-node@v4
+       with:
+         node-version: ${{ env.NODE_VERSION }}
+     - name: Install dependencies
+       run: flutter pub get
+     - name: Test clinic workflows (shard ${{ matrix.shard }} of 6)
+       run: flutter test --reporter expanded --total-shards 6 --shard-index ${{ matrix.shard }}
+
  deploy:
-   needs: build
+   # Published only when the build, every check and every test shard pass.
+   needs: [build, checks, shared-pilot, tests]
    environment:
      name: github-pages
      url: ${{ steps.deployment.outputs.page_url }}

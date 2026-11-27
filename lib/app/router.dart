@@ -40,6 +40,7 @@ import '../features/admin/presentation/document_policies_screen.dart';
 import '../features/admin/presentation/system_analytics_screen.dart';
 import '../features/admin/presentation/user_management_screen.dart';
 import '../features/ai_chat/presentation/care_navigator_overlay.dart';
+import '../features/ai_chat/presentation/faq_screen.dart';
 import '../features/ai_scribe/presentation/clinical_scribe_screen.dart';
 import '../features/ai_summary/presentation/ai_summary_screen.dart';
 import '../features/appointments/presentation/appointment_detail_screen.dart';
@@ -197,6 +198,9 @@ abstract final class AppRoutes {
   static const patientOvulation = '$patientCalculators/ovulation';
   static const patientGeneralConverters = '$patientConverters/general';
   static const patientEmergency = '/patient/home/emergency';
+
+  /// Frequently asked questions (opened from the assistant).
+  static const patientFaq = '/patient/home/faq';
 
   /// Full-screen booking discovery; `?mode=virtual` opens the Virtual Care
   /// (future work) explanation. Every path converges on [patientBook].
@@ -720,6 +724,7 @@ StatefulShellRoute _patientShell() {
                 path: 'emergency',
                 builder: (_, _) => const EmergencyServicesScreen(),
               ),
+              GoRoute(path: 'faq', builder: (_, _) => const FaqScreen()),
               GoRoute(path: 'vitals', builder: (_, _) => const VitalsScreen()),
               GoRoute(
                 path: 'billing',

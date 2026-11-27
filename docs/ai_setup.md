@@ -1,7 +1,23 @@
-# AI provider setup — Google Gemini (free tier)
+# AI setup
 
-The app is **provider-agnostic**: everything AI goes through the `AiService`
-interface (`lib/services/ai/ai_service.dart`). Two implementations ship:
+The app has **two separate AI integrations**. Configuring one does not affect
+the other.
+
+| Feature | Provider | Configured by |
+| --- | --- | --- |
+| **Patient assistant** (Care Navigator chat, document attachments and summaries, factual lookups in a document) | **DeepSeek**, through the report AI gateway in [services/report_ai](../services/report_ai/README.md) | the gateway's `DEEPSEEK_API_KEY` (server only) and the app build settings `REPORT_AI_ORIGIN` + `REPORT_AI_CLIENT_TOKEN` |
+| Health summary and chart summary (below) | **Google Gemini** | Admin → AI settings, or `GEMINI_API_KEY` |
+
+A Gemini key does **not** turn on the patient chatbot, and the DeepSeek key
+never goes into the app. If the assistant shows "AI not configured", see
+[services/report_ai/README.md](../services/report_ai/README.md) — not this
+page. The assistant never answers medical questions; it refers the patient
+to their doctor or to booking.
+
+## Gemini (health and chart summaries)
+
+These summaries go through the provider-agnostic `AiService` interface
+(`lib/services/ai/ai_service.dart`). Two implementations ship:
 
 | Implementation | When it runs | Cost |
 | --- | --- | --- |
@@ -12,7 +28,7 @@ interface (`lib/services/ai/ai_service.dart`). Two implementations ship:
 mock on any error (no network, bad key, rate limit, malformed response). A bad
 conference-room network can never blank a screen.
 
-## Why Gemini free tier
+### Why Gemini free tier
 
 - No credit card required for the free tier.
 - `gemini-2.0-flash` (the app default, `model_id` in `app_settings`) is fast and
@@ -20,7 +36,7 @@ conference-room network can never blank a screen.
 - One-class swap if the supervisor prefers another provider later — only
   `GeminiAiService` would change.
 
-## Getting a key (do this yourself — never paste a key to the assistant)
+### Getting a Gemini key (do this yourself — never paste a key to the assistant)
 
 1. Go to <https://aistudio.google.com/app/apikey> and sign in with a Google
    account.
@@ -40,7 +56,7 @@ conference-room network can never blank a screen.
    ```
    A stored key (option a) always wins over the `--dart-define` value.
 
-## Switching between mock and live
+### Switching between mock and live
 
 `Admin → AI settings`:
 
@@ -52,7 +68,7 @@ conference-room network can never blank a screen.
 Effective provider = live Gemini only when `AI enabled` **and** `Mock mode off`
 **and** a key is available; otherwise the mock.
 
-## What the AI is used for
+### What Gemini is used for
 
 - Patient **health summary** (`summarizeRecords`) — narrative + key events +
   trends + red flags, parsed from a strict JSON contract (`summary_parser.dart`).

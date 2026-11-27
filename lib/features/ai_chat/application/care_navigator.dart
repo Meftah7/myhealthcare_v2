@@ -1,56 +1,55 @@
-/// The Care Navigator — the MyHealth Report Assistant. Two jobs:
-///  1. summarize the patient's selected PDF and answer questions about what
-///     that PDF says (grounded, quoted, never advice);
-///  2. guide the patient to an existing screen with a real button
-///     ([AssistantAction]) — the app picks the label, checks access and
-///     navigates only when they tap.
+/// The Care Navigator — the MyHealth assistant. It:
+///  1. helps the patient use the app — ordinary conversation through the
+///     MyHealth AI service when it is available, else a labelled on-device
+///     guide — and offers real buttons to screens ([AssistantAction]);
+///  2. summarizes a document the patient attaches (see
+///     [documentAttachmentProvider]) and looks up what it states.
+/// It answers no medical questions.
 ///
 /// Every message is handled in this order: an explicit emergency gets the
-/// fixed emergency message; a request for a diagnosis, advice or a medicine
-/// change gets the fixed decline (with Open Appointments); "where do I…?"
-/// gets the screen's button — no PDF needed; then, with a report selected,
-/// the question goes to the report AI ([assistant_policy.dart]).
+/// fixed emergency message; a medical question (including asking what a
+/// document's value means) gets the fixed refusal with "Message my doctor"
+/// and "Book an appointment"; "where do I…?" gets the screen's button; with
+/// a document attached the question is a factual lookup; anything else is
+/// ordinary conversation. The gateway enforces the medical rule again on
+/// its side.
 ///
 /// No AI provider is called from the device and no provider key lives here.
-/// Summaries and answers go through the MyHealth report AI gateway
-/// ([reportAiClientProvider]); without it, summaries are a clearly labelled
-/// on-device summary and report questions say the service is not connected —
-/// never canned answers. Report text and questions are never logged.
+/// Requests carry a generation number and a cancel token, so a reset,
+/// sign-out or account switch discards late replies. Documents, questions
+/// and replies are never logged.
 library;
 
 import 'dart:async';
-import 'dart:typed_data';
 
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/data/contracts.dart';
 import '../../../core/di.dart';
-import '../../../core/failures.dart';
-import '../../../core/result.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
-import '../../../domain/repositories/record_repository.dart';
 import '../../../services/ai/report_ai_client.dart';
 import '../../../services/pdf/pdf_text.dart';
 import '../../auth/application/session.dart';
-import '../../patient/application/patient_data_providers.dart';
-import '../../records/application/records_providers.dart';
+import '../../care/application/care_providers.dart';
 import 'assistant_actions.dart';
+import 'assistant_connection.dart';
 import 'assistant_policy.dart';
+import 'document_attachment.dart';
 import 'report_reader.dart';
 
 enum ChatRole { user, model }
 
 /// What produced a model message — shown as a label in the chat.
 enum ChatKind {
-  /// The deterministic navigation guide.
+  /// A fixed reply or the on-device guide.
   guide,
 
-  /// The on-device keyword summary of a report (not AI).
+  /// Made on this device from the document's text (not AI).
   summary,
 
-  /// A live AI draft from the report AI service.
+  /// A reply from the MyHealth AI service.
   live,
 
   /// The capability is not connected in this build.
@@ -73,6 +72,8 @@ class ChatMessage {
     this.isGreeting = false,
     this.actions = const [],
     this.arabic = false,
+    this.isMedicalRefusal = false,
+    this.isDocument = false,
   });
 
   final ChatRole role;
@@ -80,21 +81,20 @@ class ChatMessage {
   final bool isEmergency;
   final ChatKind kind;
 
-  /// Excerpts verified on the server to appear verbatim in the report.
+  /// Excerpts verified on the server to appear verbatim in the document.
   final List<String> quotes;
 
-  /// For live answers: false when the report does not answer the question.
+  /// For document lookups: false when the document does not say.
   final bool? supported;
 
-  /// Coverage / extraction disclosure shown under the message.
+  /// Coverage / mode disclosure shown under the message.
   final String? note;
 
-  /// For [ChatKind.error] on a follow-up: the question to retry.
+  /// For [ChatKind.error]: the message to send again (also offered back to
+  /// the input so the draft is never lost).
   final String? retryQuestion;
 
-  /// The opening welcome. The chat shows it from the app's translations
-  /// (`careNavigatorGreeting`) so it follows the chosen language; [text] is
-  /// the English copy for anything outside the UI.
+  /// The opening welcome, shown from the app's translations.
   final bool isGreeting;
 
   /// Buttons under the message. Shown only when the signed-in patient may
@@ -103,17 +103,21 @@ class ChatMessage {
 
   /// The message is in Arabic: its button labels are too.
   final bool arabic;
+
+  /// The fixed reply to a medical question.
+  final bool isMedicalRefusal;
+
+  /// The patient's "summarize this document" turn (not a chat question).
+  final bool isDocument;
 }
 
 const _greeting = ChatMessage(
   ChatRole.model,
-  'Hi! Ask me how to find something in the app, or tap the upload button '
-  'to get a summary of a report PDF.',
+  'Hi! Ask me how to find something in the app, or attach a document '
+  '(PDF, Word or text) to get a short summary.',
   isGreeting: true,
 );
 
-/// The fixed emergency message: local emergency services, no assessment and
-/// no button to a routine booking.
 ChatMessage _emergencyReply(bool arabic) => ChatMessage(
   ChatRole.model,
   AssistantText.emergency(arabic),
@@ -121,8 +125,8 @@ ChatMessage _emergencyReply(bool arabic) => ChatMessage(
   arabic: arabic,
 );
 
-/// The report a conversation is about. [text] stays in memory only for the
-/// life of the conversation (never persisted or logged).
+/// The document a conversation is about. [text] stays in memory only for
+/// the life of the conversation (never persisted or logged).
 class ReportContext {
   const ReportContext({
     required this.id,
@@ -135,8 +139,7 @@ class ReportContext {
   final String title;
   final String text;
 
-  /// The on-device extraction hit its cap, so the report text itself is
-  /// incomplete.
+  /// The on-device extraction hit its cap, so the text itself is incomplete.
   final bool extractionPartial;
 }
 
@@ -147,12 +150,13 @@ class CareNavigatorState {
     this.reportContext,
   });
   final List<ChatMessage> messages;
+
+  /// A chat message is on its way (attachments have their own state).
   final bool sending;
 
-  /// The report under discussion, or null for navigation help.
+  /// The document under discussion, or null.
   final ReportContext? reportContext;
 
-  /// The report shown in the chat header (with a link to its original).
   ({String id, String title})? get report => reportContext == null
       ? null
       : (id: reportContext!.id, title: reportContext!.title);
@@ -165,18 +169,31 @@ class CareNavigatorState {
       );
 }
 
-/// Whether live report AI is connected in this build (header status).
+/// Whether the live AI service answered its readiness check.
 final careNavigatorLiveProvider = FutureProvider<bool>(
-  (ref) async => ref.watch(reportAiClientProvider).isConfigured,
+  (ref) async =>
+      await ref.watch(assistantConnectionProvider.future) ==
+      GatewayReadiness.available,
 );
 
 class CareNavigator extends Notifier<CareNavigatorState> {
+  int _generation = 0;
+  CancelToken? _cancel;
+
   @override
   CareNavigatorState build() {
     // A new account (sign-out, switch, linked-account change) starts a fresh
-    // conversation: no report text or replies carry over between patients.
+    // conversation: no document text or replies carry over between patients.
     ref.watch(currentUserProvider.select((u) => u?.id));
+    _invalidate();
+    ref.onDispose(_invalidate);
     return const CareNavigatorState(messages: [_greeting]);
+  }
+
+  void _invalidate() {
+    _generation++;
+    _cancel?.cancel();
+    _cancel = null;
   }
 
   void _log({required bool live}) => unawaited(
@@ -186,18 +203,33 @@ class CareNavigator extends Notifier<CareNavigatorState> {
           feature: AiFeature.careNavigator,
           usedLiveModel: live,
           userId: ref.read(currentUserProvider)?.id,
-          // Never the report text or the patient's question.
-          summary: null,
         ),
   );
 
-  Future<void> send(String raw) async {
-    final text = raw.trim();
-    if (text.isEmpty || state.sending) return;
+  void _append(ChatMessage message) =>
+      state = state.copyWith(messages: [...state.messages, message]);
 
+  /// The patient's earlier turns, for follow-up detection.
+  List<PolicyTurn> _policyHistory() => [
+    for (final m in state.messages)
+      if (!m.isGreeting && !m.isDocument)
+        (fromPatient: m.role == ChatRole.user, text: m.text),
+  ];
+
+  /// Sends [raw]. Returns false (and changes nothing) when it is empty or a
+  /// message is already on its way — so the input keeps the draft.
+  bool send(String raw) {
+    final text = raw.trim();
+    if (text.isEmpty || state.sending) return false;
+    final history = _policyHistory();
     state = state.copyWith(
       messages: [...state.messages, ChatMessage(ChatRole.user, text)],
     );
+    unawaited(_handle(text, history));
+    return true;
+  }
+
+  Future<void> _handle(String text, List<PolicyTurn> history) async {
     final arabic = isArabicText(text);
     final aboutReport = state.reportContext != null;
 
@@ -206,51 +238,29 @@ class CareNavigator extends Notifier<CareNavigatorState> {
       return;
     }
 
-    // Diagnosis, advice, urgency or a medicine change: declined, with the
-    // way to a clinician. A second part asking for a screen still gets its
-    // button ("Do I need medication, and where can I book?").
-    if (isAdviceRequest(text)) {
-      _append(
-        ChatMessage(
-          ChatRole.model,
-          AssistantText.advice(arabic),
-          arabic: arabic,
-          actions: {
-            AssistantAction.openAppointments,
-            // Only an explicit "where / how do I…" part adds a screen; the
-            // medicine in a medicine question is part of what is declined.
-            ...navigationRequests(
-              text,
-              aboutReport: true,
-            ).where((a) => a != AssistantAction.openMedications),
-          }.toList(),
-        ),
-      );
-      _log(live: false);
+    // Medical questions — including asking what a document's value means —
+    // get the fixed refusal and the ways to a clinician. Navigation in the
+    // same message ("…and book an appointment") is covered by those buttons.
+    if (isMedicalQuestion(text, history: history, hasDocument: aboutReport)) {
+      await _refuseMedical(arabic);
       return;
     }
 
-    // A summary asked for with no report selected: choose one first.
+    // A summary asked for with no document attached: attach one first.
     if (!aboutReport && isSummaryRequest(text)) {
       _append(
         ChatMessage(
           ChatRole.model,
           AssistantText.noReport(arabic),
           arabic: arabic,
-          actions: {
-            AssistantAction.uploadReport,
-            ...navigationRequests(
-              text,
-              aboutReport: false,
-            ).where((a) => a != AssistantAction.openRecords),
-          }.toList(),
+          actions: const [AssistantAction.uploadReport],
         ),
       );
       _log(live: false);
       return;
     }
 
-    // "Where do I…?" — the screen's button; no PDF needed.
+    // "Where do I…?" — the screen's button; no document needed.
     final places = navigationRequests(text, aboutReport: aboutReport);
     if (places.isNotEmpty) {
       _append(
@@ -280,40 +290,148 @@ class CareNavigator extends Notifier<CareNavigatorState> {
       return;
     }
 
-    // Anything else: the deterministic guide to the app's other areas.
+    await _converse(text);
+  }
+
+  /// The fixed reply to a medical question, with "Message my doctor" when
+  /// the patient can message a doctor (else the eligibility rule) and "Book
+  /// an appointment".
+  Future<void> _refuseMedical(bool arabic) async {
+    final generation = _generation;
+    var canMessage = false;
+    try {
+      canMessage = (await ref.read(
+        messageableDoctorsProvider.future,
+      )).isNotEmpty;
+    } on Object {
+      canMessage = false;
+    }
+    if (generation != _generation) return;
     _append(
-      arabic
-          ? const ChatMessage(
-              ChatRole.model,
-              AssistantText.fallbackArabic,
-              arabic: true,
-              actions: [
-                AssistantAction.openAppointments,
-                AssistantAction.openRecords,
-                AssistantAction.openMessages,
-                AssistantAction.uploadReport,
-              ],
-            )
-          : _offlineReply(text),
+      ChatMessage(
+        ChatRole.model,
+        AssistantText.medical(arabic),
+        arabic: arabic,
+        isMedicalRefusal: true,
+        note: canMessage ? null : AssistantText.messagingEligibility(arabic),
+        actions: [
+          if (canMessage) AssistantAction.openMessages,
+          AssistantAction.bookAppointment,
+        ],
+      ),
     );
     _log(live: false);
   }
 
-  /// Retries a failed follow-up question.
-  Future<void> retry(String question) async {
-    if (state.sending || state.reportContext == null) return;
-    await _askAboutReport(question);
+  /// Ordinary conversation: the live service when it answered its
+  /// readiness check, else the labelled on-device guide.
+  Future<void> _converse(String text) async {
+    final generation = _generation;
+    final readiness = await ref
+        .read(assistantConnectionProvider.notifier)
+        .current();
+    if (generation != _generation) return;
+    if (readiness != GatewayReadiness.available) {
+      _append(_offlineReply(text, isArabicText(text)));
+      _log(live: false);
+      return;
+    }
+    // Earlier ordinary-conversation turns; the current message is sent once,
+    // as the message itself.
+    final turns = <ReportTurn>[
+      for (final m in state.messages)
+        if (m.role == ChatRole.user && !m.isDocument)
+          ReportTurn(fromPatient: true, text: m.text)
+        else if (m.role == ChatRole.model &&
+            m.kind == ChatKind.live &&
+            m.quotes.isEmpty)
+          ReportTurn(fromPatient: false, text: m.text),
+    ];
+    if (turns.isNotEmpty && turns.last.fromPatient && turns.last.text == text) {
+      turns.removeLast();
+    }
+    final cancel = CancelToken();
+    _cancel = cancel;
+    state = state.copyWith(sending: true);
+    try {
+      final reply = await ref
+          .read(reportAiClientProvider)
+          .chat(message: text, history: turns, cancelToken: cancel);
+      if (generation != _generation) return;
+      final arabic = isArabicText(text);
+      if (reply.emergency) {
+        _append(_emergencyReply(arabic));
+      } else if (reply.medical) {
+        state = state.copyWith(sending: false);
+        await _refuseMedical(arabic);
+        return;
+      } else {
+        _append(
+          ChatMessage(
+            ChatRole.model,
+            reply.reply,
+            kind: ChatKind.live,
+            arabic: arabic,
+            actions: [
+              for (final id in reply.actions) ?AssistantAction.fromId(id),
+            ],
+          ),
+        );
+      }
+      _log(live: true);
+    } on ReportAiException catch (e) {
+      if (generation != _generation ||
+          e.kind == ReportAiFailureKind.cancelled) {
+        return;
+      }
+      ref.read(assistantConnectionProvider.notifier).reportFailure(e.kind);
+      _append(
+        ChatMessage(
+          ChatRole.model,
+          reportAiFailureMessage(e.kind),
+          kind: ChatKind.error,
+          retryQuestion: text,
+        ),
+      );
+    } finally {
+      if (generation == _generation) state = state.copyWith(sending: false);
+      if (identical(_cancel, cancel)) _cancel = null;
+    }
   }
 
-  /// Leaves the report conversation and returns to navigation help.
+  /// Sends a failed message again, without adding it to the conversation a
+  /// second time.
+  Future<void> retry(String question) async {
+    if (state.sending) return;
+    final messages = [...state.messages];
+    if (messages.isNotEmpty &&
+        messages.last.kind == ChatKind.error &&
+        messages.last.retryQuestion == question) {
+      messages.removeLast();
+      state = state.copyWith(messages: messages);
+    }
+    await _handle(question, _policyHistory());
+  }
+
+  /// Leaves the document conversation.
   void leaveReport() => reset();
 
-  void reset() => state = const CareNavigatorState(messages: [_greeting]);
+  /// Starts over: cancels anything in flight, the attachment included.
+  void reset() {
+    _invalidate();
+    ref.read(documentAttachmentProvider.notifier).remove();
+    state = const CareNavigatorState(messages: [_greeting]);
+  }
 
+  /// A factual question about the attached document.
   Future<void> _askAboutReport(String question) async {
     final context = state.reportContext!;
-    final client = ref.read(reportAiClientProvider);
-    if (!client.isConfigured) {
+    final generation = _generation;
+    final readiness = await ref
+        .read(assistantConnectionProvider.notifier)
+        .current();
+    if (generation != _generation || !_sameReport(context)) return;
+    if (readiness != GatewayReadiness.available) {
       _append(_answerOnDevice(context, question));
       _log(live: false);
       return;
@@ -331,68 +449,68 @@ class CareNavigator extends Notifier<CareNavigatorState> {
     // Authorization before anything leaves the device: the record must still
     // be readable by whoever is signed in now.
     if (!await _stillAuthorized(context.id)) {
-      reset();
+      if (generation == _generation) reset();
       return;
     }
-    // Earlier turns of this report conversation (live answers and the
-    // patient's questions), bounded by the client.
     final history = <ReportTurn>[
       for (final m in state.messages)
-        if (m.role == ChatRole.user && !m.text.startsWith('📄 '))
+        if (m.role == ChatRole.user && !m.isDocument)
           ReportTurn(fromPatient: true, text: m.text)
         else if (m.role == ChatRole.model && m.kind == ChatKind.live)
           ReportTurn(fromPatient: false, text: m.text),
     ];
-    // The current question is the last user message; don't send it twice.
     if (history.isNotEmpty && history.last.fromPatient) history.removeLast();
 
+    final cancel = CancelToken();
+    _cancel = cancel;
     state = state.copyWith(sending: true);
     try {
-      final answer = await client.ask(
-        reportText: context.text,
-        question: question,
-        history: history,
-      );
-      if (!_sameReport(context)) return;
+      final answer = await ref
+          .read(reportAiClientProvider)
+          .ask(
+            reportText: context.text,
+            question: question,
+            history: history,
+            cancelToken: cancel,
+          );
+      if (generation != _generation || !_sameReport(context)) return;
       final arabic = isArabicText(question);
-      final action = AssistantAction.fromId(answer.action);
-      final actions = [?action];
       if (answer.refusal) {
-        // The fixed decline from the gateway, with the way to a clinician.
-        _append(
-          ChatMessage(
-            ChatRole.model,
-            answer.answer,
-            arabic: arabic,
-            actions: {AssistantAction.openAppointments, ...actions}.toList(),
-          ),
-        );
-      } else {
-        _append(
-          ChatMessage(
-            ChatRole.model,
-            // An unsupported answer is never shown in the model's words: the
-            // gateway sends the fixed message (or a screen's text, with its
-            // button); this keeps it so even for an older gateway.
-            answer.supported || action != null
-                ? answer.answer
-                : AssistantText.notFound(arabic),
-            kind: ChatKind.live,
-            quotes: answer.supported ? answer.quotes : const [],
-            supported: answer.supported,
-            note: _coverageNote(
-              answer.coverage,
-              context.extractionPartial,
-              arabic: arabic,
-            ),
-            arabic: arabic,
-            actions: actions,
-          ),
-        );
+        state = state.copyWith(sending: false);
+        await _refuseMedical(arabic);
+        return;
       }
+      final actions = [
+        for (final id in {...answer.actions, ?answer.action})
+          ?AssistantAction.fromId(id),
+      ];
+      _append(
+        ChatMessage(
+          ChatRole.model,
+          // An unsupported answer is never shown in the model's words.
+          answer.supported || actions.isNotEmpty
+              ? answer.answer
+              : AssistantText.notFound(arabic),
+          kind: ChatKind.live,
+          quotes: answer.supported ? answer.quotes : const [],
+          supported: answer.supported,
+          note: _coverageNote(
+            answer.coverage,
+            context.extractionPartial,
+            arabic: arabic,
+          ),
+          arabic: arabic,
+          actions: actions,
+        ),
+      );
       _log(live: true);
     } on ReportAiException catch (e) {
-      if (!_sameReport(context)) return;
+      if (generation != _generation ||
+          !_sameReport(context) ||
+          e.kind == ReportAiFailureKind.cancelled) {
+        return;
+      }
+      ref.read(assistantConnectionProvider.notifier).reportFailure(e.kind);
       _append(
         ChatMessage(
           ChatRole.model,
@@ -406,16 +524,17 @@ class CareNavigator extends Notifier<CareNavigatorState> {
         ),
       );
     } finally {
-      if (_sameReport(context)) state = state.copyWith(sending: false);
+      if (generation == _generation) state = state.copyWith(sending: false);
+      if (identical(_cancel, cancel)) _cancel = null;
     }
   }
 
-  /// A report question answered on this device: the report's own lines,
-  /// quoted, or "not found". Labelled as made on the device, not AI.
+  /// A factual question answered on this device from the document's own
+  /// lines, labelled as not AI.
   ChatMessage _answerOnDevice(ReportContext context, String question) {
     final arabic = isArabicText(question);
     final asksSummary = RegExp(
-      r'\b(summari[sz]e|summary|explain|overview)\b|لخص|لخّص|ملخص|اشرح',
+      r'\b(summari[sz]e|summary|overview)\b|لخص|لخّص|ملخص',
       caseSensitive: false,
     ).hasMatch(question);
     if (asksSummary) {
@@ -445,18 +564,24 @@ class CareNavigator extends Notifier<CareNavigatorState> {
   bool _sameReport(ReportContext context) =>
       identical(state.reportContext, context);
 
-  void _append(ChatMessage message) =>
-      state = state.copyWith(messages: [...state.messages, message]);
-
   Future<bool> _stillAuthorized(String recordId) async =>
       (await ref.read(recordRepositoryProvider).byId(recordId)).isOk;
 
-  /// The patient uploaded [record] (a PDF): explain it in plain words —
-  /// live when the report AI service is connected, otherwise the labelled
-  /// on-device summary. Never a diagnosis.
-  Future<void> explainDocument(MedicalRecord record) async {
-    if (state.sending) return;
-    if (!await _stillAuthorized(record.id)) return;
+  /// Shows an attachment's summary (from the attachment flow) and makes the
+  /// document the subject of follow-up questions. [reason] is why it was
+  /// made on the device, when it was.
+  void showDocumentSummary({
+    required MedicalRecord record,
+    required String fileName,
+    required String overview,
+    required List<String> points,
+    required bool live,
+    required bool partial,
+    List<String> quotes = const [],
+    GatewayReadiness? reason,
+  }) {
+    _invalidate();
+    final arabic = _appInArabic();
     final text = (record.extractedText ?? '').trim();
     final context = ReportContext(
       id: record.id,
@@ -464,68 +589,102 @@ class CareNavigator extends Notifier<CareNavigatorState> {
       text: text,
       extractionPartial: text.length >= maxExtractedChars,
     );
-    // A different report starts a clean conversation, so answers about one
-    // report are never mixed with another's.
+    // Another document starts a clean conversation, so answers about one
+    // document are never mixed with another's.
     final previous =
         state.reportContext != null && state.reportContext!.id != record.id
         ? const [_greeting]
         : state.messages;
+    final body = [overview, for (final p in points) '• $p'].join('\n');
     state = CareNavigatorState(
-      sending: true,
       reportContext: context,
-      messages: [...previous, ChatMessage(ChatRole.user, '📄 ${record.title}')],
+      messages: [
+        ...previous,
+        ChatMessage(ChatRole.user, '📎 $fileName', isDocument: true),
+        ChatMessage(
+          ChatRole.model,
+          live ? body : '$basicSummaryLabel\n\n$body',
+          kind: live ? ChatKind.live : ChatKind.summary,
+          quotes: quotes,
+          arabic: arabic,
+          note: [
+            if (partial) AssistantText.partial(arabic),
+            if (!live && reason != null) offlineReason(reason, arabic),
+          ].whereType<String>().join('\n').let((n) => n.isEmpty ? null : n),
+        ),
+      ],
     );
+    _log(live: live);
+  }
 
+  /// Summarizes a record already in Records (the earlier "explain" flow):
+  /// the live service when available, else this device.
+  Future<void> explainDocument(MedicalRecord record) async {
+    if (state.sending) return;
+    if (!await _stillAuthorized(record.id)) return;
+    final text = (record.extractedText ?? '').trim();
     final arabic = _appInArabic();
     if (text.isEmpty) {
       _append(_unreadableReply(arabic));
-      state = state.copyWith(sending: false);
       return;
     }
-
-    final client = ref.read(reportAiClientProvider);
-    ChatMessage reply;
-    var live = false;
-    if (client.isConfigured) {
-      try {
-        final explanation = await client.explain(text, arabic: arabic);
-        if (!explanation.readable) {
-          reply = _unreadableReply(arabic);
-        } else {
-          final partial =
-              !explanation.coverage.complete || context.extractionPartial;
-          reply = ChatMessage(
-            ChatRole.model,
-            partial
-                ? '${AssistantText.partial(arabic)}\n\n${explanation.answer}'
-                : explanation.answer,
-            kind: ChatKind.live,
-            quotes: explanation.quotes,
-            arabic: arabic,
-          );
-          live = true;
-        }
-      } on ReportAiException catch (e) {
-        reply = ChatMessage(
-          ChatRole.model,
-          '${reportAiFailureMessage(e.kind)}\n\n$basicSummaryLabel\n\n'
-          '${summarizeReportOnDevice(text, title: record.title)}',
-          kind: ChatKind.summary,
-        );
+    final generation = _generation;
+    final readiness = await ref
+        .read(assistantConnectionProvider.notifier)
+        .current();
+    if (generation != _generation) return;
+    if (readiness != GatewayReadiness.available) {
+      final s = summarizeDocumentOnDevice(text, title: record.title);
+      showDocumentSummary(
+        record: record,
+        fileName: record.title,
+        overview: s.overview,
+        points: s.points,
+        live: false,
+        partial: text.length >= maxExtractedChars,
+        reason: readiness,
+      );
+      return;
+    }
+    state = state.copyWith(sending: true);
+    try {
+      final explanation = await ref
+          .read(reportAiClientProvider)
+          .explain(text, arabic: arabic);
+      if (generation != _generation) return;
+      state = state.copyWith(sending: false);
+      if (!explanation.readable) {
+        _append(_unreadableReply(arabic));
+        return;
       }
-    } else {
-      reply = ChatMessage(
-        ChatRole.model,
-        '$basicSummaryLabel\n\n'
-        '${summarizeReportOnDevice(text, title: record.title)}',
-        kind: ChatKind.summary,
-        note: context.extractionPartial ? AssistantText.partial(arabic) : null,
+      final lines = explanation.answer.split('\n');
+      showDocumentSummary(
+        record: record,
+        fileName: record.title,
+        overview: lines.first,
+        points: [
+          for (final l in lines.skip(1))
+            if (l.trim().isNotEmpty) l.replaceFirst(RegExp(r'^•\s*'), ''),
+        ],
+        quotes: explanation.quotes,
+        live: true,
+        partial:
+            !explanation.coverage.complete || text.length >= maxExtractedChars,
+      );
+    } on ReportAiException catch (e) {
+      if (generation != _generation) return;
+      state = state.copyWith(sending: false);
+      ref.read(assistantConnectionProvider.notifier).reportFailure(e.kind);
+      final s = summarizeDocumentOnDevice(text, title: record.title);
+      showDocumentSummary(
+        record: record,
+        fileName: record.title,
+        overview: '${reportAiFailureMessage(e.kind)}\n\n${s.overview}',
+        points: s.points,
+        live: false,
+        partial: text.length >= maxExtractedChars,
       );
     }
-    if (!_sameReport(context)) return;
-    _append(reply);
-    state = state.copyWith(sending: false);
-    _log(live: live);
   }
 
   static String? _coverageNote(
@@ -538,130 +697,6 @@ class CareNavigator extends Notifier<CareNavigatorState> {
     return null;
   }
 
-  /// A PDF picked in the chat: read it on the device, save it to the
-  /// patient's Records (with its original file), then summarize it here.
-  /// No form to fill in: the title is the file name, the issuer is the one
-  /// the report names (or "Not stated"), and the patient can open the record
-  /// afterwards.
-  Future<void> importAndExplain({
-    required String fileName,
-    required Uint8List bytes,
-  }) async {
-    final user = ref.read(currentUserProvider);
-    if (state.sending || user == null || !user.isPatient) return;
-    final arabic = _appInArabic();
-    final title = fileName
-        .replaceAll(RegExp(r'\.pdf$', caseSensitive: false), '')
-        .trim();
-    final upload = ChatMessage(ChatRole.user, '📄 $fileName');
-    void fail(String reply, {bool offerUpload = true}) {
-      state = CareNavigatorState(
-        messages: [
-          ...state.messages,
-          upload,
-          ChatMessage(
-            ChatRole.model,
-            reply,
-            arabic: arabic,
-            actions: offerUpload ? const [AssistantAction.uploadReport] : [],
-          ),
-        ],
-        reportContext: state.reportContext,
-      );
-    }
-
-    if (bytes.length > NewSourceFile.maxBytes) {
-      fail(AssistantText.tooLarge(arabic));
-      return;
-    }
-    state = state.copyWith(sending: true);
-    String text;
-    try {
-      text = await extractPdfTextSafely(bytes);
-    } on Object {
-      state = state.copyWith(sending: false);
-      fail(AssistantText.unreadable(arabic));
-      return;
-    }
-    final result = await ref
-        .read(recordRepositoryProvider)
-        .add(
-          NewRecord(
-            patientId: user.id,
-            recordType: _recordTypeFor(text, title),
-            title: title.isEmpty ? 'Uploaded report' : title,
-            occurredAt: DateTime.now(),
-            sourceFacility: reportIssuer(text) ?? 'Not stated',
-            extractedText: text,
-            uploadedByPatient: true,
-            sourceFile: NewSourceFile(
-              fileName: fileName,
-              mimeType: 'application/pdf',
-              bytes: bytes,
-            ),
-            idempotencyKey: IdempotencyKey.generate(),
-          ),
-        );
-    state = state.copyWith(sending: false);
-    MedicalRecord? record;
-    String? before;
-    switch (result) {
-      case Ok(:final value):
-        record = value;
-      case Err(failure: DuplicateUploadFailure(:final recordId)):
-        record = (await ref.read(recordRepositoryProvider).byId(recordId))
-            .valueOrNull;
-        before = AssistantText.alreadyUploaded(arabic);
-      case Err():
-        record = null;
-    }
-    if (record == null) {
-      fail(AssistantText.uploadFailed(arabic));
-      return;
-    }
-    ref
-      ..invalidate(recordsHistoryProvider)
-      ..invalidate(patientTimelinePageProvider);
-    await explainDocument(record);
-    if (before != null) {
-      final messages = [...state.messages];
-      final last = messages.removeLast();
-      messages.add(
-        ChatMessage(
-          last.role,
-          '$before\n\n${last.text}',
-          kind: last.kind,
-          quotes: last.quotes,
-          note: last.note,
-          arabic: last.arabic,
-          actions: last.actions,
-        ),
-      );
-      state = state.copyWith(messages: messages);
-    }
-  }
-
-  static RecordType _recordTypeFor(String text, String title) {
-    final t = '$title ${text.length > 3000 ? text.substring(0, 3000) : text}'
-        .toLowerCase();
-    if (RegExp(r'x-ray|xray|\bmri\b|\bct\b|ultrasound|radiolog').hasMatch(t)) {
-      return RecordType.imaging;
-    }
-    if (t.contains('discharge')) return RecordType.discharge;
-    if (RegExp(r'prescription|\brx\b').hasMatch(t)) {
-      return RecordType.prescription;
-    }
-    if (t.contains('referral')) return RecordType.referral;
-    if (t.contains('vaccin')) return RecordType.vaccination;
-    if (RegExp(
-      r'laborator|\blab\b|blood|panel|hba1c|glucose|hemoglobin',
-    ).hasMatch(t)) {
-      return RecordType.labResult;
-    }
-    return RecordType.visitNote;
-  }
-
-  /// Nothing readable in the PDF: say so, and offer a clearer copy.
   static ChatMessage _unreadableReply(bool arabic) => ChatMessage(
     ChatRole.model,
     AssistantText.unreadable(arabic),
@@ -669,16 +704,32 @@ class CareNavigator extends Notifier<CareNavigatorState> {
     actions: const [AssistantAction.uploadReport],
   );
 
-  /// The app's language (a summary has no patient wording to follow) —
-  /// `Intl.defaultLocale` is kept in step with it by the locale setting.
+  /// The app's language (a summary has no patient wording to follow).
   bool _appInArabic() => Intl.getCurrentLocale().startsWith('ar');
 
-  /// The deterministic guide to the app's other areas (appointments,
-  /// records and uploads are buttons, handled before this).
-  ChatMessage _offlineReply(String text) {
+  /// The on-device guide, clearly labelled — used when the live service is
+  /// not available. Never presented as an AI reply.
+  ChatMessage _offlineReply(String text, bool arabic) {
+    final readiness = ref.read(assistantReadinessProvider);
+    final note = offlineReason(readiness, arabic);
+    if (arabic) {
+      return ChatMessage(
+        ChatRole.model,
+        AssistantText.fallbackArabic,
+        arabic: true,
+        note: note,
+        actions: const [
+          AssistantAction.openAppointments,
+          AssistantAction.openRecords,
+          AssistantAction.openMessages,
+          AssistantAction.uploadReport,
+        ],
+      );
+    }
     final t = text.toLowerCase();
     bool has(List<String> ws) => ws.any(t.contains);
-    ChatMessage say(String reply) => ChatMessage(ChatRole.model, reply);
+    ChatMessage say(String reply) =>
+        ChatMessage(ChatRole.model, reply, note: note);
 
     if (has(['bill', 'invoice', 'pay', 'payment', 'wallet', 'owe'])) {
       return say(
@@ -686,7 +737,7 @@ class CareNavigator extends Notifier<CareNavigatorState> {
         'myhealth, so bills and payments are not available here yet.',
       );
     }
-    if (has(['nutrition', 'calorie', 'macro', 'diet', 'meal', 'food'])) {
+    if (has(['nutrition', 'calorie', 'macro', 'meal'])) {
       return say(
         'Nutrition is marked as future work in this version of myhealth. '
         'You can find it under Services.',
@@ -698,11 +749,12 @@ class CareNavigator extends Notifier<CareNavigatorState> {
         'appointment reminders and results land there.',
       );
     }
-    return const ChatMessage(
+    return ChatMessage(
       ChatRole.model,
       'I can take you to Appointments, Records, Messages or your Medications, '
-      'or summarize a report PDF you upload. Which would you like?',
-      actions: [
+      'or summarize a document you attach. Which would you like?',
+      note: note,
+      actions: const [
         AssistantAction.openAppointments,
         AssistantAction.openRecords,
         AssistantAction.openMessages,
@@ -712,34 +764,71 @@ class CareNavigator extends Notifier<CareNavigatorState> {
   }
 }
 
+extension _Let<T> on T {
+  R let<R>(R Function(T) f) => f(this);
+}
+
+/// Why a reply was made on this device instead of by the AI service.
+String? offlineReason(
+  GatewayReadiness readiness,
+  bool arabic,
+) => switch (readiness) {
+  GatewayReadiness.available || GatewayReadiness.checking => null,
+  GatewayReadiness.unconfigured =>
+    arabic
+        ? 'تم الرد على هذا الجهاز: خدمة الذكاء الاصطناعي غير مُعدّة في هذا الإصدار.'
+        : 'Answered on this device: the AI service is not set up in this '
+              'version.',
+  GatewayReadiness.unreachable =>
+    arabic
+        ? 'تم الرد على هذا الجهاز: تعذّر الوصول إلى خدمة الذكاء الاصطناعي.'
+        : 'Answered on this device: the AI service could not be reached.',
+  GatewayReadiness.unauthorized =>
+    arabic
+        ? 'تم الرد على هذا الجهاز: خدمة الذكاء الاصطناعي لا تتعرّف على هذا التطبيق.'
+        : 'Answered on this device: the AI service does not recognise '
+              'this app.',
+  GatewayReadiness.providerUnavailable =>
+    arabic
+        ? 'تم الرد على هذا الجهاز: خدمة الذكاء الاصطناعي غير متاحة الآن.'
+        : 'Answered on this device: the AI service is not available right '
+              'now.',
+};
+
 /// Live explanations read at most this many characters of a report.
 const kReportExplainLimit = 12000;
 
 const basicSummaryLabel =
-    'Summary made on this device from the report text (not AI):';
+    'Summary made on this device from the document text (not AI):';
 
 /// A plain account of why a live request did not produce an answer.
 String reportAiFailureMessage(ReportAiFailureKind kind) => switch (kind) {
   ReportAiFailureKind.unavailable =>
-    "The report AI service isn't available right now.",
+    "The AI service isn't set up in this version of the app.",
+  ReportAiFailureKind.providerUnavailable =>
+    "The AI service isn't available right now. You can try again later.",
+  ReportAiFailureKind.unauthorized =>
+    "The AI service doesn't recognise this app, so it can't answer.",
   ReportAiFailureKind.timeout =>
-    'The report AI service took too long to answer. You can try again.',
+    'The AI service took too long to answer. You can try again.',
   ReportAiFailureKind.provider =>
-    "The report AI service couldn't produce an answer. You can try again.",
+    "The AI service couldn't produce an answer. You can try again.",
+  ReportAiFailureKind.invalidResponse =>
+    "The AI service sent an answer the app couldn't read. You can try again.",
   ReportAiFailureKind.rateLimited =>
-    'Too many questions in a short time. Please wait a minute and try again.',
+    'Too many requests in a short time. Please wait a minute and try again.',
   ReportAiFailureKind.rejected =>
     "That request couldn't be sent (it may be too long).",
   ReportAiFailureKind.network =>
-    "Couldn't reach the report AI service. Check your connection and try again.",
+    "Couldn't reach the AI service. Check your connection and try again.",
+  ReportAiFailureKind.cancelled => 'Cancelled.',
 };
 
-/// Disclosed whenever a long report was cut to [kReportExplainLimit] (the
-/// server applies the same limit and returns its coverage).
+/// Disclosed whenever a lookup read only part of a long document.
 String clippedReportNote(int length) =>
-    'Note: this report is long, so only its first $kReportExplainLimit of '
-    '$length characters were explained. Open the original in your Records '
-    'for the full report.';
+    'Note: this document is long, so only its first $kReportExplainLimit of '
+    '$length characters were searched. Open the original in your Records '
+    'for the full document.';
 
 /// A plain summary of a document's text without an AI service (see
 /// [summarizeReportOnDevice]).

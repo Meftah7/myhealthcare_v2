@@ -13,6 +13,10 @@ enum AssistantAction {
   /// The Appointments tab (choose a clinician, see available times).
   openAppointments('open_appointments'),
 
+  /// Booking: choose a clinic or doctor, then a time (nothing is booked
+  /// until the patient confirms there).
+  bookAppointment('book_appointment'),
+
   /// Health Records (saved reports).
   openRecords('open_records'),
 
@@ -47,9 +51,10 @@ enum AssistantAction {
   /// The button label, in the language of the reply it belongs to.
   String label({required bool arabic}) => switch (this) {
     openAppointments => arabic ? 'فتح المواعيد' : 'Open Appointments',
+    bookAppointment => arabic ? 'احجز موعدًا' : 'Book an appointment',
     openRecords => arabic ? 'فتح السجلات' : 'Open Records',
     uploadReport => arabic ? 'رفع تقرير' : 'Upload report',
-    openMessages => arabic ? 'فتح الرسائل' : 'Open Messages',
+    openMessages => arabic ? 'راسل طبيبك' : 'Message my doctor',
     openMedications => arabic ? 'فتح الأدوية' : 'Open Medications',
     openSickLeave => arabic ? 'فتح الإجازات المرضية' : 'Open Sick leave',
     openProfile => arabic ? 'فتح ملفي الشخصي' : 'Open My Profile',
@@ -58,6 +63,7 @@ enum AssistantAction {
   /// The screen it opens; null for an in-place action (upload).
   String? get route => switch (this) {
     openAppointments => AppRoutes.patientAppointments,
+    bookAppointment => AppRoutes.patientBookLanding,
     openRecords => AppRoutes.patientTimeline,
     uploadReport => null,
     openMessages => AppRoutes.patientMessages,

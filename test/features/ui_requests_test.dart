@@ -1,5 +1,5 @@
 // Per-meal nutrition targets, the doctor chat section, and the AI chat's
-// plain-language PDF explanation.
+// on-device document summary (factual, no medical meaning).
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -154,8 +154,9 @@ void main() {
     });
   });
 
-  group('PDF explanation', () {
-    test('names the tests, what they measure, and what is marked', () {
+  group('Document summary on the device', () {
+    test('states what the document lists, with its own labels, and no '
+        'medical meaning or advice', () {
       final text = explainDocumentOffline(
         'Gulf Diagnostics Lab\n'
         'Ferritin 8 ng/mL L (15-150)\n'
@@ -163,27 +164,34 @@ void main() {
         'Glucose 7.9 mmol/L H\n',
         title: 'Blood test',
       );
-      expect(text, contains('• Type: Lab results'));
-      expect(text, contains('iron stores'));
-      // Values exactly as written, with the report's own labels.
+      expect(text, startsWith('Lab results'));
+      // Values exactly as written, with the document's own labels.
       expect(
         text,
-        contains('Glucose 7.9 mmol/L H — the report labels this as High'),
+        contains(
+          'Glucose 7.9 mmol/L H — the document labels this result as High',
+        ),
       );
       expect(
         text,
-        contains('Ferritin 8 ng/mL L (15-150) — the report labels this as Low'),
+        contains(
+          'Ferritin 8 ng/mL L (15-150) — the document labels this result '
+          'as Low',
+        ),
       );
-      expect(text, contains('1 result as High and 1 result as Low'));
-      expect(text, contains('ask a healthcare professional'));
+      expect(text, contains('Hemoglobin 13.1 g/dL (12-16)'));
+      // The assistant does not explain what results mean or give advice.
+      for (final medical in ['iron', 'measures', 'diabetes', 'anaemia']) {
+        expect(text.toLowerCase(), isNot(contains(medical)));
+      }
     });
 
-    test('says so when it cannot find results', () {
+    test('a document without results is summarized as written', () {
       final text = explainDocumentOffline(
         'Thank you for your visit.',
         title: 'Letter',
       );
-      expect(text, contains("couldn't find test results"));
+      expect(text, contains('Thank you for your visit.'));
     });
   });
 }

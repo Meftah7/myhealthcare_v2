@@ -1343,7 +1343,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get careNavigatorGreeting =>
-      'Hi! Ask me how to find something in the app, or tap the upload button to get a summary of a report PDF.';
+      'Hi! Ask me how to find something in the app, or attach a document (PDF, Word or text) to get a short summary.';
 
   @override
   String get taskBoardTitle => 'Task board';
@@ -4613,7 +4613,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chooseDoctorTitle => 'Choose a doctor';
 
   @override
-  String get uploadPdfForAiTooltip => 'Upload a PDF for a simple explanation';
+  String get uploadPdfForAiTooltip => 'Attach a document (PDF, Word or text)';
 
   @override
   String get documentReadyTitle => 'Your document is ready';
@@ -5038,7 +5038,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paExplainReportDesc =>
-      'Upload a PDF report and get a plain-language explanation.';
+      'Attach a PDF, Word or text document and get a short summary of what it says.';
 
   @override
   String get paFamilyLinked => 'Family & Linked Accounts';
@@ -5085,7 +5085,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paHeroReportBody =>
-      'Upload a PDF medical report and get a plain-language explanation. Your original stays in your records.';
+      'Attach a PDF, Word or text document and get a short summary of what it says. Your original stays in your records.';
 
   @override
   String get paHeroReportCta => 'Explain a report';
@@ -5276,7 +5276,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paOnboardRecordsBody =>
-      'Find your reports, prescriptions and visit history. Use the AI assistant to get a plain-language explanation of a PDF report.';
+      'Find your reports, prescriptions and visit history. Use the assistant to get a short summary of a document.';
 
   @override
   String get paChatLiveStatus => 'Live AI';
@@ -5286,7 +5286,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String paChatReportLabel(String title) {
-    return 'Explaining: $title';
+    return 'Summarizing: $title';
   }
 
   @override
@@ -5346,7 +5346,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paAboutBody =>
-      'myhealth lets patients view their records, book appointments, download documents and get plain-language explanations of PDF medical reports. Senior project prototype with synthetic data.';
+      'myhealth lets patients view their records, book appointments, download documents and get short summaries of their documents. Senior project prototype with synthetic data.';
 
   @override
   String get paSettingsPreferences => 'Settings & Preferences';
@@ -5402,7 +5402,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paReviewEditDetails => 'Edit clinic, doctor or visit type';
 
   @override
-  String get paAskAboutReportHint => 'Ask about this report…';
+  String get paAskAboutReportHint => 'Ask what this document says…';
 
   @override
   String get paLeaveReport => 'Leave this report';
@@ -5411,10 +5411,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paSourceOnDevice => 'On-device summary · not AI';
 
   @override
-  String get paSourceLiveDraft => 'AI draft · checked against your report';
+  String get paSourceLiveDraft => 'AI summary · checked against your document';
 
   @override
-  String get paSourceNotInReport => 'AI draft · not stated in this report';
+  String get paSourceNotInReport => 'Not stated in this document';
 
   @override
   String get paSourceUnavailable => 'Not connected';
@@ -5423,11 +5423,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paSourceError => 'Couldn\'t answer';
 
   @override
-  String get paFromYourReport => 'From your report:';
+  String get paFromYourReport => 'From your document:';
 
   @override
   String get paLiveDraftDisclaimer =>
-      'Draft from AI — not a diagnosis. Discuss results with your doctor.';
+      'AI summary of what the document says — not medical advice.';
 
   @override
   String get paChatReportLiveStatus => 'Report AI connected · drafts';
@@ -5967,4 +5967,90 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rejectReasonHint => 'Why isn\'t it approved?';
+
+  @override
+  String get faqTitle => 'Frequently Asked Questions';
+
+  @override
+  String get faqButtonMessageDoctor => 'Message my doctor';
+
+  @override
+  String get faqButtonBook => 'Book an appointment';
+
+  @override
+  String get faqButtonRecords => 'Open Records';
+
+  @override
+  String get faqButtonAssistant => 'Open the assistant';
+
+  @override
+  String get faqQ1 => 'How do I book an appointment?';
+
+  @override
+  String get faqA1 =>
+      'Open Appointment (in the bottom bar or the side menu) and tap Book now for the soonest opening, or Schedule to pick a date. You can also start from Book Appointment in Services. Nothing is booked until you confirm it.';
+
+  @override
+  String get faqQ2 => 'How do I message my doctor?';
+
+  @override
+  String get faqA2 =>
+      'Open Messages, tap New message and choose the doctor. You can message doctors you have had a completed visit with.';
+
+  @override
+  String get faqQ3 => 'Where can I find my medical records?';
+
+  @override
+  String get faqA3 =>
+      'Open Records. Your reports, results, documents and the files you upload are listed there. Tap one to see it and open the original file.';
+
+  @override
+  String get faqQ4 => 'How do I upload a document for a summary?';
+
+  @override
+  String get faqA4 =>
+      'Open the assistant (the mascot button), tap the paperclip and choose a file. When the card says Ready, tap Summarize. The original file is also saved to your Records on this device.';
+
+  @override
+  String get faqQ5 => 'Which document formats and sizes are supported?';
+
+  @override
+  String get faqA5 =>
+      'PDF, Word (.docx and .doc) and plain text (.txt) files, up to 20 MB. Password-protected files and scanned PDFs without selectable text can\'t be read. Text files must be UTF-8 (or UTF-16 with a byte-order mark).';
+
+  @override
+  String get faqQ6 => 'How do I check upload progress?';
+
+  @override
+  String get faqA6 =>
+      'The attachment card shows each step: checking the file, reading its text on your device, saving it to your Records, uploading the text to the summary service (with a percentage), and writing the summary. When the AI service isn\'t available, the summary is made on your device and nothing is uploaded.';
+
+  @override
+  String get faqQ7 => 'What should I do if an upload fails?';
+
+  @override
+  String get faqA7 =>
+      'The card says why. If the file can\'t be read, save it as a searchable PDF, a Word file or a UTF-8 text file and attach it again. If the summary step failed, tap Retry — you don\'t need to choose the file again. Tap × to remove the file.';
+
+  @override
+  String get faqQ8 => 'Why is the AI unavailable?';
+
+  @override
+  String get faqA8 =>
+      'The top of the assistant shows its status. Live AI needs the MyHealth AI service, which may not be set up in this version of the app, or may be unreachable or busy — tap Check again to retry. Meanwhile the assistant still guides you around the app and makes a basic summary on your device.';
+
+  @override
+  String get faqQ9 => 'Can the AI answer medical questions?';
+
+  @override
+  String get faqA9 =>
+      'No. This assistant helps you use the app and summarizes what your uploaded document says. For medical questions, please message your doctor or book an appointment.';
+
+  @override
+  String get faqQ10 =>
+      'Does the document summary replace a doctor’s consultation?';
+
+  @override
+  String get faqA10 =>
+      'No. The summary only repeats what your document says, and it may be incomplete. Please discuss your document with your doctor.';
 }

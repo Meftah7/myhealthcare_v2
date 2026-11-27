@@ -141,11 +141,26 @@ String _kindOf(String text, String title) {
   return 'Medical document';
 }
 
-/// A short summary of [text] — the kind of report, its date, up to four
-/// results exactly as written with the report's own High/Low labels — and
-/// its conclusion: the one it states, or a plain count of what it labels.
-String summarizeReportOnDevice(String text, {required String title}) {
-  final lines = _lines(text);
+/// Lines that address the reader or a model ("ignore previous
+/// instructions", "tell the patient…") are not content: never repeated.
+final _injection = RegExp(
+  r'(ignore|disregard|forget) (all |any |the )?(previous|prior|above|earlier|your)|system prompt|you are (an?|the) |tell the (patient|user|reader)|as an ai|act as|new instructions',
+  caseSensitive: false,
+);
+
+/// A short overview and the main points of [text], made on the device from
+/// the document's own lines: its kind and date, results exactly as written
+/// with the document's own High/Low labels, the conclusion it states — or,
+/// for any other kind of document, its first content lines. No meaning,
+/// advice or next steps are added.
+({String overview, List<String> points}) summarizeDocumentOnDevice(
+  String text, {
+  required String title,
+}) {
+  final lines = [
+    for (final l in _lines(text))
+      if (!_injection.hasMatch(l)) l,
+  ];
   final results = [
     for (final l in lines)
       if (_isResultLine(l)) l,
@@ -154,78 +169,44 @@ String summarizeReportOnDevice(String text, {required String title}) {
     for (final l in results)
       if (reportLabel(l) != null) l,
   ];
-  // Labelled results first, then the rest, in report order.
-  final shown = [
+  final kind = _kindOf(text, title);
+  final date = _date.firstMatch(text)?.group(0);
+  final overview = date == null ? '$kind.' : '$kind dated $date.';
+
+  final points = <String>[];
+  // Labelled results first, then the rest, in document order.
+  for (final line in [
     ...labelled,
     for (final l in results)
       if (!labelled.contains(l)) l,
-  ].take(4);
-
-  final out = StringBuffer('• Type: ${_kindOf(text, title)}');
-  final date = _date.firstMatch(text)?.group(0);
-  if (date != null) out.write('\n• Date on the report: $date');
-  for (final line in shown) {
+  ].take(4)) {
     final label = reportLabel(line);
-    out.write('\n• ${_clip(line)}');
-    if (label != null) out.write(' — the report labels this as $label');
+    points.add(
+      label == null
+          ? _clip(line)
+          : '${_clip(line)} — the document labels this result as $label',
+    );
   }
-  final meanings = <String>{
-    for (final line in shown)
-      for (final MapEntry(key: test, value: meaning) in _plainTests.entries)
-        if (RegExp('\\b${RegExp.escape(test)}').hasMatch(line.toLowerCase()))
-          '${_displayName(test)}: $meaning',
-  };
-  if (meanings.isNotEmpty) {
-    out.write('\n\nWhat these measure: ${meanings.take(4).join('; ')}.');
-  }
-
-  out.write('\n\nConclusion: ');
   final conclusion = reportConclusion(text);
-  final high = labelled.where((l) => reportLabel(l) == 'High').length;
-  final low = labelled.length - high;
-  if (conclusion != null) {
-    out.write('the report states “$conclusion”');
-    if (labelled.isNotEmpty) {
-      out.write(' It labels ${_count(high, low)}.');
+  if (conclusion != null) points.add('The document states: “$conclusion”');
+  if (points.isEmpty) {
+    // Not a results document: its first content lines.
+    for (final line in lines) {
+      if (points.length >= 4) break;
+      if (line.length < 12 || _typeLine.hasMatch(line)) continue;
+      if (_date.hasMatch(line) && line.length < 40) continue;
+      points.add(_clip(line));
     }
-  } else if (labelled.isNotEmpty) {
-    out.write(
-      'the report labels ${_count(high, low)}. It does not state an overall '
-      'conclusion.',
-    );
-  } else if (results.isNotEmpty) {
-    out.write(
-      'no result is labelled High or Low in the text I could read, and the '
-      'report does not state an overall conclusion. That does not confirm '
-      'the results are normal.',
-    );
-  } else {
-    out.write(
-      "I couldn't find test results or a stated conclusion in the text I "
-      'could read.',
-    );
   }
-  out.write(
-    '\n\nPlease ask a healthcare professional what this means for you.',
-  );
-  return out.toString();
+  if (points.isEmpty) points.add(_clip(lines.isEmpty ? text : lines.first));
+  return (overview: overview, points: points.take(6).toList());
 }
 
-/// How a lab term is usually written.
-String _displayName(String test) => switch (test) {
-  'hba1c' => 'HbA1c',
-  'egfr' => 'eGFR',
-  'vitamin d' => 'Vitamin D',
-  'b12' => 'Vitamin B12',
-  'white blood' => 'White blood cells',
-  _ when test.length <= 4 => test.toUpperCase(),
-  _ => '${test[0].toUpperCase()}${test.substring(1)}',
-};
-
-String _count(int high, int low) => [
-  if (high > 0) '$high ${high == 1 ? 'result' : 'results'} as High',
-  if (low > 0) '$low ${low == 1 ? 'result' : 'results'} as Low',
-].join(' and ');
+/// [summarizeDocumentOnDevice] as one text: the overview, then bullets.
+String summarizeReportOnDevice(String text, {required String title}) {
+  final s = summarizeDocumentOnDevice(text, title: title);
+  return [s.overview, for (final p in s.points) '• $p'].join('\n');
+}
 
 const _stopWords = {
   'what',
@@ -313,8 +294,8 @@ const _variants = {
     if (conclusion == null) return null;
     return (
       answer: intro(
-        'The report states this conclusion:',
-        'يذكر التقرير هذه الخلاصة:',
+        'The document states this conclusion:',
+        'يذكر المستند هذه الخلاصة:',
       ),
       quotes: [conclusion],
     );
@@ -350,8 +331,8 @@ const _variants = {
     }
     return (
       answer: intro(
-        'The report labels these results:\n${[for (final l in flagged.take(5)) '• ${_clip(l)} — ${reportLabel(l)}'].join('\n')}',
-        'يصف التقرير هذه النتائج:\n${[for (final l in flagged.take(5)) '• ${_clip(l)} — ${reportLabel(l) == 'High' ? 'مرتفعة' : 'منخفضة'}'].join('\n')}',
+        'The document labels these results:\n${[for (final l in flagged.take(5)) '• ${_clip(l)} — ${reportLabel(l)}'].join('\n')}',
+        'يصف المستند هذه النتائج:\n${[for (final l in flagged.take(5)) '• ${_clip(l)} — ${reportLabel(l) == 'High' ? 'مرتفعة' : 'منخفضة'}'].join('\n')}',
       ),
       quotes: [for (final l in flagged.take(5)) _clip(l, 300)],
     );
@@ -391,12 +372,12 @@ const _variants = {
     for (final l in picked)
       if (reportLabel(l) case final label?)
         arabic
-            ? 'يصف التقرير هذه النتيجة بأنها ${label == 'High' ? 'مرتفعة' : 'منخفضة'}.'
-            : 'The report labels this as $label.',
+            ? 'يصف المستند هذه النتيجة بأنها ${label == 'High' ? 'مرتفعة' : 'منخفضة'}.'
+            : 'The document labels this result as $label.',
   ];
   return (
     answer: [
-      intro('Here is what the report says:', 'هذا ما يقوله التقرير:'),
+      intro('Here is what the document says:', 'هذا ما يذكره المستند:'),
       ...labels.toSet(),
     ].join('\n'),
     quotes: [for (final l in picked) _clip(l, 300)],

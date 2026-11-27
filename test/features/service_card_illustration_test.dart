@@ -186,7 +186,7 @@ void main() {
     await open('home-visits');
     expect(_path(c), AppRoutes.patientHomeVisit);
 
-    // Explain a Report goes straight to choosing a PDF (no form).
+    // Explain a Report goes straight to choosing a document (no form).
     final picker = _Picker();
     final original = FilePickerPlatform.instance;
     FilePickerPlatform.instance = picker;
@@ -194,7 +194,7 @@ void main() {
     c.read(routerProvider).go(AppRoutes.patientServices);
     await _settle(tester);
     await open('explain-report');
-    expect(picker.allowed, ['pdf']);
+    expect(picker.allowed, ['pdf', 'docx', 'doc', 'txt']);
     expect(find.byType(BottomSheet), findsNothing);
 
     await tester.pumpWidget(const SizedBox());

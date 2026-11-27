@@ -1,5 +1,7 @@
-/// The Care Navigator chat panel — header, message bubbles, a typing
-/// indicator, and an input row. Same shape as the FirstSemMyHealth widget.
+/// The Care Navigator chat panel — header (with the real connection status
+/// and the FAQ), message bubbles with their buttons, the attachment card
+/// (file, size, type, each step, real upload progress, Summarize / Retry /
+/// Remove), and the input row.
 library;
 
 import 'dart:async';
@@ -13,10 +15,166 @@ import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../services/ai/report_ai_client.dart';
+import '../../../services/documents/document_text.dart';
 import '../../auth/application/session.dart';
 import '../application/assistant_actions.dart';
+import '../application/assistant_connection.dart';
 import '../application/care_navigator.dart';
+import '../application/document_attachment.dart';
 import 'care_navigator_mascot.dart';
+
+/// Opens the file picker (PDF, Word, text) and attaches the chosen file in
+/// the assistant, opening the panel. Never asks for a summary: the patient
+/// taps Summarize when the file is ready.
+Future<void> pickDocumentForAssistant(WidgetRef ref) async {
+  final file = await FilePicker.pickFile(
+    type: FileType.custom,
+    allowedExtensions: DocumentFormat.pickerExtensions,
+  );
+  if (file == null) return;
+  final bytes = await file.readAsBytes();
+  ref.read(careNavigatorViewProvider.notifier).state = CareNavView.panel;
+  await ref.read(documentAttachmentProvider.notifier).attach(file.name, bytes);
+}
+
+/// The assistant's own UI words, in the app language.
+class _Ui {
+  const _Ui(this.ar);
+  final bool ar;
+
+  static _Ui of(BuildContext context) =>
+      _Ui(Localizations.localeOf(context).languageCode == 'ar');
+
+  String get faq => ar ? 'الأسئلة الشائعة' : 'FAQ';
+  String get attach => ar
+      ? 'إرفاق مستند (PDF أو Word أو نص)'
+      : 'Attach a document (PDF, Word or text)';
+  String get summarize => ar ? 'لخّص' : 'Summarize';
+  String get retry => ar ? 'إعادة المحاولة' : 'Retry';
+  String get remove => ar ? 'إزالة' : 'Remove';
+  String get cancel => ar ? 'إلغاء' : 'Cancel';
+  String get editMessage => ar ? 'تعديل الرسالة' : 'Edit message';
+  String get checkAgain => ar ? 'تحقق مرة أخرى' : 'Check again';
+  String get liveChat => ar ? 'ذكاء MyHealth الاصطناعي' : 'MyHealth AI';
+  String get onDeviceGuide =>
+      ar ? 'دليل على الجهاز · ليس ذكاءً اصطناعيًا' : 'On-device guide · not AI';
+
+  String readiness(GatewayReadiness r) => switch (r) {
+    GatewayReadiness.available =>
+      ar ? 'الذكاء الاصطناعي متاح' : 'AI service available',
+    GatewayReadiness.checking =>
+      ar ? 'جارٍ التحقق من الاتصال…' : 'Checking connection…',
+    GatewayReadiness.unconfigured =>
+      ar
+          ? 'مساعد على الجهاز · بلا ذكاء اصطناعي مباشر'
+          : 'On-device assistant · no live AI',
+    GatewayReadiness.unreachable =>
+      ar ? 'تعذّر الوصول إلى خدمة الذكاء الاصطناعي' : 'AI service unreachable',
+    GatewayReadiness.unauthorized =>
+      ar
+          ? 'الخدمة لا تتعرّف على هذا التطبيق'
+          : 'AI service does not recognise this app',
+    GatewayReadiness.providerUnavailable =>
+      ar
+          ? 'خدمة الذكاء الاصطناعي غير متاحة الآن'
+          : 'AI service not available right now',
+  };
+
+  String status(ChatAttachment a, {required bool live}) => switch (a.status) {
+    AttachmentStatus.validating =>
+      ar ? 'جارٍ التحقق من الملف…' : 'Checking the file…',
+    AttachmentStatus.reading =>
+      ar
+          ? 'جارٍ قراءة النص على هذا الجهاز…'
+          : 'Reading the text on this device…',
+    AttachmentStatus.ready =>
+      ar
+          ? 'جاهز · ${a.charCount} حرف — اضغط «لخّص» عندما تريد'
+          : 'Ready · ${a.charCount} characters read — tap Summarize when you '
+                'want',
+    AttachmentStatus.saving =>
+      ar
+          ? 'جارٍ الحفظ في سجلاتك على هذا الجهاز…'
+          : 'Saving to your Records on this device…',
+    AttachmentStatus.uploading =>
+      a.progress == null
+          ? (ar
+                ? 'جارٍ رفع النص إلى خدمة التلخيص…'
+                : 'Uploading the text to the summary service…')
+          : (ar
+                ? 'جارٍ رفع النص إلى خدمة التلخيص · '
+                      '${(a.progress! * 100).round()}٪'
+                : 'Uploading the text to the summary service · '
+                      '${(a.progress! * 100).round()}%'),
+    AttachmentStatus.summarizing =>
+      live
+          ? (ar ? 'جارٍ إعداد الملخص…' : 'Writing the summary…')
+          : (ar
+                ? 'جارٍ إعداد الملخص على هذا الجهاز…'
+                : 'Making the summary on this device…'),
+    AttachmentStatus.complete => ar ? 'اكتمل' : 'Done',
+    AttachmentStatus.cancelled => ar ? 'أُلغي' : 'Cancelled',
+    AttachmentStatus.failed => failure(a),
+  };
+
+  String failure(ChatAttachment a) {
+    switch (a.problem) {
+      case AttachmentProblem.saveFailed:
+        return ar
+            ? 'تعذّر الحفظ في سجلاتك. اضغط «إعادة المحاولة».'
+            : "Couldn't save to your Records. Tap Retry.";
+      case AttachmentProblem.ai:
+        return '${reportAiFailureMessage(a.aiProblem ?? ReportAiFailureKind.provider)}'
+            '${ar ? ' الملف ما زال جاهزًا.' : ' The file is still ready.'}';
+      case AttachmentProblem.document || null:
+        return document(a.documentProblem ?? DocumentProblem.malformed);
+    }
+  }
+
+  String document(DocumentProblem p) => switch (p) {
+    DocumentProblem.empty => ar ? 'الملف فارغ.' : 'This file is empty.',
+    DocumentProblem.tooLarge =>
+      ar ? 'الملف أكبر من 20 ميغابايت.' : 'This file is larger than 20 MB.',
+    DocumentProblem.unsupportedType =>
+      ar
+          ? 'هذا النوع غير مدعوم. اختر PDF أو Word (.docx/.doc) أو ملفًا نصيًا '
+                '(.txt).'
+          : 'This type is not supported. Choose a PDF, Word (.docx/.doc) or '
+                'text (.txt) file.',
+    DocumentProblem.mismatch =>
+      ar
+          ? 'محتوى الملف لا يطابق امتداده.'
+          : "The file's contents don't match its extension.",
+    DocumentProblem.executable =>
+      ar
+          ? 'هذا ملف برنامج وليس مستندًا.'
+          : 'This is a program file, not a document.',
+    DocumentProblem.encrypted =>
+      ar
+          ? 'الملف محمي بكلمة مرور. احفظ نسخة بلا كلمة مرور ثم أرفقها.'
+          : 'This file is password-protected. Save a copy without a password '
+                'and attach that.',
+    DocumentProblem.malformed =>
+      ar
+          ? 'الملف تالف أو لا يمكن قراءته.'
+          : 'This file is damaged or cannot be read.',
+    DocumentProblem.noText =>
+      ar
+          ? 'لا يحتوي الملف على نص قابل للقراءة (ربما صورة ممسوحة). أرفق ملف '
+                'PDF قابلًا للبحث.'
+          : 'No readable text — it may be a scanned image. Attach a '
+                'searchable PDF instead.',
+    DocumentProblem.unsupportedEncoding =>
+      ar
+          ? 'ترميز الملف النصي غير مدعوم. احفظه بترميز UTF-8.'
+          : "This text file's encoding isn't supported. Save it as UTF-8.",
+    DocumentProblem.tooComplex =>
+      ar
+          ? 'الملف كبير أو معقّد جدًا للقراءة هنا.'
+          : 'This file is too large or complex to read here.',
+  };
+}
 
 class CareNavigatorPanel extends ConsumerStatefulWidget {
   const CareNavigatorPanel({super.key});
@@ -28,6 +186,7 @@ class CareNavigatorPanel extends ConsumerStatefulWidget {
 class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
   final _input = TextEditingController();
   final _scroll = ScrollController();
+  int _shownMessages = 0;
 
   @override
   void dispose() {
@@ -36,41 +195,48 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
     super.dispose();
   }
 
+  /// The same path for Send and the Enter key. The draft is cleared only
+  /// once the message is accepted (not while one is still on its way).
   void _send() {
-    final text = _input.text;
-    if (text.trim().isEmpty) return;
-    _input.clear();
-    unawaited(ref.read(careNavigatorProvider.notifier).send(text));
+    final accepted = ref.read(careNavigatorProvider.notifier).send(_input.text);
+    if (accepted) _input.clear();
   }
 
-  /// Straight to the file picker: the PDF is read on this device, saved to
-  /// the patient's Records and summarized here — no form to fill in.
-  Future<void> _uploadReport() => pickAndExplainReport(ref);
+  /// Puts a failed message back in the input to edit.
+  void _edit(String text) {
+    _input
+      ..text = text
+      ..selection = TextSelection.collapsed(offset: text.length);
+  }
 
-  /// A tapped assistant button. Checked again now: the signed-in patient
-  /// must still be allowed to open it. Only then does anything happen.
   Future<void> _runAction(AssistantAction action) async {
+    // Checked again now: the signed-in patient must still be allowed.
     if (!canOfferAssistantAction(ref.read(currentUserProvider), action)) {
       return;
     }
     switch (action.route) {
       case final route?:
         ref.read(careNavigatorViewProvider.notifier).state = CareNavView.fab;
-        // Through the app's router itself, so it works wherever the panel
-        // is drawn (bottom bar on a phone, side rail on a laptop).
         ref.read(routerProvider).go(route);
       case null:
-        await _uploadReport();
+        await pickDocumentForAssistant(ref);
     }
+  }
+
+  void _openFaq() {
+    ref.read(careNavigatorViewProvider.notifier).state = CareNavView.fab;
+    ref.read(routerProvider).go(AppRoutes.patientFaq);
   }
 
   void _scrollToEnd() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scroll.hasClients) {
-        _scroll.animateTo(
-          _scroll.position.maxScrollExtent,
-          duration: Motion.fast,
-          curve: Motion.standard,
+        unawaited(
+          _scroll.animateTo(
+            _scroll.position.maxScrollExtent,
+            duration: Motion.fast,
+            curve: Motion.standard,
+          ),
         );
       }
     });
@@ -81,11 +247,21 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final t = AppLocalizations.of(context)!;
+    final ui = _Ui.of(context);
     final chat = ref.watch(careNavigatorProvider);
-    final live = ref.watch(careNavigatorLiveProvider).valueOrNull ?? false;
+    final attachment = ref.watch(documentAttachmentProvider);
+    final readiness = ref.watch(assistantReadinessProvider);
     final palette = PatientPalette.of(context);
     final user = ref.watch(currentUserProvider);
-    _scrollToEnd();
+    // New replies (and the typing indicator) scroll into view.
+    if (chat.messages.length != _shownMessages || chat.sending) {
+      _shownMessages = chat.messages.length;
+      _scrollToEnd();
+    }
+    final retryable =
+        readiness == GatewayReadiness.unreachable ||
+        readiness == GatewayReadiness.unauthorized ||
+        readiness == GatewayReadiness.providerUnavailable;
 
     return Material(
       color: scheme.surface,
@@ -97,11 +273,15 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
         children: [
           // Header
           Container(
-            padding: const EdgeInsets.all(Space.md),
+            padding: const EdgeInsetsDirectional.fromSTEB(
+              Space.md,
+              Space.sm,
+              Space.xs,
+              Space.sm,
+            ),
             color: scheme.surfaceContainerHighest,
             child: Row(
               children: [
-                // The same mascot avatar as the floating launcher.
                 const CareNavigatorAvatar(size: 40),
                 const SizedBox(width: Space.sm),
                 Expanded(
@@ -112,28 +292,74 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
                         t.aiFeatureCareNavigator,
                         style: theme.textTheme.titleSmall,
                       ),
-                      Row(
-                        children: [
-                          // Honest mode: live model or the offline guide.
-                          Icon(
-                            live
-                                ? Icons.auto_awesome
-                                : Icons.cloud_off_outlined,
-                            size: 12,
-                            color: live
-                                ? theme.clinicalStatus.riskLow.onContainer
-                                : scheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: Space.xxs),
-                          Flexible(
-                            child: Text(
-                              live
-                                  ? t.paChatReportLiveStatus
-                                  : t.paChatOfflineStatus,
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: scheme.onSurfaceVariant,
+                      Semantics(
+                        liveRegion: true,
+                        child: Row(
+                          key: const ValueKey('assistant-readiness'),
+                          children: [
+                            Icon(
+                              switch (readiness) {
+                                GatewayReadiness.available =>
+                                  Icons.auto_awesome,
+                                GatewayReadiness.checking => Icons.sync,
+                                _ => Icons.cloud_off_outlined,
+                              },
+                              size: 12,
+                              color: readiness == GatewayReadiness.available
+                                  ? theme.clinicalStatus.riskLow.onContainer
+                                  : scheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: Space.xxs),
+                            Flexible(
+                              child: Text(
+                                ui.readiness(readiness),
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: scheme.onSurfaceVariant,
+                                ),
                               ),
                             ),
+                          ],
+                        ),
+                      ),
+                      // The FAQ and "check again" sit under the status, so
+                      // a long label wraps instead of crowding the title row.
+                      Wrap(
+                        spacing: Space.xs,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          if (retryable)
+                            InkWell(
+                              key: const ValueKey('assistant-recheck'),
+                              onTap: () => unawaited(
+                                ref
+                                    .read(assistantConnectionProvider.notifier)
+                                    .recheck(),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 4,
+                                ),
+                                child: Text(
+                                  ui.checkAgain,
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: palette.link,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          TextButton.icon(
+                            key: const ValueKey('assistant-faq'),
+                            onPressed: _openFaq,
+                            style: TextButton.styleFrom(
+                              visualDensity: VisualDensity.compact,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: Space.xs,
+                              ),
+                              minimumSize: const Size(48, 36),
+                            ),
+                            icon: const Icon(Icons.help_outline, size: 16),
+                            label: Text(ui.faq),
                           ),
                         ],
                       ),
@@ -141,15 +367,13 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
                   ),
                 ),
                 IconButton(
-                  tooltip: AppLocalizations.of(
-                    context,
-                  )!.restartConversationTooltip,
+                  tooltip: t.restartConversationTooltip,
                   icon: const Icon(Icons.refresh, size: 18),
                   onPressed: () =>
                       ref.read(careNavigatorProvider.notifier).reset(),
                 ),
                 IconButton(
-                  tooltip: AppLocalizations.of(context)!.closeTooltip,
+                  tooltip: t.closeTooltip,
                   icon: const Icon(Icons.close, size: 20),
                   onPressed: () =>
                       ref.read(careNavigatorViewProvider.notifier).state =
@@ -159,7 +383,7 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
             ),
           ),
 
-          // The report being explained, with its original one tap away.
+          // The document being discussed, with its original one tap away.
           if (chat.report case final report?)
             Container(
               width: double.infinity,
@@ -216,18 +440,25 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
                 return _Bubble(
                   message: chat.messages[i],
                   user: user,
-                  onAction: chat.sending
-                      ? null
-                      : (a) => unawaited(_runAction(a)),
+                  ui: ui,
+                  onAction: (a) => unawaited(_runAction(a)),
                   onRetry: chat.sending
                       ? null
                       : (q) => unawaited(
                           ref.read(careNavigatorProvider.notifier).retry(q),
                         ),
+                  onEdit: _edit,
                 );
               },
             ),
           ),
+
+          if (attachment != null)
+            _AttachmentCard(
+              attachment: attachment,
+              ui: ui,
+              live: readiness == GatewayReadiness.available,
+            ),
 
           const Divider(height: 1),
 
@@ -237,15 +468,25 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
             child: Row(
               children: [
                 IconButton(
-                  tooltip: t.uploadPdfForAiTooltip,
-                  onPressed: chat.sending ? null : _uploadReport,
-                  icon: const Icon(Icons.upload_file_outlined),
+                  key: const ValueKey('assistant-attach'),
+                  tooltip: ui.attach,
+                  onPressed: () => unawaited(pickDocumentForAssistant(ref)),
+                  icon: const Icon(Icons.attach_file),
                 ),
                 Expanded(
                   child: TextField(
+                    key: const ValueKey('assistant-input'),
                     controller: _input,
                     textInputAction: TextInputAction.send,
                     onSubmitted: (_) => _send(),
+                    maxLength: ReportAiLimits.maxQuestionChars,
+                    buildCounter:
+                        (
+                          _, {
+                          required currentLength,
+                          required isFocused,
+                          maxLength,
+                        }) => null,
                     decoration: InputDecoration(
                       hintText: chat.report == null
                           ? t.askAboutAppHint
@@ -257,6 +498,7 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
                 ),
                 const SizedBox(width: Space.xs),
                 IconButton.filled(
+                  key: const ValueKey('assistant-send'),
                   onPressed: chat.sending ? null : _send,
                   icon: const Icon(Icons.send, size: 18),
                 ),
@@ -269,17 +511,127 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
   }
 }
 
+/// The attached document: name, size, type, the current step, real upload
+/// progress, and Summarize / Retry / Remove.
+class _AttachmentCard extends ConsumerWidget {
+  const _AttachmentCard({
+    required this.attachment,
+    required this.ui,
+    required this.live,
+  });
+
+  final ChatAttachment attachment;
+  final _Ui ui;
+  final bool live;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final palette = PatientPalette.of(context);
+    final a = attachment;
+    final controller = ref.read(documentAttachmentProvider.notifier);
+    final failed = a.status == AttachmentStatus.failed;
+    final type = a.format?.label ?? '—';
+    return Container(
+      key: const ValueKey('assistant-attachment'),
+      margin: const EdgeInsets.fromLTRB(Space.sm, 0, Space.sm, Space.xs),
+      padding: const EdgeInsets.all(Space.sm),
+      decoration: BoxDecoration(
+        color: failed ? palette.dangerContainer : palette.softAccent,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(switch (a.format) {
+                DocumentFormat.pdf => Icons.picture_as_pdf_outlined,
+                DocumentFormat.docx ||
+                DocumentFormat.doc => Icons.description_outlined,
+                DocumentFormat.txt => Icons.notes_outlined,
+                null => Icons.insert_drive_file_outlined,
+              }, color: palette.onSoftAccent),
+              const SizedBox(width: Space.xs),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      a.fileName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: palette.text,
+                      ),
+                    ),
+                    Text(
+                      '${formatFileSize(a.sizeBytes)} · $type',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: palette.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                key: const ValueKey('attachment-remove'),
+                tooltip: a.busy ? ui.cancel : ui.remove,
+                icon: const Icon(Icons.close, size: 18),
+                onPressed: controller.remove,
+              ),
+            ],
+          ),
+          const SizedBox(height: Space.xxs),
+          Semantics(
+            liveRegion: true,
+            child: Text(
+              ui.status(a, live: live),
+              key: const ValueKey('attachment-status'),
+              style: theme.textTheme.bodySmall?.copyWith(color: palette.text),
+            ),
+          ),
+          if (a.busy) ...[
+            const SizedBox(height: Space.xs),
+            // A percentage only for the real upload; otherwise indeterminate.
+            LinearProgressIndicator(
+              key: const ValueKey('attachment-progress'),
+              value: a.progress,
+            ),
+          ],
+          if (a.canSummarize) ...[
+            const SizedBox(height: Space.xs),
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: FilledButton.icon(
+                key: const ValueKey('attachment-summarize'),
+                onPressed: () => unawaited(controller.send()),
+                icon: Icon(failed ? Icons.refresh : Icons.summarize_outlined),
+                label: Text(failed ? ui.retry : ui.summarize),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 class _Bubble extends StatelessWidget {
   const _Bubble({
     required this.message,
     required this.user,
+    required this.ui,
     this.onAction,
     this.onRetry,
+    this.onEdit,
   });
   final ChatMessage message;
   final User? user;
+  final _Ui ui;
   final ValueChanged<AssistantAction>? onAction;
   final ValueChanged<String>? onRetry;
+  final ValueChanged<String>? onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -300,23 +652,28 @@ class _Bubble extends StatelessWidget {
         ? (palette.dangerContainer, palette.text)
         : (scheme.surfaceContainerHighest, scheme.onSurface);
 
-    // What produced this message, always visible (not colour alone).
-    final source = isUser || message.isEmergency
+    final aboutDocument =
+        message.quotes.isNotEmpty || message.supported != null;
+    final source = isUser || message.isEmergency || message.isGreeting
         ? null
         : switch (message.kind) {
-            ChatKind.guide => null,
+            ChatKind.guide =>
+              message.isMedicalRefusal
+                  ? null
+                  : (Icons.memory_outlined, ui.onDeviceGuide),
             ChatKind.summary => (Icons.memory_outlined, t.paSourceOnDevice),
             ChatKind.live =>
               message.supported == false
                   ? (Icons.help_outline, t.paSourceNotInReport)
-                  : (Icons.auto_awesome_outlined, t.paSourceLiveDraft),
+                  : aboutDocument || message.text.contains('\n•')
+                  ? (Icons.auto_awesome_outlined, t.paSourceLiveDraft)
+                  : (Icons.auto_awesome_outlined, ui.liveChat),
             ChatKind.unavailable => (
               Icons.cloud_off_outlined,
               t.paSourceUnavailable,
             ),
             ChatKind.error => (Icons.error_outline, t.paSourceError),
           };
-    // Only buttons the signed-in patient may use.
     final actions = [
       for (final a in message.actions)
         if (canOfferAssistantAction(user, a)) a,
@@ -341,10 +698,6 @@ class _Bubble extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           color: bg,
-          // Directional, not physical, corners — the sharp "tail" corner
-          // needs to stay on the side the bubble is pointing from (bottom-end
-          // for the user, bottom-start for the assistant) in both directions,
-          // not fixed to left/right.
           borderRadius: BorderRadiusDirectional.only(
             topStart: const Radius.circular(16),
             topEnd: const Radius.circular(16),
@@ -368,7 +721,6 @@ class _Bubble extends StatelessWidget {
               const SizedBox(height: Space.xxs),
             ],
             SelectableText(
-              // The greeting follows the app's language at display time.
               message.isGreeting ? t.careNavigatorGreeting : message.text,
               style: theme.textTheme.bodyMedium?.copyWith(color: fg),
             ),
@@ -402,7 +754,7 @@ class _Bubble extends StatelessWidget {
                 ),
               ),
             ],
-            if (message.kind == ChatKind.live) ...[
+            if (message.kind == ChatKind.live && aboutDocument) ...[
               const SizedBox(height: Space.xs),
               Text(t.paLiveDraftDisclaimer, style: small),
             ],
@@ -419,9 +771,10 @@ class _Bubble extends StatelessWidget {
                       icon: Icon(switch (a) {
                         AssistantAction.openAppointments =>
                           Icons.calendar_month_outlined,
+                        AssistantAction.bookAppointment =>
+                          Icons.event_available_outlined,
                         AssistantAction.openRecords => Icons.folder_outlined,
-                        AssistantAction.uploadReport =>
-                          Icons.upload_file_outlined,
+                        AssistantAction.uploadReport => Icons.attach_file,
                         AssistantAction.openMessages => Icons.forum_outlined,
                         AssistantAction.openMedications =>
                           Icons.medication_outlined,
@@ -435,14 +788,25 @@ class _Bubble extends StatelessWidget {
                 ],
               ),
             ],
-            if (message.retryQuestion != null && onRetry != null)
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: TextButton.icon(
-                  onPressed: () => onRetry!(message.retryQuestion!),
-                  icon: const Icon(Icons.refresh, size: 18),
-                  label: Text(t.tryAgain),
-                ),
+            if (message.retryQuestion != null)
+              Wrap(
+                spacing: Space.xs,
+                children: [
+                  if (onRetry != null)
+                    TextButton.icon(
+                      key: const ValueKey('chat-retry'),
+                      onPressed: () => onRetry!(message.retryQuestion!),
+                      icon: const Icon(Icons.refresh, size: 18),
+                      label: Text(t.tryAgain),
+                    ),
+                  if (onEdit != null)
+                    TextButton.icon(
+                      key: const ValueKey('chat-edit'),
+                      onPressed: () => onEdit!(message.retryQuestion!),
+                      icon: const Icon(Icons.edit_outlined, size: 18),
+                      label: Text(ui.editMessage),
+                    ),
+                ],
               ),
           ],
         ),
@@ -477,6 +841,7 @@ class _TypingDotsState extends State<_TypingDots>
     return Align(
       alignment: AlignmentDirectional.centerStart,
       child: Container(
+        key: const ValueKey('assistant-typing'),
         margin: const EdgeInsets.symmetric(vertical: Space.xxs),
         padding: const EdgeInsets.symmetric(
           horizontal: Space.sm,
@@ -518,20 +883,4 @@ class _TypingDotsState extends State<_TypingDots>
       ),
     );
   }
-}
-
-/// Opens the file picker for a PDF, then saves and summarizes it in the
-/// Care Navigator (which opens to show the summary). Used by the chat's
-/// upload button and the "Explain a Report" service.
-Future<void> pickAndExplainReport(WidgetRef ref) async {
-  final file = await FilePicker.pickFile(
-    type: FileType.custom,
-    allowedExtensions: const ['pdf'],
-  );
-  if (file == null) return;
-  final bytes = await file.readAsBytes();
-  ref.read(careNavigatorViewProvider.notifier).state = CareNavView.panel;
-  await ref
-      .read(careNavigatorProvider.notifier)
-      .importAndExplain(fileName: file.name, bytes: bytes);
 }

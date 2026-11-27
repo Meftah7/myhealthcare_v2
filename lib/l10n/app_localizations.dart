@@ -2573,7 +2573,7 @@ abstract class AppLocalizations {
   /// No description provided for @careNavigatorGreeting.
   ///
   /// In en, this message translates to:
-  /// **'Hi! Ask me how to find something in the app, or tap the upload button to get a summary of a report PDF.'**
+  /// **'Hi! Ask me how to find something in the app, or attach a document (PDF, Word or text) to get a short summary.'**
   String get careNavigatorGreeting;
 
   /// No description provided for @taskBoardTitle.
@@ -8171,7 +8171,7 @@ abstract class AppLocalizations {
   /// No description provided for @uploadPdfForAiTooltip.
   ///
   /// In en, this message translates to:
-  /// **'Upload a PDF for a simple explanation'**
+  /// **'Attach a document (PDF, Word or text)'**
   String get uploadPdfForAiTooltip;
 
   /// No description provided for @documentReadyTitle.
@@ -8945,7 +8945,7 @@ abstract class AppLocalizations {
   /// No description provided for @paExplainReportDesc.
   ///
   /// In en, this message translates to:
-  /// **'Upload a PDF report and get a plain-language explanation.'**
+  /// **'Attach a PDF, Word or text document and get a short summary of what it says.'**
   String get paExplainReportDesc;
 
   /// No description provided for @paFamilyLinked.
@@ -9035,7 +9035,7 @@ abstract class AppLocalizations {
   /// No description provided for @paHeroReportBody.
   ///
   /// In en, this message translates to:
-  /// **'Upload a PDF medical report and get a plain-language explanation. Your original stays in your records.'**
+  /// **'Attach a PDF, Word or text document and get a short summary of what it says. Your original stays in your records.'**
   String get paHeroReportBody;
 
   /// No description provided for @paHeroReportCta.
@@ -9389,7 +9389,7 @@ abstract class AppLocalizations {
   /// No description provided for @paOnboardRecordsBody.
   ///
   /// In en, this message translates to:
-  /// **'Find your reports, prescriptions and visit history. Use the AI assistant to get a plain-language explanation of a PDF report.'**
+  /// **'Find your reports, prescriptions and visit history. Use the assistant to get a short summary of a document.'**
   String get paOnboardRecordsBody;
 
   /// No description provided for @paChatLiveStatus.
@@ -9407,7 +9407,7 @@ abstract class AppLocalizations {
   /// No description provided for @paChatReportLabel.
   ///
   /// In en, this message translates to:
-  /// **'Explaining: {title}'**
+  /// **'Summarizing: {title}'**
   String paChatReportLabel(String title);
 
   /// No description provided for @paViewOriginal.
@@ -9515,7 +9515,7 @@ abstract class AppLocalizations {
   /// No description provided for @paAboutBody.
   ///
   /// In en, this message translates to:
-  /// **'myhealth lets patients view their records, book appointments, download documents and get plain-language explanations of PDF medical reports. Senior project prototype with synthetic data.'**
+  /// **'myhealth lets patients view their records, book appointments, download documents and get short summaries of their documents. Senior project prototype with synthetic data.'**
   String get paAboutBody;
 
   /// No description provided for @paSettingsPreferences.
@@ -9617,7 +9617,7 @@ abstract class AppLocalizations {
   /// No description provided for @paAskAboutReportHint.
   ///
   /// In en, this message translates to:
-  /// **'Ask about this report…'**
+  /// **'Ask what this document says…'**
   String get paAskAboutReportHint;
 
   /// No description provided for @paLeaveReport.
@@ -9635,13 +9635,13 @@ abstract class AppLocalizations {
   /// No description provided for @paSourceLiveDraft.
   ///
   /// In en, this message translates to:
-  /// **'AI draft · checked against your report'**
+  /// **'AI summary · checked against your document'**
   String get paSourceLiveDraft;
 
   /// No description provided for @paSourceNotInReport.
   ///
   /// In en, this message translates to:
-  /// **'AI draft · not stated in this report'**
+  /// **'Not stated in this document'**
   String get paSourceNotInReport;
 
   /// No description provided for @paSourceUnavailable.
@@ -9659,13 +9659,13 @@ abstract class AppLocalizations {
   /// No description provided for @paFromYourReport.
   ///
   /// In en, this message translates to:
-  /// **'From your report:'**
+  /// **'From your document:'**
   String get paFromYourReport;
 
   /// No description provided for @paLiveDraftDisclaimer.
   ///
   /// In en, this message translates to:
-  /// **'Draft from AI — not a diagnosis. Discuss results with your doctor.'**
+  /// **'AI summary of what the document says — not medical advice.'**
   String get paLiveDraftDisclaimer;
 
   /// No description provided for @paChatReportLiveStatus.
@@ -10603,6 +10603,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Why isn\'t it approved?'**
   String get rejectReasonHint;
+
+  /// No description provided for @faqTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequently Asked Questions'**
+  String get faqTitle;
+
+  /// No description provided for @faqButtonMessageDoctor.
+  ///
+  /// In en, this message translates to:
+  /// **'Message my doctor'**
+  String get faqButtonMessageDoctor;
+
+  /// No description provided for @faqButtonBook.
+  ///
+  /// In en, this message translates to:
+  /// **'Book an appointment'**
+  String get faqButtonBook;
+
+  /// No description provided for @faqButtonRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Records'**
+  String get faqButtonRecords;
+
+  /// No description provided for @faqButtonAssistant.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the assistant'**
+  String get faqButtonAssistant;
+
+  /// No description provided for @faqQ1.
+  ///
+  /// In en, this message translates to:
+  /// **'How do I book an appointment?'**
+  String get faqQ1;
+
+  /// No description provided for @faqA1.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Appointment (in the bottom bar or the side menu) and tap Book now for the soonest opening, or Schedule to pick a date. You can also start from Book Appointment in Services. Nothing is booked until you confirm it.'**
+  String get faqA1;
+
+  /// No description provided for @faqQ2.
+  ///
+  /// In en, this message translates to:
+  /// **'How do I message my doctor?'**
+  String get faqQ2;
+
+  /// No description provided for @faqA2.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Messages, tap New message and choose the doctor. You can message doctors you have had a completed visit with.'**
+  String get faqA2;
+
+  /// No description provided for @faqQ3.
+  ///
+  /// In en, this message translates to:
+  /// **'Where can I find my medical records?'**
+  String get faqQ3;
+
+  /// No description provided for @faqA3.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Records. Your reports, results, documents and the files you upload are listed there. Tap one to see it and open the original file.'**
+  String get faqA3;
+
+  /// No description provided for @faqQ4.
+  ///
+  /// In en, this message translates to:
+  /// **'How do I upload a document for a summary?'**
+  String get faqQ4;
+
+  /// No description provided for @faqA4.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the assistant (the mascot button), tap the paperclip and choose a file. When the card says Ready, tap Summarize. The original file is also saved to your Records on this device.'**
+  String get faqA4;
+
+  /// No description provided for @faqQ5.
+  ///
+  /// In en, this message translates to:
+  /// **'Which document formats and sizes are supported?'**
+  String get faqQ5;
+
+  /// No description provided for @faqA5.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF, Word (.docx and .doc) and plain text (.txt) files, up to 20 MB. Password-protected files and scanned PDFs without selectable text can\'t be read. Text files must be UTF-8 (or UTF-16 with a byte-order mark).'**
+  String get faqA5;
+
+  /// No description provided for @faqQ6.
+  ///
+  /// In en, this message translates to:
+  /// **'How do I check upload progress?'**
+  String get faqQ6;
+
+  /// No description provided for @faqA6.
+  ///
+  /// In en, this message translates to:
+  /// **'The attachment card shows each step: checking the file, reading its text on your device, saving it to your Records, uploading the text to the summary service (with a percentage), and writing the summary. When the AI service isn\'t available, the summary is made on your device and nothing is uploaded.'**
+  String get faqA6;
+
+  /// No description provided for @faqQ7.
+  ///
+  /// In en, this message translates to:
+  /// **'What should I do if an upload fails?'**
+  String get faqQ7;
+
+  /// No description provided for @faqA7.
+  ///
+  /// In en, this message translates to:
+  /// **'The card says why. If the file can\'t be read, save it as a searchable PDF, a Word file or a UTF-8 text file and attach it again. If the summary step failed, tap Retry — you don\'t need to choose the file again. Tap × to remove the file.'**
+  String get faqA7;
+
+  /// No description provided for @faqQ8.
+  ///
+  /// In en, this message translates to:
+  /// **'Why is the AI unavailable?'**
+  String get faqQ8;
+
+  /// No description provided for @faqA8.
+  ///
+  /// In en, this message translates to:
+  /// **'The top of the assistant shows its status. Live AI needs the MyHealth AI service, which may not be set up in this version of the app, or may be unreachable or busy — tap Check again to retry. Meanwhile the assistant still guides you around the app and makes a basic summary on your device.'**
+  String get faqA8;
+
+  /// No description provided for @faqQ9.
+  ///
+  /// In en, this message translates to:
+  /// **'Can the AI answer medical questions?'**
+  String get faqQ9;
+
+  /// No description provided for @faqA9.
+  ///
+  /// In en, this message translates to:
+  /// **'No. This assistant helps you use the app and summarizes what your uploaded document says. For medical questions, please message your doctor or book an appointment.'**
+  String get faqA9;
+
+  /// No description provided for @faqQ10.
+  ///
+  /// In en, this message translates to:
+  /// **'Does the document summary replace a doctor’s consultation?'**
+  String get faqQ10;
+
+  /// No description provided for @faqA10.
+  ///
+  /// In en, this message translates to:
+  /// **'No. The summary only repeats what your document says, and it may be incomplete. Please discuss your document with your doctor.'**
+  String get faqA10;
 }
 
 class _AppLocalizationsDelegate

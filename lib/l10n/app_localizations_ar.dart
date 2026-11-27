@@ -1341,7 +1341,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get careNavigatorGreeting =>
-      'مرحبًا! اسألني عن أي مكان في التطبيق، أو اضغط زر الرفع لتحصل على ملخص لتقرير PDF.';
+      'مرحبًا! اسألني عن أي مكان في التطبيق، أو أرفق مستندًا (PDF أو Word أو نص) لتحصل على ملخص قصير.';
 
   @override
   String get taskBoardTitle => 'لوحة المهام';
@@ -4670,7 +4670,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chooseDoctorTitle => 'اختر طبيبًا';
 
   @override
-  String get uploadPdfForAiTooltip => 'ارفع ملف PDF للحصول على شرح مبسط';
+  String get uploadPdfForAiTooltip => 'إرفاق مستند (PDF أو Word أو نص)';
 
   @override
   String get documentReadyTitle => 'الوثيقة جاهزة';
@@ -5093,7 +5093,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get paExplainReportDesc =>
-      'ارفع تقريرًا بصيغة PDF واحصل على شرح بلغة بسيطة.';
+      'أرفق مستند PDF أو Word أو نص واحصل على ملخص قصير لما يذكره.';
 
   @override
   String get paFamilyLinked => 'العائلة والحسابات المرتبطة';
@@ -5139,7 +5139,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get paHeroReportBody =>
-      'ارفع تقريرًا طبيًا بصيغة PDF واحصل على شرح بلغة بسيطة. يبقى الأصل محفوظًا في سجلاتك.';
+      'أرفق مستند PDF أو Word أو نص واحصل على ملخص قصير لما يذكره. يبقى الأصل محفوظًا في سجلاتك.';
 
   @override
   String get paHeroReportCta => 'اشرح تقريرًا';
@@ -5327,7 +5327,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get paOnboardRecordsBody =>
-      'اطّلع على تقاريرك ووصفاتك الطبية وسجل زياراتك. استخدم مساعد الذكاء الاصطناعي للحصول على شرح مبسّط لتقرير بصيغة PDF.';
+      'اطّلع على تقاريرك ووصفاتك الطبية وسجل زياراتك. استخدم المساعد للحصول على ملخص قصير لمستند.';
 
   @override
   String get paChatLiveStatus => 'ذكاء اصطناعي مباشر';
@@ -5337,7 +5337,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String paChatReportLabel(String title) {
-    return 'شرح: $title';
+    return 'تلخيص: $title';
   }
 
   @override
@@ -5395,7 +5395,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get paAboutBody =>
-      'يتيح myhealth للمرضى عرض سجلاتهم وحجز المواعيد وتحميل المستندات والحصول على شرح مبسّط لتقارير PDF الطبية. نموذج أولي لمشروع تخرج ببيانات تجريبية.';
+      'يتيح myhealth للمرضى عرض سجلاتهم وحجز المواعيد وتحميل المستندات والحصول على ملخصات قصيرة لمستنداتهم. نموذج أولي لمشروع تخرج ببيانات تجريبية.';
 
   @override
   String get paSettingsPreferences => 'الإعدادات والتفضيلات';
@@ -5451,7 +5451,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get paReviewEditDetails => 'تعديل العيادة أو الطبيب أو نوع الزيارة';
 
   @override
-  String get paAskAboutReportHint => 'اسأل عن هذا التقرير…';
+  String get paAskAboutReportHint => 'اسأل عمّا يذكره هذا المستند…';
 
   @override
   String get paLeaveReport => 'إغلاق هذا التقرير';
@@ -5460,12 +5460,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get paSourceOnDevice => 'ملخص على الجهاز · ليس ذكاءً اصطناعيًا';
 
   @override
-  String get paSourceLiveDraft =>
-      'مسودة ذكاء اصطناعي · تم التحقق منها مقابل تقريرك';
+  String get paSourceLiveDraft => 'ملخص بالذكاء الاصطناعي · مُطابق لمستندك';
 
   @override
-  String get paSourceNotInReport =>
-      'مسودة ذكاء اصطناعي · غير مذكور في هذا التقرير';
+  String get paSourceNotInReport => 'غير مذكور في هذا المستند';
 
   @override
   String get paSourceUnavailable => 'غير متصل';
@@ -5474,11 +5472,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get paSourceError => 'تعذّرت الإجابة';
 
   @override
-  String get paFromYourReport => 'من تقريرك:';
+  String get paFromYourReport => 'من مستندك:';
 
   @override
   String get paLiveDraftDisclaimer =>
-      'مسودة من الذكاء الاصطناعي — ليست تشخيصًا. ناقش النتائج مع طبيبك.';
+      'ملخص بالذكاء الاصطناعي لما يذكره المستند — ليس نصيحة طبية.';
 
   @override
   String get paChatReportLiveStatus => 'ذكاء التقارير متصل · مسودات';
@@ -6013,4 +6011,89 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get rejectReasonHint => 'لماذا لم تتم الموافقة؟';
+
+  @override
+  String get faqTitle => 'الأسئلة الشائعة';
+
+  @override
+  String get faqButtonMessageDoctor => 'راسل طبيبك';
+
+  @override
+  String get faqButtonBook => 'احجز موعدًا';
+
+  @override
+  String get faqButtonRecords => 'فتح السجلات';
+
+  @override
+  String get faqButtonAssistant => 'افتح المساعد';
+
+  @override
+  String get faqQ1 => 'كيف أحجز موعدًا؟';
+
+  @override
+  String get faqA1 =>
+      'افتح «الموعد» (في الشريط السفلي أو القائمة الجانبية) واضغط «احجز الآن» لأقرب موعد متاح، أو «جدولة» لاختيار تاريخ. يمكنك أيضًا البدء من «حجز موعد» في الخدمات. لا يُحجز أي موعد حتى تؤكده.';
+
+  @override
+  String get faqQ2 => 'كيف أراسل طبيبي؟';
+
+  @override
+  String get faqA2 =>
+      'افتح «الرسائل» واضغط «رسالة جديدة» واختر الطبيب. يمكنك مراسلة الأطباء الذين أكملت معهم زيارة.';
+
+  @override
+  String get faqQ3 => 'أين أجد سجلاتي الطبية؟';
+
+  @override
+  String get faqA3 =>
+      'افتح «السجلات». تجد فيها تقاريرك ونتائجك ومستنداتك والملفات التي رفعتها. اضغط على أي منها لعرضه وفتح الملف الأصلي.';
+
+  @override
+  String get faqQ4 => 'كيف أرفع مستندًا للحصول على ملخص؟';
+
+  @override
+  String get faqA4 =>
+      'افتح المساعد (زر الشخصية)، واضغط مشبك الورق واختر ملفًا. عندما تظهر البطاقة «جاهز»، اضغط «لخّص». يُحفظ الملف الأصلي أيضًا في سجلاتك على هذا الجهاز.';
+
+  @override
+  String get faqQ5 => 'ما صيغ المستندات وأحجامها المدعومة؟';
+
+  @override
+  String get faqA5 =>
+      'ملفات PDF وWord (‎.docx و‎.doc) والملفات النصية (‎.txt) حتى 20 ميغابايت. لا يمكن قراءة الملفات المحمية بكلمة مرور ولا ملفات PDF الممسوحة ضوئيًا دون نص قابل للتحديد. يجب أن تكون الملفات النصية بترميز UTF-8 (أو UTF-16 مع علامة ترتيب البايت).';
+
+  @override
+  String get faqQ6 => 'كيف أتابع تقدّم الرفع؟';
+
+  @override
+  String get faqA6 =>
+      'تعرض بطاقة المرفق كل خطوة: التحقق من الملف، وقراءة نصه على جهازك، وحفظه في سجلاتك، ورفع النص إلى خدمة التلخيص (مع نسبة مئوية)، ثم إعداد الملخص. عندما لا تكون خدمة الذكاء الاصطناعي متاحة، يُعدّ الملخص على جهازك ولا يُرفع شيء.';
+
+  @override
+  String get faqQ7 => 'ماذا أفعل إذا فشل الرفع؟';
+
+  @override
+  String get faqA7 =>
+      'توضّح البطاقة السبب. إذا تعذّرت قراءة الملف، احفظه بصيغة PDF قابلة للبحث أو ملف Word أو ملف نصي بترميز UTF-8 ثم أرفقه مجددًا. إذا فشلت خطوة التلخيص، اضغط «إعادة المحاولة» دون الحاجة لاختيار الملف مرة أخرى. اضغط × لإزالة الملف.';
+
+  @override
+  String get faqQ8 => 'لماذا الذكاء الاصطناعي غير متاح؟';
+
+  @override
+  String get faqA8 =>
+      'يعرض أعلى المساعد حالته. يحتاج الذكاء الاصطناعي المباشر إلى خدمة MyHealth للذكاء الاصطناعي، وقد لا تكون مُعدّة في هذا الإصدار من التطبيق، أو قد يتعذّر الوصول إليها أو تكون مشغولة — اضغط «تحقق مرة أخرى» للمحاولة. وفي هذه الأثناء يواصل المساعد إرشادك داخل التطبيق ويُعدّ ملخصًا أساسيًا على جهازك.';
+
+  @override
+  String get faqQ9 => 'هل يمكن للذكاء الاصطناعي الإجابة عن الأسئلة الطبية؟';
+
+  @override
+  String get faqA9 =>
+      'لا. يساعدك هذا المساعد في استخدام التطبيق ويلخّص ما يذكره المستند الذي رفعته. للأسئلة الطبية، يرجى مراسلة طبيبك أو حجز موعد.';
+
+  @override
+  String get faqQ10 => 'هل يُغني ملخص المستند عن استشارة الطبيب؟';
+
+  @override
+  String get faqA10 =>
+      'لا. يكرر الملخص فقط ما يذكره مستندك، وقد يكون غير مكتمل. يرجى مناقشة مستندك مع طبيبك.';
 }

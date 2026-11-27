@@ -3,6 +3,7 @@
 /// holds the review can start it, record the outcome, or escalate it.
 library;
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -80,13 +81,29 @@ class _ResultSheet extends ConsumerWidget {
               spacing: Space.xs,
               runSpacing: Space.xs,
               children: [
-                if (r.sourceDocument != null)
-                  DocumentDownloadButton(
-                    label: t.openOriginalAction,
-                    filename: r.sourceDocument!.fileName,
-                    icon: Icons.description_outlined,
-                    build: () => openOriginalFile(ref, r),
-                  ),
+                if (r.sourceDocument case final doc?)
+                  // PDFs preview in the app; Word and text originals are
+                  // saved as they were uploaded.
+                  if (doc.mimeType == 'application/pdf')
+                    DocumentDownloadButton(
+                      label: t.openOriginalAction,
+                      filename: doc.fileName,
+                      icon: Icons.description_outlined,
+                      build: () => openOriginalFile(ref, r),
+                    )
+                  else
+                    OutlinedButton.icon(
+                      onPressed: () async {
+                        final bytes = await openOriginalFile(ref, r);
+                        await FilePicker.saveFile(
+                          fileName: doc.fileName,
+                          bytes: bytes,
+                          mimeType: doc.mimeType,
+                        );
+                      },
+                      icon: const Icon(Icons.download_outlined),
+                      label: Text(t.openOriginalAction),
+                    ),
                 if (r.awaitingReview &&
                     ref.watch(canProvider(Permission.writeClinicalRecord))) ...[
                   FilledButton.tonal(

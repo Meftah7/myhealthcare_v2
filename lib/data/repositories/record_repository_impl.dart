@@ -15,6 +15,7 @@ import '../../domain/enums.dart';
 import '../../domain/identity/permissions.dart';
 import '../../domain/repositories/record_repository.dart';
 import '../../services/auth/access_policy.dart';
+import '../../services/documents/document_text.dart';
 import '../db/app_database.dart';
 import '../sync/idempotency.dart';
 import 'mappers.dart';
@@ -122,16 +123,26 @@ class RecordRepositoryImpl implements RecordRepository {
         'That file is larger than 20 MB. Choose a smaller copy.',
       );
     }
-    final b = file.bytes;
-    final isPdf =
-        b.length > 5 &&
-        b[0] == 0x25 &&
-        b[1] == 0x50 &&
-        b[2] == 0x44 &&
-        b[3] == 0x46 &&
-        b[4] == 0x2D;
-    if (file.mimeType == 'application/pdf' && !isPdf) {
-      throw const FileFailure('That file is not a readable PDF.');
+    // Only the document types the app can read, and the bytes must be what
+    // the type says (the same check the reader applies when attaching).
+    final format = DocumentFormat.forMimeType(file.mimeType);
+    if (format == null) {
+      throw const FileFailure(
+        'Only PDF, Word (.docx, .doc) and text (.txt) files can be saved.',
+      );
+    }
+    try {
+      checkDocument(
+        fileName: 'original.${format.extensions.first}',
+        bytes: file.bytes,
+      );
+    } on DocumentReadException {
+      throw FileFailure(switch (format) {
+        DocumentFormat.pdf => 'That file is not a readable PDF.',
+        DocumentFormat.docx ||
+        DocumentFormat.doc => 'That file is not a readable Word document.',
+        DocumentFormat.txt => 'That file is not a readable text file.',
+      });
     }
   }
 

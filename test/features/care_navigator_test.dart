@@ -142,8 +142,10 @@ void main() {
     });
 
     Future<String> ask(String q) async {
-      final nav = container.read(careNavigatorProvider.notifier);
-      await nav.send(q);
+      container.read(careNavigatorProvider.notifier).send(q);
+      for (var i = 0; i < 20; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
       return container.read(careNavigatorProvider).messages.last.text;
     }
 
@@ -170,7 +172,12 @@ void main() {
       );
       expect(await ask('where are my lab results?'), contains('Records'));
       expect(await ask('I want to pay my bill'), contains('Payments'));
-      expect(await ask('help me with my calories'), contains('Nutrition'));
+      expect(await ask('where is nutrition?'), contains('Nutrition'));
+      // Personal diet advice is a medical question: refused.
+      expect(
+        await ask('how many calories should I eat?'),
+        AssistantText.medical(false),
+      );
       expect(await ask('change my password'), contains('Profile'));
     });
 
@@ -178,10 +185,10 @@ void main() {
       'a symptom question is declined, with the way to a clinician',
       () async {
         final reply = await ask('what should I take for a fever?');
-        expect(reply, AssistantText.advice(false));
+        expect(reply, AssistantText.medical(false));
         expect(
           container.read(careNavigatorProvider).messages.last.actions,
-          contains(AssistantAction.openAppointments),
+          contains(AssistantAction.bookAppointment),
         );
       },
     );
@@ -214,7 +221,7 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      await container
+      container
           .read(careNavigatorProvider.notifier)
           .send('how do I book an appointment?');
 
@@ -435,11 +442,11 @@ void main() {
     (tester) async {
       final container = await _signIn(tester);
       const en =
-          'Hi! Ask me how to find something in the app, or tap the upload '
-          'button to get a summary of a report PDF.';
+          'Hi! Ask me how to find something in the app, or attach a document '
+          '(PDF, Word or text) to get a short summary.';
       const ar =
-          'مرحبًا! اسألني عن أي مكان في التطبيق، أو اضغط زر الرفع لتحصل على '
-          'ملخص لتقرير PDF.';
+          'مرحبًا! اسألني عن أي مكان في التطبيق، أو أرفق مستندًا (PDF أو Word '
+          'أو نص) لتحصل على ملخص قصير.';
 
       // The launcher and the open panel show the same avatar.
       expect(

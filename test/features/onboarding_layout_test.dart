@@ -24,8 +24,8 @@ const _en = (
   body1: 'Choose a doctor and find an appointment that fits your day.',
   title2: 'Your health records, in one place.',
   body2:
-      'Find your reports, prescriptions and visit history. Use the AI '
-      'assistant to get a plain-language explanation of a PDF report.',
+      'Find your reports, prescriptions and visit history. Use the '
+      'assistant to get a short summary of a document.',
   skip: 'Skip',
   next: 'Next',
   back: 'Back',
@@ -38,8 +38,8 @@ const _ar = (
   body1: 'اختر طبيبك واحجز موعدًا يناسب يومك.',
   title2: 'سجلاتك الصحية في مكان واحد',
   body2:
-      'اطّلع على تقاريرك ووصفاتك الطبية وسجل زياراتك. استخدم مساعد الذكاء '
-      'الاصطناعي للحصول على شرح مبسّط لتقرير بصيغة PDF.',
+      'اطّلع على تقاريرك ووصفاتك الطبية وسجل زياراتك. استخدم المساعد '
+      'للحصول على ملخص قصير لمستند.',
   skip: 'تخطَّ',
   next: 'التالي',
   back: 'رجوع',

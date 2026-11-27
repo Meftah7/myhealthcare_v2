@@ -86,6 +86,9 @@ dependencies:
   audioplayers: ^6.8.1
   printing: ^5.15.0
   pdf: ^3.13.0
+  # Reading attached Word documents (.docx is a zip of XML parts).
+  archive: ^4.0.9
+  xml: ^7.0.1
   cryptography: ^2.9.0
   mobile_scanner: ^7.4.2
   zxing2: ^0.2.4

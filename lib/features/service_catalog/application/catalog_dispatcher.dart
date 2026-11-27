@@ -42,11 +42,11 @@ Future<void> openCatalogItem(
   }
 }
 
-/// Explain a report: straight to the file picker; the PDF is read on the
-/// device, saved to the patient's records and summarized in the Care
-/// Navigator, which opens to show it.
+/// Explain a report: straight to the file picker; the document is attached
+/// in the Care Navigator (which opens) and read on the device. The summary
+/// is made when the patient taps Summarize.
 Future<void> startReportExplanation(BuildContext context, WidgetRef ref) =>
-    pickAndExplainReport(ref);
+    pickDocumentForAssistant(ref);
 
 /// A planned extension: says plainly it is future work and not part of this
 /// version — no data, no pretend service.
