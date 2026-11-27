@@ -67,12 +67,9 @@ void main() {
       await _settle(tester);
       final router = c.read(routerProvider);
       if (width < 600) {
-        await selectCompactDestination(tester, 'Book Appointment');
-      } else if (width >= 1200) {
-        await tester.tap(find.text('Book Appointment').first.hitTestable());
-        await _settle(tester);
+        await selectCompactDestination(tester, 'Appointment');
       } else {
-        router.go(AppRoutes.patientBookLanding);
+        await tester.tap(find.text('Appointment').first.hitTestable());
         await _settle(tester);
       }
       expect(

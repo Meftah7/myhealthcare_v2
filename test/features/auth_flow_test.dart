@@ -76,7 +76,7 @@ void main() {
           find.byIcon(Icons.notifications_outlined).evaluate().isNotEmpty,
       isTrue,
     );
-    await tester.tap(find.text('Book Appointment').first);
+    await tester.tap(find.text('Appointment').first.hitTestable());
     await _pump(tester);
     // Root tab pages keep drawer access too.
     expect(find.byKey(const ValueKey('patient-rail-account')), findsOneWidget);

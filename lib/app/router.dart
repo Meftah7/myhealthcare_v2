@@ -612,7 +612,7 @@ class _SplashScreen extends ConsumerWidget {
 
 StatefulShellRoute _patientShell() {
   return StatefulShellRoute.indexedStack(
-    // Bottom nav order: Home | Records | Appointments | Messages | Services.
+    // Bottom nav order: Home | Records | Appointment | Messages | Services.
     // Messages keeps its old /patient/home/messages paths in its own branch.
     // Branches 5–6 (Nutrition, Profile) are no longer tabs but keep their
     // routes, deep links and stacks; they are reached from Home Quick Access
@@ -633,7 +633,7 @@ StatefulShellRoute _patientShell() {
         AppDestination(
           icon: Icons.calendar_month_outlined,
           selectedIcon: Icons.calendar_month,
-          label: t.paBookAppointment,
+          label: t.navAppointments,
         ),
         AppDestination(
           icon: Icons.forum_outlined,
