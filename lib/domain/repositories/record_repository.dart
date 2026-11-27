@@ -119,8 +119,8 @@ abstract interface class RecordRepository {
   /// Chronological record feed, newest first, paginated (P2-08, P1-14).
   Future<Result<List<MedicalRecord>>> timeline(
     String patientId, {
-    int limit,
-    int offset,
+    int limit = 30,
+    int offset = 0,
     Set<RecordType>? types,
     String? textQuery,
   });
@@ -129,16 +129,19 @@ abstract interface class RecordRepository {
   /// a long history shows "Load more" instead of being silently cut off.
   Future<Result<Page<MedicalRecord>>> timelinePage(
     String patientId, {
-    PageRequest page,
+    PageRequest page = const PageRequest(),
     Set<RecordType>? types,
     String? textQuery,
   });
 
-  Stream<List<MedicalRecord>> watchTimeline(String patientId, {int limit});
+  Stream<List<MedicalRecord>> watchTimeline(String patientId, {int limit = 30});
 
   /// Records a staff member authored, newest first — the staff "Records
   /// authored" view (ported from the FirstSemMyHealth doctor dashboard).
-  Future<Result<List<MedicalRecord>>> authoredBy(String staffId, {int limit});
+  Future<Result<List<MedicalRecord>>> authoredBy(
+    String staffId, {
+    int limit = 100,
+  });
 
   /// Adds a record and any attached lab values in one transaction. Computes
   /// each lab value's [AbnormalFlag] from its reference range.
@@ -180,7 +183,7 @@ abstract interface class VitalsRepository {
 abstract interface class MedicationRepository {
   Future<Result<List<Medication>>> forPatient(
     String patientId, {
-    bool activeOnly,
+    bool activeOnly = false,
   });
 
   Future<Result<Medication>> prescribe(Medication medication);
@@ -188,7 +191,10 @@ abstract interface class MedicationRepository {
   /// Medications a staff member prescribed, newest first — the staff
   /// "Prescriptions issued" view (ported from the FirstSemMyHealth doctor
   /// dashboard).
-  Future<Result<List<Medication>>> prescribedBy(String staffId, {int limit});
+  Future<Result<List<Medication>>> prescribedBy(
+    String staffId, {
+    int limit = 100,
+  });
 
   Future<Result<void>> discontinue(String id, DateTime endDate);
 }

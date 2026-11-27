@@ -32,12 +32,19 @@ import 'care_navigator_mascot.dart';
 import 'care_navigator_panel.dart';
 
 class CareNavigatorOverlay extends ConsumerWidget {
-  const CareNavigatorOverlay({super.key});
+  const CareNavigatorOverlay({this.hidden = false, super.key});
+
+  /// Steps aside entirely — on the patient's Messages, whose "New message"
+  /// button and, in a conversation, Send button sit where the launcher
+  /// floats.
+  final bool hidden;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
-    if (user == null || !user.isPatient) return const SizedBox.shrink();
+    if (hidden || user == null || !user.isPatient) {
+      return const SizedBox.shrink();
+    }
 
     final view = ref.watch(careNavigatorViewProvider);
     void setView(CareNavView v) =>

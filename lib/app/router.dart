@@ -645,7 +645,11 @@ StatefulShellRoute _patientShell() {
       ];
       return AppShell(
         navigationShell: navigationShell,
-        overlay: const CareNavigatorOverlay(),
+        // Not on Messages: it would cover "New message" and, in a
+        // conversation with a doctor, the Send button.
+        overlay: CareNavigatorOverlay(
+          hidden: state.uri.path.startsWith(AppRoutes.patientMessages),
+        ),
         destinations: destinations,
         drawer: const PatientDrawer(),
         expandedAccountBuilder: (entries) =>

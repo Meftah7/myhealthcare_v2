@@ -15,7 +15,9 @@ abstract interface class ResultReviewRepository {
 
   /// Every open review (administrator oversight), optionally only those past
   /// due or without an owner.
-  Future<Result<List<ResultReview>>> openReviews({bool needsAttentionOnly});
+  Future<Result<List<ResultReview>>> openReviews({
+    bool needsAttentionOnly = false,
+  });
 
   /// Give the review to [ownerStaffId] — a first assignment or a handover.
   /// The owner can change but never be cleared. Done by an administrator, or

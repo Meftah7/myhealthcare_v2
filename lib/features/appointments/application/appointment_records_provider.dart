@@ -54,9 +54,7 @@ final appointmentRecordsProvider = FutureProvider.autoDispose
         await ref.watch(vitalsRepositoryProvider).forPatient(patientId),
       );
       final medications = _unwrap(
-        await ref
-            .watch(medicationRepositoryProvider)
-            .forPatient(patientId, activeOnly: false),
+        await ref.watch(medicationRepositoryProvider).forPatient(patientId),
       );
       // Certificates and bills are extras: if either can't be read, the
       // clinical content still shows.

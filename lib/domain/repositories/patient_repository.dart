@@ -17,7 +17,7 @@ abstract interface class PatientRepository {
 
   /// Free-text search over name / national id / phone (staff patient search,
   /// P5-06; also used to find an account to family-link with).
-  Future<Result<List<Patient>>> search(String query, {int limit});
+  Future<Result<List<Patient>>> search(String query, {int limit = 50});
 
   /// Exact email/national-ID lookup exposing only fields needed to request a
   /// family link. It intentionally does not hydrate the clinical profile.
@@ -25,7 +25,7 @@ abstract interface class PatientRepository {
     String identifier,
   );
 
-  Future<Result<List<Patient>>> all({int limit, int offset});
+  Future<Result<List<Patient>>> all({int limit = 100, int offset = 0});
 
   /// Patients the signed-in clinician may open clinically (appointment,
   /// active care assignment or walk-in relationship), filtered by [query]
@@ -38,7 +38,10 @@ abstract interface class PatientRepository {
 
   /// The patient directory one page at a time, name order; [query] filters
   /// by name / national ID / phone when non-empty.
-  Future<Result<Page<Patient>>> directoryPage({String query, PageRequest page});
+  Future<Result<Page<Patient>>> directoryPage({
+    String query = '',
+    PageRequest page = const PageRequest(),
+  });
 
   Future<Result<void>> updateProfile(Patient patient);
 

@@ -158,7 +158,7 @@ abstract interface class WalkInTicketRepository {
 
   Future<Result<List<WalkInTicket>>> forDepartment(
     String departmentId, {
-    bool openOnly,
+    bool openOnly = false,
   });
 
   Future<Result<List<WalkInTicket>>> forPatient(String patientId);

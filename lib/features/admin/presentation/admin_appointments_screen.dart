@@ -117,18 +117,27 @@ class _AdminAppointmentsScreenState
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
+                        // The status sits at the end of the name's line
+                        // when it fits, and moves under it when it doesn't
+                        // (narrow phone, largest text).
+                        Wrap(
+                          alignment: WrapAlignment.spaceBetween,
+                          spacing: Space.xs,
                           children: [
-                            Expanded(
-                              child: ReadableLabel(
-                                patients[a.patientId] ?? t.rolePatient,
-                                style: theme.textTheme.titleSmall,
-                              ),
+                            ReadableLabel(
+                              patients[a.patientId] ?? t.rolePatient,
+                              style: theme.textTheme.titleSmall,
                             ),
-                            Text(
-                              a.status.label(context),
-                              style: theme.textTheme.labelMedium?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
+                            // One word that never splits: it shrinks
+                            // only if even a line of its own is too narrow.
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                a.status.label(context),
+                                maxLines: 1,
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
                               ),
                             ),
                           ],

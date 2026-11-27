@@ -90,7 +90,7 @@ abstract interface class CareMessageRepository {
     required bool fromStaff,
     required String body,
     IdempotencyKey? idempotencyKey,
-    List<NewNotification> notify,
+    List<NewNotification> notify = const [],
   });
 
   /// Patient messages still waiting for a clinician's reply that [staffId]
@@ -135,7 +135,7 @@ abstract interface class HomeVisitRepository {
     required String id,
     required HomeVisitStatus status,
     int? expectedVersion,
-    List<NewNotification> notify,
+    List<NewNotification> notify = const [],
     String? assignedStaffId,
     String? decisionNote,
   });

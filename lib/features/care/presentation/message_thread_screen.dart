@@ -113,17 +113,7 @@ class _MessageThreadScreenState extends ConsumerState<MessageThreadScreen> {
     setState(() => _sending = false);
     if (result.isOk) {
       _input.clear();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_scroll.hasClients) {
-          unawaited(
-            _scroll.animateTo(
-              _scroll.position.maxScrollExtent,
-              duration: Motion.fast,
-              curve: Motion.standard,
-            ),
-          );
-        }
-      });
+      _scrollToLatest();
     } else {
       ScaffoldMessenger.of(
         context,
@@ -131,9 +121,41 @@ class _MessageThreadScreenState extends ConsumerState<MessageThreadScreen> {
     }
   }
 
+  void _scrollToLatest() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scroll.hasClients) {
+        unawaited(
+          _scroll.animateTo(
+            _scroll.position.maxScrollExtent,
+            duration: Motion.fast,
+            curve: Motion.standard,
+          ),
+        );
+      }
+    });
+  }
+
+  /// A message from the other side that arrives while this conversation is
+  /// open (the thread reloads live): bring it into view, and mark it read —
+  /// it is on screen, so it must not count as unread.
+  void _onThreadChanged(
+    AsyncValue<List<CareMessage>>? previous,
+    AsyncValue<List<CareMessage>> next,
+  ) {
+    final before = previous?.valueOrNull?.length ?? 0;
+    final list = next.valueOrNull;
+    if (list == null || list.length <= before) return;
+    _scrollToLatest();
+    final unread = list.any(
+      (m) => m.fromStaff != widget.viewerIsStaff && m.readAt == null,
+    );
+    if (unread) unawaited(_markRead());
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
+    ref.listen(_threadProvider, _onThreadChanged);
     final messages = ref.watch(_threadProvider);
 
     return AppScaffold(

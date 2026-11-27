@@ -2,6 +2,7 @@
 /// <-> doctor messaging, home-visit requests (P10-05, P10-07, P10-08).
 library;
 
+import 'package:drift/drift.dart' show TableUpdateQuery;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/router.dart';
@@ -70,9 +71,24 @@ final patientSickLeaveProvider = FutureProvider<List<SickLeaveCertificate>>((
 
 // --- messaging ----------------------------------------------------------
 
+/// Keeps a messaging read live: it re-runs as soon as any message is sent or
+/// read — by this app, or by another tab or window on the same database (on
+/// the web every tab shares one database through drift's shared worker). So
+/// a patient's message appears in the clinician's open inbox and
+/// conversation straight away, and the reply comes back the same way.
+/// The previous value stays on screen while it reloads.
+void _liveOnMessages(Ref ref) {
+  final db = ref.watch(appDatabaseProvider);
+  final updates = db
+      .tableUpdates(TableUpdateQuery.onTable(db.careMessages))
+      .listen((_) => ref.invalidateSelf());
+  ref.onDispose(updates.cancel);
+}
+
 /// One thread per doctor the patient has messaged.
 final patientThreadsProvider = FutureProvider<List<CareThread>>((ref) async {
   final id = _requirePatient(ref);
+  _liveOnMessages(ref);
   return _unwrap(
     await ref.watch(careMessageRepositoryProvider).threadsForPatient(id),
   );
@@ -84,6 +100,7 @@ final patientThreadProvider = FutureProvider.family<List<CareMessage>, String>((
   staffId,
 ) async {
   final patientId = _requirePatient(ref);
+  _liveOnMessages(ref);
   await _requireCareRelationship(ref, patientId: patientId, staffId: staffId);
   return _unwrap(
     await ref
@@ -114,6 +131,7 @@ final patientUnreadCountProvider = Provider<int?>((ref) {
 final staffThreadsProvider = FutureProvider<List<CareThread>>((ref) async {
   final user = ref.watch(currentUserProvider);
   if (user == null || !user.isStaff) return const [];
+  _liveOnMessages(ref);
   return _unwrap(
     await ref.watch(careMessageRepositoryProvider).threadsForStaff(user.id),
   );
@@ -127,6 +145,7 @@ final staffThreadProvider = FutureProvider.family<List<CareMessage>, String>((
   if (user == null || !user.isStaff || !user.isActive) {
     throw const AuthFailure('Staff access is required.');
   }
+  _liveOnMessages(ref);
   await _requireCareRelationship(ref, patientId: patientId, staffId: user.id);
   return _unwrap(
     await ref
@@ -142,6 +161,7 @@ final coveredThreadProvider =
       List<CareMessage>,
       ({String patientId, String ownerId})
     >((ref, key) async {
+      _liveOnMessages(ref);
       return _unwrap(
         await ref
             .watch(careMessageRepositoryProvider)
@@ -157,6 +177,7 @@ final staffAwaitingReplyProvider = FutureProvider<List<CareMessage>>((
 ) async {
   final user = ref.watch(currentUserProvider);
   if (user == null || !user.isStaff) return const [];
+  _liveOnMessages(ref);
   return _unwrap(
     await ref
         .watch(careMessageRepositoryProvider)

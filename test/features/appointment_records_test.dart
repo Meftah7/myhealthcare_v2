@@ -111,7 +111,7 @@ void main() {
       expect(bundle.medications.single.isActive, isFalse);
       final timeline = await c
           .read(recordRepositoryProvider)
-          .timeline(a.patientId, limit: 30);
+          .timeline(a.patientId);
       expect(
         timeline.valueOrNull!.any((r) => r.id == 'test-discharge'),
         isFalse,

@@ -40,7 +40,7 @@ abstract interface class AuditRepository {
   /// [query]'s filters, one page at a time, newest first.
   Future<Result<Page<AuditEntry>>> queryPage(
     AuditQuery query, {
-    PageRequest page,
+    PageRequest page = const PageRequest(),
   });
 }
 
@@ -92,10 +92,13 @@ abstract interface class AiUsageRepository {
     String? summary,
   });
 
-  Future<Result<List<AiUsageEntry>>> recent({AiFeature? feature, int limit});
+  Future<Result<List<AiUsageEntry>>> recent({
+    AiFeature? feature,
+    int limit = 100,
+  });
 
   Future<Result<Page<AiUsageEntry>>> recentPage({
     AiFeature? feature,
-    PageRequest page,
+    PageRequest page = const PageRequest(),
   });
 }

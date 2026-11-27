@@ -200,9 +200,17 @@ abstract interface class AppointmentRepository {
     required String patientId,
   });
 
+  /// Every visit of the patient, newest first; only future ones when
+  /// [upcomingOnly].
+  ///
+  /// Optional parameters on these interfaces state their default here, the
+  /// same as the implementations. Without one, the web compiler treated
+  /// [upcomingOnly] as always true (its only explicit caller passes true), so
+  /// on the web a patient's past visits vanished — and with them their
+  /// doctors and their message threads.
   Future<Result<List<Appointment>>> forPatient(
     String patientId, {
-    bool upcomingOnly,
+    bool upcomingOnly = false,
   });
 
   Future<Result<List<Appointment>>> forStaffOnDay(String staffId, DateTime day);
@@ -359,7 +367,7 @@ abstract interface class AppointmentRepository {
     required String staffId,
     required DateTime at,
     int? expectedVersion,
-    List<NewNotification> notify,
+    List<NewNotification> notify = const [],
   });
 
   /// "Patient arrived" — stamps `checkedInAt` and moves the visit to

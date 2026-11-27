@@ -6,9 +6,15 @@ import '../entities/entities.dart';
 import '../enums.dart';
 
 abstract interface class TaskRepository {
-  Future<Result<List<StaffTask>>> forStaff(String staffId, {bool openOnly});
+  Future<Result<List<StaffTask>>> forStaff(
+    String staffId, {
+    bool openOnly = false,
+  });
 
-  Stream<List<StaffTask>> watchForStaff(String staffId, {bool openOnly});
+  Stream<List<StaffTask>> watchForStaff(
+    String staffId, {
+    bool openOnly = false,
+  });
 
   /// Insert missing work, or refresh title/kind/rule score on existing work.
   /// Status, deadline, ownership, cover and AI fields are preserved on conflict.
