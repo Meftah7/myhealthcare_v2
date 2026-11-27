@@ -15,6 +15,7 @@ import 'package:myhealthcare/app/router.dart';
 import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/core/ui/patient/patient_components.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
+import 'package:myhealthcare/features/ai_chat/presentation/assistant_document_picker.dart';
 import 'package:myhealthcare/features/auth/application/session.dart';
 import 'package:myhealthcare/features/service_catalog/domain/patient_catalog.dart';
 import 'package:myhealthcare/features/service_catalog/presentation/catalog_widgets.dart';
@@ -194,17 +195,34 @@ void main() {
     c.read(routerProvider).go(AppRoutes.patientServices);
     await _settle(tester);
     await open('explain-report');
-    expect(picker.allowed, ['pdf', 'docx', 'doc', 'txt']);
+    expect(picker.fileType, FileType.any);
+    expect(picker.allowed, isNull);
     expect(find.byType(BottomSheet), findsNothing);
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
   });
+
+  testWidgets(
+    'the native desktop picker offers PDF, Word, and text files',
+    variant: TargetPlatformVariant.only(TargetPlatform.macOS),
+    (tester) async {
+      final picker = _Picker();
+      final original = FilePickerPlatform.instance;
+      FilePickerPlatform.instance = picker;
+      addTearDown(() => FilePickerPlatform.instance = original);
+
+      expect(await pickAssistantDocument(), isNull);
+      expect(picker.fileType, FileType.custom);
+      expect(picker.allowed, ['pdf', 'docx', 'doc', 'txt']);
+    },
+  );
 }
 
-/// Records that a PDF was asked for; the patient then cancels.
+/// Records the file chooser's options, then simulates a cancellation.
 class _Picker extends FilePickerPlatform {
   List<String>? allowed;
+  FileType? fileType;
 
   @override
   Future<PlatformFile?> pickFile({
@@ -220,6 +238,7 @@ class _Picker extends FilePickerPlatform {
     LinuxOptions linuxOptions = const LinuxOptions(),
     WebOptions webOptions = const WebOptions(),
   }) async {
+    fileType = type;
     allowed = allowedExtensions;
     return null;
   }
