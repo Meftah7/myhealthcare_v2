@@ -11,18 +11,19 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
+import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/readable_label.dart';
+import '../../../core/presentation/touchscreen.dart';
 import '../../../core/ui/patient/patient_components.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/repositories/appointment_repository.dart';
 import '../../../l10n/app_localizations.dart';
-import '../application/booking_providers.dart';
-import '../application/discovery_providers.dart';
 import '../../appointments/presentation/appointments_screen.dart';
 import '../../patient/application/patient_data_providers.dart';
 import '../../patient/presentation/patient_top_actions.dart';
-import '../../../core/presentation/app_scaffold.dart';
+import '../application/booking_providers.dart';
+import '../application/discovery_providers.dart';
 
 enum BookingLandingMode { general, virtual }
 
@@ -690,8 +691,9 @@ class _DepartmentChipScrollerState extends State<DepartmentChipScroller> {
             child: widget.child,
           ),
         ),
-        if (_previous || _next)
+        if (!hasTouchscreen && (_previous || _next))
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconButton(
                 tooltip: t.previousDepartments,

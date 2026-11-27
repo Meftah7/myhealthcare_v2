@@ -6,7 +6,6 @@ library;
 
 import 'dart:async';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -22,20 +21,43 @@ import '../application/assistant_actions.dart';
 import '../application/assistant_connection.dart';
 import '../application/care_navigator.dart';
 import '../application/document_attachment.dart';
+import 'assistant_document_picker.dart';
 import 'care_navigator_mascot.dart';
 
 /// Opens the file picker (PDF, Word, text) and attaches the chosen file in
 /// the assistant, opening the panel. Never asks for a summary: the patient
 /// taps Summarize when the file is ready.
 Future<void> pickDocumentForAssistant(WidgetRef ref) async {
-  final file = await FilePicker.pickFile(
-    type: FileType.custom,
-    allowedExtensions: DocumentFormat.pickerExtensions,
-  );
-  if (file == null) return;
-  final bytes = await file.readAsBytes();
-  ref.read(careNavigatorViewProvider.notifier).state = CareNavView.panel;
-  await ref.read(documentAttachmentProvider.notifier).attach(file.name, bytes);
+  final context = ref.context;
+  final userId = ref.read(currentUserProvider)?.id;
+  bool samePatient() =>
+      context.mounted && ref.read(currentUserProvider)?.id == userId;
+  void showError(String text) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+  }
+
+  if (userId == null) return;
+  final ui = _Ui.of(context);
+  try {
+    final file = await pickAssistantDocument();
+    if (file == null || !samePatient()) return;
+    if (DocumentFormat.forFileName(file.name) == null) {
+      showError(ui.document(DocumentProblem.unsupportedType));
+      return;
+    }
+    if ((file.size ?? 0) > maxDocumentBytes) {
+      showError(ui.document(DocumentProblem.tooLarge));
+      return;
+    }
+    final bytes = await file.readBytes();
+    if (!samePatient()) return;
+    ref.read(careNavigatorViewProvider.notifier).state = CareNavView.panel;
+    await ref
+        .read(documentAttachmentProvider.notifier)
+        .attach(file.name, bytes);
+  } on Object {
+    if (samePatient()) showError(ui.fileAccessFailed);
+  }
 }
 
 /// The assistant's own UI words, in the app language.
@@ -51,6 +73,9 @@ class _Ui {
       ? 'إرفاق مستند (PDF أو Word أو نص)'
       : 'Attach a document (PDF, Word or text)';
   String get summarize => ar ? 'لخّص' : 'Summarize';
+  String get fileAccessFailed => ar
+      ? 'تعذّر فتح الملف. احفظ نسخة على جهازك وحاول مرة أخرى.'
+      : 'Couldn’t open the file. Save a copy on your device and try again.';
   String get retry => ar ? 'إعادة المحاولة' : 'Retry';
   String get remove => ar ? 'إزالة' : 'Remove';
   String get cancel => ar ? 'إلغاء' : 'Cancel';

@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/app.dart';
 import 'package:myhealthcare/app/router.dart';
-import 'package:myhealthcare/features/booking/application/booking_providers.dart';
 import 'package:myhealthcare/domain/entities/entities.dart';
 import 'package:myhealthcare/domain/enums.dart';
 import 'package:myhealthcare/domain/repositories/document_service.dart';
@@ -12,6 +11,7 @@ import 'package:myhealthcare/domain/repositories/export_repository.dart';
 import 'package:myhealthcare/features/appointments/presentation/appointment_detail_screen.dart';
 import 'package:myhealthcare/features/appointments/presentation/appointments_screen.dart';
 import 'package:myhealthcare/features/auth/application/session.dart';
+import 'package:myhealthcare/features/booking/application/booking_providers.dart';
 import 'package:myhealthcare/features/booking/presentation/book_appointment_landing.dart';
 import 'package:myhealthcare/features/care/presentation/issued_documents_screen.dart';
 import 'package:myhealthcare/features/patient/application/patient_data_providers.dart';
@@ -26,6 +26,24 @@ Future<void> _settle(WidgetTester tester) async {
     await tester.pump(const Duration(milliseconds: 80));
   }
 }
+
+Widget _departmentScroller(String locale) => MaterialApp(
+  locale: Locale(locale),
+  localizationsDelegates: AppLocalizations.localizationsDelegates,
+  supportedLocales: AppLocalizations.supportedLocales,
+  home: Scaffold(
+    body: DepartmentChipScroller(
+      child: ExcludeFocus(
+        child: Row(
+          children: [
+            for (var i = 0; i < 8; i++)
+              SizedBox(width: 110, height: 48, child: Text('Department $i')),
+          ],
+        ),
+      ),
+    ),
+  ),
+);
 
 void main() {
   for (final width in [390.0, 768.0, 1440.0]) {
@@ -111,37 +129,49 @@ void main() {
     });
   }
 
+  testWidgets(
+    'touchscreens can swipe departments without arrow buttons',
+    variant: const TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(390, 600);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      await tester.pumpWidget(_departmentScroller('en'));
+      await tester.pumpAndSettle();
+      final row = find.byType(DepartmentChipScroller);
+      final arrows = find.descendant(
+        of: row,
+        matching: find.byType(IconButton),
+      );
+      final scroll = find.descendant(
+        of: row,
+        matching: find.byType(Scrollable),
+      );
+      expect(arrows, findsNothing);
+      await tester.drag(scroll, const Offset(-250, 0));
+      await tester.pumpAndSettle();
+      expect(
+        tester.state<ScrollableState>(scroll).position.pixels,
+        greaterThan(0),
+      );
+      expect(arrows, findsNothing);
+    },
+  );
+
   for (final locale in ['en', 'ar']) {
     testWidgets(
       'department arrows work at both boundaries and resize ($locale)',
+      variant: TargetPlatformVariant.only(TargetPlatform.macOS),
       (tester) async {
         tester.view.devicePixelRatio = 1;
         tester.view.physicalSize = const Size(390, 600);
         addTearDown(tester.view.resetDevicePixelRatio);
         addTearDown(tester.view.resetPhysicalSize);
-        await tester.pumpWidget(
-          MaterialApp(
-            locale: Locale(locale),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: DepartmentChipScroller(
-                child: ExcludeFocus(
-                  child: Row(
-                    children: [
-                      for (var i = 0; i < 8; i++)
-                        SizedBox(
-                          width: 110,
-                          height: 48,
-                          child: Text('Department $i'),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
+        await tester.pumpWidget(_departmentScroller(locale));
         await tester.pumpAndSettle();
         final toolbar = tester.element(find.byType(DepartmentChipScroller));
         final t = AppLocalizations.of(toolbar)!;
@@ -154,6 +184,10 @@ void main() {
         IconButton button(Finder finder) => tester.widget<IconButton>(finder);
         expect(button(previous).onPressed, isNull);
         expect(button(next).onPressed, isNotNull);
+        expect(
+          (tester.getCenter(previous).dx + tester.getCenter(next).dx) / 2,
+          tester.getCenter(find.byType(DepartmentChipScroller)).dx,
+        );
         expect(
           (button(next).icon as Icon).icon,
           locale == 'ar' ? Icons.chevron_left : Icons.chevron_right,
