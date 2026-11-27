@@ -123,14 +123,12 @@ void main() {
           'records',
           'medications',
           'documents',
-          'sick-leave',
           'imaging',
           'allergies',
           'vitals',
           'summary',
           'explain-report',
           'nutrition',
-          'appointments',
           'book-appointment',
           'visited-doctors',
           'messages',
@@ -143,6 +141,13 @@ void main() {
             .take(4)
             .map((i) => i.id),
         ['records', 'documents', 'explain-report', 'nutrition'],
+      );
+      expect(all.map((item) => item.id), isNot(contains('sick-leave')));
+      expect(all.map((item) => item.id), isNot(contains('appointments')));
+      expect(PatientCatalog.documents.route, AppRoutes.patientDocuments);
+      expect(
+        PatientCatalog.bookAppointment.route,
+        AppRoutes.patientBookLanding,
       );
       // Account administration moved to the drawer.
       expect(ids, isNot(contains('billing')));
@@ -195,7 +200,6 @@ void main() {
         'documents',
         'explain-report',
         'book-appointment',
-        'appointments',
       ]) {
         expect(
           all.firstWhere((i) => i.id == id).isFutureWork,
