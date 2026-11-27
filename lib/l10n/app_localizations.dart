@@ -9725,13 +9725,13 @@ abstract class AppLocalizations {
   /// No description provided for @paIssuedDocumentsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Issued documents'**
+  /// **'Documents'**
   String get paIssuedDocumentsTitle;
 
   /// No description provided for @paIssuedDocumentsIntro.
   ///
   /// In en, this message translates to:
-  /// **'Official documents your care team issued — sick leave, certificates and visit summaries. Files you uploaded are in Health Records.'**
+  /// **'Official documents issued by your care team.'**
   String get paIssuedDocumentsIntro;
 
   /// No description provided for @paDocumentsLoadError.
@@ -9749,7 +9749,7 @@ abstract class AppLocalizations {
   /// No description provided for @paNoIssuedDocumentsBody.
   ///
   /// In en, this message translates to:
-  /// **'When your doctor issues a certificate or sick leave, it appears here.'**
+  /// **'Reports and certificates appear here once released.'**
   String get paNoIssuedDocumentsBody;
 
   /// No description provided for @paDocRevoked.
@@ -10753,6 +10753,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No. The summary only repeats what your document says, and it may be incomplete. Please discuss your document with your doctor.'**
   String get faqA10;
+
+  /// No description provided for @recordsSortFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get recordsSortFilter;
+
+  /// No description provided for @recordsNewestFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest first'**
+  String get recordsNewestFirst;
+
+  /// No description provided for @recordsOldestFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest first'**
+  String get recordsOldestFirst;
+
+  /// No description provided for @appointmentHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Appointment History'**
+  String get appointmentHistoryTitle;
+
+  /// No description provided for @viewAllAppointments.
+  ///
+  /// In en, this message translates to:
+  /// **'View all appointments'**
+  String get viewAllAppointments;
+
+  /// No description provided for @previousDepartments.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous departments'**
+  String get previousDepartments;
+
+  /// No description provided for @nextDepartments.
+  ///
+  /// In en, this message translates to:
+  /// **'Next departments'**
+  String get nextDepartments;
+
+  /// No description provided for @dentalDepartmentDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Teeth, gums, and oral health care.'**
+  String get dentalDepartmentDescription;
+
+  /// No description provided for @appointmentStatusCheckedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked in'**
+  String get appointmentStatusCheckedIn;
+
+  /// No description provided for @visitReportUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'A visit report is unavailable for this appointment.'**
+  String get visitReportUnavailable;
+
+  /// No description provided for @visitReportRenderFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The report was saved. Its PDF could not be created.'**
+  String get visitReportRenderFailed;
+
+  /// No description provided for @recordedOutcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Clinician outcome'**
+  String get recordedOutcome;
+
+  /// No description provided for @legacyDischargeReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Discharge report'**
+  String get legacyDischargeReport;
+
+  /// No description provided for @clinicalResultPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Result pending or unavailable'**
+  String get clinicalResultPending;
 }
 
 class _AppLocalizationsDelegate

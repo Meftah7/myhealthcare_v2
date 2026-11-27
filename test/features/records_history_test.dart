@@ -50,7 +50,7 @@ void main() {
   );
 
   for (final locale in ['en', 'ar']) {
-    testWidgets('history search and upload at phone width ($locale)', (
+    testWidgets('history sort and search at phone width ($locale)', (
       tester,
     ) async {
       tester.view.physicalSize = const Size(390, 844);
@@ -75,8 +75,18 @@ void main() {
             currentUserProvider.overrideWithValue(null),
             recordReadIdsProvider.overrideWith((ref) async => {}),
             doctorDirectoryProvider.overrideWith((ref) async => {}),
-            recordsCanManageProvider.overrideWith((ref) async => true),
-            patientRecordHistoryProvider.overrideWith((ref) async => [record]),
+
+            patientRecordHistoryProvider.overrideWith(
+              (ref) async => [
+                record,
+                record.copyWith(
+                  id: 'new',
+                  title: 'Newer result',
+                  occurredAt: DateTime(2025),
+                  createdAt: DateTime(1980),
+                ),
+              ],
+            ),
             patientVitalsProvider.overrideWith((ref) async => []),
           ],
           child: MaterialApp(
@@ -88,11 +98,25 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.byIcon(Icons.upload_file_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.upload_file_outlined), findsNothing);
+      expect(find.byType(ChoiceChip), findsNothing);
+      expect(find.byType(FilterChip), findsNothing);
+      expect(find.byType(ActionChip), findsNothing);
+      double row(String title) => tester.getTopLeft(find.text(title)).dy;
+      expect(row('Newer result'), lessThan(row('Older result')));
+      final t = AppLocalizations.of(tester.element(find.byType(SearchBar)))!;
+      await tester.tap(find.byTooltip(t.recordsSortFilter));
+      await tester.pumpAndSettle();
+      expect(find.byType(CheckedPopupMenuItem<bool>), findsNWidgets(2));
+      await tester.tap(
+        find.widgetWithText(CheckedPopupMenuItem<bool>, t.recordsOldestFirst),
+      );
+      await tester.pumpAndSettle();
+      expect(row('Older result'), lessThan(row('Newer result')));
       expect(find.text('Older result'), findsOneWidget);
       await tester.enterText(find.byType(SearchBar), 'unique extracted');
       await tester.pumpAndSettle();
-      expect(find.text('Older result'), findsOneWidget);
+      expect(row('Older result'), lessThan(row('Newer result')));
       await tester.enterText(find.byType(SearchBar), 'no match');
       await tester.pumpAndSettle();
       expect(find.text('Older result'), findsNothing);

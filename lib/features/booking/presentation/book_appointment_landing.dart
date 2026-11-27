@@ -1,5 +1,5 @@
 /// Booking discovery (approved blue rebuild): a full-screen "Book Appointment"
-/// landing with a General / Virtual Care segment, Clinic · Doctor · Region
+/// landing with a General / Virtual Care segment, Clinic and Doctor
 /// discovery rows, a help panel with the assistance sheet, and the search
 /// pages behind each row. Every path ends in the existing booking wizard
 /// (`continueToBooking`), which owns slots, review and confirmation.
@@ -17,10 +17,12 @@ import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/repositories/appointment_repository.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../service_catalog/application/catalog_dispatcher.dart';
 import '../application/booking_providers.dart';
 import '../application/discovery_providers.dart';
-import 'select_hospital_sheet.dart';
+import '../../appointments/presentation/appointments_screen.dart';
+import '../../patient/application/patient_data_providers.dart';
+import '../../patient/presentation/patient_top_actions.dart';
+import '../../../core/presentation/app_scaffold.dart';
 
 enum BookingLandingMode { general, virtual }
 
@@ -32,7 +34,7 @@ AppBar _patientAppBar(BuildContext context, String title) => AppBar(
   ),
 );
 
-class BookAppointmentLandingScreen extends StatefulWidget {
+class BookAppointmentLandingScreen extends ConsumerStatefulWidget {
   const BookAppointmentLandingScreen({
     this.initialMode = BookingLandingMode.general,
     super.key,
@@ -41,14 +43,13 @@ class BookAppointmentLandingScreen extends StatefulWidget {
   final BookingLandingMode initialMode;
 
   @override
-  State<BookAppointmentLandingScreen> createState() =>
+  ConsumerState<BookAppointmentLandingScreen> createState() =>
       _BookAppointmentLandingScreenState();
 }
 
 class _BookAppointmentLandingScreenState
-    extends State<BookAppointmentLandingScreen> {
+    extends ConsumerState<BookAppointmentLandingScreen> {
   late BookingLandingMode _mode = widget.initialMode;
-  final _helpKey = GlobalKey();
 
   @override
   void didUpdateWidget(BookAppointmentLandingScreen oldWidget) {
@@ -62,8 +63,10 @@ class _BookAppointmentLandingScreenState
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
-    return PatientPageScaffold(
-      appBar: _patientAppBar(context, t.paBookAppointment),
+    return AppScaffold(
+      title: t.paBookAppointment,
+      actions: const [PatientTopActions()],
+      onRefresh: () async => ref.invalidate(patientAppointmentsProvider),
       children: [
         BookingModeSegment<BookingLandingMode>(
           options: [
@@ -86,11 +89,11 @@ class _BookAppointmentLandingScreenState
           SurfaceCard(
             padding: EdgeInsets.zero,
             child: DiscoveryOptionRow(
-              key: const ValueKey('discover-hospital'),
-              icon: Icons.domain_outlined,
-              title: t.htSelectHospital,
-              hint: t.paFutureWork,
-              onTap: () => showSelectHospitalSheet(context),
+              key: const ValueKey('discover-history'),
+              icon: Icons.history,
+              title: t.appointmentHistoryTitle,
+              hint: t.viewAllAppointments,
+              onTap: () => context.push(AppRoutes.patientAppointmentHistory),
             ),
           ),
           const SizedBox(height: Space.md),
@@ -114,23 +117,13 @@ class _BookAppointmentLandingScreenState
                   accent: PatientAccent.green,
                   onTap: () => context.push(AppRoutes.patientFindDoctor),
                 ),
-                const Divider(indent: Space.md, endIndent: Space.md),
-                DiscoveryOptionRow(
-                  key: const ValueKey('discover-region'),
-                  icon: Icons.place_outlined,
-                  title: t.paRegion,
-                  hint: t.paTapToSelect,
-                  accent: PatientAccent.amber,
-                  onTap: () => context.push(AppRoutes.patientFindRegion),
-                ),
               ],
             ),
           ),
           const SizedBox(height: Space.lg),
-          HelpChoosingCard(
-            key: _helpKey,
-            onTap: () => showAssistanceSheet(context),
-          ),
+          const UpcomingBookingAppointments(),
+          const SizedBox(height: Space.lg),
+          HelpChoosingCard(onTap: () => showAssistanceSheet(context)),
         ] else
           const _VirtualCarePanel(),
       ],
@@ -431,6 +424,11 @@ class _DepartmentCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final palette = PatientPalette.of(context);
+    final description =
+        department.id == 'dept_dental' ||
+            department.name.toLowerCase() == 'dental'
+        ? AppLocalizations.of(context)!.dentalDepartmentDescription
+        : department.description;
     return SurfaceCard(
       onTap: onTap,
       semanticLabel: department.name,
@@ -449,9 +447,9 @@ class _DepartmentCard extends StatelessWidget {
                     color: palette.text,
                   ),
                 ),
-                if ((department.description ?? '').isNotEmpty)
+                if ((description ?? '').isNotEmpty)
                   ReadableLabel(
-                    department.description!,
+                    description!,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: palette.textMuted,
                     ),
@@ -548,8 +546,7 @@ class _DoctorSearchScreenState extends ConsumerState<DoctorSearchScreen> {
             actionLabel: t.tryAgain,
             onAction: () => ref.invalidate(departmentsProvider),
           ),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
+        DepartmentChipScroller(
           child: Row(
             children: [
               ChoiceChip(
@@ -611,6 +608,103 @@ class _DoctorSearchScreenState extends ConsumerState<DoctorSearchScreen> {
             ];
           },
         ),
+      ],
+    );
+  }
+}
+
+class DepartmentChipScroller extends StatefulWidget {
+  const DepartmentChipScroller({required this.child, super.key});
+
+  final Widget child;
+
+  @override
+  State<DepartmentChipScroller> createState() => _DepartmentChipScrollerState();
+}
+
+class _DepartmentChipScrollerState extends State<DepartmentChipScroller> {
+  final _controller = ScrollController();
+  bool _previous = false;
+  bool _next = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_updateArrows);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _updateArrows());
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _updateArrows() {
+    if (!mounted || !_controller.hasClients) return;
+    final position = _controller.position;
+    final previous = position.extentBefore > 1;
+    final next = position.extentAfter > 1;
+    if (_previous == previous && _next == next) return;
+    setState(() {
+      _previous = previous;
+      _next = next;
+    });
+  }
+
+  Future<void> _scroll(int direction) async {
+    final position = _controller.position;
+    final target =
+        (position.pixels + direction * position.viewportDimension * .8).clamp(
+          position.minScrollExtent,
+          position.maxScrollExtent,
+        );
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _controller.jumpTo(target);
+      return;
+    }
+    await _controller.animateTo(
+      target,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOut,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    final rtl = Directionality.of(context) == TextDirection.rtl;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        NotificationListener<ScrollMetricsNotification>(
+          onNotification: (_) {
+            WidgetsBinding.instance.addPostFrameCallback(
+              (_) => _updateArrows(),
+            );
+            return false;
+          },
+          child: SingleChildScrollView(
+            controller: _controller,
+            scrollDirection: Axis.horizontal,
+            child: widget.child,
+          ),
+        ),
+        if (_previous || _next)
+          Row(
+            children: [
+              IconButton(
+                tooltip: t.previousDepartments,
+                onPressed: _previous ? () => _scroll(-1) : null,
+                icon: Icon(rtl ? Icons.chevron_right : Icons.chevron_left),
+              ),
+              IconButton(
+                tooltip: t.nextDepartments,
+                onPressed: _next ? () => _scroll(1) : null,
+                icon: Icon(rtl ? Icons.chevron_left : Icons.chevron_right),
+              ),
+            ],
+          ),
       ],
     );
   }
@@ -744,30 +838,6 @@ class _DoctorCard extends ConsumerWidget {
   }
 }
 
-/// No regions/facility locations are configured in this build, so the page
-/// says so instead of inventing locations.
-class RegionSearchScreen extends StatelessWidget {
-  const RegionSearchScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context)!;
-    return PatientPageScaffold(
-      appBar: _patientAppBar(context, t.paRegion),
-      children: [
-        PatientStateView(
-          kind: PatientStateKind.unavailable,
-          icon: Icons.place_outlined,
-          title: t.paRegionUnavailableTitle,
-          message: t.paRegionUnavailableBody,
-          actionLabel: t.paChooseClinicInstead,
-          onAction: () => context.pushReplacement(AppRoutes.patientFindClinic),
-        ),
-      ],
-    );
-  }
-}
-
 /// Specialty guidance: plain descriptions of each department so a patient
 /// can pick where to book. This is information, not symptom triage.
 class SpecialtyGuideScreen extends ConsumerWidget {
@@ -786,18 +856,6 @@ class SpecialtyGuideScreen extends ConsumerWidget {
           style: Theme.of(
             context,
           ).textTheme.bodyMedium?.copyWith(color: palette.textMuted),
-        ),
-        const SizedBox(height: Space.sm),
-        SurfaceCard(
-          color: palette.dangerContainer,
-          onTap: () => showEmergencySheet(context),
-          child: Row(
-            children: [
-              Icon(Icons.emergency_outlined, color: palette.danger),
-              const SizedBox(width: Space.sm),
-              Expanded(child: ReadableLabel(t.paSpecialtyEmergencyNote)),
-            ],
-          ),
         ),
         const SizedBox(height: Space.md),
         ...departments.when(

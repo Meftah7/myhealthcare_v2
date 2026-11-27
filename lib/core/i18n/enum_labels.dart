@@ -68,6 +68,7 @@ extension AppointmentStatusLabel on AppointmentStatus {
     final t = AppLocalizations.of(context)!;
     return switch (this) {
       AppointmentStatus.booked => t.appointmentStatusBooked,
+      AppointmentStatus.checkedIn => t.appointmentStatusCheckedIn,
       AppointmentStatus.confirmed => t.appointmentStatusConfirmed,
       AppointmentStatus.inProgress => t.appointmentStatusInProgress,
       AppointmentStatus.completed => t.appointmentStatusCompleted,
@@ -395,3 +396,11 @@ extension FamilyRelationshipLabel on FamilyRelationship {
     };
   }
 }
+
+String recordReviewLabel(AppLocalizations t, ImportReviewStatus status) =>
+    switch (status) {
+      ImportReviewStatus.pendingReview => t.importStatusPending,
+      ImportReviewStatus.reviewed => t.importStatusReviewed,
+      ImportReviewStatus.rejected => t.importStatusRejected,
+      ImportReviewStatus.notRequired => t.recordsReviewNotRequired,
+    };

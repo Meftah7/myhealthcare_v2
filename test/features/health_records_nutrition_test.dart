@@ -126,10 +126,11 @@ void main() {
     await openQuickAccess(tester, 'records');
     expect(find.widgetWithText(AppBar, 'Records'), findsOneWidget);
 
-    // History and upload lead; the existing health shortcuts are secondary.
+    // Documents and record search lead; health shortcuts are secondary.
     expect(find.byType(SearchBar), findsOneWidget);
-    expect(find.text('Upload document'), findsOneWidget);
-    expect(find.text('All records'), findsOneWidget);
+    expect(find.text('Upload document'), findsNothing);
+    expect(find.text('All records'), findsNothing);
+    expect(find.widgetWithText(FilledButton, 'Documents'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('Your health'),
       240,
@@ -139,14 +140,13 @@ void main() {
     await _settle(tester);
     await tester.tap(find.text('Your health'));
     await _settle(tester);
-    expect(find.byType(QuickActionTile), findsNWidgets(8));
+    expect(find.byType(QuickActionTile), findsNWidgets(7));
     for (final label in [
       'Home care',
       'Medication',
       'Bills',
       'Visited doctors',
       'Imaging',
-      'Sick leave',
       'Vital signs report',
       'Allergies',
     ]) {
@@ -189,12 +189,12 @@ void main() {
       isTrue,
     );
 
-    // Returning restores the record history and its upload action.
+    // Returning restores record history and the Documents entry.
     await tester.tap(find.text('Back to Records'));
     await _settle(tester);
     expect(find.text('Timeline'), findsNothing);
     expect(find.byType(SearchBar), findsOneWidget);
-    expect(find.text('Upload document'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Documents'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
@@ -217,7 +217,7 @@ void main() {
     expect(find.widgetWithText(AppBar, 'Nutrition estimates'), findsOneWidget);
 
     // The bottom nav is still visible (Nutrition is a shell branch).
-    expect(find.text('Appointment'), findsWidgets);
+    expect(find.text('Book Appointment'), findsWidgets);
 
     // Tabs, in order: Calculator → Daily targets → Foods.
     expect(find.text('Calculator'), findsWidgets);

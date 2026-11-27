@@ -370,7 +370,7 @@ void main() {
       expect(find.textContaining('pick up where you left off'), findsOneWidget);
 
       await _signInThroughUi(tester, 'patient1@myhealth.demo');
-      expect(_location(c), AppRoutes.patientAppointments);
+      expect(_location(c), AppRoutes.patientBookLanding);
 
       // A different person on the same device does not inherit it.
       c.read(routerProvider).go(AppRoutes.patientAppointments);

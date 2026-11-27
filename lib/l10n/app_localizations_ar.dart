@@ -5510,11 +5510,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get paEarlierResults => 'مقارنةً بنتائجك السابقة';
 
   @override
-  String get paIssuedDocumentsTitle => 'الوثائق الصادرة';
+  String get paIssuedDocumentsTitle => 'المستندات';
 
   @override
   String get paIssuedDocumentsIntro =>
-      'الوثائق الرسمية التي أصدرها فريق رعايتك — الإجازات المرضية والشهادات وملخصات الزيارات. الملفات التي رفعتها موجودة في السجلات الصحية.';
+      'المستندات الرسمية الصادرة عن فريق الرعاية.';
 
   @override
   String get paDocumentsLoadError => 'تعذّر تحميل مستنداتك.';
@@ -5524,7 +5524,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get paNoIssuedDocumentsBody =>
-      'عندما يصدر طبيبك شهادة أو إجازة مرضية، ستظهر هنا.';
+      'تظهر التقارير والشهادات هنا بعد إتاحتها.';
 
   @override
   String get paDocRevoked => 'ملغاة أو مستبدلة';
@@ -6096,4 +6096,47 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get faqA10 =>
       'لا. يكرر الملخص فقط ما يذكره مستندك، وقد يكون غير مكتمل. يرجى مناقشة مستندك مع طبيبك.';
+
+  @override
+  String get recordsSortFilter => 'تصفية';
+
+  @override
+  String get recordsNewestFirst => 'الأحدث أولاً';
+
+  @override
+  String get recordsOldestFirst => 'الأقدم أولاً';
+
+  @override
+  String get appointmentHistoryTitle => 'سجل المواعيد';
+
+  @override
+  String get viewAllAppointments => 'عرض جميع المواعيد';
+
+  @override
+  String get previousDepartments => 'الأقسام السابقة';
+
+  @override
+  String get nextDepartments => 'الأقسام التالية';
+
+  @override
+  String get dentalDepartmentDescription =>
+      'العناية بالأسنان واللثة وصحة الفم.';
+
+  @override
+  String get appointmentStatusCheckedIn => 'تم تسجيل الحضور';
+
+  @override
+  String get visitReportUnavailable => 'تقرير الزيارة غير متاح لهذا الموعد.';
+
+  @override
+  String get visitReportRenderFailed => 'تم حفظ التقرير، وتعذّر إنشاء ملف PDF.';
+
+  @override
+  String get recordedOutcome => 'خلاصة الطبيب';
+
+  @override
+  String get legacyDischargeReport => 'تقرير الخروج';
+
+  @override
+  String get clinicalResultPending => 'النتيجة قيد الانتظار أو غير متاحة';
 }

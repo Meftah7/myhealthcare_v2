@@ -74,6 +74,55 @@ export function createApi({ store, origins = [], renderDocument, aiProvider, rep
     if (template.type === 'sickLeaveCertificate') requireThat(content.startDate <= content.endDate, 400, 'Invalid leave dates.');
     requireThat(template.disclosure === 'clinic' || ['sickLeaveCertificate','attendanceCertificate','fitnessCertificate'].includes(template.type));
   }
+  function persistIssuedDocument(actor, request, visit, template, { defaultClinic, issuedAt = now() } = {}) {
+    const patient = store.get('SELECT * FROM users WHERE id=?', request.patient);
+    const clinic = store.get("SELECT value FROM settings WHERE key='clinicName'")?.value ?? defaultClinic;
+    requireThat(clinic, 409, 'Configure clinic identity before issuance.');
+    const documentId = id(), reference = token();
+    const snapshot = { patient: { id: patient.id, name: patient.name }, issuer: { id: actor.id, name: actor.name, credentialUntil: actor.credential_until },
+      visit: { id: visit.id, at: visit.at }, template, clinic, content: JSON.parse(request.content), issuedAt, verificationReference: reference };
+    store.run('INSERT INTO documents(id,request,patient,issuer,type,language,issued,snapshot,reference_hash) VALUES(?,?,?,?,?,?,?,?,?)',
+      documentId, request.id, request.patient, actor.id, template.type, template.language, issuedAt, JSON.stringify(snapshot), digest(reference));
+    store.run("UPDATE requests SET status='issued',version=version+1 WHERE id=?", request.id);
+    store.run('INSERT INTO deliveries(id,document,recipient,next_at) VALUES(?,?,?,?)', id(), documentId, request.patient, issuedAt);
+    store.audit(actor.id, 'document.issued', documentId);
+    return { documentId, reference };
+  }
+
+  function issueCompletedVisitReport(actor, appointment, signed) {
+    const templateId = 'system.completed-visit.en.v1';
+    store.run('INSERT OR IGNORE INTO templates(id,type,language,disclosure,wording) VALUES(?,?,?,?,?)',
+      templateId, 'completedVisitReport', 'en', 'clinic', 'Visit report for {patientName}\nVisit date: {visitDate}\n\n{summary}');
+    const template = store.get('SELECT * FROM templates WHERE id=?', templateId);
+    const visit = store.get('SELECT * FROM visits WHERE id=? AND patient=? AND staff=?', appointment.id, appointment.patient, actor.id);
+    const department = store.get('SELECT name FROM departments WHERE id=?', actor.department)?.name;
+    const vitals = store.all('SELECT * FROM vitals WHERE appointment=? AND patient=? ORDER BY recorded_at,id', visit.id, visit.patient);
+    const medications = store.all('SELECT name,dose,frequency,ordered_units FROM prescriptions WHERE appointment=? AND patient=? ORDER BY start,id', visit.id, visit.patient);
+    const documents = store.all("SELECT d.type,d.issued FROM documents d JOIN requests r ON r.id=d.request WHERE d.patient=? AND r.visit=? AND d.validity='valid' AND d.render='ready' ORDER BY d.issued,d.id", visit.patient, visit.id);
+    const sections = [
+      department && 'Department: '+department,
+      appointment.reason && 'Reason for visit: '+appointment.reason,
+      signed.note.trim() && 'Consultation note:\n'+signed.note.trim(),
+      ...vitals.map(v => {
+        const measurements = [[v.systolic,'Systolic BP','mmHg'],[v.diastolic,'Diastolic BP','mmHg'],
+          [v.heart_rate,'Heart rate','bpm'],[v.temp_c,'Temperature','C'],[v.weight_kg,'Weight','kg'],
+          [v.height_cm,'Height','cm'],[v.spo2,'Oxygen saturation','%'],[v.glucose,'Glucose','']]
+          .filter(([value]) => value != null)
+          .map(([value, label, unit]) => [label+':',value,unit].filter(part => part !== '').join(' '));
+        return measurements.length && 'Vitals ('+new Date(v.recorded_at).toISOString()+'): '+measurements.join(', ');
+      }),
+      ...medications.map(m => 'Prescription: '+[m.name,m.dose,m.frequency,m.ordered_units == null ? null : 'Quantity: '+m.ordered_units].filter(Boolean).join(' - ')),
+      signed.outcome && 'Clinician outcome:\n'+signed.outcome,
+      ...documents.map(d => 'Issued document: '+d.type+' ('+new Date(d.issued).toISOString().slice(0,10)+')'),
+      !documents.some(d => ['releasedLabReport','releasedImagingReport'].includes(d.type)) && 'No released laboratory or imaging report was linked at completion.',
+    ];
+    const requestId = 'completion:'+visit.id;
+    store.run("INSERT INTO requests(id,patient,visit,template,author,content,status) VALUES(?,?,?,?,?,?,'approved')",
+      requestId, visit.patient, visit.id, templateId, actor.id, JSON.stringify({ summary: sections.filter(Boolean).join('\n\n') }));
+    const request = store.get('SELECT * FROM requests WHERE id=?', requestId);
+    persistIssuedDocument(actor, request, visit, template, { defaultClinic: 'myhealth', issuedAt: signed.at });
+  }
+
   async function json(req, maximum = 64 * 1024) {
     requireThat(req.headers['content-type']?.split(';')[0] === 'application/json', 415, 'Use JSON requests.');
     const chunks = []; let length = 0;
@@ -194,8 +243,11 @@ export function createApi({ store, origins = [], renderDocument, aiProvider, rep
     if (path === '/api/document-workspace' && method === 'GET') {
       const patientId=text(url.searchParams.get('patientId'),128),patient=store.patientAccess(actor,patientId);
       const preparing=actor.role==='staff'&&['doctor','dentist','nurse'].includes(actor.job);
-      const documents=store.all('SELECT id,request,patient,type,language,issued,validity,render,version,snapshot FROM documents WHERE patient=? ORDER BY issued DESC,id',patientId).map(d=>({...d,reference:JSON.parse(d.snapshot).verificationReference,snapshot:undefined}));
-      return {patientName:patient.name,visits:preparing?store.all("SELECT id,at FROM visits WHERE patient=? AND staff=? AND status='completed' ORDER BY at DESC",patientId,actor.id):[],templates:preparing?store.all('SELECT * FROM templates'):[],requests:preparing?store.all('SELECT * FROM requests WHERE patient=? AND author=? ORDER BY id',patientId,actor.id).map(r=>({...r,content:JSON.parse(r.content)})):[],issued:documents,sources:[]};
+      const documents=store.all('SELECT d.id,d.request,d.patient,d.type,d.language,d.issued,d.validity,d.render,d.version,d.snapshot,r.visit FROM documents d JOIN requests r ON r.id=d.request WHERE d.patient=? ORDER BY d.issued DESC,d.id',patientId).map(d=>{
+        const snapshot=JSON.parse(d.snapshot);
+        return {...d,reference:snapshot.verificationReference,issuerName:snapshot.issuer.name,visitAt:snapshot.visit.at,snapshot:undefined};
+      });
+      return {patientName:patient.name,visits:preparing?store.all("SELECT id,at FROM visits WHERE patient=? AND staff=? AND status='completed' ORDER BY at DESC",patientId,actor.id):[],templates:preparing?store.all("SELECT * FROM templates WHERE type!='completedVisitReport'"):[],requests:preparing?store.all('SELECT * FROM requests WHERE patient=? AND author=? AND template NOT LIKE \'system.completed-visit.%\' ORDER BY id',patientId,actor.id).map(r=>({...r,content:JSON.parse(r.content)})):[],issued:documents,sources:[]};
     }
     if (path==='/api/document-metadata'&&method==='GET') {
       const d=documentAccess(actor,text(url.searchParams.get('id'),128));return {...d,reference:JSON.parse(d.snapshot).verificationReference,snapshot:undefined,file_id:undefined,sha256:undefined,reference_hash:undefined};
@@ -277,19 +329,9 @@ export function createApi({ store, origins = [], renderDocument, aiProvider, rep
             store.run('UPDATE requests SET status=?,version=version+1 WHERE id=?', action === 'submit' ? 'submitted' : 'approved', requestId);
             store.audit(actor.id, `document.${action}`, requestId); return store.get('SELECT * FROM requests WHERE id=?', requestId);
           }
-          const patient = store.get('SELECT * FROM users WHERE id=?', request.patient);
-          const clinic = store.get("SELECT value FROM settings WHERE key='clinicName'")?.value;
-          requireThat(clinic, 409, 'Configure clinic identity before issuance.');
-          const documentId = id(), reference = token();
-          const snapshot = { patient: { id: patient.id, name: patient.name }, issuer: { id: actor.id, name: actor.name, credentialUntil: actor.credential_until },
-            visit: { id: visit.id, at: visit.at }, template, clinic, content: JSON.parse(request.content), issuedAt: now(), verificationReference: reference };
-          store.run('INSERT INTO documents(id,request,patient,issuer,type,language,issued,snapshot,reference_hash) VALUES(?,?,?,?,?,?,?,?,?)',
-            documentId, request.id, request.patient, actor.id, template.type, template.language, now(), JSON.stringify(snapshot), digest(reference));
+          const { documentId, reference } = persistIssuedDocument(actor, request, visit, template);
           const replacement=store.get('SELECT value FROM settings WHERE key=?','document.replaces:'+request.id);
           if(replacement){const old=JSON.parse(replacement.value);const changed=store.run("UPDATE documents SET validity='superseded',version=version+1 WHERE id=? AND version=? AND validity='valid'",old.id,old.version);requireThat(changed.changes===1,409,'The replaced document changed. Prepare a fresh replacement.');store.audit(actor.id,'document.superseded',old.id);}
-          store.run("UPDATE requests SET status='issued',version=version+1 WHERE id=?", request.id);
-          store.run('INSERT INTO deliveries(id,document,recipient,next_at) VALUES(?,?,?,?)', id(), documentId, request.patient, now());
-          store.audit(actor.id, 'document.issued', documentId);
           return { ...store.get('SELECT id,patient,type,language,issued,validity,render,version FROM documents WHERE id=?', documentId), reference };
         };
         return action === 'issue' ? store.retry(actor.id, body.idempotencyKey, { path, body }, operation) : operation();
@@ -302,13 +344,15 @@ export function createApi({ store, origins = [], renderDocument, aiProvider, rep
     }
     if (/^\/api\/documents\/[^/]+\/render$/.test(path) && method === 'POST') {
       fields(body, []); const document = documentAccess(actor, path.split('/')[3]);
-      requireThat(actor.role === 'staff' && document.issuer === actor.id, 403);
+      requireThat((actor.role === 'staff' && document.issuer === actor.id) ||
+        (actor.role === 'patient' && document.type === 'completedVisitReport' && document.patient === actor.id), 403);
+      requireThat(document.validity === 'valid', 409, 'This document is unavailable.');
       if (document.render === 'ready') return { id: document.id, render: 'ready' };
       requireThat(typeof renderDocument === 'function', 503, 'Server PDF renderer is not configured.');
       const snapshot = JSON.parse(document.snapshot), bytes = await renderDocument(snapshot);
       requireThat(Buffer.isBuffer(bytes) && bytes.subarray(0,5).toString() === '%PDF-', 502, 'Renderer did not return a PDF.');
       // Re-authorize after awaiting a provider and recheck current qualification.
-      const current = actorFor(req); documentAccess(current, document.id); signer(current, snapshot.template);
+      const current = actorFor(req); documentAccess(current, document.id); if (document.type !== 'completedVisitReport') signer(current, snapshot.template);
       return store.transaction(() => {
         const latest = store.get('SELECT * FROM documents WHERE id=?', document.id);
         requireThat(latest.validity === 'valid', 409, 'Document validity changed.');
@@ -320,7 +364,7 @@ export function createApi({ store, origins = [], renderDocument, aiProvider, rep
     }
     if (/^\/api\/documents\/[^/]+\/download$/.test(path) && method === 'GET') {
       const document = documentAccess(actor, path.split('/')[3]);
-      requireThat(document.render === 'ready', 409, 'The issued PDF is not ready.');
+      requireThat(document.validity === 'valid' && document.render === 'ready', 409, 'The issued PDF is unavailable.');
       const bytes = store.readFile(document.file_id); store.audit(actor.id, 'document.downloaded', document.id);
       return { binary: bytes, mime: 'application/pdf' };
     }
@@ -404,7 +448,7 @@ export function createApi({ store, origins = [], renderDocument, aiProvider, rep
         payments: 'deskRecordOnly', externalDelivery: 'notConfigured', inAppDelivery: 'serverWorker' };
     }
     const ops = dutyOps({ store, now, path, method, url, body, actor }) ?? workforceOps({ store, now, path, method, url, body, actor }) ?? workspaceOps({ store, now, path, method, url, body, actor }) ?? clinicOps({ store, now, path, method, url, body, actor }) ??
-      clinicalOps({ store, now, path, method, url, body, actor });
+      clinicalOps({ store, now, path, method, url, body, actor, issueCompletedVisitReport });
     if (ops !== undefined) return ops;
     throw new ApiError(404, 'Endpoint unavailable.');
   }

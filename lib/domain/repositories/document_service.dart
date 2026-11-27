@@ -52,6 +52,10 @@ class IssuedDocument {
     this.documentType = ExportDocument.sickLeaveCertificate,
     this.language = 'en',
     this.issuedAt,
+    this.issuerName,
+    this.appointmentId,
+    this.appointmentDate,
+    this.sourceRecordId,
   });
   final String id, patientId, verificationCode;
   final DocumentValidity validity;
@@ -62,7 +66,8 @@ class IssuedDocument {
   final String? supersedesId;
   final ExportDocument documentType;
   final String language;
-  final DateTime? issuedAt;
+  final DateTime? issuedAt, appointmentDate;
+  final String? issuerName, appointmentId, sourceRecordId;
 }
 
 class DocumentVisit {

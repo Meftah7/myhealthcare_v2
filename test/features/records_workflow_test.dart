@@ -151,17 +151,10 @@ void main() {
       );
       expect(c.read(recordFiltersProvider('patient_003')).query, isEmpty);
       expect(
-        find
-            .widgetWithText(FilledButton, 'Upload document')
-            .evaluate()
-            .single
-            .widget,
-        isA<FilledButton>().having(
-          (b) => b.onPressed,
-          'view-only upload disabled',
-          isNull,
-        ),
+        find.widgetWithText(FilledButton, 'Upload document'),
+        findsNothing,
       );
+      expect(find.widgetWithText(FilledButton, 'Documents'), findsOneWidget);
       c.read(selectedRecordsPatientProvider.notifier).state = null;
       await tester.pumpAndSettle();
       expect(find.widgetWithText(SearchBar, 'own filter'), findsOneWidget);
@@ -474,53 +467,28 @@ void main() {
     },
   );
 
-  test(
-    'advanced filters cover date boundaries, author, facility, review, text and unread state',
-    () {
-      final record = MedicalRecord(
-        id: 'r',
-        patientId: 'p',
-        recordType: RecordType.labResult,
-        title: 'Report',
-        occurredAt: DateTime(2020, 3, 1, 23, 59),
-        createdAt: DateTime(2026),
-        authorStaffId: 'doctor',
-        sourceFacility: 'Lab',
-        reviewStatus: ImportReviewStatus.pendingReview,
-        extractedText: 'Ferritin',
-        uploadedByPatient: true,
-      );
-      final f = RecordsFilter(
-        from: DateTime(2020, 3),
-        to: DateTime(2020, 3),
-        facility: 'Lab',
-        authorId: 'doctor',
-        review: ImportReviewStatus.pendingReview,
-        types: {RecordType.labResult},
-        view: RecordsView.uploads,
-        query: 'ferritin',
-        unreadOnly: true,
-      );
-      expect(f.matches(record, {}), isTrue);
-      expect(f.matches(record, {'r'}), isFalse);
-      expect(f.copyWith(facility: 'Other').matches(record, {}), isFalse);
-      expect(f.copyWith(authorId: 'Other').matches(record, {}), isFalse);
-      expect(
-        f.copyWith(from: DateTime(2020, 3, 2)).matches(record, {}),
-        isFalse,
-      );
-      expect(
-        f.copyWith(review: ImportReviewStatus.reviewed).matches(record, {}),
-        isFalse,
-      );
-      expect(
-        f
-            .copyWith(query: 'Dr Example')
-            .matches(record, {}, authorName: 'Dr Example'),
-        isTrue,
-      );
-    },
-  );
+  test('records search includes clinical text and author name', () {
+    final record = MedicalRecord(
+      id: 'r',
+      patientId: 'p',
+      recordType: RecordType.labResult,
+      title: 'Report',
+      occurredAt: DateTime(2020),
+      createdAt: DateTime(2026),
+      authorStaffId: 'doctor',
+      sourceFacility: 'Lab',
+      extractedText: 'Ferritin',
+    );
+    expect(const RecordsFilter(query: 'ferritin').matches(record), isTrue);
+    expect(
+      const RecordsFilter(
+        query: 'Dr Example',
+      ).matches(record, authorName: 'Dr Example'),
+      isTrue,
+    );
+    expect(const RecordsFilter(query: 'unrelated').matches(record), isFalse);
+    expect(const RecordsFilter().oldestFirst, isFalse);
+  });
 
   test(
     'lab comparisons require the same patient, test, nonempty unit and earlier clinical date',

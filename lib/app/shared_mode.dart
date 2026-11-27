@@ -212,7 +212,7 @@ List<Override> sharedModeOverrides(
   notificationRepositoryProvider.overrideWithValue(
     UnavailableNotificationRepository(),
   ),
-  recordRepositoryProvider.overrideWithValue(UnavailableRecordRepository()),
+  recordRepositoryProvider.overrideWithValue(RemoteRecordRepository(client)),
   vitalsRepositoryProvider.overrideWithValue(RemoteVitalsRepository(client)),
   riskRepositoryProvider.overrideWithValue(UnavailableRiskRepository()),
   aiSummaryRepositoryProvider.overrideWithValue(

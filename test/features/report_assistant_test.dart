@@ -311,7 +311,7 @@ void main() {
       expect(m.actions, [AssistantAction.uploadReport]);
       m = await _say(c, 'أريد حجز موعد');
       expect(m.arabic, isTrue);
-      expect(m.actions.single.label(arabic: true), 'فتح المواعيد');
+      expect(m.actions.single.label(arabic: true), 'حجز موعد');
     });
   });
 

@@ -62,6 +62,23 @@ final recordsHistoryProvider = FutureProvider<List<MedicalRecord>>((ref) async {
   }
   return all;
 });
+final recordsVisitDatesProvider =
+    FutureProvider.autoDispose<Map<String, DateTime>>((ref) async {
+      final patientId = ref.watch(recordsPatientIdProvider);
+      if (patientId.isEmpty) return {};
+      final appointments = ref.watch(selectedRecordsPatientProvider) == null
+          ? await ref.watch(patientAppointmentsProvider.future)
+          : recordValue(
+              await ref
+                  .watch(appointmentRepositoryProvider)
+                  .forPatient(patientId),
+            );
+      return {
+        for (final a in appointments)
+          if (a.patientId == patientId) a.id: a.slotStart,
+      };
+    });
+
 final recordsVitalsProvider = FutureProvider<List<Vitals>>(
   (ref) => ref.watch(selectedRecordsPatientProvider) == null
       ? ref.watch(patientVitalsProvider.future)
@@ -102,90 +119,14 @@ final recordCorrectionsProvider =
       ),
     );
 
-enum RecordsView { all, results, documents, uploads }
-
 class RecordsFilter {
-  const RecordsFilter({
-    this.query = '',
-    this.types = const {},
-    this.view = RecordsView.all,
-    this.from,
-    this.to,
-    this.facility,
-    this.authorId,
-    this.review,
-    this.unreadOnly = false,
-  });
+  const RecordsFilter({this.query = '', this.oldestFirst = false});
+
   final String query;
-  final Set<RecordType> types;
-  final RecordsView view;
-  final DateTime? from, to;
-  final String? facility, authorId;
-  final ImportReviewStatus? review;
-  final bool unreadOnly;
-  bool get hasAdvanced =>
-      from != null ||
-      to != null ||
-      facility != null ||
-      authorId != null ||
-      review != null ||
-      unreadOnly;
-  bool get includesVitals =>
-      query.trim().isEmpty &&
-      types.isEmpty &&
-      !hasAdvanced &&
-      view == RecordsView.all;
+  final bool oldestFirst;
+  bool get includesVitals => query.trim().isEmpty;
 
-  RecordsFilter copyWith({
-    String? query,
-    Set<RecordType>? types,
-    RecordsView? view,
-    DateTime? from,
-    DateTime? to,
-    String? facility,
-    String? authorId,
-    ImportReviewStatus? review,
-    bool? unreadOnly,
-    bool clearDates = false,
-    bool clearFacility = false,
-    bool clearAuthor = false,
-    bool clearReview = false,
-  }) => RecordsFilter(
-    query: query ?? this.query,
-    types: types ?? this.types,
-    view: view ?? this.view,
-    from: clearDates ? null : from ?? this.from,
-    to: clearDates ? null : to ?? this.to,
-    facility: clearFacility ? null : facility ?? this.facility,
-    authorId: clearAuthor ? null : authorId ?? this.authorId,
-    review: clearReview ? null : review ?? this.review,
-    unreadOnly: unreadOnly ?? this.unreadOnly,
-  );
-
-  bool matches(MedicalRecord r, Set<String> readIds, {String? authorName}) {
-    if (types.isNotEmpty && !types.contains(r.recordType)) return false;
-    if (from != null && r.occurredAt.isBefore(from!)) return false;
-    if (to != null &&
-        !r.occurredAt.isBefore(DateTime(to!.year, to!.month, to!.day + 1))) {
-      return false;
-    }
-    if (facility != null && r.sourceFacility != facility) return false;
-    if (authorId != null && r.authorStaffId != authorId) return false;
-    if (review != null && r.reviewStatus != review) return false;
-    if (unreadOnly && readIds.contains(r.id)) return false;
-    if (!switch (view) {
-      RecordsView.all => true,
-      RecordsView.results =>
-        r.recordType == RecordType.labResult ||
-            r.recordType == RecordType.imaging,
-      RecordsView.documents =>
-        r.hasAttachment ||
-            r.recordType == RecordType.discharge ||
-            r.recordType == RecordType.referral,
-      RecordsView.uploads => r.uploadedByPatient,
-    }) {
-      return false;
-    }
+  bool matches(MedicalRecord r, {String? authorName}) {
     final q = query.trim().toLowerCase();
     return q.isEmpty ||
         [
@@ -197,6 +138,9 @@ class RecordsFilter {
           for (final lab in r.labValues) lab.analyte,
         ].any((v) => v.toLowerCase().contains(q));
   }
+
+  int compareDates(DateTime a, DateTime b) =>
+      oldestFirst ? a.compareTo(b) : b.compareTo(a);
 }
 
 final recordFiltersProvider = StateProvider.family<RecordsFilter, String>((

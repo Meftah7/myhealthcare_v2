@@ -75,7 +75,6 @@ class _HealthRecordsScreenState extends ConsumerState<HealthRecordsScreen> {
             ref.invalidate(patientThreadsProvider);
           },
           header: const RecordsSubjectHeader(),
-          onMedications: () => setState(() => _view = _RecordsView.medications),
           footer: ref.watch(selectedRecordsPatientProvider) != null
               ? null
               : Column(
@@ -183,11 +182,6 @@ class _HealthActions extends ConsumerWidget {
         AppRoutes.patientVisitedDoctors,
       ),
       tile(Icons.image_outlined, t.imagingTitle, AppRoutes.patientImaging),
-      tile(
-        Icons.event_busy_outlined,
-        t.quickActionSickLeave,
-        AppRoutes.patientSickLeave,
-      ),
       DocumentDownloadButton(
         asQuickAction: true,
         label: t.vitalSignsReportLabel,

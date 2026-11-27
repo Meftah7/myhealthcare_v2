@@ -1,5 +1,4 @@
-/// The patient bottom bar: Home | Weather | Appointments | News | Services,
-/// with Appointments emphasised as a rounded blue centre tile.
+/// The patient bottom bar highlights Book Appointment in the centre.
 ///
 /// The selected destination always gets its own indicator (a short bar above
 /// the icon and a bold label) — including the centre tile, which is blue
@@ -58,8 +57,9 @@ class PatientBottomNavigation extends StatelessWidget {
             return w;
           }
 
-          for (final d in destinations) {
-            fits = fits && measure(d.label, style) <= slot;
+          for (final (i, d) in destinations.indexed) {
+            final label = i == centerIndex ? d.label.split(' ') : [d.label];
+            fits = fits && label.every((word) => measure(word, style) <= slot);
             // A scope badge may wrap onto two lines inside its slot, but no
             // single word of it may be clipped (pill padding included).
             if (d.badge != null) {
@@ -172,7 +172,8 @@ class _NavItem extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 1),
               child: Text(
                 destination.label,
-                maxLines: 1,
+                maxLines: center ? 2 : 1,
+                textAlign: TextAlign.center,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.labelSmall?.copyWith(
                   fontSize: 11,

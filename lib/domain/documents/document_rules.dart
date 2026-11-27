@@ -37,6 +37,8 @@ abstract final class DocumentRules {
           arabic ? 'شهادة حضور' : 'Attendance',
         ExportDocument.visitSummary =>
           arabic ? 'ملخص الزيارة' : 'Visit summary',
+        ExportDocument.completedVisitReport =>
+          arabic ? 'تقرير الزيارة' : 'Visit report',
         ExportDocument.referralLetter => arabic ? 'خطاب إحالة' : 'Referral',
         ExportDocument.prescriptionCopy =>
           arabic ? 'نسخة الوصفة' : 'Prescription copy',

@@ -425,8 +425,8 @@ abstract final class AssistantText {
   static String navigation(AssistantAction action, bool ar) => switch (action) {
     AssistantAction.openAppointments =>
       ar
-          ? 'افتح المواعيد لاختيار الطبيب ومعرفة الأوقات المتاحة.'
-          : 'Open Appointments to choose a clinician and see available '
+          ? 'افتح حجز موعد لاختيار الطبيب ومعرفة الأوقات المتاحة.'
+          : 'Open Book Appointment to choose a clinician and see available '
                 'times.',
     AssistantAction.bookAppointment =>
       ar
@@ -453,7 +453,7 @@ abstract final class AssistantText {
     AssistantAction.openSickLeave =>
       ar
           ? 'افتح الإجازات المرضية لعرض شهاداتك وتنزيلها.'
-          : 'Open Sick leave to see and download your certificates.',
+          : 'Open Documents to see and download your sick leave certificates.',
     AssistantAction.openProfile =>
       ar
           ? 'افتح ملفي الشخصي لتحديث بياناتك وكلمة المرور والتفضيلات.'

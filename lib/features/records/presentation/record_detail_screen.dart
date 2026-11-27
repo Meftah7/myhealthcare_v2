@@ -35,7 +35,6 @@ import '../../patient/presentation/patient_top_actions.dart';
 import '../application/records_providers.dart';
 import 'lab_values_table.dart';
 import 'record_activity_panel.dart';
-import 'record_filters_sheet.dart';
 
 final recordDetailProvider = FutureProvider.family<MedicalRecord, String>((
   ref,

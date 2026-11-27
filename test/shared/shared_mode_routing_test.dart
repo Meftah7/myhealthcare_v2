@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/app.dart';
 import 'package:myhealthcare/app/router.dart';
 import 'package:myhealthcare/app/shared_mode.dart';
+import 'package:myhealthcare/features/patient/application/patient_data_providers.dart';
 
 import '../support/sessions.dart';
 
@@ -18,7 +19,10 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
       final (c, _) = await seededContainer(
-        overrides: [sharedModeProvider.overrideWithValue(true)],
+        overrides: [
+          sharedModeProvider.overrideWithValue(true),
+          appointmentStatusRefreshProvider.overrideWith((ref) {}),
+        ],
         prefs: {'ui.hasSeenOnboarding': true},
       );
       await signInAs(c, 'patient1@myhealth.demo');
@@ -42,7 +46,7 @@ void main() {
       }
       expect(
         c.read(routerProvider).state.uri.path,
-        AppRoutes.patientAppointments,
+        AppRoutes.patientBookLanding,
       );
       await tester.pumpWidget(const SizedBox());
       await tester.pump(const Duration(seconds: 1));

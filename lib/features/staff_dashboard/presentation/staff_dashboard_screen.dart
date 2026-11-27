@@ -722,6 +722,7 @@ class _TodayScheduleSummaryState extends ConsumerState<_TodayScheduleSummary> {
                                 ? [
                                     AppointmentStatus.booked,
                                     AppointmentStatus.confirmed,
+                                    AppointmentStatus.checkedIn,
                                   ].contains(a.status)
                                 : a.status == AppointmentStatus.completed,
                           )

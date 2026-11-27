@@ -19,11 +19,14 @@ import '../support/fonts.dart';
 import '../support/sessions.dart';
 
 final _dir = Platform.environment['CAPTURE_DIR'];
+final _locale = Platform.environment['CAPTURE_LOCALE'] ?? 'en';
 
 const _routes = {
   'home': AppRoutes.patientHome,
   'records': AppRoutes.patientTimeline,
-  'appointments': AppRoutes.patientAppointments,
+  'appointments': AppRoutes.patientAppointmentHistory,
+  'find_doctor': AppRoutes.patientFindDoctor,
+  'clinic_guide': AppRoutes.patientSpecialtyGuide,
   'book': AppRoutes.patientBookLanding,
   'messages': AppRoutes.patientMessages,
   'services': AppRoutes.patientServices,
@@ -63,7 +66,11 @@ void main() {
         addTearDown(tester.view.resetDevicePixelRatio);
         addTearDown(tester.view.resetPhysicalSize);
         final (c, _) = await seededContainer(
-          prefs: {'ui.hasSeenOnboarding': true, 'ui.textScale': level.name},
+          prefs: {
+            'ui.hasSeenOnboarding': true,
+            'ui.textScale': level.name,
+            'ui.locale': _locale,
+          },
         );
         await signInAs(c, 'patient1@myhealth.demo');
         await tester.pumpWidget(

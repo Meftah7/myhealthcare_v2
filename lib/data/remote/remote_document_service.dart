@@ -35,6 +35,9 @@ class RemoteDocumentService implements DocumentService {
         d['type'] as String? ?? 'sickLeaveCertificate',
       ),
       language: d['language'] as String? ?? 'en',
+      issuerName: d['issuerName'] as String?,
+      appointmentId: d['visit'] as String?,
+      appointmentDate: d['visitAt'] == null ? null : _date(d['visitAt']),
       issuedAt: d['issued'] == null ? null : _date(d['issued']),
     );
   }

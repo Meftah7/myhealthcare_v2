@@ -279,6 +279,7 @@ class DeskClinicSchedule extends ConsumerWidget {
                             if ([
                               AppointmentStatus.booked,
                               AppointmentStatus.confirmed,
+                              AppointmentStatus.checkedIn,
                             ].contains(visit.status))
                               Wrap(
                                 spacing: 8,

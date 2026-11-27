@@ -114,7 +114,7 @@ class AppointmentStatusPill extends StatelessWidget {
         scheme.primaryContainer,
         scheme.onPrimaryContainer,
       ),
-      AppointmentStatus.confirmed => (
+      AppointmentStatus.checkedIn || AppointmentStatus.confirmed => (
         Icons.event_available_outlined,
         scheme.primaryContainer,
         scheme.onPrimaryContainer,

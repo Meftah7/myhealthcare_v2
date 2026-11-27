@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { Store, id } from './store.mjs';
 import { createApi } from './server.mjs';
+import { renderEnglishPdf, renderPending } from './workers.mjs';
 
 async function fixture(t) {
   const directory = mkdtempSync(join(tmpdir(), 'myhealth-clinical-test-'));
@@ -13,7 +14,8 @@ async function fixture(t) {
   const store = new Store({ directory: join(directory, 'data'), fileKey: randomBytes(32).toString('hex'), now: () => clock });
   const password = 'Synthetic-Test-Password-2026!';
   const add = (role, job = null) => store.addUser({ email: `${job ?? role}@test.demo`, name: `Test ${job ?? role}`, role, job, password });
-  const users = { patient: add('patient'), doctor: add('staff', 'doctor'), nurse: add('staff', 'nurse'),
+  const otherPatient = store.addUser({ email: 'otherPatient@test.demo', name: 'Other patient', role: 'patient', password });
+  const users = { patient: add('patient'), otherPatient, doctor: add('staff', 'doctor'), nurse: add('staff', 'nurse'),
     dentist: add('staff', 'dentist'), pharmacist: add('staff', 'pharmacist'), receptionist: add('staff', 'receptionist'),
     admin: add('admin') };
   const dept = id();
@@ -22,13 +24,14 @@ async function fixture(t) {
   for (let weekday = 1; weekday <= 7; weekday++) {
     store.run('INSERT INTO schedules(staff,weekday,start_min,end_min) VALUES(?,?,?,?)', users.doctor, weekday, 0, 1440);
   }
-  const server = createApi({ store, origins: [] });
+  const server = createApi({ store, origins: [], renderDocument: renderEnglishPdf });
   await new Promise(r => server.listen(0, '127.0.0.1', r));
   const base = `http://127.0.0.1:${server.address().port}`;
   async function request(path, { method = 'GET', body, token } = {}) {
     const response = await fetch(base + path, { method, headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined });
-    return { status: response.status, body: await response.json() };
+    return { status: response.status, body: response.headers.get('content-type') === 'application/pdf'
+      ? Buffer.from(await response.arrayBuffer()) : await response.json() };
   }
   const as = {};
   for (const [name] of Object.entries(users)) {
@@ -62,7 +65,7 @@ test('directory and slots come from the server', async t => {
   assert.deepEqual(clinicians.body.map(c => c.id), [f.users.doctor]);
   await bookedVisit(f);
   // Desk searches all patients; a clinician only those in their care.
-  assert.equal((await f.as.receptionist('/api/patients?query=test')).body.length, 1);
+  assert.equal((await f.as.receptionist('/api/patients?query=test')).body.length, 2);
   assert.equal((await f.as.nurse('/api/patients?query=test')).body.length, 0);
   assert.equal((await f.as.patient('/api/patients?query=test')).status, 403);
 });
@@ -73,21 +76,64 @@ test('consultation: draft is versioned, only the booked doctor signs, signing is
   const enc = `/api/encounters/${visit.id}`;
   assert.equal((await f.as.dentist(enc)).status, 403);
   assert.equal((await f.as.doctor(`${enc}/start`, { method: 'POST', body: { expectedVersion: visit.version } })).body.status, 'inProgress');
+  assert.equal(f.store.get('SELECT COUNT(*) n FROM documents').n, 0);
   const draft = await f.as.doctor(`${enc}/draft`, { method: 'POST', body: { note: 'Cough 3 days', meds: [{ name: 'Paracetamol', dose: '500 mg', frequency: 'tds' }], expectedVersion: null } });
   assert.equal(draft.body.version, 1);
   assert.equal((await f.as.doctor(`${enc}/draft`, { method: 'POST', body: { note: 'x', meds: [], expectedVersion: 9 } })).status, 409);
   // A nurse with a care link may draft but cannot sign.
   f.store.run('INSERT INTO care VALUES(?,?)', f.users.patient, f.users.nurse);
   assert.equal((await f.as.nurse(`${enc}/draft`, { method: 'POST', body: { note: 'Obs normal', meds: [], expectedVersion: 1 } })).body.version, 2);
-  const finalize = { note: 'Viral URTI', meds: [{ name: 'Paracetamol', dose: '500 mg', frequency: 'tds' }], outcome: null, idempotencyKey: id() };
+  f.store.run('INSERT INTO vitals(id, patient, appointment, recorded_at, heart_rate) VALUES(?,?,?,?,?)',
+    id(), f.users.patient, visit.id, f.clock, 83);
+  const finalize = { note: 'Viral URTI', meds: [{ name: 'Paracetamol', dose: '500 mg', frequency: 'tds' }],
+    outcome: 'Follow up in one week', idempotencyKey: id() };
   assert.equal((await f.as.nurse(`${enc}/finalize`, { method: 'POST', body: finalize })).status, 403);
   assert.equal((await f.as.doctor(`${enc}/finalize`, { method: 'POST', body: finalize })).status, 200);
   assert.equal((await f.as.doctor(`${enc}/finalize`, { method: 'POST', body: finalize })).status, 200); // retry
+  assert.equal((await f.as.doctor(`${enc}/finalize`, {
+    method: 'POST', body: { ...finalize, idempotencyKey: id() },
+  })).status, 200);
   assert.equal(f.store.get('SELECT count(*) n FROM prescriptions').n, 1);
+  const rows = f.store.all('SELECT * FROM documents');
+  assert.equal(rows.length, 1);
+  const report = rows[0];
+  assert.equal(report.type, 'completedVisitReport');
+  const snapshot = JSON.parse(report.snapshot);
+  assert.equal(snapshot.visit.id, visit.id);
+  assert.match(snapshot.content.summary, /Viral URTI/);
+  assert.match(snapshot.content.summary, /Paracetamol/);
+  assert.match(snapshot.content.summary, /Heart rate: 83 bpm/);
+  assert.match(snapshot.content.summary, /Follow up in one week/);
+  assert.doesNotMatch(snapshot.content.summary, /Obs normal|Cough 3 days/);
+
+  const workspace = await f.as.patient(`/api/document-workspace?patientId=${f.users.patient}`);
+  assert.equal(workspace.body.issued[0].visit, visit.id);
+  assert.equal(workspace.body.issued[0].issuerName, 'Test doctor');
+  assert.equal((await f.as.otherPatient(`/api/appointments/${visit.id}`)).status, 403);
+  assert.equal((await f.as.otherPatient(`/api/clinical-records/rec_note_${visit.id}`)).status, 403);
+  assert.equal((await f.as.otherPatient(`/api/documents/${report.id}/download`)).status, 403);
+  assert.equal((await f.as.patient(`/api/documents/${report.id}/download`)).status, 409);
+  await renderPending(f.store, async () => { throw new Error('Offline renderer'); });
+  assert.equal(f.store.get('SELECT render FROM documents WHERE id=?', report.id).render, 'failed');
+  await renderPending(f.store, renderEnglishPdf);
+  const pdf = await f.as.patient(`/api/documents/${report.id}/download`);
+  assert.equal(pdf.status, 200);
+  assert.match(pdf.body.toString(), /Follow up in one week/);
   assert.equal((await f.as.doctor(enc)).body.status, 'completed');
   assert.throws(() => f.store.run("UPDATE signed_notes SET note='edited'"));
   // The patient sees their prescription.
   assert.equal((await f.as.patient(`/api/prescriptions?patientId=${f.users.patient}`)).body[0].name, 'Paracetamol');
+});
+
+test('cancelling a booking creates no signed encounters or visit reports', async t => {
+  const f = await fixture(t);
+  const visit = await bookedVisit(f);
+  const cancel = await f.as.patient(`/api/appointments/${visit.id}/cancel`, {
+    method: 'POST', body: { expectedVersion: visit.version, reason: 'Patient cancelled' },
+  });
+  assert.equal(cancel.body.status, 'cancelled');
+  assert.equal(f.store.get('SELECT COUNT(*) n FROM signed_notes').n, 0);
+  assert.equal(f.store.get('SELECT COUNT(*) n FROM documents').n, 0);
 });
 
 test('pharmacy dispenses from stock exactly once', async t => {

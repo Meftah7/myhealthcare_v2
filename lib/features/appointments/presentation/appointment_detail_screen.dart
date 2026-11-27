@@ -24,8 +24,7 @@ import '../../../domain/enums.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../feedback/presentation/feedback_sheet.dart';
 import '../../patient/application/patient_data_providers.dart';
-import '../../patient/application/patient_documents.dart';
-import '../../patient/presentation/document_download_button.dart';
+import '../../care/presentation/issued_documents_screen.dart';
 import 'appointments_screen.dart' show ApptActions;
 import 'appointment_records_section.dart';
 import '../application/appointment_records_provider.dart';
@@ -46,6 +45,7 @@ class AppointmentDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
+    ref.watch(appointmentStatusRefreshProvider);
     final async = ref.watch(patientAppointmentByIdProvider(appointmentId));
     final doctors = ref.watch(doctorDirectoryProvider).valueOrNull ?? const {};
     final departments =
@@ -55,6 +55,7 @@ class AppointmentDetailScreen extends ConsumerWidget {
       title: t.appointmentDetailTitle,
       onRefresh: () async {
         ref.invalidate(patientAppointmentsProvider);
+        ref.invalidate(patientAppointmentByIdProvider(appointmentId));
         ref.invalidate(appointmentRecordsProvider(appointmentId));
       },
       children: async.when(
@@ -62,7 +63,8 @@ class AppointmentDetailScreen extends ConsumerWidget {
         error: (e, _) => [
           ErrorStateView(
             message: t.couldNotLoadAppointments,
-            onRetry: () => ref.invalidate(patientAppointmentsProvider),
+            onRetry: () =>
+                ref.invalidate(patientAppointmentByIdProvider(appointmentId)),
           ),
         ],
         data: (appt) {
@@ -76,7 +78,9 @@ class AppointmentDetailScreen extends ConsumerWidget {
           }
           final theme = Theme.of(context);
           final doctorName = doctors[appt.staffId]?.name;
-          final departmentName = departments[appt.departmentId];
+          final departmentName =
+              departments[appt.departmentId ??
+                  doctors[appt.staffId]?.departmentId];
           final canManage =
               appt.isUpcoming &&
               (appt.status == AppointmentStatus.booked ||
@@ -149,21 +153,24 @@ class AppointmentDetailScreen extends ConsumerWidget {
                   if (appt.reasonText != null &&
                       appt.reasonText!.trim().isNotEmpty)
                     _DetailRow(t.reasonOptionalLabel, appt.reasonText!),
+                  if (appt.outcomeNote case final outcome?
+                      when outcome.trim().isNotEmpty)
+                    _DetailRow(t.recordedOutcome, outcome),
                   _DetailRow(t.bookedOn(fmtDate(appt.bookedAt)), null),
                 ],
               ),
             ),
             const SizedBox(height: Space.sm),
-            if (appt.status == AppointmentStatus.completed) ...[
-              AppointmentRecordsSection(appointmentId: appt.id),
-              const SizedBox(height: Space.sm),
-              DocumentDownloadButton(
-                label: t.visitSummaryAction,
-                filename: 'visit-${appt.id}.pdf',
-                build: () => buildVisitSummary(ref, appt),
-              ),
-              const SizedBox(height: Space.md),
-            ],
+            AppointmentRecordsSection(appointmentId: appt.id),
+            const SizedBox(height: Space.sm),
+            Text(t.paDocuments, style: theme.textTheme.titleLarge),
+            const SizedBox(height: Space.sm),
+            PatientDocumentList(
+              patientId: appt.patientId,
+              appointmentId: appt.id,
+              completed: appt.status == AppointmentStatus.completed,
+            ),
+            const SizedBox(height: Space.md),
             AppCard(
               padding: const EdgeInsets.all(Space.md),
               child: Column(

@@ -44,6 +44,7 @@ class ConsultationScreen extends ConsumerStatefulWidget {
 
 class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
   final _note = TextEditingController();
+  final _outcome = TextEditingController();
   bool _busy = false;
   bool _seeded = false;
 
@@ -87,6 +88,7 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
     _note
       ..removeListener(_flushNote)
       ..dispose();
+    _outcome.dispose();
     super.dispose();
   }
 
@@ -358,6 +360,16 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
         _SickLeaveSection(appointment: a, busy: _busy),
       ],
 
+      if (canSign) ...[
+        const SizedBox(height: Space.md),
+        TextField(
+          controller: _outcome,
+          maxLength: 2000,
+          maxLines: 3,
+          enabled: !_busy,
+          decoration: InputDecoration(labelText: t.recordedOutcome),
+        ),
+      ],
       const SizedBox(height: Space.lg),
       if (!canSign)
         InlineBanner.info(t.signingRequiresDoctor)
@@ -454,7 +466,12 @@ class _ConsultationScreenState extends ConsumerState<ConsultationScreen> {
       () async {
         final r = await ref
             .read(consultationControllerProvider(_id))
-            .complete(_draft);
+            .complete(
+              _draft,
+              outcomeNote: _outcome.text.trim().isEmpty
+                  ? null
+                  : _outcome.text.trim(),
+            );
         if (r.isOk) ref.read(activeEncounterProvider.notifier).state = null;
         return r;
       },

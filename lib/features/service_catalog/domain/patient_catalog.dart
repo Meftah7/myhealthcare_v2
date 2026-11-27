@@ -150,13 +150,6 @@ abstract final class PatientCatalog {
     action: CatalogActionKind.route,
     route: AppRoutes.patientMedications,
   );
-  static final sickLeave = CatalogItem(
-    id: 'sick-leave',
-    title: (t) => t.paSickLeave,
-    icon: Icons.event_busy_outlined,
-    action: CatalogActionKind.route,
-    route: AppRoutes.patientSickLeave,
-  );
   static final imaging = CatalogItem(
     id: 'imaging',
     title: (t) => t.imagingTitle,
@@ -171,13 +164,6 @@ abstract final class PatientCatalog {
     accent: PatientAccent.amber,
     action: CatalogActionKind.route,
     route: AppRoutes.patientAllergies,
-  );
-  static final appointments = CatalogItem(
-    id: 'appointments',
-    title: (t) => t.allAppointmentsTitle,
-    icon: Icons.event_note_outlined,
-    action: CatalogActionKind.route,
-    route: AppRoutes.patientAppointments,
   );
   static final bookAppointment = CatalogItem(
     id: 'book-appointment',
@@ -486,12 +472,10 @@ abstract final class PatientCatalog {
       explainReport,
       nutrition,
       medications,
-      sickLeave,
       imaging,
       allergies,
     ],
     QuickAccessGroup.care: [
-      appointments,
       bookAppointment,
       visitedDoctors,
       messages,

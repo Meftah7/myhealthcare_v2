@@ -109,8 +109,8 @@ export const cases = [
     id: 'navigation-inside-report',
     report: cbc,
     question: 'Where can I book an appointment?',
-    expect: { supported: false, action: 'open_appointments', answerIncludes: ['Open Appointments'], coverageComplete: true },
-    ideal: { answer: 'You can book from the Appointments screen.', supported: false, quotes: [], action: 'open_appointments', medical: false },
+    expect: { supported: false, action: 'open_appointments', answerIncludes: ['Open Book Appointment'], coverageComplete: true },
+    ideal: { answer: 'Open Book Appointment to choose a clinic or doctor.', supported: false, quotes: [], action: 'open_appointments', medical: false },
   },
   {
     id: 'arabic-lookup-missing',
@@ -148,8 +148,8 @@ export const chatCases = [
   {
     id: 'app-help-booking',
     message: 'How do I book an appointment?',
-    expect: { medical: false, action: 'open_appointments', replyIncludes: ['Appointments'] },
-    ideal: { reply: 'Open Appointments and choose Book now or Schedule.', action: 'open_appointments', medical: false },
+    expect: { medical: false, action: 'open_appointments', replyIncludes: ['Book Appointment'] },
+    ideal: { reply: 'Open Book Appointment and choose a clinic or doctor.', action: 'open_appointments', medical: false },
   },
   {
     id: 'app-help-greeting',

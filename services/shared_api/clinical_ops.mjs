@@ -29,7 +29,7 @@ function meds(value) {
 }
 
 /** Returns a result for a handled route, or `undefined` to fall through. */
-export function clinicalOps({ store, now, path, method, url, body, actor }) {
+export function clinicalOps({ store, now, path, method, url, body, actor, issueCompletedVisitReport }) {
   const job = actor.role === 'staff' ? actor.job : null;
   const hasCare = patient => { if(!clinical.includes(job))return false;try{store.patientAccess(actor,patient);return true;}catch(error){if(error.status===403)return false;throw error;} };
   const safeStaff = u => ({ id: u.id, fullName: u.name, job: u.job, departmentId: u.department, specialty: u.specialty });
@@ -139,11 +139,17 @@ export function clinicalOps({ store, now, path, method, url, body, actor }) {
       return store.transaction(() => store.retry(actor.id, body.idempotencyKey, { path, body }, () => {
         const a = appt();
         requireThat(a.staff === actor.id && signers.includes(job), 403, 'Only the booked doctor or dentist can sign.');
+        const existing = store.get('SELECT * FROM signed_notes WHERE appointment=?', a.id);
+        if (a.status === 'completed' && existing) {
+          const prescriptions = store.get('SELECT COUNT(*) n FROM prescriptions WHERE appointment=? AND patient=? AND prescriber=?', a.id, a.patient, actor.id).n;
+          return { appointmentId: a.id, signerId: existing.signer, signedAt: iso(existing.signed_at), prescriptions };
+        }
         requireThat(a.status === 'inProgress', 409, 'Start the visit before signing.');
         requireThat(body.note.trim() || list.length, 400, 'Add a note or medication before signing.');
         requireThat(!store.get('SELECT 1 FROM signed_notes WHERE appointment=?', a.id), 409, 'This note is already signed.');
+        const signed = { note: body.note, outcome: body.outcome == null ? null : text(body.outcome, 2000), at: now() };
         store.run('INSERT INTO signed_notes(appointment,patient,signer,note,outcome,signed_at) VALUES(?,?,?,?,?,?)',
-          a.id, a.patient, actor.id, body.note, body.outcome == null ? null : text(body.outcome, 2000), now());
+          a.id, a.patient, actor.id, signed.note, signed.outcome, signed.at);
         for (const m of list) {
           store.run('INSERT INTO prescriptions(id,patient,prescriber,appointment,name,dose,frequency,start,issued_at,ordered_units) VALUES(?,?,?,?,?,?,?,?,?,?)',
             id(), a.patient, actor.id, a.id, m.name, m.dose, m.frequency, now(), now(),m.orderedUnits);
@@ -151,10 +157,45 @@ export function clinicalOps({ store, now, path, method, url, body, actor }) {
         store.run('DELETE FROM encounter_drafts WHERE appointment=?', a.id);
         store.run("UPDATE appointments SET status='completed',completed_at=?,version=version+1 WHERE id=?", now(), a.id);
         store.run("INSERT OR IGNORE INTO visits(id,patient,staff,at,status) VALUES(?,?,?,?,'completed')",a.id,a.patient,a.staff,a.start);
+        issueCompletedVisitReport(actor, a, signed);
         store.audit(actor.id, 'encounter.signed', a.id);
-        return { appointmentId: a.id, signerId: actor.id, signedAt: iso(now()), prescriptions: list.length };
+        return { appointmentId: a.id, signerId: actor.id, signedAt: iso(signed.at), prescriptions: list.length };
       }));
     }
+  }
+
+  // ---- Patient-visible signed encounter notes ----------------------------
+  const record = /^\/api\/clinical-records(?:\/([^/]+))?$/.exec(path);
+  if (record && method === 'GET') {
+    const visible = (row) => ({
+      id: 'rec_note_' + row.appointment,
+      appointmentId: row.appointment,
+      patientId: row.patient,
+      authorStaffId: row.signer,
+      body: row.note,
+      outcome: row.outcome,
+      occurredAt: iso(row.start),
+      createdAt: iso(row.signed_at),
+    });
+    const select = "SELECT n.*,a.start FROM signed_notes n JOIN appointments a ON a.id=n.appointment AND a.patient=n.patient WHERE a.status='completed'";
+    if (record[1]) {
+      requireThat(record[1].startsWith('rec_note_'), 404, 'Record unavailable.');
+      const row = store.get(select + ' AND n.appointment=?', record[1].slice('rec_note_'.length));
+      requireThat(row, 404, 'Record unavailable.');
+      store.patientAccess(actor, row.patient);
+      return visible(row);
+    }
+    const patientId = text(url.searchParams.get('patientId'), 128);
+    store.patientAccess(actor, patientId);
+    const offset = Number(url.searchParams.get('offset') ?? 0), limit = Number(url.searchParams.get('limit') ?? 50);
+    requireThat(Number.isSafeInteger(offset) && offset >= 0 && Number.isSafeInteger(limit) && limit > 0 && limit <= 200, 400, 'Invalid page.');
+    const visit = url.searchParams.get('appointmentId');
+    if (visit) {
+      requireThat(store.get('SELECT 1 FROM appointments WHERE id=? AND patient=?', visit, patientId), 404, 'Appointment unavailable.');
+    }
+    const rows = store.all(select + ' AND n.patient=?' + (visit ? ' AND n.appointment=?' : '') +
+      ' ORDER BY a.start DESC,n.appointment LIMIT ? OFFSET ?', patientId, ...(visit ? [visit] : []), limit + 1, offset);
+    return { items: rows.slice(0, limit).map(visible), hasMore: rows.length > limit };
   }
 
   // ---- prescriptions and pharmacy -------------------------------------------

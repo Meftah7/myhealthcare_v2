@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/app.dart';
+import 'package:myhealthcare/app/router.dart';
 import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/core/presentation/appointment_confirmation_overlay.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
@@ -63,12 +64,17 @@ void main() {
     await passMfa(tester);
     await _settle(tester);
 
-    // Open the Appointments tab, then start the scheduling wizard from it.
-    await tester.tap(find.text('Appointment').last);
+    container.read(routerProvider).go(AppRoutes.patientBookLanding);
     await _settle(tester);
-    await tester.tap(find.text('Schedule'));
+    expect(find.byKey(const ValueKey('discover-history')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('discover-doctor')));
     await _settle(tester);
-    expect(find.widgetWithText(AppBar, 'Schedule a visit'), findsOneWidget);
+    final availability = find.text('See available times').first;
+    await tester.ensureVisible(availability);
+    await _settle(tester);
+    await tester.tap(availability);
+    await _settle(tester);
+    expect(find.byType(BookingScreen), findsOneWidget);
 
     // Fill the draft (dept + doctor + a fresh clinic day) via the provider —
     // the wizard reacts and shows the slot list.
@@ -219,9 +225,9 @@ void main() {
       departmentId: depts.first.id,
     );
 
-    await tester.tap(find.text('Appointment').last);
-    await _settle(tester);
-    await tester.tap(find.text('Book now'));
+    container
+        .read(routerProvider)
+        .go(AppRoutes.patientBook, extra: BookingMode.now);
     await _settle(tester);
 
     // The wizard reset it on entry.

@@ -4,7 +4,11 @@
 /// explicit id via the `.forPatient` family variants.
 library;
 
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../app/shared_mode.dart';
 
 import '../../../core/data/contracts.dart';
 import '../../../core/di.dart';
@@ -117,6 +121,16 @@ final patientAppointmentsProvider = FutureProvider<List<Appointment>>((
   if (dependents.isEmpty) return own;
   return [...own, ...dependents]
     ..sort((a, b) => b.slotStart.compareTo(a.slotStart));
+});
+
+/// Shared appointments can change while the patient has a booking page open.
+final appointmentStatusRefreshProvider = Provider.autoDispose<void>((ref) {
+  if (!ref.watch(sharedModeProvider)) return;
+  final timer = Timer.periodic(const Duration(seconds: 30), (_) {
+    ref.invalidate(patientAppointmentsProvider);
+    ref.invalidate(patientAppointmentByIdProvider);
+  });
+  ref.onDispose(timer.cancel);
 });
 
 /// The signed-in patient's own visits only (no household members).

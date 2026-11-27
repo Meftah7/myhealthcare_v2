@@ -1417,7 +1417,7 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
           to == AppointmentStatus.confirmed ||
               to == AppointmentStatus.cancelled ||
               to == AppointmentStatus.noShow,
-        AppointmentStatus.confirmed =>
+        AppointmentStatus.confirmed || AppointmentStatus.checkedIn =>
           to == AppointmentStatus.inProgress ||
               to == AppointmentStatus.cancelled ||
               to == AppointmentStatus.noShow,

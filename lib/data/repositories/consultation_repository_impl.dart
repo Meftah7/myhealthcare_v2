@@ -4,6 +4,7 @@ library;
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/data/contracts.dart';
 import '../../core/failures.dart';
@@ -21,6 +22,9 @@ import '../db/app_database.dart';
 import '../sync/idempotency.dart';
 import '../sync/outbox.dart';
 import 'mappers.dart';
+import 'document_service_impl.dart';
+import 'document_verification_repository_impl.dart';
+import '../../services/pdf/issued_sick_leave_pdf.dart';
 
 class EncounterDraftRepositoryImpl implements EncounterDraftRepository {
   EncounterDraftRepositoryImpl(this._db, {AccessPolicy? access})
@@ -809,13 +813,22 @@ class EncounterRepositoryImpl implements EncounterRepository {
     required AppointmentRepository appointments,
     required WalkInTicketRepository walkIns,
     AccessPolicy? access,
+    DocumentServiceImpl? documents,
     DateTime Function()? now,
   }) : _access = access ?? AccessPolicy.unenforced(_db),
        _appointments = appointments,
        _walkIns = walkIns,
        _idempotency = IdempotencyGuard(_db),
        _outbox = Outbox(_db),
-       _now = now ?? DateTime.now;
+       _now = now ?? DateTime.now,
+       _documents =
+           documents ??
+           DocumentServiceImpl(
+             _db,
+             access ?? AccessPolicy.unenforced(_db),
+             DocumentVerificationRepositoryImpl(_db, access: access),
+             const IssuedSickLeavePdf(),
+           );
 
   final AppDatabase _db;
   final AccessPolicy _access;
@@ -824,6 +837,7 @@ class EncounterRepositoryImpl implements EncounterRepository {
   final IdempotencyGuard _idempotency;
   final Outbox _outbox;
   final DateTime Function() _now;
+  final DocumentServiceImpl _documents;
 
   static const _scope = 'encounter.finalize';
 
@@ -872,6 +886,7 @@ class EncounterRepositoryImpl implements EncounterRepository {
         );
       }
 
+      String? documentId;
       final noteId = await _db.transaction(() async {
         final prior = await _idempotency.prior(
           idempotencyKey,
@@ -908,7 +923,7 @@ class EncounterRepositoryImpl implements EncounterRepository {
                   patientId: appt.patientId,
                   recordType: RecordType.visitNote,
                   title: 'Consultation note',
-                  occurredAt: now,
+                  occurredAt: appt.slotStart,
                   authorStaffId: Value(r.staffId),
                   appointmentId: Value(r.appointmentId),
                   body: Value(body),
@@ -951,6 +966,12 @@ class EncounterRepositoryImpl implements EncounterRepository {
             outcomeNote: r.outcomeNote,
           ),
         );
+        documentId = (await _documents.issueCompletedVisitReport(
+          appointmentId: r.appointmentId,
+          issuerId: r.staffId,
+          completedAt: now,
+          language: Intl.getCurrentLocale().startsWith('ar') ? 'ar' : 'en',
+        )).id;
         // A walk-in visit closes its ticket too.
         _throwIfErr(await _walkIns.resolveByAppointment(r.appointmentId));
         await (_db.delete(
@@ -971,6 +992,10 @@ class EncounterRepositoryImpl implements EncounterRepository {
         );
         return noteId;
       });
+      if (documentId case final id?) {
+        // The issued snapshot is durable. The patient or clinic can retry rendering.
+        await _documents.render(id);
+      }
       return _load(noteId);
     });
   }

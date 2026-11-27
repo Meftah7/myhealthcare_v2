@@ -127,13 +127,17 @@ final issuedSickLeaveRendererProvider = Provider<IssuedSickLeaveRenderer>(
   (ref) => const IssuedSickLeavePdf(),
 );
 
-final documentServiceProvider = Provider<DocumentService>(
+final _localDocumentServiceProvider = Provider<DocumentServiceImpl>(
   (ref) => DocumentServiceImpl(
     ref.watch(appDatabaseProvider),
     ref.watch(accessPolicyProvider),
     ref.watch(documentVerificationRepositoryProvider),
     ref.watch(issuedSickLeaveRendererProvider),
   ),
+);
+
+final documentServiceProvider = Provider<DocumentService>(
+  (ref) => ref.watch(_localDocumentServiceProvider),
 );
 
 /// Where recovery codes go. Demo builds get a labelled simulated inbox;
@@ -347,6 +351,7 @@ final encounterRepositoryProvider = Provider<EncounterRepository>(
     access: ref.watch(accessPolicyProvider),
     appointments: ref.watch(appointmentRepositoryProvider),
     walkIns: ref.watch(walkInTicketRepositoryProvider),
+    documents: ref.watch(_localDocumentServiceProvider),
   ),
 );
 

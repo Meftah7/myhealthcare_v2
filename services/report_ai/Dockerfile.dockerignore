@@ -1,0 +1,10 @@
+**
+!services/
+!services/report_ai/
+!services/report_ai/Dockerfile
+!services/report_ai/server.mjs
+!services/report_ai/assistant.mjs
+!services/report_ai/medical_policy.mjs
+!services/report_ai/config.mjs
+!services/shared_api/
+!services/shared_api/ai.mjs

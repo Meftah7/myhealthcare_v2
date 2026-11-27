@@ -26,8 +26,6 @@ import '../../ai_summary/application/ai_summary_provider.dart';
 import '../../patient/application/family_link_providers.dart';
 import '../../patient/application/patient_data_providers.dart';
 import '../../records/application/records_providers.dart';
-import '../../records/presentation/record_filters_sheet.dart';
-import 'import_record_sheet.dart';
 
 /// Record ids the AI flagged as key events (P3-11) — empty on any failure.
 final _keyEventRecordIdsProvider = Provider<Set<String>>((ref) {
@@ -44,6 +42,7 @@ final _keyEventRecordIdsProvider = Provider<Set<String>>((ref) {
 /// One row in the merged feed.
 sealed class _Entry {
   DateTime get at;
+  String get key;
 }
 
 class _RecordEntry extends _Entry {
@@ -51,6 +50,8 @@ class _RecordEntry extends _Entry {
   final MedicalRecord record;
   @override
   DateTime get at => record.occurredAt;
+  @override
+  String get key => 'record:${record.id}';
 }
 
 class _VitalsEntry extends _Entry {
@@ -58,14 +59,15 @@ class _VitalsEntry extends _Entry {
   final Vitals vitals;
   @override
   DateTime get at => vitals.recordedAt;
+  @override
+  String get key => 'vitals:${vitals.id}';
 }
 
-class TimelineScreen extends ConsumerWidget {
+class TimelineScreen extends ConsumerStatefulWidget {
   const TimelineScreen({
     this.embedded = false,
     this.header,
     this.footer,
-    this.onMedications,
     this.onRefresh,
     super.key,
   });
@@ -75,11 +77,53 @@ class TimelineScreen extends ConsumerWidget {
   final bool embedded;
   final Widget? header;
   final Widget? footer;
-  final VoidCallback? onMedications;
   final Future<void> Function()? onRefresh;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TimelineScreen> createState() => _TimelineScreenState();
+}
+
+class _TimelineScreenState extends ConsumerState<TimelineScreen> {
+  GoRouter? _router;
+  bool _open = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final router = GoRouter.maybeOf(context);
+    if (router == _router) return;
+    _router?.routerDelegate.removeListener(_onRouteChanged);
+    _router = router;
+    _router?.routerDelegate.addListener(_onRouteChanged);
+    if (router != null) _resetFilters();
+    _onRouteChanged();
+  }
+
+  void _onRouteChanged() {
+    final uri = _router?.routerDelegate.currentConfiguration.uri;
+    final path = uri?.path;
+    final open =
+        (path == AppRoutes.patientTimeline &&
+            uri?.queryParameters['view'] != 'medications') ||
+        (path?.startsWith('${AppRoutes.patientTimeline}/') ?? false);
+    if (_open && !open) _resetFilters();
+    _open = open;
+  }
+
+  void _resetFilters() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.invalidate(recordFiltersProvider);
+    });
+  }
+
+  @override
+  void dispose() {
+    _router?.routerDelegate.removeListener(_onRouteChanged);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
     final records = ref.watch(recordsHistoryProvider);
     final vitals = ref.watch(recordsVitalsProvider);
@@ -88,7 +132,7 @@ class TimelineScreen extends ConsumerWidget {
     final readState = ref.watch(recordReadIdsProvider);
     final names = ref.watch(doctorDirectoryProvider).valueOrNull ?? {};
     final feed = records.when(
-      loading: () => SkeletonList(lines: embedded ? 3 : 5),
+      loading: () => SkeletonList(lines: widget.embedded ? 3 : 5),
       error: (e, _) => ErrorStateView(
         message: t.couldNotLoadRecords,
         onRetry: () {
@@ -98,26 +142,18 @@ class TimelineScreen extends ConsumerWidget {
         },
       ),
       data: (recs) {
-        if (filter.unreadOnly && !readState.hasValue) {
-          return readState.hasError
-              ? ErrorStateView(
-                  message: t.recordsReadStateUnavailable,
-                  onRetry: () => ref.invalidate(recordReadIdsProvider),
-                )
-              : const SkeletonList();
-        }
-        final entries = <_Entry>[
-          for (final r in recs)
-            if (filter.matches(
-              r,
-              readState.valueOrNull ?? {},
-              authorName: names[r.authorStaffId]?.name,
-            ))
-              _RecordEntry(r),
-          if (filter.includesVitals)
-            for (final v in vitals.valueOrNull ?? const <Vitals>[])
-              _VitalsEntry(v),
-        ]..sort((a, b) => b.at.compareTo(a.at));
+        final entries =
+            <_Entry>[
+              for (final r in recs)
+                if (filter.matches(r, authorName: names[r.authorStaffId]?.name))
+                  _RecordEntry(r),
+              if (filter.includesVitals)
+                for (final v in vitals.valueOrNull ?? const <Vitals>[])
+                  _VitalsEntry(v),
+            ]..sort((a, b) {
+              final date = filter.compareDates(a.at, b.at);
+              return date == 0 ? a.key.compareTo(b.key) : date;
+            });
 
         if (entries.isEmpty) {
           return ListView(
@@ -126,11 +162,33 @@ class TimelineScreen extends ConsumerWidget {
                 icon: Icons.timeline_outlined,
                 message: t.nothingMatchesFilters,
               ),
-              ?footer,
+              ?widget.footer,
             ],
           );
         }
-        return _GroupedList(entries: entries, footer: footer);
+        final fallbackDates = <String, DateTime>{};
+        void rememberVisit(String? id, DateTime at) {
+          if (id == null) return;
+          final previous = fallbackDates[id];
+          if (previous == null || at.isBefore(previous)) fallbackDates[id] = at;
+        }
+
+        for (final record in recs) {
+          rememberVisit(record.appointmentId, record.occurredAt);
+        }
+        for (final measurement in vitals.valueOrNull ?? const <Vitals>[]) {
+          rememberVisit(measurement.appointmentId, measurement.recordedAt);
+        }
+        final visitDates = fallbackDates.isEmpty
+            ? const <String, DateTime>{}
+            : ref.watch(recordsVisitDatesProvider).valueOrNull ??
+                  const <String, DateTime>{};
+        return _GroupedList(
+          entries: entries,
+          filter: filter,
+          visitDates: {...fallbackDates, ...visitDates},
+          footer: widget.footer,
+        );
       },
     );
 
@@ -138,12 +196,12 @@ class TimelineScreen extends ConsumerWidget {
       header: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: Space.maxContentWidth),
-          child: _Filters(key: ValueKey(subject), onMedications: onMedications),
+          child: _Filters(key: ValueKey(subject)),
         ),
       ),
       body: RefreshIndicator(
         onRefresh:
-            onRefresh ??
+            widget.onRefresh ??
             () async {
               ref.invalidate(patientTimelinePageProvider);
               ref.invalidate(patientVitalsProvider);
@@ -177,11 +235,11 @@ class TimelineScreen extends ConsumerWidget {
     );
     final workspace = Column(
       children: [
-        ?header,
+        ?widget.header,
         Expanded(child: content),
       ],
     );
-    if (embedded) return workspace;
+    if (widget.embedded) return workspace;
 
     return AppScaffold(
       title: t.recordsTitle,
@@ -192,8 +250,7 @@ class TimelineScreen extends ConsumerWidget {
 }
 
 class _Filters extends ConsumerStatefulWidget {
-  const _Filters({this.onMedications, super.key});
-  final VoidCallback? onMedications;
+  const _Filters({super.key});
 
   @override
   ConsumerState<_Filters> createState() => _FiltersState();
@@ -225,156 +282,110 @@ class _FiltersState extends ConsumerState<_Filters> {
         );
       }
     });
-    final types = filter.types;
     void update(RecordsFilter next) => ref.read(provider.notifier).state = next;
     final t = AppLocalizations.of(context)!;
-    final view = filter.view;
     return Padding(
       padding: const EdgeInsets.fromLTRB(Space.md, 0, Space.md, Space.xs),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Primary action first, the secondary one beside it.
+          FilledButton.icon(
+            onPressed: () => context.push(
+              Uri(
+                path: AppRoutes.patientDocuments,
+                queryParameters: {'patientId': subject},
+              ).toString(),
+            ),
+            icon: const Icon(Icons.description_outlined),
+            label: ReadableLabel(t.paDocuments),
+          ),
+          const SizedBox(height: Space.sm),
           Row(
             children: [
               Expanded(
-                flex: 3,
-                child: FilledButton.icon(
-                  onPressed:
-                      ref.watch(recordsCanManageProvider).valueOrNull == true
-                      ? () => showImportRecordSheet(context, patientId: subject)
-                      : null,
-                  icon: const Icon(Icons.upload_file_outlined),
-                  label: ReadableLabel(t.recordsUploadDocument),
+                child: SearchBar(
+                  controller: _search,
+                  hintText: t.searchRecordsHint,
+                  leading: const Icon(Icons.search),
+                  elevation: const WidgetStatePropertyAll(0),
+                  backgroundColor: WidgetStatePropertyAll(
+                    PatientPalette.of(context).card,
+                  ),
+                  side: WidgetStatePropertyAll(
+                    BorderSide(color: PatientPalette.of(context).divider),
+                  ),
+                  trailing: [
+                    if (filter.query.isNotEmpty)
+                      IconButton(
+                        tooltip: MaterialLocalizations.of(
+                          context,
+                        ).deleteButtonTooltip,
+                        icon: const Icon(Icons.close),
+                        onPressed: () => update(
+                          RecordsFilter(oldestFirst: filter.oldestFirst),
+                        ),
+                      ),
+                  ],
+                  onChanged: (value) => update(
+                    RecordsFilter(
+                      query: value,
+                      oldestFirst: filter.oldestFirst,
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(width: Space.sm),
-              Expanded(
-                flex: 2,
-                child: FilledButton.icon(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: PatientPalette.of(context).softAccent,
-                    foregroundColor: PatientPalette.of(context).onSoftAccent,
+              const SizedBox(width: Space.xs),
+              PopupMenuButton<bool>(
+                tooltip: t.recordsSortFilter,
+                initialValue: filter.oldestFirst,
+                onSelected: (value) => update(
+                  RecordsFilter(query: filter.query, oldestFirst: value),
+                ),
+                itemBuilder: (_) => [
+                  CheckedPopupMenuItem(
+                    value: false,
+                    checked: !filter.oldestFirst,
+                    child: Text(t.recordsNewestFirst),
                   ),
-                  onPressed: () => context.push(
-                    '${AppRoutes.patientSickLeave}?patientId=$subject',
+                  CheckedPopupMenuItem(
+                    value: true,
+                    checked: filter.oldestFirst,
+                    child: Text(t.recordsOldestFirst),
                   ),
-                  icon: const Icon(Icons.event_note_outlined),
-                  label: ReadableLabel(t.quickActionSickLeave),
+                ],
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: Space.sm,
+                    horizontal: Space.xs,
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.filter_list),
+                      const SizedBox(width: Space.xxs),
+                      Text(t.recordsSortFilter),
+                    ],
+                  ),
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: Space.sm),
-          // A flat search field on the card surface (no shadow or heavy
-          // focus ring), with a clear button once something is typed.
-          SearchBar(
-            controller: _search,
-            hintText: t.searchRecordsHint,
-            leading: const Icon(Icons.search),
-            elevation: const WidgetStatePropertyAll(0),
-            backgroundColor: WidgetStatePropertyAll(
-              PatientPalette.of(context).card,
-            ),
-            overlayColor: const WidgetStatePropertyAll(Colors.transparent),
-            side: WidgetStatePropertyAll(
-              BorderSide(color: PatientPalette.of(context).divider),
-            ),
-            shape: const WidgetStatePropertyAll(
-              RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(16)),
-              ),
-            ),
-            trailing: [
-              if (filter.query.isNotEmpty)
-                IconButton(
-                  tooltip: MaterialLocalizations.of(
-                    context,
-                  ).deleteButtonTooltip,
-                  icon: const Icon(Icons.close),
-                  onPressed: () => update(filter.copyWith(query: '')),
-                ),
-            ],
-            onChanged: (v) => update(filter.copyWith(query: v)),
-          ),
-          const SizedBox(height: Space.xs),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                for (final (value, label) in [
-                  (RecordsView.all, t.recordsAll),
-                  (RecordsView.results, t.recordsResults),
-                  (RecordsView.documents, t.recordsDocuments),
-                  (RecordsView.uploads, t.recordsUploads),
-                ])
-                  Padding(
-                    padding: const EdgeInsetsDirectional.only(end: Space.xs),
-                    child: ChoiceChip(
-                      label: Text(label),
-                      selected: view == value,
-                      onSelected: (_) => update(filter.copyWith(view: value)),
-                    ),
-                  ),
-                if (widget.onMedications != null)
-                  ActionChip(
-                    label: Text(t.medicationsSegment),
-                    onPressed: widget.onMedications,
-                  ),
-              ],
-            ),
-          ),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(end: Space.xs),
-                  child: ActionChip(
-                    avatar: Icon(
-                      filter.hasAdvanced
-                          ? Icons.filter_alt
-                          : Icons.filter_alt_outlined,
-                    ),
-                    label: Text(t.recordsFilters),
-                    onPressed: () => showRecordFilters(context, subject),
-                  ),
-                ),
-                for (final rt in RecordType.values)
-                  Padding(
-                    padding: const EdgeInsetsDirectional.only(end: Space.xs),
-                    child: FilterChip(
-                      label: Text(_label(t, rt)),
-                      selected: types.contains(rt),
-                      onSelected: (on) {
-                        final next = {...types};
-                        on ? next.add(rt) : next.remove(rt);
-                        update(filter.copyWith(types: next));
-                      },
-                    ),
-                  ),
-              ],
-            ),
           ),
         ],
       ),
     );
   }
-
-  static String _label(AppLocalizations t, RecordType rt) => switch (rt) {
-    RecordType.visitNote => t.filterVisits,
-    RecordType.labResult => t.filterLabs,
-    RecordType.imaging => t.imagingTitle,
-    RecordType.prescription => t.filterPrescriptions,
-    RecordType.vaccination => t.filterVaccinations,
-    RecordType.discharge => t.recordTypeDischarge,
-    RecordType.referral => t.filterReferrals,
-  };
 }
 
 class _GroupedList extends ConsumerWidget {
-  const _GroupedList({required this.entries, this.footer});
+  const _GroupedList({
+    required this.entries,
+    required this.filter,
+    required this.visitDates,
+    this.footer,
+  });
 
   final List<_Entry> entries;
+  final RecordsFilter filter;
+  final Map<String, DateTime> visitDates;
   final Widget? footer;
 
   @override
@@ -385,7 +396,6 @@ class _GroupedList extends ConsumerWidget {
         : <String>{};
     // Build a flat list with month headers.
     final items = <Widget>[];
-    final groupedVisits = <String>{};
     String? visitOf(_Entry entry) => switch (entry) {
       _RecordEntry(:final record) => record.appointmentId,
       _VitalsEntry(:final vitals) => vitals.appointmentId,
@@ -400,10 +410,26 @@ class _GroupedList extends ConsumerWidget {
     // One rounded card per month; visit groups are linked sub-headers.
     final palette = PatientPalette.of(context);
     final months = <String, List<Widget>>{};
-    for (final e in entries) {
+    final groups = <(bool, String), List<_Entry>>{};
+    for (final entry in entries) {
+      final visit = visitOf(entry);
+      (groups[(visit != null, visit ?? entry.key)] ??= []).add(entry);
+    }
+    DateTime groupDate(List<_Entry> group) =>
+        visitDates[visitOf(group.first)] ?? group.first.at;
+    final sorted = groups.entries.toList()
+      ..sort((a, b) {
+        final byDate = filter.compareDates(
+          groupDate(a.value),
+          groupDate(b.value),
+        );
+        return byDate != 0 ? byDate : a.key.$2.compareTo(b.key.$2);
+      });
+    for (final group in sorted) {
+      final e = group.value.first;
       final visit = visitOf(e);
-      if (visit != null && !groupedVisits.add(visit)) continue;
-      final rows = months.putIfAbsent(fmtMonthYear(e.at), () => []);
+      final date = groupDate(group.value);
+      final rows = months.putIfAbsent(fmtMonthYear(date), () => []);
       if (visit == null) {
         rows.add(tile(e));
       } else {
@@ -415,14 +441,12 @@ class _GroupedList extends ConsumerWidget {
                   context.push(AppRoutes.patientAppointmentDetail(visit)),
               icon: const Icon(Icons.event_note_outlined),
               label: Text(
-                AppLocalizations.of(context)!.fromYourVisitOn(fmtDate(e.at)),
+                AppLocalizations.of(context)!.fromYourVisitOn(fmtDate(date)),
               ),
             ),
           ),
         );
-        rows.addAll(
-          entries.where((entry) => visitOf(entry) == visit).map(tile),
-        );
+        rows.addAll(group.value.map(tile));
       }
     }
     for (final MapEntry(key: month, value: rows) in months.entries) {

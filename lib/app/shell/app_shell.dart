@@ -45,6 +45,7 @@ class AppShell extends StatefulWidget {
     this.compactLeadingCount,
     this.keepCompactSectionsVisible = false,
     this.selectedDestinationFor,
+    this.resetBranchesOnSelect = const {},
     this.compactBarBuilder,
     this.drawer,
     this.expandedAccountBuilder,
@@ -62,6 +63,7 @@ class AppShell extends StatefulWidget {
   /// extra branches (routes retained for deep links) that have no tab of
   /// their own — they highlight the destination they are reached from.
   final int Function(int branchIndex)? selectedDestinationFor;
+  final Set<int> resetBranchesOnSelect;
 
   /// Replaces the stock compact bar (the patient shell's centre-tile bar).
   final Widget Function(
@@ -113,7 +115,8 @@ class _AppShellState extends State<AppShell> {
     widget.navigationShell.goBranch(
       index,
       // Tapping the current tab again pops it to its root...
-      initialLocation: reselected,
+      initialLocation:
+          reselected || widget.resetBranchesOnSelect.contains(index),
     );
     // ...and, if it was already at its root, sends it back to the top.
     if (reselected) _scrollToTop.value++;

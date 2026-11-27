@@ -30,9 +30,19 @@ jobs:
  # for freshness in `checks`, so the build does not regenerate it.
  build:
    runs-on: ubuntu-latest
+   env:
+     REPORT_AI_MODE: ${{ vars.REPORT_AI_MODE }}
+     REPORT_AI_ORIGIN: ${{ vars.REPORT_AI_ORIGIN }}
+     REPORT_AI_CLIENT_TOKEN: ${{ vars.REPORT_AI_CLIENT_TOKEN }}
    steps:
      - name: Checkout
        uses: actions/checkout@v4
+     - name: Set up server runtime
+       uses: actions/setup-node@v4
+       with:
+         node-version: ${{ env.NODE_VERSION }}
+     - name: Validate Care Navigator deployment
+       run: node tools/check_report_ai_deployment.mjs
      - name: Set up Flutter
        uses: subosito/flutter-action@v2
        with:
@@ -50,29 +60,20 @@ jobs:
        # — without this flag the app loads its JS but never renders (blank
        # white page, no catchable error since the CSP block happens before
        # any Dart code runs).
-       #
-       # The report assistant's gateway (services/report_ai) is hosted
-       # separately — Pages only serves static files. Set the repository
-       # variables REPORT_AI_ORIGIN (exact https origin, e.g.
-       # https://ai.example.org) and REPORT_AI_CLIENT_TOKEN to connect it.
-       # The token ends up in the public JavaScript: it only identifies this
-       # build to the gateway's rate limits and is not a secret or a patient
-       # credential. Left unset, the assistant reports "not configured" and
-       # summaries are made on the device.
-       env:
-         REPORT_AI_ORIGIN: ${{ vars.REPORT_AI_ORIGIN }}
-         REPORT_AI_CLIENT_TOKEN: ${{ vars.REPORT_AI_CLIENT_TOKEN }}
-       run: >-
-         flutter build web --release --base-href "/myhealthcare_v2/" --no-web-resources-cdn
-         --dart-define=APP_MODE=demo
-         --dart-define=REPORT_AI_ORIGIN="$REPORT_AI_ORIGIN"
-         --dart-define=REPORT_AI_CLIENT_TOKEN="$REPORT_AI_CLIENT_TOKEN"
+       run: |
+         if [[ "$REPORT_AI_MODE" == offline ]]; then
+           REPORT_AI_ORIGIN=
+           REPORT_AI_CLIENT_TOKEN=
+         fi
+         args=(
+           build web --release --base-href "/myhealthcare_v2/" --no-web-resources-cdn
+           --dart-define=APP_MODE=demo
+           --dart-define=REPORT_AI_ORIGIN="$REPORT_AI_ORIGIN"
+           --dart-define=REPORT_AI_CLIENT_TOKEN="$REPORT_AI_CLIENT_TOKEN"
+         )
+         flutter "${args[@]}"
      - name: Allow the gateway in the page's Content-Security-Policy
-       # Adds exactly REPORT_AI_ORIGIN to connect-src (nothing else, no
-       # wildcards); the tool rejects anything that is not an exact origin.
-       if: ${{ vars.REPORT_AI_ORIGIN != '' }}
-       env:
-         REPORT_AI_ORIGIN: ${{ vars.REPORT_AI_ORIGIN }}
+       if: ${{ vars.REPORT_AI_MODE != 'offline' }}
        run: node tools/set_csp_connect.mjs build/web/index.html "$REPORT_AI_ORIGIN"
      - name: Setup Pages
        uses: actions/configure-pages@v5

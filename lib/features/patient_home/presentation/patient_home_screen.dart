@@ -383,7 +383,8 @@ class _UpcomingAppointments extends ConsumerWidget {
                 SectionHeading(
                   t.sectionUpcomingAppointments,
                   actionLabel: t.paViewAll,
-                  onAction: () => context.go(AppRoutes.patientAppointments),
+                  onAction: () =>
+                      context.go(AppRoutes.patientAppointmentHistory),
                 ),
                 UpcomingAppointmentCarousel(
                   appointments: active,

@@ -6,7 +6,6 @@ import '../../../core/di.dart';
 import '../../../core/failures.dart';
 import '../../../core/result.dart';
 import '../../../domain/entities/entities.dart';
-import '../../../domain/enums.dart';
 import '../../patient/application/patient_data_providers.dart';
 
 class AppointmentRecords {
@@ -40,11 +39,8 @@ final appointmentRecordsProvider = FutureProvider.autoDispose
       final appointment = await ref.watch(
         patientAppointmentByIdProvider(id).future,
       );
-      if (appointment == null ||
-          appointment.status != AppointmentStatus.completed) {
-        throw const AccessDeniedFailure(
-          'Completed appointment access is required.',
-        );
+      if (appointment == null) {
+        throw const AccessDeniedFailure('Appointment access is required.');
       }
       final patientId = appointment.patientId;
       final records = _unwrap(

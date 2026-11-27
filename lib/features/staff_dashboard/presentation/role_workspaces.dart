@@ -73,7 +73,8 @@ final deskArrivalsProvider =
           ).where(
             (a) =>
                 a.status == AppointmentStatus.booked ||
-                a.status == AppointmentStatus.confirmed,
+                a.status == AppointmentStatus.confirmed ||
+                a.status == AppointmentStatus.checkedIn,
           );
       final patients = ref.watch(patientRepositoryProvider);
       final names = <String, String>{};

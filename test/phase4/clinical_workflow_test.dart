@@ -105,6 +105,7 @@ class _FlakyWalkIns implements WalkInTicketRepository {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   group('encounter drafts survive a forced close', () {
     test('a restarted app resumes the saved draft', () async {
       final (c, db) = await seededContainer();
@@ -204,6 +205,34 @@ void main() {
       final (c, db) = await seededContainer();
       await signInAs(c, _doctor);
       final appt = await _visit(c, db);
+      final snapshots = db.select(db.issuedDocumentVersions)
+        ..where((d) => d.idempotencyKey.equals('completion:${appt.id}'));
+      expect(await snapshots.get(), isEmpty);
+      await db
+          .into(db.vitals)
+          .insert(
+            VitalsCompanion.insert(
+              id: 'completion-report-vitals',
+              patientId: appt.patientId,
+              appointmentId: Value(appt.id),
+              recordedAt: appt.slotStart,
+              heartRate: const Value(83),
+            ),
+          );
+      await db
+          .into(db.medicalRecords)
+          .insert(
+            MedicalRecordsCompanion.insert(
+              id: 'completion-report-pending',
+              patientId: appt.patientId,
+              appointmentId: Value(appt.id),
+              authorStaffId: const Value(_doctorId),
+              occurredAt: appt.slotStart,
+              recordType: RecordType.imaging,
+              title: 'Private unreleased finding',
+              body: const Value('A withheld imaging finding'),
+            ),
+          );
       final noticesBefore = await _prescriptionNotices(db);
       final flaky = _FlakyWalkIns(c.read(walkInTicketRepositoryProvider));
       final repo = EncounterRepositoryImpl(
@@ -216,6 +245,7 @@ void main() {
         appointmentId: appt.id,
         staffId: _doctorId,
         note: 'Viral URTI. Supportive care.',
+        outcomeNote: 'Follow up in one week.',
         medications: const [
           DraftMedicationData(name: 'Paracetamol', dose: '500 mg'),
           DraftMedicationData(name: 'Saline spray'),
@@ -242,6 +272,7 @@ void main() {
         db.appointments,
       )..where((a) => a.id.equals(appt.id))).getSingle();
       expect(still.status, AppointmentStatus.inProgress);
+      expect(await snapshots.get(), isEmpty);
 
       // Retry: finalizes exactly once.
       final signed = await repo.finalize(request, idempotencyKey: key);
@@ -268,6 +299,35 @@ void main() {
         db.appointments,
       )..where((a) => a.id.equals(appt.id))).getSingle();
       expect(done.status, AppointmentStatus.completed);
+      final report = (await snapshots.get()).single;
+      expect(report.documentType, ExportDocument.completedVisitReport.name);
+      expect(report.issuerAccountId, _doctorId);
+      final snapshot = jsonDecode(report.contentJson) as Map<String, dynamic>;
+      expect(snapshot['sourceText'], contains('Viral URTI. Supportive care.'));
+      expect(snapshot['sourceText'], contains('Paracetamol'));
+      expect(snapshot['sourceText'], contains('Heart rate 83'));
+      expect(snapshot['sourceText'], contains('Follow up in one week.'));
+      expect(snapshot['sourceText'], contains('awaiting release'));
+      expect(
+        snapshot['sourceText'],
+        isNot(contains('A withheld imaging finding')),
+      );
+
+      await signInAs(c, 'patient50@myhealth.demo');
+      final documents = c.read(documentServiceProvider);
+      final own = await documents.watchForPatient(appt.patientId).first;
+      expect(own.singleWhere((d) => d.id == report.id).appointmentId, appt.id);
+      expect((await documents.download(report.id)).isOk, isTrue);
+
+      await signInAs(c, 'patient4@myhealth.demo');
+      expect(
+        await documents.download(report.id),
+        _fails<AccessDeniedFailure>(),
+      );
+      expect(
+        await c.read(appointmentRepositoryProvider).byId(appt.id),
+        _fails<AccessDeniedFailure>(),
+      );
     });
 
     test('a signed note never changes; corrections are amendments', () async {

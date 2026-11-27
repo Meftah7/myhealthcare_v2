@@ -179,27 +179,83 @@ navigation and FAQ still work.
 
 ## Deploy
 
-GitHub Pages only serves static files, so the gateway runs elsewhere:
+GitHub Pages serves the Flutter build. Run the Node gateway on an HTTPS host
+you control. The included Docker Compose configuration runs the gateway
+on a private network and exposes Caddy on ports 80 and 443 for TLS.
 
-1. Host `server.mjs` (Node 24.13+) on a server or container you control,
-   behind an HTTPS reverse proxy (for example Caddy or nginx with a TLS
-   certificate) that forwards to it. Keep `HOST=127.0.0.1` when the proxy is
-   on the same machine; use `HOST=0.0.0.0` only inside a container or private
-   network.
-2. Set `DEEPSEEK_API_KEY`, `REPORT_AI_CLIENT_TOKENS` (one token per build) and
-   `REPORT_AI_ORIGINS` to the **exact** web origin(s), for GitHub Pages
-   `https://<user>.github.io` (an origin has no path, so not
-   `/myhealthcare_v2`). No wildcards.
-3. Check it: `curl https://<gateway-host>/v1/health -H "Authorization: Bearer <client-token>"`
-   should return `"ready":true`.
-4. In the GitHub repository, **Settings → Secrets and variables → Actions →
-   Variables**, add `REPORT_AI_ORIGIN=https://<gateway-host>` and
-   `REPORT_AI_CLIENT_TOKEN=<client-token>`. The Pages workflow passes them to
-   the build and adds exactly that origin to the page's `connect-src`. (They
-   are variables, not secrets, because the token is public in the built
-   JavaScript anyway.)
-5. To revoke a build, remove its token from `REPORT_AI_CLIENT_TOKENS` and
-   restart the gateway.
+On a host with Docker Compose, point your chosen gateway DNS hostname at
+the host and allow inbound TCP 80 and 443. Run from the repository root:
+
+```sh
+cd services/report_ai
+(umask 077 && cp env.example .env)
+node -e "process.stdout.write(require('node:crypto').randomBytes(32).toString('base64url'))"
+```
+
+Edit the server's ignored `.env` using your host's secret management workflow.
+Use the generated installation token in both the server and Pages settings.
+
+| Runtime setting | Value |
+| --- | --- |
+| `DEEPSEEK_API_KEY` | Provider credential from the host's secret store |
+| `DEEPSEEK_MODEL` | `deepseek-flash` |
+| `REPORT_AI_CLIENT_TOKENS` | Generated base64url token, or a comma-separated list during rotation |
+| `REPORT_AI_ORIGINS` | `https://meftah7.github.io` |
+| `REPORT_AI_HOSTNAME` | Your gateway's public DNS hostname, without scheme or path |
+| `HOST` and `PORT` | Compose sets `0.0.0.0:8790` on its private network. Use `127.0.0.1:8790` when Node and a reverse proxy run directly on the same host. |
+
+```sh
+docker compose up --build -d
+docker compose ps
+```
+
+For a host with managed TLS, build the gateway container with
+`docker build -f services/report_ai/Dockerfile -t myhealth-report-ai .` from the repository
+root and forward HTTPS requests to port 8790. The proxy must forward
+`OPTIONS` and preserve `Origin`, `Authorization`, `Content-Type`, and
+`Idempotency-Key`. The gateway sets CORS responses itself.
+
+In `Meftah7/myhealthcare_v2`, open **Settings → Secrets and variables →
+Actions → Variables** and set these repository variables:
+
+| Actions variable | Value |
+| --- | --- |
+| `REPORT_AI_MODE` | `live`, or `offline` for an intentional offline build. Unset defaults to live. |
+| `REPORT_AI_ORIGIN` | `https://<gateway-hostname>` with no path or trailing slash |
+| `REPORT_AI_CLIENT_TOKEN` | The matching public installation token accepted by the gateway |
+
+Keep the provider key in the gateway environment. The Pages job validates
+the two public variables, checks authenticated readiness and CORS, then builds
+Flutter and adds the exact gateway origin to `connect-src`. An offline build
+omits the gateway origin and token. After changing an Actions variable, rerun
+**Deploy Flutter web app to Pages** to rebuild and deploy the compiled values.
+
+### Verify the deployed gateway
+
+From the repository root, set the actual HTTPS gateway origin and matching
+installation token as shell environment variables. Run:
+
+```sh
+node tools/check_report_ai_deployment.mjs
+node tools/check_report_ai_deployment.mjs --smoke
+```
+
+The first command sends the Pages CORS preflight and an authenticated
+`GET /v1/health`, expecting `ready`, `chat`, and `summarize` to be true.
+The second also calls the provider through `/v1/chat` and
+`/v1/documents/summarize` with synthetic inputs. For the loopback gateway
+from the local setup above, add `--local` to either command.
+
+After Pages deploys, open Care Navigator with a synthetic demo account.
+Check that **Checking** changes to **AI service available**, then ask how
+to change the app language. Attach a synthetic TXT handout, select **Send**,
+and check that the summary matches the handout. Inspect the browser Network
+panel for successful calls to the chosen HTTPS gateway and confirm the
+rendered page's CSP includes that exact origin.
+
+To revoke a build, remove its token from `REPORT_AI_CLIENT_TOKENS` and
+restart the gateway. When rotating a token, rebuild Pages with the new
+token before removing the old one.
 
 ## Evaluation
 

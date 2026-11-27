@@ -168,7 +168,7 @@ void main() {
     test('navigation questions route to the right area', () async {
       expect(
         await ask('how do I book an appointment?'),
-        contains('Appointments'),
+        contains('Book Appointment'),
       );
       expect(await ask('where are my lab results?'), contains('Records'));
       expect(await ask('I want to pay my bill'), contains('Payments'));
@@ -294,7 +294,7 @@ void main() {
       await tester.pump();
       await tester.tap(find.widgetWithIcon(IconButton, Icons.send));
       await _settle(tester);
-      expect(find.textContaining('Appointments'), findsWidgets);
+      expect(find.textContaining('Book Appointment'), findsWidgets);
       final messages = container.read(careNavigatorProvider).messages;
       expect(messages.length, greaterThan(1));
 

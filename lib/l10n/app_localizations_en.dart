@@ -5461,11 +5461,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paEarlierResults => 'Compared with your earlier results';
 
   @override
-  String get paIssuedDocumentsTitle => 'Issued documents';
+  String get paIssuedDocumentsTitle => 'Documents';
 
   @override
   String get paIssuedDocumentsIntro =>
-      'Official documents your care team issued — sick leave, certificates and visit summaries. Files you uploaded are in Health Records.';
+      'Official documents issued by your care team.';
 
   @override
   String get paDocumentsLoadError => 'Couldn\'t load your documents.';
@@ -5475,7 +5475,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paNoIssuedDocumentsBody =>
-      'When your doctor issues a certificate or sick leave, it appears here.';
+      'Reports and certificates appear here once released.';
 
   @override
   String get paDocRevoked => 'Revoked or replaced';
@@ -6053,4 +6053,49 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get faqA10 =>
       'No. The summary only repeats what your document says, and it may be incomplete. Please discuss your document with your doctor.';
+
+  @override
+  String get recordsSortFilter => 'Filter';
+
+  @override
+  String get recordsNewestFirst => 'Newest first';
+
+  @override
+  String get recordsOldestFirst => 'Oldest first';
+
+  @override
+  String get appointmentHistoryTitle => 'Appointment History';
+
+  @override
+  String get viewAllAppointments => 'View all appointments';
+
+  @override
+  String get previousDepartments => 'Previous departments';
+
+  @override
+  String get nextDepartments => 'Next departments';
+
+  @override
+  String get dentalDepartmentDescription =>
+      'Teeth, gums, and oral health care.';
+
+  @override
+  String get appointmentStatusCheckedIn => 'Checked in';
+
+  @override
+  String get visitReportUnavailable =>
+      'A visit report is unavailable for this appointment.';
+
+  @override
+  String get visitReportRenderFailed =>
+      'The report was saved. Its PDF could not be created.';
+
+  @override
+  String get recordedOutcome => 'Clinician outcome';
+
+  @override
+  String get legacyDischargeReport => 'Discharge report';
+
+  @override
+  String get clinicalResultPending => 'Result pending or unavailable';
 }

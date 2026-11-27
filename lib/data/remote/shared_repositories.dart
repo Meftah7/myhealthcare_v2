@@ -148,8 +148,125 @@ class RemoteReferralRequestRepository extends SharedUnavailable
 class UnavailableNotificationRepository extends SharedUnavailable
     implements NotificationRepository {}
 
-class UnavailableRecordRepository extends SharedUnavailable
-    implements RecordRepository {}
+class RemoteRecordRepository extends SharedUnavailable
+    implements RecordRepository {
+  RemoteRecordRepository(this.client);
+
+  final SharedClient client;
+
+  MedicalRecord _signedNote(Map<String, dynamic> row) {
+    final created = _at(row['createdAt']);
+    return MedicalRecord(
+      id: row['id'] as String,
+      patientId: row['patientId'] as String,
+      appointmentId: row['appointmentId'] as String,
+      authorStaffId: row['authorStaffId'] as String,
+      recordType: RecordType.visitNote,
+      title: 'Consultation note',
+      body: [
+        ?row['body'] as String?,
+        ?row['outcome'] as String?,
+      ].where((text) => text.isNotEmpty).join('\n\n'),
+      occurredAt: _at(row['occurredAt']),
+      createdAt: created,
+    );
+  }
+
+  Future<Page<MedicalRecord>> _page(
+    String patientId,
+    PageRequest page, {
+    String? appointmentId,
+  }) async {
+    final data =
+        await client.request(
+              '/api/clinical-records',
+              query: {
+                'patientId': patientId,
+                if (appointmentId != null) 'appointmentId': appointmentId,
+                'offset': page.offset.toString(),
+                'limit': page.size.toString(),
+              },
+            )
+            as Map<String, dynamic>;
+    return Page(
+      items: [
+        for (final row in data['items'] as List)
+          _signedNote(row as Map<String, dynamic>),
+      ],
+      offset: page.offset,
+      hasMore: data['hasMore'] as bool,
+    );
+  }
+
+  @override
+  Future<Result<MedicalRecord>> byId(String id) => _guard(
+    () async => _signedNote(
+      await client.request('/api/clinical-records/${Uri.encodeComponent(id)}')
+          as Map<String, dynamic>,
+    ),
+  );
+
+  @override
+  Future<Result<List<MedicalRecord>>> forAppointment(
+    String patientId,
+    String appointmentId,
+  ) => _guard(
+    () async => (await _page(
+      patientId,
+      const PageRequest(),
+      appointmentId: appointmentId,
+    )).items,
+  );
+
+  @override
+  Future<Result<Page<MedicalRecord>>> timelinePage(
+    String patientId, {
+    PageRequest page = const PageRequest(),
+    Set<RecordType>? types,
+    String? textQuery,
+  }) => _guard(() async {
+    if (types != null &&
+        types.isNotEmpty &&
+        !types.contains(RecordType.visitNote)) {
+      return Page(items: [], offset: page.offset, hasMore: false);
+    }
+    final query = textQuery?.trim().toLowerCase() ?? '';
+    if (query.isEmpty) return _page(patientId, page);
+    var request = const PageRequest(size: PageLimits.maxSize);
+    final matches = <MedicalRecord>[];
+    while (true) {
+      final remote = await _page(patientId, request);
+      matches.addAll(
+        remote.items.where(
+          (r) =>
+              r.title.toLowerCase().contains(query) ||
+              (r.body?.toLowerCase().contains(query) ?? false),
+        ),
+      );
+      if (!remote.hasMore || matches.length > page.offset + page.size) break;
+      request = request.next;
+    }
+    return Page(
+      items: matches.skip(page.offset).take(page.size).toList(),
+      offset: page.offset,
+      hasMore: matches.length > page.offset + page.size,
+    );
+  });
+
+  @override
+  Future<Result<List<MedicalRecord>>> timeline(
+    String patientId, {
+    int limit = 30,
+    int offset = 0,
+    Set<RecordType>? types,
+    String? textQuery,
+  }) async => (await timelinePage(
+    patientId,
+    page: PageRequest(offset: offset, size: limit),
+    types: types,
+    textQuery: textQuery,
+  )).map((page) => page.items);
+}
 
 class UnavailableVitalsRepository extends SharedUnavailable
     implements VitalsRepository {}
@@ -284,15 +401,7 @@ Staff _staff(Map<String, dynamic> j) => Staff(
 );
 
 Appointment _appointment(Map<String, dynamic> j) {
-  final status = switch (j['status']) {
-    'checkedIn' => AppointmentStatus.confirmed,
-    final String s => _enum(
-      AppointmentStatus.values,
-      s,
-      AppointmentStatus.booked,
-    ),
-    _ => AppointmentStatus.booked,
-  };
+  final status = AppointmentStatus.values.byName(j['status'] as String);
   return Appointment(
     id: j['id'] as String,
     patientId: j['patientId'] as String,

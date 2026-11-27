@@ -46,13 +46,13 @@ export const MESSAGES = Object.freeze({
     notFound: "I couldn't find that information in this document.",
     unreadable: "I couldn't read this document. Please attach a clearer copy (a searchable PDF, a Word file or a text file).",
     partial: 'This summary covers only part of the document.',
-    open_appointments: 'Open Appointments to choose a clinician and see available times.',
+    open_appointments: 'Open Book Appointment to choose a clinician and see available times.',
     book_appointment: 'Book an appointment to choose a clinic or doctor and a time that suits you.',
     open_records: 'Open Records to view your saved reports.',
     upload_report: 'Tap the attachment button and choose a PDF, Word or text file.',
     open_messages: 'Open Messages to write to a doctor you have seen.',
     open_medications: 'Open Medications to see your current and past medicines.',
-    open_sick_leave: 'Open Sick leave to see and download your certificates.',
+    open_sick_leave: 'Open Documents to see and download your sick leave certificates.',
     open_profile: 'Open My Profile to update your details, password and preferences.',
   }),
   ar: Object.freeze({
@@ -60,7 +60,7 @@ export const MESSAGES = Object.freeze({
     notFound: 'لم أجد هذه المعلومة في هذا المستند.',
     unreadable: 'لم أتمكن من قراءة هذا المستند. يرجى إرفاق نسخة أوضح (PDF قابل للبحث أو ملف Word أو ملف نصي).',
     partial: 'يغطي هذا الملخص جزءًا فقط من المستند.',
-    open_appointments: 'افتح المواعيد لاختيار الطبيب ومعرفة الأوقات المتاحة.',
+    open_appointments: 'افتح حجز موعد لاختيار الطبيب ومعرفة الأوقات المتاحة.',
     book_appointment: 'احجز موعدًا لاختيار العيادة أو الطبيب والوقت المناسب لك.',
     open_records: 'افتح السجلات لعرض تقاريرك المحفوظة.',
     upload_report: 'اضغط زر الإرفاق واختر ملف PDF أو Word أو ملفًا نصيًا.',
@@ -98,7 +98,7 @@ const RULES = [
 
 export const CHAT_SYSTEM = RULES + '\n' +
   'Task: help the patient use the MyHealth app (appointments, messages with their doctors, records, sick leave, medications list, profile, attaching a document for a summary). ' +
-  'Reply with json only, for example {"reply": "Open Appointments to book a visit.", "action": "open_appointments", "medical": false}. ' +
+  'Reply with json only, for example {"reply": "Open Book Appointment to book a visit.", "action": "open_appointments", "medical": false}. ' +
   '"reply" is at most 3 short sentences; "action" is an id from the list or null; "medical" is true for any medical or health question.';
 
 export const CHUNK_SYSTEM = RULES + '\n' +

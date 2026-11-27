@@ -12,6 +12,7 @@ enum ExportDocument {
   recordSummary,
   originalFile,
   visitSummary,
+  completedVisitReport,
   attendanceCertificate,
   prescriptionCopy,
   releasedLabReport,

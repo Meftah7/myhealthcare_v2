@@ -60,6 +60,7 @@ enum AppointmentStatus {
   completed,
   cancelled,
   noShow,
+  checkedIn,
 }
 
 /// A walk-in ticket's lifecycle (`WalkInTickets`) — a patient sent to a

@@ -8,6 +8,7 @@ import 'package:drift/drift.dart';
 
 import '../../core/failures.dart';
 import '../../core/result.dart';
+import '../../domain/enums.dart';
 import '../../domain/identity/permissions.dart';
 import '../../domain/repositories/document_service.dart';
 import '../../domain/repositories/document_verification_repository.dart';
@@ -120,21 +121,57 @@ class DocumentVerificationRepositoryImpl
       _db.documentTemplates,
     )..where((t) => t.id.equals(version.templateId))).getSingle();
     final clinical = template.clinicalSignatureRequired;
-    final actor = clinical
-        ? await _access.requireClinicalDocumentSigner(
-            patientId: version.patientId,
-            appointmentId: request.appointmentId ?? '',
-          )
-        : await _access.requireScoped(
-            Permission.issueAdministrativeDocument,
-            patientId: version.patientId,
-            appointmentId: request.appointmentId,
-          );
-    if (actor == null || actor.accountId != version.issuerAccountId) {
-      throw const AccessDeniedFailure();
+    final completion =
+        version.documentType == ExportDocument.completedVisitReport.name;
+    if (completion) {
+      final appointmentId = request.appointmentId;
+      final visit = await (_db.select(
+        _db.appointments,
+      )..where((a) => a.id.equals(appointmentId ?? ''))).getSingleOrNull();
+      final signed =
+          await (_db.select(_db.signedNotes)..where(
+                (n) =>
+                    n.appointmentId.equals(appointmentId ?? '') &
+                    n.patientId.equals(version.patientId) &
+                    n.authorStaffId.equals(version.issuerAccountId),
+              ))
+              .getSingleOrNull();
+      await _access.actAsStaff(
+        version.issuerAccountId,
+        Permission.signEncounter,
+        entityType: 'issued_document',
+        entityId: version.id,
+      );
+      if (visit == null ||
+          visit.status != AppointmentStatus.completed ||
+          visit.patientId != version.patientId ||
+          visit.staffId != version.issuerAccountId ||
+          signed == null ||
+          request.requestedBy != version.issuerAccountId ||
+          request.id != 'completion:$appointmentId' ||
+          template.id != 'system.completed-visit.${version.language}.v1' ||
+          template.disclosureProfile != DisclosureProfile.clinic.name ||
+          !clinical ||
+          version.supersedesId != null) {
+        throw const AccessDeniedFailure();
+      }
+    } else {
+      final actor = clinical
+          ? await _access.requireClinicalDocumentSigner(
+              patientId: version.patientId,
+              appointmentId: request.appointmentId ?? '',
+            )
+          : await _access.requireScoped(
+              Permission.issueAdministrativeDocument,
+              patientId: version.patientId,
+              appointmentId: request.appointmentId,
+            );
+      if (actor == null || actor.accountId != version.issuerAccountId) {
+        throw const AccessDeniedFailure();
+      }
     }
-    if (template.approvedAt == null ||
-        template.approvedBy == null ||
+    if ((!completion &&
+            (template.approvedAt == null || template.approvedBy == null)) ||
         template.retiredAt != null ||
         request.patientId != version.patientId ||
         request.templateId != template.id ||

@@ -24,7 +24,6 @@ import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../booking/presentation/booking_screen.dart';
 import '../../patient/application/patient_data_providers.dart';
 import '../../patient/presentation/patient_top_actions.dart';
 import 'slot_picker_sheet.dart';
@@ -36,32 +35,34 @@ class AppointmentsScreen extends ConsumerStatefulWidget {
   ConsumerState<AppointmentsScreen> createState() => _AppointmentsScreenState();
 }
 
-enum _AppointmentFilter { upcoming, past, cancelled }
+enum _AppointmentFilter { all, upcoming, past, cancelled }
 
 class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
   static const _pageSize = 40;
 
   /// Pagination applies to the currently selected filter.
   int _visiblePast = _pageSize;
-  _AppointmentFilter _filter = _AppointmentFilter.upcoming;
+  _AppointmentFilter _filter = _AppointmentFilter.all;
 
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
     final appts = ref.watch(patientAppointmentsProvider);
+    ref.watch(appointmentStatusRefreshProvider);
     final doctors = ref.watch(doctorDirectoryProvider).valueOrNull ?? const {};
     final departments =
         ref.watch(departmentDirectoryProvider).valueOrNull ?? const {};
 
     return AppScaffold(
       hero: true,
-      title: t.appointmentsTitle,
+      title: t.appointmentHistoryTitle,
       actions: const [PatientTopActions()],
       onRefresh: () async => ref.invalidate(patientAppointmentsProvider),
       children: [
         // Filters stay available while the list loads; booking remains below.
         PillSegmented<_AppointmentFilter>(
           segments: [
+            (_AppointmentFilter.all, t.allAppointmentsTitle),
             (_AppointmentFilter.upcoming, t.upcomingLabel),
             (_AppointmentFilter.past, t.pastSectionLabel),
             (
@@ -89,29 +90,29 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
           ],
           data: (list) {
             final now = DateTime.now();
-            bool currentVisit(Appointment a) =>
-                a.isInProgress ||
-                ((a.status == AppointmentStatus.booked ||
-                        a.status == AppointmentStatus.confirmed) &&
-                    !a.slotEnd.isBefore(now));
             final filtered =
                 list
                     .where(
                       (a) => switch (_filter) {
-                        _AppointmentFilter.upcoming => currentVisit(a),
+                        _AppointmentFilter.all => true,
+                        _AppointmentFilter.upcoming => isCurrentAppointment(
+                          a,
+                          now,
+                        ),
                         _AppointmentFilter.past =>
-                          !currentVisit(a) &&
+                          !isCurrentAppointment(a, now) &&
                               a.status != AppointmentStatus.cancelled,
                         _AppointmentFilter.cancelled =>
                           a.status == AppointmentStatus.cancelled,
                       },
                     )
                     .toList()
-                  ..sort(
-                    (a, b) => _filter == _AppointmentFilter.upcoming
+                  ..sort((a, b) {
+                    final date = _filter == _AppointmentFilter.upcoming
                         ? a.slotStart.compareTo(b.slotStart)
-                        : b.slotStart.compareTo(a.slotStart),
-                  );
+                        : b.slotStart.compareTo(a.slotStart);
+                    return date == 0 ? a.id.compareTo(b.id) : date;
+                  });
             final visible = filtered.take(_visiblePast).toList();
             final remaining = filtered.length - visible.length;
             return [
@@ -126,11 +127,13 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
                 CardColumns(
                   children: [
                     for (final a in visible)
-                      _ApptCard(
+                      PatientAppointmentCard(
                         a,
-                        upcoming: currentVisit(a),
+                        upcoming: isCurrentAppointment(a, now),
                         doctor: doctors[a.staffId]?.name,
-                        department: departments[a.departmentId],
+                        department:
+                            departments[a.departmentId ??
+                                doctors[a.staffId]?.departmentId],
                       ),
                   ],
                 ),
@@ -146,38 +149,73 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
             ];
           },
         ),
-        const SizedBox(height: Space.lg),
-        const _EntryButtons(),
       ],
     );
   }
 }
 
-/// The Appointments entry point (redesign v2): "Book Now" jumps straight to
-/// today's (or the soonest) open slots; "Schedule" keeps the date-picking
-/// step for a later visit.
-class _EntryButtons extends StatelessWidget {
-  const _EntryButtons();
+bool isCurrentAppointment(Appointment a, DateTime now) =>
+    a.isInProgress ||
+    a.status == AppointmentStatus.checkedIn ||
+    ((a.status == AppointmentStatus.booked ||
+            a.status == AppointmentStatus.confirmed) &&
+        !a.slotEnd.isBefore(now));
+
+class UpcomingBookingAppointments extends ConsumerWidget {
+  const UpcomingBookingAppointments({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
-    return AdaptiveFormRow(
+    final doctors = ref.watch(doctorDirectoryProvider).valueOrNull ?? const {};
+    final departments =
+        ref.watch(departmentDirectoryProvider).valueOrNull ?? const {};
+    ref.watch(appointmentStatusRefreshProvider);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        EntryCard(
-          icon: Icons.bolt_outlined,
-          title: t.bookNowTitle,
-          subtitle: t.bookNowSubtitle,
-          filled: true,
-          onTap: () =>
-              context.push(AppRoutes.patientBook, extra: BookingMode.now),
-        ),
-        EntryCard(
-          icon: Icons.calendar_month_outlined,
-          title: t.scheduleTitle,
-          subtitle: t.scheduleSubtitle,
-          onTap: () =>
-              context.push(AppRoutes.patientBook, extra: BookingMode.schedule),
+        Text(t.upcomingLabel, style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: Space.sm),
+        ref
+            .watch(patientAppointmentsProvider)
+            .when(
+              loading: () => const SkeletonList(lines: 2),
+              error: (_, _) => ErrorStateView(
+                message: t.couldNotLoadAppointments,
+                onRetry: () => ref.invalidate(patientAppointmentsProvider),
+              ),
+              data: (appointments) {
+                final now = DateTime.now();
+                final current =
+                    appointments
+                        .where((a) => isCurrentAppointment(a, now))
+                        .toList()
+                      ..sort((a, b) {
+                        final date = a.slotStart.compareTo(b.slotStart);
+                        return date == 0 ? a.id.compareTo(b.id) : date;
+                      });
+                if (current.isEmpty) return _EmptyNote(t.nothingBookedNote);
+                return CardColumns(
+                  children: [
+                    for (final a in current)
+                      PatientAppointmentCard(
+                        a,
+                        upcoming: true,
+                        doctor: doctors[a.staffId]?.name,
+                        department:
+                            departments[a.departmentId ??
+                                doctors[a.staffId]?.departmentId],
+                      ),
+                  ],
+                );
+              },
+            ),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: TextButton(
+            onPressed: () => context.push(AppRoutes.patientAppointmentHistory),
+            child: Text(t.viewAllAppointments),
+          ),
         ),
       ],
     );
@@ -202,8 +240,8 @@ class _EmptyNote extends StatelessWidget {
   );
 }
 
-class _ApptCard extends ConsumerWidget {
-  const _ApptCard(
+class PatientAppointmentCard extends ConsumerWidget {
+  const PatientAppointmentCard(
     this.appt, {
     required this.upcoming,
     this.doctor,
@@ -281,7 +319,7 @@ class _ApptCard extends ConsumerWidget {
   }
 }
 
-/// The reschedule/cancel buttons, split out from [_ApptCard] so they can own
+/// The reschedule/cancel buttons, split out from [PatientAppointmentCard] so they can own
 /// their own busy/error state — a card built by a stateless widget has
 /// nowhere to hold "this request is in flight" or "it just failed".
 class ApptActions extends ConsumerStatefulWidget {
@@ -329,6 +367,7 @@ class _ApptActionsState extends ConsumerState<ApptActions> {
     switch (result) {
       case Ok():
         ref.invalidate(patientAppointmentsProvider);
+        ref.invalidate(patientAppointmentByIdProvider(appt.id));
       case Err(:final failure):
         _showError(
           describeFailure(AppLocalizations.of(context)!, failure).message,
@@ -369,6 +408,7 @@ class _ApptActionsState extends ConsumerState<ApptActions> {
     switch (result) {
       case Ok():
         ref.invalidate(patientAppointmentsProvider);
+        ref.invalidate(patientAppointmentByIdProvider(appt.id));
       case Err(:final failure):
         _showError(
           describeFailure(AppLocalizations.of(context)!, failure).message,

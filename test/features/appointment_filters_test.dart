@@ -40,7 +40,7 @@ void main() {
             (ref) async => [
               visit(
                 'upcoming',
-                AppointmentStatus.confirmed,
+                AppointmentStatus.checkedIn,
                 now.add(const Duration(days: 1)),
               ),
               visit(
@@ -88,7 +88,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Upcoming clinician'), findsOneWidget);
     expect(find.text('Active clinician'), findsOneWidget);
-    expect(find.text('Cancelled clinician'), findsNothing);
+    expect(find.text('Checked in'), findsOneWidget);
+    expect(find.text('Cancelled clinician'), findsOneWidget);
+    expect(find.text('Past clinician'), findsOneWidget);
     await tester.tap(find.text('Past'));
     await tester.pumpAndSettle();
     expect(find.text('Past clinician'), findsOneWidget);

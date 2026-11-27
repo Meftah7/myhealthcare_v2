@@ -1,0 +1,28 @@
+services:
+  gateway:
+    build:
+      context: ../..
+      dockerfile: services/report_ai/Dockerfile
+    env_file: .env
+    environment:
+      HOST: 0.0.0.0
+      PORT: "8790"
+      REPORT_AI_REQUIRE_PROVIDER: "true"
+    restart: unless-stopped
+  tls:
+    image: caddy:2-alpine
+    environment:
+      REPORT_AI_HOSTNAME: ${REPORT_AI_HOSTNAME:?Set REPORT_AI_HOSTNAME to your gateway DNS hostname}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - gateway
+    restart: unless-stopped
+volumes:
+  caddy-data:
+  caddy-config:

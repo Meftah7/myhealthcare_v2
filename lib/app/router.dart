@@ -58,7 +58,6 @@ import '../features/care/presentation/document_workspace_screen.dart';
 import '../features/care/presentation/home_visit_screen.dart';
 import '../features/care/presentation/issued_documents_screen.dart';
 import '../features/care/presentation/messages_screen.dart';
-import '../features/care/presentation/sick_leave_screen.dart';
 import '../features/consultation/presentation/consultation_screen.dart';
 import '../features/health_tools/domain/lab_conversion.dart';
 import '../features/health_tools/presentation/emergency_services_screen.dart';
@@ -157,7 +156,7 @@ abstract final class AppRoutes {
 
   /// Appointment detail — pass the appointment id.
   static String patientAppointmentDetail(String id) =>
-      '$patientAppointments/detail/$id';
+      '$patientAppointmentHistory/detail/$id';
   static const patientSummary = '/patient/summary';
   static const patientSettings = '/patient/settings';
   static const patientProfilePersonal = '/patient/settings/personal';
@@ -205,6 +204,7 @@ abstract final class AppRoutes {
   /// Full-screen booking discovery; `?mode=virtual` opens the Virtual Care
   /// (future work) explanation. Every path converges on [patientBook].
   static const patientBookLanding = '/patient/book';
+  static const patientAppointmentHistory = '$patientBookLanding/history';
   static const patientFindClinic = '/patient/book/clinic';
   static const patientFindDoctor = '/patient/book/doctor';
   static const patientFindRegion = '/patient/book/region';
@@ -336,7 +336,7 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
         // Resumed after a guest sign-in the wizard is the root of the stack,
         // so its back arrow falls back to the Appointments tab.
         builder: (_, state) => _ReturnHome(
-          to: AppRoutes.patientAppointments,
+          to: AppRoutes.patientBookLanding,
           child: BookingScreen(
             mode: (state.extra as BookingMode?) ?? BookingMode.schedule,
             initialStaffId: state.uri.queryParameters['staff'],
@@ -346,30 +346,24 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
         ),
       ),
       GoRoute(
-        path: AppRoutes.patientBookLanding,
-        builder: (_, state) => BookAppointmentLandingScreen(
-          initialMode: state.uri.queryParameters['mode'] == 'virtual'
-              ? BookingLandingMode.virtual
-              : BookingLandingMode.general,
-        ),
+        path: AppRoutes.patientAppointments,
+        redirect: (_, state) => state.uri.path == AppRoutes.patientAppointments
+            ? state.uri.replace(path: AppRoutes.patientBookLanding).toString()
+            : null,
         routes: [
           GoRoute(
-            path: 'clinic',
-            builder: (_, _) => const ClinicSearchScreen(),
+            path: 'doctors',
+            builder: (_, _) => const VisitedDoctorsScreen(),
           ),
           GoRoute(
-            path: 'doctor',
-            builder: (_, state) => DoctorSearchScreen(
-              departmentId: state.uri.queryParameters['dept'],
-            ),
-          ),
-          GoRoute(
-            path: 'region',
-            builder: (_, _) => const RegionSearchScreen(),
-          ),
-          GoRoute(
-            path: 'specialties',
-            builder: (_, _) => const SpecialtyGuideScreen(),
+            path: 'detail/:id',
+            redirect: (_, state) => state.uri
+                .replace(
+                  path: AppRoutes.patientAppointmentDetail(
+                    state.pathParameters['id']!,
+                  ),
+                )
+                .toString(),
           ),
         ],
       ),
@@ -639,7 +633,7 @@ StatefulShellRoute _patientShell() {
         AppDestination(
           icon: Icons.calendar_month_outlined,
           selectedIcon: Icons.calendar_month,
-          label: t.navAppointments,
+          label: t.paBookAppointment,
         ),
         AppDestination(
           icon: Icons.forum_outlined,
@@ -664,6 +658,7 @@ StatefulShellRoute _patientShell() {
         expandedAccountBuilder: (entries) =>
             PatientDrawer(primaryEntries: entries),
         selectedDestinationFor: (branch) => branch < 5 ? branch : 0,
+        resetBranchesOnSelect: const {2},
         compactBarBuilder: (context, selected, onSelected) =>
             PatientBottomNavigation(
               destinations: destinations,
@@ -761,9 +756,9 @@ StatefulShellRoute _patientShell() {
               ),
               GoRoute(
                 path: 'sick-leave',
-                builder: (_, state) => SickLeaveScreen(
-                  patientId: state.uri.queryParameters['patientId'],
-                ),
+                redirect: (_, state) => state.uri
+                    .replace(path: AppRoutes.patientDocuments)
+                    .toString(),
               ),
               GoRoute(
                 path: 'documents',
@@ -783,19 +778,43 @@ StatefulShellRoute _patientShell() {
       StatefulShellBranch(
         routes: [
           GoRoute(
-            path: AppRoutes.patientAppointments,
-            builder: (_, _) => const AppointmentsScreen(),
+            path: AppRoutes.patientBookLanding,
+            builder: (_, state) => BookAppointmentLandingScreen(
+              initialMode: state.uri.queryParameters['mode'] == 'virtual'
+                  ? BookingLandingMode.virtual
+                  : BookingLandingMode.general,
+            ),
             routes: [
               GoRoute(
-                path: 'doctors',
-                builder: (_, _) => const VisitedDoctorsScreen(),
+                path: 'clinic',
+                builder: (_, _) => const ClinicSearchScreen(),
               ),
               GoRoute(
-                path: 'detail/:id',
-                builder: (_, state) => AppointmentDetailScreen(
-                  appointmentId: state.pathParameters['id']!,
-                  justBooked: state.uri.queryParameters['booked'] == '1',
+                path: 'doctor',
+                builder: (_, state) => DoctorSearchScreen(
+                  departmentId: state.uri.queryParameters['dept'],
                 ),
+              ),
+              GoRoute(
+                path: 'region',
+                redirect: (_, _) => AppRoutes.patientFindClinic,
+              ),
+              GoRoute(
+                path: 'history',
+                builder: (_, _) => const AppointmentsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'detail/:id',
+                    builder: (_, state) => AppointmentDetailScreen(
+                      appointmentId: state.pathParameters['id']!,
+                      justBooked: state.uri.queryParameters['booked'] == '1',
+                    ),
+                  ),
+                ],
+              ),
+              GoRoute(
+                path: 'specialties',
+                builder: (_, _) => const SpecialtyGuideScreen(),
               ),
             ],
           ),

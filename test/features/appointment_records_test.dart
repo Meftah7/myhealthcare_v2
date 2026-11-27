@@ -147,7 +147,7 @@ void main() {
   });
 
   test(
-    'unknown and unfinished appointments cannot expose encounter records',
+    'unknown appointments are denied and upcoming visits show only linked data',
     () async {
       final c = await patientContainer();
       await expectLater(
@@ -158,9 +158,12 @@ void main() {
       final unfinished = appts.firstWhere(
         (a) => a.status != AppointmentStatus.completed,
       );
-      await expectLater(
-        c.read(appointmentRecordsProvider(unfinished.id).future),
-        throwsA(isA<AccessDeniedFailure>()),
+      final bundle = await c.read(
+        appointmentRecordsProvider(unfinished.id).future,
+      );
+      expect(
+        bundle.records.every((r) => r.appointmentId == unfinished.id),
+        isTrue,
       );
     },
   );

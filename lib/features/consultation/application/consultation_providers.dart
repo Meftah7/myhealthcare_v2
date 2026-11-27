@@ -16,6 +16,7 @@ import '../../../domain/repositories/consultation_repository.dart';
 import '../../../domain/repositories/notification_repository.dart';
 import '../../auth/application/session.dart';
 import '../../patient_chart/application/chart_providers.dart';
+import '../../patient/application/patient_data_providers.dart';
 import '../../staff_dashboard/application/staff_providers.dart';
 
 // --- draft (mirrors the saved draft, keyed by appointment id) ------------
@@ -356,6 +357,8 @@ class ConsultationController {
         );
     if (result.isOk) {
       _ref
+        ..invalidate(patientAppointmentsProvider)
+        ..invalidate(patientAppointmentByIdProvider(appointmentId))
         ..invalidate(consultationDraftProvider(appointmentId))
         ..invalidate(consultationDraftSaveStateProvider(appointmentId))
         ..invalidate(chartTimelinePageProvider(appt.patientId))

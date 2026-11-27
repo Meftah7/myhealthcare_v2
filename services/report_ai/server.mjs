@@ -26,6 +26,7 @@
 import { createServer } from 'node:http';
 import { createHash, timingSafeEqual } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
+import { gatewayEnvironment, isInstallToken } from './config.mjs';
 import {
   DEFAULT_DEEPSEEK_MODEL, InvalidReplyError, LIMITS, ProviderError, answerChat, answerQuestion,
   deepseekProvider, explainReport, summarizeDocument,
@@ -68,7 +69,7 @@ export function createGateway({ tokenHashes, origins = [], provider, now = () =>
 
   function authorize(req) {
     const raw = req.headers.authorization;
-    if (typeof raw !== 'string' || !/^Bearer [A-Za-z0-9_-]{32,128}$/.test(raw)) {
+    if (typeof raw !== 'string' || !raw.startsWith('Bearer ') || !isInstallToken(raw.slice(7))) {
       throw new GatewayError(401, 'unauthorized', 'Client not recognised.');
     }
     const presented = sha256(raw.slice(7));
@@ -221,24 +222,20 @@ export function hashTokens(raw) {
 // `node services/report_ai/server.mjs` — configuration from the environment
 // (a secret store in production; never Git or a client build).
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
-  const key = process.env.DEEPSEEK_API_KEY;
-  const model = process.env.DEEPSEEK_MODEL || DEFAULT_DEEPSEEK_MODEL;
-  const tokenHashes = hashTokens(process.env.REPORT_AI_CLIENT_TOKENS);
-  if (tokenHashes.length === 0) throw new Error('Set REPORT_AI_CLIENT_TOKENS (32+ character client tokens).');
-  const origins = (process.env.REPORT_AI_ORIGINS ?? '').split(',').map(o => o.trim()).filter(Boolean);
-  for (const o of origins) {
-    // Exact origins only: no wildcards, paths or trailing slashes.
-    if (!/^https?:\/\/[A-Za-z0-9.-]+(:\d+)?$/.test(o)) throw new Error(`REPORT_AI_ORIGINS: "${o}" is not an exact origin.`);
+  let settings;
+  try {
+    settings = gatewayEnvironment(process.env);
+  } catch (error) {
+    console.error(error.message);
+    process.exit(2);
   }
+  const { key, tokens, origins, port, host } = settings;
+  const model = process.env.DEEPSEEK_MODEL || DEFAULT_DEEPSEEK_MODEL;
   const server = createGateway({
-    tokenHashes,
+    tokenHashes: hashTokens(tokens.join(',')),
     origins,
     provider: key ? deepseekProvider({ apiKey: key, model }) : undefined,
   });
-  const port = Number(process.env.PORT ?? 8790);
-  // Loopback by default: put the gateway behind an HTTPS reverse proxy. Set
-  // HOST=0.0.0.0 only on a private network or inside a container.
-  const host = process.env.HOST || '127.0.0.1';
   server.listen(port, host, () => {
     // Never the key: only whether one is set, and the model name.
     console.log(`Report AI gateway on ${host}:${port}; DeepSeek ${key ? `configured (model ${model})` : 'NOT configured (503)'}; ${origins.length} allowed origin(s).`);

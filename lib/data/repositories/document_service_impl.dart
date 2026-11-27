@@ -20,6 +20,7 @@ import '../../services/pdf/brand_pdf.dart';
 import '../../services/pdf/issued_sick_leave_pdf.dart';
 import '../db/app_database.dart';
 import 'document_sources.dart';
+import 'completed_visit_snapshot.dart';
 
 /// Sick-leave issuance is committed before rendering. A rendering failure can
 /// therefore be retried without issuing another certificate or reference.
@@ -996,104 +997,197 @@ class DocumentServiceImpl implements DocumentService {
       final visit = await (_db.select(
         _db.appointments,
       )..where((v) => v.id.equals(r.appointmentId!))).getSingle();
-      final previous =
-          await (_db.select(_db.issuedDocumentVersions)
-                ..where((v) => v.requestId.equals(r.id))
-                ..orderBy([(v) => OrderingTerm.desc(v.version)])
-                ..limit(1))
-              .getSingleOrNull();
-      final id = _uuid.v4();
-      await _db
-          .into(_db.issuedDocumentVersions)
-          .insert(
-            IssuedDocumentVersionsCompanion.insert(
-              id: id,
-              requestId: r.id,
-              patientId: r.patientId,
-              templateId: t.id,
-              version: (previous?.version ?? 0) + 1,
-              supersedesId: Value(previous?.id),
-              documentType: t.documentType,
-              language: t.language,
-              disclosureProfile: t.disclosureProfile,
-              patientSnapshotJson: jsonEncode({
-                'id': patient.id,
-                'name': patient.fullName,
-              }),
-              issuerSnapshotJson: jsonEncode(issuerSnapshot),
-              contentJson: jsonEncode({
-                ...content,
-                'visitDate': visit.slotStart.toIso8601String(),
-              }),
-              templateSnapshotJson: jsonEncode({
-                'wording': t.wording,
-                'version': t.version,
-                'approvedBy': t.approvedBy,
-                'approvedAt': t.approvedAt!.toIso8601String(),
-                'clinicName': await _clinicName(),
-                'brandMark': BrandPdf.snapshotMark,
-                'externalToken': base64UrlEncode(
-                  List<int>.generate(32, (_) => _random.nextInt(256)),
-                ).replaceAll('=', ''),
-                'externalBase': await _externalBase(),
-              }),
-              issuerAccountId: actor.accountId,
-              idempotencyKey: idempotencyKey,
-              issuedAt: now,
-            ),
-          );
-      // Registration errors must escape, rolling back every issuance write.
-      _value(await _verification.bindIssuedVersion(id));
-      if (t.documentType == ExportDocument.sickLeaveCertificate.name) {
-        await _db
-            .into(_db.sickLeaveCertificates)
-            .insert(
-              SickLeaveCertificatesCompanion.insert(
-                id: id,
-                patientId: r.patientId,
-                issuedByStaffId: actor.accountId,
-                appointmentId: Value(r.appointmentId),
-                diagnosis: content['diagnosis'] as String? ?? 'Sick leave',
-                fromDate: DateTime.parse(content['leaveStart']! as String),
-                toDate: DateTime.parse(content['leaveEnd']! as String),
-                issuedAt: Value(now),
-              ),
-            );
-      }
-      await _db
-          .into(_db.documentArtifacts)
-          .insert(DocumentArtifactsCompanion.insert(issuedVersionId: id));
-      await _db
-          .into(_db.documentDeliveryEvents)
-          .insert(
-            DocumentDeliveryEventsCompanion.insert(
-              id: _uuid.v4(),
-              issuedVersionId: id,
-              recipientAccountId: patient.id,
-              channel: 'inApp',
-              createdAt: now,
-            ),
-          );
-      await (_db.update(
-        _db.documentRequests,
-      )..where((t) => t.id.equals(r.id))).write(
-        DocumentRequestsCompanion(
-          status: const Value('issued'),
-          updatedAt: Value(now),
-        ),
+      return _persistIssue(
+        r,
+        t,
+        patient,
+        issuer,
+        visit,
+        content,
+        issuerSnapshot,
+        idempotencyKey,
+        now,
       );
-      await _access.audit(
-        'document.issue',
-        entityType: 'issued_document',
-        entityId: id,
-        subjectPatientId: r.patientId,
-        detail: previous == null
-            ? null
-            : jsonEncode({'supersedesId': previous.id}),
-      );
-      return _issued(id);
     });
   });
+
+  /// Called inside encounter finalization after the clinical signature and
+  /// completed status have both been written.
+  Future<IssuedDocument> issueCompletedVisitReport({
+    required String appointmentId,
+    required String issuerId,
+    required DateTime completedAt,
+    required String language,
+  }) async {
+    final visit = await (_db.select(
+      _db.appointments,
+    )..where((v) => v.id.equals(appointmentId))).getSingle();
+    final patient = await (_db.select(
+      _db.users,
+    )..where((u) => u.id.equals(visit.patientId))).getSingle();
+    final issuer = await (_db.select(
+      _db.users,
+    )..where((u) => u.id.equals(issuerId))).getSingle();
+    final arabic = language == 'ar';
+    final templateId = 'system.completed-visit.$language.v1';
+    await _db
+        .into(_db.documentTemplates)
+        .insert(
+          DocumentTemplatesCompanion.insert(
+            id: templateId,
+            documentType: ExportDocument.completedVisitReport.name,
+            version: 1,
+            language: language,
+            disclosureProfile: DisclosureProfile.clinic.name,
+            clinicalSignatureRequired: true,
+            wording: arabic
+                ? 'المريض: {patientName}\nالطبيب: {issuerName}\n\n{sourceText}'
+                : 'Patient: {patientName}\nClinician: {issuerName}\n\n{sourceText}',
+          ),
+          mode: InsertMode.insertOrIgnore,
+        );
+    final template = await (_db.select(
+      _db.documentTemplates,
+    )..where((t) => t.id.equals(templateId))).getSingle();
+    final content = await completedVisitSnapshot(_db, visit, arabic: arabic);
+    final requestId = 'completion:$appointmentId';
+    await _db
+        .into(_db.documentRequests)
+        .insert(
+          DocumentRequestsCompanion.insert(
+            id: requestId,
+            patientId: patient.id,
+            appointmentId: Value(visit.id),
+            templateId: template.id,
+            requestedBy: issuerId,
+            contentJson: jsonEncode(content),
+            idempotencyKey: requestId,
+            status: const Value('approved'),
+            createdAt: completedAt,
+            updatedAt: completedAt,
+          ),
+        );
+    return _persistIssue(
+      await _request(requestId),
+      template,
+      patient,
+      issuer,
+      visit,
+      content,
+      {'accountId': issuer.id, 'name': issuer.fullName},
+      requestId,
+      completedAt,
+    );
+  }
+
+  Future<IssuedDocument> _persistIssue(
+    DocumentRequestRow r,
+    DocumentTemplateRow t,
+    UserRow patient,
+    UserRow issuer,
+    AppointmentRow visit,
+    Map<String, Object?> content,
+    Map<String, Object?> issuerSnapshot,
+    String idempotencyKey,
+    DateTime now,
+  ) async {
+    final previous =
+        await (_db.select(_db.issuedDocumentVersions)
+              ..where((v) => v.requestId.equals(r.id))
+              ..orderBy([(v) => OrderingTerm.desc(v.version)])
+              ..limit(1))
+            .getSingleOrNull();
+    final id = _uuid.v4();
+    await _db
+        .into(_db.issuedDocumentVersions)
+        .insert(
+          IssuedDocumentVersionsCompanion.insert(
+            id: id,
+            requestId: r.id,
+            patientId: r.patientId,
+            templateId: t.id,
+            version: (previous?.version ?? 0) + 1,
+            supersedesId: Value(previous?.id),
+            documentType: t.documentType,
+            language: t.language,
+            disclosureProfile: t.disclosureProfile,
+            patientSnapshotJson: jsonEncode({
+              'id': patient.id,
+              'name': patient.fullName,
+            }),
+            issuerSnapshotJson: jsonEncode(issuerSnapshot),
+            contentJson: jsonEncode({
+              ...content,
+              'visitDate': visit.slotStart.toIso8601String(),
+            }),
+            templateSnapshotJson: jsonEncode({
+              'wording': t.wording,
+              'version': t.version,
+              'approvedBy': t.approvedBy,
+              'approvedAt': t.approvedAt?.toIso8601String(),
+              'clinicName': await _clinicName(),
+              'brandMark': BrandPdf.snapshotMark,
+              'externalToken': base64UrlEncode(
+                List<int>.generate(32, (_) => _random.nextInt(256)),
+              ).replaceAll('=', ''),
+              'externalBase': await _externalBase(),
+            }),
+            issuerAccountId: issuer.id,
+            idempotencyKey: idempotencyKey,
+            issuedAt: now,
+          ),
+        );
+    // Registration errors must escape, rolling back every issuance write.
+    _value(await _verification.bindIssuedVersion(id));
+    if (t.documentType == ExportDocument.sickLeaveCertificate.name) {
+      await _db
+          .into(_db.sickLeaveCertificates)
+          .insert(
+            SickLeaveCertificatesCompanion.insert(
+              id: id,
+              patientId: r.patientId,
+              issuedByStaffId: issuer.id,
+              appointmentId: Value(r.appointmentId),
+              diagnosis: content['diagnosis'] as String? ?? 'Sick leave',
+              fromDate: DateTime.parse(content['leaveStart']! as String),
+              toDate: DateTime.parse(content['leaveEnd']! as String),
+              issuedAt: Value(now),
+            ),
+          );
+    }
+    await _db
+        .into(_db.documentArtifacts)
+        .insert(DocumentArtifactsCompanion.insert(issuedVersionId: id));
+    await _db
+        .into(_db.documentDeliveryEvents)
+        .insert(
+          DocumentDeliveryEventsCompanion.insert(
+            id: _uuid.v4(),
+            issuedVersionId: id,
+            recipientAccountId: patient.id,
+            channel: 'inApp',
+            createdAt: now,
+          ),
+        );
+    await (_db.update(
+      _db.documentRequests,
+    )..where((t) => t.id.equals(r.id))).write(
+      DocumentRequestsCompanion(
+        status: const Value('issued'),
+        updatedAt: Value(now),
+      ),
+    );
+    await _access.audit(
+      'document.issue',
+      entityType: 'issued_document',
+      entityId: id,
+      subjectPatientId: r.patientId,
+      detail: previous == null
+          ? null
+          : jsonEncode({'supersedesId': previous.id}),
+    );
+    return _issued(id);
+  }
 
   Future<IssuedDocument> _issued(String id) async {
     final v = await _version(id);
@@ -1108,6 +1202,9 @@ class DocumentServiceImpl implements DocumentService {
               (t) => t.issuedVersionId.equals(id) & t.channel.equals('inApp'),
             ))
             .getSingle();
+    final request = await _request(v.requestId);
+    final content = jsonDecode(v.contentJson) as Map<String, dynamic>;
+    final issuer = jsonDecode(v.issuerSnapshotJson) as Map<String, dynamic>;
     return IssuedDocument(
       id: id,
       patientId: v.patientId,
@@ -1121,6 +1218,10 @@ class DocumentServiceImpl implements DocumentService {
       documentType: ExportDocument.values.byName(v.documentType),
       language: v.language,
       issuedAt: v.issuedAt,
+      issuerName: issuer['name'] as String?,
+      sourceRecordId: content['sourceId'] as String?,
+      appointmentId: request.appointmentId,
+      appointmentDate: DateTime.tryParse(content['visitDate'] as String? ?? ''),
     );
   }
 

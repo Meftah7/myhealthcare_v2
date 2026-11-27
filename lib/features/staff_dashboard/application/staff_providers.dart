@@ -86,7 +86,8 @@ final staffQueueProvider = FutureProvider<List<Appointment>>((ref) async {
           .where(
             (a) =>
                 a.status == AppointmentStatus.booked ||
-                a.status == AppointmentStatus.confirmed,
+                a.status == AppointmentStatus.confirmed ||
+                a.status == AppointmentStatus.checkedIn,
           )
           .toList()
         ..sort((a, b) => a.slotStart.compareTo(b.slotStart));
@@ -645,7 +646,9 @@ final panelStatsProvider = FutureProvider<PanelStats>((ref) async {
       case AppointmentStatus.inProgress:
         // A live visit — counts as an appointment that happened.
         past++;
-      case AppointmentStatus.booked || AppointmentStatus.confirmed:
+      case AppointmentStatus.booked ||
+          AppointmentStatus.confirmed ||
+          AppointmentStatus.checkedIn:
         if (a.slotStart.isAfter(now)) upcoming++;
     }
   }

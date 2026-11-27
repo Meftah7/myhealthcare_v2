@@ -267,12 +267,12 @@ class _AppointmentCard extends StatelessWidget {
             ),
           ),
           TextButton(
-            onPressed: () => context.go(AppRoutes.patientAppointments),
+            onPressed: () => context.go(AppRoutes.patientAppointmentHistory),
             style: TextButton.styleFrom(foregroundColor: Colors.white),
             child: SizedBox(
               width: double.infinity,
               child: ReadableLabel(
-                t.appointmentsTitle,
+                t.viewAllAppointments,
                 textAlign: TextAlign.center,
               ),
             ),

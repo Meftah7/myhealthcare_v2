@@ -51,7 +51,9 @@ ScheduleCardState scheduleCardStateOf(Appointment a) => switch (a.status) {
   AppointmentStatus.cancelled => ScheduleCardState.done,
   AppointmentStatus.inProgress => ScheduleCardState.arrived,
   AppointmentStatus.noShow => ScheduleCardState.notArrived,
-  AppointmentStatus.booked || AppointmentStatus.confirmed =>
+  AppointmentStatus.booked ||
+  AppointmentStatus.confirmed ||
+  AppointmentStatus.checkedIn =>
     a.wasCalledIn ? ScheduleCardState.called : ScheduleCardState.booked,
 };
 

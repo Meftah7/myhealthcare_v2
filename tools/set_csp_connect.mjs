@@ -10,19 +10,9 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
-export function exactOrigin(raw) {
-  let url;
-  try { url = new URL(raw); } catch { throw new Error(`"${raw}" is not a URL.`); }
-  const local = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
-  if (url.protocol !== 'https:' && !(url.protocol === 'http:' && local)) {
-    throw new Error(`"${raw}" must use https (http only for localhost).`);
-  }
-  if (url.username || url.password || (url.pathname !== '/' && url.pathname !== '') || url.search || url.hash) {
-    throw new Error(`"${raw}" must be an origin only (no path, query or credentials).`);
-  }
-  if (raw.includes('*')) throw new Error('Wildcards are not allowed.');
-  return url.origin;
-}
+import { exactOrigin } from '../services/report_ai/config.mjs';
+
+export { exactOrigin };
 
 /** [html] with [origin] added to the CSP connect-src (once). */
 export function withConnectOrigin(html, origin) {

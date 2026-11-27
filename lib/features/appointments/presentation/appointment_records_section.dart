@@ -14,8 +14,6 @@ import '../../../l10n/app_localizations.dart';
 import '../application/appointment_records_provider.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../billing/presentation/payments_screen.dart' show money;
-import '../../patient/application/patient_documents.dart';
-import '../../patient/presentation/document_download_button.dart';
 
 class AppointmentRecordsSection extends ConsumerWidget {
   const AppointmentRecordsSection({required this.appointmentId, super.key});
@@ -62,7 +60,10 @@ class AppointmentRecordsSection extends ConsumerWidget {
                 ref.invalidate(appointmentRecordsProvider(appointmentId)),
           ),
           data: (bundle) {
-            if (bundle.isEmpty)
+            if (bundle.records.isEmpty &&
+                bundle.vitals.isEmpty &&
+                bundle.medications.isEmpty &&
+                bundle.invoices.isEmpty)
               return EmptyState(
                 icon: Icons.folder_open_outlined,
                 message: t.appointmentRecordsEmpty,
@@ -82,7 +83,23 @@ class AppointmentRecordsSection extends ConsumerWidget {
                       ))
                         ListTile(
                           title: Text(record.title),
-                          subtitle: Text(fmtDateTime(record.occurredAt)),
+                          subtitle: Text(
+                            [
+                              fmtDateTime(record.occurredAt),
+                              if (record.recordType == RecordType.labResult &&
+                                  (record.labValues.isEmpty ||
+                                      record.labValues.any(
+                                        (v) =>
+                                            v.verificationStatus ==
+                                            VerificationStatus.unverified,
+                                      )))
+                                t.clinicalResultPending,
+                              if (record.recordType == RecordType.imaging &&
+                                  (record.body ?? '').trim().isEmpty &&
+                                  !record.hasAttachment)
+                                t.clinicalResultPending,
+                            ].join(' · '),
+                          ),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () =>
                               context.push(AppRoutes.patientRecord(record.id)),
@@ -102,22 +119,6 @@ class AppointmentRecordsSection extends ConsumerWidget {
                             ),
                           ),
                     ],
-                  if (bundle.sickLeave.isNotEmpty) ...[
-                    heading(t.visitSickLeaveHeading),
-                    for (final cert in bundle.sickLeave)
-                      ListTile(
-                        title: Text(cert.diagnosis),
-                        subtitle: Text(
-                          '${fmtDate(cert.fromDate)} – ${fmtDate(cert.toDate)}',
-                        ),
-                        trailing: DocumentDownloadButton(
-                          label: t.certificatePdfLabel,
-                          filename: 'sick-leave-${fmtDate(cert.fromDate)}.pdf',
-                          build: () => buildSickLeave(ref, cert),
-                          dense: true,
-                        ),
-                      ),
-                  ],
                   if (bundle.invoices.isNotEmpty) ...[
                     heading(t.visitInvoicesHeading),
                     for (final invoice in bundle.invoices)
