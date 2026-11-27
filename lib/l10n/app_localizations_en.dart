@@ -1343,7 +1343,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get careNavigatorGreeting =>
-      'Hi! I\'m here to help you use the app. Ask me about your appointments, records, medicines or bills.';
+      'Hi! Ask me how to find something in the app, or tap the upload button to get a summary of a report PDF.';
 
   @override
   String get taskBoardTitle => 'Task board';
@@ -5282,7 +5282,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paChatLiveStatus => 'Live AI';
 
   @override
-  String get paChatOfflineStatus => 'Offline guide · no live AI';
+  String get paChatOfflineStatus => 'On-device assistant · no live AI';
 
   @override
   String paChatReportLabel(String title) {

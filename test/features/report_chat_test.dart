@@ -119,19 +119,27 @@ void main() {
       expect(state.messages.last.text, startsWith(basicSummaryLabel));
     });
 
-    test('follow-up questions say the service is not connected', () async {
-      final c = await _signedIn();
-      final nav = c.read(careNavigatorProvider.notifier);
-      await nav.explainDocument(
-        await _ownRecord(_db, 'patient3@myhealth.demo'),
-      );
-      await nav.send('Is my HbA1c high?');
-      final last = c.read(careNavigatorProvider).messages.last;
-      expect(last.kind, ChatKind.unavailable);
-      // Not a canned answer to the question.
-      expect(last.text, isNot(contains('7.9')));
-      expect(last.text, contains("isn't connected"));
-    });
+    test(
+      'follow-up questions are answered from the report on the device',
+      () async {
+        final c = await _signedIn();
+        final nav = c.read(careNavigatorProvider.notifier);
+        await nav.explainDocument(
+          await _ownRecord(_db, 'patient3@myhealth.demo'),
+        );
+        await nav.send('Is my HbA1c high?');
+        final last = c.read(careNavigatorProvider).messages.last;
+        // Labelled as made on the device, quoting the report's own lines.
+        expect(last.kind, ChatKind.summary);
+        expect(last.quotes, contains('HbA1c 7.9 % H (4.0–5.6)'));
+        expect(last.text, contains('The report labels these results'));
+
+        await nav.send('What is my vitamin D?');
+        final missing = c.read(careNavigatorProvider).messages.last;
+        expect(missing.text, AssistantText.notFound(false));
+        expect(missing.supported, isFalse);
+      },
+    );
   });
 
   group('with the report AI service (mocked contract)', () {

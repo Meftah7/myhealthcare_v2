@@ -25,7 +25,13 @@ String extractPdfText(Uint8List bytes) {
     if (document.pages.count > maxPdfPages) {
       throw const FormatException('too many pages');
     }
-    final text = PdfTextExtractor(document).extractText();
+    final extractor = PdfTextExtractor(document);
+    // Whole lines as they appear on the page: plain extractText() can put
+    // every word on its own line, which loses "test – value – unit – flag".
+    final lines = extractor.extractTextLines();
+    final text = lines.isEmpty
+        ? extractor.extractText()
+        : lines.map((line) => line.text).join('\n');
     return text.length > maxExtractedChars
         ? text.substring(0, maxExtractedChars)
         : text;

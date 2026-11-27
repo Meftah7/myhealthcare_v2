@@ -1341,7 +1341,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get careNavigatorGreeting =>
-      'مرحبًا! أنا هنا لمساعدتك في استخدام التطبيق. اسألني عن مواعيدك أو سجلاتك أو أدويتك أو فواتيرك.';
+      'مرحبًا! اسألني عن أي مكان في التطبيق، أو اضغط زر الرفع لتحصل على ملخص لتقرير PDF.';
 
   @override
   String get taskBoardTitle => 'لوحة المهام';
@@ -5333,7 +5333,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get paChatLiveStatus => 'ذكاء اصطناعي مباشر';
 
   @override
-  String get paChatOfflineStatus => 'دليل دون اتصال · بلا ذكاء اصطناعي مباشر';
+  String get paChatOfflineStatus => 'مساعد على الجهاز · بلا ذكاء اصطناعي مباشر';
 
   @override
   String paChatReportLabel(String title) {

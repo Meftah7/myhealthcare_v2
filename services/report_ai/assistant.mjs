@@ -19,7 +19,10 @@
 import { clipReport, validateChat, verifiedQuotes } from '../shared_api/ai.mjs';
 
 /** Navigation actions the assistant may suggest. The app owns the routes. */
-export const ACTION_IDS = Object.freeze(['open_appointments', 'open_records', 'upload_report']);
+export const ACTION_IDS = Object.freeze([
+  'open_appointments', 'open_records', 'upload_report',
+  'open_messages', 'open_medications', 'open_sick_leave', 'open_profile',
+]);
 
 export const DEFAULT_DEEPSEEK_MODEL = 'deepseek-flash';
 const DEEPSEEK_URL = 'https://api.deepseek.com/chat/completions';
@@ -34,6 +37,10 @@ export const MESSAGES = Object.freeze({
     open_appointments: 'Open Appointments to choose a clinician and see available times.',
     open_records: 'Open Records to view your saved reports.',
     upload_report: 'Open the report upload screen and choose your PDF.',
+    open_messages: 'Open Messages to write to a doctor you have seen.',
+    open_medications: 'Open Medications to see your current and past medicines.',
+    open_sick_leave: 'Open Sick leave to see and download your certificates.',
+    open_profile: 'Open My Profile to update your details, password and preferences.',
   }),
   ar: Object.freeze({
     notFound: 'لم أجد هذه المعلومة في هذا التقرير.',
@@ -43,6 +50,10 @@ export const MESSAGES = Object.freeze({
     open_appointments: 'افتح المواعيد لاختيار الطبيب ومعرفة الأوقات المتاحة.',
     open_records: 'افتح السجلات لعرض تقاريرك المحفوظة.',
     upload_report: 'افتح شاشة رفع التقرير واختر ملف PDF.',
+    open_messages: 'افتح الرسائل لمراسلة الأطباء الذين زرتهم.',
+    open_medications: 'افتح الأدوية لعرض أدويتك الحالية والسابقة.',
+    open_sick_leave: 'افتح الإجازات المرضية لعرض شهاداتك وتنزيلها.',
+    open_profile: 'افتح ملفي الشخصي لتحديث بياناتك وكلمة المرور والتفضيلات.',
   }),
 });
 

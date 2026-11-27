@@ -16,8 +16,20 @@ enum AssistantAction {
   /// Health Records (saved reports).
   openRecords('open_records'),
 
-  /// The existing PDF import sheet, then the report summary.
-  uploadReport('upload_report');
+  /// Pick a PDF; it is saved to Records and summarized in the chat.
+  uploadReport('upload_report'),
+
+  /// Messages with the doctors the patient has seen.
+  openMessages('open_messages'),
+
+  /// Current and past medicines (Health Records, Medications view).
+  openMedications('open_medications'),
+
+  /// Sick-leave certificates.
+  openSickLeave('open_sick_leave'),
+
+  /// My Profile: personal details, password and preferences.
+  openProfile('open_profile');
 
   const AssistantAction(this.id);
 
@@ -37,6 +49,10 @@ enum AssistantAction {
     openAppointments => arabic ? 'فتح المواعيد' : 'Open Appointments',
     openRecords => arabic ? 'فتح السجلات' : 'Open Records',
     uploadReport => arabic ? 'رفع تقرير' : 'Upload report',
+    openMessages => arabic ? 'فتح الرسائل' : 'Open Messages',
+    openMedications => arabic ? 'فتح الأدوية' : 'Open Medications',
+    openSickLeave => arabic ? 'فتح الإجازات المرضية' : 'Open Sick leave',
+    openProfile => arabic ? 'فتح ملفي الشخصي' : 'Open My Profile',
   };
 
   /// The screen it opens; null for an in-place action (upload).
@@ -44,6 +60,10 @@ enum AssistantAction {
     openAppointments => AppRoutes.patientAppointments,
     openRecords => AppRoutes.patientTimeline,
     uploadReport => null,
+    openMessages => AppRoutes.patientMessages,
+    openMedications => AppRoutes.patientMedications,
+    openSickLeave => AppRoutes.patientSickLeave,
+    openProfile => AppRoutes.patientSettings,
   };
 }
 

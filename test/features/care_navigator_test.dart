@@ -219,7 +219,7 @@ void main() {
           .send('how do I book an appointment?');
 
       // No provider is called from the device in any mode: the chat header
-      // reports "Offline guide · no live AI" and replies are the deterministic
+      // reports "On-device assistant · no live AI" and replies are the deterministic
       // navigation guide, consistent with demo mode.
       expect(await container.read(careNavigatorLiveProvider.future), isFalse);
       final reply = container.read(careNavigatorProvider).messages.last.text;
@@ -277,7 +277,7 @@ void main() {
 
       expect(find.byType(CareNavigatorPanel), findsOneWidget);
       expect(find.text('Care Navigator'), findsOneWidget);
-      expect(find.text('Offline guide · no live AI'), findsOneWidget);
+      expect(find.text('On-device assistant · no live AI'), findsOneWidget);
 
       // Ask something and get a navigation answer.
       await tester.enterText(
@@ -435,11 +435,11 @@ void main() {
     (tester) async {
       final container = await _signIn(tester);
       const en =
-          "Hi! I'm here to help you use the app. Ask me about your "
-          'appointments, records, medicines or bills.';
+          'Hi! Ask me how to find something in the app, or tap the upload '
+          'button to get a summary of a report PDF.';
       const ar =
-          'مرحبًا! أنا هنا لمساعدتك في استخدام التطبيق. اسألني عن مواعيدك '
-          'أو سجلاتك أو أدويتك أو فواتيرك.';
+          'مرحبًا! اسألني عن أي مكان في التطبيق، أو اضغط زر الرفع لتحصل على '
+          'ملخص لتقرير PDF.';
 
       // The launcher and the open panel show the same avatar.
       expect(

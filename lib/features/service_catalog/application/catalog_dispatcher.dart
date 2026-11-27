@@ -12,10 +12,9 @@ import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/ui/patient/patient_components.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../ai_chat/application/care_navigator.dart';
+import '../../ai_chat/presentation/care_navigator_panel.dart';
 import '../../booking/presentation/select_hospital_sheet.dart';
 import '../../feedback/presentation/feedback_sheet.dart';
-import '../../timeline/presentation/import_record_sheet.dart';
 import '../domain/patient_catalog.dart';
 
 Future<void> openCatalogItem(
@@ -43,15 +42,11 @@ Future<void> openCatalogItem(
   }
 }
 
-/// Explain a report: the existing PDF import (validation + text extraction)
-/// saves the original to the patient's records, then the report-explanation
-/// chat opens grounded on that record.
-Future<void> startReportExplanation(BuildContext context, WidgetRef ref) async {
-  final record = await showImportRecordSheet(context);
-  if (record == null) return;
-  ref.read(careNavigatorViewProvider.notifier).state = CareNavView.panel;
-  unawaited(ref.read(careNavigatorProvider.notifier).explainDocument(record));
-}
+/// Explain a report: straight to the file picker; the PDF is read on the
+/// device, saved to the patient's records and summarized in the Care
+/// Navigator, which opens to show it.
+Future<void> startReportExplanation(BuildContext context, WidgetRef ref) =>
+    pickAndExplainReport(ref);
 
 /// A planned extension: says plainly it is future work and not part of this
 /// version — no data, no pretend service.

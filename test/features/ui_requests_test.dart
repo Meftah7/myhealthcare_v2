@@ -163,11 +163,19 @@ void main() {
         'Glucose 7.9 mmol/L H\n',
         title: 'Blood test',
       );
-      expect(text, contains('Blood test'));
-      expect(text, contains("iron stores"));
-      expect(text, contains('Marked high: glucose'));
-      expect(text, contains('Marked low: ferritin'));
-      expect(text, contains('talk it through with your doctor'));
+      expect(text, contains('• Type: Lab results'));
+      expect(text, contains('iron stores'));
+      // Values exactly as written, with the report's own labels.
+      expect(
+        text,
+        contains('Glucose 7.9 mmol/L H — the report labels this as High'),
+      );
+      expect(
+        text,
+        contains('Ferritin 8 ng/mL L (15-150) — the report labels this as Low'),
+      );
+      expect(text, contains('1 result as High and 1 result as Low'));
+      expect(text, contains('ask a healthcare professional'));
     });
 
     test('says so when it cannot find results', () {
@@ -175,7 +183,7 @@ void main() {
         'Thank you for your visit.',
         title: 'Letter',
       );
-      expect(text, contains("couldn't spot specific test results"));
+      expect(text, contains("couldn't find test results"));
     });
   });
 }

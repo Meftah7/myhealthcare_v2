@@ -5,6 +5,7 @@
 
 import 'dart:ui' as ui;
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -185,15 +186,43 @@ void main() {
     await open('home-visits');
     expect(_path(c), AppRoutes.patientHomeVisit);
 
-    // Explain a Report opens the report upload sheet, as before.
+    // Explain a Report goes straight to choosing a PDF (no form).
+    final picker = _Picker();
+    final original = FilePickerPlatform.instance;
+    FilePickerPlatform.instance = picker;
+    addTearDown(() => FilePickerPlatform.instance = original);
     c.read(routerProvider).go(AppRoutes.patientServices);
     await _settle(tester);
     await open('explain-report');
-    expect(find.byType(BottomSheet), findsOneWidget);
+    expect(picker.allowed, ['pdf']);
+    expect(find.byType(BottomSheet), findsNothing);
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
   });
+}
+
+/// Records that a PDF was asked for; the patient then cancels.
+class _Picker extends FilePickerPlatform {
+  List<String>? allowed;
+
+  @override
+  Future<PlatformFile?> pickFile({
+    String? dialogTitle,
+    String? initialDirectory,
+    FileType type = FileType.any,
+    List<String>? allowedExtensions,
+    void Function(FilePickerStatus)? onFileLoading,
+    int compressionQuality = 0,
+    AndroidOptions androidOptions = const AndroidOptions(),
+    DarwinOptions darwinOptions = const DarwinOptions(),
+    WindowsOptions windowsOptions = const WindowsOptions(),
+    LinuxOptions linuxOptions = const LinuxOptions(),
+    WebOptions webOptions = const WebOptions(),
+  }) async {
+    allowed = allowedExtensions;
+    return null;
+  }
 }
 
 IconData _iconOf(String id) => switch (id) {

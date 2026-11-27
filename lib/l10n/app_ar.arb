@@ -636,7 +636,7 @@
   "openCareNavigator": "فتح Care Navigator",
   "hideCareNavigator": "إخفاء Care Navigator",
   "showCareNavigator": "إظهار Care Navigator",
-  "careNavigatorGreeting": "مرحبًا! أنا هنا لمساعدتك في استخدام التطبيق. اسألني عن مواعيدك أو سجلاتك أو أدويتك أو فواتيرك.",
+  "careNavigatorGreeting": "مرحبًا! اسألني عن أي مكان في التطبيق، أو اضغط زر الرفع لتحصل على ملخص لتقرير PDF.",
 
   "taskBoardTitle": "لوحة المهام",
   "couldNotLoadTasks": "تعذّر تحميل المهام.",
@@ -2243,7 +2243,7 @@
   "paOnboardRecordsTitle": "سجلاتك الصحية في مكان واحد",
   "paOnboardRecordsBody": "اطّلع على تقاريرك ووصفاتك الطبية وسجل زياراتك. استخدم مساعد الذكاء الاصطناعي للحصول على شرح مبسّط لتقرير بصيغة PDF.",
   "paChatLiveStatus": "ذكاء اصطناعي مباشر",
-  "paChatOfflineStatus": "دليل دون اتصال · بلا ذكاء اصطناعي مباشر",
+  "paChatOfflineStatus": "مساعد على الجهاز · بلا ذكاء اصطناعي مباشر",
   "paChatReportLabel": "شرح: {title}",
   "paViewOriginal": "عرض الأصل",
   "paFutureWork": "عمل مستقبلي",

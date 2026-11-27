@@ -19,18 +19,26 @@
 library;
 
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/data/contracts.dart';
 import '../../../core/di.dart';
+import '../../../core/failures.dart';
+import '../../../core/result.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../domain/repositories/record_repository.dart';
 import '../../../services/ai/report_ai_client.dart';
 import '../../../services/pdf/pdf_text.dart';
 import '../../auth/application/session.dart';
+import '../../patient/application/patient_data_providers.dart';
+import '../../records/application/records_providers.dart';
 import 'assistant_actions.dart';
 import 'assistant_policy.dart';
+import 'report_reader.dart';
 
 enum ChatRole { user, model }
 
@@ -99,8 +107,8 @@ class ChatMessage {
 
 const _greeting = ChatMessage(
   ChatRole.model,
-  "Hi! I'm here to help you use the app. Ask me about your appointments, "
-  'records, medicines or bills.',
+  'Hi! Ask me how to find something in the app, or tap the upload button '
+  'to get a summary of a report PDF.',
   isGreeting: true,
 );
 
@@ -209,7 +217,12 @@ class CareNavigator extends Notifier<CareNavigatorState> {
           arabic: arabic,
           actions: {
             AssistantAction.openAppointments,
-            ...navigationRequests(text, aboutReport: false),
+            // Only an explicit "where / how do I…" part adds a screen; the
+            // medicine in a medicine question is part of what is declined.
+            ...navigationRequests(
+              text,
+              aboutReport: true,
+            ).where((a) => a != AssistantAction.openMedications),
           }.toList(),
         ),
       );
@@ -253,6 +266,16 @@ class CareNavigator extends Notifier<CareNavigatorState> {
     }
 
     if (aboutReport) {
+      if (isSmallTalk(text)) {
+        _append(
+          ChatMessage(
+            ChatRole.model,
+            AssistantText.reportHint(arabic),
+            arabic: arabic,
+          ),
+        );
+        return;
+      }
       await _askAboutReport(text);
       return;
     }
@@ -267,6 +290,7 @@ class CareNavigator extends Notifier<CareNavigatorState> {
               actions: [
                 AssistantAction.openAppointments,
                 AssistantAction.openRecords,
+                AssistantAction.openMessages,
                 AssistantAction.uploadReport,
               ],
             )
@@ -290,16 +314,8 @@ class CareNavigator extends Notifier<CareNavigatorState> {
     final context = state.reportContext!;
     final client = ref.read(reportAiClientProvider);
     if (!client.isConfigured) {
-      _append(
-        const ChatMessage(
-          ChatRole.model,
-          'Questions about this report need the myhealth report AI service, '
-          "which isn't connected in this version of the app. The summary above "
-          'was made on this device, and your doctor can answer questions about '
-          'the report.',
-          kind: ChatKind.unavailable,
-        ),
-      );
+      _append(_answerOnDevice(context, question));
+      _log(live: false);
       return;
     }
     if (question.length > ReportAiLimits.maxQuestionChars) {
@@ -394,6 +410,38 @@ class CareNavigator extends Notifier<CareNavigatorState> {
     }
   }
 
+  /// A report question answered on this device: the report's own lines,
+  /// quoted, or "not found". Labelled as made on the device, not AI.
+  ChatMessage _answerOnDevice(ReportContext context, String question) {
+    final arabic = isArabicText(question);
+    final asksSummary = RegExp(
+      r'\b(summari[sz]e|summary|explain|overview)\b|لخص|لخّص|ملخص|اشرح',
+      caseSensitive: false,
+    ).hasMatch(question);
+    if (asksSummary) {
+      return ChatMessage(
+        ChatRole.model,
+        summarizeReportOnDevice(context.text, title: context.title),
+        kind: ChatKind.summary,
+        arabic: arabic,
+      );
+    }
+    final found = answerFromReportOnDevice(
+      context.text,
+      question,
+      arabic: arabic,
+    );
+    return ChatMessage(
+      ChatRole.model,
+      found?.answer ?? AssistantText.notFound(arabic),
+      kind: ChatKind.summary,
+      quotes: found?.quotes ?? const [],
+      supported: found != null,
+      note: context.extractionPartial ? AssistantText.partial(arabic) : null,
+      arabic: arabic,
+    );
+  }
+
   bool _sameReport(ReportContext context) =>
       identical(state.reportContext, context);
 
@@ -461,7 +509,7 @@ class CareNavigator extends Notifier<CareNavigatorState> {
         reply = ChatMessage(
           ChatRole.model,
           '${reportAiFailureMessage(e.kind)}\n\n$basicSummaryLabel\n\n'
-          '${explainDocumentOffline(text, title: record.title)}',
+          '${summarizeReportOnDevice(text, title: record.title)}',
           kind: ChatKind.summary,
         );
       }
@@ -469,7 +517,7 @@ class CareNavigator extends Notifier<CareNavigatorState> {
       reply = ChatMessage(
         ChatRole.model,
         '$basicSummaryLabel\n\n'
-        '${explainDocumentOffline(text, title: record.title)}',
+        '${summarizeReportOnDevice(text, title: record.title)}',
         kind: ChatKind.summary,
         note: context.extractionPartial ? AssistantText.partial(arabic) : null,
       );
@@ -488,6 +536,129 @@ class CareNavigator extends Notifier<CareNavigatorState> {
     if (!coverage.complete) return clippedReportNote(coverage.totalChars);
     if (extractionPartial) return AssistantText.partial(arabic);
     return null;
+  }
+
+  /// A PDF picked in the chat: read it on the device, save it to the
+  /// patient's Records (with its original file), then summarize it here.
+  /// No form to fill in: the title is the file name, the issuer is the one
+  /// the report names (or "Not stated"), and the patient can open the record
+  /// afterwards.
+  Future<void> importAndExplain({
+    required String fileName,
+    required Uint8List bytes,
+  }) async {
+    final user = ref.read(currentUserProvider);
+    if (state.sending || user == null || !user.isPatient) return;
+    final arabic = _appInArabic();
+    final title = fileName
+        .replaceAll(RegExp(r'\.pdf$', caseSensitive: false), '')
+        .trim();
+    final upload = ChatMessage(ChatRole.user, '📄 $fileName');
+    void fail(String reply, {bool offerUpload = true}) {
+      state = CareNavigatorState(
+        messages: [
+          ...state.messages,
+          upload,
+          ChatMessage(
+            ChatRole.model,
+            reply,
+            arabic: arabic,
+            actions: offerUpload ? const [AssistantAction.uploadReport] : [],
+          ),
+        ],
+        reportContext: state.reportContext,
+      );
+    }
+
+    if (bytes.length > NewSourceFile.maxBytes) {
+      fail(AssistantText.tooLarge(arabic));
+      return;
+    }
+    state = state.copyWith(sending: true);
+    String text;
+    try {
+      text = await extractPdfTextSafely(bytes);
+    } on Object {
+      state = state.copyWith(sending: false);
+      fail(AssistantText.unreadable(arabic));
+      return;
+    }
+    final result = await ref
+        .read(recordRepositoryProvider)
+        .add(
+          NewRecord(
+            patientId: user.id,
+            recordType: _recordTypeFor(text, title),
+            title: title.isEmpty ? 'Uploaded report' : title,
+            occurredAt: DateTime.now(),
+            sourceFacility: reportIssuer(text) ?? 'Not stated',
+            extractedText: text,
+            uploadedByPatient: true,
+            sourceFile: NewSourceFile(
+              fileName: fileName,
+              mimeType: 'application/pdf',
+              bytes: bytes,
+            ),
+            idempotencyKey: IdempotencyKey.generate(),
+          ),
+        );
+    state = state.copyWith(sending: false);
+    MedicalRecord? record;
+    String? before;
+    switch (result) {
+      case Ok(:final value):
+        record = value;
+      case Err(failure: DuplicateUploadFailure(:final recordId)):
+        record = (await ref.read(recordRepositoryProvider).byId(recordId))
+            .valueOrNull;
+        before = AssistantText.alreadyUploaded(arabic);
+      case Err():
+        record = null;
+    }
+    if (record == null) {
+      fail(AssistantText.uploadFailed(arabic));
+      return;
+    }
+    ref
+      ..invalidate(recordsHistoryProvider)
+      ..invalidate(patientTimelinePageProvider);
+    await explainDocument(record);
+    if (before != null) {
+      final messages = [...state.messages];
+      final last = messages.removeLast();
+      messages.add(
+        ChatMessage(
+          last.role,
+          '$before\n\n${last.text}',
+          kind: last.kind,
+          quotes: last.quotes,
+          note: last.note,
+          arabic: last.arabic,
+          actions: last.actions,
+        ),
+      );
+      state = state.copyWith(messages: messages);
+    }
+  }
+
+  static RecordType _recordTypeFor(String text, String title) {
+    final t = '$title ${text.length > 3000 ? text.substring(0, 3000) : text}'
+        .toLowerCase();
+    if (RegExp(r'x-ray|xray|\bmri\b|\bct\b|ultrasound|radiolog').hasMatch(t)) {
+      return RecordType.imaging;
+    }
+    if (t.contains('discharge')) return RecordType.discharge;
+    if (RegExp(r'prescription|\brx\b').hasMatch(t)) {
+      return RecordType.prescription;
+    }
+    if (t.contains('referral')) return RecordType.referral;
+    if (t.contains('vaccin')) return RecordType.vaccination;
+    if (RegExp(
+      r'laborator|\blab\b|blood|panel|hba1c|glucose|hemoglobin',
+    ).hasMatch(t)) {
+      return RecordType.labResult;
+    }
+    return RecordType.visitNote;
   }
 
   /// Nothing readable in the PDF: say so, and offer a clearer copy.
@@ -509,77 +680,32 @@ class CareNavigator extends Notifier<CareNavigatorState> {
     bool has(List<String> ws) => ws.any(t.contains);
     ChatMessage say(String reply) => ChatMessage(ChatRole.model, reply);
 
-    if (has([
-      'bill',
-      'invoice',
-      'pay',
-      'payment',
-      'card',
-      'wallet',
-      'outstanding',
-      'owe',
-      'transaction',
-    ])) {
+    if (has(['bill', 'invoice', 'pay', 'payment', 'wallet', 'owe'])) {
       return say(
-        'Billing & Payments (Home → Quick Access) shows your wallet '
-        'balance with '
-        'a Top up button, every invoice with a Pay button, and your saved '
-        'cards, all in one place.',
+        'Billing & Payments is marked as future work in this version of '
+        'myhealth, so bills and payments are not available here yet.',
       );
     }
-    if (has([
-      'nutrition',
-      'calorie',
-      'macro',
-      'diet',
-      'meal',
-      'food',
-      'bmr',
-      'tdee',
-      'weight',
-    ])) {
+    if (has(['nutrition', 'calorie', 'macro', 'diet', 'meal', 'food'])) {
       return say(
-        'Nutrition (Home → Quick Access) has three views: Targets works '
-        'out your daily '
-        'calories and macros, Foods looks up nutrients, and Meal plan suggests '
-        'allergen-safe meals.',
+        'Nutrition is marked as future work in this version of myhealth. '
+        'You can find it under Services.',
       );
     }
     if (has(['notification', 'alert', 'reminder', 'unread'])) {
       return say(
         'Tap the bell at the top of Home to open your Notifications — '
-        'appointment reminders, lab results and billing alerts land there.',
-      );
-    }
-    if (has([
-      'profile',
-      'password',
-      'email',
-      'phone',
-      'family',
-      'emergency',
-      'blood type',
-      'allergy',
-      'allergies',
-      'setting',
-      'theme',
-      'language',
-    ])) {
-      return say(
-        'Everything about you is in My Profile (Home → Quick Access, or '
-        'tap your picture): personal info, health details, '
-        'payments, preferences (theme & language), notification channels and '
-        'your family network. Tap a section to expand it.',
+        'appointment reminders and results land there.',
       );
     }
     return const ChatMessage(
       ChatRole.model,
-      'I can take you to Appointments or Records, summarize a report PDF you '
-      'choose, or point you to Nutrition, Payments, Notifications or your '
-      'Profile. Which would you like?',
+      'I can take you to Appointments, Records, Messages or your Medications, '
+      'or summarize a report PDF you upload. Which would you like?',
       actions: [
         AssistantAction.openAppointments,
         AssistantAction.openRecords,
+        AssistantAction.openMessages,
         AssistantAction.uploadReport,
       ],
     );
@@ -590,8 +716,7 @@ class CareNavigator extends Notifier<CareNavigatorState> {
 const kReportExplainLimit = 12000;
 
 const basicSummaryLabel =
-    'Basic summary (made on this device by matching common test names — '
-    'not AI):';
+    'Summary made on this device from the report text (not AI):';
 
 /// A plain account of why a live request did not produce an answer.
 String reportAiFailureMessage(ReportAiFailureKind kind) => switch (kind) {
@@ -616,83 +741,10 @@ String clippedReportNote(int length) =>
     '$length characters were explained. Open the original in your Records '
     'for the full report.';
 
-/// What common lab tests measure, in plain words — for the offline
-/// explanation.
-const _plainTests = <String, String>{
-  'hba1c': 'average blood sugar over the last 2–3 months',
-  'glucose': 'sugar in the blood',
-  'cholesterol': 'fat in the blood',
-  'ldl': 'the "bad" cholesterol',
-  'hdl': 'the "good" cholesterol',
-  'triglyceride': 'another type of fat in the blood',
-  'hemoglobin': 'the part of red blood cells that carries oxygen',
-  'haemoglobin': 'the part of red blood cells that carries oxygen',
-  'ferritin': 'the body\'s iron stores',
-  'vitamin d': 'vitamin D, important for bones',
-  'b12': 'vitamin B12, important for nerves and blood',
-  'tsh': 'thyroid function',
-  'creatinine': 'how well the kidneys filter',
-  'egfr': 'how well the kidneys filter',
-  'alt': 'liver health',
-  'ast': 'liver health',
-  'wbc': 'white blood cells, which fight infection',
-  'white blood': 'white blood cells, which fight infection',
-  'platelet': 'cells that help blood clot',
-  'sodium': 'a salt that balances body fluids',
-  'potassium': 'a salt important for the heart and muscles',
-  'crp': 'inflammation in the body',
-};
-
-/// A plain-language explanation of a document's text without a live model:
-/// the tests it mentions, what they measure, and any marked high or low.
-String explainDocumentOffline(String text, {required String title}) {
-  final lines = text.split(RegExp(r'[\r\n]+'));
-  final found = <String, String>{};
-  final high = <String>{};
-  final low = <String>{};
-  for (final raw in lines) {
-    final line = raw.toLowerCase();
-    for (final MapEntry(key: test, value: meaning) in _plainTests.entries) {
-      if (!RegExp('\\b${RegExp.escape(test)}').hasMatch(line)) continue;
-      found.putIfAbsent(test, () => meaning);
-      if (RegExp(r'\b(high|elevated|h)\b|↑').hasMatch(line)) high.add(test);
-      if (RegExp(r'\b(low|decreased|l)\b|↓').hasMatch(line)) low.add(test);
-    }
-  }
-  String name(String t) => t.length <= 4 ? t.toUpperCase() : t;
-  final out = StringBuffer('Here is a simple summary of "$title".\n\n');
-  if (found.isEmpty) {
-    out.write(
-      "I couldn't spot specific test results in it, so I can't summarise "
-      'the findings myself. ',
-    );
-  } else {
-    out.write('It includes:\n');
-    for (final MapEntry(key: t, value: meaning) in found.entries.take(8)) {
-      out.write('• ${name(t)} — $meaning\n');
-    }
-    out.write('\n');
-    if (high.isEmpty && low.isEmpty) {
-      out.write(
-        'Nothing is clearly marked high or low in the text I could read. '
-        'That does not confirm the results are normal. ',
-      );
-    } else {
-      if (high.isNotEmpty) {
-        out.write('Marked high: ${high.map(name).join(', ')}. ');
-      }
-      if (low.isNotEmpty) {
-        out.write('Marked low: ${low.map(name).join(', ')}. ');
-      }
-      out.write('One result outside the range is not a diagnosis on its own. ');
-    }
-  }
-  out.write(
-    '\n\nIt is saved in your Records, and a clinician will review it. '
-    'Please talk it through with your doctor.',
-  );
-  return out.toString();
-}
+/// A plain summary of a document's text without an AI service (see
+/// [summarizeReportOnDevice]).
+String explainDocumentOffline(String text, {required String title}) =>
+    summarizeReportOnDevice(text, title: title);
 
 final careNavigatorProvider =
     NotifierProvider<CareNavigator, CareNavigatorState>(CareNavigator.new);

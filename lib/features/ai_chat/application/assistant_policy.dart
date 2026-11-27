@@ -94,8 +94,25 @@ final _appointmentsIntent = _re(
   '|موعد|مواعيد|احجز|أحجز|حجز',
 );
 final _recordsIntent = _re(
-  r'\b(records?|reports|my reports?|results|lab results?|labs?|documents|files|medications|medicines|prescriptions|history|timeline|imaging)\b'
+  r'\b(records?|reports|my reports?|results|lab results?|labs?|documents|files|history|timeline|imaging)\b'
   '|سجل|سجلات|سجلاتي|تقارير|تقاريري|نتائج|نتائجي|ملفاتي',
+);
+final _messagesIntent = _re(
+  r'\b(message|messages|chat with|talk to|write to|contact) (my |a |the )?(doctor|clinician|care team|physician)s?\b'
+  r'|\bmy messages\b|\binbox\b'
+  '|راسل|مراسلة|رسالة للطبيب|رسائلي|محادثة الطبيب|أكلم الطبيب|اكلم الطبيب',
+);
+final _medicationsIntent = _re(
+  r'\b(my )?(medications?|medicines?|meds|prescriptions?|drugs)\b'
+  '|أدويتي|ادويتي|الأدوية|الادوية|وصفاتي|الوصفات',
+);
+final _sickLeaveIntent = _re(
+  r'\bsick[- ]?(leave|note)s?\b|\bmedical certificates?\b'
+  '|إجازة مرضية|اجازة مرضية|الإجازات المرضية',
+);
+final _profileIntent = _re(
+  r'\b(profile|password|personal (info|information|details)|my account|account settings|settings|language|dark mode|theme)\b'
+  '|ملفي|الملف الشخصي|كلمة المرور|الإعدادات|الاعدادات|اللغة',
 );
 
 /// The screens a message asks to go to, in a stable order. Inside a report
@@ -110,10 +127,16 @@ List<AssistantAction> navigationRequests(
     return const [];
   }
   final upload = _uploadIntent.hasMatch(text);
+  final sickLeave = _sickLeaveIntent.hasMatch(text);
   return [
     if (upload) AssistantAction.uploadReport,
     if (_appointmentsIntent.hasMatch(text)) AssistantAction.openAppointments,
-    if (!upload && _recordsIntent.hasMatch(text)) AssistantAction.openRecords,
+    if (_messagesIntent.hasMatch(text)) AssistantAction.openMessages,
+    if (_medicationsIntent.hasMatch(text)) AssistantAction.openMedications,
+    if (sickLeave) AssistantAction.openSickLeave,
+    if (_profileIntent.hasMatch(text)) AssistantAction.openProfile,
+    if (!upload && !sickLeave && _recordsIntent.hasMatch(text))
+      AssistantAction.openRecords,
   ];
 }
 
@@ -122,6 +145,14 @@ final _summaryRequest = _re(
   r'|\bwhat does (my|the|this) (report|pdf|result) say'
   '|لخص|لخّص|ملخص|اشرح|حلل|حلّل',
 );
+
+final _smallTalk = _re(
+  r'^\s*(hi|hello|hey|hiya|good (morning|afternoon|evening)|thanks|thank you|thx|ok|okay|cool|great|bye)\b[\s!.,]*(there|so much|a lot)?[\s!.,]*$'
+  r'|^\s*(مرحبا|مرحبًا|اهلا|أهلا|السلام عليكم|شكرا|شكرًا|تمام|حسنا|حسنًا)[\s!.,؟]*$',
+);
+
+/// A greeting or thanks — nothing to look up.
+bool isSmallTalk(String text) => _smallTalk.hasMatch(text);
 
 /// Asks for a report summary or about "my report" with none selected.
 bool isSummaryRequest(String text) => _summaryRequest.hasMatch(text);
@@ -174,11 +205,48 @@ abstract final class AssistantText {
       ar
           ? 'افتح شاشة رفع التقرير واختر ملف PDF.'
           : 'Open the report upload screen and choose your PDF.',
+    AssistantAction.openMessages =>
+      ar
+          ? 'افتح الرسائل لمراسلة الأطباء الذين زرتهم.'
+          : 'Open Messages to write to a doctor you have seen.',
+    AssistantAction.openMedications =>
+      ar
+          ? 'افتح الأدوية لعرض أدويتك الحالية والسابقة.'
+          : 'Open Medications to see your current and past medicines.',
+    AssistantAction.openSickLeave =>
+      ar
+          ? 'افتح الإجازات المرضية لعرض شهاداتك وتنزيلها.'
+          : 'Open Sick leave to see and download your certificates.',
+    AssistantAction.openProfile =>
+      ar
+          ? 'افتح ملفي الشخصي لتحديث بياناتك وكلمة المرور والتفضيلات.'
+          : 'Open My Profile to update your details, password and '
+                'preferences.',
   };
 
   /// When nothing else matched, in Arabic (the English guide covers more
   /// areas).
   static const fallbackArabic =
-      'يمكنني مساعدتك في الوصول إلى المواعيد أو السجلات أو رفع تقرير، '
-      'وتلخيص تقرير PDF تختاره. ماذا تريد؟';
+      'يمكنني نقلك إلى المواعيد أو السجلات أو الرسائل أو الأدوية، أو رفع '
+      'تقرير PDF وتلخيصه لك. ماذا تريد؟';
+
+  /// Inside a report conversation, for a greeting or thanks.
+  static String reportHint(bool ar) => ar
+      ? 'اسألني عن هذا التقرير، مثل: «ما النتائج المرتفعة؟» أو «ما الخلاصة؟»، '
+            'أو اسألني أين تجد شيئًا في التطبيق.'
+      : 'Ask me about this report — for example, "Which results are high?" '
+            'or "What is the conclusion?" — or ask me where to find something '
+            'in the app.';
+
+  static String uploadFailed(bool ar) => ar
+      ? 'لم أتمكن من حفظ هذا الملف في سجلاتك. يرجى المحاولة مرة أخرى.'
+      : "I couldn't save this file to your Records. Please try again.";
+
+  static String tooLarge(bool ar) => ar
+      ? 'هذا الملف كبير جدًا (الحد الأقصى 20 ميغابايت). يرجى اختيار ملف أصغر.'
+      : 'This file is too large (20 MB at most). Please choose a smaller one.';
+
+  static String alreadyUploaded(bool ar) => ar
+      ? 'لقد رفعت هذا الملف من قبل، وهذا ملخصه.'
+      : 'You uploaded this file before — here is its summary.';
 }

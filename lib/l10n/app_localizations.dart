@@ -2573,7 +2573,7 @@ abstract class AppLocalizations {
   /// No description provided for @careNavigatorGreeting.
   ///
   /// In en, this message translates to:
-  /// **'Hi! I\'m here to help you use the app. Ask me about your appointments, records, medicines or bills.'**
+  /// **'Hi! Ask me how to find something in the app, or tap the upload button to get a summary of a report PDF.'**
   String get careNavigatorGreeting;
 
   /// No description provided for @taskBoardTitle.
@@ -9401,7 +9401,7 @@ abstract class AppLocalizations {
   /// No description provided for @paChatOfflineStatus.
   ///
   /// In en, this message translates to:
-  /// **'Offline guide · no live AI'**
+  /// **'On-device assistant · no live AI'**
   String get paChatOfflineStatus;
 
   /// No description provided for @paChatReportLabel.

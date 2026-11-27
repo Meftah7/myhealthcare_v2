@@ -101,7 +101,10 @@ test('actions come only from the allowlist; links and routes are never shown', a
     { text: doc, question: 'Hemoglobin?' },
   );
   assert.equal(bogus.action, null);
-  assert.deepEqual(ACTION_IDS, ['open_appointments', 'open_records', 'upload_report']);
+  assert.deepEqual(ACTION_IDS, [
+    'open_appointments', 'open_records', 'upload_report',
+    'open_messages', 'open_medications', 'open_sick_leave', 'open_profile',
+  ]);
   for (const answer of ['Book at https://evil.example/book', 'Go to /patient/appointments/book']) {
     await assert.rejects(answerQuestion(
       reply({ answer, supported: true, quotes: ['Hemoglobin 14.2 g/dL'] }),

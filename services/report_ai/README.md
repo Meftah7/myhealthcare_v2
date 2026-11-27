@@ -13,7 +13,8 @@ the only place the AI provider key exists. The provider is **DeepSeek**
    written, "The report labels this as High/Low", short verbatim quotes.
 2. **Guides the patient to a screen** with a real button. The assistant may
    suggest only an action id from `ACTION_IDS` in [assistant.mjs](assistant.mjs):
-   `open_appointments`, `open_records`, `upload_report`. The app maps the id to
+   `open_appointments`, `open_records`, `upload_report`, `open_messages`,
+   `open_medications`, `open_sick_leave`, `open_profile`. The app maps the id to
    its own route or action, chooses the button label, checks the signed-in
    patient may open it, and navigates only when they tap. The model never
    produces a route or URL, and nothing books a visit, submits a form or

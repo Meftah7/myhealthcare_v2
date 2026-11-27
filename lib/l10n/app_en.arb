@@ -636,7 +636,7 @@
   "openCareNavigator": "Open Care Navigator",
   "hideCareNavigator": "Hide Care Navigator",
   "showCareNavigator": "Show Care Navigator",
-  "careNavigatorGreeting": "Hi! I'm here to help you use the app. Ask me about your appointments, records, medicines or bills.",
+  "careNavigatorGreeting": "Hi! Ask me how to find something in the app, or tap the upload button to get a summary of a report PDF.",
 
   "taskBoardTitle": "Task board",
   "couldNotLoadTasks": "Could not load tasks.",
@@ -2315,7 +2315,7 @@
   "paOnboardRecordsTitle": "Your health records, in one place.",
   "paOnboardRecordsBody": "Find your reports, prescriptions and visit history. Use the AI assistant to get a plain-language explanation of a PDF report.",
   "paChatLiveStatus": "Live AI",
-  "paChatOfflineStatus": "Offline guide · no live AI",
+  "paChatOfflineStatus": "On-device assistant · no live AI",
   "paChatReportLabel": "Explaining: {title}",
   "@paChatReportLabel": {
     "placeholders": {

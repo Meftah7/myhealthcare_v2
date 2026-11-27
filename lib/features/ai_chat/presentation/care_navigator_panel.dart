@@ -4,6 +4,7 @@ library;
 
 import 'dart:async';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -13,7 +14,6 @@ import '../../../app/theme/theme.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/application/session.dart';
-import '../../timeline/presentation/import_record_sheet.dart';
 import '../application/assistant_actions.dart';
 import '../application/care_navigator.dart';
 import 'care_navigator_mascot.dart';
@@ -43,13 +43,9 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
     unawaited(ref.read(careNavigatorProvider.notifier).send(text));
   }
 
-  /// The existing PDF import (validation + text extraction) saves the
-  /// original to the patient's records; the summary then starts here.
-  Future<void> _uploadReport() async {
-    final record = await showImportRecordSheet(context);
-    if (record == null) return;
-    unawaited(ref.read(careNavigatorProvider.notifier).explainDocument(record));
-  }
+  /// Straight to the file picker: the PDF is read on this device, saved to
+  /// the patient's Records and summarized here — no form to fill in.
+  Future<void> _uploadReport() => pickAndExplainReport(ref);
 
   /// A tapped assistant button. Checked again now: the signed-in patient
   /// must still be allowed to open it. Only then does anything happen.
@@ -60,7 +56,9 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
     switch (action.route) {
       case final route?:
         ref.read(careNavigatorViewProvider.notifier).state = CareNavView.fab;
-        context.go(route);
+        // Through the app's router itself, so it works wherever the panel
+        // is drawn (bottom bar on a phone, side rail on a laptop).
+        ref.read(routerProvider).go(route);
       case null:
         await _uploadReport();
     }
@@ -424,6 +422,13 @@ class _Bubble extends StatelessWidget {
                         AssistantAction.openRecords => Icons.folder_outlined,
                         AssistantAction.uploadReport =>
                           Icons.upload_file_outlined,
+                        AssistantAction.openMessages => Icons.forum_outlined,
+                        AssistantAction.openMedications =>
+                          Icons.medication_outlined,
+                        AssistantAction.openSickLeave =>
+                          Icons.assignment_outlined,
+                        AssistantAction.openProfile =>
+                          Icons.account_circle_outlined,
                       }, size: 18),
                       label: Text(a.label(arabic: message.arabic)),
                     ),
@@ -513,4 +518,20 @@ class _TypingDotsState extends State<_TypingDots>
       ),
     );
   }
+}
+
+/// Opens the file picker for a PDF, then saves and summarizes it in the
+/// Care Navigator (which opens to show the summary). Used by the chat's
+/// upload button and the "Explain a Report" service.
+Future<void> pickAndExplainReport(WidgetRef ref) async {
+  final file = await FilePicker.pickFile(
+    type: FileType.custom,
+    allowedExtensions: const ['pdf'],
+  );
+  if (file == null) return;
+  final bytes = await file.readAsBytes();
+  ref.read(careNavigatorViewProvider.notifier).state = CareNavView.panel;
+  await ref
+      .read(careNavigatorProvider.notifier)
+      .importAndExplain(fileName: file.name, bytes: bytes);
 }

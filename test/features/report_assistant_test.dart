@@ -7,6 +7,8 @@
 
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,8 +21,10 @@ import 'package:myhealthcare/domain/enums.dart';
 import 'package:myhealthcare/features/ai_chat/application/assistant_actions.dart';
 import 'package:myhealthcare/features/ai_chat/application/assistant_policy.dart';
 import 'package:myhealthcare/features/ai_chat/application/care_navigator.dart';
+import 'package:myhealthcare/features/ai_chat/application/report_reader.dart';
 import 'package:myhealthcare/services/ai/report_ai_client.dart';
 import 'package:myhealthcare/services/pdf/pdf_text.dart';
+import 'package:pdf/widgets.dart' as pw;
 
 import '../support/sessions.dart';
 
@@ -188,6 +192,10 @@ void main() {
         'open_appointments',
         'open_records',
         'upload_report',
+        'open_messages',
+        'open_medications',
+        'open_sick_leave',
+        'open_profile',
       ]);
       final patient = User(
         id: 'p',
@@ -229,6 +237,17 @@ void main() {
       expect(m.text, 'Open the report upload screen and choose your PDF.');
       expect(m.actions, [AssistantAction.uploadReport]);
       expect(m.actions.single.label(arabic: false), 'Upload report');
+
+      m = await _say(c, 'I want to message my doctor');
+      expect(m.actions, [AssistantAction.openMessages]);
+      m = await _say(c, 'Where are my medicines?');
+      expect(m.actions, [AssistantAction.openMedications]);
+      m = await _say(c, 'Where is my sick leave?');
+      expect(m.actions, [AssistantAction.openSickLeave]);
+      m = await _say(c, 'How do I change my password?');
+      expect(m.actions, [AssistantAction.openProfile]);
+      m = await _say(c, 'hello');
+      expect(m.actions, contains(AssistantAction.uploadReport));
 
       m = await _say(c, 'أريد حجز موعد');
       expect(m.arabic, isTrue);
@@ -408,57 +427,217 @@ void main() {
     });
   });
 
-  testWidgets('"Book an appointment" opens Appointments on tap, with no PDF', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(1280, 900);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.reset);
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(
-          const MethodChannel('plugins.it_nomads.com/flutter_secure_storage'),
-          (call) async => null,
+  testWidgets(
+    '"Book an appointment" opens Appointments on tap — phone and laptop',
+    variant: const TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.windows,
+    }),
+    (tester) async {
+      final laptop = defaultTargetPlatform == TargetPlatform.windows;
+      tester.view.physicalSize = laptop
+          ? const Size(1366, 768)
+          : const Size(390, 844);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel('plugins.it_nomads.com/flutter_secure_storage'),
+            (call) async => null,
+          );
+      final c = await _patient();
+      await tester.pumpWidget(
+        UncontrolledProviderScope(container: c, child: const MyHealthCareApp()),
+      );
+      for (var i = 0; i < 20; i++) {
+        await tester.pump(const Duration(milliseconds: 80));
+      }
+      final router = c.read(routerProvider);
+      router.go(AppRoutes.patientHome);
+      c.read(careNavigatorViewProvider.notifier).state = CareNavView.panel;
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 80));
+      }
+
+      await tester.enterText(
+        find.byType(TextField).last,
+        'Book an appointment',
+      );
+      await tester.testTextInput.receiveAction(TextInputAction.send);
+      await tester.pump(const Duration(milliseconds: 300));
+      final button = find.byKey(
+        const ValueKey('assistant-action-open_appointments'),
+      );
+      expect(button, findsOneWidget);
+      expect(find.text('Open Appointments'), findsOneWidget);
+      // Nothing happens until the patient taps.
+      expect(
+        router.routerDelegate.currentConfiguration.uri.path,
+        AppRoutes.patientHome,
+      );
+
+      await tester.tap(
+        button,
+        kind: laptop ? PointerDeviceKind.mouse : PointerDeviceKind.touch,
+      );
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 80));
+      }
+      expect(
+        router.routerDelegate.currentConfiguration.uri.path,
+        AppRoutes.patientAppointments,
+      );
+      expect(c.read(careNavigatorViewProvider), CareNavView.fab);
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 1));
+    },
+  );
+
+  group('on-device report reader', () {
+    const cbc =
+        'SYNTHETIC TEST REPORT\nLaboratory: Complete blood count\n'
+        'Date: 2026-08-10\nHemoglobin 14.2 g/dL (13.0–17.0)\n'
+        'White blood cells 6.1 x10^9/L (4.0–11.0)\n'
+        'Comment: All values within reference range.';
+    const metabolic =
+        'SYNTHETIC TEST REPORT\nHbA1c 7.9 % H (4.0–5.6)\n'
+        'Fasting glucose 8.4 mmol/L H (3.9–5.5)\n'
+        'LDL cholesterol 4.6 mmol/L H (<3.0)\nCreatinine 88 µmol/L (62–106)\n'
+        'Vitamin B12 98 pmol/L L (145–569)';
+
+    test('summary: type, date, values as written, stated conclusion', () {
+      final s = summarizeReportOnDevice(cbc, title: 'CBC');
+      expect(s, contains('• Type: Complete blood count'));
+      expect(s, contains('• Date on the report: 2026-08-10'));
+      expect(s, contains('Hemoglobin 14.2 g/dL (13.0–17.0)'));
+      expect(
+        s,
+        contains(
+          'Conclusion: the report states “Comment: All values within reference range.”',
+        ),
+      );
+      expect(s, contains('healthcare professional'));
+      // "x10^9/L" and "g/dL" are units, not Low labels.
+      expect(s, isNot(contains('labels this as Low')));
+    });
+
+    test('summary without a stated conclusion counts the labels', () {
+      final s = summarizeReportOnDevice(metabolic, title: 'Panel');
+      expect(
+        s,
+        contains('HbA1c 7.9 % H (4.0–5.6) — the report labels this as High'),
+      );
+      expect(s, contains('3 results as High and 1 result as Low'));
+      expect(s, contains('HbA1c: average blood sugar'));
+      expect(s, contains('does not state an overall conclusion'));
+      expect(reportLabel('Creatinine 88 µmol/L (62–106)'), isNull);
+      expect(reportLabel('Vitamin B12 98 pmol/L L (145–569)'), 'Low');
+    });
+
+    test('answers quote the report; missing answers are null', () {
+      final creatinine = answerFromReportOnDevice(
+        metabolic,
+        'What was my creatinine?',
+        arabic: false,
+      )!;
+      expect(creatinine.quotes, ['Creatinine 88 µmol/L (62–106)']);
+      final b12 = answerFromReportOnDevice(metabolic, 'B12?', arabic: false)!;
+      expect(b12.answer, contains('The report labels this as Low.'));
+      expect(
+        answerFromReportOnDevice(
+          metabolic,
+          'What is my vitamin D?',
+          arabic: false,
+        ),
+        isNull,
+      );
+      expect(
+        answerFromReportOnDevice(
+          cbc,
+          'What is the conclusion?',
+          arabic: false,
+        )!.quotes,
+        ['Comment: All values within reference range.'],
+      );
+      final high = answerFromReportOnDevice(
+        metabolic,
+        'Which results are high?',
+        arabic: false,
+      )!;
+      expect(high.quotes, hasLength(3));
+    });
+  });
+
+  group('upload from the chat', () {
+    Future<Uint8List> pdfOf(List<String> lines) async {
+      final doc = pw.Document()
+        ..addPage(
+          pw.Page(
+            build: (_) =>
+                pw.Column(children: [for (final l in lines) pw.Text(l)]),
+          ),
         );
-    final c = await _patient();
-    await tester.pumpWidget(
-      UncontrolledProviderScope(container: c, child: const MyHealthCareApp()),
-    );
-    for (var i = 0; i < 20; i++) {
-      await tester.pump(const Duration(milliseconds: 80));
-    }
-    final router = c.read(routerProvider);
-    router.go(AppRoutes.patientHome);
-    c.read(careNavigatorViewProvider.notifier).state = CareNavView.panel;
-    for (var i = 0; i < 10; i++) {
-      await tester.pump(const Duration(milliseconds: 80));
+      return doc.save();
     }
 
-    await tester.enterText(find.byType(TextField).last, 'Book an appointment');
-    await tester.testTextInput.receiveAction(TextInputAction.send);
-    await tester.pump(const Duration(milliseconds: 300));
-    final button = find.byKey(
-      const ValueKey('assistant-action-open_appointments'),
-    );
-    expect(button, findsOneWidget);
-    expect(find.text('Open Appointments'), findsOneWidget);
-    // Nothing happens until the patient taps.
-    expect(
-      router.routerDelegate.currentConfiguration.uri.path,
-      AppRoutes.patientHome,
-    );
+    test('a picked PDF is saved to Records and summarized, no form', () async {
+      final c = await _patient();
+      final bytes = await pdfOf([
+        'SYNTHETIC TEST REPORT',
+        'Laboratory: Thyroid function',
+        'TSH 6.8 mIU/L H (0.4-4.0)',
+        'Comment: TSH above the reference range.',
+      ]);
+      final nav = c.read(careNavigatorProvider.notifier);
+      await nav.importAndExplain(fileName: 'thyroid.pdf', bytes: bytes);
 
-    await tester.tap(button);
-    for (var i = 0; i < 10; i++) {
-      await tester.pump(const Duration(milliseconds: 80));
-    }
-    expect(
-      router.routerDelegate.currentConfiguration.uri.path,
-      AppRoutes.patientAppointments,
-    );
-    expect(c.read(careNavigatorViewProvider), CareNavView.fab);
+      final state = c.read(careNavigatorProvider);
+      expect(state.report?.title, 'thyroid');
+      expect(state.messages[state.messages.length - 2].text, '📄 thyroid');
+      final summary = state.messages.last;
+      expect(summary.kind, ChatKind.summary);
+      expect(summary.text, startsWith(basicSummaryLabel));
+      expect(summary.text, contains('TSH 6.8 mIU/L H'));
+      expect(summary.text, contains('Comment: TSH above the reference range.'));
 
-    await tester.pumpWidget(const SizedBox());
-    await tester.pump(const Duration(seconds: 1));
+      // Saved with its original file, for the signed-in patient.
+      final row = await (_db.select(
+        _db.medicalRecords,
+      )..where((r) => r.id.equals(state.report!.id))).getSingle();
+      expect(row.uploadedByPatient, isTrue);
+      expect(row.recordType, RecordType.labResult);
+
+      // The same file again: its summary, said plainly.
+      await nav.importAndExplain(fileName: 'thyroid.pdf', bytes: bytes);
+      expect(
+        c.read(careNavigatorProvider).messages.last.text,
+        startsWith(AssistantText.alreadyUploaded(false)),
+      );
+
+      // Questions about it are answered from its text.
+      expect((await _say(c, 'hello')).text, AssistantText.reportHint(false));
+      expect((await _say(c, 'شكرا')).text, AssistantText.reportHint(true));
+      final m = await _say(c, 'What was my TSH?');
+      expect(m.quotes.first, contains('TSH 6.8 mIU/L H'));
+    });
+
+    test(
+      'a file that is not a readable PDF says so and offers another',
+      () async {
+        final c = await _patient();
+        await c
+            .read(careNavigatorProvider.notifier)
+            .importAndExplain(
+              fileName: 'photo.pdf',
+              bytes: Uint8List.fromList(List.filled(64, 7)),
+            );
+        final last = _last(c);
+        expect(last.text, AssistantText.unreadable(false));
+        expect(last.actions, [AssistantAction.uploadReport]);
+        expect(c.read(careNavigatorProvider).sending, isFalse);
+      },
+    );
   });
 
   test('no provider secret or provider endpoint in the Flutter code', () {
