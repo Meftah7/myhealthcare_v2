@@ -130,6 +130,11 @@ bool _canAccess(String location, UserRole role) {
       isPublicInfoRoute(location);
 }
 
+/// Whether [role] may open [location] — the router's own area rule, for
+/// in-app buttons that must not offer a screen the guard would refuse.
+bool canAccessLocation(String location, UserRole role) =>
+    _canAccess(Uri.parse(location).path, role);
+
 /// Pages anyone may read, signed in or not (no patient data).
 bool isPublicInfoRoute(String location) =>
     location == AppRoutes.policyTerms || location == AppRoutes.policyPrivacy;

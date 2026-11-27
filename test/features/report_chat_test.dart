@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/data/db/app_database.dart';
 import 'package:myhealthcare/domain/entities/entities.dart';
+import 'package:myhealthcare/features/ai_chat/application/assistant_policy.dart';
 import 'package:myhealthcare/features/ai_chat/application/care_navigator.dart';
 import 'package:myhealthcare/features/auth/application/session.dart';
 import 'package:myhealthcare/services/ai/report_ai_client.dart';
@@ -37,7 +38,10 @@ class _FakeClient implements ReportAiClient {
   bool get isConfigured => true;
 
   @override
-  Future<ReportExplanation> explain(String reportText) async {
+  Future<ReportExplanation> explain(
+    String reportText, {
+    bool arabic = false,
+  }) async {
     if (failNext case final e?) {
       failNext = null;
       throw e;
@@ -139,7 +143,7 @@ void main() {
           .explainDocument(await _ownRecord(_db, 'patient3@myhealth.demo'));
       final last = c.read(careNavigatorProvider).messages.last;
       expect(last.kind, ChatKind.live);
-      expect(last.note, clippedReportNote(30000));
+      expect(last.text, startsWith(AssistantText.partial(false)));
     });
 
     test(
@@ -175,6 +179,8 @@ void main() {
         await nav.send('What about vitamin D?');
         last = c.read(careNavigatorProvider).messages.last;
         expect(last.supported, isFalse);
+        // Never the model's own words for an unsupported answer.
+        expect(last.text, AssistantText.notFound(false));
         expect(last.quotes, isEmpty);
         // The earlier question and its live answer are context.
         // Order: explanation, first question, its live answer.

@@ -8,6 +8,12 @@
 /// Without both, [UnconfiguredReportAiClient] reports the capability as
 /// unavailable and the app shows its labelled on-device summary instead.
 ///
+/// Real patient documents: a production build (APP_MODE=production) sends
+/// nothing unless it is also built with
+///   --dart-define=REPORT_AI_REAL_DOCUMENTS_APPROVED=true
+/// — set only once the provider and deployment are approved for that use.
+/// Demo builds hold synthetic data.
+///
 /// Patient/report authorization happens before any call: callers re-read
 /// the record through the access-checked repository and send only that
 /// report's text. Nothing here logs report text or questions.
@@ -15,6 +21,8 @@ library;
 
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../core/di.dart';
 
 /// Why a live request did not produce an answer.
 enum ReportAiFailureKind {
@@ -61,9 +69,22 @@ class ReportCoverage {
 }
 
 class ReportExplanation {
-  const ReportExplanation({required this.answer, required this.coverage});
+  const ReportExplanation({
+    required this.answer,
+    required this.coverage,
+    this.quotes = const [],
+    this.readable = true,
+  });
+
+  /// A few short bullets, or the server's fixed "couldn't read" message.
   final String answer;
   final ReportCoverage coverage;
+
+  /// Excerpts verified on the server to appear verbatim in the report.
+  final List<String> quotes;
+
+  /// False when the text was not readable report content.
+  final bool readable;
 }
 
 /// A grounded answer: [quotes] were verified on the server to appear
@@ -75,12 +96,22 @@ class ReportAnswer {
     required this.supported,
     required this.quotes,
     required this.coverage,
+    this.action,
+    this.refusal = false,
   });
 
   final String answer;
   final bool supported;
   final List<String> quotes;
   final ReportCoverage coverage;
+
+  /// A navigation action id the assistant suggests (or null). Only an id —
+  /// the app maps it to a screen and checks access (AssistantAction).
+  final String? action;
+
+  /// The question asked for a diagnosis, advice or a medicine change, and
+  /// [answer] is the fixed decline.
+  final bool refusal;
 }
 
 /// One earlier turn of the report conversation.
@@ -106,7 +137,8 @@ abstract final class ReportAiLimits {
 abstract interface class ReportAiClient {
   bool get isConfigured;
 
-  Future<ReportExplanation> explain(String reportText);
+  /// A short summary; [arabic] picks the language of its wording.
+  Future<ReportExplanation> explain(String reportText, {bool arabic = false});
 
   Future<ReportAnswer> ask({
     required String reportText,
@@ -122,7 +154,7 @@ class UnconfiguredReportAiClient implements ReportAiClient {
   bool get isConfigured => false;
 
   @override
-  Future<ReportExplanation> explain(String reportText) =>
+  Future<ReportExplanation> explain(String reportText, {bool arabic = false}) =>
       Future.error(const ReportAiException(ReportAiFailureKind.unavailable));
 
   @override
@@ -190,10 +222,19 @@ class GatewayReportAiClient implements ReportAiClient {
     });
   }
 
+  static List<String> _quotes(Object? raw) => [
+    for (final q in (raw is List ? raw : const []))
+      if (q is String) q,
+  ];
+
   @override
-  Future<ReportExplanation> explain(String reportText) async {
+  Future<ReportExplanation> explain(
+    String reportText, {
+    bool arabic = false,
+  }) async {
     final data = await _post('/v1/reports/explain', {
       'text': _bounded(reportText),
+      'lang': arabic ? 'ar' : 'en',
     });
     final answer = data['answer'];
     if (answer is! String || answer.trim().isEmpty) {
@@ -201,6 +242,8 @@ class GatewayReportAiClient implements ReportAiClient {
     }
     return ReportExplanation(
       answer: answer.trim(),
+      quotes: _quotes(data['quotes']),
+      readable: data['readable'] != false,
       coverage: ReportCoverage.fromJson(
         (data['coverage'] as Map?)?.cast<String, dynamic>(),
       ),
@@ -237,13 +280,13 @@ class GatewayReportAiClient implements ReportAiClient {
     if (answer is! String || answer.trim().isEmpty) {
       throw const ReportAiException(ReportAiFailureKind.provider);
     }
+    final action = data['action'];
     return ReportAnswer(
       answer: answer.trim(),
       supported: data['supported'] == true,
-      quotes: [
-        for (final q in (data['quotes'] as List?) ?? const [])
-          if (q is String) q,
-      ],
+      quotes: _quotes(data['quotes']),
+      action: action is String ? action : null,
+      refusal: data['refusal'] == true,
       coverage: ReportCoverage.fromJson(
         (data['coverage'] as Map?)?.cast<String, dynamic>(),
       ),
@@ -253,10 +296,18 @@ class GatewayReportAiClient implements ReportAiClient {
 
 const _origin = String.fromEnvironment('REPORT_AI_ORIGIN');
 const _token = String.fromEnvironment('REPORT_AI_CLIENT_TOKEN');
+const _realDocumentsApproved = bool.fromEnvironment(
+  'REPORT_AI_REAL_DOCUMENTS_APPROVED',
+);
 
 /// The configured client, or [UnconfiguredReportAiClient]. Overridable in
 /// tests.
 final reportAiClientProvider = Provider<ReportAiClient>((ref) {
+  // Real patient documents stay on the device until external processing is
+  // approved; demo builds hold synthetic data.
+  if (!ref.watch(appModeProvider).isDemo && !_realDocumentsApproved) {
+    return const UnconfiguredReportAiClient();
+  }
   final origin = Uri.tryParse(_origin);
   final valid =
       origin != null &&

@@ -1,23 +1,27 @@
-/// The Care Navigator — an in-app assistant that helps patients find their
-/// way around, and the proposal's report chatbot: it explains an uploaded
-/// PDF report and answers follow-up questions grounded in that report.
+/// The Care Navigator — the MyHealth Report Assistant. Two jobs:
+///  1. summarize the patient's selected PDF and answer questions about what
+///     that PDF says (grounded, quoted, never advice);
+///  2. guide the patient to an existing screen with a real button
+///     ([AssistantAction]) — the app picks the label, checks access and
+///     navigates only when they tap.
 ///
-/// Ported from the FirstSemMyHealth `ai-widget.js` + `ai_chat.php`: same
-/// greeting, same emergency-keyword guard, same "navigation helper, not a
-/// doctor" behaviour.
+/// Every message is handled in this order: an explicit emergency gets the
+/// fixed emergency message; a request for a diagnosis, advice or a medicine
+/// change gets the fixed decline (with Open Appointments); "where do I…?"
+/// gets the screen's button — no PDF needed; then, with a report selected,
+/// the question goes to the report AI ([assistant_policy.dart]).
 ///
 /// No AI provider is called from the device and no provider key lives here.
-/// Live report explanations and grounded answers go through the MyHealth
-/// report AI gateway ([reportAiClientProvider]); without it, explanations
-/// are a clearly labelled on-device summary and follow-up questions say the
-/// service is not connected — never canned answers. Navigation help is a
-/// deterministic guide in every mode. Report text and questions are never
-/// logged.
+/// Summaries and answers go through the MyHealth report AI gateway
+/// ([reportAiClientProvider]); without it, summaries are a clearly labelled
+/// on-device summary and report questions say the service is not connected —
+/// never canned answers. Report text and questions are never logged.
 library;
 
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/di.dart';
 import '../../../domain/entities/entities.dart';
@@ -25,6 +29,8 @@ import '../../../domain/enums.dart';
 import '../../../services/ai/report_ai_client.dart';
 import '../../../services/pdf/pdf_text.dart';
 import '../../auth/application/session.dart';
+import 'assistant_actions.dart';
+import 'assistant_policy.dart';
 
 enum ChatRole { user, model }
 
@@ -57,6 +63,8 @@ class ChatMessage {
     this.note,
     this.retryQuestion,
     this.isGreeting = false,
+    this.actions = const [],
+    this.arabic = false,
   });
 
   final ChatRole role;
@@ -80,6 +88,13 @@ class ChatMessage {
   /// (`careNavigatorGreeting`) so it follows the chosen language; [text] is
   /// the English copy for anything outside the UI.
   final bool isGreeting;
+
+  /// Buttons under the message. Shown only when the signed-in patient may
+  /// open the destination; nothing happens until they tap.
+  final List<AssistantAction> actions;
+
+  /// The message is in Arabic: its button labels are too.
+  final bool arabic;
 }
 
 const _greeting = ChatMessage(
@@ -89,35 +104,13 @@ const _greeting = ChatMessage(
   isGreeting: true,
 );
 
-/// Lower-cased phrases that trigger the emergency response (from ai_chat.php).
-const _emergencyPhrases = [
-  'chest pain',
-  'heart attack',
-  "can't breathe",
-  'cannot breathe',
-  'difficulty breathing',
-  'severe bleeding',
-  'unconscious',
-  'stroke',
-  'seizure',
-  'choking',
-  'suicide',
-  'overdose',
-  'anaphylaxis',
-  'allergic reaction',
-  'not breathing',
-];
-
-const _emergencyReply = ChatMessage(
+/// The fixed emergency message: local emergency services, no assessment and
+/// no button to a routine booking.
+ChatMessage _emergencyReply(bool arabic) => ChatMessage(
   ChatRole.model,
-  '🚨 This sounds like it could be a medical emergency.\n\n'
-  'Please act now:\n'
-  '1. Call emergency services (999 / 911)\n'
-  '2. Go to the nearest emergency room\n'
-  '3. Do not wait for an online appointment\n\n'
-  'If someone is with you, ask them to help while you call. '
-  'The Care Navigator cannot replace emergency care.',
+  AssistantText.emergency(arabic),
   isEmergency: true,
+  arabic: arabic,
 );
 
 /// The report a conversation is about. [text] stays in memory only for the
@@ -178,11 +171,6 @@ class CareNavigator extends Notifier<CareNavigatorState> {
     return const CareNavigatorState(messages: [_greeting]);
   }
 
-  bool _isEmergency(String text) {
-    final t = text.toLowerCase();
-    return _emergencyPhrases.any(t.contains);
-  }
-
   void _log({required bool live}) => unawaited(
     ref
         .read(aiUsageRepositoryProvider)
@@ -202,23 +190,87 @@ class CareNavigator extends Notifier<CareNavigatorState> {
     state = state.copyWith(
       messages: [...state.messages, ChatMessage(ChatRole.user, text)],
     );
+    final arabic = isArabicText(text);
+    final aboutReport = state.reportContext != null;
 
-    if (_isEmergency(text)) {
-      state = state.copyWith(messages: [...state.messages, _emergencyReply]);
+    if (isEmergencyStatement(text)) {
+      _append(_emergencyReply(arabic));
       return;
     }
 
-    if (state.reportContext != null) {
+    // Diagnosis, advice, urgency or a medicine change: declined, with the
+    // way to a clinician. A second part asking for a screen still gets its
+    // button ("Do I need medication, and where can I book?").
+    if (isAdviceRequest(text)) {
+      _append(
+        ChatMessage(
+          ChatRole.model,
+          AssistantText.advice(arabic),
+          arabic: arabic,
+          actions: {
+            AssistantAction.openAppointments,
+            ...navigationRequests(text, aboutReport: false),
+          }.toList(),
+        ),
+      );
+      _log(live: false);
+      return;
+    }
+
+    // A summary asked for with no report selected: choose one first.
+    if (!aboutReport && isSummaryRequest(text)) {
+      _append(
+        ChatMessage(
+          ChatRole.model,
+          AssistantText.noReport(arabic),
+          arabic: arabic,
+          actions: {
+            AssistantAction.uploadReport,
+            ...navigationRequests(
+              text,
+              aboutReport: false,
+            ).where((a) => a != AssistantAction.openRecords),
+          }.toList(),
+        ),
+      );
+      _log(live: false);
+      return;
+    }
+
+    // "Where do I…?" — the screen's button; no PDF needed.
+    final places = navigationRequests(text, aboutReport: aboutReport);
+    if (places.isNotEmpty) {
+      _append(
+        ChatMessage(
+          ChatRole.model,
+          places.map((a) => AssistantText.navigation(a, arabic)).join('\n'),
+          arabic: arabic,
+          actions: places,
+        ),
+      );
+      _log(live: false);
+      return;
+    }
+
+    if (aboutReport) {
       await _askAboutReport(text);
       return;
     }
 
-    // Navigation help: the same labelled offline guide in every app mode.
-    state = state.copyWith(
-      messages: [
-        ...state.messages,
-        ChatMessage(ChatRole.model, _offlineReply(text)),
-      ],
+    // Anything else: the deterministic guide to the app's other areas.
+    _append(
+      arabic
+          ? const ChatMessage(
+              ChatRole.model,
+              AssistantText.fallbackArabic,
+              arabic: true,
+              actions: [
+                AssistantAction.openAppointments,
+                AssistantAction.openRecords,
+                AssistantAction.uploadReport,
+              ],
+            )
+          : _offlineReply(text),
     );
     _log(live: false);
   }
@@ -286,16 +338,42 @@ class CareNavigator extends Notifier<CareNavigatorState> {
         history: history,
       );
       if (!_sameReport(context)) return;
-      _append(
-        ChatMessage(
-          ChatRole.model,
-          answer.answer,
-          kind: ChatKind.live,
-          quotes: answer.quotes,
-          supported: answer.supported,
-          note: _coverageNote(answer.coverage, context.extractionPartial),
-        ),
-      );
+      final arabic = isArabicText(question);
+      final action = AssistantAction.fromId(answer.action);
+      final actions = [?action];
+      if (answer.refusal) {
+        // The fixed decline from the gateway, with the way to a clinician.
+        _append(
+          ChatMessage(
+            ChatRole.model,
+            answer.answer,
+            arabic: arabic,
+            actions: {AssistantAction.openAppointments, ...actions}.toList(),
+          ),
+        );
+      } else {
+        _append(
+          ChatMessage(
+            ChatRole.model,
+            // An unsupported answer is never shown in the model's words: the
+            // gateway sends the fixed message (or a screen's text, with its
+            // button); this keeps it so even for an older gateway.
+            answer.supported || action != null
+                ? answer.answer
+                : AssistantText.notFound(arabic),
+            kind: ChatKind.live,
+            quotes: answer.supported ? answer.quotes : const [],
+            supported: answer.supported,
+            note: _coverageNote(
+              answer.coverage,
+              context.extractionPartial,
+              arabic: arabic,
+            ),
+            arabic: arabic,
+            actions: actions,
+          ),
+        );
+      }
       _log(live: true);
     } on ReportAiException catch (e) {
       if (!_sameReport(context)) return;
@@ -350,8 +428,9 @@ class CareNavigator extends Notifier<CareNavigatorState> {
       messages: [...previous, ChatMessage(ChatRole.user, '📄 ${record.title}')],
     );
 
+    final arabic = _appInArabic();
     if (text.isEmpty) {
-      _append(const ChatMessage(ChatRole.model, _noTextReply));
+      _append(_unreadableReply(arabic));
       state = state.copyWith(sending: false);
       return;
     }
@@ -361,14 +440,23 @@ class CareNavigator extends Notifier<CareNavigatorState> {
     var live = false;
     if (client.isConfigured) {
       try {
-        final explanation = await client.explain(text);
-        reply = ChatMessage(
-          ChatRole.model,
-          explanation.answer,
-          kind: ChatKind.live,
-          note: _coverageNote(explanation.coverage, context.extractionPartial),
-        );
-        live = true;
+        final explanation = await client.explain(text, arabic: arabic);
+        if (!explanation.readable) {
+          reply = _unreadableReply(arabic);
+        } else {
+          final partial =
+              !explanation.coverage.complete || context.extractionPartial;
+          reply = ChatMessage(
+            ChatRole.model,
+            partial
+                ? '${AssistantText.partial(arabic)}\n\n${explanation.answer}'
+                : explanation.answer,
+            kind: ChatKind.live,
+            quotes: explanation.quotes,
+            arabic: arabic,
+          );
+          live = true;
+        }
       } on ReportAiException catch (e) {
         reply = ChatMessage(
           ChatRole.model,
@@ -383,7 +471,7 @@ class CareNavigator extends Notifier<CareNavigatorState> {
         '$basicSummaryLabel\n\n'
         '${explainDocumentOffline(text, title: record.title)}',
         kind: ChatKind.summary,
-        note: context.extractionPartial ? extractionPartialNote : null,
+        note: context.extractionPartial ? AssistantText.partial(arabic) : null,
       );
     }
     if (!_sameReport(context)) return;
@@ -394,56 +482,33 @@ class CareNavigator extends Notifier<CareNavigatorState> {
 
   static String? _coverageNote(
     ReportCoverage coverage,
-    bool extractionPartial,
-  ) {
+    bool extractionPartial, {
+    required bool arabic,
+  }) {
     if (!coverage.complete) return clippedReportNote(coverage.totalChars);
-    if (extractionPartial) return extractionPartialNote;
+    if (extractionPartial) return AssistantText.partial(arabic);
     return null;
   }
 
-  static const _noTextReply =
-      "I saved the file to your Records, but I couldn't read any text in it "
-      '(it may be a scanned image). Your doctor can still open the original '
-      'file.';
+  /// Nothing readable in the PDF: say so, and offer a clearer copy.
+  static ChatMessage _unreadableReply(bool arabic) => ChatMessage(
+    ChatRole.model,
+    AssistantText.unreadable(arabic),
+    arabic: arabic,
+    actions: const [AssistantAction.uploadReport],
+  );
 
-  /// Deterministic navigation help (the offline guide).
-  String _offlineReply(String text) {
+  /// The app's language (a summary has no patient wording to follow) —
+  /// `Intl.defaultLocale` is kept in step with it by the locale setting.
+  bool _appInArabic() => Intl.getCurrentLocale().startsWith('ar');
+
+  /// The deterministic guide to the app's other areas (appointments,
+  /// records and uploads are buttons, handled before this).
+  ChatMessage _offlineReply(String text) {
     final t = text.toLowerCase();
     bool has(List<String> ws) => ws.any(t.contains);
+    ChatMessage say(String reply) => ChatMessage(ChatRole.model, reply);
 
-    if (has([
-      'book',
-      'appointment',
-      'appt',
-      'schedule',
-      'reschedule',
-      'cancel',
-      'doctor',
-      'visit',
-    ])) {
-      return 'Open the Appointments tab. "Book now" jumps to the soonest slot, '
-          '"Schedule" lets you pick a date; you can also reschedule or cancel an '
-          'upcoming visit there.';
-    }
-    if (has([
-      'record',
-      'result',
-      'lab',
-      'timeline',
-      'history',
-      'note',
-      'imaging',
-      'prescription',
-      'medication',
-      'medicine',
-      'meds',
-      'drug',
-    ])) {
-      return 'On Home, scroll to Quick Access and open Health Records. The '
-          '"Timeline" view lists your visits, '
-          'labs and vitals; switch to "Medications" for your current and past '
-          'prescriptions, or "Bills" for your invoices.';
-    }
     if (has([
       'bill',
       'invoice',
@@ -455,10 +520,12 @@ class CareNavigator extends Notifier<CareNavigatorState> {
       'owe',
       'transaction',
     ])) {
-      return 'Billing & Payments (Home → Quick Access) shows your wallet '
-          'balance with '
-          'a Top up button, every invoice with a Pay button, and your saved '
-          'cards, all in one place.';
+      return say(
+        'Billing & Payments (Home → Quick Access) shows your wallet '
+        'balance with '
+        'a Top up button, every invoice with a Pay button, and your saved '
+        'cards, all in one place.',
+      );
     }
     if (has([
       'nutrition',
@@ -471,14 +538,18 @@ class CareNavigator extends Notifier<CareNavigatorState> {
       'tdee',
       'weight',
     ])) {
-      return 'Nutrition (Home → Quick Access) has three views: Targets works '
-          'out your daily '
-          'calories and macros, Foods looks up nutrients, and Meal plan suggests '
-          'allergen-safe meals.';
+      return say(
+        'Nutrition (Home → Quick Access) has three views: Targets works '
+        'out your daily '
+        'calories and macros, Foods looks up nutrients, and Meal plan suggests '
+        'allergen-safe meals.',
+      );
     }
     if (has(['notification', 'alert', 'reminder', 'unread'])) {
-      return 'Tap the bell at the top of Home to open your Notifications — '
-          'appointment reminders, lab results and billing alerts land there.';
+      return say(
+        'Tap the bell at the top of Home to open your Notifications — '
+        'appointment reminders, lab results and billing alerts land there.',
+      );
     }
     if (has([
       'profile',
@@ -494,31 +565,24 @@ class CareNavigator extends Notifier<CareNavigatorState> {
       'theme',
       'language',
     ])) {
-      return 'Everything about you is in My Profile (Home → Quick Access, or '
-          'tap your picture): personal info, health details, '
-          'payments, preferences (theme & language), notification channels and '
-          'your family network. Tap a section to expand it.';
+      return say(
+        'Everything about you is in My Profile (Home → Quick Access, or '
+        'tap your picture): personal info, health details, '
+        'payments, preferences (theme & language), notification channels and '
+        'your family network. Tap a section to expand it.',
+      );
     }
-    if (has([
-      'symptom',
-      'pain',
-      'fever',
-      'sick',
-      'hurt',
-      'ache',
-      'rash',
-      'dizzy',
-      'nausea',
-      'diagnos',
-      'treat',
-      'should i',
-    ])) {
-      return "I can't give medical advice. Please book an appointment from the "
-          'Appointments tab so a doctor can help you properly. If it feels '
-          "urgent, don't wait — contact emergency services.";
-    }
-    return 'I can point you to Appointments, Records, Nutrition, Payments, '
-        'Notifications or your Profile. Which would you like?';
+    return const ChatMessage(
+      ChatRole.model,
+      'I can take you to Appointments or Records, summarize a report PDF you '
+      'choose, or point you to Nutrition, Payments, Notifications or your '
+      'Profile. Which would you like?',
+      actions: [
+        AssistantAction.openAppointments,
+        AssistantAction.openRecords,
+        AssistantAction.uploadReport,
+      ],
+    );
   }
 }
 
@@ -528,11 +592,6 @@ const kReportExplainLimit = 12000;
 const basicSummaryLabel =
     'Basic summary (made on this device by matching common test names — '
     'not AI):';
-
-/// Disclosed when on-device extraction stopped at its cap.
-const extractionPartialNote =
-    'Note: this PDF is very long and only part of its text could be read, '
-    'so this covers part of the report. Open the original for everything.';
 
 /// A plain account of why a live request did not produce an answer.
 String reportAiFailureMessage(ReportAiFailureKind kind) => switch (kind) {

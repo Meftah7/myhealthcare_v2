@@ -116,6 +116,19 @@ export function validateChat({ text, question, history }) {
 const squash = value => value.replace(/\s+/g, ' ').trim().toLowerCase();
 
 /**
+ * The offered quotes that appear verbatim (whitespace/case-insensitively) in
+ * [document] — at most [CHAT_LIMITS.maxQuotes], each under 300 characters.
+ */
+export function verifiedQuotes(offered, document) {
+  const haystack = squash(document);
+  return (Array.isArray(offered) ? offered : [])
+    .filter(q => typeof q === 'string' && q.trim())
+    .map(q => q.trim())
+    .filter(q => q.length <= 300 && haystack.includes(squash(q)))
+    .slice(0, CHAT_LIMITS.maxQuotes);
+}
+
+/**
  * Parses the provider's JSON and enforces grounding: a quote counts only if
  * it appears verbatim (whitespace/case-insensitively) in the report part the
  * provider was given. A "supported" answer without one verifiable quote is
@@ -131,12 +144,7 @@ export function parseGroundedAnswer(raw, document) {
   if (!data || typeof data.answer !== 'string' || !data.answer.trim()) {
     throw new Error('Provider returned no answer.');
   }
-  const haystack = squash(document);
-  const offered = Array.isArray(data.quotes) ? data.quotes.filter(q => typeof q === 'string' && q.trim()) : [];
-  const quotes = offered
-    .map(q => q.trim())
-    .filter(q => q.length <= 300 && haystack.includes(squash(q)))
-    .slice(0, CHAT_LIMITS.maxQuotes);
+  const quotes = verifiedQuotes(data.quotes, document);
   const claimedSupport = data.supported === true;
   const supported = claimedSupport && quotes.length > 0;
   return {

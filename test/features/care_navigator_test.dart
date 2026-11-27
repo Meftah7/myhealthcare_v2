@@ -13,6 +13,8 @@ import 'package:myhealthcare/core/app_environment.dart';
 import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/core/ui/patient/patient_bottom_navigation.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
+import 'package:myhealthcare/features/ai_chat/application/assistant_actions.dart';
+import 'package:myhealthcare/features/ai_chat/application/assistant_policy.dart';
 import 'package:myhealthcare/features/ai_chat/application/care_navigator.dart';
 import 'package:myhealthcare/features/ai_chat/presentation/care_navigator_mascot.dart';
 import 'package:myhealthcare/features/ai_chat/presentation/care_navigator_panel.dart';
@@ -172,11 +174,17 @@ void main() {
       expect(await ask('change my password'), contains('Profile'));
     });
 
-    test('a symptom question is redirected, not answered', () async {
-      final reply = await ask('what should I take for a fever?');
-      expect(reply.toLowerCase(), contains("can't give medical advice"));
-      expect(reply, contains('appointment'));
-    });
+    test(
+      'a symptom question is declined, with the way to a clinician',
+      () async {
+        final reply = await ask('what should I take for a fever?');
+        expect(reply, AssistantText.advice(false));
+        expect(
+          container.read(careNavigatorProvider).messages.last.actions,
+          contains(AssistantAction.openAppointments),
+        );
+      },
+    );
 
     test('reset restores just the greeting', () async {
       await ask('hello');
@@ -215,7 +223,10 @@ void main() {
       // navigation guide, consistent with demo mode.
       expect(await container.read(careNavigatorLiveProvider.future), isFalse);
       final reply = container.read(careNavigatorProvider).messages.last.text;
-      expect(reply, contains('Open the Appointments tab'));
+      expect(
+        reply,
+        AssistantText.navigation(AssistantAction.openAppointments, false),
+      );
     },
   );
 

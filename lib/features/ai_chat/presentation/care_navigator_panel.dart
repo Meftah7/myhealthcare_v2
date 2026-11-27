@@ -10,8 +10,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
+import '../../../domain/entities/entities.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../auth/application/session.dart';
 import '../../timeline/presentation/import_record_sheet.dart';
+import '../application/assistant_actions.dart';
 import '../application/care_navigator.dart';
 import 'care_navigator_mascot.dart';
 
@@ -40,6 +43,29 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
     unawaited(ref.read(careNavigatorProvider.notifier).send(text));
   }
 
+  /// The existing PDF import (validation + text extraction) saves the
+  /// original to the patient's records; the summary then starts here.
+  Future<void> _uploadReport() async {
+    final record = await showImportRecordSheet(context);
+    if (record == null) return;
+    unawaited(ref.read(careNavigatorProvider.notifier).explainDocument(record));
+  }
+
+  /// A tapped assistant button. Checked again now: the signed-in patient
+  /// must still be allowed to open it. Only then does anything happen.
+  Future<void> _runAction(AssistantAction action) async {
+    if (!canOfferAssistantAction(ref.read(currentUserProvider), action)) {
+      return;
+    }
+    switch (action.route) {
+      case final route?:
+        ref.read(careNavigatorViewProvider.notifier).state = CareNavView.fab;
+        context.go(route);
+      case null:
+        await _uploadReport();
+    }
+  }
+
   void _scrollToEnd() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scroll.hasClients) {
@@ -60,6 +86,7 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
     final chat = ref.watch(careNavigatorProvider);
     final live = ref.watch(careNavigatorLiveProvider).valueOrNull ?? false;
     final palette = PatientPalette.of(context);
+    final user = ref.watch(currentUserProvider);
     _scrollToEnd();
 
     return Material(
@@ -190,6 +217,10 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
                 if (i == chat.messages.length) return const _TypingDots();
                 return _Bubble(
                   message: chat.messages[i],
+                  user: user,
+                  onAction: chat.sending
+                      ? null
+                      : (a) => unawaited(_runAction(a)),
                   onRetry: chat.sending
                       ? null
                       : (q) => unawaited(
@@ -209,17 +240,7 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
               children: [
                 IconButton(
                   tooltip: t.uploadPdfForAiTooltip,
-                  onPressed: chat.sending
-                      ? null
-                      : () async {
-                          final record = await showImportRecordSheet(context);
-                          if (record == null) return;
-                          unawaited(
-                            ref
-                                .read(careNavigatorProvider.notifier)
-                                .explainDocument(record),
-                          );
-                        },
+                  onPressed: chat.sending ? null : _uploadReport,
                   icon: const Icon(Icons.upload_file_outlined),
                 ),
                 Expanded(
@@ -251,8 +272,15 @@ class _CareNavigatorPanelState extends ConsumerState<CareNavigatorPanel> {
 }
 
 class _Bubble extends StatelessWidget {
-  const _Bubble({required this.message, this.onRetry});
+  const _Bubble({
+    required this.message,
+    required this.user,
+    this.onAction,
+    this.onRetry,
+  });
   final ChatMessage message;
+  final User? user;
+  final ValueChanged<AssistantAction>? onAction;
   final ValueChanged<String>? onRetry;
 
   @override
@@ -290,6 +318,11 @@ class _Bubble extends StatelessWidget {
             ),
             ChatKind.error => (Icons.error_outline, t.paSourceError),
           };
+    // Only buttons the signed-in patient may use.
+    final actions = [
+      for (final a in message.actions)
+        if (canOfferAssistantAction(user, a)) a,
+    ];
     final small = theme.textTheme.labelSmall?.copyWith(
       color: fg.withValues(alpha: .8),
       fontWeight: FontWeight.w600,
@@ -374,6 +407,28 @@ class _Bubble extends StatelessWidget {
             if (message.kind == ChatKind.live) ...[
               const SizedBox(height: Space.xs),
               Text(t.paLiveDraftDisclaimer, style: small),
+            ],
+            if (actions.isNotEmpty) ...[
+              const SizedBox(height: Space.xs),
+              Wrap(
+                spacing: Space.xs,
+                runSpacing: Space.xs,
+                children: [
+                  for (final a in actions)
+                    FilledButton.tonalIcon(
+                      key: ValueKey('assistant-action-${a.id}'),
+                      onPressed: onAction == null ? null : () => onAction!(a),
+                      icon: Icon(switch (a) {
+                        AssistantAction.openAppointments =>
+                          Icons.calendar_month_outlined,
+                        AssistantAction.openRecords => Icons.folder_outlined,
+                        AssistantAction.uploadReport =>
+                          Icons.upload_file_outlined,
+                      }, size: 18),
+                      label: Text(a.label(arabic: message.arabic)),
+                    ),
+                ],
+              ),
             ],
             if (message.retryQuestion != null && onRetry != null)
               Align(
