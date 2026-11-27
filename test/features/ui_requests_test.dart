@@ -1,4 +1,4 @@
-// Per-meal nutrition targets, the doctor chat section, and the AI chat's
+// Per-meal nutrition targets, the Messages screen, and the AI chat's
 // on-device document summary (factual, no medical meaning).
 
 import 'package:flutter/material.dart';
@@ -10,7 +10,8 @@ import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/domain/entities/entities.dart';
 import 'package:myhealthcare/features/ai_chat/application/care_navigator.dart';
 import 'package:myhealthcare/features/care/application/care_providers.dart';
-import 'package:myhealthcare/features/care/presentation/patient_doctor_chat_section.dart';
+import 'package:myhealthcare/features/care/presentation/messages_screen.dart';
+import 'package:myhealthcare/features/notifications/application/notification_providers.dart';
 import 'package:myhealthcare/features/nutrition/application/macro_calculator.dart';
 import 'package:myhealthcare/features/nutrition/application/nutrition_providers.dart';
 import 'package:myhealthcare/features/nutrition/domain/nutrition_data.dart';
@@ -74,7 +75,7 @@ void main() {
     });
   });
 
-  group('doctor chat section', () {
+  group('patient Messages', () {
     final now = DateTime(2026, 10, 1);
     VisitedDoctor doctor(String id, String name) => VisitedDoctor(
       staffId: id,
@@ -96,6 +97,7 @@ void main() {
               ],
             ),
             patientThreadsProvider.overrideWith((ref) async => threads),
+            unreadNotificationCountProvider.overrideWithValue(0),
           ],
           child: MaterialApp(
             theme: AppTheme.light,
@@ -106,9 +108,7 @@ void main() {
               GlobalCupertinoLocalizations.delegate,
             ],
             supportedLocales: AppLocalizations.supportedLocales,
-            home: const Scaffold(
-              body: SingleChildScrollView(child: PatientDoctorChatSection()),
-            ),
+            home: const MessagesScreen(),
           ),
         ),
       );
@@ -138,9 +138,9 @@ void main() {
       expect(find.textContaining('Dr Messaged'), findsWidgets);
       expect(find.text('Dr Quiet'), findsNothing);
 
-      await tester.tap(find.text('Chat with doctor'));
+      await tester.tap(find.text('New message'));
       await tester.pumpAndSettle();
-      expect(find.text('Choose a doctor'), findsOneWidget);
+      expect(find.widgetWithText(ListTile, 'Dr Messaged'), findsOneWidget);
       expect(find.text('Dr Quiet'), findsOneWidget);
     });
 
@@ -148,8 +148,8 @@ void main() {
       tester,
     ) async {
       await pump(tester, const []);
-      expect(find.textContaining('No messages yet'), findsOneWidget);
-      expect(find.text('Chat with doctor'), findsOneWidget);
+      expect(find.text('No conversations yet'), findsOneWidget);
+      expect(find.text('New message'), findsOneWidget);
       expect(find.text('Dr Messaged'), findsNothing);
     });
   });

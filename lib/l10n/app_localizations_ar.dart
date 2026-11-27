@@ -4543,20 +4543,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'تُحفظ لك على هذا الجهاز. من يسجّل الدخول هنا غيرك يحتفظ باختياراته.';
 
   @override
-  String get recordsDoctorChatTitle => 'تحدث مع أطبائك';
-
-  @override
-  String get recordsDoctorChatNote =>
-      'راسل الأطباء الذين زرتهم في موعد مكتمل. للطوارئ، اتصل على 999.';
-
-  @override
-  String get recordsNoVisitedDoctors =>
-      'سيظهر أطباؤك هنا بعد أول زيارة مكتملة.';
-
-  @override
-  String get recordsYourHealthTitle => 'صحتك';
-
-  @override
   String get recordsBackToOverview => 'العودة إلى السجلات';
 
   @override
@@ -4658,16 +4644,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get mealTargetsHeading => 'لكل وجبة';
-
-  @override
-  String get chatWithDoctorAction => 'الدردشة مع الطبيب';
-
-  @override
-  String get chatNoMessagesYet =>
-      'لا توجد رسائل بعد. استخدم \"الدردشة مع الطبيب\" لمراسلة طبيب زرته.';
-
-  @override
-  String get chooseDoctorTitle => 'اختر طبيبًا';
 
   @override
   String get uploadPdfForAiTooltip => 'إرفاق مستند (PDF أو Word أو نص)';

@@ -69,18 +69,17 @@ void main() {
     // Records now opens from Home Quick Access.
     await openQuickAccess(tester, 'records');
     expect(find.widgetWithText(AppBar, 'Records'), findsOneWidget);
-    // The hub offers the doctor chat (conversations + "Chat with doctor").
-    await tester.scrollUntilVisible(
-      find.text('Chat with doctor'),
-      500,
-      scrollable: find
-          .byWidgetPredicate(
-            (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
-          )
-          .last,
-      maxScrolls: 200,
-    );
-    expect(find.text('Chat with doctor'), findsOneWidget);
+    final recordsList = find
+        .byWidgetPredicate(
+          (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+        )
+        .last;
+    final position = tester.state<ScrollableState>(recordsList).position;
+    position.jumpTo(position.maxScrollExtent);
+    await _settle(tester);
+    expect(find.text('Your health'), findsNothing);
+    expect(find.text('Chat with your doctors'), findsNothing);
+    expect(find.text('Chat with doctor'), findsNothing);
 
     // Go back to Home, then to Vitals via the Quick Actions tile — Vitals
     // is a full-screen push now, not a bottom tab (patient dashboard rebuild).

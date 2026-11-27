@@ -7934,30 +7934,6 @@ abstract class AppLocalizations {
   /// **'Saved for you on this device. Someone else signing in here keeps their own choices.'**
   String get settingsAccountScopeCaption;
 
-  /// No description provided for @recordsDoctorChatTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Chat with your doctors'**
-  String get recordsDoctorChatTitle;
-
-  /// No description provided for @recordsDoctorChatNote.
-  ///
-  /// In en, this message translates to:
-  /// **'Message doctors you have seen at a completed appointment. For emergencies, call 999.'**
-  String get recordsDoctorChatNote;
-
-  /// No description provided for @recordsNoVisitedDoctors.
-  ///
-  /// In en, this message translates to:
-  /// **'Your doctors will appear here after your first completed visit.'**
-  String get recordsNoVisitedDoctors;
-
-  /// No description provided for @recordsYourHealthTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Your health'**
-  String get recordsYourHealthTitle;
-
   /// No description provided for @recordsBackToOverview.
   ///
   /// In en, this message translates to:
@@ -8149,24 +8125,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Per meal'**
   String get mealTargetsHeading;
-
-  /// No description provided for @chatWithDoctorAction.
-  ///
-  /// In en, this message translates to:
-  /// **'Chat with doctor'**
-  String get chatWithDoctorAction;
-
-  /// No description provided for @chatNoMessagesYet.
-  ///
-  /// In en, this message translates to:
-  /// **'No messages yet. Use \"Chat with doctor\" to message a doctor you have visited.'**
-  String get chatNoMessagesYet;
-
-  /// No description provided for @chooseDoctorTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose a doctor'**
-  String get chooseDoctorTitle;
 
   /// No description provided for @uploadPdfForAiTooltip.
   ///

@@ -4486,20 +4486,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Saved for you on this device. Someone else signing in here keeps their own choices.';
 
   @override
-  String get recordsDoctorChatTitle => 'Chat with your doctors';
-
-  @override
-  String get recordsDoctorChatNote =>
-      'Message doctors you have seen at a completed appointment. For emergencies, call 999.';
-
-  @override
-  String get recordsNoVisitedDoctors =>
-      'Your doctors will appear here after your first completed visit.';
-
-  @override
-  String get recordsYourHealthTitle => 'Your health';
-
-  @override
   String get recordsBackToOverview => 'Back to Records';
 
   @override
@@ -4601,16 +4587,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mealTargetsHeading => 'Per meal';
-
-  @override
-  String get chatWithDoctorAction => 'Chat with doctor';
-
-  @override
-  String get chatNoMessagesYet =>
-      'No messages yet. Use \"Chat with doctor\" to message a doctor you have visited.';
-
-  @override
-  String get chooseDoctorTitle => 'Choose a doctor';
 
   @override
   String get uploadPdfForAiTooltip => 'Attach a document (PDF, Word or text)';

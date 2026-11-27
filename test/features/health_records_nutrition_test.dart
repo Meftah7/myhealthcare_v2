@@ -1,5 +1,4 @@
-// Health Records has a Timeline/Medications toggle; the Nutrition tab replaces
-// the old Medications tab and computes macro targets.
+// Records and medications navigation, plus Nutrition macro targets.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,7 +6,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/app.dart';
 import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/core/presentation/app_scaffold.dart';
-import 'package:myhealthcare/core/presentation/quick_actions.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:myhealthcare/features/care/application/care_providers.dart';
 import 'package:myhealthcare/features/nutrition/application/macro_calculator.dart';
@@ -61,17 +59,6 @@ Future<ProviderContainer> _signIn(WidgetTester tester) async {
   return container;
 }
 
-/// The page's own vertical list — not the navigation sidebar shown on wide
-/// windows.
-Finder _content() => find
-    .descendant(
-      of: find.byType(ScrollToTopSignal),
-      matching: find.byWidgetPredicate(
-        (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
-      ),
-    )
-    .last;
-
 void main() {
   group('macro calculator', () {
     test('Mifflin–St Jeor matches the reference formula', () {
@@ -112,9 +99,7 @@ void main() {
     });
   });
 
-  testWidgets('Health Records opens medications with their instructions', (
-    tester,
-  ) async {
+  testWidgets('Home opens medications and returns to Records', (tester) async {
     tester.view.physicalSize = const Size(1200, 2200);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -126,39 +111,11 @@ void main() {
     await openQuickAccess(tester, 'records');
     expect(find.widgetWithText(AppBar, 'Records'), findsOneWidget);
 
-    // Documents and record search lead; health shortcuts are secondary.
     expect(find.byType(SearchBar), findsOneWidget);
     expect(find.text('Upload document'), findsNothing);
     expect(find.text('All records'), findsNothing);
     expect(find.widgetWithText(FilledButton, 'Documents'), findsOneWidget);
-    await tester.scrollUntilVisible(
-      find.text('Your health'),
-      240,
-      scrollable: _content(),
-    );
-    await tester.ensureVisible(find.text('Your health'));
-    await _settle(tester);
-    await tester.tap(find.text('Your health'));
-    await _settle(tester);
-    expect(find.byType(QuickActionTile), findsNWidgets(7));
-    for (final label in [
-      'Home care',
-      'Medication',
-      'Bills',
-      'Visited doctors',
-      'Imaging',
-      'Vital signs report',
-      'Allergies',
-    ]) {
-      expect(find.text(label), findsWidgets);
-    }
-
-    // Switch to Medications.
-    await tester.ensureVisible(
-      find.widgetWithText(QuickActionTile, 'Medication'),
-    );
-    await tester.tap(find.widgetWithText(QuickActionTile, 'Medication'));
-    await _settle(tester);
+    await openQuickAccess(tester, 'medications');
     expect(find.byType(SearchBar), findsNothing);
     // Seeded chronic patient is on medication.
     expect(find.text('Current'), findsOneWidget);
@@ -217,7 +174,7 @@ void main() {
     expect(find.widgetWithText(AppBar, 'Nutrition estimates'), findsOneWidget);
 
     // The bottom nav is still visible (Nutrition is a shell branch).
-    expect(find.text('Book Appointment'), findsWidgets);
+    expect(find.text('Appointment'), findsWidgets);
 
     // Tabs, in order: Calculator → Daily targets → Foods.
     expect(find.text('Calculator'), findsWidgets);

@@ -67,7 +67,6 @@ class TimelineScreen extends ConsumerStatefulWidget {
   const TimelineScreen({
     this.embedded = false,
     this.header,
-    this.footer,
     this.onRefresh,
     super.key,
   });
@@ -76,7 +75,6 @@ class TimelineScreen extends ConsumerStatefulWidget {
   /// Health Records screen supplies those.
   final bool embedded;
   final Widget? header;
-  final Widget? footer;
   final Future<void> Function()? onRefresh;
 
   @override
@@ -162,7 +160,6 @@ class _TimelineScreenState extends ConsumerState<TimelineScreen> {
                 icon: Icons.timeline_outlined,
                 message: t.nothingMatchesFilters,
               ),
-              ?widget.footer,
             ],
           );
         }
@@ -187,7 +184,6 @@ class _TimelineScreenState extends ConsumerState<TimelineScreen> {
           entries: entries,
           filter: filter,
           visitDates: {...fallbackDates, ...visitDates},
-          footer: widget.footer,
         );
       },
     );
@@ -380,13 +376,11 @@ class _GroupedList extends ConsumerWidget {
     required this.entries,
     required this.filter,
     required this.visitDates,
-    this.footer,
   });
 
   final List<_Entry> entries;
   final RecordsFilter filter;
   final Map<String, DateTime> visitDates;
-  final Widget? footer;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -493,7 +487,6 @@ class _GroupedList extends ConsumerWidget {
           ),
         );
     }
-    if (footer != null) items.add(footer!);
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: Space.maxContentWidth),
