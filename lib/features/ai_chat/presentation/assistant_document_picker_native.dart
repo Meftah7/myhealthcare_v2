@@ -18,6 +18,6 @@ pickAssistantDocument() async {
   return (
     name: file.name,
     size: file.lengthSync(),
-    readBytes: file.readAsBytes,
+    readBytes: () => readBoundedDocumentBytes(file.readAsByteStream()),
   );
 }

@@ -10,6 +10,7 @@ import 'dart:typed_data';
 import 'package:archive/archive.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/services/documents/document_text.dart';
+import 'package:myhealthcare/services/pdf/pdf_text.dart' show maxPdfPages;
 import 'package:pdf/widgets.dart' as pw;
 import 'package:syncfusion_flutter_pdf/pdf.dart' as sf;
 
@@ -42,6 +43,27 @@ Future<DocumentProblem?> _problem(String name, Uint8List bytes) async {
 }
 
 void main() {
+  test(
+    'the file read accepts exactly 20 MiB and rejects the next byte',
+    () async {
+      final limit = Uint8List(maxDocumentBytes);
+      expect(
+        (await readBoundedDocumentBytes(Stream.value(limit))).length,
+        maxDocumentBytes,
+      );
+      await expectLater(
+        readBoundedDocumentBytes(Stream.fromIterable([limit, Uint8List(1)])),
+        throwsA(
+          isA<DocumentReadException>().having(
+            (error) => error.problem,
+            'problem',
+            DocumentProblem.tooLarge,
+          ),
+        ),
+      );
+    },
+  );
+
   group('reads real text from each format', () {
     test('PDF: whole lines, as written', () async {
       final doc = await readDocument(
@@ -55,6 +77,48 @@ void main() {
       expect(doc.format, DocumentFormat.pdf);
       expect(doc.text, contains('HbA1c 7.9 % H (4.0-5.6)'));
       expect(doc.complete, isTrue);
+    });
+
+    test(
+      'an external PDF layout may have a prefix before its header',
+      () async {
+        final pdf = await _pdf([
+          'Community Library',
+          'The building opens on Monday.',
+          'Return borrowed books to the reception desk.',
+        ]);
+        final doc = await readDocument(
+          fileName: 'event-handout.PDF',
+          bytes: Uint8List.fromList([0xef, 0xbb, 0xbf, ...pdf]),
+        );
+        expect(doc.format, DocumentFormat.pdf);
+        expect(doc.text, contains('The building opens on Monday.'));
+        expect(
+          doc.text,
+          contains('Return borrowed books to the reception desk.'),
+        );
+        expect(doc.complete, isTrue);
+      },
+    );
+
+    test('a long PDF is marked partial when it hits the page budget', () async {
+      final pdf = pw.Document();
+      for (var i = 0; i <= maxPdfPages; i++) {
+        pdf.addPage(
+          pw.Page(
+            build: (_) => pw.Text(
+              i < maxPdfPages ? 'Library page ${i + 1}' : 'Beyond the budget',
+            ),
+          ),
+        );
+      }
+      final doc = await readDocument(
+        fileName: 'long.pdf',
+        bytes: await pdf.save(),
+      );
+      expect(doc.text, contains('Library page $maxPdfPages'));
+      expect(doc.text, isNot(contains('Beyond the budget')));
+      expect(doc.complete, isFalse);
     });
 
     test('DOCX saved by Word: paragraphs, Arabic and the table', () async {

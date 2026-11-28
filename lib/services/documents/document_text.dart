@@ -26,6 +26,19 @@ import '../pdf/pdf_text.dart';
 /// Largest file accepted (the same limit as Records originals).
 const maxDocumentBytes = 20 * 1024 * 1024;
 
+/// Collects file bytes only while the stream stays within the attachment cap.
+/// This also covers providers that omit the size or return a stale size.
+Future<Uint8List> readBoundedDocumentBytes(Stream<Uint8List> chunks) async {
+  final bytes = BytesBuilder(copy: false);
+  await for (final chunk in chunks) {
+    if (chunk.length > maxDocumentBytes - bytes.length) {
+      throw const DocumentReadException(DocumentProblem.tooLarge);
+    }
+    bytes.add(chunk);
+  }
+  return bytes.takeBytes();
+}
+
 /// Most text kept from one document.
 const maxDocumentChars = maxExtractedChars;
 
@@ -176,7 +189,7 @@ DocumentFormat checkDocument({
     throw const DocumentReadException(DocumentProblem.executable);
   }
   final ok = switch (format) {
-    DocumentFormat.pdf => _startsWith(bytes, _pdfMagic),
+    DocumentFormat.pdf => looksLikePdf(bytes, allowPrefix: true),
     // An encrypted .docx is an OLE container, checked when read.
     DocumentFormat.docx =>
       _startsWith(bytes, _zipMagic) || _startsWith(bytes, _cfbMagic),
@@ -193,21 +206,21 @@ DocumentFormat checkDocument({
 /// Reads the text of an already checked document. Throws
 /// [DocumentReadException].
 ExtractedDocument extractDocument(DocumentFormat format, Uint8List bytes) {
-  final raw = switch (format) {
+  final (raw, sourceComplete) = switch (format) {
     DocumentFormat.pdf => _pdfText(bytes),
-    DocumentFormat.docx => _docxText(bytes),
-    DocumentFormat.doc => _docText(bytes),
-    DocumentFormat.txt => _txtText(bytes),
+    DocumentFormat.docx => (_docxText(bytes), true),
+    DocumentFormat.doc => (_docText(bytes), true),
+    DocumentFormat.txt => (_txtText(bytes), true),
   };
   final text = _normalise(raw);
   if (text.trim().isEmpty) {
     throw const DocumentReadException(DocumentProblem.noText);
   }
-  final complete = text.length <= maxDocumentChars;
+  final fits = text.length <= maxDocumentChars;
   return ExtractedDocument(
     format: format,
-    text: complete ? text : text.substring(0, maxDocumentChars),
-    complete: complete,
+    text: fits ? text : text.substring(0, maxDocumentChars),
+    complete: sourceComplete && fits,
   );
 }
 
@@ -232,13 +245,11 @@ bool _containsAscii(Uint8List b, String token) {
   return false;
 }
 
-String _pdfText(Uint8List bytes) {
+(String, bool) _pdfText(Uint8List bytes) {
   try {
-    return extractPdfText(bytes);
-  } on FormatException catch (e) {
-    if (e.message == 'too many pages') {
-      throw const DocumentReadException(DocumentProblem.tooComplex);
-    }
+    final result = extractPdfTextWithCoverage(bytes);
+    return (result.text, result.complete);
+  } on FormatException {
     throw const DocumentReadException(DocumentProblem.malformed);
   } on Object {
     // A password-protected PDF cannot be opened without its password.

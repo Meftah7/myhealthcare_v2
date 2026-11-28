@@ -55,6 +55,8 @@ Future<void> pickDocumentForAssistant(WidgetRef ref) async {
     await ref
         .read(documentAttachmentProvider.notifier)
         .attach(file.name, bytes);
+  } on DocumentReadException catch (e) {
+    if (samePatient()) showError(ui.document(e.problem));
   } on Object {
     if (samePatient()) showError(ui.fileAccessFailed);
   }

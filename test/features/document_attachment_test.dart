@@ -174,13 +174,42 @@ void main() {
     }
   });
 
+  test('a PDF from outside the app reaches the summary service', () async {
+    final fake = FakeReportAiClient();
+    final c = await _patient(client: fake);
+    final attachment = c.read(documentAttachmentProvider.notifier);
+    final pdf = await _pdf([
+      'Library opening hours',
+      'The reading room opens at 9 a.m. on Tuesdays.',
+    ]);
+
+    await attachment.attach(
+      'library-announcement.PDF',
+      Uint8List.fromList([0xef, 0xbb, 0xbf, ...pdf]),
+    );
+    expect(c.read(documentAttachmentProvider)!.canSummarize, isTrue);
+    expect(fake.summaries, isEmpty);
+    await attachment.send();
+
+    expect(
+      fake.summaries.single.text,
+      contains('The reading room opens at 9 a.m. on Tuesdays.'),
+    );
+    expect(c.read(documentAttachmentProvider), isNull);
+    expect(c.read(careNavigatorProvider).report, isNotNull);
+  });
+
   test('bad files fail with a reason and cannot be summarized', () async {
     final fake = FakeReportAiClient();
     final c = await _patient(client: fake);
     final attachment = c.read(documentAttachmentProvider.notifier);
     for (final (name, bytes, problem) in [
       ('empty.pdf', Uint8List(0), DocumentProblem.empty),
-      ('big.txt', Uint8List(maxDocumentBytes + 1), DocumentProblem.tooLarge),
+      (
+        'big.pdf',
+        Uint8List(maxDocumentBytes + 1)..setAll(0, '%PDF-1.7'.codeUnits),
+        DocumentProblem.tooLarge,
+      ),
       (
         'virus.pdf',
         Uint8List.fromList([0x4D, 0x5A, 1, 2, 3, 4]),
