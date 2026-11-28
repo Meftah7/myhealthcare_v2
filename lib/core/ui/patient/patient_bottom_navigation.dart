@@ -1,4 +1,8 @@
-/// The patient bottom bar highlights Book Appointment in the centre.
+/// The app's bottom navigation bar, in the patient visual language.
+///
+/// The patient shell highlights Book Appointment as a blue centre tile; the
+/// staff shell reuses the same bar with its own five destinations and no
+/// centre tile ([centerIndex] null), so both read as one product.
 ///
 /// The selected destination always gets its own indicator (a short bar above
 /// the icon and a bold label) — including the centre tile, which is blue
@@ -17,6 +21,7 @@ class PatientBottomNavigation extends StatelessWidget {
     required this.selectedIndex,
     required this.onSelected,
     this.centerIndex = 2,
+    this.collapseWhenCrowded = true,
     super.key,
   });
 
@@ -24,8 +29,15 @@ class PatientBottomNavigation extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onSelected;
 
-  /// Which destination renders as the blue centre tile.
-  final int centerIndex;
+  /// Which destination renders as the blue centre tile, or null for none.
+  final int? centerIndex;
+
+  /// When five full labels cannot fit (very large text on a narrow phone) the
+  /// patient bar becomes the shared destination menu. A shell whose
+  /// destinations must stay one tap away (staff) passes false: the bar stays,
+  /// and only a label that would otherwise be clipped is fitted to its slot —
+  /// icon, tooltip and spoken label stay whole.
+  final bool collapseWhenCrowded;
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +82,7 @@ class PatientBottomNavigation extends StatelessWidget {
               }
             }
           }
-          if (!fits) {
+          if (!fits && collapseWhenCrowded) {
             return CompactNavigation(
               destinations: destinations,
               currentIndex: selectedIndex,
@@ -91,6 +103,7 @@ class PatientBottomNavigation extends StatelessWidget {
                           destination: d,
                           selected: i == selectedIndex,
                           center: i == centerIndex,
+                          fitLabel: !fits,
                           onTap: () => onSelected(i),
                         ),
                       ),
@@ -111,11 +124,13 @@ class _NavItem extends StatelessWidget {
     required this.selected,
     required this.center,
     required this.onTap,
+    this.fitLabel = false,
   });
 
   final AppDestination destination;
   final bool selected;
   final bool center;
+  final bool fitLabel;
   final VoidCallback onTap;
 
   @override
@@ -170,15 +185,17 @@ class _NavItem extends StatelessWidget {
             const SizedBox(height: 2),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 1),
-              child: Text(
-                destination.label,
-                maxLines: center ? 2 : 1,
-                textAlign: TextAlign.center,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  fontSize: 11,
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                  color: center && !selected ? palette.text : fg,
+              child: _fit(
+                Text(
+                  destination.label,
+                  maxLines: center ? 2 : 1,
+                  textAlign: TextAlign.center,
+                  overflow: fitLabel ? null : TextOverflow.ellipsis,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    fontSize: 11,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    color: center && !selected ? palette.text : fg,
+                  ),
                 ),
               ),
             ),
@@ -192,4 +209,7 @@ class _NavItem extends StatelessWidget {
       ),
     );
   }
+
+  Widget _fit(Widget label) =>
+      fitLabel ? FittedBox(fit: BoxFit.scaleDown, child: label) : label;
 }

@@ -127,16 +127,21 @@ void main() {
     final container = await _signInStaff(tester);
     addTearDown(container.dispose);
 
-    // Now reached from the Profile hub, not a Quick action.
-    await tester.tap(find.text('Profile').last);
+    // Reached from the Settings tab, not a Quick action.
+    await tester.tap(find.text('Settings').last);
     await _settle(tester);
+    await tester.scrollUntilVisible(
+      find.text('Staff directory'),
+      300,
+      scrollable: find.byType(Scrollable).last,
+    );
     await tester.tap(find.text('Staff directory'));
     await _settle(tester);
 
     expect(find.widgetWithText(AppBar, 'Staff directory'), findsOneWidget);
     expect(find.textContaining('clinicians'), findsOneWidget);
     expect(find.textContaining('On duty'), findsWidgets);
-    // Back button returns to the Profile hub.
+    // Back button returns to Settings.
     expect(find.byType(BackButton), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox());
@@ -154,8 +159,13 @@ void main() {
     final container = await _signInStaff(tester);
     addTearDown(container.dispose);
 
-    await tester.tap(find.text('Profile').last);
+    await tester.tap(find.text('Settings').last);
     await _settle(tester);
+    await tester.scrollUntilVisible(
+      find.text('My activity'),
+      300,
+      scrollable: find.byType(Scrollable).last,
+    );
     await tester.tap(find.text('My activity'));
     await _settle(tester);
 
@@ -183,7 +193,7 @@ void main() {
       expect(find.text('On duty'), findsNothing);
       expect(find.text('On break'), findsNothing);
       expect(find.byTooltip('Switch to dark mode'), findsOneWidget);
-      expect(find.text('Profile'), findsWidgets);
+      expect(find.text('Settings'), findsWidgets);
 
       await tester.pumpWidget(const SizedBox());
       await tester.pump(const Duration(seconds: 1));

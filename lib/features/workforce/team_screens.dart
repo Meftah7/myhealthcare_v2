@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../app/router.dart';
 import '../../core/presentation/app_scaffold.dart';
 import '../../core/presentation/readable_label.dart';
 import '../../core/utils/ids.dart';
@@ -88,7 +89,7 @@ class _DirectoryState extends ConsumerState<TeamDirectoryScreen> {
                                       workforceDataProvider('conversations'),
                                     );
                                     if (c.mounted)
-                                      c.push('/staff/team-chat/$id');
+                                      c.push(AppRoutes.staffTeamThread(id));
                                   } catch (e) {
                                     if (mounted) setState(() => error = '$e');
                                   } finally {
@@ -121,7 +122,7 @@ class TeamConversationsScreen extends ConsumerWidget {
         ref.invalidate(workforceDataProvider('conversations')),
     children: [
       FilledButton.icon(
-        onPressed: () => c.push('/staff/team'),
+        onPressed: () => c.push(AppRoutes.staffTeamDirectory),
         icon: const Icon(Icons.person_add_alt),
         label: ReadableLabel(wt(c, 'Choose a colleague', 'اختيار زميل')),
       ),
@@ -150,7 +151,8 @@ class TeamConversationsScreen extends ConsumerWidget {
                 trailing: (thread['unread'] as num) > 0
                     ? Badge(label: Text('${thread['unread']}'))
                     : null,
-                onTap: () => c.push('/staff/team-chat/${thread['id']}'),
+                onTap: () =>
+                    c.push(AppRoutes.staffTeamThread(thread['id'] as String)),
               ),
           ],
         ),

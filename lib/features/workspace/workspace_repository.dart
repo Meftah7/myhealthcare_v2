@@ -213,9 +213,11 @@ class WorkspaceRepository {
       MAX(COALESCE($completion,a.slot_end)) AS last_visit,
       MAX(CASE WHEN $completion IS NULL THEN 1 ELSE 0 END) AS legacy_completion,
       EXISTS(SELECT 1 FROM risk_flags rf WHERE rf.patient_id=u.id AND rf.severity='urgent' AND rf.acknowledged_at IS NULL) AS critical,
-      EXISTS(SELECT 1 FROM staff_tasks st WHERE st.patient_id=u.id AND st.kind='followUpDue' AND st.status NOT IN ('done','dismissed')) AS follow_up
+      EXISTS(SELECT 1 FROM staff_tasks st WHERE st.patient_id=u.id AND st.staff_id=? AND st.kind='followUpDue' AND st.status NOT IN ('done','dismissed')) AS follow_up
       FROM appointments a JOIN users u ON u.id=a.patient_id LEFT JOIN patient_profiles pp ON pp.user_id=u.id
       WHERE $scope GROUP BY u.id''';
+    // Follow-ups are this clinician's own: the base query's first placeholder.
+    final baseArgs = <Object>[id, ...args];
     final wall = clinicDay(now());
     final start = clinicStart(DateTime.utc(wall.year, wall.month));
     final end = clinicStart(DateTime.utc(wall.year, wall.month + 1));
@@ -242,17 +244,18 @@ class WorkspaceRepository {
               1000,
         ],
       ),
-      'total': await count('SELECT COUNT(*) FROM ($base)', args),
+      'total': await count('SELECT COUNT(*) FROM ($base)', baseArgs),
       'critical': await count(
         'SELECT COUNT(*) FROM ($base) WHERE critical=1',
-        args,
+        baseArgs,
       ),
       'followUp': await count(
         'SELECT COUNT(*) FROM ($base) WHERE follow_up=1',
-        args,
+        baseArgs,
       ),
+      // Visits performed this month: two visits by one patient count twice.
       'month': await count(
-        'SELECT COUNT(DISTINCT a.patient_id) FROM appointments a WHERE $scope AND $completion>=? AND $completion<?',
+        'SELECT COUNT(*) FROM appointments a WHERE $scope AND $completion>=? AND $completion<?',
         [
           ...args,
           start.millisecondsSinceEpoch ~/ 1000,
@@ -270,7 +273,7 @@ class WorkspaceRepository {
             : ''}";
     final limit = ((p['limit'] as int?) ?? 50).clamp(1, 200),
         offset = ((p['offset'] as int?) ?? 0).clamp(0, 1000000);
-    final filteredArgs = [...args, q, q, q, q];
+    final filteredArgs = [...baseArgs, q, q, q, q];
     return {
       'stats': stats,
       'total': await count(

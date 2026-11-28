@@ -2,8 +2,9 @@
 ///
 /// One widget tree, re-flowed by window size class: `NavigationBar` at the
 /// bottom on compact, an icon `NavigationRail` on medium, and an **extended**
-/// rail from expanded up for staff/admin. Patient shells use width-based
-/// bottom tabs, a rail with account access, and an expanded account sidebar.
+/// rail from expanded up for admin. Patient and staff shells use width-based
+/// bottom tabs (the patient bar), a rail, and an expanded sidebar — the
+/// patient's with account access, the staff's with the same five tabs.
 library;
 
 import 'package:flutter/material.dart';
@@ -57,6 +58,10 @@ class AppShell extends StatefulWidget {
   /// A native navigation drawer on the shell's outer Scaffold (patient
   /// account / settings). Pages open it through [ShellDrawerScope].
   final Widget? drawer;
+
+  /// Opts the shell into the patient app's adaptive layout — patient bar
+  /// below 600, rail to 1024, sidebar from 1024 — and builds that sidebar
+  /// around the destination entries. Used by the patient and staff shells.
   final Widget Function(List<Widget> primaryEntries)? expandedAccountBuilder;
 
   /// Maps the active branch to the highlighted destination. Lets a shell keep
@@ -265,32 +270,33 @@ class _AppShellState extends State<AppShell> {
                               labelWidth: patientRailWidth - 40,
                             ),
                           ),
-                          SafeArea(
-                            top: false,
-                            child: Padding(
-                              padding: const EdgeInsets.all(4),
-                              child: Tooltip(
-                                message: t.paDrawerAccount,
-                                child: TextButton(
-                                  key: const ValueKey('patient-rail-account'),
-                                  onPressed: () =>
-                                      _scaffoldKey.currentState?.openDrawer(),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(
-                                        Icons.manage_accounts_outlined,
-                                      ),
-                                      Text(
-                                        t.paDrawerAccount,
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
+                          if (widget.drawer != null)
+                            SafeArea(
+                              top: false,
+                              child: Padding(
+                                padding: const EdgeInsets.all(4),
+                                child: Tooltip(
+                                  message: t.paDrawerAccount,
+                                  child: TextButton(
+                                    key: const ValueKey('patient-rail-account'),
+                                    onPressed: () =>
+                                        _scaffoldKey.currentState?.openDrawer(),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.manage_accounts_outlined,
+                                        ),
+                                        Text(
+                                          t.paDrawerAccount,
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
                         ],
                       ),
                     ),

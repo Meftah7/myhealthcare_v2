@@ -5,6 +5,7 @@ import 'package:myhealthcare/app/app.dart';
 import 'package:myhealthcare/app/router.dart';
 import 'package:myhealthcare/app/shell/app_shell.dart';
 import 'package:myhealthcare/core/di.dart';
+import 'package:myhealthcare/core/ui/patient/patient_bottom_navigation.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:myhealthcare/features/staff_dashboard/application/staff_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -70,12 +71,14 @@ void main() {
       await tester.tap(patientRow);
       await _settle(tester);
 
-      expect(find.byType(CompactNavigation), findsOneWidget);
+      expect(find.byType(PatientBottomNavigation), findsOneWidget);
+      expect(find.byType(CompactNavigation), findsNothing);
       expect(find.text('Open chart'), findsOneWidget);
 
       await selectCompactDestination(tester, 'Chat');
       await _settle(tester);
-      expect(find.byType(CompactNavigation), findsOneWidget);
+      expect(find.byType(PatientBottomNavigation), findsOneWidget);
+      expect(find.byType(CompactNavigation), findsNothing);
       expect(find.text('Open chart'), findsOneWidget);
 
       await tester.pumpWidget(const SizedBox());

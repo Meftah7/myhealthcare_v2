@@ -39,11 +39,14 @@ export function workspaceOps({store,now,path,method,url,body,actor}) {
     const base=`SELECT u.id,u.name AS full_name,u.national_id,u.gender,u.dob,u.conditions AS chronic_conditions,
       MAX(COALESCE(${completed},a.end))/1000 AS last_visit,MAX(CASE WHEN ${completed} IS NULL THEN 1 ELSE 0 END) AS legacy_completion,
       EXISTS(SELECT 1 FROM tasks t WHERE t.patient=u.id AND t.kind='resultReview' AND t.priority='urgent' AND t.status NOT IN ('done','dismissed')) AS critical,
-      EXISTS(SELECT 1 FROM tasks t WHERE t.patient=u.id AND t.kind='followUpDue' AND t.status NOT IN ('done','dismissed')) AS follow_up
+      EXISTS(SELECT 1 FROM tasks t WHERE t.patient=u.id AND t.owner=? AND t.kind='followUpDue' AND t.status NOT IN ('done','dismissed')) AS follow_up
       FROM appointments a JOIN users u ON u.id=a.patient WHERE ${scope} GROUP BY u.id`;
+    // Follow-ups are this clinician's own; the base query's first placeholder.
+    const baseArgs=[actor.id,...args];
     const today=clinicDay(now()),[year,month]=today.split('-').map(Number);
     const first=Date.UTC(year,month-1,1)-10800000,next=Date.UTC(year,month,1)-10800000;
-    const stats={total:count(`SELECT COUNT(*) FROM (${base})`,...args),critical:count(`SELECT COUNT(*) FROM (${base}) WHERE critical=1`,...args),followUp:count(`SELECT COUNT(*) FROM (${base}) WHERE follow_up=1`,...args),month:count(`SELECT COUNT(DISTINCT a.patient) FROM appointments a WHERE ${scope} AND ${completed}>=? AND ${completed}<?`,...args,first,next)};
+    // month counts visits (two visits by one patient are two), not patients.
+    const stats={total:count(`SELECT COUNT(*) FROM (${base})`,...baseArgs),critical:count(`SELECT COUNT(*) FROM (${base}) WHERE critical=1`,...baseArgs),followUp:count(`SELECT COUNT(*) FROM (${base}) WHERE follow_up=1`,...baseArgs),month:count(`SELECT COUNT(*) FROM appointments a WHERE ${scope} AND ${completed}>=? AND ${completed}<?`,...args,first,next)};
     const [todayStart,todayEnd]=clinicBounds(today);
     stats.appointmentsToday=count('SELECT COUNT(*) FROM appointments WHERE staff=? AND start>=? AND start<?',actor.id,todayStart,todayEnd);
     stats.completedToday=count(`SELECT COUNT(*) FROM appointments a WHERE ${scope} AND ${completed}>=? AND ${completed}<?`,...args,todayStart,todayEnd);
@@ -51,7 +54,7 @@ export function workspaceOps({store,now,path,method,url,body,actor}) {
     const where=`(lower(full_name) LIKE ? OR lower(id) LIKE ? OR COALESCE(national_id,'') LIKE ? OR lower(chronic_conditions) LIKE ?)${filter==='critical'?' AND critical=1':filter==='followUp'?' AND follow_up=1':''}`;
     const limit=Number(url.searchParams.get('limit')??50),offset=Number(url.searchParams.get('offset')??0);
     requireThat(Number.isInteger(limit)&&limit>0&&limit<=200&&Number.isInteger(offset)&&offset>=0,400,'Invalid page.');
-    return {stats,total:count(`SELECT COUNT(*) FROM (${base}) WHERE ${where}`,...args,q,q,q,q),rows:store.all(`SELECT * FROM (${base}) WHERE ${where} ORDER BY full_name,id LIMIT ? OFFSET ?`,...args,q,q,q,q,limit,offset),nurse:actor.job==='nurse',criticalDefinition:'Unresolved urgent clinical result-review task; appointment no-show prediction is excluded.'};
+    return {stats,total:count(`SELECT COUNT(*) FROM (${base}) WHERE ${where}`,...baseArgs,q,q,q,q),rows:store.all(`SELECT * FROM (${base}) WHERE ${where} ORDER BY full_name,id LIMIT ? OFFSET ?`,...baseArgs,q,q,q,q,limit,offset),nurse:actor.job==='nurse',criticalDefinition:'Unresolved urgent clinical result-review task; appointment no-show prediction is excluded.'};
   }
   if(resource==='participation'&&method==='POST'){
     fields(body,['appointmentId']);requireThat(isClinical,403,'Clinical staff access required.');

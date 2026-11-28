@@ -1,24 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart' show DateFormat;
 
 import '../../core/di.dart';
-import '../../core/presentation/app_scaffold.dart';
-import '../../core/presentation/feedback.dart';
 import '../../core/presentation/readable_label.dart';
 import '../../core/result.dart';
+import '../../core/utils/format.dart' show clinicianName;
 import '../../domain/entities/entities.dart';
 import '../../domain/enums.dart';
 import '../../domain/repositories/appointment_repository.dart';
-import '../care/presentation/staff_inbox_screen.dart';
 import '../staff_dashboard/application/staff_providers.dart';
 import '../staff_dashboard/presentation/role_workspaces.dart';
+import '../staff_dashboard/presentation/staff_chat_screen.dart';
 import '../staff_dashboard/presentation/staff_patients_screen.dart';
 import '../staff_dashboard/presentation/staff_schedule_screen.dart';
-import '../staff_dashboard/presentation/staff_top_actions.dart';
 import '../workspace/workspace_repository.dart';
 import '../workspace/workspace_widgets.dart';
-import 'team_screens.dart';
 import 'workforce_repository.dart';
 
 final currentStaffRoleProvider = Provider(
@@ -31,38 +27,18 @@ class StaffRolePatients extends ConsumerWidget {
   @override
   Widget build(BuildContext c, WidgetRef ref) =>
       switch (ref.watch(currentStaffRoleProvider)) {
-        StaffRole.receptionist => const FrontDeskWorkspace(),
-        StaffRole.pharmacist => const PharmacyWorkspace(),
+        StaffRole.receptionist => const ReceptionPatientLookup(),
+        StaffRole.pharmacist => const PharmacyPatients(),
         _ => const StaffPatientsScreen(),
       };
 }
 
-class StaffRoleChat extends ConsumerWidget {
+/// Chat is the fourth tab for every role; what each person may open is
+/// decided by the repositories behind [StaffChatScreen].
+class StaffRoleChat extends StatelessWidget {
   const StaffRoleChat({super.key});
   @override
-  Widget build(BuildContext c, WidgetRef ref) {
-    final role = ref.watch(currentStaffRoleProvider);
-    if (role == StaffRole.receptionist || role == StaffRole.pharmacist)
-      return const TeamConversationsScreen();
-    return DefaultTabController(
-      length: 2,
-      child: Column(
-        children: [
-          TabBar(
-            tabs: [
-              Tab(text: wt(c, 'Patient care', 'رعاية المرضى')),
-              Tab(text: wt(c, 'Team', 'الفريق')),
-            ],
-          ),
-          const Expanded(
-            child: TabBarView(
-              children: [StaffInboxScreen(), TeamConversationsScreen()],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext c) => const StaffChatScreen();
 }
 
 class StaffRoleSchedule extends ConsumerWidget {
@@ -70,56 +46,10 @@ class StaffRoleSchedule extends ConsumerWidget {
   @override
   Widget build(BuildContext c, WidgetRef ref) =>
       switch (ref.watch(currentStaffRoleProvider)) {
-        StaffRole.receptionist => const DeskClinicSchedule(),
-        StaffRole.pharmacist => const StaffShiftSchedule(),
+        StaffRole.receptionist => const DeskSchedule(),
+        StaffRole.pharmacist => const PharmacyWorkSchedule(),
         _ => const StaffScheduleScreen(),
       };
-}
-
-class StaffShiftSchedule extends ConsumerWidget {
-  const StaffShiftSchedule({super.key});
-  @override
-  Widget build(BuildContext c, WidgetRef ref) => AppScaffold(
-    title: wt(c, 'Work schedule', 'جدول العمل'),
-    actions: const [StaffTopActions()],
-    children: [
-      WorkspaceAsync(
-        value: ref.watch(workforceDataProvider('shifts')),
-        retry: () => ref.invalidate(workforceDataProvider('shifts')),
-        builder: (data) => Column(
-          children: [
-            if (rows(data['rows']).isEmpty)
-              ReadableLabel(
-                wt(
-                  c,
-                  'No shifts assigned. Contact the clinic administrator.',
-                  'لم يتم تعيين مناوبات. تواصل مع مدير العيادة.',
-                ),
-              ),
-            for (final shift in rows(data['rows']))
-              ListTile(
-                leading: const Icon(Icons.work_outline),
-                title: ReadableLabel(
-                  DateFormat.EEEE(
-                    Localizations.localeOf(c).languageCode,
-                  ).format(
-                    DateTime(2026, 1, 4 + (shift['weekday'] as num).toInt()),
-                  ),
-                ),
-                subtitle: ReadableLabel(
-                  '${_time(shift['start_minutes'])}–${_time(shift['end_minutes'])}',
-                ),
-              ),
-          ],
-        ),
-      ),
-    ],
-  );
-}
-
-String _time(dynamic n) {
-  final value = (n as num).toInt();
-  return '${(value ~/ 60).toString().padLeft(2, '0')}:${(value % 60).toString().padLeft(2, '0')}';
 }
 
 final deskDayAppointmentsProvider =
@@ -152,232 +82,17 @@ final deskAppointmentNamesProvider =
       return names;
     });
 
-class DeskClinicSchedule extends ConsumerWidget {
-  const DeskClinicSchedule({super.key});
-  @override
-  Widget build(BuildContext c, WidgetRef ref) {
-    final day = ref.watch(workspaceDayProvider);
-    final names =
-        ref.watch(deskAppointmentNamesProvider).valueOrNull ??
-        const <String, String>{};
-    return AppScaffold(
-      title: wt(c, 'Clinic appointments', 'مواعيد العيادة'),
-      actions: const [StaffTopActions()],
-      onRefresh: () async => ref.invalidate(deskDayAppointmentsProvider),
-      children: [
-        Wrap(
-          spacing: 8,
-          children: [
-            IconButton(
-              tooltip: wt(c, 'Previous day', 'اليوم السابق'),
-              onPressed: () => ref.read(workspaceDayProvider.notifier).state =
-                  day.subtract(const Duration(days: 1)),
-              icon: const Icon(Icons.chevron_left),
-            ),
-            TextButton(
-              onPressed: () async {
-                final picked = await showDatePicker(
-                  context: c,
-                  initialDate: day,
-                  firstDate: DateTime(2020),
-                  lastDate: DateTime(2100),
-                );
-                if (picked != null)
-                  ref.read(workspaceDayProvider.notifier).state = picked;
-              },
-              child: ReadableLabel(
-                '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}',
-              ),
-            ),
-            IconButton(
-              tooltip: wt(c, 'Next day', 'اليوم التالي'),
-              onPressed: () => ref.read(workspaceDayProvider.notifier).state =
-                  day.add(const Duration(days: 1)),
-              icon: const Icon(Icons.chevron_right),
-            ),
-          ],
-        ),
-        ref
-            .watch(deskDayAppointmentsProvider)
-            .when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Column(
-                children: [
-                  ReadableLabel('$e'),
-                  TextButton(
-                    onPressed: () =>
-                        ref.invalidate(deskDayAppointmentsProvider),
-                    child: Text(wt(c, 'Retry', 'إعادة المحاولة')),
-                  ),
-                ],
-              ),
-              data: (visits) => Column(
-                children: [
-                  if (visits.isEmpty)
-                    ReadableLabel(
-                      wt(
-                        c,
-                        'No clinic appointments on this day.',
-                        'لا توجد مواعيد في العيادة في هذا اليوم.',
-                      ),
-                    ),
-                  for (final visit in visits)
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            ReadableLabel(
-                              '${names[visit.patientId] ?? visit.patientId} · ${visit.patientId}\n${visit.id}',
-                            ),
-                            ReadableLabel(
-                              '${wallTime(visit.slotStart.millisecondsSinceEpoch ~/ 1000)}–${wallTime(visit.slotEnd.millisecondsSinceEpoch ~/ 1000)} · ${wlabel(c, visit.status.name)}',
-                            ),
-                            ReadableLabel(
-                              '${visit.reasonText ?? ''} · ${names[visit.staffId] ?? visit.staffId}',
-                            ),
-                            if (![
-                              AppointmentStatus.completed,
-                              AppointmentStatus.cancelled,
-                              AppointmentStatus.noShow,
-                            ].contains(visit.status))
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: [
-                                  OutlinedButton(
-                                    onPressed: () => showModalBottomSheet<void>(
-                                      context: c,
-                                      isScrollControlled: true,
-                                      useSafeArea: true,
-                                      builder: (_) =>
-                                          DeskRescheduleSheet(visit: visit),
-                                    ),
-                                    child: ReadableLabel(
-                                      wt(c, 'Reschedule', 'تغيير الموعد'),
-                                    ),
-                                  ),
-                                  OutlinedButton(
-                                    onPressed: () => showModalBottomSheet<void>(
-                                      context: c,
-                                      isScrollControlled: true,
-                                      useSafeArea: true,
-                                      builder: (_) =>
-                                          NursingAssignmentSheet(visit: visit),
-                                    ),
-                                    child: ReadableLabel(
-                                      wt(
-                                        c,
-                                        'Assign nurse intake',
-                                        'إسناد تقييم تمريضي',
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            if ([
-                              AppointmentStatus.booked,
-                              AppointmentStatus.confirmed,
-                              AppointmentStatus.checkedIn,
-                            ].contains(visit.status))
-                              Wrap(
-                                spacing: 8,
-                                children: [
-                                  FilledButton(
-                                    onPressed: () async {
-                                      final result = await ref
-                                          .read(appointmentRepositoryProvider)
-                                          .deskCheckIn(
-                                            visit.id,
-                                            at: DateTime.now(),
-                                            expectedVersion: visit.version,
-                                          );
-                                      ref.invalidate(
-                                        deskDayAppointmentsProvider,
-                                      );
-                                      if (c.mounted)
-                                        showMutationFeedback(c, result);
-                                    },
-                                    child: ReadableLabel(
-                                      wt(c, 'Confirm arrival', 'تأكيد الوصول'),
-                                    ),
-                                  ),
-                                  OutlinedButton(
-                                    onPressed: () async {
-                                      final yes = await showDialog<bool>(
-                                        context: c,
-                                        builder: (dc) => AlertDialog(
-                                          title: ReadableLabel(
-                                            wt(
-                                              c,
-                                              'Cancel this appointment?',
-                                              'إلغاء هذا الموعد؟',
-                                            ),
-                                          ),
-                                          content: ReadableLabel(
-                                            '${visit.patientId}\n${visit.id}',
-                                          ),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () =>
-                                                  Navigator.pop(dc, false),
-                                              child: Text(
-                                                wt(
-                                                  c,
-                                                  'Keep appointment',
-                                                  'الاحتفاظ بالموعد',
-                                                ),
-                                              ),
-                                            ),
-                                            FilledButton(
-                                              onPressed: () =>
-                                                  Navigator.pop(dc, true),
-                                              child: Text(
-                                                wt(
-                                                  c,
-                                                  'Cancel appointment',
-                                                  'إلغاء الموعد',
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                      if (yes != true) return;
-                                      final result = await ref
-                                          .read(appointmentRepositoryProvider)
-                                          .cancel(
-                                            visit.id,
-                                            patientId: visit.patientId,
-                                            expectedVersion: visit.version,
-                                          );
-                                      ref.invalidate(
-                                        deskDayAppointmentsProvider,
-                                      );
-                                      if (c.mounted)
-                                        showMutationFeedback(c, result);
-                                    },
-                                    child: ReadableLabel(
-                                      wt(
-                                        c,
-                                        'Cancel appointment',
-                                        'إلغاء الموعد',
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-      ],
-    );
-  }
+/// "Patient name · Dr Clinician · 09:30" for a desk sheet — names from the
+/// day's lookup, never raw record keys.
+String _visitLine(BuildContext c, WidgetRef ref, Appointment visit) {
+  final names =
+      ref.watch(deskAppointmentNamesProvider).valueOrNull ??
+      const <String, String>{};
+  return [
+    names[visit.patientId] ?? wt(c, 'Patient', 'مريض'),
+    if (names[visit.staffId] != null) clinicianName(names[visit.staffId]!),
+    '${clinicDateLabel(clinicDay(visit.slotStart))} ${wallTime(visit.slotStart.millisecondsSinceEpoch ~/ 1000)}',
+  ].join(' · ');
 }
 
 class DeskRescheduleSheet extends ConsumerStatefulWidget {
@@ -425,7 +140,12 @@ class _RescheduleState extends ConsumerState<DeskRescheduleSheet> {
     switch (result) {
       case Ok():
         ref.invalidate(deskDayAppointmentsProvider);
+        ref.invalidate(deskArrivalsProvider);
         ref.invalidate(workforceDataProvider('home'));
+        // Show the moved booking on its new day.
+        ref.read(workspaceDayProvider.notifier).state = clinicDay(
+          selected!.start,
+        );
         Navigator.pop(context);
       case Err(:final failure):
         setState(() {
@@ -451,10 +171,9 @@ class _RescheduleState extends ConsumerState<DeskRescheduleSheet> {
         children: [
           ReadableLabel(
             wt(c, 'Reschedule clinic appointment', 'تغيير موعد العيادة'),
+            style: Theme.of(c).textTheme.titleLarge,
           ),
-          ReadableLabel(
-            '${widget.visit.patientId}\n${widget.visit.id} · ${widget.visit.staffId}',
-          ),
+          ReadableLabel(_visitLine(c, ref, widget.visit)),
           CheckboxListTile(
             value: checked,
             onChanged: busy
@@ -565,8 +284,11 @@ class _AssignmentState extends ConsumerState<NursingAssignmentSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          ReadableLabel(wt(c, 'Assign nursing intake', 'إسناد تقييم تمريضي')),
-          ReadableLabel('${widget.visit.patientId} · ${widget.visit.id}'),
+          ReadableLabel(
+            wt(c, 'Assign nursing intake', 'إسناد تقييم تمريضي'),
+            style: Theme.of(c).textTheme.titleLarge,
+          ),
+          ReadableLabel(_visitLine(c, ref, widget.visit)),
           if (error != null) ReadableLabel(error!),
           WorkspaceAsync(
             value: ref.watch(workforceDataProvider('directory')),

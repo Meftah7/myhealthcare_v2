@@ -58,24 +58,29 @@ void main() {
     await passMfa(tester);
     await _settle(tester);
 
-    // Open the Profile tab from the bottom navigation — now a hub of rows.
-    await tester.tap(find.text('Profile').last);
+    // Open the Settings tab from the bottom navigation.
+    await tester.tap(find.text('Settings').last);
     await _settle(tester);
-    expect(find.widgetWithText(AppBar, 'Profile'), findsOneWidget);
+    expect(find.widgetWithText(AppBar, 'Settings'), findsOneWidget);
 
-    Future<void> reveal(Finder f) async {
+    Future<void> reveal(Finder f, {double delta = 120}) async {
       // The page's scroll view, not the navigation rail's — from `medium` up
       // the rail is scrollable too, so an unscoped finder is ambiguous.
       await tester.scrollUntilVisible(
         f,
-        120,
-        scrollable: find.byType(Scrollable).last,
+        delta,
+        scrollable: find
+            .byWidgetPredicate(
+              (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+            )
+            .last,
       );
       await tester.ensureVisible(f);
       await _settle(tester);
     }
 
     // Account details is its own page.
+    await reveal(find.widgetWithText(ListTile, 'Account'));
     await tester.tap(find.widgetWithText(ListTile, 'Account'));
     await _settle(tester);
     expect(find.text('Specialty'), findsOneWidget);
@@ -84,14 +89,9 @@ void main() {
     await tester.tap(find.byType(BackButton));
     await _settle(tester);
 
-    // Preferences is its own page — the compact profile hub also has quick
-    // theme/language pills, so the link to the full page sits below the fold.
-    await reveal(find.text('Preferences'));
-    await tester.tap(find.text('Preferences'));
-    await _settle(tester);
-
-    // Switch to dark mode.
-    await reveal(find.text('Dark'));
+    // The preference controls sit on Settings itself, like the patient app.
+    // Switch to dark mode — the controls sit above the account rows.
+    await reveal(find.text('Dark'), delta: -120);
     await tester.tap(find.text('Dark'));
     await _settle(tester);
     expect(container.read(themeModeProvider), ThemeMode.dark);
@@ -101,16 +101,11 @@ void main() {
     await tester.tap(find.text('العربية'));
     await _settle(tester);
     expect(container.read(localeProvider), const Locale('ar'));
-    // The Preferences page's own app-bar title localises.
-    expect(find.text('التفضيلات'), findsWidgets);
+    // Settings and its bottom-bar label localise and run right-to-left.
+    expect(find.text('الإعدادات'), findsWidgets);
     expect(
-      Directionality.of(tester.element(find.text('التفضيلات').first)),
+      Directionality.of(tester.element(find.text('الإعدادات').first)),
       TextDirection.rtl,
     );
-
-    // Back to the hub — its title is localised too.
-    await tester.tap(find.byType(BackButton));
-    await _settle(tester);
-    expect(find.text('الملف الشخصي'), findsWidgets);
   });
 }

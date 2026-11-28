@@ -11,8 +11,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/app.dart';
 import 'package:myhealthcare/app/shell/app_shell.dart';
 import 'package:myhealthcare/core/di.dart';
-import 'package:myhealthcare/core/presentation/responsive.dart';
 import 'package:myhealthcare/core/presentation/two_pane.dart';
+import 'package:myhealthcare/core/ui/patient/patient_bottom_navigation.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
 import 'package:myhealthcare/features/staff_dashboard/presentation/staff_dashboard_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -220,7 +220,7 @@ void main() {
       await _teardown(tester);
     });
 
-    testWidgets('expanded staff dashboard puts sections side by side', (
+    testWidgets('expanded staff Home follows the patient Home column', (
       tester,
     ) async {
       await _signIn(
@@ -228,26 +228,15 @@ void main() {
         email: 'staff1@myhealth.demo',
         size: const Size(1200, 1600),
       );
-      await tester.scrollUntilVisible(
-        find.byType(BentoGrid),
-        300,
-        scrollable: find
-            .descendant(
-              of: find.byType(StaffDashboardScreen),
-              matching: find.byType(Scrollable),
-            )
-            .first,
-      );
-
-      // Clinical bento: the owned-work modules share one row on wide windows.
-      expect(find.byType(BentoGrid), findsWidgets);
-      expect(
-        find.descendant(
-          of: find.byType(BentoRow).first,
-          matching: find.byType(Row),
-        ),
-        findsWidgets,
-      );
+      // Like patient Home: one capped column beside the sidebar, the work
+      // card first and the four figures sharing one row.
+      expect(find.byType(StaffDashboardScreen), findsOneWidget);
+      final card = tester.getRect(find.byKey(const ValueKey('staff-work-card')));
+      expect(card.width, lessThanOrEqualTo(760));
+      final visits = tester.getTopLeft(find.text('Visits today'));
+      final notes = tester.getTopLeft(find.text('Unsigned notes'));
+      expect(notes.dy, visits.dy);
+      expect(notes.dx, greaterThan(visits.dx));
 
       await _teardown(tester);
     });
@@ -278,24 +267,25 @@ void main() {
         email: 'staff1@myhealth.demo',
         size: const Size(400, 900),
       );
-      if (find.byType(NavigationBar).evaluate().isEmpty) {
-        await tester.tap(
-          find
-              .descendant(
-                of: find.byType(CompactNavigation),
-                matching: find.byType(ListTile),
-              )
-              .first,
-        );
-        await _settle(tester);
-        await tester.ensureVisible(find.text('Patients').last);
-      }
-      await tester.tap(find.text('Patients').last);
+      // Staff use the patient bar: every tab is one tap away.
+      expect(find.byType(CompactNavigation), findsNothing);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(PatientBottomNavigation),
+          matching: find.text('Patients'),
+        ),
+      );
       await _settle(tester);
 
       expect(find.byType(TwoPane), findsOneWidget);
       // No detail pane, so no placeholder and no second toolbar.
-      expect(find.byType(VerticalDivider), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byType(TwoPane),
+          matching: find.byType(VerticalDivider),
+        ),
+        findsNothing,
+      );
       expect(find.text('Pick a patient to open their chart.'), findsNothing);
 
       await _teardown(tester);
@@ -320,7 +310,14 @@ void main() {
 
       // Choosing a patient fills the pane in place, and the list stays put.
       final listRect = tester.getRect(find.byType(SearchBar));
-      await tester.tap(find.byType(CircleAvatar).first);
+      await tester.tap(
+        find
+            .descendant(
+              of: find.byType(TwoPane),
+              matching: find.byType(CircleAvatar),
+            )
+            .first,
+      );
       await _settle(tester);
 
       expect(find.text('Pick a patient to open their chart.'), findsNothing);

@@ -5,10 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthcare/app/app.dart';
-import 'package:myhealthcare/core/di.dart';
-import 'package:myhealthcare/core/presentation/app_scaffold.dart';
 import 'package:myhealthcare/app/router.dart';
+import 'package:myhealthcare/core/di.dart';
 import 'package:myhealthcare/data/seed/seeder.dart';
+import 'package:myhealthcare/features/staff_dashboard/presentation/staff_dashboard_screen.dart';
+import 'package:myhealthcare/features/staff_dashboard/presentation/staff_home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/mfa.dart';
@@ -62,16 +63,15 @@ void main() {
     await passMfa(tester);
     await _settle(tester);
 
-    // Lands on the staff dashboard, laid out like the patient one: greeting,
-    // a single gradient hero, a three-figure shift row, then Quick actions.
-    // The desktop toolbar shows the signed-in clinician's name.
-    final scaffold = tester.widget<AppScaffold>(find.byType(AppScaffold).first);
-    expect(find.text(scaffold.title!), findsOneWidget);
+    // Lands on staff Home, laid out like patient Home: one greeting with the
+    // role underneath, one primary work card, four figures, today's schedule
+    // grouped Ongoing / Upcoming / Completed, then Quick actions.
+    expect(find.byType(StaffHomeHeader), findsOneWidget);
+    expect(find.byKey(const ValueKey('staff-home-role-line')), findsOneWidget);
+    expect(find.byKey(const ValueKey('staff-work-card')), findsOneWidget);
     expect(find.text('On duty'), findsNothing);
-    expect(find.text('Quick Statistics'), findsOneWidget);
-    for (final label in ['Ongoing', 'Upcoming', 'Completed']) {
-      expect(find.text(label), findsOneWidget);
-    }
+    expect(find.text('Visits today'), findsOneWidget);
+    expect(find.byKey(const ValueKey('staff-today-schedule')), findsOneWidget);
     expect(find.text('Quick actions'), findsOneWidget);
 
     // Run a panel scan from the Quick actions grid.
@@ -88,7 +88,7 @@ void main() {
 
     // Task board is reachable and renders.
     final scope = ProviderScope.containerOf(
-      tester.element(find.byType(AppScaffold).first),
+      tester.element(find.byType(StaffDashboardScreen)),
     );
     scope.read(routerProvider).go(AppRoutes.staffTasks);
     await _settle(tester);

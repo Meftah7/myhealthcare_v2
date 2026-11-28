@@ -20,7 +20,9 @@ function fixture(t){
 test('clinic boundaries are Bahrain UTC+3 and reject invalid dates',()=>{assert.deepEqual(clinicBounds('2026-10-01'),[Date.parse('2026-09-30T21:00Z'),Date.parse('2026-10-01T21:00Z')]);assert.throws(()=>clinicBounds('2026-02-30'));});
 test('history excludes upcoming/other clinicians before paging and deduplicates',t=>{
   const f=fixture(t);f.visit('a',f.patient,f.doctor);f.visit('b',f.patient,f.doctor);f.visit('c',f.stranger,f.other);f.visit('d',f.stranger,f.doctor,'booked');
-  const d=f.request(f.doctor,'history',{limit:1});assert.equal(d.stats.total,1);assert.equal(d.total,1);assert.equal(d.rows[0].id,f.patient);assert.equal(d.stats.month,1);
+  const d=f.request(f.doctor,'history',{limit:1});assert.equal(d.stats.total,1);assert.equal(d.total,1);assert.equal(d.rows[0].id,f.patient);
+  // Patients deduplicate; visits do not: two visits by one patient are two.
+  assert.equal(d.stats.month,2);
   assert.equal(f.request(f.doctor,'history',{query:f.stranger}).total,0);assert.throws(()=>f.request(f.admin,'history'),/Clinical staff/);
 });
 test('nurse participation is explicit, scoped, idempotent and only completed visits enter history',t=>{

@@ -1,20 +1,38 @@
-/// Today workspaces for staff roles without clinical chart access:
-/// receptionist (front desk), pharmacist, and an unassigned/unknown role.
+/// Staff Home dispatch for roles without clinical chart access, and the
+/// sheets those roles act through: the front-desk booking sheet and issued-
+/// copy check, the pharmacy outcome and stock sheets, and the unassigned-role
+/// notice. The reception and pharmacy tabs live in `front_desk.dart` and
+/// `pharmacy_work.dart` (re-exported here).
 ///
-/// Doctors, dentists and nurses keep the clinical [StaffDashboardScreen].
 /// Every action here is re-authorized by its repository; these screens only
 /// decide what to offer.
 library;
 
+export 'front_desk.dart'
+    show
+        DeskSchedule,
+        FrontDeskWorkspace,
+        ReceptionPatientLookup,
+        deskArrivalsProvider,
+        showDeskBookingFlow;
+export 'pharmacy_work.dart'
+    show PharmacyPatients, PharmacyWorkSchedule, PharmacyWorkspace;
+
 import 'dart:async';
-import '../../workforce/workforce_home.dart';
 import '../../workforce/workforce_repository.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../app/router.dart';
+import '../../../core/failures.dart';
+import '../../workforce/role_navigation.dart' show deskDayAppointmentsProvider;
+import '../../workspace/workspace_repository.dart';
+import 'front_desk.dart' show FrontDeskWorkspace, deskArrivalsProvider;
+import 'pharmacy_work.dart' show PharmacyWorkspace;
 
 import '../../../app/theme/dimens.dart';
-import '../../../app/theme/patient_palette.dart';
 import '../../../core/data/contracts.dart';
 import '../../../core/di.dart';
 import '../../../core/presentation/app_card.dart';
@@ -52,7 +70,7 @@ T _unwrap<T>(Result<T> r) => switch (r) {
   Err(:final failure) => throw failure,
 };
 
-String _failureText(Object e) => e is Exception || e is Error
+String staffFailureText(Object e) => e is Exception || e is Error
     ? e.toString()
     : (e as dynamic).message as String? ?? '$e';
 
@@ -60,309 +78,20 @@ String _failureText(Object e) => e is Exception || e is Error
 // Front desk
 // ---------------------------------------------------------------------------
 
-/// Today's clinic visits that can still be checked in, with patient names.
-final deskArrivalsProvider =
-    FutureProvider.autoDispose<List<(Appointment, String)>>((ref) async {
-      final now = DateTime.now();
-      final start = DateTime(now.year, now.month, now.day);
-      final visits =
-          _unwrap(
-            await ref
-                .watch(appointmentRepositoryProvider)
-                .inRange(start, start.add(const Duration(days: 1))),
-          ).where(
-            (a) =>
-                a.status == AppointmentStatus.booked ||
-                a.status == AppointmentStatus.confirmed ||
-                a.status == AppointmentStatus.checkedIn,
-          );
-      final patients = ref.watch(patientRepositoryProvider);
-      final names = <String, String>{};
-      final out = <(Appointment, String)>[];
-      for (final a in visits) {
-        names[a.patientId] ??=
-            (await patients.byId(a.patientId)).valueOrNull?.user.fullName ?? '';
-        out.add((a, names[a.patientId]!));
-      }
-      return out;
-    });
-
-class FrontDeskWorkspace extends ConsumerStatefulWidget {
-  const FrontDeskWorkspace({super.key});
-
-  @override
-  ConsumerState<FrontDeskWorkspace> createState() => _FrontDeskState();
-}
-
-class _FrontDeskState extends ConsumerState<FrontDeskWorkspace> {
-  final _query = TextEditingController();
-  final _focus = FocusNode();
-  Future<Result<List<Patient>>>? _search;
-  final _checkingIn = <String>{};
-
-  @override
-  void dispose() {
-    _query.dispose();
-    _focus.dispose();
-    super.dispose();
-  }
-
-  void _runSearch() {
-    final q = _query.text.trim();
-    if (q.length < 3) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            workText(
-              context,
-              'Enter at least 3 characters of the CPR / ID, name or phone.',
-              'أدخل ٣ أحرف على الأقل من الرقم الشخصي أو الاسم أو الهاتف.',
-            ),
-          ),
-        ),
-      );
-      return;
-    }
-    setState(() => _search = ref.read(patientRepositoryProvider).search(q));
-  }
-
-  Future<void> _checkIn(Appointment a) async {
-    if (_checkingIn.contains(a.id)) return;
-    setState(() => _checkingIn.add(a.id));
-    final r = await ref
-        .read(appointmentRepositoryProvider)
-        .deskCheckIn(a.id, at: DateTime.now(), expectedVersion: a.version);
-    if (!mounted) return;
-    setState(() => _checkingIn.remove(a.id));
-    final messenger = ScaffoldMessenger.of(context);
-    switch (r) {
-      case Ok():
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(
-              workText(context, 'Arrival confirmed.', 'تم تأكيد الوصول.'),
-            ),
-          ),
-        );
-        ref.invalidate(deskArrivalsProvider);
-      case Err(:final failure):
-        messenger.showSnackBar(SnackBar(content: Text(failure.message)));
-        ref.invalidate(deskArrivalsProvider);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final user = ref.watch(currentUserProvider);
-    final arrivals = ref.watch(deskArrivalsProvider);
-    return AppScaffold(
-      heroOverline: workText(
-        context,
-        'Hello, ${user?.fullName.split(' ').first ?? ''}',
-        'مرحباً، ${user?.fullName.split(' ').first ?? ''}',
-      ),
-      title: user?.fullName ?? '',
-      actions: const [StaffTopActions()],
-      onRefresh: () async {
-        ref.invalidate(deskArrivalsProvider);
-        ref.invalidate(workforceDataProvider('home'));
-      },
-      children: [
-        const WorkforceOverview(),
-        const WorkforceQuickAccess(),
-        const SizedBox(height: Space.md),
-        TextField(
-          key: const ValueKey('desk-search'),
-          controller: _query,
-          focusNode: _focus,
-          textInputAction: TextInputAction.search,
-          onSubmitted: (_) => _runSearch(),
-          decoration: InputDecoration(
-            labelText: workText(
-              context,
-              'CPR / ID, name or phone',
-              'الرقم الشخصي أو الاسم أو الهاتف',
-            ),
-            suffixIcon: IconButton(
-              tooltip: workText(context, 'Search', 'بحث'),
-              icon: const Icon(Icons.search),
-              onPressed: _runSearch,
-            ),
-          ),
-        ),
-        if (_search != null)
-          FutureBuilder<Result<List<Patient>>>(
-            future: _search,
-            builder: (context, snap) {
-              if (!snap.hasData) {
-                return const Padding(
-                  padding: EdgeInsets.all(Space.md),
-                  child: Center(child: CircularProgressIndicator()),
-                );
-              }
-              return switch (snap.data!) {
-                Err(:final failure) => PatientStateView(
-                  kind: PatientStateKind.error,
-                  message: failure.message,
-                  actionLabel: workText(context, 'Retry', 'إعادة المحاولة'),
-                  onAction: _runSearch,
-                ),
-                Ok(:final value) when value.isEmpty => PatientStateView(
-                  kind: PatientStateKind.empty,
-                  message: workText(
-                    context,
-                    'No patient matches. Check the number or try the full name.',
-                    'لا يوجد مريض مطابق. تحقق من الرقم أو جرّب الاسم الكامل.',
-                  ),
-                ),
-                Ok(:final value) => Column(
-                  children: [
-                    for (final p in value)
-                      Padding(
-                        padding: const EdgeInsets.only(top: Space.sm),
-                        child: SurfaceCard(
-                          child: ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: const IconTile(icon: Icons.person_outline),
-                            title: Text(p.user.fullName),
-                            subtitle: Text(
-                              [
-                                if (p.user.nationalId != null)
-                                  p.user.nationalId!,
-                                if (p.user.dob != null) fmtDate(p.user.dob!),
-                              ].join(' · '),
-                            ),
-                            trailing: FilledButton(
-                              onPressed: () => unawaited(
-                                showModalBottomSheet<void>(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  useSafeArea: true,
-                                  builder: (_) => DeskBookingSheet(patient: p),
-                                ),
-                              ),
-                              child: Text(workText(context, 'Book', 'احجز')),
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              };
-            },
-          ),
-        const SizedBox(height: Space.lg),
-        SectionHeading(
-          workText(context, "Today's arrivals", 'وصول اليوم'),
-          subtitle: workText(
-            context,
-            'Confirm arrival only after checking identity at the desk.',
-            'أكّد الوصول فقط بعد التحقق من الهوية في الاستقبال.',
-          ),
-        ),
-        arrivals.when(
-          loading: () => const PatientStateView(kind: PatientStateKind.loading),
-          error: (e, _) => PatientStateView(
-            kind: PatientStateKind.error,
-            message: _failureText(e),
-            actionLabel: workText(context, 'Retry', 'إعادة المحاولة'),
-            onAction: () => ref.invalidate(deskArrivalsProvider),
-          ),
-          data: (list) => list.isEmpty
-              ? PatientStateView(
-                  kind: PatientStateKind.empty,
-                  message: workText(
-                    context,
-                    'No more visits to check in today.',
-                    'لا توجد زيارات أخرى لتسجيل وصولها اليوم.',
-                  ),
-                )
-              : Column(
-                  children: [
-                    for (final (a, name) in list)
-                      Padding(
-                        padding: const EdgeInsets.only(top: Space.sm),
-                        child: SurfaceCard(
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '${fmtTime(a.slotStart)} · $name',
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.titleSmall,
-                                    ),
-                                    if (a.ticketTag != null) Text(a.ticketTag!),
-                                  ],
-                                ),
-                              ),
-                              if (a.checkedInAt != null)
-                                StatusBadge(
-                                  workText(context, 'Arrived', 'وصل'),
-                                  accent: PatientAccent.green,
-                                  icon: Icons.check,
-                                )
-                              else
-                                OutlinedButton(
-                                  onPressed: _checkingIn.contains(a.id)
-                                      ? null
-                                      : () => unawaited(_checkIn(a)),
-                                  child: Text(
-                                    workText(
-                                      context,
-                                      'Mark arrived',
-                                      'تسجيل الوصول',
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-        ),
-        const SizedBox(height: Space.lg),
-        SectionHeading(workText(context, 'Documents', 'المستندات')),
-        SurfaceCard(
-          onTap: () => unawaited(
-            showModalBottomSheet<void>(
-              context: context,
-              isScrollControlled: true,
-              useSafeArea: true,
-              builder: (_) => const ConfirmCopySheet(),
-            ),
-          ),
-          child: ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const IconTile(icon: Icons.verified_outlined),
-            title: Text(
-              workText(context, 'Confirm issued copy', 'تأكيد نسخة صادرة'),
-            ),
-            subtitle: Text(
-              workText(
-                context,
-                'Administrative check of an already issued document. Not a clinical signature.',
-                'تحقق إداري من مستند صادر مسبقًا. ليس توقيعًا سريريًا.',
-              ),
-            ),
-            trailing: const Icon(Icons.chevron_right),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 /// Books one visit for [patient] at the front desk: department → clinician
 /// → day → an actually open slot → visit type → review → submit.
 class DeskBookingSheet extends ConsumerStatefulWidget {
-  const DeskBookingSheet({required this.patient, super.key});
+  const DeskBookingSheet({
+    required this.patient,
+    this.identityConfirmed = false,
+    super.key,
+  });
 
   final Patient patient;
+
+  /// Set when the book-for-a-patient flow already had staff confirm the
+  /// patient against their CPR / ID.
+  final bool identityConfirmed;
 
   @override
   ConsumerState<DeskBookingSheet> createState() => _DeskBookingState();
@@ -371,7 +100,7 @@ class DeskBookingSheet extends ConsumerStatefulWidget {
 class _DeskBookingState extends ConsumerState<DeskBookingSheet> {
   // One key per sheet: a retry after a lost response books once.
   final _key = IdempotencyKey.generate();
-  bool _identityChecked = false;
+  late bool _identityChecked = widget.identityConfirmed;
   String? _departmentId;
   Staff? _clinician;
   DateTime _day = DateTime.now();
@@ -416,10 +145,20 @@ class _DeskBookingState extends ConsumerState<DeskBookingSheet> {
       switch (r) {
         case Ok(:final value):
           _booked = value;
-          ref.invalidate(deskArrivalsProvider);
+          ref
+            ..invalidate(deskArrivalsProvider)
+            ..invalidate(deskDayAppointmentsProvider)
+            ..invalidate(workforceDataProvider('home'));
         case Err(:final failure):
-          // Inputs stay; a taken slot is refreshed so another can be chosen.
-          _error = failure.message;
+          // The patient and choices stay; a taken slot is refreshed so one
+          // of the remaining times can be chosen.
+          _error = failure is ConflictFailure
+              ? workText(
+                  context,
+                  'That time was just taken. Choose one of the remaining times.',
+                  'تم حجز هذا الوقت للتو. اختر أحد الأوقات المتبقية.',
+                )
+              : failure.message;
           _loadSlots();
       }
     });
@@ -455,11 +194,26 @@ class _DeskBookingState extends ConsumerState<DeskBookingSheet> {
                     '${widget.patient.user.fullName}\n'
                     '${fmtDate(booked.slotStart)} ${fmtTime(booked.slotStart)}'
                     '${booked.ticketTag == null ? '' : ' · ${booked.ticketTag}'}\n'
-                    '${workText(context, 'Reference', 'المرجع')}: ${booked.id}',
+                    '${clinicianName(_clinician?.fullName ?? '')} · ${visitTypeLabel(booked.visitType)}',
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: Space.md),
-                  FilledButton(
+                  PrimaryActionButton(
+                    key: const ValueKey('desk-booking-view'),
+                    label: workText(
+                      context,
+                      'View in schedule',
+                      'عرض في الجدول',
+                    ),
+                    onPressed: () {
+                      ref.read(workspaceDayProvider.notifier).state = clinicDay(
+                        booked.slotStart,
+                      );
+                      Navigator.of(context).pop();
+                      GoRouter.of(context).go(AppRoutes.staffSchedule);
+                    },
+                  ),
+                  TextButton(
                     onPressed: () => Navigator.of(context).pop(),
                     child: Text(workText(context, 'Done', 'تم')),
                   ),
@@ -492,7 +246,7 @@ class _DeskBookingState extends ConsumerState<DeskBookingSheet> {
                   ),
                   departments.when(
                     loading: () => const LinearProgressIndicator(),
-                    error: (e, _) => Text(_failureText(e)),
+                    error: (e, _) => Text(staffFailureText(e)),
                     data: (list) => DropdownButtonFormField<String>(
                       initialValue: _departmentId,
                       isExpanded: true,
@@ -518,7 +272,7 @@ class _DeskBookingState extends ConsumerState<DeskBookingSheet> {
                     const SizedBox(height: Space.sm),
                     staff.when(
                       loading: () => const LinearProgressIndicator(),
-                      error: (e, _) => Text(_failureText(e)),
+                      error: (e, _) => Text(staffFailureText(e)),
                       data: (list) {
                         final bookable = [
                           for (final s in list)
@@ -910,7 +664,7 @@ final pharmacyQueueProvider = FutureProvider.autoDispose<List<PharmacyOrder>>(
   (ref) async => _unwrap(await ref.watch(pharmacyRepositoryProvider).queue()),
 );
 
-String _outcomeLabel(BuildContext c, DispenseOutcome? o) => switch (o) {
+String pharmacyOutcomeLabel(BuildContext c, DispenseOutcome? o) => switch (o) {
   null => workText(c, 'Awaiting review', 'بانتظار المراجعة'),
   DispenseOutcome.dispensed => workText(c, 'Dispensed', 'تم الصرف'),
   DispenseOutcome.partial => workText(c, 'Partly supplied', 'صُرف جزئيًا'),
@@ -922,238 +676,13 @@ String _outcomeLabel(BuildContext c, DispenseOutcome? o) => switch (o) {
   ),
 };
 
-PatientAccent _outcomeAccent(DispenseOutcome? o) => switch (o) {
+PatientAccent pharmacyOutcomeAccent(DispenseOutcome? o) => switch (o) {
   null => PatientAccent.blue,
   DispenseOutcome.dispensed => PatientAccent.green,
   DispenseOutcome.partial ||
   DispenseOutcome.held ||
   DispenseOutcome.clarificationRequested => PatientAccent.amber,
 };
-
-class PharmacyWorkspace extends ConsumerWidget {
-  const PharmacyWorkspace({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(currentUserProvider);
-    final queue = ref.watch(pharmacyQueueProvider);
-    return AppScaffold(
-      heroOverline: workText(
-        context,
-        'Hello, ${user?.fullName.split(' ').first ?? ''}',
-        'مرحباً، ${user?.fullName.split(' ').first ?? ''}',
-      ),
-      title: user?.fullName ?? '',
-      actions: const [StaffTopActions()],
-      onRefresh: () async {
-        ref.invalidate(pharmacyQueueProvider);
-        ref.invalidate(workforceDataProvider('home'));
-      },
-      children: [
-        const WorkforceOverview(),
-        const WorkforceQuickAccess(),
-        const SizedBox(height: Space.lg),
-        SectionHeading(workText(context, 'Orders', 'الطلبات')),
-        queue.when(
-          loading: () => const PatientStateView(kind: PatientStateKind.loading),
-          error: (e, _) => PatientStateView(
-            kind: PatientStateKind.error,
-            message: _failureText(e),
-            actionLabel: workText(context, 'Retry', 'إعادة المحاولة'),
-            onAction: () => ref.invalidate(pharmacyQueueProvider),
-          ),
-          data: (orders) => orders.isEmpty
-              ? PatientStateView(
-                  kind: PatientStateKind.empty,
-                  message: workText(
-                    context,
-                    'No active prescriptions.',
-                    'لا توجد وصفات نشطة.',
-                  ),
-                )
-              : Column(
-                  children: [
-                    for (final o in orders)
-                      Padding(
-                        padding: const EdgeInsets.only(top: Space.sm),
-                        child: SurfaceCard(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Wrap(
-                                spacing: Space.xs,
-                                runSpacing: Space.xxs,
-                                crossAxisAlignment: WrapCrossAlignment.center,
-                                children: [
-                                  Text(
-                                    o.name,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.titleSmall,
-                                  ),
-                                  StatusBadge(
-                                    o.clarificationPending
-                                        ? workText(
-                                            context,
-                                            'Clarification unresolved',
-                                            'استيضاح غير محسوم',
-                                          )
-                                        : _outcomeLabel(context, o.lastOutcome),
-                                    accent: _outcomeAccent(o.lastOutcome),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                [
-                                  o.dose,
-                                  o.frequency,
-                                ].whereType<String>().join(' · '),
-                              ),
-                              Text(
-                                '${workText(context, 'Patient', 'المريض')}: ${o.patientName}',
-                              ),
-                              Text(
-                                '${workText(context, 'Prescribed by', 'وصفها')} ${clinicianName(o.prescriberName)} · ${fmtDate(o.startDate)}',
-                                style: TextStyle(
-                                  color: PatientPalette.of(context).textMuted,
-                                ),
-                              ),
-                              const SizedBox(height: Space.xs),
-                              Align(
-                                alignment: AlignmentDirectional.centerEnd,
-                                child: OutlinedButton(
-                                  onPressed: o.isDispensed
-                                      ? null
-                                      : () => unawaited(
-                                          showModalBottomSheet<void>(
-                                            context: context,
-                                            isScrollControlled: true,
-                                            useSafeArea: true,
-                                            builder: (_) =>
-                                                DispenseSheet(order: o),
-                                          ),
-                                        ),
-                                  child: Text(
-                                    workText(
-                                      context,
-                                      'Record outcome',
-                                      'تسجيل النتيجة',
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-        ),
-        const SizedBox(height: Space.lg),
-        const PharmacyDispensingHistory(),
-        SectionHeading(
-          workText(context, 'Stock', 'المخزون'),
-          actionLabel: workText(context, 'Receive stock', 'استلام مخزون'),
-          onAction: () => unawaited(
-            showModalBottomSheet<void>(
-              context: context,
-              isScrollControlled: true,
-              useSafeArea: true,
-              builder: (_) => const ReceiveStockSheet(),
-            ),
-          ),
-        ),
-        ref
-            .watch(pharmacyStockProvider)
-            .when(
-              loading: () =>
-                  const PatientStateView(kind: PatientStateKind.loading),
-              error: (e, _) => PatientStateView(
-                kind: PatientStateKind.error,
-                message: _failureText(e),
-                actionLabel: workText(context, 'Retry', 'إعادة المحاولة'),
-                onAction: () => ref.invalidate(pharmacyStockProvider),
-              ),
-              data: (batches) => batches.isEmpty
-                  ? PatientStateView(
-                      kind: PatientStateKind.empty,
-                      message: workText(
-                        context,
-                        'No stock recorded yet. Receive a batch to track quantities and expiry.',
-                        'لا يوجد مخزون مسجل بعد. استلم دفعة لتتبع الكميات وتاريخ الانتهاء.',
-                      ),
-                    )
-                  : Column(
-                      children: [
-                        for (final b in batches)
-                          Padding(
-                            padding: const EdgeInsets.only(top: Space.sm),
-                            child: SurfaceCard(
-                              child: Wrap(
-                                spacing: Space.sm,
-                                runSpacing: Space.xxs,
-                                crossAxisAlignment: WrapCrossAlignment.center,
-                                children: [
-                                  Text(
-                                    '${b.itemName} · ${b.batch}',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.titleSmall,
-                                  ),
-                                  Text(
-                                    '${b.quantity} ${b.unit} · '
-                                    '${workText(context, 'expires', 'ينتهي')} ${fmtDate(b.expiry)}',
-                                  ),
-                                  if (b.isExpired(DateTime.now()))
-                                    StatusBadge(
-                                      workText(context, 'Expired', 'منتهي'),
-                                      accent: PatientAccent.red,
-                                      icon: Icons.block,
-                                    )
-                                  else if (b.expiresSoon(DateTime.now()))
-                                    StatusBadge(
-                                      workText(
-                                        context,
-                                        'Expires within 30 days',
-                                        'ينتهي خلال ٣٠ يومًا',
-                                      ),
-                                      accent: PatientAccent.amber,
-                                      icon: Icons.schedule,
-                                    ),
-                                  if (b.quantity == 0)
-                                    StatusBadge(
-                                      workText(context, 'Out of stock', 'نفد'),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-            ),
-        const SizedBox(height: Space.lg),
-        SurfaceCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              FutureWorkBadge(
-                label: workText(context, 'Future work', 'عمل مستقبلي'),
-              ),
-              const SizedBox(height: Space.xs),
-              Text(
-                workText(
-                  context,
-                  'Barcode scanning and supplier ordering are not part of this release.',
-                  'مسح الباركود والطلب من الموردين ليسا ضمن هذا الإصدار.',
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
 
 class DispenseSheet extends ConsumerStatefulWidget {
   const DispenseSheet({required this.order, super.key});
@@ -1300,7 +829,7 @@ class _DispenseState extends ConsumerState<DispenseSheet> {
                 for (final v in DispenseOutcome.values)
                   DropdownMenuItem(
                     value: v,
-                    child: Text(_outcomeLabel(context, v)),
+                    child: Text(pharmacyOutcomeLabel(context, v)),
                   ),
               ],
               onChanged: (v) => setState(() => _outcome = v ?? _outcome),

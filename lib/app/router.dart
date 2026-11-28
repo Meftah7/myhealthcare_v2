@@ -88,6 +88,7 @@ import '../features/staff_dashboard/presentation/schedule_work_screen.dart';
 import '../features/staff_dashboard/presentation/staff_activity_screen.dart';
 import '../features/staff_dashboard/presentation/staff_dashboard_screen.dart';
 import '../features/staff_dashboard/presentation/staff_directory_screen.dart';
+import '../features/staff_dashboard/presentation/staff_navigation.dart';
 import '../features/staff_dashboard/presentation/staff_profile_pages.dart';
 import '../features/staff_dashboard/presentation/staff_profile_screen.dart';
 import '../features/staff_dashboard/presentation/staff_top_actions.dart';
@@ -235,7 +236,12 @@ abstract final class AppRoutes {
   static const staffProfile = '/staff/profile';
   static const staffInbox = '/staff/dashboard/inbox';
 
-  /// One patient thread in the staff inbox.
+  /// Colleague directory and one staff-to-staff thread — under Chat, so the
+  /// Chat tab stays highlighted and Back returns to the conversation list.
+  static const staffTeamDirectory = '/staff/chat/colleagues';
+  static String staffTeamThread(String id) => '/staff/chat/team/$id';
+
+  /// One patient thread, owned by the Chat tab wherever it is opened from.
   /// [ownerId] opens a colleague's thread this clinician covers.
   static String staffInboxThread(
     String patientId, {
@@ -243,7 +249,7 @@ abstract final class AppRoutes {
     String? ownerId,
   }) {
     final query = {'name': ?name, 'owner': ?ownerId};
-    final base = '$staffInbox/$patientId';
+    final base = '$staffChat/$patientId';
     return query.isEmpty
         ? base
         : Uri(path: base, queryParameters: query).toString();
@@ -413,6 +419,17 @@ GoRouter buildAppRouter(Ref ref, Listenable refresh) {
       GoRoute(
         path: AppRoutes.adminFeedback,
         builder: (_, _) => const WorkspaceFeedbackScreen(),
+      ),
+
+      // Team chat moved under the Chat tab; old links keep working.
+      GoRoute(
+        path: '/staff/team',
+        redirect: (_, _) => AppRoutes.staffTeamDirectory,
+      ),
+      GoRoute(
+        path: '/staff/team-chat/:threadId',
+        redirect: (_, state) =>
+            AppRoutes.staffTeamThread(state.pathParameters['threadId']!),
       ),
 
       _patientShell(),
@@ -942,60 +959,30 @@ List<RouteBase> _chartPages() => [
 
 StatefulShellRoute _staffShell() {
   return StatefulShellRoute.indexedStack(
+    // Tab order for every staff role: Home | Schedule | Patients | Chat |
+    // Settings ([StaffTab]). The patient bar renders them on phones, the
+    // patient rail and a staff sidebar on wider windows — the same
+    // breakpoints as the patient app. Each branch keeps its own stack, so a
+    // tab switch preserves the selected day, a search and the scroll offset.
     builder: (context, state, navigationShell) {
-      final t = AppLocalizations.of(context)!;
-      return Consumer(
-        builder: (context, ref, _) {
-          final role = ref.watch(currentStaffRoleProvider);
-          return AppShell(
-            navigationShell: navigationShell,
-            contextHeader: const StaffPatientContextHeader(),
-            destinations: [
-              AppDestination(
-                icon: Icons.dashboard_outlined,
-                selectedIcon: Icons.dashboard,
-                label: t.localeName == 'ar'
-                    ? '\u0627\u0644\u064a\u0648\u0645'
-                    : 'Today',
-              ),
-              AppDestination(
-                icon: Icons.people_outline,
-                selectedIcon: Icons.people,
-                label: role == StaffRole.pharmacist
-                    ? (t.localeName == 'ar' ? 'الوصفات' : 'Prescriptions')
-                    : role == StaffRole.receptionist
-                    ? (t.localeName == 'ar'
-                          ? 'البحث عن مريض'
-                          : 'Patient Lookup')
-                    : t.navPatients,
-              ),
-              AppDestination(
-                icon: Icons.chat_bubble_outline,
-                selectedIcon: Icons.chat_bubble,
-                label: t.localeName == 'ar' ? 'المحادثات' : 'Chat',
-              ),
-              AppDestination(
-                icon: Icons.calendar_month_outlined,
-                selectedIcon: Icons.calendar_month,
-                label: role == StaffRole.pharmacist
-                    ? (t.localeName == 'ar' ? 'جدول العمل' : 'Work Schedule')
-                    : role == StaffRole.receptionist
-                    ? (t.localeName == 'ar'
-                          ? 'مواعيد العيادة'
-                          : 'Clinic Appointments')
-                    : t.navSchedule,
-              ),
-              AppDestination(
-                icon: Icons.account_circle_outlined,
-                selectedIcon: Icons.account_circle,
-                label: t.profile,
-              ),
-            ],
-          );
-        },
+      final destinations = staffDestinations(context);
+      return AppShell(
+        navigationShell: navigationShell,
+        contextHeader: const StaffPatientContextHeader(),
+        destinations: destinations,
+        expandedAccountBuilder: (entries) => StaffSidebar(entries: entries),
+        compactBarBuilder: (context, selected, onSelected) =>
+            PatientBottomNavigation(
+              destinations: destinations,
+              selectedIndex: selected,
+              onSelected: onSelected,
+              centerIndex: null,
+              collapseWhenCrowded: false,
+            ),
       );
     },
     branches: [
+      // Home — today's work, and the role tools reached from it.
       StatefulShellBranch(
         routes: [
           GoRoute(
@@ -1030,104 +1017,9 @@ StatefulShellRoute _staffShell() {
               ),
             ],
           ),
-        ],
-      ),
-      StatefulShellBranch(
-        routes: [
-          GoRoute(
-            path: AppRoutes.staffPatients,
-            builder: (_, _) => const StaffRolePatients(),
-            routes: [
-              GoRoute(
-                path: ':id',
-                builder: (_, state) =>
-                    PatientChartScreen(patientId: state.pathParameters['id']!),
-                routes: _chartPages(),
-              ),
-            ],
-          ),
-        ],
-      ),
-      StatefulShellBranch(
-        routes: [
-          GoRoute(
-            path: AppRoutes.staffChat,
-            builder: (_, _) => const StaffRoleChat(),
-            routes: [
-              GoRoute(
-                path: ':patientId',
-                builder: (_, state) => StaffMessageThreadPage(
-                  patientId: state.pathParameters['patientId']!,
-                  title: state.uri.queryParameters['name'],
-                  ownerId: state.uri.queryParameters['owner'],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-      StatefulShellBranch(
-        routes: [
-          GoRoute(
-            path: AppRoutes.staffSchedule,
-            builder: (_, _) => const StaffRoleSchedule(),
-            routes: [
-              GoRoute(
-                path: 'work',
-                builder: (_, _) => Consumer(
-                  builder: (context, ref, _) =>
-                      ref.watch(sharedModeProvider) ||
-                          [
-                            StaffRole.receptionist,
-                            StaffRole.pharmacist,
-                          ].contains(ref.watch(currentStaffRoleProvider))
-                      ? const WorkforceTimeOffScreen()
-                      : const ScheduleWorkScreen(),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-      StatefulShellBranch(
-        routes: [
-          GoRoute(
-            path: AppRoutes.staffProfile,
-            builder: (_, _) => const StaffProfileScreen(),
-            routes: [
-              GoRoute(
-                path: 'account',
-                builder: (_, _) => const StaffAccountPage(),
-              ),
-              GoRoute(
-                path: 'activity',
-                builder: (_, _) => const StaffActivityScreen(),
-              ),
-              GoRoute(
-                path: 'directory',
-                builder: (_, _) => const StaffDirectoryScreen(),
-              ),
-              GoRoute(
-                path: 'analytics',
-                builder: (_, _) => const PanelAnalyticsScreen(),
-              ),
-              GoRoute(
-                path: 'preferences',
-                builder: (_, _) => const StaffPreferencesPage(),
-              ),
-            ],
-          ),
           GoRoute(
             path: '/staff/documents',
             builder: (_, _) => const StaffDocumentsHub(),
-          ),
-          GoRoute(
-            path: '/staff/activity',
-            builder: (_, _) => const WorkforceActivityScreen(),
-          ),
-          GoRoute(
-            path: '/staff/help',
-            builder: (_, _) => const StaffHelpScreen(),
           ),
           GoRoute(
             path: '/staff/care-tools',
@@ -1161,15 +1053,6 @@ StatefulShellRoute _staffShell() {
             ],
           ),
           GoRoute(
-            path: '/staff/team',
-            builder: (_, _) => const TeamDirectoryScreen(),
-          ),
-          GoRoute(
-            path: '/staff/team-chat/:threadId',
-            builder: (_, state) =>
-                TeamThreadScreen(id: state.pathParameters['threadId']!),
-          ),
-          GoRoute(
             path: AppRoutes.staffTasks,
             builder: (_, _) => const TaskBoardScreen(),
             routes: [
@@ -1200,6 +1083,118 @@ StatefulShellRoute _staffShell() {
                 ],
               ),
             ],
+          ),
+        ],
+      ),
+      // Schedule — this role's appointments or dated work.
+      StatefulShellBranch(
+        routes: [
+          GoRoute(
+            path: AppRoutes.staffSchedule,
+            builder: (_, _) => const StaffRoleSchedule(),
+            routes: [
+              GoRoute(
+                path: 'work',
+                builder: (_, _) => Consumer(
+                  builder: (context, ref, _) =>
+                      ref.watch(sharedModeProvider) ||
+                          [
+                            StaffRole.receptionist,
+                            StaffRole.pharmacist,
+                          ].contains(ref.watch(currentStaffRoleProvider))
+                      ? const WorkforceTimeOffScreen()
+                      : const ScheduleWorkScreen(),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+      // Patients — the access this role is allowed.
+      StatefulShellBranch(
+        routes: [
+          GoRoute(
+            path: AppRoutes.staffPatients,
+            builder: (_, _) => const StaffRolePatients(),
+            routes: [
+              GoRoute(
+                path: ':id',
+                // Opened from a link, the chart is still gated by role.
+                builder: (_, state) => StaffChartGate(
+                  child: PatientChartScreen(
+                    patientId: state.pathParameters['id']!,
+                  ),
+                ),
+                routes: _chartPages(),
+              ),
+            ],
+          ),
+        ],
+      ),
+      // Chat — patient threads (clinicians) and team conversations.
+      StatefulShellBranch(
+        routes: [
+          GoRoute(
+            path: AppRoutes.staffChat,
+            builder: (_, _) => const StaffRoleChat(),
+            routes: [
+              GoRoute(
+                path: 'colleagues',
+                builder: (_, _) => const TeamDirectoryScreen(),
+              ),
+              GoRoute(
+                path: 'team/:threadId',
+                builder: (_, state) =>
+                    TeamThreadScreen(id: state.pathParameters['threadId']!),
+              ),
+              GoRoute(
+                path: ':patientId',
+                builder: (_, state) => StaffMessageThreadPage(
+                  patientId: state.pathParameters['patientId']!,
+                  title: state.uri.queryParameters['name'],
+                  ownerId: state.uri.queryParameters['owner'],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+      // Settings — profile and preferences.
+      StatefulShellBranch(
+        routes: [
+          GoRoute(
+            path: AppRoutes.staffProfile,
+            builder: (_, _) => const StaffProfileScreen(),
+            routes: [
+              GoRoute(
+                path: 'account',
+                builder: (_, _) => const StaffAccountPage(),
+              ),
+              GoRoute(
+                path: 'activity',
+                builder: (_, _) => const StaffActivityScreen(),
+              ),
+              GoRoute(
+                path: 'directory',
+                builder: (_, _) => const StaffDirectoryScreen(),
+              ),
+              GoRoute(
+                path: 'analytics',
+                builder: (_, _) => const PanelAnalyticsScreen(),
+              ),
+              GoRoute(
+                path: 'preferences',
+                builder: (_, _) => const StaffPreferencesPage(),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: '/staff/activity',
+            builder: (_, _) => const WorkforceActivityScreen(),
+          ),
+          GoRoute(
+            path: '/staff/help',
+            builder: (_, _) => const StaffHelpScreen(),
           ),
         ],
       ),

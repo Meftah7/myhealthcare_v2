@@ -1,7 +1,8 @@
-/// Staff dashboard (staff-dashboard rebuild): the shift overview — greeting +
-/// presence, a stat row, the Quick actions grid, today's queue with clinical
-/// actions, open risk flags and the top tasks. Rule-engine driven, fully
-/// useful with AI off. Mirrors the FirstSemMyHealth doctor dashboard.
+/// Staff Home. Dispatches each role to its own Home; doctors and dentists get
+/// the clinical Home here, in the patient Home's style: one compact greeting,
+/// the ongoing visit (or the next one) as the primary card, today's schedule
+/// grouped Ongoing / Upcoming / Completed, then walk-ins, results awaiting
+/// review, unread conversations, risk flags and the clinical tools.
 library;
 
 import 'dart:async';
@@ -18,13 +19,11 @@ import '../../../app/theme/patient_palette.dart';
 import '../../../core/failures.dart';
 import '../../../core/i18n/enum_labels.dart';
 import '../../../core/presentation/app_card.dart';
-import '../../../core/presentation/app_scaffold.dart';
 import '../../../core/presentation/confirm_dialog.dart';
 import '../../../core/presentation/data_state_view.dart';
 import '../../../core/presentation/feedback.dart';
 import '../../../core/presentation/paging_widgets.dart';
 import '../../../core/presentation/readable_label.dart';
-import '../../../core/presentation/responsive.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/status_badges.dart';
 import '../../../core/result.dart';
@@ -40,17 +39,20 @@ import '../../patient_chart/presentation/chart_write_sheets.dart';
 import '../../patient_chart/presentation/result_review_sheet.dart';
 import '../../tasks/presentation/task_detail_screen.dart' show workText;
 import '../application/staff_providers.dart';
+import '../../../core/ui/patient/patient_components.dart';
+import '../../workforce/workforce_repository.dart';
 import 'role_workspaces.dart';
+import 'staff_chat_screen.dart';
+import 'staff_home.dart';
 import 'staff_quick_actions.dart';
-import 'staff_top_actions.dart';
 
 class StaffDashboardScreen extends ConsumerWidget {
   const StaffDashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Reception, pharmacy and unknown roles get their own Today workspace;
-    // clinicians (doctor, dentist, nurse) keep this dashboard.
+    // Every role gets its own Home: nurse, pharmacy, reception (and an
+    // unassigned role) have their own work; doctors and dentists get this.
     if (StaffRole.parse(
           ref.watch(staffProfileProvider).valueOrNull?.jobTitle,
         ) ==
@@ -59,22 +61,14 @@ class StaffDashboardScreen extends ConsumerWidget {
     final workspace = roleWorkspaceFor(ref.watch(permissionsProvider));
     if (workspace != null) return workspace;
     final t = AppLocalizations.of(context)!;
-    final user = ref.watch(currentUserProvider);
-    final firstName = (user?.fullName ?? t.greetingFallbackName)
-        .split(' ')
-        .first;
+    String w(String en, String ar) => workText(context, en, ar);
+    final role = StaffRole.parse(
+      ref.watch(staffProfileProvider).valueOrNull?.jobTitle,
+    );
+    final stats = workspaceStat;
+    final home = ref.watch(workforceDataProvider('home')).valueOrNull;
 
-    return AppScaffold(
-      stagger: true,
-      heroOverline: greeting(firstName),
-      // "Dr" only for doctors and dentists (by validated role).
-      title: user == null
-          ? t.greetingFallbackName
-          : staffDisplayName(
-              user.fullName,
-              ref.watch(staffProfileProvider).valueOrNull?.jobTitle,
-            ),
-      actions: const [StaffTopActions()],
+    return StaffHomeScaffold(
       onRefresh: () async {
         ref
           ..invalidate(staffTodayProvider)
@@ -82,72 +76,159 @@ class StaffDashboardScreen extends ConsumerWidget {
           ..invalidate(unacknowledgedFlagsProvider)
           ..invalidate(myResultReviewsProvider)
           ..invalidate(staffAwaitingReplyProvider)
-          ..invalidate(staffTasksProvider);
+          ..invalidate(staffTasksProvider)
+          ..invalidate(departmentWalkInsProvider)
+          ..invalidate(workforceDataProvider('home'))
+          ..invalidate(workforceDataProvider('conversations'));
       },
-      // Same structure as patient Home: feature card, four shortcuts,
-      // workspace cards, Quick Access directly below them, then the owned
-      // work and attention panels side by side on wide screens.
       children: [
-        const WorkforceOverview(showStatistics: false),
-        const StaffQuickStatistics(),
-        const _TodayScheduleSummary(),
-        Padding(
-          padding: const EdgeInsets.only(bottom: Space.md),
-          child: BentoPanel(
-            title: t.quickActionsHeader,
-            icon: Icons.bolt_outlined,
-            child: const StaffQuickActions(),
+        // 1. The one primary card: the visit happening now, else the next.
+        const _ClinicalWorkCard(),
+        // 2. Today in four figures.
+        const SizedBox(height: Space.md),
+        StaffFigureGrid([
+          StaffFigure(
+            label: w('Visits today', 'زيارات اليوم'),
+            value: '${stats(home, 'appointmentsToday') ?? '—'}',
+            icon: Icons.event_note_outlined,
+            onTap: () => context.go(AppRoutes.staffSchedule),
           ),
-        ),
-        const WorkforceQuickAccess(),
-        const PrescriptionClarifications(),
+          StaffFigure(
+            label: w('Completed today', 'المكتملة اليوم'),
+            value: '${stats(home, 'completedToday') ?? '—'}',
+            icon: Icons.task_alt,
+            accent: PatientAccent.green,
+          ),
+          StaffFigure(
+            label: w('Follow-ups', 'المتابعات'),
+            value: '${stats(home, 'followUp') ?? '—'}',
+            icon: Icons.event_repeat_outlined,
+            accent: PatientAccent.amber,
+            onTap: () => unawaited(context.push(AppRoutes.staffTasks)),
+          ),
+          StaffFigure(
+            label: role == StaffRole.dentist
+                ? w('Unsigned dental notes', 'ملاحظات أسنان غير موقعة')
+                : w('Unsigned notes', 'ملاحظات غير موقعة'),
+            value: '${stats(home, 'unsignedNotes') ?? '—'}',
+            icon: Icons.edit_note,
+            accent: PatientAccent.amber,
+          ),
+        ]),
+        // 3. Today's schedule, grouped Ongoing / Upcoming / Completed.
+        const _TodayScheduleSummary(),
+        // 4. What else needs this clinician: walk-ins, results, messages.
         const _DepartmentWalkIns(),
-        // Clinical bento (DESIGN.md §0.3): owned work and attention modules
-        // share asymmetric rows on wide windows and stack in priority order.
-        BentoGrid(
-          rows: [
-            BentoRow(
-              cells: [
-                if (ref.watch(canProvider(Permission.reviewResults)))
-                  BentoCell(
-                    flex: 7,
-                    child: BentoPanel(
-                      title: t.resultsToReviewHeader,
-                      icon: Icons.science_outlined,
-                      child: const _ResultReviewQueue(),
-                    ),
-                  ),
-                BentoCell(
-                  flex: 5,
-                  child: BentoPanel(
-                    title: t.awaitingReplyHeader,
-                    icon: Icons.mark_email_unread_outlined,
-                    action: t.messagesTitle,
-                    onAction: () => context.push(AppRoutes.staffInbox),
-                    child: const _AwaitingReply(),
-                  ),
-                ),
-              ],
-            ),
-            BentoRow(
-              cells: [
-                BentoCell(
-                  child: BentoPanel(
-                    title: t.riskFlagsHeader,
-                    icon: Icons.flag_outlined,
-                    action: t.patientsAction,
-                    onAction: () => context.go(AppRoutes.staffPatients),
-                    child: _RiskFlags(),
-                  ),
-                ),
-              ],
-            ),
-          ],
+        if (ref.watch(canProvider(Permission.reviewResults))) ...[
+          SectionHeading(t.resultsToReviewHeader),
+          const _ResultReviewQueue(),
+        ],
+        const StaffUnreadConversations(),
+        SectionHeading(t.awaitingReplyHeader),
+        const _AwaitingReply(),
+        const PrescriptionClarifications(),
+        SectionHeading(
+          t.riskFlagsHeader,
+          actionLabel: t.patientsAction,
+          onAction: () => context.go(AppRoutes.staffPatients),
         ),
+        _RiskFlags(),
+        // 5. Clinical actions and role tools.
+        SectionHeading(t.quickActionsHeader),
+        const StaffQuickActions(),
+        StaffToolsCard(staffTools(context, role)),
       ],
     );
   }
 }
+
+/// Ongoing visit (highlighted) or, failing that, the next one — with the
+/// action that fits its state: Open chart while it runs, View appointment
+/// before it starts.
+class _ClinicalWorkCard extends ConsumerWidget {
+  const _ClinicalWorkCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    String w(String en, String ar) => workText(context, en, ar);
+    final t = AppLocalizations.of(context)!;
+    final today = ref.watch(staffTodayProvider);
+    final names = ref.watch(patientNameLookupProvider).valueOrNull ?? const {};
+    if (today.hasError && !today.hasValue) {
+      return PatientStateView(
+        kind: PatientStateKind.error,
+        message: w(
+          "Today's schedule could not be loaded.",
+          'تعذّر تحميل جدول اليوم.',
+        ),
+        actionLabel: w('Retry', 'إعادة المحاولة'),
+        onAction: () => ref.invalidate(staffTodayProvider),
+      );
+    }
+    if (!today.hasValue) {
+      return const PatientStateView(kind: PatientStateKind.loading);
+    }
+    final list = [...today.requireValue]
+      ..sort((a, b) => a.slotStart.compareTo(b.slotStart));
+    final ongoing = list
+        .where((a) => a.status == AppointmentStatus.inProgress)
+        .firstOrNull;
+    final next =
+        ongoing ?? list.where((a) => _upcoming.contains(a.status)).firstOrNull;
+    final late =
+        next != null &&
+        ongoing == null &&
+        next.slotStart.isBefore(DateTime.now());
+    return StaffWorkCard(
+      key: const ValueKey('staff-work-card'),
+      overline: ongoing != null
+          ? w('Ongoing consultation', 'استشارة جارية')
+          : w('Next appointment', 'الموعد التالي'),
+      icon: ongoing != null
+          ? Icons.play_circle_outline
+          : Icons.calendar_today_outlined,
+      highlight: ongoing != null,
+      title: next == null
+          ? null
+          : names[next.patientId] ?? visitTypeLabel(next.visitType),
+      lines: next == null
+          ? const []
+          : [
+              '${fmtTime(next.slotStart)}–${fmtTime(next.slotEnd)} · ${visitTypeLabel(next.visitType)}',
+              [
+                if (next.roomNumber != null) t.roomNumber('${next.roomNumber}'),
+                ?next.reasonText,
+                if (late) w('Late · not started', 'متأخر · لم يبدأ'),
+              ].join(' · '),
+            ].where((s) => s.isNotEmpty).toList(),
+      status: next == null ? null : appointmentStatus(context, next.status),
+      primaryLabel: ongoing != null
+          ? w('Open chart', 'فتح الملف')
+          : w('View appointment', 'عرض الموعد'),
+      onPrimary: next == null
+          ? null
+          : () => unawaited(
+              context.push(
+                ongoing != null
+                    ? AppRoutes.staffConsultationChart(next.id, next.patientId)
+                    : AppRoutes.staffConsultation(next.id),
+              ),
+            ),
+      secondaryLabel: w('Full schedule', 'الجدول الكامل'),
+      onSecondary: () => context.go(AppRoutes.staffSchedule),
+      emptyMessage: w(
+        'No more visits today. New bookings appear here.',
+        'لا توجد زيارات أخرى اليوم. تظهر الحجوزات الجديدة هنا.',
+      ),
+    );
+  }
+}
+
+const _upcoming = [
+  AppointmentStatus.booked,
+  AppointmentStatus.confirmed,
+  AppointmentStatus.checkedIn,
+];
 
 /// Patients referred into this doctor's department with a walk-in ticket —
 /// no scheduled slot, waiting at the desk. "Start" turns the ticket into an
@@ -177,9 +258,8 @@ class _DepartmentWalkIns extends ConsumerWidget {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: Space.sm),
-      child: BentoPanel(
+      child: _Section(
         title: t.departmentWalkInsHeader(list.length),
-        icon: Icons.directions_walk_outlined,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -305,8 +385,8 @@ class _WalkInRowState extends ConsumerState<_WalkInRow> {
   }
 }
 
-/// The screen's one saturated surface — whoever you see next, and the way in
-/// to their chart. The staff equivalent of the patient's "Quick appointment".
+/// One visit in today's schedule: time, patient, visit type and status, the
+/// consultation on tap, and the visit actions in a menu.
 class _QueueRow extends ConsumerWidget {
   const _QueueRow({required this.appointment, required this.patientName});
 
@@ -316,11 +396,11 @@ class _QueueRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
     final a = appointment;
     final ops = ref.read(staffOpsProvider);
-    final checkedIn = a.checkedInAt != null;
+    final done = a.status == AppointmentStatus.completed;
+    final late =
+        _upcoming.contains(a.status) && a.slotStart.isBefore(DateTime.now());
 
     final menu = PopupMenuButton<String>(
       tooltip: t.moreActionsTooltip,
@@ -349,100 +429,33 @@ class _QueueRow extends ConsumerWidget {
       itemBuilder: (context) => [
         PopupMenuItem(value: 'chart', child: Text(t.openChartAction)),
         PopupMenuItem(value: 'note', child: Text(t.addNoteAction)),
-        PopupMenuItem(value: 'transfer', child: Text(t.transferVisitAction)),
-        const PopupMenuDivider(),
-        PopupMenuItem(value: 'cancel', child: Text(t.cancelVisitAction)),
-        PopupMenuItem(value: 'noshow', child: Text(t.markNoShowAction)),
+        if (!done) ...[
+          PopupMenuItem(value: 'transfer', child: Text(t.transferVisitAction)),
+          const PopupMenuDivider(),
+          PopupMenuItem(value: 'cancel', child: Text(t.cancelVisitAction)),
+          PopupMenuItem(value: 'noshow', child: Text(t.markNoShowAction)),
+        ],
       ],
     );
 
-    final identity = Row(
-      children: [
-        Container(
-          width: 52,
-          alignment: Alignment.center,
-          padding: const EdgeInsets.symmetric(vertical: Space.xs),
-          decoration: BoxDecoration(
-            color: scheme.secondaryContainer,
-            borderRadius: Radii.chip,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                fmtTime(a.slotStart),
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: scheme.onSecondaryContainer,
-                ),
-              ),
-              if (a.ticketTag != null)
-                Text(
-                  a.ticketTag!,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: scheme.onSecondaryContainer,
-                    fontFeatures: kTabularFigures,
-                  ),
-                ),
-            ],
-          ),
-        ),
-        const SizedBox(width: Space.sm),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  Flexible(
-                    child: Text(
-                      patientName ?? visitTypeLabel(a.visitType),
-                      style: theme.textTheme.titleSmall,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  if (a.riskBand == RiskBand.high) ...[
-                    const SizedBox(width: Space.xs),
-                    RiskBadge(a.riskBand!),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 2),
-              Text(
-                [
-                  visitTypeLabel(a.visitType),
-                  if (a.roomNumber != null) t.roomNumber('${a.roomNumber}'),
-                  if (checkedIn) t.checkedInLabel,
-                ].join(' · '),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-
-    return InkWell(
-      onTap: () => context.push(AppRoutes.staffConsultation(a.id)),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          Space.md,
-          Space.sm,
-          Space.xs,
-          Space.sm,
-        ),
-        child: Row(
-          children: [
-            Expanded(child: identity),
-            menu,
-          ],
-        ),
-      ),
+    return StaffRow(
+      leadingText: fmtTime(a.slotStart),
+      emphasis: a.status == AppointmentStatus.inProgress,
+      muted: done,
+      title: [
+        patientName ?? visitTypeLabel(a.visitType),
+        if (a.riskBand == RiskBand.high)
+          workText(context, 'High risk', 'خطورة عالية'),
+      ].join(' · '),
+      subtitle: [
+        visitTypeLabel(a.visitType),
+        if (a.roomNumber != null) t.roomNumber('${a.roomNumber}'),
+        if (a.ticketTag != null) a.ticketTag!,
+        if (late) workText(context, 'Late · not started', 'متأخر · لم يبدأ'),
+      ].join(' · '),
+      status: done ? null : appointmentStatus(context, a.status),
+      trailing: menu,
+      onTap: () => unawaited(context.push(AppRoutes.staffConsultation(a.id))),
     );
   }
 }
@@ -645,7 +658,7 @@ class _AwaitingReply extends ConsumerWidget {
                           )
                         : theme.textTheme.bodySmall,
                   ),
-                  onTap: () => context.push(
+                  onTap: () => context.go(
                     AppRoutes.staffInboxThread(
                       m.patientId,
                       name: patient,
@@ -661,119 +674,119 @@ class _AwaitingReply extends ConsumerWidget {
   }
 }
 
-class _TodayScheduleSummary extends ConsumerStatefulWidget {
+/// Today's visits grouped under Ongoing, Upcoming and Completed: ongoing
+/// visits carry a filled time box, completed ones quieter text.
+class _TodayScheduleSummary extends ConsumerWidget {
   const _TodayScheduleSummary();
-  @override
-  ConsumerState<_TodayScheduleSummary> createState() =>
-      _TodayScheduleSummaryState();
-}
 
-class _TodayScheduleSummaryState extends ConsumerState<_TodayScheduleSummary> {
-  int tab = 0;
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    String w(String en, String ar) => workText(context, en, ar);
     final names = ref.watch(patientNameLookupProvider).valueOrNull ?? {};
-    return WorkspaceSection(
-      workText(context, "Today's Schedule", 'جدول اليوم'),
-      action: TextButton(
-        onPressed: () => context.go(AppRoutes.staffSchedule),
-        child: Text(workText(context, 'Full schedule', 'الجدول الكامل')),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final (i, label) in [
-                workText(context, 'Ongoing', 'الجارية'),
-                workText(context, 'Upcoming', 'القادمة'),
-                workText(context, 'Completed', 'المكتملة'),
-              ].indexed)
-                ChoiceChip(
-                  label: Text(label),
-                  selected: tab == i,
-                  onSelected: (_) => setState(() => tab = i),
-                ),
-            ],
+    final today = ref.watch(staffTodayProvider);
+    return Column(
+      key: const ValueKey('staff-today-schedule'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SectionHeading(
+          w("Today's schedule", 'جدول اليوم'),
+          actionLabel: w('Full schedule', 'الجدول الكامل'),
+          onAction: () => context.go(AppRoutes.staffSchedule),
+        ),
+        today.when(
+          loading: () => const PatientStateView(kind: PatientStateKind.loading),
+          error: (e, _) => PatientStateView(
+            kind: PatientStateKind.error,
+            message: w(
+              "Today's schedule could not be loaded.",
+              'تعذّر تحميل جدول اليوم.',
+            ),
+            actionLabel: w('Retry', 'إعادة المحاولة'),
+            onAction: () => ref.invalidate(staffTodayProvider),
           ),
-          const SizedBox(height: 12),
-          ref
-              .watch(staffTodayProvider)
-              .when(
-                loading: () => const LinearProgressIndicator(),
-                error: (e, _) => Column(
-                  children: [
-                    Text('$e'),
-                    TextButton(
-                      onPressed: () => ref.invalidate(staffTodayProvider),
-                      child: Text(workText(context, 'Retry', 'إعادة المحاولة')),
+          data: (all) {
+            final sorted = [...all]
+              ..sort((a, b) => a.slotStart.compareTo(b.slotStart));
+            final groups = [
+              (
+                w('Ongoing', 'الجارية'),
+                [
+                  for (final a in sorted)
+                    if (a.status == AppointmentStatus.inProgress) a,
+                ],
+              ),
+              (
+                w('Upcoming', 'القادمة'),
+                [
+                  for (final a in sorted)
+                    if (_upcoming.contains(a.status)) a,
+                ],
+              ),
+              (
+                w('Completed', 'المكتملة'),
+                [
+                  for (final a in sorted)
+                    if (a.status == AppointmentStatus.completed) a,
+                ],
+              ),
+            ];
+            if (groups.every((g) => g.$2.isEmpty)) {
+              return StaffListCard(
+                emptyIcon: Icons.event_available_outlined,
+                emptyMessage: w(
+                  'No visits scheduled today.',
+                  'لا توجد زيارات مجدولة اليوم.',
+                ),
+                children: const [],
+              );
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (final (label, visits) in groups)
+                  if (visits.isNotEmpty) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        top: Space.sm,
+                        bottom: Space.xs,
+                      ),
+                      child: Text(
+                        '$label · ${visits.length}',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: PatientPalette.of(context).textMuted,
+                        ),
+                      ),
+                    ),
+                    StaffListCard(
+                      children: [
+                        for (final a in visits)
+                          _QueueRow(
+                            appointment: a,
+                            patientName: names[a.patientId],
+                          ),
+                      ],
                     ),
                   ],
-                ),
-                data: (all) {
-                  final list =
-                      all
-                          .where(
-                            (a) => tab == 0
-                                ? a.status == AppointmentStatus.inProgress
-                                : tab == 1
-                                ? [
-                                    AppointmentStatus.booked,
-                                    AppointmentStatus.confirmed,
-                                    AppointmentStatus.checkedIn,
-                                  ].contains(a.status)
-                                : a.status == AppointmentStatus.completed,
-                          )
-                          .toList()
-                        ..sort((a, b) => a.slotStart.compareTo(b.slotStart));
-                  return Column(
-                    children: [
-                      if (list.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Text(
-                            workText(
-                              context,
-                              'No visits in this section.',
-                              'لا توجد زيارات في هذا القسم.',
-                            ),
-                          ),
-                        ),
-                      for (final a in list)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            if (tab == 1 &&
-                                a.slotStart.isBefore(DateTime.now()))
-                              Text(
-                                workText(
-                                  context,
-                                  'Late · not started',
-                                  'متأخر · لم يبدأ',
-                                ),
-                                style: TextStyle(
-                                  color: PatientPalette.of(context).warning,
-                                ),
-                              ),
-                            _QueueRow(
-                              appointment: a,
-                              patientName: names[a.patientId],
-                            ),
-                            Text(
-                              '${fmtTime(a.slotStart)} – ${fmtTime(a.slotEnd)} · ${a.status.label(context)}',
-                            ),
-                          ],
-                        ),
-                    ],
-                  );
-                },
-              ),
-        ],
-      ),
+              ],
+            );
+          },
+        ),
+      ],
     );
   }
+}
+
+class _Section extends StatelessWidget {
+  const _Section({required this.title, required this.child});
+
+  final String title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [SectionHeading(title), child],
+  );
 }
 
 Future<void> _confirmThen(

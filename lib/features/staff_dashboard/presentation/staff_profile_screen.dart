@@ -1,7 +1,8 @@
-/// Staff profile — a hub of tappable rows. Each section (account details, my
-/// activity, staff directory, panel analytics, preferences) is its own page,
-/// reached from here and returned from with a back button. Mirrors the patient
-/// app's Profile screen.
+/// Staff Settings (the fifth tab) — the patient Profile / settings screen's
+/// rows and spacing: who is signed in (name, role, department), the shared
+/// preference controls (appearance, language, text size, notifications,
+/// accessibility — stored by the app's settings providers, so a change
+/// applies everywhere and survives a restart), account pages, and sign out.
 library;
 
 import 'dart:async';
@@ -23,6 +24,10 @@ import '../../auth/application/session.dart';
 import '../../feedback/presentation/feedback_sheet.dart';
 import '../application/staff_providers.dart';
 import '../../admin/presentation/verify_document_screen.dart';
+import '../../settings/presentation/preferences_section.dart';
+import '../../tasks/presentation/task_detail_screen.dart' show workText;
+import 'staff_navigation.dart';
+import 'staff_top_actions.dart';
 
 class StaffProfileScreen extends ConsumerWidget {
   const StaffProfileScreen({super.key});
@@ -47,10 +52,12 @@ class StaffProfileScreen extends ConsumerWidget {
     final t = AppLocalizations.of(context)!;
     final profile = ref.watch(staffProfileProvider);
     final sections = _sections(t);
+    final line = ref.watch(staffRoleLineProvider);
 
     return AppScaffold(
       hero: true,
-      title: t.profile,
+      title: workText(context, 'Settings', 'الإعدادات'),
+      actions: const [StaffTopActions()],
       onRefresh: () async => ref.invalidate(staffProfileProvider),
       children: profile.when(
         loading: () => const [SkeletonList()],
@@ -67,11 +74,23 @@ class StaffProfileScreen extends ConsumerWidget {
             ProfileHeader(
               name: staffDisplayName(u.fullName, s.jobTitle),
               email: u.email,
-              role: t.roleStaff,
+              role: line == null
+                  ? t.roleStaff
+                  : [
+                      staffRoleLabel(context, line.role),
+                      line.department ??
+                          workText(
+                            context,
+                            'Department not assigned',
+                            'القسم غير مسند',
+                          ),
+                    ].where((s) => s.isNotEmpty).join(' · '),
               avatarPath: u.avatarPath,
               avatarSize: 52,
               elevated: false,
             ),
+            SectionHeader(t.preferences, overline: true),
+            const PreferencesSection(showHeader: false),
             SectionHeader(t.accountSection, overline: true),
             ProfileNavigationGroup(
               items: [
@@ -91,14 +110,6 @@ class StaffProfileScreen extends ConsumerWidget {
             SectionHeader(t.settingsSection, overline: true),
             ProfileNavigationGroup(
               items: [
-                ProfileNavigationItem(
-                  icon: Icons.tune,
-                  label: t.preferences,
-                  subtitle: t.preferencesSubtitleAdmin,
-                  onTap: () => unawaited(
-                    context.push(AppRoutes.staffProfilePreferences),
-                  ),
-                ),
                 ProfileNavigationItem(
                   icon: Icons.verified_outlined,
                   label: t.verifyDocumentTitle,

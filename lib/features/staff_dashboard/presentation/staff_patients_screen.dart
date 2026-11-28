@@ -19,11 +19,16 @@ import '../../../core/presentation/paging_widgets.dart';
 import '../../../core/presentation/states.dart';
 import '../../../core/presentation/two_pane.dart';
 import '../../../domain/entities/entities.dart';
+import '../../../domain/identity/permissions.dart';
+import '../../auth/application/session.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../consultation/presentation/encounter_context.dart';
 import '../../patient_chart/application/chart_providers.dart';
 import '../../patient_chart/presentation/patient_chart_screen.dart';
 import '../application/staff_providers.dart';
+import '../../../core/ui/patient/patient_components.dart';
+import '../../workspace/workspace_repository.dart';
+import 'staff_home.dart';
 import 'staff_top_actions.dart';
 
 /// The patient selected in the wide list-detail layout. Null until one is
@@ -80,7 +85,8 @@ class StaffPatientsScreen extends ConsumerWidget {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const PatientHistoryStatistics(),
+                    const _ClinicalPatientFigures(),
+                    const SizedBox(height: Space.sm),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
@@ -157,9 +163,16 @@ class StaffPatientContextHeader extends ConsumerWidget {
     final encounter = ref.watch(activeEncounterProvider);
     if (encounter != null) return EncounterContextBar(appointmentId: encounter);
     final id = ref.watch(selectedPatientIdProvider);
-    // Reserve the same strip height before selection so choosing a patient
-    // never moves the queue or loses the operator's visual position.
-    if (id == null) return const SizedBox(height: 48);
+    // Before selection, reserve the strip only where selecting happens in
+    // place — a clinician's wide list-detail layout — so choosing a patient
+    // never moves the list. Phones (selection is a new page) and roles
+    // without chart access give the space back to the page.
+    if (id == null) {
+      final reserve =
+          ref.watch(canProvider(Permission.readPatientChart)) &&
+          TwoPane.isSplit(context);
+      return SizedBox(height: reserve ? 48 : 0);
+    }
     final patient = ref.watch(chartPatientProvider(id)).valueOrNull;
     final t = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
@@ -198,6 +211,58 @@ class StaffPatientContextHeader extends ConsumerWidget {
   }
 }
 
+/// The four figures for the patients this clinician has seen (completed
+/// visits they owned or personally took part in — the existing history
+/// relationship). Tapping Critical / Follow-ups filters the list.
+class _ClinicalPatientFigures extends ConsumerWidget {
+  const _ClinicalPatientFigures();
+
+  @override
+  Widget build(BuildContext c, WidgetRef ref) => WorkspaceAsync(
+    value: ref.watch(historySummaryProvider),
+    retry: () => ref.invalidate(historySummaryProvider),
+    builder: (d) {
+      final s = Map<String, dynamic>.from(d['stats'] as Map<String, dynamic>);
+      void filter(String value) {
+        ref.read(patientHistoryFilterProvider.notifier).state = value;
+        ref.read(patientSearchPagesProvider.notifier).state = 1;
+      }
+
+      return StaffFigureGrid([
+        StaffFigure(
+          label: wt(c, 'Total patients', 'إجمالي المرضى'),
+          value: '${s['total'] ?? 0}',
+          caption: wt(c, 'Seen by you', 'راجعوك'),
+          icon: Icons.people_outline,
+          onTap: () => filter('all'),
+        ),
+        StaffFigure(
+          label: wt(c, 'Critical patients', 'المرضى الحرجون'),
+          value: '${s['critical'] ?? 0}',
+          caption: wt(c, 'Open critical flag', 'تنبيه حرج مفتوح'),
+          icon: Icons.priority_high,
+          accent: PatientAccent.red,
+          onTap: () => filter('critical'),
+        ),
+        StaffFigure(
+          label: wt(c, 'Visits this month', 'زيارات هذا الشهر'),
+          value: '${s['month'] ?? 0}',
+          caption: wt(c, 'Performed by you', 'أجريتها أنت'),
+          icon: Icons.event_note_outlined,
+        ),
+        StaffFigure(
+          label: wt(c, 'Follow-ups', 'المتابعات'),
+          value: '${s['followUp'] ?? 0}',
+          caption: wt(c, 'Yours, not yet done', 'الخاصة بك، غير منجزة'),
+          icon: Icons.event_repeat_outlined,
+          accent: PatientAccent.amber,
+          onTap: () => filter('followUp'),
+        ),
+      ]);
+    },
+  );
+}
+
 class _PatientRow extends ConsumerWidget {
   const _PatientRow({
     required this.patient,
@@ -213,7 +278,6 @@ class _PatientRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final t = AppLocalizations.of(context)!;
     final initials = patient.fullName
         .split(' ')
         .where((s) => s.isNotEmpty)
@@ -227,23 +291,29 @@ class _PatientRow extends ConsumerWidget {
         ?.items
         .where((r) => r['id'] == patient.id)
         .firstOrNull;
+    final status = history?['critical'] == 1
+        ? StaffStatus(
+            wt(context, 'Critical', 'حرج'),
+            accent: PatientAccent.red,
+            icon: Icons.priority_high,
+          )
+        : history?['follow_up'] == 1
+        ? StaffStatus(
+            wt(context, 'Follow-up due', 'متابعة مستحقة'),
+            accent: PatientAccent.amber,
+            icon: Icons.event_repeat_outlined,
+          )
+        : patient.chronicConditions.isNotEmpty
+        ? StaffStatus(
+            patient.chronicConditions.first,
+            accent: PatientAccent.neutral,
+          )
+        : null;
     final meta = [
       if (history != null)
-        '${wt(context, "Last qualifying visit", "آخر زيارة مؤهلة")}: ${wallDate(history['last_visit'])}',
-      if (history?['legacy_completion'] == 1)
-        wt(
-          context,
-          'Legacy visits may use scheduled dates',
-          'قد تستخدم الزيارات القديمة تواريخ المواعيد',
-        ),
+        '${wt(context, "Last visit", "آخر زيارة")}: ${wallDate(history['last_visit'])}',
       if (patient.user.dob != null)
         '${patient.user.ageYears} · ${wlabel(context, patient.user.gender?.name)}',
-      if (history?['critical'] == 1) wt(context, 'Critical', 'حرجة'),
-      if (history?['follow_up'] == 1) wt(context, 'Follow-up', 'المتابعة'),
-      if (patient.user.nationalId != null)
-        t.idValueLabel(patient.user.nationalId!),
-      if (patient.chronicConditions.isNotEmpty)
-        patient.chronicConditions.join(', '),
     ].join(' · ');
 
     return AppCard(
@@ -286,6 +356,10 @@ class _PatientRow extends ConsumerWidget {
                         : scheme.onSurfaceVariant,
                   ),
                 ),
+                if (status != null) ...[
+                  const SizedBox(height: Space.xxs),
+                  status.badge(),
+                ],
               ],
             ),
           ),

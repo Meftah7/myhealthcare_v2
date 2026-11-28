@@ -212,58 +212,6 @@ class StaffQuickStatistics extends ConsumerWidget {
   }
 }
 
-class PatientHistoryStatistics extends ConsumerWidget {
-  const PatientHistoryStatistics({super.key});
-  @override
-  Widget build(BuildContext c, WidgetRef ref) => WorkspaceAsync(
-    value: ref.watch(historySummaryProvider),
-    retry: () => ref.invalidate(historySummaryProvider),
-    builder: (d) {
-      final s = Map<String, dynamic>.from(d['stats'] as Map<String, dynamic>);
-      return Column(
-        children: [
-          WorkspaceMetrics([
-            (
-              wt(c, 'Total Patients', 'إجمالي المرضى'),
-              '${s['total']}',
-              wt(c, 'Unique · completed care', 'مرضى فريدون · رعاية مكتملة'),
-            ),
-            (
-              wt(c, 'Critical', 'حرجة'),
-              '${s['critical']}',
-              wt(
-                c,
-                'Unresolved urgent clinical review',
-                'مراجعة سريرية عاجلة غير محسومة',
-              ),
-            ),
-            (
-              wt(c, 'This Month', 'هذا الشهر'),
-              '${s['month']}',
-              wt(c, 'Unique · Bahrain calendar', 'مرضى فريدون · توقيت البحرين'),
-            ),
-            (
-              wt(c, 'Follow-up', 'المتابعة'),
-              '${s['followUp']}',
-              wt(c, 'Unresolved follow-up', 'متابعة غير محسومة'),
-            ),
-          ]),
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: Text(
-              wt(
-                c,
-                'Completed-visit history only. Current care remains accessible from appointments. Nursing history requires personally recorded encounter participation.',
-                'سجل الزيارات المكتملة فقط. تبقى الرعاية الحالية متاحة من المواعيد. يتطلب سجل التمريض توثيق المشاركة الشخصية في الزيارة.',
-              ),
-            ),
-          ),
-        ],
-      );
-    },
-  );
-}
-
 class ParticipationButton extends ConsumerWidget {
   const ParticipationButton(this.patientId, {super.key});
   final String patientId;

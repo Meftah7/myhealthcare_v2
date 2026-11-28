@@ -78,15 +78,16 @@ void main() {
       await settle(tester);
       c.read(routerProvider).go(AppRoutes.staffDashboard);
       await settle(tester);
+      // One primary work card, four figures, then today's schedule grouped
+      // Ongoing / Upcoming / Completed.
+      expect(find.byKey(const ValueKey('staff-work-card')), findsOneWidget);
+      expect(find.text('Visits today'), findsOneWidget);
       await tester.scrollUntilVisible(
-        find.text('Ongoing'),
+        find.byKey(const ValueKey('staff-today-schedule')),
         250,
         scrollable: find.byType(Scrollable).first,
       );
-      expect(find.text('Ongoing'), findsOneWidget);
-      expect(find.text('Upcoming'), findsOneWidget);
-      expect(find.text('Completed'), findsOneWidget);
-      expect(find.text('Quick Statistics'), findsOneWidget);
+      expect(find.text("Today's schedule"), findsOneWidget);
       expect(find.text('On duty'), findsNothing);
       expect(find.byTooltip('Switch to dark mode'), findsOneWidget);
       await capture(tester, 'staff-mobile');
