@@ -231,7 +231,9 @@ void main() {
       // Like patient Home: one capped column beside the sidebar, the work
       // card first and the four figures sharing one row.
       expect(find.byType(StaffDashboardScreen), findsOneWidget);
-      final card = tester.getRect(find.byKey(const ValueKey('staff-work-card')));
+      final card = tester.getRect(
+        find.byKey(const ValueKey('staff-work-card')),
+      );
       expect(card.width, lessThanOrEqualTo(760));
       final visits = tester.getTopLeft(find.text('Visits today'));
       final notes = tester.getTopLeft(find.text('Unsigned notes'));

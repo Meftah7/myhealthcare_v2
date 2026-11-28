@@ -175,15 +175,14 @@ void main() {
     testWidgets('${width.toInt()}px: one navigation control with five tabs', (
       tester,
     ) async {
-      await _pumpApp(
-        tester,
-        'reception@myhealth.demo',
-        size: Size(width, 900),
-      );
+      await _pumpApp(tester, 'reception@myhealth.demo', size: Size(width, 900));
       expect(find.byType(PatientBottomNavigation), findsNothing);
       expect(find.byType(CompactNavigation), findsNothing);
       expect(find.byType(NavigationRail), rail ? findsOneWidget : findsNothing);
-      expect(find.byType(StaffSidebar), sidebar ? findsOneWidget : findsNothing);
+      expect(
+        find.byType(StaffSidebar),
+        sidebar ? findsOneWidget : findsNothing,
+      );
       for (final label in _tabs) {
         expect(find.text(label), findsWidgets, reason: label);
       }
