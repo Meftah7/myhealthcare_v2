@@ -7,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:myhealthcare/app/theme/theme.dart';
+import 'package:myhealthcare/domain/entities/appointment.dart';
+import 'package:myhealthcare/domain/enums.dart';
 import 'package:myhealthcare/features/staff_dashboard/application/staff_providers.dart';
 import 'package:myhealthcare/features/staff_dashboard/presentation/staff_schedule_screen.dart';
 import 'package:myhealthcare/l10n/app_localizations.dart';
@@ -49,12 +51,18 @@ void main() {
     DateTime? focus,
     double width = 320,
     double scale = 2,
+    List<Appointment>? appointments,
   }) async {
     tester.view.physicalSize = Size(width, 900);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    final (c, _) = await seededContainer();
+    final (c, _) = await seededContainer(
+      overrides: [
+        if (appointments != null)
+          staffFocusedDayProvider.overrideWithValue(appointments),
+      ],
+    );
     await signInAs(c, 'staff1@myhealth.demo');
     c.read(scheduleViewProvider.notifier).state = view;
     if (focus != null) {
@@ -147,6 +155,77 @@ void main() {
     if (now.minute != 0) {
       expect(find.text(DateFormat('HH:mm').format(now)), findsNothing);
     }
+    await done(tester);
+  });
+
+  testWidgets('back-to-back visits leave room for every card and action', (
+    tester,
+  ) async {
+    final start = DateTime(2030, 1, 5, 8, 20);
+    Appointment visit(String id, int offset, AppointmentStatus status) =>
+        Appointment(
+          id: id,
+          patientId: 'patient_003',
+          staffId: 'staff_01',
+          slotStart: start.add(Duration(minutes: offset)),
+          slotEnd: start.add(Duration(minutes: offset + 20)),
+          visitType: VisitType.followUp,
+          status: status,
+          checkedInAt: status == AppointmentStatus.inProgress ? start : null,
+          reasonText: 'Follow-up appointment',
+          bookedAt: start.subtract(const Duration(days: 1)),
+          remindersSent: 0,
+        );
+
+    final c = await pump(
+      tester,
+      view: ScheduleView.day,
+      focus: start,
+      width: 420,
+      scale: 1.6,
+      appointments: [
+        visit('arrived', 0, AppointmentStatus.inProgress),
+        visit('cancelled', 20, AppointmentStatus.cancelled),
+        visit('booked', 40, AppointmentStatus.booked),
+        visit('late', 15 * 60 + 35, AppointmentStatus.booked),
+      ],
+    );
+    final arrived = find.byKey(const ValueKey('arrived'));
+    final cancelled = find.byKey(const ValueKey('cancelled'));
+    final booked = find.byKey(const ValueKey('booked'));
+    expect(
+      tester.getRect(cancelled).top - tester.getRect(arrived).bottom,
+      greaterThanOrEqualTo(8),
+    );
+    expect(
+      tester.getRect(booked).top - tester.getRect(cancelled).bottom,
+      greaterThanOrEqualTo(8),
+    );
+
+    final startAction = find.descendant(
+      of: arrived,
+      matching: find.text('Start appointment'),
+    );
+    await tester.ensureVisible(startAction);
+    await tester.pumpAndSettle();
+    expect(startAction.hitTestable(), findsOneWidget);
+
+    c.read(scheduleQueueCurrentIdProvider.notifier).state = 'booked';
+    await tester.pumpAndSettle();
+    final callAction = find.descendant(
+      of: booked,
+      matching: find.text('Call patient'),
+    );
+    expect(callAction.hitTestable(), findsOneWidget);
+
+    final lateAction = find.descendant(
+      of: find.byKey(const ValueKey('late')),
+      matching: find.text('Open chart'),
+    );
+    await tester.ensureVisible(lateAction);
+    await tester.pumpAndSettle();
+    expect(lateAction.hitTestable(), findsOneWidget);
+    expect(tester.takeException(), isNull);
     await done(tester);
   });
 }

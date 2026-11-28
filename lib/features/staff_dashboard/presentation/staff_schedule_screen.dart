@@ -14,6 +14,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' hide TextDirection;
@@ -582,6 +583,8 @@ class _MonthCell extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 const double _timeGutter = 56;
+const double _appointmentGap = 8;
+const int _hoursInDay = 24;
 
 class _DayView extends ConsumerStatefulWidget {
   const _DayView();
@@ -592,6 +595,7 @@ class _DayView extends ConsumerStatefulWidget {
 
 class _DayViewState extends ConsumerState<_DayView> {
   final ScrollController _scroll = ScrollController();
+  final GlobalKey _timelineKey = GlobalKey();
   Timer? _tick;
   Timer? _highlightClear;
   DateTime _now = DateTime.now();
@@ -607,30 +611,22 @@ class _DayViewState extends ConsumerState<_DayView> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToNow());
   }
 
-  double get _hourHeight => ref.read(scheduleHourHeightProvider);
+  _RenderDayTimeline? get _timeline =>
+      _timelineKey.currentContext?.findRenderObject() as _RenderDayTimeline?;
 
   void _scrollToNow() {
     if (!_scroll.hasClients) return;
-    final target = ((_now.hour - 1).clamp(0, 22)) * _hourHeight;
+    final target = _timeline?.timelineY((_now.hour - 1).clamp(0, 22) * 60);
+    if (target == null) return;
     _scroll.jumpTo(target.clamp(0, _scroll.position.maxScrollExtent));
   }
 
   /// Brings a queue patient's card into view and glows it for a beat — driven
   /// by the "Next" button in the queue strip.
   void _focusAppointment(String appointmentId) {
-    final appts = ref.read(staffFocusedDayProvider);
-    Appointment? target;
-    for (final a in appts) {
-      if (a.id == appointmentId) {
-        target = a;
-        break;
-      }
-    }
+    final target = _timeline?.appointmentTop(appointmentId);
     if (target != null && _scroll.hasClients) {
-      final y = (_yFor(target.slotStart, _hourHeight) - 100).clamp(
-        0.0,
-        _scroll.position.maxScrollExtent,
-      );
+      final y = (target - 100).clamp(0.0, _scroll.position.maxScrollExtent);
       unawaited(
         _scroll.animateTo(y, duration: Motion.slow, curve: Motion.standard),
       );
@@ -677,6 +673,8 @@ class _DayViewState extends ConsumerState<_DayView> {
     final appts = ref.watch(staffFocusedDayProvider);
     final hourHeight = ref.watch(scheduleHourHeightProvider);
     final isToday = isSameCalendarDay(focused, _now);
+    final compact = hourHeight < scheduleCompactBelow;
+    final clusters = _clusterDay(appts);
 
     ref.listen(scheduleQueueCurrentIdProvider, (_, next) {
       if (next != null) _focusAppointment(next);
@@ -720,57 +718,22 @@ class _DayViewState extends ConsumerState<_DayView> {
                 Space.md,
                 Space.xxl,
               ),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final laneWidth = constraints.maxWidth - _timeGutter;
-                  final compact = hourHeight < scheduleCompactBelow;
-                  return SizedBox(
-                    height: 24 * hourHeight,
-                    child: Stack(
-                      children: [
-                        // Hour rules + labels.
-                        for (var h = 0; h < 24; h++)
-                          Positioned(
-                            top: h * hourHeight,
-                            left: 0,
-                            right: 0,
-                            child: _HourRule(hour: h),
-                          ),
-
-                        for (final slot in _layoutDay(
-                          appts,
-                          hourHeight,
-                          compact,
-                        ))
-                          Positioned(
-                            top: slot.top,
-                            left:
-                                _timeGutter +
-                                slot.column * (laneWidth / slot.columns),
-                            width: laneWidth / slot.columns - 4,
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(
-                                minHeight: slot.slotHeight,
-                              ),
-                              child: ScheduleAppointmentCard(
-                                key: ValueKey(slot.appointment.id),
-                                appointment: slot.appointment,
-                                compact: compact,
-                              ),
-                            ),
-                          ),
-
-                        if (isToday)
-                          Positioned(
-                            top: _yFor(_now, hourHeight) - 9,
-                            left: 0,
-                            right: 0,
-                            child: _NowLine(now: _now),
-                          ),
-                      ],
-                    ),
-                  );
-                },
+              child: _DayTimeline(
+                key: _timelineKey,
+                clusters: clusters,
+                hourHeight: hourHeight,
+                nowMinute: isToday ? _minuteOfDay(_now) : null,
+                children: [
+                  for (var h = 0; h < _hoursInDay; h++) _HourRule(hour: h),
+                  for (final cluster in clusters)
+                    for (final slot in cluster.slots)
+                      ScheduleAppointmentCard(
+                        key: ValueKey(slot.appointment.id),
+                        appointment: slot.appointment,
+                        compact: compact,
+                      ),
+                  if (isToday) _NowLine(now: _now),
+                ],
               ),
             ),
           ),
@@ -780,13 +743,7 @@ class _DayViewState extends ConsumerState<_DayView> {
   }
 }
 
-double _yFor(DateTime t, double hourHeight) =>
-    (t.hour + t.minute / 60) * hourHeight;
-
-double _heightFor(Appointment a, double hourHeight) {
-  final minutes = a.slotEnd.difference(a.slotStart).inMinutes;
-  return (minutes / 60 * hourHeight).clamp(26.0, 24 * hourHeight);
-}
+int _minuteOfDay(DateTime time) => time.hour * 60 + time.minute;
 
 /// The − / + zoom control: taller rows for working a patient, shorter for a
 /// whole-day overview. Mirrors pinch-zoom on the iOS Calendar day view.
@@ -1096,88 +1053,206 @@ void _jumpToToday(WidgetRef ref, ScheduleView keep) {
 // Overlap layout
 // ---------------------------------------------------------------------------
 
-class _DaySlot {
-  const _DaySlot(
-    this.appointment,
-    this.column,
-    this.columns,
-    this.top,
-    this.slotHeight,
-  );
+typedef _DaySlot = ({Appointment appointment, int column});
 
-  final Appointment appointment;
-  final int column;
-  final int columns;
+typedef _DayCluster = ({
+  DateTime start,
+  DateTime end,
+  int columns,
+  List<_DaySlot> slots,
+});
 
-  /// Where the card sits on the timeline, in pixels.
-  final double top;
+/// Assigns genuinely overlapping appointments to separate columns.
+List<_DayCluster> _clusterDay(List<Appointment> appointments) {
+  final clusters = <_DayCluster>[];
+  var slots = <_DaySlot>[];
+  var columnEnds = <DateTime>[];
+  DateTime? end;
 
-  /// The card's minimum height — its duration on the grid. The card itself
-  /// sizes to its content and grows to fill this when the slot is taller.
-  final double slotHeight;
+  for (final appointment in appointments) {
+    if (end != null && !appointment.slotStart.isBefore(end)) {
+      clusters.add((
+        start: slots.first.appointment.slotStart,
+        end: end,
+        columns: columnEnds.length,
+        slots: slots,
+      ));
+      slots = [];
+      columnEnds = [];
+      end = null;
+    }
+    var column = columnEnds.indexWhere(
+      (columnEnd) => !columnEnd.isAfter(appointment.slotStart),
+    );
+    if (column == -1) {
+      column = columnEnds.length;
+      columnEnds.add(appointment.slotEnd);
+    } else {
+      columnEnds[column] = appointment.slotEnd;
+    }
+    slots.add((appointment: appointment, column: column));
+    if (end == null || appointment.slotEnd.isAfter(end)) {
+      end = appointment.slotEnd;
+    }
+  }
+  if (end != null) {
+    clusters.add((
+      start: slots.first.appointment.slotStart,
+      end: end,
+      columns: columnEnds.length,
+      slots: slots,
+    ));
+  }
+  return clusters;
 }
 
-/// Packs overlapping appointments into side-by-side columns: appointments that
-/// share any minute end up in the same cluster, and every cluster is as wide as
-/// its busiest moment. Each card is then positioned and pushed down within its
-/// column — by the larger of its duration and its estimated content height — so
-/// a run of short back-to-back visits never draws on top of the one before it.
-List<_DaySlot> _layoutDay(
-  List<Appointment> appointments,
-  double hourHeight,
-  bool compact,
-) {
-  final out = <_DaySlot>[];
-  final columnBottom = <int, double>{};
-  var cluster = <Appointment>[];
-  DateTime? clusterEnd;
+class _DayTimeline extends MultiChildRenderObjectWidget {
+  const _DayTimeline({
+    required this.clusters,
+    required this.hourHeight,
+    required this.nowMinute,
+    required super.children,
+    super.key,
+  });
 
-  void flush() {
-    if (cluster.isEmpty) return;
-    final columnEnds = <DateTime>[];
-    final assigned = <int>[];
-    for (final a in cluster) {
-      var column = -1;
-      for (var i = 0; i < columnEnds.length; i++) {
-        if (!columnEnds[i].isAfter(a.slotStart)) {
-          column = i;
-          break;
-        }
-      }
-      if (column == -1) {
-        columnEnds.add(a.slotEnd);
-        column = columnEnds.length - 1;
-      } else {
-        columnEnds[column] = a.slotEnd;
-      }
-      assigned.add(column);
-    }
-    for (var i = 0; i < cluster.length; i++) {
-      final a = cluster[i];
-      final column = assigned[i];
-      final slotHeight = _heightFor(a, hourHeight);
-      final rendered = math.max(
-        slotHeight,
-        scheduleCardEstimatedHeight(a, compact: compact),
-      );
-      final top = math.max(
-        _yFor(a.slotStart, hourHeight),
-        columnBottom[column] ?? 0,
-      );
-      columnBottom[column] = top + rendered + 4;
-      out.add(_DaySlot(a, column, columnEnds.length, top, slotHeight));
-    }
-    cluster = [];
-    clusterEnd = null;
+  final List<_DayCluster> clusters;
+  final double hourHeight;
+  final int? nowMinute;
+
+  @override
+  _RenderDayTimeline createRenderObject(BuildContext context) =>
+      _RenderDayTimeline()..configure(this);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderDayTimeline renderObject,
+  ) {
+    renderObject.configure(this);
+  }
+}
+
+class _DayTimelineParentData extends ContainerBoxParentData<RenderBox> {}
+
+/// Measures each card at its actual column width before placing the next one.
+/// Expanded sections also shift the hour rules and the live time marker.
+class _RenderDayTimeline extends RenderBox
+    with
+        ContainerRenderObjectMixin<RenderBox, _DayTimelineParentData>,
+        RenderBoxContainerDefaultsMixin<RenderBox, _DayTimelineParentData> {
+  late List<_DayCluster> _clusters;
+  late double _hourHeight;
+  int? _nowMinute;
+  final _appointmentTops = <String, double>{};
+  final _sections = <({int start, int end, double top, double bottom})>[];
+
+  void configure(_DayTimeline widget) {
+    _clusters = widget.clusters;
+    _hourHeight = widget.hourHeight;
+    _nowMinute = widget.nowMinute;
+    markNeedsLayout();
   }
 
-  for (final a in appointments) {
-    final end = clusterEnd;
-    if (end != null && !a.slotStart.isBefore(end)) flush();
-    cluster.add(a);
-    final current = clusterEnd;
-    if (current == null || a.slotEnd.isAfter(current)) clusterEnd = a.slotEnd;
+  @override
+  void setupParentData(RenderBox child) {
+    if (child.parentData is! _DayTimelineParentData) {
+      child.parentData = _DayTimelineParentData();
+    }
   }
-  flush();
-  return out;
+
+  double? appointmentTop(String id) => _appointmentTops[id];
+
+  double _pixels(int minutes) => minutes * _hourHeight / 60;
+
+  double timelineY(int minute) {
+    var extra = 0.0;
+    for (final section in _sections) {
+      if (minute < section.start) break;
+      if (minute < section.end) {
+        final fraction =
+            (minute - section.start) / (section.end - section.start);
+        return section.top + fraction * (section.bottom - section.top);
+      }
+      extra = section.bottom - _pixels(section.end);
+    }
+    return _pixels(minute) + extra;
+  }
+
+  @override
+  void performLayout() {
+    final children = getChildrenAsList();
+    final width = constraints.maxWidth;
+    final laneWidth = math.max(0.0, width - _timeGutter);
+    _sections.clear();
+    _appointmentTops.clear();
+    var childIndex = _hoursInDay;
+    var extra = 0.0;
+    for (final cluster in _clusters) {
+      final start = _minuteOfDay(cluster.start);
+      final length = math.max(
+        1,
+        cluster.end.difference(cluster.start).inMinutes,
+      );
+      final end = start + length;
+      final top = _pixels(start) + extra;
+      final columnWidth = laneWidth / cluster.columns;
+      final columnBottoms = List.filled(cluster.columns, top);
+      for (final slot in cluster.slots) {
+        final appointment = slot.appointment;
+        final startOffset = _minuteOfDay(appointment.slotStart) - start;
+        final cardTop = math.max(
+          top + _pixels(startOffset),
+          columnBottoms[slot.column],
+        );
+        final card = children[childIndex++];
+        final cardWidth = math.max(0.0, columnWidth - 4);
+        final minutes = appointment.slotEnd
+            .difference(appointment.slotStart)
+            .inMinutes;
+        card.layout(
+          BoxConstraints(
+            minWidth: cardWidth,
+            maxWidth: cardWidth,
+            minHeight: math.max(26.0, _pixels(minutes)),
+          ),
+          parentUsesSize: true,
+        );
+        _position(card, _timeGutter + slot.column * columnWidth, cardTop);
+        _appointmentTops[appointment.id] = cardTop;
+        columnBottoms[slot.column] =
+            cardTop + card.size.height + _appointmentGap;
+      }
+      final bottom = columnBottoms.fold(top + _pixels(length), math.max);
+      _sections.add((start: start, end: end, top: top, bottom: bottom));
+      extra = bottom - _pixels(end);
+    }
+
+    for (var hour = 0; hour < _hoursInDay; hour++) {
+      final rule = children[hour];
+      rule.layout(BoxConstraints.tightFor(width: width));
+      _position(rule, 0, timelineY(hour * 60));
+    }
+    if (_nowMinute case final minute?) {
+      final marker = children.last;
+      marker.layout(BoxConstraints.tightFor(width: width));
+      _position(marker, 0, timelineY(minute) - 9);
+    }
+    final height = math.max(
+      timelineY(_hoursInDay * 60),
+      _sections.lastOrNull?.bottom ?? 0.0,
+    );
+    size = constraints.constrain(Size(width, height));
+  }
+
+  void _position(RenderBox child, double x, double y) {
+    (child.parentData! as _DayTimelineParentData).offset = Offset(x, y);
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) =>
+      defaultPaint(context, offset);
+
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) =>
+      defaultHitTestChildren(result, position: position);
 }

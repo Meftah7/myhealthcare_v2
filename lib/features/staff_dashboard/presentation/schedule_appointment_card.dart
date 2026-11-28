@@ -29,17 +29,17 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/theme.dart';
 import '../../../core/presentation/feedback.dart';
+import '../../../core/presentation/readable_label.dart';
 import '../../../core/presentation/status_badges.dart';
 import '../../../core/result.dart';
 import '../../../core/utils/format.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../domain/enums.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../consultation/application/consultation_providers.dart';
 import '../../workforce/workforce_home.dart';
 import '../../workforce/workforce_repository.dart';
 import '../../workspace/workspace_widgets.dart' show wt, rows;
-import '../../../core/presentation/readable_label.dart';
-import '../../../l10n/app_localizations.dart';
-import '../../consultation/application/consultation_providers.dart';
 import '../application/staff_providers.dart';
 
 /// Where an appointment sits in the doctor's workflow, collapsed from
@@ -56,29 +56,6 @@ ScheduleCardState scheduleCardStateOf(Appointment a) => switch (a.status) {
   AppointmentStatus.checkedIn =>
     a.wasCalledIn ? ScheduleCardState.called : ScheduleCardState.booked,
 };
-
-/// The height the day layout should reserve for a card's push-down maths — an
-/// estimate of the content height (the real card sizes itself). When the
-/// timeline is zoomed right out the card collapses to one compact row.
-double scheduleCardEstimatedHeight(Appointment a, {required bool compact}) {
-  if (compact) return 44;
-  final state = scheduleCardStateOf(a);
-  var h = 20.0 + 22 /* padding + name row */ + 22 /* badge + details row */;
-  if (a.reasonText != null) h += 16;
-  final hasInfo = switch (state) {
-    ScheduleCardState.called || ScheduleCardState.arrived => true,
-    ScheduleCardState.done => a.outcomeNote != null,
-    _ => false,
-  };
-  if (hasInfo) h += 16;
-  h += 9; // divider
-  final buttonRows =
-      state == ScheduleCardState.booked || state == ScheduleCardState.called
-      ? 2
-      : 1;
-  h += buttonRows * 40 + (buttonRows - 1) * 8;
-  return h;
-}
 
 /// Below this many pixels-per-hour the day view is an overview, and cards drop
 /// to a single compact row.
